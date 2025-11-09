@@ -96,6 +96,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
+import com.google.android.gms.maps.CameraUpdateFactory
 import kotlinx.coroutines.launch
 
 
@@ -2182,28 +2183,51 @@ object constantes_lista_localidades {
 
     @SuppressLint("MissingPermission")
     fun obtenerUbicacionEnTiempoReal(
+        gps_activo: Boolean,
         context: Context,
-        onLocation: (Double, Double) -> Unit
+        onLocation: (Double, Double) -> Unit,
+        onTimeout: () -> Unit // Callback para cuando se supera el tiempo máximo
     ) {
+        if (!gps_activo) {
+            Log.w("UBICACION_TIEMPO_REAL", "⚠️ GPS inactivo, cancelando solicitud inmediatamente.")
+            onTimeout()
+            return
+        }
+
         val fusedClient = LocationServices.getFusedLocationProviderClient(context)
+        var ubicacionObtenida = false // 🔹 bandera de control
 
         val locationRequest = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
-            5000L
+            5000L // cada cuánto se intenta actualizar
         ).build()
 
-        fusedClient.requestLocationUpdates(
-            locationRequest,
-            object : LocationCallback() {
-                override fun onLocationResult(result: LocationResult) {
-                    val location = result.lastLocation ?: return
+        val locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                val location = locationResult.lastLocation ?: return
+                if (!ubicacionObtenida) { // 🔹 solo si no se obtuvo antes
+                    ubicacionObtenida = true
+                    Log.d("UBICACION_TIEMPO_REAL", "✅ Ubicación obtenida: ${location.latitude}, ${location.longitude}")
                     onLocation(location.latitude, location.longitude)
-                    fusedClient.removeLocationUpdates(this) // 🧹 Detener después de una lectura
+                    fusedClient.removeLocationUpdates(this)
                 }
-            },
-            Looper.getMainLooper()
-        )
+            }
+        }
+
+        fusedClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+
+        // 🔹 Temporizador de 15 segundos
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (!ubicacionObtenida) {
+                Log.w("UBICACION_TIEMPO_REAL", "⚠️ Tiempo de espera superado (15s), cancelando solicitud.")
+                fusedClient.removeLocationUpdates(locationCallback)
+                onTimeout()
+            }
+        }, 15000L)
     }
+
+
+
 
 
 //    @SuppressLint("MissingPermission")

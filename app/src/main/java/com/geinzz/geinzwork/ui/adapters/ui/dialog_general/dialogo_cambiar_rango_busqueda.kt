@@ -1,8 +1,11 @@
 package com.geinzz.geinzwork.ui.adapters.ui.dialog_general
 
+import android.app.Activity
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
@@ -38,6 +42,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoSubrayado
@@ -49,6 +57,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerZonaActual
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.viewModels.viewmodel_floating_filtrado
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -80,13 +89,35 @@ fun dialogo_cabiar_rango_busqueda(
         context
     ).collectAsState(initial = null)
 
+    viewmodel_floating_filtrado.iniciarVerificacionGPS(context)
     var ultima_hora_actualziada by remember { mutableStateOf("") }
     val scate_carga_cordenadas_nuevas by viewmodel_floating_filtrado.carga_cordenadas_nuevas.collectAsState()
+    val estadoGPS by viewmodel_floating_filtrado.gpsActivo.collectAsState()
+
+    LaunchedEffect(estadoGPS) {
+        if(!estadoGPS){
+            viewmodel_floating_filtrado.colocar_gps_false()
+        }
+
+    }
 
 
     LaunchedEffect(ultima_cordenada_actualziada) {
         Log.d("ultima_hora_actualziada", ultima_cordenada_actualziada.toString())
         ultima_hora_actualziada = ultima_cordenada_actualziada ?: ""
+    }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            Log.d("GPS", "✅ El usuario activó el GPS")
+            viewmodel_floating_filtrado.gps_activo(true)
+
+        } else {
+            Log.d("GPS", "❌ El usuario canceló el diálogo de ubicación")
+            viewmodel_floating_filtrado.gps_activo(false)
+
+        }
     }
     AlertDialog(
         onDismissRequest = { ondimis() },
@@ -150,9 +181,103 @@ fun dialogo_cabiar_rango_busqueda(
                             is viewmodel_floating_filtrado.carga_cordenadas.error -> {
                                 val error =
                                     (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.error).txt
-                                texto_generico_one_line(
-                                    error,
-                                    MaterialTheme.typography.bodyMedium
+
+                                // Lista de palabras clave y sus tags
+                                val keywordsWithTags = listOf(
+                                    "Intenta nuevamente." to "REINTENTAR",
+                                    "Enciéndelo" to "ENCIÉNDELO",
+                                    "Intentalo nuevamente." to "REINTENTAR2"
+                                )
+
+                                val annotatedText = buildAnnotatedString {
+                                    var currentIndex = 0
+
+                                    while (currentIndex < error.length) {
+                                        // Filtrar palabras clave según si el GPS está activo
+                                        val keywordsWithTagsFiltered = keywordsWithTags.filter { (keyword, _) ->
+                                            when (keyword) {
+                                                "Enciéndelo" -> !estadoGPS
+                                                "Intenta nuevamente." -> estadoGPS
+                                                else -> true
+                                            }
+                                        }
+
+                                        // Buscar la siguiente palabra clave más cercana
+                                        val nextKeyword = keywordsWithTagsFiltered
+                                            .mapNotNull { (keyword, tag) ->
+                                                val index = error.indexOf(keyword, currentIndex)
+                                                if (index != -1) index to keyword to tag else null
+                                            }
+                                            .minByOrNull { it.first.first } // tomar la más cercana
+
+                                        if (nextKeyword != null) {
+                                            val (startIndexKeywordPair, tag) = nextKeyword
+                                            val (startIndex, keyword) = startIndexKeywordPair
+
+                                            // Texto antes de la palabra clave
+                                            if (currentIndex < startIndex) {
+                                                withStyle(SpanStyle(color = Color.White)) {
+                                                    append(error.substring(currentIndex, startIndex))
+                                                }
+                                            }
+
+                                            // Palabra clave subrayada y clickeable
+                                            pushStringAnnotation(tag = tag, annotation = keyword)
+                                            withStyle(
+                                                SpanStyle(
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    textDecoration = TextDecoration.Underline
+                                                )
+                                            ) {
+                                                append(keyword)
+                                            }
+                                            pop()
+
+                                            currentIndex = startIndex + keyword.length
+                                        } else {
+                                            // Lo que queda del texto normal
+                                            withStyle(SpanStyle(color = Color.White)) {
+                                                append(error.substring(currentIndex))
+                                            }
+                                            break
+                                        }
+                                    }
+                                }
+
+
+                                // ClickableText
+                                ClickableText(
+                                    text = annotatedText,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    onClick = { offset ->
+                                        annotatedText.getStringAnnotations(
+                                            start = offset,
+                                            end = offset
+                                        )
+                                            .firstOrNull()
+                                            ?.let { annotation ->
+                                                when (annotation.tag) {
+                                                    "REINTENTAR" -> {
+                                                        // Acción para "Intenta nuevamente."
+                                                        viewmodel_floating_filtrado.obtener_nuevas_cordenadas(
+                                                            context
+                                                        )
+                                                    }
+
+                                                    "ENCIÉNDELO" -> {
+                                                        verificarGPS(
+                                                            context,
+                                                            launcher
+                                                        )
+                                                    }
+                                                    "REINTENTAR2"->{
+                                                        viewmodel_floating_filtrado.obtener_nuevas_cordenadas(
+                                                            context
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                    }
                                 )
                             }
 

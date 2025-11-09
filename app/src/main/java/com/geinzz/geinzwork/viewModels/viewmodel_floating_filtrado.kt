@@ -13,6 +13,7 @@ import com.geinzz.geinzwork.data_store.data_store_localidad.guardar_hasgin_lat_l
 import com.geinzz.geinzwork.data_store.data_store_localidad.guardar_lat_log_user
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isGpsActivo
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionEnTiempoReal
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionReal
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerZonaActual
 import kotlinx.coroutines.Job
@@ -35,16 +36,19 @@ class viewmodel_floating_filtrado : ViewModel() {
     private val _gpsActivo = MutableStateFlow(false)
     val gpsActivo = _gpsActivo.asStateFlow()
 
-    private val _cerca_de_ti_enable =MutableStateFlow(false)
-    val cerca_de_ti_enable=_cerca_de_ti_enable.asStateFlow()
+    private val _cerca_de_ti_enable = MutableStateFlow(false)
+    val cerca_de_ti_enable = _cerca_de_ti_enable.asStateFlow()
 
 
-    fun save_cerca_de_ti (valor: Boolean){
-        _cerca_de_ti_enable.value=valor
+    fun gps_activo(enable_desable: Boolean){
+        _gpsActivo.value=enable_desable
+    }
+    fun save_cerca_de_ti(valor: Boolean) {
+        _cerca_de_ti_enable.value = valor
     }
 
-    fun limpiar_valor_save_cerca_de_ti(){
-        _cerca_de_ti_enable.value=false
+    fun limpiar_valor_save_cerca_de_ti() {
+        _cerca_de_ti_enable.value = false
     }
 
 
@@ -66,38 +70,45 @@ class viewmodel_floating_filtrado : ViewModel() {
     }
 
 
-
     fun detenerVerificacionGPS() {
         jobVerificacionGPS?.cancel()
         jobVerificacionGPS = null
     }
+    fun colocar_gps_false(){
+        _carga_cordenadas_nuevas.value =
+            carga_cordenadas.error("El GPS está desactivado. Enciéndelo para continuar y Intenta nuevamente.")
+    }
+
     fun obtener_nuevas_cordenadas(context: Context) {
-        Log.d("qewqeqeqeeqewq","obtener_nuevas_cordenadas")
+        Log.d("qewqeqeqeeqewq", "obtener_nuevas_cordenadas")
         if (!_gpsActivo.value) {
             _carga_cordenadas_nuevas.value =
-                carga_cordenadas.error("El GPS está desactivado. Enciéndelo para continuar.")
+                carga_cordenadas.error("El GPS está desactivado. Enciéndelo para continuar y Intenta nuevamente.")
             return
         }
         _carga_cordenadas_nuevas.value = carga_cordenadas.loading
         viewModelScope.launch {
             try {
-                obtenerUbicacionReal(context = context, { lat, lng ->
-                    Log.d("asdasFSGIDNSHGUIB","$lat ${lng}")
+                obtenerUbicacionEnTiempoReal(_gpsActivo.value,context = context, { lat, lng ->
+                    Log.d("asdasFSGIDNSHGUIB", "$lat ${lng}")
                     val geohasing = geohashing(lat, lng)
                     val hora = obtener_hora_actual_formato_12h()
-                    viewModelScope.launch  {
+                    viewModelScope.launch {
                         guardar_hasgin_lat_lon_user(context, geohasing, hora)
                         guardar_lat_log_user(context, lat, lng)
                     }
                     val zona_actual = obtenerZonaActual(lat, lng)
-                    _carga_cordenadas_nuevas.value = carga_cordenadas.succes(zona_actual, hora,geohasing)
-
-                }  ,  onTimeout = {
                     _carga_cordenadas_nuevas.value =
-                        carga_cordenadas.error("No se pudo obtener la ubicación. Intenta nuevamente.")
-                })
+                        carga_cordenadas.succes(zona_actual, hora, geohasing)
+
+                },{
+                    _carga_cordenadas_nuevas.value =
+                        carga_cordenadas.error("No se pudo obtener la ubicación. Intentalo nuevamente.")
+                }
+                )
             } catch (e: Exception) {
-                _carga_cordenadas_nuevas.value = carga_cordenadas.error("Error al obtener coordenadas: ${e.message}")
+                _carga_cordenadas_nuevas.value =
+                    carga_cordenadas.error("Error al obtener coordenadas: ${e.message}")
             }
         }
     }
@@ -112,7 +123,7 @@ class viewmodel_floating_filtrado : ViewModel() {
     }
 
     sealed class carga_cordenadas() {
-        data class succes(val localidad: String, val hora: String,val hashin_user: String) :
+        data class succes(val localidad: String, val hora: String, val hashin_user: String) :
             carga_cordenadas()
 
         object loading : carga_cordenadas()

@@ -282,13 +282,13 @@ fun ui_pantalla_busqueda(
         radioActual = radioGuardado
     }
     var hasing_user_user_filtrado by remember { mutableStateOf("") }
-
+    val estadoGPS by viewmodel_floating_filtrado.gpsActivo.collectAsState()
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             Log.d("GPS", "✅ El usuario activó el GPS")
-            obtenerUbicacionEnTiempoReal(context) { lat, lng ->
+            obtenerUbicacionEnTiempoReal(estadoGPS,context,{ lat, lng ->
                 Log.d("lat_log_user", "$lat $lng")
                 hash_user = geohashing(lat, lng)
                 val hora = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
@@ -296,7 +296,7 @@ fun ui_pantalla_busqueda(
                     data_store_localidad.guardar_hasgin_lat_lon_user(context, hash_user ?: "", hora)
                     data_store_localidad.guardar_lat_log_user(context, lat, lng)
                 }
-            }
+            },{})
 //            cerca_de_ti_enable = true
             viewmodel_floating_filtrado.save_cerca_de_ti(true)
         } else {
@@ -321,7 +321,7 @@ fun ui_pantalla_busqueda(
         Log.d("FiltroRadioEffect", "subcategira_filtrado = $subcategira_filtrado")
         if (cerca_de_ti_enable.value) {
             Log.d("FiltroRadioEffect", "Switch Cerca de Ti ACTIVADO")
-            obtenerUbicacionEnTiempoReal(context) { lat, lng ->
+            obtenerUbicacionEnTiempoReal(estadoGPS,context,{ lat, lng ->
                 Log.d("lat_log_user", "$lat $lng")
                 hash_user = geohashing(lat, lng)
                 val hora = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
@@ -329,7 +329,7 @@ fun ui_pantalla_busqueda(
                     data_store_localidad.guardar_hasgin_lat_lon_user(context, hash_user ?: "", hora)
                     data_store_localidad.guardar_lat_log_user(context, lat, lng)
                 }
-            }
+            },{})
             if (categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
                 Log.d(
                     "FiltroRadioEffect",

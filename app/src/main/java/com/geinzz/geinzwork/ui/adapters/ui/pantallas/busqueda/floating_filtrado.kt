@@ -1,9 +1,14 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -102,6 +107,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.daclass_filtrado_ui.dataclass_filtrado_ui
@@ -120,18 +126,13 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.cat_sub_seguirar_salud
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacion
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionEnTiempoReal
-//import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionOptima
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionReal
-//import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionReal
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerZonaActual
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isGPSEnabled
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.simplificarCategoria
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.shimmer_carga_general.shimmer
 import com.geinzz.geinzwork.viewModels.SearchViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
@@ -139,9 +140,6 @@ import com.geinzz.geinzwork.viewModels.viewmodel_floating_filtrado
 import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -352,6 +350,19 @@ fun FloatingBubble(
     var radioActual by remember { mutableStateOf(1f) }
     var mostra_dialog_salud_Seguridad_cerano by remember { mutableStateOf(false) }
     var enable_cerca by remember { mutableStateOf(false) }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            Log.d("GPS", "✅ El usuario activó el GPS")
+            viewmodel_floating_filtrado.gps_activo(true)
+
+        } else {
+            Log.d("GPS", "❌ El usuario canceló el diálogo de ubicación")
+            viewmodel_floating_filtrado.gps_activo(false)
+
+        }
+    }
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -516,7 +527,9 @@ fun FloatingBubble(
                                         if (filtros.localidad.isNotEmpty()) {
                                             item {
                                                 AnimatedVisibility(
-                                                    visible = true, enter = fadeIn(), exit = fadeOut()
+                                                    visible = true,
+                                                    enter = fadeIn(),
+                                                    exit = fadeOut()
                                                 ) {
                                                     chisp_filtrado_busqueda(
                                                         color_localidad,
@@ -537,7 +550,9 @@ fun FloatingBubble(
                                         if (mostrarChipCategoria.value) {
                                             item {
                                                 AnimatedVisibility(
-                                                    visible = true, enter = fadeIn(), exit = fadeOut()
+                                                    visible = true,
+                                                    enter = fadeIn(),
+                                                    exit = fadeOut()
                                                 ) {
                                                     chisp_filtrado_busqueda(
                                                         color_categoria,
@@ -562,7 +577,9 @@ fun FloatingBubble(
                                         if (mostrarChipsubcategoria.value) {
                                             item {
                                                 AnimatedVisibility(
-                                                    visible = true, enter = fadeIn(), exit = fadeOut()
+                                                    visible = true,
+                                                    enter = fadeIn(),
+                                                    exit = fadeOut()
                                                 ) {
                                                     chisp_filtrado_busqueda(
                                                         color_subcategoria,
@@ -584,7 +601,9 @@ fun FloatingBubble(
                                         if (mostrar_chip_salud_seguridad.value) {
                                             item {
                                                 AnimatedVisibility(
-                                                    visible = true, enter = fadeIn(), exit = fadeOut()
+                                                    visible = true,
+                                                    enter = fadeIn(),
+                                                    exit = fadeOut()
                                                 ) {
                                                     chisp_filtrado_busqueda(
                                                         color_salud_seguridad,
@@ -600,7 +619,8 @@ fun FloatingBubble(
                                                             click_carta_seguridad_delete()
                                                             mostrarChipsubcategoria.value = false
                                                             mostrarChipCategoria.value = false
-                                                            mostrar_chip_salud_seguridad.value = false
+                                                            mostrar_chip_salud_seguridad.value =
+                                                                false
                                                         })
                                                 }
                                             }
@@ -684,7 +704,9 @@ fun FloatingBubble(
                                                     if (tieneCategorias) {
                                                         LazyColumn(
                                                             state = listState,
-                                                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                                                            verticalArrangement = Arrangement.spacedBy(
+                                                                8.dp
+                                                            ),
                                                             contentPadding = PaddingValues(
                                                                 horizontal = 16.dp, vertical = 8.dp
                                                             ),
@@ -704,7 +726,8 @@ fun FloatingBubble(
                                                             items(categorias_filtrado_res) { i ->
                                                                 val isSelected =
                                                                     selectedCategoria.equals(
-                                                                        i.nombre_cat, ignoreCase = true
+                                                                        i.nombre_cat,
+                                                                        ignoreCase = true
                                                                     )
 
                                                                 AnimatedFabItem(
@@ -821,7 +844,8 @@ fun FloatingBubble(
                                                 0 -> 0.20f
                                                 1 -> 0.25f
                                                 else -> 0.13f
-                                            }, animationSpec = tween(300, easing = FastOutSlowInEasing)
+                                            },
+                                            animationSpec = tween(300, easing = FastOutSlowInEasing)
                                         )
                                         apartado_lugares_interes(
                                             color_salud_seguridad,
@@ -1024,7 +1048,8 @@ fun FloatingBubble(
                                                 modifier = Modifier.align(Alignment.TopEnd),
                                                 icono_expandido,
                                                 onClick = {
-                                                    expandedIndex = if (expandedIndex == 0) -1 else 0
+                                                    expandedIndex =
+                                                        if (expandedIndex == 0) -1 else 0
                                                 })
                                         }
 
@@ -1037,7 +1062,8 @@ fun FloatingBubble(
                                             derivedStateOf {
                                                 val lastVisible =
                                                     listStateSub.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-                                                val totalItems = listStateSub.layoutInfo.totalItemsCount
+                                                val totalItems =
+                                                    listStateSub.layoutInfo.totalItemsCount
                                                 lastVisible != null && lastVisible < totalItems - 1
                                             }
                                         }
@@ -1147,7 +1173,8 @@ fun FloatingBubble(
                                                                     items(subcategoira_filtrado_res) { sub ->
                                                                         val isSelected =
                                                                             subcategoria_select.equals(
-                                                                                sub, ignoreCase = true
+                                                                                sub,
+                                                                                ignoreCase = true
                                                                             )
 
                                                                         AnimatedFabItem(
@@ -1160,9 +1187,10 @@ fun FloatingBubble(
                                                                                 subcategoria_selecionada(
                                                                                     sub
                                                                                 )
-                                                                                filtros = filtros.copy(
-                                                                                    subcategoria = sub
-                                                                                )
+                                                                                filtros =
+                                                                                    filtros.copy(
+                                                                                        subcategoria = sub
+                                                                                    )
                                                                                 mostrarChipsubcategoria.value =
                                                                                     true
                                                                             } else {
@@ -1255,7 +1283,8 @@ fun FloatingBubble(
                                                 modifier = Modifier.align(Alignment.TopEnd),
                                                 icono_expandido2,
                                                 onClick = {
-                                                    expandedIndex = if (expandedIndex == 1) -1 else 1
+                                                    expandedIndex =
+                                                        if (expandedIndex == 1) -1 else 1
                                                 })
                                         }
 
@@ -1280,6 +1309,7 @@ fun FloatingBubble(
                                             duration = SnackbarDuration.Short
                                         )
                                     }
+                                    viewmodel_floating_filtrado.colocar_gps_false()
                                 }
                             }
 
@@ -1329,7 +1359,7 @@ fun FloatingBubble(
                                     )
 
                                     var gpsIniciado by rememberSaveable { mutableStateOf(false) }
-                                    var varibalehasin by rememberSaveable {mutableStateOf("")}
+                                    var varibalehasin by rememberSaveable { mutableStateOf("") }
 
                                     spacer_vertical(17.dp)
                                     if (cerca_de_ti_enable) {
@@ -1375,7 +1405,11 @@ fun FloatingBubble(
                                         ) {
                                             AnimatedContent(
                                                 targetState = enable_cerca, transitionSpec = {
-                                                    fadeIn(tween(400)) togetherWith fadeOut(tween(300))
+                                                    fadeIn(tween(400)) togetherWith fadeOut(
+                                                        tween(
+                                                            300
+                                                        )
+                                                    )
                                                 }, label = "animacion_cerca"
                                             ) { habilitado ->
                                                 if (habilitado) {
@@ -1385,59 +1419,101 @@ fun FloatingBubble(
                                                                 val error =
                                                                     (scate_carga_cordenadas_nuevas as viewmodel_floating_filtrado.carga_cordenadas.error).txt
 
-                                                                // Construimos el texto anotado
+                                                                // Lista de palabras clave y sus tags
+                                                                val keywordsWithTags = listOf(
+                                                                    "Intenta nuevamente." to "REINTENTAR",
+                                                                    "Enciéndelo" to "ENCIÉNDELO",
+                                                                    "Intentalo nuevamente." to "REINTENTAR2"
+                                                                )
+
                                                                 val annotatedText = buildAnnotatedString {
-                                                                    val keyword = "Intenta nuevamente."
-                                                                    val startIndex = error.indexOf(keyword)
+                                                                    var currentIndex = 0
 
-                                                                    if (startIndex != -1) {
-                                                                        // Parte antes del texto clickeable (en blanco)
-                                                                        withStyle(style = SpanStyle(
-                                                                            color = Color.White
-                                                                        )
-                                                                        ) {
-                                                                            append(error.substring(0, startIndex))
-                                                                        }
-
-                                                                        // Parte clickeable subrayada
-                                                                        pushStringAnnotation(tag = "REINTENTAR", annotation = keyword)
-                                                                        withStyle(
-                                                                            style = SpanStyle(
-                                                                                color = MaterialTheme.colorScheme.primary,
-                                                                                textDecoration = TextDecoration.Underline
-                                                                            )
-                                                                        ) {
-                                                                            append(keyword)
-                                                                        }
-                                                                        pop()
-
-                                                                        // Parte después del texto clickeable (también blanca)
-                                                                        if (startIndex + keyword.length < error.length) {
-                                                                            withStyle(style = SpanStyle(color = Color.White)) {
-                                                                                append(error.substring(startIndex + keyword.length))
+                                                                    while (currentIndex < error.length) {
+                                                                        // Filtrar palabras clave según si el GPS está activo
+                                                                        val keywordsWithTagsFiltered = keywordsWithTags.filter { (keyword, _) ->
+                                                                            when (keyword) {
+                                                                                "Enciéndelo" -> !estadoGPS
+                                                                                "Intenta nuevamente." -> estadoGPS
+                                                                                else -> true
                                                                             }
                                                                         }
-                                                                    } else {
-                                                                        // Todo el texto en blanco si no contiene la palabra clave
-                                                                        withStyle(style = SpanStyle(color = Color.White)) {
-                                                                            append(error)
+
+                                                                        // Buscar la siguiente palabra clave más cercana
+                                                                        val nextKeyword = keywordsWithTagsFiltered
+                                                                            .mapNotNull { (keyword, tag) ->
+                                                                                val index = error.indexOf(keyword, currentIndex)
+                                                                                if (index != -1) index to keyword to tag else null
+                                                                            }
+                                                                            .minByOrNull { it.first.first } // tomar la más cercana
+
+                                                                        if (nextKeyword != null) {
+                                                                            val (startIndexKeywordPair, tag) = nextKeyword
+                                                                            val (startIndex, keyword) = startIndexKeywordPair
+
+                                                                            // Texto antes de la palabra clave
+                                                                            if (currentIndex < startIndex) {
+                                                                                withStyle(SpanStyle(color = Color.White)) {
+                                                                                    append(error.substring(currentIndex, startIndex))
+                                                                                }
+                                                                            }
+
+                                                                            // Palabra clave subrayada y clickeable
+                                                                            pushStringAnnotation(tag = tag, annotation = keyword)
+                                                                            withStyle(
+                                                                                SpanStyle(
+                                                                                    color = MaterialTheme.colorScheme.primary,
+                                                                                    textDecoration = TextDecoration.Underline
+                                                                                )
+                                                                            ) {
+                                                                                append(keyword)
+                                                                            }
+                                                                            pop()
+
+                                                                            currentIndex = startIndex + keyword.length
+                                                                        } else {
+                                                                            // Lo que queda del texto normal
+                                                                            withStyle(SpanStyle(color = Color.White)) {
+                                                                                append(error.substring(currentIndex))
+                                                                            }
+                                                                            break
                                                                         }
                                                                     }
                                                                 }
 
-                                                                // Texto clickeable
+
+                                                                // ClickableText
                                                                 ClickableText(
                                                                     text = annotatedText,
                                                                     style = MaterialTheme.typography.bodyMedium,
                                                                     onClick = { offset ->
                                                                         annotatedText.getStringAnnotations(
-                                                                            tag = "REINTENTAR",
                                                                             start = offset,
                                                                             end = offset
-                                                                        ).firstOrNull()?.let {
-                                                                            // 👇 Vuelve a intentar obtener coordenadas
-                                                                            viewmodel_floating_filtrado.obtener_nuevas_cordenadas(context)
-                                                                        }
+                                                                        )
+                                                                            .firstOrNull()
+                                                                            ?.let { annotation ->
+                                                                                when (annotation.tag) {
+                                                                                    "REINTENTAR" -> {
+                                                                                        // Acción para "Intenta nuevamente."
+                                                                                        viewmodel_floating_filtrado.obtener_nuevas_cordenadas(
+                                                                                            context
+                                                                                        )
+                                                                                    }
+
+                                                                                    "ENCIÉNDELO" -> {
+                                                                                        verificarGPS(
+                                                                                            context,
+                                                                                            launcher
+                                                                                        )
+                                                                                    }
+                                                                                    "REINTENTAR2"->{
+                                                                                        viewmodel_floating_filtrado.obtener_nuevas_cordenadas(
+                                                                                            context
+                                                                                        )
+                                                                                    }
+                                                                                }
+                                                                            }
                                                                     }
                                                                 )
                                                             }
@@ -1471,9 +1547,13 @@ fun FloatingBubble(
                                                                     geohasing_variable
                                                                 )
                                                                 LaunchedEffect(geohasing_variable) {
-                                                                    Log.d("CambioGeohash", "Nuevo valor: $geohasing_variable")
+                                                                    Log.d(
+                                                                        "CambioGeohash",
+                                                                        "Nuevo valor: $geohasing_variable"
+                                                                    )
                                                                     filtrado_cerca_de_ti(
-                                                                        radioActual, geohasing_variable
+                                                                        radioActual,
+                                                                        geohasing_variable
                                                                     )
                                                                 }
 
@@ -1493,7 +1573,8 @@ fun FloatingBubble(
                                                                                 context
                                                                             )
                                                                             filtrado_cerca_de_ti(
-                                                                                radioActual, geohasing_variable
+                                                                                radioActual,
+                                                                                geohasing_variable
                                                                             )
                                                                         },
                                                                         color_subrallado = MaterialTheme.colorScheme.primary
@@ -1503,7 +1584,9 @@ fun FloatingBubble(
                                                                 if (localidad != "Fuera de zona" && localidad.isNotBlank()) {
                                                                     Row(
                                                                         verticalAlignment = Alignment.CenterVertically,
-                                                                        modifier = Modifier.padding(top = 17.dp)
+                                                                        modifier = Modifier.padding(
+                                                                            top = 17.dp
+                                                                        )
                                                                     ) {
                                                                         texto_generico_one_line(
                                                                             "¿Quieres filtrar por tu ubicación actual?  ",
@@ -1547,7 +1630,8 @@ fun FloatingBubble(
                                                             enabled = enable_cerca,
                                                             value = radioActual,
                                                             onValueChange = {
-                                                                radioActual = it.roundToInt().toFloat()
+                                                                radioActual =
+                                                                    it.roundToInt().toFloat()
                                                             },
                                                             valueRange = 1f..10f,
                                                             steps = 8,
@@ -1557,11 +1641,11 @@ fun FloatingBubble(
                                                                         context, radioActual
                                                                     )
                                                                 }
-                                                                if(geohashin !=null){
+                                                                if (geohashin != null) {
                                                                     filtrado_cerca_de_ti(
                                                                         radioActual, geohashin
                                                                     )
-                                                                }else{
+                                                                } else {
                                                                     println("No se econtro geohasing")
                                                                 }
 
@@ -1584,7 +1668,8 @@ fun FloatingBubble(
                                                                     contentAlignment = Alignment.Center
                                                                 ) {
                                                                     texto_generico_one_line(
-                                                                        radioActual.toInt().toString(),
+                                                                        radioActual.toInt()
+                                                                            .toString(),
                                                                         color = Color.Black,
                                                                         style = MaterialTheme.typography.bodyMedium
                                                                     )
