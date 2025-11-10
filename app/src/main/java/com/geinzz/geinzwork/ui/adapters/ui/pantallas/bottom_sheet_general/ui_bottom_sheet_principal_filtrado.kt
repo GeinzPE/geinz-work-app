@@ -155,7 +155,7 @@ fun bottom_sheet_tiendas_filtradas(
     visible: Boolean,
     onClose: () -> Unit
 ) {
-
+    val context = LocalContext.current
     viewModelFiltros.cast_horario_atencion_horario_tienda(tiendas_filtradas.horario_atencion)
     var expandir_descripcion by rememberSaveable { mutableStateOf(false) }
     var expander_caracterisiticas by rememberSaveable { mutableStateOf(false) }
@@ -163,7 +163,6 @@ fun bottom_sheet_tiendas_filtradas(
     var expander_horario by rememberSaveable { mutableStateOf(false) }
     var expander_qr_tienda by rememberSaveable { mutableStateOf(false) }
     var expander_metodos_pagos by rememberSaveable { mutableStateOf(false) }
-
     val direccion = tiendas_filtradas.ubicacion["dirección"]?.toString() ?: ""
     val referencia = tiendas_filtradas.ubicacion["referencia"]?.toString() ?: ""
     val longitud = (tiendas_filtradas.ubicacion["longitud"] as? Number)?.toDouble() ?: 0.0
@@ -330,6 +329,7 @@ fun bottom_sheet_tiendas_filtradas(
                         }
                         item {
                             Expandible_Metodo_contacto(
+                                context,
                                 modifier = Modifier.padding(horizontal = 10.dp),
                                 expander_contacto,
                                 tiendas_filtradas.metodo_contacto_tienda
@@ -369,7 +369,7 @@ fun bottom_sheet_tiendas_filtradas(
 
 @Composable
 fun cabezero_tiendas(
-    viewModel_filtado_tiendas:viewModel_filtado_tiendas,
+    viewModel_filtado_tiendas: viewModel_filtado_tiendas,
     modifier: Modifier = Modifier,
     estadoColor: Color,
     direccion: String,
@@ -477,7 +477,13 @@ fun cabezero_tiendas(
 
         ) {
             Box(modifier = Modifier.weight(1f)) {
-                perfil_cabezero(viewModel_filtado_tiendas,nombre_tienda, estadoColor, categoritienda, lista_tags)
+                perfil_cabezero(
+                    viewModel_filtado_tiendas,
+                    nombre_tienda,
+                    estadoColor,
+                    categoritienda,
+                    lista_tags
+                )
             }
             spacer_horizonta(15.dp)
             abrir_google_maps(context, latitud, longitud) { dialog_ ->
@@ -556,16 +562,16 @@ fun perfil_cabezero(
             )
         spacer_vertical(5.dp)
 
-            TiempoRestanteCierre(
-                horario_total = horario_tiempo_real,
-                hCierre = horario_tiempo_real.h_cierre,
-                cerrado = horario_tiempo_real.cerrado,
-                motivo = horario_tiempo_real.motivo,
-                pagado = true,
-                max_line = 1, tick = tick
-            ) { color ->
-                viewModelFiltros.setear_color(color)
-            }
+        TiempoRestanteCierre(
+            horario_total = horario_tiempo_real,
+            hCierre = horario_tiempo_real.h_cierre,
+            cerrado = horario_tiempo_real.cerrado,
+            motivo = horario_tiempo_real.motivo,
+            pagado = true,
+            max_line = 1, tick = tick
+        ) { color ->
+            viewModelFiltros.setear_color(color)
+        }
 
         spacer_vertical(5.dp)
 
@@ -690,12 +696,13 @@ fun Expandible_direccion_ref(
 
 @Composable
 fun Expandible_Metodo_contacto(
+    context: Context,
     modifier: Modifier = Modifier,
     expandido: Boolean,
     metodos_contactos: metodo_contacto_tienda,
     onClickExpand: () -> Unit
 ) {
-    val context = LocalContext.current
+//    val context = LocalContext.current
     var call_dialog_permise by remember { mutableStateOf(false) }
     var numero_llamada by remember { mutableStateOf("") }
     Cartas_expandibles(modifier = modifier) {
@@ -729,7 +736,6 @@ fun Expandible_Metodo_contacto(
                             R.drawable.llamada_icon,
                             constantes_lista_localidades.ocultarNumero(metodos_contactos.llamada.numero)
                         ) {
-
                             llamar(context, metodos_contactos.llamada.numero, {
                                 call_dialog_permise = true
                                 numero_llamada = metodos_contactos.llamada.numero

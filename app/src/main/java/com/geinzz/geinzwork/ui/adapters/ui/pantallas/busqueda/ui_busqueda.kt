@@ -343,7 +343,6 @@ fun ui_pantalla_busqueda(
         }
     }
     LaunchedEffect(radio_cambiado) {
-
         searchText = TextFieldValue("")
 
     }
@@ -355,6 +354,7 @@ fun ui_pantalla_busqueda(
         Log.d("FiltroRadioEffect", "categoria_filtrad = $categoria_filtrad")
         Log.d("FiltroRadioEffect", "subcategira_filtrado = $subcategira_filtrado")
         if (cerca_de_ti_enable.value) {
+            searchText = TextFieldValue("")
             Log.d("FiltroRadioEffect", "Switch Cerca de Ti ACTIVADO")
             obtenerUbicacionEnTiempoReal(estadoGPS, context, { lat, lng ->
                 Log.d("lat_log_user", "$lat $lng")

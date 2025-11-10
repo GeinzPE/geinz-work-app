@@ -154,7 +154,7 @@ fun bottom_sheet_lugares_turisticos(
     crear_cuenta: () -> Unit
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
-    val context=LocalContext.current
+    val context = LocalContext.current
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
     val viewmodel_turismo = viewmodel_lugares_turisticos
     var id_tienda by remember { mutableStateOf("") }
@@ -180,8 +180,8 @@ fun bottom_sheet_lugares_turisticos(
         if (uid_respald_user.isNotEmpty()) {
             id_respado_user = uid_respald_user
             Log.d("UID_DataStore", "✅ Recuperado UID válido desde DataStore: $id_respado_user")
-        }else{
-            id_respado_user=""
+        } else {
+            id_respado_user = ""
         }
     }
 
@@ -229,71 +229,69 @@ fun bottom_sheet_lugares_turisticos(
         containerColor = MaterialTheme.colorScheme.background
     ) {
         FuenteControladaApp {
-        if (cargando) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                androidx.compose.material.CircularProgressIndicator()
-            }
-        } else {
-            AnimatedVisibility(visible = true) {
-                Column(
+            if (cargando) {
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                        .padding(bottom = 20.dp)
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    card_img_container(
-                        viewmodel_turismo,
-                        firebaseAuth1 = firebaseAuth,
-                        datos = datos,
-                        tick = tick,
-                        lista_items = state_tiendas_cercanas,
-                        clik_card = { id, localidad, color ->
-                            if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
-                                mostrar_bottom_datos = true
-                                id_tienda = id
-                                localida_tienda = localidad
-                                color_estado_tienda = color
-                            } else {
-                                bottom_sheet_iniciar_seccion = true
-                            }
-                        },
-                        buscar_nuevas_tiendas = { radio ->
-                            if (radio != radioAnterior) {
-                                radioAnterior = radio
-                            }
-                        }, lista_base = { lista_baseparams, lista_sub ->
-                            lista_subacteogorias = lista_sub
-                        }, subcategoria_seleciondafun = { i ->
-                            subcategoriatienda_select = i
-                            viewmodel_turismo.filtrar_por_subcategoria(
-                                lista_subacteogorias,
-                                i,
-                                datos.latitud,
-                                datos.longitud, nueva_busqueda
-                            )
-                        }, nuevo_rango_km = { rango ->
-                            nueva_busqueda = rango
-                            viewmodel_turismo.filtrar_por_subcategoria(
-                                lista_subacteogorias,
-                                subcategoriatienda_select,
-                                datos.latitud,
-                                datos.longitud, rango
-                            )
-                            Log.d("Rangonuevo", nueva_busqueda.toString())
-                        }, ver_mapa = { lugares_cercanos ->
-                            ver_mapa(lugares_cercanos)
-                        }, { bottom_sheet_iniciar_seccion = true })
+                    androidx.compose.material.CircularProgressIndicator()
+                }
+            } else {
+                AnimatedVisibility(visible = true) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
+                            .padding(bottom = 20.dp)
+                    ) {
+                        card_img_container(
+                            viewmodel_turismo,
+                            firebaseAuth1 = firebaseAuth,
+                            datos = datos,
+                            tick = tick,
+                            lista_items = state_tiendas_cercanas,
+                            clik_card = { id, localidad, color ->
+                                if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
+                                    mostrar_bottom_datos = true
+                                    id_tienda = id
+                                    localida_tienda = localidad
+                                    color_estado_tienda = color
+                                } else {
+                                    bottom_sheet_iniciar_seccion = true
+                                }
+                            },
+                            buscar_nuevas_tiendas = { radio ->
+                                if (radio != radioAnterior) {
+                                    radioAnterior = radio
+                                }
+                            }, lista_base = { lista_baseparams, lista_sub ->
+                                lista_subacteogorias = lista_sub
+                            }, subcategoria_seleciondafun = { i ->
+                                subcategoriatienda_select = i
+                                viewmodel_turismo.filtrar_por_subcategoria(
+                                    lista_subacteogorias,
+                                    i,
+                                    datos.latitud,
+                                    datos.longitud, nueva_busqueda
+                                )
+                            }, nuevo_rango_km = { rango ->
+                                nueva_busqueda = rango
+                                viewmodel_turismo.filtrar_por_subcategoria(
+                                    lista_subacteogorias,
+                                    subcategoriatienda_select,
+                                    datos.latitud,
+                                    datos.longitud, rango
+                                )
+                                Log.d("Rangonuevo", nueva_busqueda.toString())
+                            }, ver_mapa = { lugares_cercanos ->
+                                ver_mapa(lugares_cercanos)
+                            }, { bottom_sheet_iniciar_seccion = true })
+                    }
                 }
             }
         }
-
-
-    }
     }
 
 
@@ -391,16 +389,23 @@ fun card_img_container(
         }
     }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .padding(5.dp)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(5.dp)
+    ) {
 
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
         ) {
             spacer_vertical(10.dp)
-            Text(text = datos.titulo, fontFamily = baners_geinz_work, fontSize = 30.sp, modifier = Modifier.padding(horizontal = 10.dp))
+            Text(
+                text = datos.titulo,
+                fontFamily = baners_geinz_work,
+                fontSize = 30.sp,
+                modifier = Modifier.padding(horizontal = 10.dp)
+            )
             texto_generico_multilinea(
                 datos.descripcion,
                 MaterialTheme.typography.bodyMedium,
@@ -1132,7 +1137,7 @@ fun abierto_flag(texto: String) {
             .clip(CircleShape)
 
             .background(Color(0xFF43A047))
-            // Verde intermedio, más natural
+        // Verde intermedio, más natural
     ) {
         texto_generico_one_line(
             texto.capitalizeFirst(),

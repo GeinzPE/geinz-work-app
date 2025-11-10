@@ -159,9 +159,6 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
     }
 
 
-
-
-
 //    fun obtener_tiendas_cercanas(lat: Double, long: Double, radio: Double, localida: String) {
 //        viewModelScope.launch {
 //            delay(250)
@@ -182,10 +179,11 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
 //            }
 //        }
 //    }
+
     fun obtener_tiendas_cercanas(
         lat: Double,
         long: Double,
-        radio: Double, // radio actual del usuario (1km, 3km, etc.)
+        radio: Double,
         localidad: String
     ) {
         viewModelScope.launch {
