@@ -584,8 +584,8 @@ fun Pantalla_filtrado_tiendas(
         bottom_shet_tienda = false
         showBottomSheet = false
         dialog_sin_pago_tiendas(
-            mostrandoCarga_free,
-            dataclass_datos_tienda_free,
+            mostrandoCarga_free = mostrandoCarga_free,
+            datos_tienda_free = dataclass_datos_tienda_free,
             ondimis = { dialog_tienda_no_pagada = false
                 viewModelFiltros.resetear_estado_sin_pago()})
     }

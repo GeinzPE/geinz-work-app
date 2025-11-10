@@ -1821,15 +1821,13 @@ object constantes_lista_localidades {
         Color(0xFF000000),
     )
 
-    fun abrir_whattsapp(context: Context, numero: String) {
+    fun abrir_whattsapp(context: Context, numero: String,mensajePredefinido:String="¡Hola! Vengo de Geinz y me gustaría hacer una consulta. ¿Me pueden atender?") {
+        // 2. Codificar el mensaje para que sea seguro en la URL.
+        val mensajeCodificado = URLEncoder.encode(mensajePredefinido, "UTF-8")
         val uri = Uri.parse(
-            "https://api.whatsapp.com/send?phone=${"+51 $numero"}&text=${
-                URLEncoder.encode(
-                    "",
-                    "UTF-8"
-                )
-            }"
+            "https://api.whatsapp.com/send?phone=${"+51$numero"}&text=$mensajeCodificado"
         )
+
         val intent = Intent(Intent.ACTION_VIEW, uri)
         try {
             context.startActivity(intent)

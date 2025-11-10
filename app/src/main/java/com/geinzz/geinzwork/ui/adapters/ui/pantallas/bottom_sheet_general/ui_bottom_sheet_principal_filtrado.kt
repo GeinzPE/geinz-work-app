@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -153,7 +154,8 @@ fun bottom_sheet_tiendas_filtradas(
     viewModelFiltros: viewModel_filtado_tiendas,
     tiendas_filtradas: modelo_tienda,
     visible: Boolean,
-    onClose: () -> Unit
+    iconos_cosas_clikeables: Boolean=true,
+    onClose: () -> Unit,
 ) {
     val context = LocalContext.current
     viewModelFiltros.cast_horario_atencion_horario_tienda(tiendas_filtradas.horario_atencion)
@@ -329,6 +331,7 @@ fun bottom_sheet_tiendas_filtradas(
                         }
                         item {
                             Expandible_Metodo_contacto(
+                                iconos_cosas_clikeables,
                                 context,
                                 modifier = Modifier.padding(horizontal = 10.dp),
                                 expander_contacto,
@@ -696,6 +699,7 @@ fun Expandible_direccion_ref(
 
 @Composable
 fun Expandible_Metodo_contacto(
+    iconos_cosas_clikeables: Boolean,
     context: Context,
     modifier: Modifier = Modifier,
     expandido: Boolean,
@@ -725,6 +729,7 @@ fun Expandible_Metodo_contacto(
                 ) {
                     if (metodos_contactos.whatsapp.estado) {
                         item_metodo_contacto(
+                            iconos_cosas_clikeables,
                             R.drawable.whatsapp_icon,
                             constantes_lista_localidades.ocultarNumero(metodos_contactos.whatsapp.numero)
                         ) {
@@ -732,7 +737,7 @@ fun Expandible_Metodo_contacto(
                         }
                     }
                     if (metodos_contactos.llamada.estado) {
-                        item_metodo_contacto(
+                        item_metodo_contacto(iconos_cosas_clikeables,
                             R.drawable.llamada_icon,
                             constantes_lista_localidades.ocultarNumero(metodos_contactos.llamada.numero)
                         ) {
@@ -743,7 +748,7 @@ fun Expandible_Metodo_contacto(
                         }
                     }
                     if (metodos_contactos.tiktok.estado) {
-                        item_metodo_contacto(
+                        item_metodo_contacto(iconos_cosas_clikeables,
                             R.drawable.tik_tok_icon,
                             metodos_contactos.tiktok.nombre
                         ) {
@@ -751,7 +756,7 @@ fun Expandible_Metodo_contacto(
                         }
                     }
                     if (metodos_contactos.sitio_web.estado) {
-                        item_metodo_contacto(
+                        item_metodo_contacto(iconos_cosas_clikeables,
                             R.drawable.web_icon,
                             metodos_contactos.sitio_web.nombre
                         ) {
@@ -759,7 +764,7 @@ fun Expandible_Metodo_contacto(
                         }
                     }
                     if (metodos_contactos.instagram.estado) {
-                        item_metodo_contacto(
+                        item_metodo_contacto(iconos_cosas_clikeables,
                             R.drawable.instagram_icon,
                             metodos_contactos.instagram.nombre
                         ) {
@@ -767,7 +772,7 @@ fun Expandible_Metodo_contacto(
                         }
                     }
                     if (metodos_contactos.facebook.estado) {
-                        item_metodo_contacto(
+                        item_metodo_contacto(iconos_cosas_clikeables,
                             R.drawable.facebook_icon,
                             metodos_contactos.facebook.nombre
                         ) {
@@ -995,7 +1000,7 @@ fun car_metodos_de_pago(img: Int, nombre: String, listener: () -> Unit) {
 }
 
 @Composable
-fun item_metodo_contacto(icono_red: Int, texto: String, click_icon: () -> Unit) {
+fun item_metodo_contacto(clikeable_estado: Boolean, icono_red: Int, texto: String, click_icon: () -> Unit) {
     var context = LocalContext.current
     spacer_vertical(5.dp)
     Row(modifier = Modifier.fillMaxWidth()) {
@@ -1010,7 +1015,11 @@ fun item_metodo_contacto(icono_red: Int, texto: String, click_icon: () -> Unit) 
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }) {
-                        click_icon()
+                        if (clikeable_estado) {
+                            click_icon()
+                        } else {
+                            Toast.makeText(context, "Solo es prueva", Toast.LENGTH_SHORT).show()
+                        }
                     },
                 contentDescription = ""
             )

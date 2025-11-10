@@ -125,6 +125,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_salud_seguridad
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialogo_cabiar_rango_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_ayudanos_a_creccer
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
@@ -290,6 +291,7 @@ fun ui_pantalla_busqueda(
 
 
     var cambioDesdeViewModel by remember { mutableStateOf(false) }
+    var mostar_bottom_sheet_ayuda_geinz by remember { mutableStateOf(false) }
 
     LaunchedEffect(localida_filtrado_guardado) {
         if (localida_filtrado_guardado.isNotEmpty()) {
@@ -462,15 +464,15 @@ fun ui_pantalla_busqueda(
             mostrar_centrado_visible = true
             previousLocalidad = localidadActual
 
-                searchText = TextFieldValue("")
-                categoria_filtrad = ""
-                subcategira_filtrado = ""
-                salud_seguirdad = ""
+            searchText = TextFieldValue("")
+            categoria_filtrad = ""
+            subcategira_filtrado = ""
+            salud_seguirdad = ""
 
             return@LaunchedEffect
         }
 
-        if (localidadActual != previousLocalidad ) {
+        if (localidadActual != previousLocalidad) {
             searchText = TextFieldValue("")
             categoria_filtrad = ""
             subcategira_filtrado = ""
@@ -483,8 +485,7 @@ fun ui_pantalla_busqueda(
         }
 
 
-            searchText = TextFieldValue("")
-
+        searchText = TextFieldValue("")
 
 
         // 🔹 Placeholder dinámico
@@ -849,6 +850,9 @@ fun ui_pantalla_busqueda(
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primary)
+                                .clickable {
+                                    mostar_bottom_sheet_ayuda_geinz = true
+                                }
                         ) {
                             texto_generico_one_line(
                                 "¿Conoces alguno?",
@@ -997,6 +1001,11 @@ fun ui_pantalla_busqueda(
                 }, { hasing ->
                     hash_user = hasing
                 })
+        }
+
+        if (mostar_bottom_sheet_ayuda_geinz) {
+            bottom_sheet_ayudanos_a_creccer(localida_defauld.localida,
+                { mostar_bottom_sheet_ayuda_geinz = false },viewModelFiltros)
         }
         Box(
             modifier = Modifier
