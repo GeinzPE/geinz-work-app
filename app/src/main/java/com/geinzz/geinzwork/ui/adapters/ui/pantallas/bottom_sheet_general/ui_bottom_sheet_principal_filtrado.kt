@@ -86,10 +86,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -154,7 +157,7 @@ fun bottom_sheet_tiendas_filtradas(
     viewModelFiltros: viewModel_filtado_tiendas,
     tiendas_filtradas: modelo_tienda,
     visible: Boolean,
-    iconos_cosas_clikeables: Boolean=true,
+    iconos_cosas_clikeables: Boolean = true,
     onClose: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -305,6 +308,7 @@ fun bottom_sheet_tiendas_filtradas(
 
                                 Column(modifier = Modifier.animateContentSize()) {
                                     Expandible_direccion_ref(
+                                        context,
                                         modifier = Modifier.padding(horizontal = 10.dp),
                                         direccion,
                                         referencia,
@@ -657,6 +661,7 @@ fun Expandible_descripcion_tienda(
 
 @Composable
 fun Expandible_direccion_ref(
+    context: Context,
     modifier: Modifier = Modifier,
     direccion: String,
     referencia: String,
@@ -684,10 +689,40 @@ fun Expandible_direccion_ref(
                             vertical = 8.dp
                         )
                 ) {
-                    text_expandible_wrapp(texto = "Dirección : $direccion")
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        TextoExpandibleEnLinea(
+                            texto = "Dirección: ${direccion.capitalizeFirst()}",
+                        )
+
+
+                    }
                     spacer_vertical(10.dp)
-                    text_expandible_wrapp(texto = "Referencia : $referencia")
-                    spacer_vertical(10.dp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        TextoExpandibleEnLinea(
+                            texto = "Referencia : ${referencia.capitalizeFirst()}",
+
+                        )
+
+                    }
+//                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center){
+//                    text_expandible_wrapp(texto = "Referencia : ${referencia.capitalizeFirst()}", modifier = Modifier.weight(1f))
+//                        spacer_horizonta(10.dp)
+//                        Image(
+//                            painter = painterResource(
+//                                R.drawable.baseline_content_copy_24
+//                            ), contentDescription = "", modifier = Modifier.size(22.dp).padding(end = 5.dp).clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){
+//                                constantestextos_general.copiarTexto_portapapeles_compouse(referencia, context)
+//                            }
+//                        )
+//
+//                    }
+                    spacer_vertical(15.dp)
                     text_expandible_wrapp(texto = "Tipo de tienda : $fisica_virtual")
                     spacer_vertical(10.dp)
                 }
@@ -695,6 +730,50 @@ fun Expandible_direccion_ref(
         }
     }
 }
+
+@Composable
+fun TextoExpandibleEnLinea(
+    texto: String
+) {
+    var expandido by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth() // 🔹 ocupa todo el ancho disponible
+            .animateContentSize() // 🔹 animación suave
+            .padding(end = 15.dp)
+    ) {
+        Text(
+            buildAnnotatedString {
+                // Texto principal (blanco)
+                withStyle(
+                    style = SpanStyle(color = Color.White)
+                ) {
+                    append(texto)
+                }
+
+                append(" ")
+
+                // “Ver más / Ver menos” con color primario
+                withStyle(
+                    style = SpanStyle(
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                ) {
+//                    append(if (expandido) "Ver menos" else "Ver más")
+                }
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = if (expandido) Int.MAX_VALUE else 1, // 🔸 una línea al inicio
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { expandido = !expandido }
+        )
+    }
+}
+
+
 
 
 @Composable
@@ -737,7 +816,8 @@ fun Expandible_Metodo_contacto(
                         }
                     }
                     if (metodos_contactos.llamada.estado) {
-                        item_metodo_contacto(iconos_cosas_clikeables,
+                        item_metodo_contacto(
+                            iconos_cosas_clikeables,
                             R.drawable.llamada_icon,
                             constantes_lista_localidades.ocultarNumero(metodos_contactos.llamada.numero)
                         ) {
@@ -748,7 +828,8 @@ fun Expandible_Metodo_contacto(
                         }
                     }
                     if (metodos_contactos.tiktok.estado) {
-                        item_metodo_contacto(iconos_cosas_clikeables,
+                        item_metodo_contacto(
+                            iconos_cosas_clikeables,
                             R.drawable.tik_tok_icon,
                             metodos_contactos.tiktok.nombre
                         ) {
@@ -756,7 +837,8 @@ fun Expandible_Metodo_contacto(
                         }
                     }
                     if (metodos_contactos.sitio_web.estado) {
-                        item_metodo_contacto(iconos_cosas_clikeables,
+                        item_metodo_contacto(
+                            iconos_cosas_clikeables,
                             R.drawable.web_icon,
                             metodos_contactos.sitio_web.nombre
                         ) {
@@ -764,7 +846,8 @@ fun Expandible_Metodo_contacto(
                         }
                     }
                     if (metodos_contactos.instagram.estado) {
-                        item_metodo_contacto(iconos_cosas_clikeables,
+                        item_metodo_contacto(
+                            iconos_cosas_clikeables,
                             R.drawable.instagram_icon,
                             metodos_contactos.instagram.nombre
                         ) {
@@ -772,7 +855,8 @@ fun Expandible_Metodo_contacto(
                         }
                     }
                     if (metodos_contactos.facebook.estado) {
-                        item_metodo_contacto(iconos_cosas_clikeables,
+                        item_metodo_contacto(
+                            iconos_cosas_clikeables,
                             R.drawable.facebook_icon,
                             metodos_contactos.facebook.nombre
                         ) {
@@ -1000,7 +1084,12 @@ fun car_metodos_de_pago(img: Int, nombre: String, listener: () -> Unit) {
 }
 
 @Composable
-fun item_metodo_contacto(clikeable_estado: Boolean, icono_red: Int, texto: String, click_icon: () -> Unit) {
+fun item_metodo_contacto(
+    clikeable_estado: Boolean,
+    icono_red: Int,
+    texto: String,
+    click_icon: () -> Unit
+) {
     var context = LocalContext.current
     spacer_vertical(5.dp)
     Row(modifier = Modifier.fillMaxWidth()) {

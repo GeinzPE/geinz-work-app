@@ -988,11 +988,11 @@ fun item_tiendas(
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    Nombre_estado_tienda(item_tiendas.nombre_tienda)
+                    Nombre_estado_tienda(item_tiendas.nombre_tienda.capitalizeFirst())
                     Spacer(modifier = Modifier.height(5.dp))
                     Caracteristicas_tiendas("Direccion :", item_tiendas.direccion)
                     Spacer(modifier = Modifier.height(5.dp))
-                    Caracteristicas_tiendas("Referencia : ", item_tiendas.referencia)
+                    Caracteristicas_tiendas("Referencia :", item_tiendas.referencia)
                     Spacer(modifier = Modifier.height(5.dp))
                     tags_subcateogiras(
                         item_tiendas.lista_subcategoiras,
