@@ -17,6 +17,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -112,6 +113,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_ayudanos_a_creccer
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.firebaseAuth
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.centrado_hori_vertical
@@ -146,7 +148,7 @@ fun Pantalla_filtrado_tiendas(
 ) {
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    val context=LocalContext.current
+    val context = LocalContext.current
 
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
     val estadoTiendaFree by viewModelFiltros._datos_tienda_sin_pago.observeAsState(
@@ -175,6 +177,10 @@ fun Pantalla_filtrado_tiendas(
     var sin_resultados by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var error_empity by remember { mutableStateOf(false) }
+
+    var mostar_bottom_sheet_ayuda_geinz by remember { mutableStateOf(false) }
+    val ultimaLocalidad by data_store_localidad.obtener_localidad(context)
+        .collectAsState(initial = null)
     var texto_error_empity by remember { mutableStateOf("") }
     var lista_base_seguridad by remember { mutableStateOf(emptyList<tiendas_por_categoria>()) }
     val lista_datos_tiendas by viewModelFiltros._datos__tiendas.observeAsState(emptyList())
@@ -197,8 +203,8 @@ fun Pantalla_filtrado_tiendas(
         if (uid_respald_user.isNotEmpty()) {
             id_respado_user = uid_respald_user
             Log.d("UID_DataStore", "✅ Recuperado UID válido desde DataStore: $id_respado_user")
-        }else{
-            id_respado_user=""
+        } else {
+            id_respado_user = ""
         }
     }
 
@@ -225,10 +231,6 @@ fun Pantalla_filtrado_tiendas(
         // 🔁 Actualizamos el flag para el siguiente ciclo
         habiaTiendasAntes = hayTiendas || habiaTiendasAntes
     }
-
-
-
-
 
 
     var primeraVez by remember { mutableStateOf(true) }
@@ -318,7 +320,8 @@ fun Pantalla_filtrado_tiendas(
             is viewModel_filtado_tiendas.carga_tiendas_sin_pago.error_tiendas_free -> {
                 mostrandoCarga_free = false // ❌ Error, deja de cargar
             }
-            is viewModel_filtado_tiendas.carga_tiendas_sin_pago.empty_tiendas_free->{
+
+            is viewModel_filtado_tiendas.carga_tiendas_sin_pago.empty_tiendas_free -> {
                 dialog_tienda_no_pagada = false
             }
 
@@ -426,17 +429,17 @@ fun Pantalla_filtrado_tiendas(
                             tienda,
                             tienda.horario_dia, tienda.estaAbierto,
                             { id_tienda, listener, estado_color, pagado ->
-                                if(firebaseAuth.currentUser!=null || id_respado_user.isNotEmpty()){
+                                if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
                                     estadoColor = estado_color
                                     id_tienda_selecionada = id_tienda
-                                    if(pagado){
-                                        bottom_shet_tienda=true
+                                    if (pagado) {
+                                        bottom_shet_tienda = true
                                         showBottomSheet = listener
-                                    }else{
-                                        dialog_tienda_no_pagada=true
+                                    } else {
+                                        dialog_tienda_no_pagada = true
                                     }
-                                }else{
-                                    bottom_sheet_iniciar_seccion=true
+                                } else {
+                                    bottom_sheet_iniciar_seccion = true
                                 }
 //                                tienda_pagada = pagado
 
@@ -453,8 +456,9 @@ fun Pantalla_filtrado_tiendas(
                     scope.launch {
                         delay(4000)
                         mostrandoCargaGlobal = false
-
                     }
+
+
                     isLoading = false
                     error_empity = true
                     texto_error_empity = texto
@@ -548,17 +552,47 @@ fun Pantalla_filtrado_tiendas(
                 centrado_hori_vertical {
                     when (estado) {
                         "loading" -> CircularProgressIndicator()
-                        "empty" -> texto_generico_one_line(
-                            texto_error_empity,
-                            color = Color.Gray,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        "empty" -> {
+                            Column() {
+                                texto_generico_one_line(
+                                    texto_error_empity,
+                                    color = Color.Gray,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                spacer_vertical(10.dp)
 
-                        "error" -> texto_generico_one_line(
-                            texto_error_empity,
-                            color = Color.Gray,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+
+                            }
+                        }
+
+                        "error" -> {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                texto_generico_one_line(
+                                    texto_error_empity,
+                                    color = Color.Gray,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                spacer_vertical(10.dp)
+
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.primary)
+                                            .clickable {
+                                          mostar_bottom_sheet_ayuda_geinz = true
+                                            }
+                                    ) {
+                                        texto_generico_one_line(
+                                            "¿Conoces alguno?",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            modifier = Modifier.padding(12.dp)
+                                        )
+
+
+                                }
+                            }
+
+                        }
                     }
                 }
             }
@@ -580,14 +614,20 @@ fun Pantalla_filtrado_tiendas(
 //        bottom_sheet_iniciar_seccion = true
 //    }
 
+    if (mostar_bottom_sheet_ayuda_geinz) {
+        bottom_sheet_ayudanos_a_creccer(ultimaLocalidad?:"barranca",
+            { mostar_bottom_sheet_ayuda_geinz = false },viewModelFiltros)
+    }
     if (dialog_tienda_no_pagada) {
         bottom_shet_tienda = false
         showBottomSheet = false
         dialog_sin_pago_tiendas(
             mostrandoCarga_free = mostrandoCarga_free,
             datos_tienda_free = dataclass_datos_tienda_free,
-            ondimis = { dialog_tienda_no_pagada = false
-                viewModelFiltros.resetear_estado_sin_pago()})
+            ondimis = {
+                dialog_tienda_no_pagada = false
+                viewModelFiltros.resetear_estado_sin_pago()
+            })
     }
 
     if (bottom_shet_tienda) {

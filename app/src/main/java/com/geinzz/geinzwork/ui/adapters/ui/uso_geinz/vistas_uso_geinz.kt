@@ -23,6 +23,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import androidx.compose.material3.Button
@@ -107,7 +108,7 @@ fun como_usar_geinz_work() {
                 Image(
                     painter = painterResource(R.drawable.logo_geinz_500x500),
                     contentDescription = "",
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(40.dp).clip(CircleShape)
                 )
             }
             spacer_vertical(10.dp)

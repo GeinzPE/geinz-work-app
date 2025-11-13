@@ -119,7 +119,6 @@ fun nativationWrapper(
             viewmodel_usuario_registrado.obtener_datos_user_registrado(current.uid)
         } else if(uid_respald_user.isNotEmpty()){
             viewmodel_usuario_registrado.obtener_datos_user_registrado(uid_respald_user)
-
         }else{
             datos_principales_user = datos_principales_user("", "", "barranca")
         }

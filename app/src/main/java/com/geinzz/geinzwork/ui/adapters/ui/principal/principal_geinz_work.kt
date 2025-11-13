@@ -130,9 +130,12 @@ import androidx.core.content.ContextCompat
 import coil3.request.CachePolicy
 import com.geinzz.geinzwork.data_store.data_store_localidad.guarar_dialogo_notifi
 import com.geinzz.geinzwork.data_store.data_store_localidad.sendNotificacion
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_registra_tu_negocio
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_servicios_basicos_
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permiso_primario_notifi
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_ayudanos_a_creccer
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.guarar_token_user
+import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.google.firebase.messaging.FirebaseMessaging
 
 private lateinit var firebaseAuth: FirebaseAuth
@@ -152,11 +155,13 @@ fun pantalla_principal(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
+    val viewModel_filtado_tiendas :viewModel_filtado_tiendas =viewModel()
     val stateCat by viewModel_cordenadas._state_cat.observeAsState()
     val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
     val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(
         emptyList()
     )
+    var mostar_bottom_sheet_ayuda_geinz by remember { mutableStateOf(false) }
 
 
 //    LaunchedEffect(Unit) {
@@ -345,12 +350,6 @@ fun pantalla_principal(
 
                 ) {
                     ver_lugares(localidad_defaul)
-//                    val lista = constantes_lista_localidades.datos_ubicacionesreales.forEach { i ->
-//
-//                       agregar_lugares_turisticos2(i)
-////                        eliminar_menios_comida()
-//                    }
-
                 }
                 spacer_vertical(30.dp)
             }
@@ -367,14 +366,13 @@ fun pantalla_principal(
 
                 spacer_vertical(20.dp)
             }
-//            item {
-//                rutas_turismo(
-//                    "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0593.webp?alt=media&token=8e770a68-dfad-4ae1-8d20-c9133e2f4a49",
-//                    "ver eventos",
-//                    "Mira los eventos proximos de ${localidad_defaul}"
-//                ) { ver_lugares(localidad_defaul) }
-//                spacer_vertical(20.dp)
-//            }
+
+            item {
+                spacer_vertical(10.dp)
+                baner_registra_tu_negocio{
+                    mostar_bottom_sheet_ayuda_geinz=true
+                }
+            }
         }
         Box(
             modifier = Modifier
@@ -391,7 +389,10 @@ fun pantalla_principal(
                 )
                 .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
         )
-
+        if (mostar_bottom_sheet_ayuda_geinz) {
+            bottom_sheet_ayudanos_a_creccer(ultimaLocalidad?:"barranca",
+                { mostar_bottom_sheet_ayuda_geinz = false },viewModel_filtado_tiendas)
+        }
     }
 
 }

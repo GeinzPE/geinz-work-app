@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,12 +15,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -39,6 +43,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
@@ -54,12 +59,14 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_pago_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,12 +74,15 @@ import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 fun bottom_sheet_ayudanos_a_creccer(
     localidad: String,
     ondimis: () -> Unit,
-    viewModelFiltros: viewModel_filtado_tiendas
+    viewModelFiltros: viewModel_filtado_tiendas,
+
 ) {
     var hacer_visible_btn by remember { mutableStateOf(false) }
     var seleccion by remember { mutableStateOf("") }
     var visible_free by remember { mutableStateOf(false) }
     var visible_primiun by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     val ejemploTienda = modelo_tienda(
         nombre_tienda = "Nombre de tu negocio",
         modelo_negocio = true,
@@ -131,9 +141,9 @@ fun bottom_sheet_ayudanos_a_creccer(
 
     val contex = LocalContext.current
     ModalBottomSheet(
+        sheetState = sheetState,
         onDismissRequest = { ondimis() },
         containerColor = MaterialTheme.colorScheme.background,
-        modifier = Modifier.padding(10.dp)
     ) {
         FuenteControladaApp {
             Box(contentAlignment = Alignment.Center) {
@@ -150,96 +160,115 @@ fun bottom_sheet_ayudanos_a_creccer(
                     contentScale = ContentScale.Crop
                 )
                 Column() {
+                    val lsita_img = listOf(
+                        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2F1.webp?alt=media&token=f6d1d503-8938-499c-8ded-455dc3272964",
+                        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2F2.webp?alt=media&token=5dc2e4ec-5c54-437a-a9da-f0b8132a537d",
+                        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2F3.webp?alt=media&token=518e8264-9f77-4636-a597-082b87185a25",
+                        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2F4.webp?alt=media&token=f8b42b6c-ef97-4593-a9f2-edfff06a6ccd"
+                    )
                     Text(
                         text = "Conoces algun negocio? o Quieres registrar tu negocio en Geinz?",
                         fontFamily = baners_geinz_work,
-                        fontSize = 22.sp
+                        fontSize = 22.sp, modifier = Modifier.padding(horizontal = 10.dp)
                     )
-                    spacer_vertical(10.dp)
-                    texto_generico_multilinea(
-                        "Tanto si conoces un negocio como si eres dueño de uno, contáctanos directamente,Nuestro equipo verificará la información y realizará una visita al local para confirmar los datos,asegurando que mas negocios formen parte de Geinz",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    spacer_vertical(5.dp)
-                    texto_generico_multilinea(
-                        "De esta forma, ayudamos a que más personas descubran lugares auténticos de $localidad y sus alrededores,fortaleciendo nuestra guía local y apoyando el crecimiento de los emprendedores de la zona.",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    spacer_vertical(5.dp)
-                    Text(
-                        text = "¿Quieres ver cómo se vería tu negocio en Geinz?",
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.clickable {
-                            hacer_visible_btn = !hacer_visible_btn
-                            visible_free=false
-                            visible_primiun=false
-                        },
-                        textDecoration = TextDecoration.Underline,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    spacer_vertical(10.dp)
-                    AnimatedVisibility(hacer_visible_btn, modifier = Modifier.fillMaxWidth()) {
-                        LazyRow(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
 
-                            item {
-                                // 🔹 Ficha Premium
-                                Box(modifier = Modifier.width(300.dp)) {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp),
+                        modifier = Modifier.padding(vertical = 10.dp)
+                    ) {
+                        items(lsita_img) { img ->
+                            img_baner_informativo(img)
+                        }
+                    }
+                    Column(modifier = Modifier.padding(horizontal = 10.dp)) {
 
-                                    FichaOpcion(
-                                        titulo = "Ficha Premium (S/0.34 diario o S/10 mensual)",
-                                        imagen = R.drawable.logo_geinz_blanco,
-                                        seleccionado = seleccion == "premium",
-                                        onClick = {
-                                            seleccion = "premium"
-                                            visible_free = false
-                                            visible_primiun = true
-                                        }
-                                    )
+                        texto_generico_multilinea(
+                            "Tanto si conoces un negocio como si eres dueño de uno, contáctanos directamente,Nuestro equipo verificará la información y realizará una visita al local para confirmar los datos,asegurando que mas negocios formen parte de Geinz",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        spacer_vertical(5.dp)
+                        texto_generico_multilinea(
+                            "De esta forma, ayudamos a que más personas descubran lugares auténticos de ${localidad.capitalizeFirst()} y sus alrededores,fortaleciendo nuestra guía local y apoyando el crecimiento de los emprendedores de la zona.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        spacer_vertical(10.dp)
+                        Text(
+                            text = "¿Quieres ver cómo se vería tu negocio en Geinz?",
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.clickable {
+                                hacer_visible_btn = !hacer_visible_btn
+                                visible_free = false
+                                visible_primiun = false
+                            },
+                            textDecoration = TextDecoration.Underline,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        spacer_vertical(10.dp)
+                        AnimatedVisibility(hacer_visible_btn, modifier = Modifier.fillMaxWidth()) {
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+
+                                item {
+                                    // 🔹 Ficha Premium
+                                    Box(modifier = Modifier.width(300.dp)) {
+
+                                        FichaOpcion(
+                                            titulo = "Ficha Premium (S/0.34 diario o S/10 mensual)",
+                                            imagen = R.drawable.logo_geinz_blanco,
+                                            seleccionado = seleccion == "premium",
+                                            onClick = {
+                                                seleccion = "premium"
+                                                visible_free = false
+                                                visible_primiun = true
+                                            }
+                                        )
+                                    }
                                 }
-                            }
-                            item {
-                                spacer_horizonta(20.dp)
-                            }
+                                item {
+                                    spacer_horizonta(20.dp)
+                                }
 
-                            item {
-                                // 🔹 Ficha Gratis
-                                Box(modifier = Modifier.width(300.dp)) {
-                                    FichaOpcion(
-                                        titulo = "Ficha Gratis (sin costo)",
-                                        imagen = R.drawable.logo_geinz_blanco,
-                                        seleccionado = seleccion == "gratis",
-                                        onClick = {
-                                            seleccion = "gratis"
-                                            visible_free = true
-                                            visible_primiun = false
-                                        }
-                                    )
+                                item {
+                                    // 🔹 Ficha Gratis
+                                    Box(modifier = Modifier.width(300.dp)) {
+                                        FichaOpcion(
+                                            titulo = "Ficha Gratis (sin costo)",
+                                            imagen = R.drawable.logo_geinz_blanco,
+                                            seleccionado = seleccion == "gratis",
+                                            onClick = {
+                                                seleccion = "gratis"
+                                                visible_free = true
+                                                visible_primiun = false
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
-                    Box(
-                        modifier = Modifier
-                            .padding(top = 10.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
-                            .clickable {
-                                abrir_whattsapp(
-                                    contex,
-                                    "937659216",
-                                    "Hola 👋, quiero compartir información sobre un negocio para que forme parte de Geinz."
-                                )
-                            }
-                            .fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "Contactar con Geinz",
-                            modifier = Modifier.padding(vertical = 15.dp),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 10.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                                .clickable {
+                                    abrir_whattsapp(
+                                        contex,
+                                        "958120920",
+                                        "Hola 👋, quiero compartir información sobre un negocio para que forme parte de Geinz."
+                                    )
+                                }
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "Contactar con Geinz",
+                                modifier = Modifier.padding(vertical = 15.dp),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                        spacer_vertical(20.dp)
                     }
                 }
 
@@ -267,6 +296,57 @@ fun bottom_sheet_ayudanos_a_creccer(
         }
     }
 }
+
+@Composable
+fun img_baner_informativo(img: String) {
+    var mostar_img by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier
+            .width(200.dp)
+            .height(300.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { mostar_img = true }
+    ) {
+        // Imagen
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(img)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .error(R.drawable.cargando_img_categorias)
+                .placeholder(R.drawable.cargando_img_categorias)
+                .build(),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        // 🔹 Máscara negra translúcida suave
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.3f), // arriba más suave
+                            Color.Black.copy(alpha = 0.4f)  // abajo un poco más oscuro
+                        )
+                    )
+                )
+        )
+    }
+
+    // 🔹 Pantalla de zoom
+    if (mostar_img) {
+        ZoomableGalleryFullScreen(
+            imagenes = listOf(img),
+            startIndex = 0,
+            onDismiss = { mostar_img = false }
+        )
+    }
+}
+
 
 @Composable
 fun FichaOpcion(

@@ -1500,6 +1500,111 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
 }
 
 @Composable
+fun baner_registra_tu_negocio(listener_registra_tu_negocio:()-> Unit){
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color(0xFF1A1A1A))
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 180.dp)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }) {
+                listener_registra_tu_negocio()
+            }
+    ) {
+        Row(
+            modifier = Modifier
+                .matchParentSize() // 🔹 el Row ocupa todo el Box
+        ) {
+            // === COLUMNA DE TEXTO Y BOTÓN ===
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .padding(10.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "Registra tu negocio en GEINZ",
+                        color = Color.White,
+                        fontFamily = baners_geinz_work,
+                        fontSize = 20.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    spacer_vertical(10.dp)
+
+                    texto_generico_multilinea(
+                        "Transforma tu negocio en el mapa digital ",
+                        style = MaterialTheme.typography.bodyMedium,
+                        Color = Color.White
+                    )
+                }
+
+                spacer_vertical(10.dp)
+                // === BOTÓN FLECHA ===
+                Box(
+                    modifier = Modifier
+                        .size(40.dp) // 🔹 tamaño fijo y respetado
+                        .clip(CircleShape)
+                        .background(Color.Gray.copy(alpha = 0.25f))
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            listener_registra_tu_negocio() }
+                        .align(Alignment.Start), // evita que se estire horizontalmente
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = "Ir",
+                        tint = Color.White,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+                spacer_vertical(10.dp)
+            }
+
+            // === IMAGEN ===
+            Box(
+                modifier = Modifier
+                    .weight(0.7f)
+                    .fillMaxHeight()
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .data(R.drawable.geinz_baner)
+                        .build(),
+
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                // Gradiente para transición
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(80.dp)
+                        .align(Alignment.CenterStart)
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(Color(0xFF1A1A1A), Color.Transparent)
+                            )
+                        )
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun shadow_bottom_pantallas_generales(modifier: Modifier) {
     val listState = rememberLazyListState()
     val targetAlpha = if (listState.canScrollForward) 1f else 0f

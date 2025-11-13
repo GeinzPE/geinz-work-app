@@ -1004,7 +1004,7 @@ fun ui_pantalla_busqueda(
         }
 
         if (mostar_bottom_sheet_ayuda_geinz) {
-            bottom_sheet_ayudanos_a_creccer(localida_defauld.localida,
+            bottom_sheet_ayudanos_a_creccer(ultimaLocalidad?:"barranca",
                 { mostar_bottom_sheet_ayuda_geinz = false },viewModelFiltros)
         }
         Box(

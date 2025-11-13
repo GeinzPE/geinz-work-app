@@ -289,12 +289,12 @@ fun protada_perfil_user(
                                         fontWeight = FontWeight.Medium
                                     )
                                 ) {
-                                    append(" +51 937 659 216")
+                                    append(" +51 958 120 920")
                                 }
                             },
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.clickable {
-                                abrir_whattsapp(contex, "937 659 216")
+                                abrir_whattsapp(contex, "958 120 920")
                             })
                     }
                     spacer_vertical(20.dp)
