@@ -31,7 +31,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -68,6 +67,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad.ui_salud_se
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.ui_servicio_tramite
 import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5_s
+import com.geinzz.geinzwork.viewModels.viewModel_favoritos
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
@@ -77,8 +77,6 @@ import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 import com.geinzz.geinzwork.viewModels.viewmodel_usuario_registrado
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.launch
-import java.io.File
 
 private lateinit var firebaseAuth: FirebaseAuth
 
@@ -97,6 +95,7 @@ fun nativationWrapper(
     val viewModel_filtrado_tiendas: viewModel_filtado_tiendas = viewModel()
     val viewmode_segurirdad_Salud: viewmode_seguridad_salud = viewModel()
     val viewmodelMapa: viewmodel_mapa_personalizado = viewModel()
+    val viewmodelFavoritos : viewModel_favoritos = viewModel()
     val mostrarCarga by viewModel_login_user.mostrarCarga.observeAsState(false)
     val systemUiController = rememberSystemUiController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -108,18 +107,27 @@ fun nativationWrapper(
     val datos_user by viewmodel_usuario_registrado.userData.observeAsState()
     var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
-    val email_respald_user by data_store_localidad.get_email_user(context).collectAsState(initial = "")
+    val email_respald_user by data_store_localidad.get_email_user(context)
+        .collectAsState(initial = "")
     var id_respado_user by remember { mutableStateOf("") }
     var email_respaldo_user by remember { mutableStateOf("") }
-    var datos_principales_user by remember { mutableStateOf(datos_principales_user("", "", "barranca")) }
+    var datos_principales_user by remember {
+        mutableStateOf(
+            datos_principales_user(
+                "",
+                "",
+                "barranca"
+            )
+        )
+    }
 
     LaunchedEffect(firebaseAuth.currentUser) {
         val current = firebaseAuth.currentUser
         if (current != null) {
             viewmodel_usuario_registrado.obtener_datos_user_registrado(current.uid)
-        } else if(uid_respald_user.isNotEmpty()){
+        } else if (uid_respald_user.isNotEmpty()) {
             viewmodel_usuario_registrado.obtener_datos_user_registrado(uid_respald_user)
-        }else{
+        } else {
             datos_principales_user = datos_principales_user("", "", "barranca")
         }
     }
@@ -189,8 +197,8 @@ fun nativationWrapper(
                 "UID_DataStore",
                 "✅ Recuperado email válido desde DataStore: $email_respaldo_user"
             )
-        }else{
-            email_respaldo_user=""
+        } else {
+            email_respaldo_user = ""
             Log.d(
                 "UID_DataStore",
                 "vacio"
@@ -201,8 +209,8 @@ fun nativationWrapper(
         if (uid_respald_user.isNotEmpty()) {
             id_respado_user = uid_respald_user
             Log.d("UID_DataStore", "✅ Recuperado UID válido desde DataStore: $id_respado_user")
-        }else{
-            id_respado_user=""
+        } else {
+            id_respado_user = ""
             Log.d(
                 "UID_DataStore",
                 "vacio"
@@ -226,10 +234,11 @@ fun nativationWrapper(
 
         } else if (id_respado_user.isNotEmpty() && !email_respaldo_user.isNullOrEmpty()) {
             val email = email_respaldo_user
-            mostrar_btn_termianr_configurar = viewModel_login_user.verificar_cuenta_google_provider(email ?: "")
+            mostrar_btn_termianr_configurar =
+                viewModel_login_user.verificar_cuenta_google_provider(email ?: "")
             viewModel_login_user.setear_mostrar_btn_configurar(mostrar_btn_termianr_configurar)
             Log.d("correo_registrado", "de data store quedo el $id_respado_user")
-        } else{
+        } else {
             Log.d("correo_registrado", "No hay usuario logueado ni respaldo local")
 
         }
@@ -383,7 +392,7 @@ fun nativationWrapper(
                 }
 
                 composable("favoritos") {
-                    iu_favoritos()
+                    iu_favoritos(viewmodelFavoritos,datos_principales_user)
                 }
 
 
@@ -463,7 +472,7 @@ fun nativationWrapper(
                             navController.popBackStack()
                         },
                         abrir_mapa = { tipo, localidad ->
-                            if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty() ) {
+                            if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
                                 navController.navigate(map_perzonalizado(tipo, localidad))
                             } else {
                                 bottom_sheet_iniciar_seccion = true

@@ -1298,8 +1298,11 @@ fun filtrado_chips(
         } else if (searchText.length < 2 && !haySeleccion) {
             Log.d("entramos_Seach", "2")
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                val categoriasAleatorias = remember(categorias_defaul) {
+                    categorias_defaul.shuffled().take(15)
+                }
                 LazyRowConSombras {
-                    items(categorias_defaul) { i ->
+                    items(categoriasAleatorias) { i ->
                         chisp_filtrado_busqueda(
                             carta_selecionada = false,
                             filtrado = simplificarCategoria(i),
@@ -1334,7 +1337,7 @@ fun filtrado_chips(
 
                 spacer_vertical(5.dp)
                 AnimatedVisibility(mostrar_texto) {
-                    texto_generico_one_line("Seleciona una categoria para empezar")
+                    texto_generico_one_line("Selecciona una categoria para empezar")
                 }
 
             }

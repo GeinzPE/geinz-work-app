@@ -108,20 +108,34 @@ object constantes_lista_localidades {
         dataclass_localidad_escudos("Pativilca".lowercase(), R.drawable.escudo_pativilca)
     )
     val lista_turismo_bottom_sheet = listOf(
-        botom_shet_turismobtn("Ir al lugar", Icons.Filled.Place,true),
-        botom_shet_turismobtn("ver en mapa", Icons.Filled.Map,false),
-        botom_shet_turismobtn("compartir", Icons.Filled.Share,false)
+        botom_shet_turismobtn("Ir al lugar", Icons.Filled.Place, true),
+        botom_shet_turismobtn("ver en mapa", Icons.Filled.Map, false),
+        botom_shet_turismobtn("compartir", Icons.Filled.Share, false)
     )
     val cat_sub_seguirar_salud = listOf("seguridad", "salud")
     val categorias_defaul = listOf(
         "comida y restaurantes",
-        "grifos y estaciones",
-        "hospedaje y entretenimiento nocturno",
-        "salud y farmacias",
-        "transporte y terminales",
-        "deporte y bienestar",
         "bancos y servicios financieros",
-        "hogar y ferreteria","belleza","minimarkets y bodegas"
+        "belleza",
+        "deporte y bienestar",
+        "educacion y librerias",
+        "entretenimiento y recreacion",
+        "grifos y estaciones",
+        "hogar",
+        "hogar y ferreteria",
+        "hospedaje y entretenimiento nocturno",
+        "jardineria y plantas",
+        "lavanderias y tintorerias",
+        "mascotas y animales",
+        "mecanica y autoservicios",
+        "minimarkets y bodegas",
+        "moda y estilo",
+        "salud y farmacias",
+        "servicios de encomienda y envios",
+        "servicios tecnicos y reparaciones",
+        "tecnologia y electronica",
+        "transporte y terminales",
+        "turismo"
     )
 
     val dias_sema =
@@ -185,7 +199,7 @@ object constantes_lista_localidades {
             "supermercados y tiendas grandes" -> "🏬"
             "tecnologia y electronica" -> "💻"
             "transporte y terminales" -> "🚌"
-            "hogar"->"🏨"
+            "hogar" -> "🏨"
             else -> "🏷️" // genérico
         }
     }
@@ -374,8 +388,24 @@ object constantes_lista_localidades {
         "¿Qué explorar?"
     )
 
+
+    val lista_fraces_favoritos = listOf(
+        "Solo para ti",
+        "Aquí empieza lo tuyo",
+        "Tu selección perfecta", "Lo que amas aquí",
+        "Tu lista, tu mundo", "Tu espacio especial", "Tu toque personal"
+    )
+
     val lista_fitlrado_servicios_basicos = listOf(
-        "Todos", "agua", "gas", "luz", "cable", "agua de mesa","internet", "telefonia movil", "tramites"
+        "Todos",
+        "agua",
+        "gas",
+        "luz",
+        "cable",
+        "agua de mesa",
+        "internet",
+        "telefonia movil",
+        "tramites"
     )
 
     val lista_color_degradado_bottom = listOf(
@@ -463,6 +493,7 @@ object constantes_lista_localidades {
 
 
     )
+
     @Composable
     fun FuenteControladaApp_bottom_sheet_dialog(content: @Composable () -> Unit) {
         val currentDensity = LocalDensity.current
@@ -1821,7 +1852,11 @@ object constantes_lista_localidades {
         Color(0xFF000000),
     )
 
-    fun abrir_whattsapp(context: Context, numero: String,mensajePredefinido:String="¡Hola! Vengo de Geinz y me gustaría hacer una consulta. ¿Me pueden atender?") {
+    fun abrir_whattsapp(
+        context: Context,
+        numero: String,
+        mensajePredefinido: String = "¡Hola! Vengo de Geinz y me gustaría hacer una consulta. ¿Me pueden atender?"
+    ) {
         // 2. Codificar el mensaje para que sea seguro en la URL.
         val mensajeCodificado = URLEncoder.encode(mensajePredefinido, "UTF-8")
         val uri = Uri.parse(
@@ -2054,7 +2089,7 @@ object constantes_lista_localidades {
                 numero = metodo["numero"] as? String ?: "",
                 qr = metodo["qr"] as? String ?: "",
                 enable = metodo["enable"] as? Boolean ?: false,
-                nombre = metodo["nombre"] as? String?:""
+                nombre = metodo["nombre"] as? String ?: ""
             )
         }
         return modelo_pagos_tienda(
@@ -2205,27 +2240,34 @@ object constantes_lista_localidades {
                 val location = locationResult.lastLocation ?: return
                 if (!ubicacionObtenida) { // 🔹 solo si no se obtuvo antes
                     ubicacionObtenida = true
-                    Log.d("UBICACION_TIEMPO_REAL", "✅ Ubicación obtenida: ${location.latitude}, ${location.longitude}")
+                    Log.d(
+                        "UBICACION_TIEMPO_REAL",
+                        "✅ Ubicación obtenida: ${location.latitude}, ${location.longitude}"
+                    )
                     onLocation(location.latitude, location.longitude)
                     fusedClient.removeLocationUpdates(this)
                 }
             }
         }
 
-        fusedClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+        fusedClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
 
         // 🔹 Temporizador de 15 segundos
         Handler(Looper.getMainLooper()).postDelayed({
             if (!ubicacionObtenida) {
-                Log.w("UBICACION_TIEMPO_REAL", "⚠️ Tiempo de espera superado (15s), cancelando solicitud.")
+                Log.w(
+                    "UBICACION_TIEMPO_REAL",
+                    "⚠️ Tiempo de espera superado (15s), cancelando solicitud."
+                )
                 fusedClient.removeLocationUpdates(locationCallback)
                 onTimeout()
             }
         }, 15000L)
     }
-
-
-
 
 
 //    @SuppressLint("MissingPermission")
@@ -2281,7 +2323,10 @@ object constantes_lista_localidades {
 
                 if (location != null) {
                     val diff = System.currentTimeMillis() - location.time
-                    Log.d("OBTENER_UBICACION", "Coordenadas → lat=${location.latitude}, lng=${location.longitude}, diff=$diff")
+                    Log.d(
+                        "OBTENER_UBICACION",
+                        "Coordenadas → lat=${location.latitude}, lng=${location.longitude}, diff=$diff"
+                    )
 
                     if (diff < 3000 && !locationRecibida) {
                         locationRecibida = true
@@ -2305,13 +2350,15 @@ object constantes_lista_localidades {
         // ⏱️ Timeout de 15 segundos
         Handler(Looper.getMainLooper()).postDelayed({
             if (!locationRecibida) {
-                Log.e("OBTENER_UBICACION", "⏰ Tiempo de espera agotado (15s). Cancelando solicitud.")
+                Log.e(
+                    "OBTENER_UBICACION",
+                    "⏰ Tiempo de espera agotado (15s). Cancelando solicitud."
+                )
                 fusedClient.removeLocationUpdates(callback)
                 onTimeout?.invoke()
             }
         }, 15000L)
     }
-
 
 
     fun isGPSEnabled(context: Context): Boolean {
@@ -2388,17 +2435,21 @@ object constantes_lista_localidades {
 
     data class metodos_pago_tiendas(
         val enable: Boolean,
-        val img: Int=0,
-        val nombre_metodo:String
+        val img: Int = 0,
+        val nombre_metodo: String
     )
 
     fun mostrar_iconos_pagos(i: modelo_pagos_tienda): List<metodos_pago_tiendas> {
         val lista = listOf(
-            metodos_pago_tiendas(i.yape.enable, R.drawable.yape_logo,"yape"),
-            metodos_pago_tiendas(i.plin.enable, R.drawable.logo_plin,"plin"),
-            metodos_pago_tiendas(i.agora.enable, R.drawable.logo_agora,"agora"),
-            metodos_pago_tiendas(i.visa_mastercard.enable, R.drawable.master_car_logo,"mastercard"),
-            metodos_pago_tiendas(i.visa_mastercard.enable, R.drawable.visa_logo,"visa"),
+            metodos_pago_tiendas(i.yape.enable, R.drawable.yape_logo, "yape"),
+            metodos_pago_tiendas(i.plin.enable, R.drawable.logo_plin, "plin"),
+            metodos_pago_tiendas(i.agora.enable, R.drawable.logo_agora, "agora"),
+            metodos_pago_tiendas(
+                i.visa_mastercard.enable,
+                R.drawable.master_car_logo,
+                "mastercard"
+            ),
+            metodos_pago_tiendas(i.visa_mastercard.enable, R.drawable.visa_logo, "visa"),
 
 
             )
@@ -2440,9 +2491,6 @@ object constantes_lista_localidades {
         return lm.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
                 lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
-
-
-
 
 
 }

@@ -508,7 +508,6 @@ fun cabezero_tiendas(
         ) {
             perfil_img_zooom(
                 triggerAnimacion,
-                guardar_icon,
                 modifier,
                 img_tienda_perfil,
                 { expdir_img = !expdir_img },
@@ -563,7 +562,6 @@ fun cabezero_tiendas(
 @Composable
 fun perfil_img_zooom(
     triggerAnimacion: Boolean,
-    mostrar_animacion: Boolean,
     modifier: Modifier = Modifier,
     img_tienda_perfil: String,
     expandido: () -> Unit,
@@ -572,7 +570,6 @@ fun perfil_img_zooom(
 ) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.bandai_dokkan))
     var showAnimation by remember { mutableStateOf(false) }
-
     LaunchedEffect(triggerAnimacion) {
         Log.d("entramos",triggerAnimacion.toString())
         if (triggerAnimacion) {
