@@ -179,7 +179,7 @@ object constantes_lista_localidades {
     fun getCategoriaIcon(categoria: String): String {
         return when (categoria.lowercase()) {
             "bancos y servicios financieros" -> "🏦"
-            "belleza" -> "💅"
+            "belleza" -> "\uD83D\uDC88"
             "comida y restaurantes" -> "🍽️"
             "deporte y bienestar" -> "🏋️"
             "educacion y librerias" -> "📚"
@@ -192,7 +192,7 @@ object constantes_lista_localidades {
             "mascotas y animales" -> "🐾"
             "mecanica y autoservicios" -> "🔧"
             "minimarkets y bodegas" -> "🛒"
-            "moda y estilo" -> "👗"
+            "moda y estilo" -> "\uD83D\uDC55"
             "salud y farmacias" -> "💊"
             "servicios de encomienda y envios" -> "📦"
             "servicios tecnicos y reparaciones" -> "🔌"
@@ -200,6 +200,7 @@ object constantes_lista_localidades {
             "tecnologia y electronica" -> "💻"
             "transporte y terminales" -> "🚌"
             "hogar" -> "🏨"
+            "turismo"->"\uD83C\uDDF5\uD83C\uDDEA"
             else -> "🏷️" // genérico
         }
     }

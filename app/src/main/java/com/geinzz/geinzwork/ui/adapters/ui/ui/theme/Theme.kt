@@ -35,59 +35,75 @@ private val DarkColorScheme = darkColorScheme(
     tertiary = Pink80
 )
 
-private val LightColorScheme = lightColorScheme(
-    background = fondo_calro95,
+//private val LightColorScheme = lightColorScheme(
+//    background = fondo_calro95,
+//
+//    onBackground = color_texto_claro_background,
+//
+//    primary = btn_floatin40,
+//    onPrimary = texto_claro0,
+//
+//    surface = color_carta_claro90,
+//    surfaceVariant = color_carta_claro35,
+//
+//
+//    primaryContainer = color_chips_select,
+//
+//    secondary = btn_floatin40,
+//    tertiary = Pink40
+//
+//    /* Other default colors to override
+//    background = Color(0xFFFFFBFE),
+//    surface = Color(0xFFFFFBFE),
+//    onPrimary = Color.White,
+//    onSecondary = Color.White,
+//    onTertiary = Color.White,
+//    onBackground = Color(0xFF1C1B1F),
+//    onSurface = Color(0xFF1C1B1F),
+//    */
+//)
 
-    onBackground = color_texto_claro_background,
-
-    primary = btn_floatin40,
-    onPrimary = texto_claro0,
-
-    surface = color_carta_claro90,
-    surfaceVariant = color_carta_claro35,
-
-
-    primaryContainer = color_chips_select,
-
-    secondary = btn_floatin40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
-)
+//@Composable
+//fun GeinzWorkTheme(
+//    darkTheme: Boolean =true,
+////    darkTheme: Boolean = isSystemInDarkTheme(),
+//    // Dynamic color is available on Android 12+
+//    dynamicColor: Boolean = false,
+//    content: @Composable () -> Unit
+//) {
+//    val colorScheme = when {
+//        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+//            val context = LocalContext.current
+//            if (darkTheme) dynamicDarkColorScheme(context)
+////            else dynamicLightColorScheme(context)
+//        }
+//
+//        darkTheme -> DarkColorScheme
+////        else -> LightColorScheme
+//    }
+//
+//    MaterialTheme(
+//        colorScheme = colorScheme,
+//        typography = Typography,
+//        content = content,
+//        shapes = Shapes(
+//            small = RoundedCornerShape(10.dp),
+//            medium = RoundedCornerShape(15.dp)
+//        )
+//    )
+//}
 
 @Composable
 fun GeinzWorkTheme(
-    darkTheme: Boolean =true,
-//    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = DarkColorScheme,
         typography = Typography,
-        content = content,
         shapes = Shapes(
             small = RoundedCornerShape(10.dp),
             medium = RoundedCornerShape(15.dp)
-        )
+        ),
+        content = content
     )
 }
