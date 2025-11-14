@@ -424,7 +424,7 @@ fun texto_generico_one_line(
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onBackground
 ) {
-    FuenteControladaApp{
+    FuenteControladaApp {
         Text(
             text = texto,
             modifier = modifier,
@@ -569,13 +569,13 @@ fun expandibles_wrapp(
 
 @Composable
 fun text_expandible_wrapp(
-    modifier: Modifier= Modifier,
+    modifier: Modifier = Modifier,
     texto: String,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
     maxlines: Int = 1
 ) {
     Text(
-        modifier=modifier,
+        modifier = modifier,
         text = texto,
         color = MaterialTheme.colorScheme.onBackground,
         style = style,
@@ -642,7 +642,7 @@ fun btn_clasico_shap_50f(text: String, onClick: () -> Unit) {
 fun TextoSubrayado(
     texto: String,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
-    modifier: Modifier = Modifier,color_subrallado: Color=MaterialTheme.colorScheme.onBackground
+    modifier: Modifier = Modifier, color_subrallado: Color = MaterialTheme.colorScheme.onBackground
 ) {
     Text(
         text = texto,
@@ -878,12 +878,24 @@ fun carta_turismo_google_mpa(
 
         ) {
         img_carta_google_maps(img_ref)
-        AnimatedVisibility(!mostrar_overlay, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.align(
-            Alignment.BottomCenter)) {
+        AnimatedVisibility(
+            !mostrar_overlay, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.align(
+                Alignment.BottomCenter
+            )
+        ) {
             Column {
-                Box(modifier = Modifier.fillMaxWidth().height(15.dp)
-                    .background(brush = Brush.verticalGradient(end_subcategoria_shadow)))
-                Box(modifier = Modifier.fillMaxWidth().height(30.dp).background(MaterialTheme.colorScheme.surface)){
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(15.dp)
+                        .background(brush = Brush.verticalGradient(end_subcategoria_shadow))
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(30.dp)
+                        .background(MaterialTheme.colorScheme.surface)
+                ) {
                     datos_lugares_google_maps(titulo, datos_descripcion)
                 }
             }
@@ -923,7 +935,11 @@ fun img_carta_google_maps(img: String) {
 @Composable
 fun datos_lugares_google_maps(texto: String, descripcion: String) {
     Column(modifier = Modifier.padding(start = 10.dp, end = 20.dp, top = 5.dp, bottom = 5.dp)) {
-        texto_generico_one_line(texto = texto, MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 5.dp))
+        texto_generico_one_line(
+            texto = texto,
+            MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(bottom = 5.dp)
+        )
         spacer_vertical(5.dp)
 //        text_expandible_wrapp(descripcion, maxlines = 2)
     }
@@ -1192,8 +1208,8 @@ fun chisp_filtrado_busqueda(
     btn_visible: Boolean = true,
     clik_card: () -> Unit,
     onClick_delete: () -> Unit,
-    color_invertido: Boolean=false,
-    alto: Dp=45.dp
+    color_invertido: Boolean = false,
+    alto: Dp = 45.dp
 ) {
     val color_chips by animateColorAsState(
         targetValue = if (!carta_selecionada)
@@ -1206,21 +1222,22 @@ fun chisp_filtrado_busqueda(
         ), label = ""
     )
     val color_invertido_chips by animateColorAsState(
-        targetValue = if(!carta_selecionada){
+        targetValue = if (!carta_selecionada) {
             Color.White
-        }else{
+        } else {
             MaterialTheme.colorScheme.primary
         }
     )
 
 
     val color_text = if (!carta_selecionada) Color.White else Color.Black
-    val color_text_ivnertido=if(color_invertido && !carta_selecionada) Color.Black else Color.White
+    val color_text_ivnertido =
+        if (color_invertido && !carta_selecionada) Color.Black else Color.White
 
     Row(
         modifier = Modifier
             .clip(CircleShape)
-            .background(if(!color_invertido) color_chips else color_invertido_chips )
+            .background(if (!color_invertido) color_chips else color_invertido_chips)
             .height(alto)
             .padding(horizontal = 15.dp, vertical = 10.dp)
             .clickable(
@@ -1230,7 +1247,7 @@ fun chisp_filtrado_busqueda(
     ) {
         texto_generico_one_line(
             filtrado.capitalizeFirst(),
-            color = if(!color_invertido)color_text else color_text_ivnertido,
+            color = if (!color_invertido) color_text else color_text_ivnertido,
             style = MaterialTheme.typography.bodyMedium
         )
         if (btn_visible) {
@@ -1279,7 +1296,7 @@ fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Mod
                 drawableResId = R.drawable.f1,
                 anguloRotacion = -8f,
                 desplazamientoX = -70.dp,
-                desplazamientoY = 20.dp
+                desplazamientoY = 20.dp, null, {}
             )
 
             // --- Foto 2 (Centro, la protagonista) ---
@@ -1287,7 +1304,7 @@ fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Mod
                 drawableResId = R.drawable.f2,
                 anguloRotacion = 3f,
                 desplazamientoX = 0.dp,
-                desplazamientoY = 0.dp
+                desplazamientoY = 0.dp, null, {}
             )
 
             // --- Foto 3 (Derecha) ---
@@ -1295,7 +1312,7 @@ fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Mod
                 drawableResId = R.drawable.f3,
                 anguloRotacion = 7f,
                 desplazamientoX = 70.dp,
-                desplazamientoY = 40.dp
+                desplazamientoY = 40.dp, null, {}
             )
         }
         fracescambiantes(nombre_usuario)
@@ -1334,23 +1351,66 @@ fun fracescambiantes(nombre_user: String) {
     }
 }
 
+//@Composable
+//fun ImagenConInclinacion(
+//    drawableResId: Int,
+//    anguloRotacion: Float,
+//    desplazamientoX: Dp = 0.dp,
+//    desplazamientoY: Dp = 0.dp
+//) {
+//    val configuration = LocalConfiguration.current
+//    val screenWidth = configuration.screenWidthDp.dp
+//
+//    // 🔹 Calcula un tamaño proporcional al ancho, pero con límite
+//    val tamaño = (screenWidth * 0.35f).coerceIn(100.dp, 160.dp)
+//    // -> en celulares será ~130dp, en tablets nunca pasa de 160dp
+//
+//    Box(
+//        modifier = Modifier
+//            .size(tamaño) // 👈 controla el tamaño real
+//            .offset(x = desplazamientoX, y = desplazamientoY)
+//            .rotate(anguloRotacion)
+//            .clip(RoundedCornerShape(12.dp))
+//    ) {
+//        AsyncImage(
+//            model = ImageRequest.Builder(LocalContext.current)
+//                .data(drawableResId)
+//                .placeholder(R.drawable.cargando_img_categorias)
+//                .error(R.drawable.cargando_img_categorias)
+//                .crossfade(false)
+//                .build(),
+//            contentDescription = null,
+//            contentScale = ContentScale.Crop,
+//            modifier = Modifier.fillMaxSize()
+//        )
+//    }
+//}
 @Composable
 fun ImagenConInclinacion(
     drawableResId: Int,
     anguloRotacion: Float,
     desplazamientoX: Dp = 0.dp,
-    desplazamientoY: Dp = 0.dp
+    desplazamientoY: Dp = 0.dp,
+    factorTamaño: Float? = null,
+    clikeable: (Boolean) -> Unit,
+    mostrarMascara: Boolean = false  // 👈 tamaño opcional y responsivo
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
 
-    // 🔹 Calcula un tamaño proporcional al ancho, pero con límite
-    val tamaño = (screenWidth * 0.35f).coerceIn(100.dp, 160.dp)
-    // -> en celulares será ~130dp, en tablets nunca pasa de 160dp
+    // 🔹 Tamaño automático si no pasas nada (35% del ancho)
+    val tamañoDefault = (screenWidth * 0.35f).coerceIn(100.dp, 160.dp)
+
+    // 🔹 Si envías un factor, lo calculamos igual que el default
+    val tamañoFinal = if (factorTamaño != null) {
+        (screenWidth * factorTamaño).coerceIn(80.dp, 200.dp)
+    } else {
+        tamañoDefault
+    }
 
     Box(
         modifier = Modifier
-            .size(tamaño) // 👈 controla el tamaño real
+            .size(tamañoFinal)
             .offset(x = desplazamientoX, y = desplazamientoY)
             .rotate(anguloRotacion)
             .clip(RoundedCornerShape(12.dp))
@@ -1364,8 +1424,20 @@ fun ImagenConInclinacion(
                 .build(),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable (indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                    clikeable(!mostrarMascara)
+                }
         )
+        AnimatedVisibility(!mostrarMascara,enter = fadeIn(), exit = fadeOut()) {
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.35f)) // 👈 máscara elegante
+            )
+        }
     }
 }
 
@@ -1450,7 +1522,8 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) {
-                            listener_servicios() }
+                            listener_servicios()
+                        }
                         .align(Alignment.Start), // evita que se estire horizontalmente
                     contentAlignment = Alignment.Center
                 ) {
@@ -1500,7 +1573,7 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
 }
 
 @Composable
-fun baner_registra_tu_negocio(listener_registra_tu_negocio:()-> Unit){
+fun baner_registra_tu_negocio(listener_registra_tu_negocio: () -> Unit) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
@@ -1555,7 +1628,8 @@ fun baner_registra_tu_negocio(listener_registra_tu_negocio:()-> Unit){
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) {
-                            listener_registra_tu_negocio() }
+                            listener_registra_tu_negocio()
+                        }
                         .align(Alignment.Start), // evita que se estire horizontalmente
                     contentAlignment = Alignment.Center
                 ) {

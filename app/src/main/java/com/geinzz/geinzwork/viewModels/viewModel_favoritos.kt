@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 class viewModel_favoritos : ViewModel() {
     private val repo_fv = repo_favoritos()
     private val _lista_fv = MutableStateFlow<state_fv>(state_fv.loading)
+    private val lista_categoria_filtrad = MutableStateFlow<List<String>>(emptyList())
     val lista_fv: StateFlow<state_fv> get() = _lista_fv
 
 
@@ -19,8 +20,10 @@ class viewModel_favoritos : ViewModel() {
             _lista_fv.value = state_fv.loading
             try {
                 val lista_retorno = repo_fv.obtener_favoritos(id_user = id_user)
-                if (lista_retorno.isNotEmpty()) {
-                    _lista_fv.value = state_fv.succes(lista_retorno)
+                val (items, categorias) = lista_retorno
+                lista_categoria_filtrad.value = categorias
+                if (items.isNotEmpty()) {
+                    _lista_fv.value = state_fv.succes(items,categorias)
                 } else {
                     _lista_fv.value = state_fv.empty
                 }
@@ -32,7 +35,7 @@ class viewModel_favoritos : ViewModel() {
 
     sealed class state_fv {
         object loading : state_fv()
-        data class succes(val item: List<favoritos_guardados>) : state_fv()
+        data class succes(val item: List<favoritos_guardados>,val lista_categoria: List<String>) : state_fv()
         object empty : state_fv()
         data class error(val txt: String) : state_fv()
     }

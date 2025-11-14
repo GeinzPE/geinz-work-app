@@ -11,8 +11,9 @@ import kotlinx.coroutines.tasks.await
 class repo_favoritos {
     val db = FirebaseFirestore.getInstance()
 
-    suspend fun obtener_favoritos(id_user: String): List<favoritos_guardados> {
+    suspend fun obtener_favoritos(id_user: String): Pair<List<favoritos_guardados>, List<String>> {
         val listaFavoritos = mutableListOf<favoritos_guardados>()
+        val lista_categorias_fitlrado = mutableListOf<String>()
         val ref =
             db.collection("Trabajadores_Usuarios_Drivers").document("users").collection("users")
                 .document(id_user).collection("favoritos").get().await()
@@ -30,6 +31,7 @@ class repo_favoritos {
 
             val horarioMap = data?.get("horario_atencion") as? Map<String, Any> ?: emptyMap()
             val metodo_pago = data?.get("metodos_pago") as? Map<String, Any> ?: emptyMap()
+            val categoria=data?.get("categoria") as? String?:""
 
             val metodo_pago_tienda = metodo_pago.to_metodo_pago()
 
@@ -46,7 +48,7 @@ class repo_favoritos {
                 id_tienda_lugar = data["id_tienda_lugar"] as? String ?: "",
                 nombre_lugar_tienda = data["nombre_lugar_tienda"] as? String ?: "",
                 tag_sub = data["tag_sub"] as? List<String> ?: emptyList(),
-                categoria = data["categoria"] as? String ?: "",
+                categoria = categoria,
                 timesLap = data["timesLap"] as? String ?: "",
                 horario = horarioTienda,
                 metodos_pago = metodo_pago_tienda,
@@ -55,7 +57,10 @@ class repo_favoritos {
             )
 
             listaFavoritos.add(favorito)
+            lista_categorias_fitlrado.add(categoria)
         }
-        return listaFavoritos
+        return Pair(listaFavoritos,lista_categorias_fitlrado)
     }
+
+
 }
