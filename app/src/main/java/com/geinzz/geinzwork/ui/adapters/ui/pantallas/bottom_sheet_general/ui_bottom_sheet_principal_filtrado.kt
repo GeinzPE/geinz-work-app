@@ -10,9 +10,14 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -54,6 +59,8 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -105,12 +112,17 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.item_metodos_pago
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openFacebook
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openTiktok
@@ -146,10 +158,12 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda.retornar_id_Tienda_lugar
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
+import kotlin.Unit
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
@@ -161,6 +175,7 @@ fun bottom_sheet_tiendas_filtradas(
     onClose: () -> Unit,
 ) {
     val context = LocalContext.current
+    val firebaseAuth= FirebaseAuth.getInstance()
     viewModelFiltros.cast_horario_atencion_horario_tienda(tiendas_filtradas.horario_atencion)
     var expandir_descripcion by rememberSaveable { mutableStateOf(false) }
     var expander_caracterisiticas by rememberSaveable { mutableStateOf(false) }
@@ -173,8 +188,17 @@ fun bottom_sheet_tiendas_filtradas(
     val longitud = (tiendas_filtradas.ubicacion["longitud"] as? Number)?.toDouble() ?: 0.0
     val latitud = (tiendas_filtradas.ubicacion["latitud"] as? Number)?.toDouble() ?: 0.0
     val color_Estado_flow by viewModelFiltros.color_estado_tienda_flow.collectAsState()
-
+    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+    val verificarfavorito by viewModelFiltros.existe_favorito.collectAsState()
+    val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
+    ?: ""
     var cargando by remember { mutableStateOf(true) }
+    var guardar_icon by remember { mutableStateOf(false) }
+
+    var triggerAnimacion by remember { mutableStateOf(false) }
+    LaunchedEffect(verificarfavorito) {
+        guardar_icon=verificarfavorito
+    }
 
 //    LaunchedEffect(tiendas_filtradas) {
 //        if(tiendas_filtradas != tiendas_filtradas()){
@@ -199,13 +223,12 @@ fun bottom_sheet_tiendas_filtradas(
             val startTime = System.currentTimeMillis()
 
             while (cargando) {
+                viewModelFiltros.verificar_existe_favorito(id_user,tiendas_filtradas.id_tienda)
                 val datosCargados = tiendas_filtradas.id_tienda.isNotBlank() ||
                         tiendas_filtradas.ubicacion.isNotEmpty()
 
                 val tiempoPasado = System.currentTimeMillis() - startTime
 
-                // 🔸 Solo puede cerrarse si pasaron al menos 2 s
-                // y además los datos ya están cargados o pasó el máximo
                 if (tiempoPasado >= tiempoMinimo && (datosCargados || tiempoPasado >= tiempoMaximo)) {
                     cargando = false
                     break
@@ -270,18 +293,48 @@ fun bottom_sheet_tiendas_filtradas(
                         }
                         item {
                             cabezero_tiendas(
-                                viewModelFiltros,
+                                triggerAnimacion,
+                                guardar_icon = guardar_icon,
+                                viewModel_filtado_tiendas = viewModelFiltros,
                                 modifier = Modifier.padding(horizontal = 10.dp),
-                                color_Estado_flow,
-                                direccion,
-                                referencia,
-                                tiendas_filtradas.categoria_tienda,
-                                tiendas_filtradas.nombre_tienda,
-                                latitud,
-                                longitud,
-                                tiendas_filtradas.img_perfil,
-                                tiendas_filtradas.lista_img,
-                                tiendas_filtradas.subcategoria
+                                estadoColor = color_Estado_flow,
+                                direccion = direccion,
+                                referencia = referencia,
+                                categoritienda = tiendas_filtradas.categoria_tienda,
+                                nombre_tienda = tiendas_filtradas.nombre_tienda,
+                                latitud = latitud,
+                                longitud = longitud,
+                                img_tienda_perfil = tiendas_filtradas.img_perfil,
+                                lista_img = tiendas_filtradas.lista_img,
+                                lista_tags = tiendas_filtradas.subcategoria,
+                                guaradar_select = { i ->
+                                    val datos_guardar=favoritos_guardados(
+                                        id_tienda_lugar=tiendas_filtradas.id_tienda,
+                                        nombre_lugar_tienda=tiendas_filtradas.nombre_tienda,
+                                        tag_sub=tiendas_filtradas.subcategoria,
+                                        categoria=tiendas_filtradas.categoria_tienda,
+                                        timesLap="",
+                                        horario=tiendas_filtradas.horario_atencion,
+                                        metodos_pago=tiendas_filtradas.metodos_pago_tienda,
+                                        lat=latitud,
+                                        lng=longitud
+                                    )
+                                    if (id_user.isEmpty()) {
+                                        Toast.makeText(context, "Regístrate para guardar favoritos ❤️", Toast.LENGTH_SHORT).show()
+                                        return@cabezero_tiendas
+                                    }
+
+                                    if (i) {
+                                        viewModelFiltros.guardar_tienda_favorita(id_user, datos_guardar)
+                                        triggerAnimacion = true
+                                    } else {
+                                        viewModelFiltros.eliminar_tienda_favorita(id_user, tiendas_filtradas.id_tienda)
+                                        triggerAnimacion = false
+
+                                    }
+                                    guardar_icon = i
+
+                                },{triggerAnimacion=false}
                             )
                             spacer_vertical(20.dp)
                         }
@@ -376,6 +429,8 @@ fun bottom_sheet_tiendas_filtradas(
 
 @Composable
 fun cabezero_tiendas(
+    triggerAnimacion: Boolean,
+    guardar_icon: Boolean,
     viewModel_filtado_tiendas: viewModel_filtado_tiendas,
     modifier: Modifier = Modifier,
     estadoColor: Color,
@@ -387,7 +442,7 @@ fun cabezero_tiendas(
     longitud: Double,
     img_tienda_perfil: String,
     lista_img: List<String>,
-    lista_tags: List<String>
+    lista_tags: List<String>, guaradar_select: (Boolean) -> Unit,resetear_estado_loo:()-> Unit
 ) {
 
     val launcher = rememberLauncherForActivityResult(
@@ -452,10 +507,14 @@ fun cabezero_tiendas(
             )
         ) {
             perfil_img_zooom(
+                triggerAnimacion,
+                guardar_icon,
                 modifier,
                 img_tienda_perfil,
                 { expdir_img = !expdir_img },
-                { mostrarDialogozoom = true })
+                { mostrarDialogozoom = true },{
+                    resetear_estado_loo()
+                })
 
             AnimatedVisibility(expdir_img, modifier = Modifier.clip(RoundedCornerShape(12.dp))) {
                 CollageGoogleMapsStyle(imagenes = lista_img)
@@ -493,9 +552,9 @@ fun cabezero_tiendas(
                 )
             }
             spacer_horizonta(15.dp)
-            abrir_google_maps(context, latitud, longitud) { dialog_ ->
+            abrir_google_maps(guardar_icon, context, latitud, longitud, { dialog_ ->
                 mostrarDialogo.value = dialog_
-            }
+            }, { guaradar_select(!guardar_icon) })
         }
     }
 }
@@ -503,29 +562,100 @@ fun cabezero_tiendas(
 
 @Composable
 fun perfil_img_zooom(
+    triggerAnimacion: Boolean,
+    mostrar_animacion: Boolean,
     modifier: Modifier = Modifier,
     img_tienda_perfil: String,
     expandido: () -> Unit,
-    mostrarDialogozoom: () -> Unit
+    mostrarDialogozoom: () -> Unit,
+    resetear_estado_lott:()-> Unit
 ) {
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.bandai_dokkan))
+    var showAnimation by remember { mutableStateOf(false) }
+
+    LaunchedEffect(triggerAnimacion) {
+        Log.d("entramos",triggerAnimacion.toString())
+        if (triggerAnimacion) {
+            showAnimation = true
+            delay(4000)
+            showAnimation = false
+            resetear_estado_lott()
+        } else {
+            showAnimation = false
+        }
+    }
     Box(modifier) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(img_tienda_perfil)
-                .memoryCachePolicy(CachePolicy.ENABLED)
-                .diskCachePolicy(CachePolicy.ENABLED)
-                .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.cargando_img_categorias).build(),
-            contentDescription = "Imagen de la tienda",
-            contentScale = ContentScale.Crop,
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(220.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .clickable { expandido() },
-            onState = { state ->
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(img_tienda_perfil)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .placeholder(R.drawable.cargando_img_categorias)
+                    .error(R.drawable.cargando_img_categorias).build(),
+                contentDescription = "Imagen de la tienda",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable { expandido() },
+                onState = { state ->
+                }
+            )
+            AnimatedVisibility(
+                showAnimation,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier
+                    .matchParentSize()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.Black.copy(alpha = 0.70f))
+                )
             }
-        )
+            AnimatedVisibility(
+                showAnimation,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                LottieAnimation(
+                    composition,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp)
+                        .align(Alignment.TopCenter)
+                )
+            }
+//         AnimatedVisibility(
+//              showAnimation,
+//              enter = fadeIn(),
+//              exit = fadeOut(),
+//              modifier = Modifier.align(Alignment.Center)
+//          ) {
+//              AsyncImage(
+//                  model = ImageRequest.Builder(LocalContext.current)
+//                      .data(img_tienda_perfil)
+//                      .placeholder(R.drawable.cargando_img_categorias)
+//                      .error(R.drawable.cargando_img_categorias)
+//                      .build(),
+//                  contentDescription = "Imagen de la tienda",
+//                  contentScale = ContentScale.Crop,
+//                  modifier = Modifier
+//                      .clip(CircleShape)
+//                      .width(100.dp)
+//                      .height(100.dp)
+//              )
+//          }
+
+        }
         val painterState = rememberAsyncImagePainter(model = img_tienda_perfil).state
         if (painterState is AsyncImagePainter.State.Loading) {
             Box(
@@ -601,29 +731,61 @@ fun perfil_cabezero(
 
 @Composable
 fun abrir_google_maps(
+    guardar_icon: Boolean,
     context: Context,
     latitud: Double,
     longitud: Double,
-    mostrarDialogo: (Boolean) -> Unit
+    mostrarDialogo: (Boolean) -> Unit,
+    guaradar_select: () -> Unit
 ) {
-    FloatingActionButton(
-        onClick = {
-            constantes_lista_localidades.abrir_google_maps(
-                context,
-                latitud,
-                longitud
-            ) { dialogo ->
-                mostrarDialogo(dialogo)
-            }
-        },
-        modifier = Modifier.size(40.dp),
-        containerColor = MaterialTheme.colorScheme.primary,
-    ) {
-        Image(
-            painter = painterResource(R.drawable.localidad_icon_general),
-            contentDescription = "Localidad",
-            modifier = Modifier.size(35.dp)
-        )
+
+    val color_guardar_fondo by animateColorAsState(
+        targetValue = if (!guardar_icon) MaterialTheme.colorScheme.primary else Color.White,
+        animationSpec = tween(durationMillis = 300),
+        label = ""
+    )
+
+    Row() {
+
+        FloatingActionButton(
+            onClick = {
+                constantes_lista_localidades.abrir_google_maps(
+                    context,
+                    latitud,
+                    longitud
+                ) { dialogo ->
+                    mostrarDialogo(dialogo)
+                }
+            },
+            modifier = Modifier.size(40.dp),
+            containerColor = MaterialTheme.colorScheme.primary,
+        ) {
+            Image(
+                painter = painterResource(R.drawable.localidad_icon_general),
+                contentDescription = "Localidad",
+                modifier = Modifier.size(35.dp)
+            )
+        }
+
+        spacer_horizonta(10.dp)
+
+        val icono_entrega = if (!guardar_icon) {
+            R.drawable.icon_corazon_borde
+        } else {
+            R.drawable.icon_borde_corazon_completo
+        }
+        FloatingActionButton(
+            onClick = { guaradar_select() },
+            modifier = Modifier.size(40.dp),
+            containerColor = color_guardar_fondo,
+        ) {
+            Image(
+                painter = painterResource(icono_entrega),
+                modifier = Modifier.size(22.dp),
+                contentDescription = "Favorito",
+            )
+        }
+
     }
 }
 
@@ -707,7 +869,7 @@ fun Expandible_direccion_ref(
                         TextoExpandibleEnLinea(
                             texto = "Referencia : ${referencia.capitalizeFirst()}",
 
-                        )
+                            )
 
                     }
 //                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center){
@@ -768,12 +930,14 @@ fun TextoExpandibleEnLinea(
             style = MaterialTheme.typography.bodyMedium,
             maxLines = if (expandido) Int.MAX_VALUE else 1, // 🔸 una línea al inicio
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { expandido = !expandido }
+            modifier = Modifier.clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }) {
+                expandido = !expandido
+            }
         )
     }
 }
-
-
 
 
 @Composable

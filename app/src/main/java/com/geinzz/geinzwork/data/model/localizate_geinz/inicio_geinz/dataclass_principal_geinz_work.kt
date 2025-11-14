@@ -2,6 +2,10 @@ package com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz
 
 import android.R
 import android.os.Parcelable
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.item_metodos_pago
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import kotlinx.android.parcel.Parcelize
 
 //data class dataclass_principal_geinz_work_lugares_turistico(
@@ -31,7 +35,7 @@ data class lugares_turisticos(
     val titulo: String = "",
     val descripcion: String = "",
     val lista_img: List<String> = emptyList(),
-    val img_principal: String="",
+    val img_principal: String = "",
     val direcccion: String = "",
     val referencia: String = "",
     val latitud: Double = 0.0,
@@ -89,9 +93,22 @@ data class seguridad_salud_publica(
 )
 
 data class datos_tienda_free(
-    val nombre_: String="",
-    val img: String="",
-    val ubicacion: String="",
-    val referencia: String="",
-    val horario_default: String=""
+    val nombre_: String = "",
+    val img: String = "",
+    val ubicacion: String = "",
+    val referencia: String = "",
+    val horario_default: String = ""
+)
+
+
+data class favoritos_guardados(
+    val id_tienda_lugar:String ="",
+    val nombre_lugar_tienda: String ="",
+    val tag_sub: List<String> =emptyList(),
+    val categoria: String="",
+    val timesLap:String="",
+    val horario: HorarioAtencion =  HorarioAtencion(),
+    val metodos_pago: modelo_pagos_tienda =modelo_pagos_tienda(),
+    val lat: Double=0.0,
+    val lng: Double=0.0
 )

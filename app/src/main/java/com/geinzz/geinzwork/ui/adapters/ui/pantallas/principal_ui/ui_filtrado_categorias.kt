@@ -265,7 +265,7 @@ fun cabezero_activity(localidad_registrado: String) {
         )
         spacer_vertical(5.dp)
         texto_generico_multilinea(
-            "Explora las diferentes categorías de tiendas registradas en Geinz Work y ubícate fácilmente en $localidad_registrado",
+            "Explora las diferentes categorías de tiendas registradas en Geinz y ubícate fácilmente en $localidad_registrado",
             MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 10.dp)
         )
 

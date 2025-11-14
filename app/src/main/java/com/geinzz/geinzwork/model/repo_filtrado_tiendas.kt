@@ -13,6 +13,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.datos_teindas
@@ -21,6 +22,8 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
+import com.geinzz.geinzwork.viewModels.viewmodel_usuario_registrado
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import java.util.Calendar
@@ -46,7 +49,7 @@ class repo_filtrado_tiendas {
     }
 
 
-    fun obtener_estado_horario_tienda( horarioAtencion: HorarioAtencion):horario_tienda{
+    fun obtener_estado_horario_tienda(horarioAtencion: HorarioAtencion): horario_tienda {
         val dias =
             listOf("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
         val calendar = Calendar.getInstance()
@@ -62,7 +65,12 @@ class repo_filtrado_tiendas {
             "domingo" -> horarioAtencion.domingo
             else -> HorarioDia()
         }
-        return horario_tienda(horarioDia.h_apertura, horarioDia.h_cierre, horarioDia.cerrado, horarioDia.motivo)
+        return horario_tienda(
+            horarioDia.h_apertura,
+            horarioDia.h_cierre,
+            horarioDia.cerrado,
+            horarioDia.motivo
+        )
     }
 
     suspend fun obtenerSubcategorias(categoria: String): List<String> {
@@ -128,7 +136,7 @@ class repo_filtrado_tiendas {
                 val hCierre = horarioDia["h_cierre"] as? String ?: ""
                 val motivo = horarioDia["motivo"] as? String ?: ""
                 val contacto_obs = metodos_contacto.toMetodoContacto()
-                val metodo_pago_tienda=metodo_pago.to_metodo_pago()
+                val metodo_pago_tienda = metodo_pago.to_metodo_pago()
 
 
                 var datos_horario_actual = horario_tienda(hApertura, hCierre, cerrado, motivo)
@@ -191,7 +199,7 @@ class repo_filtrado_tiendas {
             val horarioMap = data?.get("horario_atencion") as? Map<String, Any> ?: emptyMap()
             val metodos_contacto = data?.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
             val metodo_pago = data?.get("metodos_pago") as? Map<String, Any> ?: emptyMap()
-            val metodo_pago_tienda=metodo_pago.to_metodo_pago()
+            val metodo_pago_tienda = metodo_pago.to_metodo_pago()
             Log.d("viendo_contacto", metodos_contacto.toString())
 
             // Función auxiliar para mapear un día
@@ -234,7 +242,7 @@ class repo_filtrado_tiendas {
                 metodo_contacto_tienda = contacto_obs,
                 horario_atencion = horarioTienda,
                 metodos_pago_tienda = metodo_pago_tienda
-                )
+            )
 
             lista_modelo_tienda.add(tiendaModelo)
         }
@@ -388,4 +396,53 @@ class repo_filtrado_tiendas {
         }
         return lista_lat_log
     }
+
+
+    suspend fun guardar_tienda_favorito( id_user:String,item: favoritos_guardados) {
+        val ref = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("users").collection("users").document(id_user)
+            .collection("favoritos").document(item.id_tienda_lugar)
+
+        val data = mapOf(
+            "id_tienda_lugar" to item.id_tienda_lugar,
+            "nombre_lugar_tienda" to item.nombre_lugar_tienda,
+            "tag_sub" to item.tag_sub,
+            "categoria" to item.categoria,
+            "timesLap_local" to item.timesLap,
+            "horario" to item.horario,
+            "metodos_pago" to item.metodos_pago,
+            "latitud" to item.lat,
+            "longitud" to item.lng
+        )
+
+        try {
+            ref.set(data).await()
+            Log.d("FAVORITOS", "Guardado correctamente")
+        } catch (e: Exception) {
+            Log.e("FAVORITOS", "Error al guardar: ${e.message}")
+            throw e
+        }
+
+    }
+
+    suspend fun eliminar_tienda_favorito(id_user: String,id_tienda: String){
+        val ref = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("users").collection("users").document(id_user)
+            .collection("favoritos").document(id_tienda)
+
+        ref.delete().await()
+    }
+
+    suspend fun verificar_favorito(id_user: String, id_tienda: String): Boolean {
+        val ref = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("users")
+            .collection("users")
+            .document(id_user)
+            .collection("favoritos")
+            .document(id_tienda)
+
+        val doc = ref.get().await()
+        return doc.exists()
+    }
+
 }

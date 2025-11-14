@@ -3,6 +3,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -76,7 +77,7 @@ fun bottom_sheet_ayudanos_a_creccer(
     ondimis: () -> Unit,
     viewModelFiltros: viewModel_filtado_tiendas,
 
-) {
+    ) {
     var hacer_visible_btn by remember { mutableStateOf(false) }
     var seleccion by remember { mutableStateOf("") }
     var visible_free by remember { mutableStateOf(false) }
@@ -120,7 +121,12 @@ fun bottom_sheet_ayudanos_a_creccer(
             jueves = HorarioDia(cerrado = false, h_apertura = "07:00", h_cierre = "20:00"),
             viernes = HorarioDia(cerrado = false, h_apertura = "07:00", h_cierre = "20:00"),
             sabado = HorarioDia(cerrado = false, h_apertura = "07:00", h_cierre = "20:00"),
-            domingo = HorarioDia(cerrado = true, motivo = "Día de descanso")
+            domingo = HorarioDia(
+                cerrado = true,
+                h_apertura = "07:00",
+                h_cierre = "20:00",
+                motivo = "Día de descanso"
+            )
         ),
         metodos_pago_tienda = modelo_pagos_tienda(
             plin = modelo_metodo_individual(enable = true),
@@ -147,18 +153,7 @@ fun bottom_sheet_ayudanos_a_creccer(
     ) {
         FuenteControladaApp {
             Box(contentAlignment = Alignment.Center) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(R.drawable.logo_geinz_500x500)
-                        .placeholder(R.drawable.cargando_img_categorias)
-                        .error(R.drawable.cargando_img_categorias)
-                        .build(),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(150.dp)
-                        .alpha(0.3f),
-                    contentScale = ContentScale.Crop
-                )
+
                 Column() {
                     val lsita_img = listOf(
                         "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2F1.webp?alt=media&token=f6d1d503-8938-499c-8ded-455dc3272964",
@@ -196,10 +191,14 @@ fun bottom_sheet_ayudanos_a_creccer(
                         Text(
                             text = "¿Quieres ver cómo se vería tu negocio en Geinz?",
                             color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.clickable {
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                            ) {
                                 hacer_visible_btn = !hacer_visible_btn
                                 visible_free = false
                                 visible_primiun = false
+                                seleccion = ""
                             },
                             textDecoration = TextDecoration.Underline,
                             style = MaterialTheme.typography.bodyMedium,
@@ -213,7 +212,6 @@ fun bottom_sheet_ayudanos_a_creccer(
                                 item {
                                     // 🔹 Ficha Premium
                                     Box(modifier = Modifier.width(300.dp)) {
-
                                         FichaOpcion(
                                             titulo = "Ficha Premium (S/0.34 diario o S/10 mensual)",
                                             imagen = R.drawable.logo_geinz_blanco,
@@ -390,15 +388,22 @@ fun FichaOpcion(
         }
 
         spacer_vertical(10.dp)
-
-        texto_generico_one_line(
-            titulo,
-            MaterialTheme.typography.bodyMedium.copy(
-                color = if (seleccionado)
-                    MaterialTheme.colorScheme.primary
-                else
-                    Color.Gray
-            )
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            TextoExpandibleEnLinea(titulo)
+        }
+//        texto_generico_one_line(
+//            titulo,
+//            MaterialTheme.typography.bodyMedium.copy(
+//                color = if (seleccionado)
+//                    MaterialTheme.colorScheme.primary
+//                else
+//                    Color.Gray
+//            )
+//        )
     }
 }

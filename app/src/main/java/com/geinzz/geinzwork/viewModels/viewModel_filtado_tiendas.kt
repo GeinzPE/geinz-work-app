@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
@@ -19,6 +20,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener_tiendas_lat_log_id
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.tiendas_mapa
 
@@ -67,7 +69,6 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     val instance_salud_seguridad: StateFlow<Triple<List<String>, List<String>, Long>> =
         _instance_salud_seguridad
 
-
     private val state_Tiendas_filtradas_por_categoria =
         MutableStateFlow<carga_tiendas>(carga_tiendas.loading)
     val _Tiendas_filtradas_por_categoria: StateFlow<carga_tiendas> =
@@ -81,8 +82,8 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     val _datos_tienda_sin_pago: LiveData<carga_tiendas_sin_pago> get() = datos_tiendas_sin_pago
 
 
-    fun resetear_estado_sin_pago(){
-        datos_tiendas_sin_pago.value=carga_tiendas_sin_pago.empty_tiendas_free
+    fun resetear_estado_sin_pago() {
+        datos_tiendas_sin_pago.value = carga_tiendas_sin_pago.empty_tiendas_free
     }
 
     private val _listaTiendasGuardadas =
@@ -105,8 +106,13 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     private val _color_estado_tienda_flow = MutableStateFlow(Color.Gray)
     val color_estado_tienda_flow: StateFlow<Color> = _color_estado_tienda_flow
 
-    fun setear_color(color: Color){
-        _color_estado_tienda_flow.value=color
+
+    private val _existe_favorito = MutableStateFlow(false)
+    val existe_favorito: StateFlow<Boolean> = _existe_favorito
+
+
+    fun setear_color(color: Color) {
+        _color_estado_tienda_flow.value = color
     }
 
 
@@ -212,7 +218,6 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
             }
         }
     }
-
 
 
     fun obtener_categorias() {
@@ -367,7 +372,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
 
 
     fun obtener_campos_tiendas_por_id(localida: String, id_tienda: String) {
-        Log.d("tienda:","$localida $id_tienda")
+        Log.d("tienda:", "$localida $id_tienda")
         viewModelScope.launch {
             try {
                 val data = repo_filtrado.obtenner_campos_tiendas_espesifica(localida, id_tienda)
@@ -397,7 +402,6 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
             }
         }
     }
-
 
 
     fun obtenerHorarioPorTienda(localidad: String, idTienda: String) {
@@ -437,19 +441,50 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     }
 
 
-    fun cast_horario_atencion_horario_tienda(horarioAtencion: HorarioAtencion){
-        Log.d("cast_horario_atencion_horario_tienda",horarioAtencion.toString())
+    fun cast_horario_atencion_horario_tienda(horarioAtencion: HorarioAtencion) {
+        Log.d("cast_horario_atencion_horario_tienda", horarioAtencion.toString())
         viewModelScope.launch {
             try {
-                _color_estado_tienda.value= repo_filtrado.obtener_estado_horario_tienda(horarioAtencion)
-            }catch (e:Exception){
-                _color_estado_tienda.value= horario_tienda()
+                _color_estado_tienda.value =
+                    repo_filtrado.obtener_estado_horario_tienda(horarioAtencion)
+            } catch (e: Exception) {
+                _color_estado_tienda.value = horario_tienda()
             }
         }
     }
 
 
+    fun guardar_tienda_favorita(id_user: String, item_favoritos: favoritos_guardados) {
+        viewModelScope.launch {
+            try {
+                repo_filtrado.guardar_tienda_favorito(id_user, item_favoritos)
+            } catch (e: Exception) {
+                Log.d("error", "error al guardar faboritos")
+            }
+        }
+    }
 
+    fun eliminar_tienda_favorita(id_user: String, id_tienda: String) {
+        viewModelScope.launch {
+            try {
+                repo_filtrado.eliminar_tienda_favorito(id_user, id_tienda)
+            } catch (e: Exception) {
+                Log.d("error", "error al eliminar faboritos")
+            }
+        }
+    }
+
+    fun verificar_existe_favorito(id_user: String, id_tienda: String) {
+        viewModelScope.launch {
+            try {
+                _existe_favorito.value = repo_filtrado.verificar_favorito(id_user, id_tienda)
+                Log.d("exite","${repo_filtrado.verificar_favorito(id_user, id_tienda)} $id_user $id_tienda" )
+            } catch (e: Exception) {
+                _existe_favorito.value = false
+                Log.d("error", "error al eliminar faboritos")
+            }
+        }
+    }
 
 
     sealed class carga_tiendas_sin_pago {
