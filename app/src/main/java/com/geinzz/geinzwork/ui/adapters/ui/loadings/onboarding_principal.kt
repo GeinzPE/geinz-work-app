@@ -648,7 +648,7 @@ fun pantalla6(
                     drawableResId = R.drawable.f1,
                     anguloRotacion = -8f,
                     desplazamientoX = -70.dp,
-                    desplazamientoY = 20.dp,null,{}
+                    desplazamientoY = 20.dp,null,{},true
                 )
 
                 // --- Foto 2 (Centro, la protagonista) ---
@@ -656,7 +656,7 @@ fun pantalla6(
                     drawableResId = R.drawable.f5,
                     anguloRotacion = 3f,
                     desplazamientoX = 0.dp,
-                    desplazamientoY = 0.dp,null,{}
+                    desplazamientoY = 0.dp,null,{},true
                 )
 
                 // --- Foto 3 (Derecha) ---
@@ -664,7 +664,7 @@ fun pantalla6(
                     drawableResId = R.drawable.f4,
                     anguloRotacion = 7f,
                     desplazamientoX = 70.dp,
-                    desplazamientoY = 40.dp,null,{}
+                    desplazamientoY = 40.dp,null,{},true
                 )
             }
             spacer_vertical(30.dp)

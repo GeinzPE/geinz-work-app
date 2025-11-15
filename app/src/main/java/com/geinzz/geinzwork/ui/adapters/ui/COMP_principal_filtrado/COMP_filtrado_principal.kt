@@ -1296,7 +1296,7 @@ fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Mod
                 drawableResId = R.drawable.f1,
                 anguloRotacion = -8f,
                 desplazamientoX = -70.dp,
-                desplazamientoY = 20.dp, null, {}
+                desplazamientoY = 20.dp, null, {},true
             )
 
             // --- Foto 2 (Centro, la protagonista) ---
@@ -1304,7 +1304,7 @@ fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Mod
                 drawableResId = R.drawable.f2,
                 anguloRotacion = 3f,
                 desplazamientoX = 0.dp,
-                desplazamientoY = 0.dp, null, {}
+                desplazamientoY = 0.dp, null, {},true
             )
 
             // --- Foto 3 (Derecha) ---
@@ -1312,7 +1312,7 @@ fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Mod
                 drawableResId = R.drawable.f3,
                 anguloRotacion = 7f,
                 desplazamientoX = 70.dp,
-                desplazamientoY = 40.dp, null, {}
+                desplazamientoY = 40.dp, null, {},true
             )
         }
         fracescambiantes(nombre_usuario)
