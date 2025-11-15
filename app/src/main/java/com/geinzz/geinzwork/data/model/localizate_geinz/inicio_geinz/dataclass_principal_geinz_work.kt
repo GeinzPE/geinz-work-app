@@ -102,13 +102,17 @@ data class datos_tienda_free(
 
 
 data class favoritos_guardados(
+    val img_tienda:String="",
     val id_tienda_lugar:String ="",
     val nombre_lugar_tienda: String ="",
     val tag_sub: List<String> =emptyList(),
     val categoria: String="",
     val timesLap:String="",
-    val horario: HorarioAtencion =  HorarioAtencion(),
+    val horario_tienda: HorarioAtencion= HorarioAtencion(),
     val metodos_pago: modelo_pagos_tienda =modelo_pagos_tienda(),
     val lat: Double=0.0,
-    val lng: Double=0.0
+    val lng: Double=0.0,
+    val localida_tienda:String,
+    val estaAbierto: Boolean = false,
+    val horario: horario_tienda =  horario_tienda(),
 )

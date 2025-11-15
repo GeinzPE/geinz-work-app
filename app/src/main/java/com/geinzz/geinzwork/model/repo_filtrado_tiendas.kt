@@ -50,6 +50,7 @@ class repo_filtrado_tiendas {
 
 
     fun obtener_estado_horario_tienda(horarioAtencion: HorarioAtencion): horario_tienda {
+    Log.d("!qefaFsgsAGasgASFDA",horarioAtencion.toString())
         val dias =
             listOf("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
         val calendar = Calendar.getInstance()
@@ -409,10 +410,12 @@ class repo_filtrado_tiendas {
             "tag_sub" to item.tag_sub,
             "categoria" to item.categoria,
             "timesLap_local" to item.timesLap,
-            "horario" to item.horario,
+            "horario" to item.horario_tienda,
             "metodos_pago" to item.metodos_pago,
             "latitud" to item.lat,
-            "longitud" to item.lng
+            "longitud" to item.lng,
+            "img_tienda_lugar" to item.img_tienda ,
+            "localidad_lugar_tienda" to item.localida_tienda
         )
 
         try {

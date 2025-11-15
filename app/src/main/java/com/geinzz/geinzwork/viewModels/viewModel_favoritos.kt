@@ -10,8 +10,8 @@ import kotlinx.coroutines.launch
 
 class viewModel_favoritos : ViewModel() {
     private val repo_fv = repo_favoritos()
-    private val _lista_fv = MutableStateFlow<state_fv>(state_fv.loading)
     private val lista_categoria_filtrad = MutableStateFlow<List<String>>(emptyList())
+    private val _lista_fv = MutableStateFlow<state_fv>(state_fv.loading)
     val lista_fv: StateFlow<state_fv> get() = _lista_fv
 
 
@@ -19,19 +19,23 @@ class viewModel_favoritos : ViewModel() {
         viewModelScope.launch {
             _lista_fv.value = state_fv.loading
             try {
-                val lista_retorno = repo_fv.obtener_favoritos(id_user = id_user)
-                val (items, categorias) = lista_retorno
-                lista_categoria_filtrad.value = categorias
-                if (items.isNotEmpty()) {
-                    _lista_fv.value = state_fv.succes(items,categorias)
-                } else {
-                    _lista_fv.value = state_fv.empty
+                repo_fv.obtener_favoritos_realtime(id_user) { pair ->
+                    val (favoritos, categorias) = pair
+                    val categoriasSinRepetir = categorias.distinct()
+                    lista_categoria_filtrad.value = categoriasSinRepetir
+
+                    _lista_fv.value = when {
+                        favoritos.isNotEmpty() -> state_fv.succes(favoritos, categoriasSinRepetir)
+                        else -> state_fv.empty
+                    }
                 }
             } catch (e: Exception) {
-                _lista_fv.value = state_fv.error("Ocurrio un error intentalo nuevamente")
+                e.printStackTrace()
+                _lista_fv.value = state_fv.error("Ocurrió un error, inténtalo nuevamente")
             }
         }
     }
+
 
     sealed class state_fv {
         object loading : state_fv()

@@ -174,8 +174,9 @@ fun bottom_sheet_tiendas_filtradas(
     iconos_cosas_clikeables: Boolean = true,
     onClose: () -> Unit,
 ) {
+    Log.d("datoasadasda",tiendas_filtradas.toString())
     val context = LocalContext.current
-    val firebaseAuth= FirebaseAuth.getInstance()
+    val firebaseAuth = FirebaseAuth.getInstance()
     viewModelFiltros.cast_horario_atencion_horario_tienda(tiendas_filtradas.horario_atencion)
     var expandir_descripcion by rememberSaveable { mutableStateOf(false) }
     var expander_caracterisiticas by rememberSaveable { mutableStateOf(false) }
@@ -197,7 +198,7 @@ fun bottom_sheet_tiendas_filtradas(
 
     var triggerAnimacion by remember { mutableStateOf(false) }
     LaunchedEffect(verificarfavorito) {
-        guardar_icon=verificarfavorito
+        guardar_icon = verificarfavorito
     }
 
 //    LaunchedEffect(tiendas_filtradas) {
@@ -223,7 +224,7 @@ fun bottom_sheet_tiendas_filtradas(
             val startTime = System.currentTimeMillis()
 
             while (cargando) {
-                viewModelFiltros.verificar_existe_favorito(id_user,tiendas_filtradas.id_tienda)
+                viewModelFiltros.verificar_existe_favorito(id_user, tiendas_filtradas.id_tienda)
                 val datosCargados = tiendas_filtradas.id_tienda.isNotBlank() ||
                         tiendas_filtradas.ubicacion.isNotEmpty()
 
@@ -308,33 +309,45 @@ fun bottom_sheet_tiendas_filtradas(
                                 lista_img = tiendas_filtradas.lista_img,
                                 lista_tags = tiendas_filtradas.subcategoria,
                                 guaradar_select = { i ->
-                                    val datos_guardar=favoritos_guardados(
-                                        id_tienda_lugar=tiendas_filtradas.id_tienda,
-                                        nombre_lugar_tienda=tiendas_filtradas.nombre_tienda,
-                                        tag_sub=tiendas_filtradas.subcategoria,
-                                        categoria=tiendas_filtradas.categoria_tienda,
-                                        timesLap="",
-                                        horario=tiendas_filtradas.horario_atencion,
-                                        metodos_pago=tiendas_filtradas.metodos_pago_tienda,
-                                        lat=latitud,
-                                        lng=longitud
+                                    val datos_guardar = favoritos_guardados(
+                                        img_tienda = tiendas_filtradas.img_perfil,
+                                        id_tienda_lugar = tiendas_filtradas.id_tienda,
+                                        nombre_lugar_tienda = tiendas_filtradas.nombre_tienda,
+                                        tag_sub = tiendas_filtradas.subcategoria,
+                                        categoria = tiendas_filtradas.categoria_tienda,
+                                        timesLap = "",
+                                        horario_tienda = tiendas_filtradas.horario_atencion,
+                                        metodos_pago = tiendas_filtradas.metodos_pago_tienda,
+                                        lat = latitud,
+                                        lng = longitud,
+                                        localida_tienda = tiendas_filtradas.localidad ?: ""
                                     )
                                     if (id_user.isEmpty()) {
-                                        Toast.makeText(context, "Regístrate para guardar favoritos ❤️", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            "Regístrate para guardar favoritos ❤️",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                         return@cabezero_tiendas
                                     }
 
                                     if (i) {
-                                        viewModelFiltros.guardar_tienda_favorita(id_user, datos_guardar)
+                                        viewModelFiltros.guardar_tienda_favorita(
+                                            id_user,
+                                            datos_guardar
+                                        )
                                         triggerAnimacion = true
                                     } else {
-                                        viewModelFiltros.eliminar_tienda_favorita(id_user, tiendas_filtradas.id_tienda)
+                                        viewModelFiltros.eliminar_tienda_favorita(
+                                            id_user,
+                                            tiendas_filtradas.id_tienda
+                                        )
                                         triggerAnimacion = false
 
                                     }
                                     guardar_icon = i
 
-                                },{triggerAnimacion=false}
+                                }, { triggerAnimacion = false }
                             )
                             spacer_vertical(20.dp)
                         }
@@ -442,7 +455,7 @@ fun cabezero_tiendas(
     longitud: Double,
     img_tienda_perfil: String,
     lista_img: List<String>,
-    lista_tags: List<String>, guaradar_select: (Boolean) -> Unit,resetear_estado_loo:()-> Unit
+    lista_tags: List<String>, guaradar_select: (Boolean) -> Unit, resetear_estado_loo: () -> Unit
 ) {
 
     val launcher = rememberLauncherForActivityResult(
@@ -511,7 +524,7 @@ fun cabezero_tiendas(
                 modifier,
                 img_tienda_perfil,
                 { expdir_img = !expdir_img },
-                { mostrarDialogozoom = true },{
+                { mostrarDialogozoom = true }, {
                     resetear_estado_loo()
                 })
 
@@ -566,12 +579,12 @@ fun perfil_img_zooom(
     img_tienda_perfil: String,
     expandido: () -> Unit,
     mostrarDialogozoom: () -> Unit,
-    resetear_estado_lott:()-> Unit
+    resetear_estado_lott: () -> Unit
 ) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.bandai_dokkan))
     var showAnimation by remember { mutableStateOf(false) }
     LaunchedEffect(triggerAnimacion) {
-        Log.d("entramos",triggerAnimacion.toString())
+        Log.d("entramos", triggerAnimacion.toString())
         if (triggerAnimacion) {
             showAnimation = true
             delay(4000)

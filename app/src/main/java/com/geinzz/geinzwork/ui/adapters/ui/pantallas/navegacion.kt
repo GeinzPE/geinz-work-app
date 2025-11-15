@@ -392,7 +392,7 @@ fun nativationWrapper(
                 }
 
                 composable("favoritos") {
-                    iu_favoritos(viewmodelFavoritos,datos_principales_user,{nombre,categoria,localidad->
+                    iu_favoritos(viewModel_filtrado_tiendas,viewmodelFavoritos,datos_principales_user,{nombre,categoria,localidad->
                         Log.d("adsd13413rdwF","$nombre $categoria $localidad")
                         navController.navigate(
                             screen_filtrado(
