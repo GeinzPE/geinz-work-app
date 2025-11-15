@@ -120,14 +120,16 @@ fun nativationWrapper(
             )
         )
     }
-
-    LaunchedEffect(firebaseAuth.currentUser) {
+    LaunchedEffect(firebaseAuth.currentUser,uid_respald_user) {
         val current = firebaseAuth.currentUser
         if (current != null) {
+            Log.d("id_firebase","firebase ${firebaseAuth.uid.toString()}")
             viewmodel_usuario_registrado.obtener_datos_user_registrado(current.uid)
         } else if (uid_respald_user.isNotEmpty()) {
+            Log.d("id_firebase","estatico ${uid_respald_user}")
             viewmodel_usuario_registrado.obtener_datos_user_registrado(uid_respald_user)
         } else {
+            Log.d("id_firebase","vacio ${uid_respald_user}")
             datos_principales_user = datos_principales_user("", "", "barranca")
         }
     }

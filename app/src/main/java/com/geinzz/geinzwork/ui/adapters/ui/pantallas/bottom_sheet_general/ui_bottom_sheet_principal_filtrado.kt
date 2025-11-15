@@ -128,6 +128,7 @@ import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openTiktok
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openWebLink
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoExpandibleEnLinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.cargando_progess_mas_texto
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.generar_qr_ubi_tinda
@@ -200,6 +201,9 @@ fun bottom_sheet_tiendas_filtradas(
     LaunchedEffect(verificarfavorito) {
         guardar_icon = verificarfavorito
     }
+    LaunchedEffect(id_user, tiendas_filtradas.id_tienda) {
+        viewModelFiltros.verificar_existe_favorito(id_user, tiendas_filtradas.id_tienda)
+    }
 
 //    LaunchedEffect(tiendas_filtradas) {
 //        if(tiendas_filtradas != tiendas_filtradas()){
@@ -217,6 +221,7 @@ fun bottom_sheet_tiendas_filtradas(
 //        }
 //    }
     LaunchedEffect(visible, tiendas_filtradas) {
+
         if (visible) {
             cargando = true
             val tiempoMinimo = 2000L   // mínimo 2 segundos
@@ -224,7 +229,7 @@ fun bottom_sheet_tiendas_filtradas(
             val startTime = System.currentTimeMillis()
 
             while (cargando) {
-                viewModelFiltros.verificar_existe_favorito(id_user, tiendas_filtradas.id_tienda)
+
                 val datosCargados = tiendas_filtradas.id_tienda.isNotBlank() ||
                         tiendas_filtradas.ubicacion.isNotEmpty()
 
@@ -878,7 +883,6 @@ fun Expandible_direccion_ref(
                     ) {
                         TextoExpandibleEnLinea(
                             texto = "Referencia : ${referencia.capitalizeFirst()}",
-
                             )
 
                     }
@@ -903,51 +907,7 @@ fun Expandible_direccion_ref(
     }
 }
 
-@Composable
-fun TextoExpandibleEnLinea(
-    texto: String
-) {
-    var expandido by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth() // 🔹 ocupa todo el ancho disponible
-            .animateContentSize() // 🔹 animación suave
-            .padding(end = 15.dp)
-    ) {
-        Text(
-            buildAnnotatedString {
-                // Texto principal (blanco)
-                withStyle(
-                    style = SpanStyle(color = Color.White)
-                ) {
-                    append(texto)
-                }
-
-                append(" ")
-
-                // “Ver más / Ver menos” con color primario
-                withStyle(
-                    style = SpanStyle(
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                ) {
-//                    append(if (expandido) "Ver menos" else "Ver más")
-                }
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = if (expandido) Int.MAX_VALUE else 1, // 🔸 una línea al inicio
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }) {
-                expandido = !expandido
-            }
-        )
-    }
-}
 
 
 @Composable

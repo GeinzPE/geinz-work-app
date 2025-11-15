@@ -98,6 +98,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoExpandibleEnLinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.existencia_dato
@@ -687,13 +688,14 @@ fun TiempoRestanteCierre(
                     .background(resultado.color)
             )
             spacer_horizonta(5.dp)
-            Text(
-                text = resultado.texto.capitalizeFirst(),
-                color = resultado.color,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = max_line,
-                overflow = TextOverflow.Ellipsis
-            )
+            TextoExpandibleEnLinea(resultado.texto.capitalizeFirst(),resultado.color,resultado.color)
+//            Text(
+//                text = resultado.texto.capitalizeFirst(),
+//                color = resultado.color,
+//                style = MaterialTheme.typography.bodyMedium,
+//                maxLines = max_line,
+//                overflow = TextOverflow.Ellipsis
+//            )
             color(resultado.color)
         }
     } else {

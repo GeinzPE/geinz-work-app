@@ -18,7 +18,7 @@ class repo_favoritos {
     val repo_filtrado = repo_filtrado_tiendas()
     fun obtener_favoritos_realtime(
         id_user: String,
-        onUpdate: (Pair<List<favoritos_guardados>, List<String>>) -> Unit
+        onUpdate: (Triple<List<favoritos_guardados>, List<String>,List<String>>) -> Unit
     ) {
         val ref = db.collection("Trabajadores_Usuarios_Drivers")
             .document("users")
@@ -35,6 +35,7 @@ class repo_favoritos {
             if (snapshot != null) {
                 val listaFavoritos = mutableListOf<favoritos_guardados>()
                 val listaCategorias = mutableListOf<String>()
+                val lista_localidades=mutableListOf<String>()
 
                 for (doc in snapshot.documents) {
                     val data = doc.data ?: continue
@@ -52,6 +53,7 @@ class repo_favoritos {
                     val horarioMap = data["horario"] as? Map<String, Any> ?: emptyMap()
                     val metodo_pago = data["metodos_pago"] as? Map<String, Any> ?: emptyMap()
                     val categoria = data["categoria"] as? String ?: ""
+                    val localidad =data["localidad_lugar_tienda"] as? String ?: ""
 
                     val metodo_pago_tienda = metodo_pago.to_metodo_pago()
 
@@ -79,14 +81,15 @@ class repo_favoritos {
                         metodos_pago = metodo_pago_tienda,
                         lat = (data["latitud"] as? Number)?.toDouble() ?: 0.0,
                         lng = (data["longitud"] as? Number)?.toDouble() ?: 0.0,
-                        localida_tienda = data["localidad_lugar_tienda"] as? String ?: ""
+                        localida_tienda = localidad
                     )
 
                     listaFavoritos.add(favorito)
                     listaCategorias.add(categoria)
+                    lista_localidades.add(localidad)
                 }
 
-                onUpdate(Pair(listaFavoritos, listaCategorias))
+                onUpdate(Triple(listaFavoritos, listaCategorias,lista_localidades))
             }
         }
     }

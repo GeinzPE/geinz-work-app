@@ -118,7 +118,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.zIndex
@@ -1700,4 +1704,50 @@ fun shadow_bottom_pantallas_generales(modifier: Modifier) {
             )
             .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
     )
+}
+
+@Composable
+fun TextoExpandibleEnLinea(
+    texto: String,
+    color_principla: Color=Color.White,
+    color:Color=MaterialTheme.colorScheme.primary,
+) {
+    var expandido by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth() // 🔹 ocupa todo el ancho disponible
+            .animateContentSize() // 🔹 animación suave
+            .padding(end = 15.dp)
+    ) {
+        Text(
+            buildAnnotatedString {
+                // Texto principal (blanco)
+                withStyle(
+                    style = SpanStyle(color = color_principla)
+                ) {
+                    append(texto)
+                }
+
+                append(" ")
+
+                withStyle(
+                    style = SpanStyle(
+                        color = color,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                ) {
+                }
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = if (expandido) Int.MAX_VALUE else 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }) {
+                expandido = !expandido
+            }
+        )
+    }
 }

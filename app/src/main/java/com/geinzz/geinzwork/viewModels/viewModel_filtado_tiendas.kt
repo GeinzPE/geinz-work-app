@@ -475,6 +475,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     }
 
     fun verificar_existe_favorito(id_user: String, id_tienda: String) {
+        Log.d("varificar_fv","$id_user $id_tienda")
         viewModelScope.launch {
             try {
                 _existe_favorito.value = repo_filtrado.verificar_favorito(id_user, id_tienda)
