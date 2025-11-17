@@ -107,6 +107,7 @@ private lateinit var firebaseAuth: FirebaseAuth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_review(
+    verificar_intener: Boolean,
     datos_principales_user: datos_principales_user,
     viewmodel: viewmodel_review,
     data_class_review: data_class_review,
@@ -562,6 +563,7 @@ fun bottom_sheet_review(
     }
     if (show_bottom_sheeet) {
         bottom_sheet_tiendas_filtradas(
+            verificar_intener,
             viewModelFiltros,
             dataclass_tienda_seleccionada, show_bottom_sheeet
         ) {
@@ -579,6 +581,7 @@ fun bottom_sheet_review(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_Sheet_seguro(
+    verificar_intener: Boolean,
     esta_o_no_lugar: Boolean,
     datos_principales_user: datos_principales_user,
     viewmodel: viewmodel_review,
@@ -1069,6 +1072,7 @@ fun bottom_Sheet_seguro(
 
     if (show_bottom_sheeet) {
         bottom_sheet_tiendas_filtradas(
+            verificar_intener,
             viewModelFiltros,
             dataclass_tienda_seleccionada, show_bottom_sheeet
         ) {

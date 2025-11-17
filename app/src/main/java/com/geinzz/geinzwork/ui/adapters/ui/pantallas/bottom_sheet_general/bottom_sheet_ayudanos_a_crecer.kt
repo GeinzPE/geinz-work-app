@@ -74,6 +74,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_ayudanos_a_creccer(
+    verificar_intener: Boolean,
     localidad: String,
     ondimis: () -> Unit,
     viewModelFiltros: viewModel_filtado_tiendas,
@@ -283,6 +284,7 @@ fun bottom_sheet_ayudanos_a_creccer(
                 }
                 if (visible_primiun) {
                     bottom_sheet_tiendas_filtradas(
+                        verificar_intener,
                         viewModelFiltros,
                         ejemploTienda,
                         visible_primiun,

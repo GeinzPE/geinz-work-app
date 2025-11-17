@@ -494,8 +494,13 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
 
     fun verificar_existe_favoritoMap(idUser: String, idTienda: String) {
         viewModelScope.launch {
-            val existe = repo_filtrado.verificar_favorito(idUser, idTienda)
-            favoritos.value += (idTienda to existe)
+            try {
+                val existe = repo_filtrado.verificar_favorito(idUser, idTienda)
+                favoritos.value += (idTienda to existe)
+            }catch (e: Exception){
+                Log.d("error_entra","error al encontrar el existente")
+            }
+
         }
     }
 

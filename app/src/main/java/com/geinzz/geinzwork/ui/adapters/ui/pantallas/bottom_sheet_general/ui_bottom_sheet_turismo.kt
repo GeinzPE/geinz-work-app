@@ -144,6 +144,7 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_lugares_turisticos(
+    verificar_intener: Boolean,
     viewmodelMap: viewmodel_mapa_personalizado,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
     datos: lugares_turisticos,
@@ -314,6 +315,7 @@ fun bottom_sheet_lugares_turisticos(
 
     if (mostrar_bottom_datos) {
         bottom_sheet_tiendas_filtradas(
+            verificar_intener,
             viewmodel_filtrado,
             dataclass_tienda_seleccionada,
             mostrar_bottom_datos

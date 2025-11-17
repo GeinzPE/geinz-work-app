@@ -141,6 +141,7 @@ import kotlinx.coroutines.launch
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun Pantalla_filtrado_tiendas(
+    verificar_intener: Boolean,
     viewmodelFavoritos: viewModel_favoritos,
     viewModelFiltros: viewModel_filtado_tiendas,
     categoria: String,
@@ -428,6 +429,7 @@ fun Pantalla_filtrado_tiendas(
                             "${tienda.id_tienda}  ${tienda.metodos_pago_tienda}"
                         )
                         item_tiendas(
+                            verificar_intener,
                             localidad_user = localida,
                             id_user = uid_respald_user,
                             viewModelFiltros = viewModelFiltros,
@@ -612,6 +614,7 @@ fun Pantalla_filtrado_tiendas(
 
     if (mostar_bottom_sheet_ayuda_geinz) {
         bottom_sheet_ayudanos_a_creccer(
+            verificar_intener,
             ultimaLocalidad ?: "barranca",
             { mostar_bottom_sheet_ayuda_geinz = false }, viewModelFiltros
         )
@@ -630,6 +633,7 @@ fun Pantalla_filtrado_tiendas(
 
     if (bottom_shet_tienda) {
         bottom_sheet_tiendas_filtradas(
+            verificar_intener,
             viewModelFiltros,
             dataclass_tienda_seleccionada, bottom_shet_tienda
         ) {
@@ -898,6 +902,7 @@ fun Text_fiel_filtrado(
 
 @Composable
 fun item_tiendas(
+    verificar_interner: Boolean,
     localidad_user: String,
     id_user: String,
     viewModelFiltros: viewModel_filtado_tiendas,
@@ -1080,7 +1085,7 @@ fun item_tiendas(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        if (item_tiendas.pagado) {
+                        AnimatedVisibility (item_tiendas.pagado && verificar_interner, enter = fadeIn(), exit = fadeOut()) {
                             btn_listener_fv_externo(
                                 favoritoEstado,
                                 Modifier.padding(bottom = 10.dp),

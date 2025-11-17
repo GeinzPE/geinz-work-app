@@ -163,6 +163,7 @@ import java.util.Locale
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun ui_pantalla_busqueda(
+    verificar_intener: Boolean,
     viewmodelMap: viewmodel_mapa_personalizado,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
     localida_defauld: datos_principales_user,
@@ -932,6 +933,7 @@ fun ui_pantalla_busqueda(
 
         if (show_bottom_sheeet) {
             bottom_sheet_tiendas_filtradas(
+                verificar_intener,
                 viewModelFiltros,
                 dataclass_tienda_seleccionada, show_bottom_sheeet
             ) {
@@ -940,7 +942,7 @@ fun ui_pantalla_busqueda(
         }
 
         if (bottom_sheet_turismo) {
-            bottom_sheet_lugares_turisticos(
+            bottom_sheet_lugares_turisticos(verificar_intener,
                 viewmodelMap = viewmodelMap,
                 viewmodel_lugares_turisticos = viewmodel_lugares_turisticos,
                 datos = datos_lugares_turisticos,
@@ -1004,7 +1006,7 @@ fun ui_pantalla_busqueda(
         }
 
         if (mostar_bottom_sheet_ayuda_geinz) {
-            bottom_sheet_ayudanos_a_creccer(ultimaLocalidad?:"barranca",
+            bottom_sheet_ayudanos_a_creccer(verificar_intener,ultimaLocalidad?:"barranca",
                 { mostar_bottom_sheet_ayuda_geinz = false },viewModelFiltros)
         }
         Box(

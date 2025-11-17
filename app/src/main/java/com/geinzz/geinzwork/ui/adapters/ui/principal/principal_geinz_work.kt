@@ -142,7 +142,7 @@ private lateinit var firebaseAuth: FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun pantalla_principal(
+fun pantalla_principal(verificar_intener: Boolean,
     datos_principales_user: datos_principales_user,
     categorias: (localidad: String, nombre_user: String) -> Unit,
     clikear_cartas: (String, String, String) -> Unit,
@@ -390,7 +390,7 @@ fun pantalla_principal(
                 .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
         )
         if (mostar_bottom_sheet_ayuda_geinz) {
-            bottom_sheet_ayudanos_a_creccer(ultimaLocalidad?:"barranca",
+            bottom_sheet_ayudanos_a_creccer(verificar_intener,ultimaLocalidad?:"barranca",
                 { mostar_bottom_sheet_ayuda_geinz = false },viewModel_filtado_tiendas)
         }
     }

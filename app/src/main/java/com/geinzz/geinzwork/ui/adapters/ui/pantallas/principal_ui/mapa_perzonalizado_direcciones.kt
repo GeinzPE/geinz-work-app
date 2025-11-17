@@ -154,6 +154,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun pantalla_mapa_perzonalizado(
+    verificar_intener: Boolean,
     viewmodelMapa:viewmodel_mapa_personalizado,
     viewmode_segurirdad_Salud: viewmode_seguridad_salud,
     viewModel_filtrado_tiendas: viewModel_filtado_tiendas,
@@ -162,7 +163,7 @@ fun pantalla_mapa_perzonalizado(
     localidad: String
 ) {
     Box() {
-        MyGoogle_maps(
+        MyGoogle_maps(verificar_intener,
             viewmodelMapa,
             tipo,
             viewmodel_lugares_turisticos,
@@ -177,6 +178,7 @@ fun pantalla_mapa_perzonalizado(
 @SuppressLint("MissingPermission")
 @Composable
 fun MyGoogle_maps(
+    verificar_intener: Boolean,
     viewmodelMapa: viewmodel_mapa_personalizado,
     tipo: String,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
@@ -404,6 +406,7 @@ fun MyGoogle_maps(
 
     if (show_bottom_sheet_datos_tienda_lugares) {
         bottom_sheet_tiendas_filtradas(
+            verificar_intener,
             viewModel_filtrado_tiendas,
             dataclass_tienda_seleccionada, show_bottom_sheet_datos_tienda_lugares
         ) {

@@ -3,20 +3,15 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.favoritos
 
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
-import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,9 +20,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,24 +28,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
-import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
-import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -62,16 +45,13 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -79,12 +59,10 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.error
@@ -97,8 +75,6 @@ import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ImagenConInclinacion
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_listener_fv_externo
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_eliminar_favoritos
@@ -111,14 +87,11 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.TiempoRest
 import com.geinzz.geinzwork.ui.adapters.ui.principal.AutoResizeOneLineText
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
-import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textos_titulos_geinz_wokr
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.categorias_defaul
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.simplificarCategoria
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
@@ -130,6 +103,7 @@ import kotlinx.coroutines.delay
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun iu_favoritos(
+    verificar_intener: Boolean,
     viewModelFiltros: viewModel_filtado_tiendas,
     viewmodelFavoritos: viewModel_favoritos,
     datos_principales_user: datos_principales_user,
@@ -259,27 +233,27 @@ fun iu_favoritos(
     }
     when (lista_fb_size) {
         viewModel_favoritos.state_fv.empty -> {
-            mostrar_loading=false
+            mostrar_loading = false
             mostar_succes = false
             mostarsin_continuar = true
 
         }
 
         is viewModel_favoritos.state_fv.error -> {
-            mostrar_loading=false
+            mostrar_loading = false
             mostar_succes = false
             mostarsin_continuar = true
         }
 
         viewModel_favoritos.state_fv.loading -> {
-            mostrar_loading=true
+            mostrar_loading = true
             mostar_succes = false
             mostarsin_continuar = false
 
         }
 
         is viewModel_favoritos.state_fv.succes -> {
-            mostrar_loading=false
+            mostrar_loading = false
             val listaFavoritos = (lista_fb_size as viewModel_favoritos.state_fv.succes).item
             val listaCategorias =
                 (lista_fb_size as viewModel_favoritos.state_fv.succes).lista_categoria
@@ -560,6 +534,7 @@ fun iu_favoritos(
                         }
                         items(lista_datos) { item ->
                             carta_desing_fv(
+                                verificar_intener,
                                 fv_por_fuera,
                                 viewModelFiltros,
                                 id_user,
@@ -957,6 +932,7 @@ fun iu_favoritos(
 
     if (bottomhseet_tienda) {
         bottom_sheet_tiendas_filtradas(
+            verificar_intener,
             viewModelFiltros,
             dataclass_tienda_seleccionada, bottomhseet_tienda
         ) {
@@ -1163,6 +1139,7 @@ fun TextoFavoritosConFiltros(
 
 @Composable
 fun carta_desing_fv(
+    verificar_internet: Boolean,
     fv_bool: Boolean,
     viewModelFiltros: viewModel_filtado_tiendas,
     id_user: String,
@@ -1254,13 +1231,15 @@ fun carta_desing_fv(
                 spacer_vertical(5.dp)
             }
 
-            btn_listener_fv_externo(
-                fv_bool,
-                Modifier.padding(top = 5.dp, start = 5.dp, end = 5.dp), {
-                    mostrar_dialog_eliminar = true
+            AnimatedVisibility(verificar_internet, enter = fadeIn(), exit = fadeOut()) {
+                btn_listener_fv_externo(
+                    fv_bool,
+                    Modifier.padding(top = 5.dp, start = 5.dp, end = 5.dp), {
+                        mostrar_dialog_eliminar = true
 //                    viewModelFiltros.eliminar_tienda_favorita(id_user, item.id_tienda_lugar)
-                }
-            )
+                    }
+                )
+            }
         }
     }
     spacer_vertical(10.dp)

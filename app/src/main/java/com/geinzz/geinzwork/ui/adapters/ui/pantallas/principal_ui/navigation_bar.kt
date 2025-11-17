@@ -87,6 +87,7 @@ private lateinit var firebaseAuth: FirebaseAuth
 @SuppressLint("MissingPermission", "SuspiciousIndentation")
 @Composable
 fun bottom_navigation(
+    verificar_intener: Boolean,
     datos_principales_user: datos_principales_user,
     navController: NavController,  crear_cuenta:()-> Unit,iniciar_seccion:()-> Unit
 ) {
@@ -272,7 +273,7 @@ fun bottom_navigation(
 
 
     if (bottom_sheet_review_privado) {
-        bottom_Sheet_seguro(esta_o_no_lugar,datos_principales_user,viewmodel, id_tienda_review, ondimis = {
+        bottom_Sheet_seguro(verificar_intener,esta_o_no_lugar,datos_principales_user,viewmodel, id_tienda_review, ondimis = {
             bottom_sheet_review_privado = !bottom_sheet_review_privado
         }, clik_envio = { ratingValue, texto, location ->
 
@@ -334,6 +335,7 @@ fun bottom_navigation(
 
     if (bottom_sheet) {
         bottom_sheet_review(
+            verificar_intener,
             datos_principales_user = datos_principales_user,
             viewmodel = viewmodel,
             data_class_review = id_tienda_review,

@@ -77,6 +77,7 @@ import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 
 @Composable
 fun pantalla_lugares_turisticos(
+    verificar_intener: Boolean,
     viewmodelMapa: viewmodel_mapa_personalizado,
     localidad_selecionada: String,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
@@ -267,6 +268,7 @@ LaunchedEffect(mostra_pantalla_carga) {
                     lista_categoria = listOf("Todos") + state.lista_categoria
                     itemsIndexed(state.lista_lugares) { index, item ->
                         carta_turismo(
+                            verificar_intener,
                             mostra_pantalla_carga,
                             viewmodelMapa,
                             viewmodel_lugares_turisticos,
@@ -332,6 +334,7 @@ LaunchedEffect(mostra_pantalla_carga) {
 
 @Composable
 fun carta_turismo(
+    verificar_intener: Boolean,
     mostra_pantalla_carga: Boolean,
     viewmodelMap: viewmodel_mapa_personalizado,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
@@ -411,6 +414,7 @@ fun carta_turismo(
 
     if ((bottomSheetVisible && lugarSeleccionado == lugar) && !mostra_pantalla_carga) {
         bottom_sheet_lugares_turisticos(
+            verificar_intener,
             viewmodelMap = viewmodelMap,
             viewmodel_lugares_turisticos = viewmodel_lugares_turisticos,
             datos = lugar,

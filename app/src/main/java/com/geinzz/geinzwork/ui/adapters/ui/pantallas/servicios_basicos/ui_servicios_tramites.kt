@@ -95,7 +95,7 @@ import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite
 import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite.carga_servicios
 
 @Composable
-fun ui_servicio_tramite(localida: String) {
+fun ui_servicio_tramite(verificar_intener: Boolean, localida: String) {
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
     val viewmode_servicios_tramite: viewmode_servicios_tramite = viewModel()
     val lugares by viewmode_servicios_tramite.lugares.observeAsState(emptyList())
@@ -392,6 +392,7 @@ fun ui_servicio_tramite(localida: String) {
 
         if (motrar_dialog_tienda_Select) {
             bottom_sheet_tiendas_filtradas(
+                verificar_intener,
                 viewmodel_filtrado,
                 dataclass_tienda_seleccionada,
                 motrar_dialog_tienda_Select

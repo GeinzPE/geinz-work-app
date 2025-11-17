@@ -157,6 +157,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_shadow_bottom_sheet_default
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isInternetAvailable
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
@@ -175,6 +176,7 @@ import kotlin.Unit
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun bottom_sheet_tiendas_filtradas(
+    verificar_intener: Boolean,
     viewModelFiltros: viewModel_filtado_tiendas,
     tiendas_filtradas: modelo_tienda,
     visible: Boolean,
@@ -309,6 +311,7 @@ fun bottom_sheet_tiendas_filtradas(
                         }
                         item {
                             cabezero_tiendas(
+                                verificar_intener,
                                 triggerAnimacion,
                                 guardar_icon = guardar_icon,
                                 viewModel_filtado_tiendas = viewModelFiltros,
@@ -475,6 +478,7 @@ fun bottom_sheet_tiendas_filtradas(
 
 @Composable
 fun cabezero_tiendas(
+    verificar_intener: Boolean,
     triggerAnimacion: Boolean,
     guardar_icon: Boolean,
     viewModel_filtado_tiendas: viewModel_filtado_tiendas,
@@ -603,7 +607,7 @@ fun cabezero_tiendas(
                 )
             }
             spacer_horizonta(15.dp)
-            abrir_google_maps(guardar_icon, context, latitud, longitud, { dialog_ ->
+            abrir_google_maps(verificar_intener,guardar_icon, context, latitud, longitud, { dialog_ ->
                 mostrarDialogo.value = dialog_
             }, { guaradar_select(!guardar_icon) })
         }
@@ -780,6 +784,7 @@ fun perfil_cabezero(
 
 @Composable
 fun abrir_google_maps(
+    verificar_intener: Boolean,
     guardar_icon: Boolean,
     context: Context,
     latitud: Double,
@@ -787,6 +792,7 @@ fun abrir_google_maps(
     mostrarDialogo: (Boolean) -> Unit,
     guaradar_select: () -> Unit
 ) {
+
 
     val color_guardar_fondo by animateColorAsState(
         targetValue = if (!guardar_icon) MaterialTheme.colorScheme.primary else Color.White,
@@ -823,6 +829,7 @@ fun abrir_google_maps(
         } else {
             R.drawable.icon_borde_corazon_completo
         }
+        AnimatedVisibility (verificar_intener, enter = fadeIn(), exit = fadeOut()){
         FloatingActionButton(
             onClick = { guaradar_select() },
             modifier = Modifier.size(40.dp),
@@ -833,6 +840,7 @@ fun abrir_google_maps(
                 modifier = Modifier.size(22.dp),
                 contentDescription = "Favorito",
             )
+        }
         }
 
     }

@@ -276,6 +276,7 @@ fun nativationWrapper(
                     )
                 ) {
                     bottom_navigation(
+                        isConnected,
                         datos_principales_user = datos_principales_user,
                         navController = navController,
                         crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
@@ -293,7 +294,7 @@ fun nativationWrapper(
                 // Pantalla principal
                 composable("pantalla_principal") {
                     pantalla_principal(
-                        datos_principales_user,
+                        isConnected,datos_principales_user,
                         categorias = { localidad, nombre ->
                             navController.navigate(
                                 mostrar_tiendas(
@@ -377,7 +378,7 @@ fun nativationWrapper(
                 }
 
                 composable("buscar") {
-                    ui_pantalla_busqueda(
+                    ui_pantalla_busqueda(isConnected,
                         viewmodelMapa,
                         viewModelLugares,
                         localida_defauld = datos_principales_user,
@@ -401,6 +402,7 @@ fun nativationWrapper(
 
                 composable("favoritos") {
                     iu_favoritos(
+                        isConnected,
                         viewModelFiltros = viewModel_filtrado_tiendas,
                         viewmodelFavoritos = viewmodelFavoritos,
                         datos_principales_user = datos_principales_user,
@@ -459,6 +461,7 @@ fun nativationWrapper(
                 composable<lugares_turisticos> { navback ->
                     val datos_lugares_turisticos = navback.toRoute<lugares_turisticos>()
                     pantalla_lugares_turisticos(
+                        isConnected,
                         viewmodelMapa = viewmodelMapa,
                         localidad_selecionada = datos_lugares_turisticos.localidad,
                         viewmodel_lugares_turisticos = viewModelLugares,
@@ -475,7 +478,7 @@ fun nativationWrapper(
 
                 composable<map_perzonalizado> { navback ->
                     val direcciones = navback.toRoute<map_perzonalizado>()
-                    pantalla_mapa_perzonalizado(
+                    pantalla_mapa_perzonalizado(isConnected,
                         viewmodelMapa,
                         viewmode_segurirdad_Salud = viewmode_segurirdad_Salud,
                         viewModel_filtrado_tiendas = viewModel_filtrado_tiendas,
@@ -489,7 +492,7 @@ fun nativationWrapper(
                     val categoria_localidad = navBackStackEntry.toRoute<screen_filtrado>()
 
 
-                    Pantalla_filtrado_tiendas(
+                    Pantalla_filtrado_tiendas(isConnected,
                         viewmodelFavoritos,
                         viewModelFiltros = viewModel_filtrado_tiendas,
                         categoria = categoria_localidad.categoria,
@@ -547,7 +550,7 @@ fun nativationWrapper(
 
                 composable<ui_servicios_tramites> { navback ->
                     val servicio = navback.toRoute<ui_servicios_tramites>()
-                    ui_servicio_tramite(servicio.localidad)
+                    ui_servicio_tramite(isConnected,servicio.localidad)
                 }
 
             }
