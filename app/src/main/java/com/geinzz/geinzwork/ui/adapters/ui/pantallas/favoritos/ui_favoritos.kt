@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.favoritos
 
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import android.util.Log
@@ -35,18 +36,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -54,12 +58,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -89,11 +95,13 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_g
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ImagenConInclinacion
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_listener_fv_externo
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_eliminar_favoritos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
@@ -125,7 +133,9 @@ fun iu_favoritos(
     viewModelFiltros: viewModel_filtado_tiendas,
     viewmodelFavoritos: viewModel_favoritos,
     datos_principales_user: datos_principales_user,
-    empty_select_chip: (String, String, String) -> Unit
+    empty_select_chip: (String, String, String) -> Unit,
+    mostar_butom_var: () -> Unit,
+    ocultar_buttom_var: () -> Unit
 ) {
 
     val context = LocalContext.current
@@ -144,16 +154,13 @@ fun iu_favoritos(
 
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
-
-    val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
-    ?: ""
-
     var lista_subcategorias by remember { mutableStateOf(listOf<String>()) }
     var lista_localidad_filtrado by remember { mutableStateOf(listOf<String>()) }
     var lista_datos by remember { mutableStateOf(listOf<favoritos_guardados>()) }
     var cat_selecionada by remember { mutableStateOf("Todos") }
     var mostarsin_continuar by remember { mutableStateOf(false) }
     var mostar_succes by remember { mutableStateOf(false) }
+    var mostrar_loading by remember { mutableStateOf(false) }
     var bottomhseet_tienda by remember { mutableStateOf(false) }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     var id_tienda_select by remember { mutableStateOf("") }
@@ -162,10 +169,13 @@ fun iu_favoritos(
     var validacion_mostrar_dialog_ubi_off by remember { mutableStateOf(false) }
     var lat by remember { mutableStateOf(0.0) }
     var lng by remember { mutableStateOf(0.0) }
-    val localidad_storage_user by data_store_localidad.obtener_localidad(context).collectAsState(initial = null)
-    var localidad_select by remember { mutableStateOf(localidad_storage_user?:"barranca") }
+    val localidad_storage_user by data_store_localidad.obtener_localidad(context)
+        .collectAsState(initial = null)
+    var localidad_select by remember { mutableStateOf(localidad_storage_user ?: "barranca") }
     var click_categoria by remember { mutableStateOf(true) }
     var click_localida by remember { mutableStateOf(false) }
+    val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
+    ?: ""
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
@@ -176,13 +186,15 @@ fun iu_favoritos(
             Log.d("GPS", "❌ El usuario canceló el diálogo de ubicación")
         }
     }
+    var ocultar_sombnra by remember { mutableStateOf(false) }
+
     LaunchedEffect(key1 = id_user) {
         viewmodelFavoritos.obtener_favoritos(id_user)
     }
 
-    LaunchedEffect(cat_selecionada,lista_datos) {
-        if(cat_selecionada.isNotEmpty()){
-            Log.d("cat13123","no vacio")
+    LaunchedEffect(cat_selecionada, lista_datos) {
+        if (cat_selecionada.isNotEmpty()) {
+            Log.d("cat13123", "no vacio")
             viewmodelFavoritos.filtrar_categoira(cat_selecionada)
         }
     }
@@ -190,29 +202,43 @@ fun iu_favoritos(
     var sizeAnterior by remember { mutableStateOf(0) }
 
     LaunchedEffect(lista_datos) {
+
+        // ---- 🆕 Detectar si ya no queda ningún favorito en total ----
+        if (lista_datos.isEmpty()) {
+            Log.d(
+                "FAV_DEBUG",
+                "Se eliminaron todos los favoritos. Limpiando listas del ViewModel..."
+            )
+            viewmodelFavoritos.limpiar_listas_favoritos()   // <--- aquí llamas tu función
+            cat_selecionada = "Todos"
+            return@LaunchedEffect
+        }
+        // ------------------------------------------------------------
+
         val categoriaActual = cat_selecionada
 
-        // No hacer nada si ya está en "Todos"
+        Log.d("FAV_DEBUG", "lista_datos filtrada size = ${lista_datos.size}")
         if (categoriaActual == "Todos") return@LaunchedEffect
 
-        Log.d("FAV_DEBUG", "lista_datos filtrada size = ${lista_datos.size}")
-
-        // Verificar si en la lista original sigue existiendo esa categoría
+        // Verificar si la categoría sigue existiendo
         val existeCategoriaEnListaOriginal =
             lista_subcategorias.any { cat ->
                 cat.equals(categoriaActual, ignoreCase = true)
             }
 
-
-        Log.d("FAV_DEBUG", "¿Existe categoria '$categoriaActual' en lista original?: $existeCategoriaEnListaOriginal")
+        Log.d("FAV_DEBUG", "¿Existe categoría '$categoriaActual'?: $existeCategoriaEnListaOriginal")
 
         if (!existeCategoriaEnListaOriginal) {
-            Log.d("FAV_DEBUG", "La categoría '$categoriaActual' ya no existe. Cambiando a 'Todos'...")
+            Log.d(
+                "FAV_DEBUG",
+                "La categoría '$categoriaActual' ya no existe. Cambiando a 'Todos'..."
+            )
 
             cat_selecionada = "Todos"
             viewmodelFavoritos.filtrar_categoira("Todos")
         }
     }
+
 
     LaunchedEffect(bottomhseet_tienda) {
 
@@ -233,25 +259,27 @@ fun iu_favoritos(
     }
     when (lista_fb_size) {
         viewModel_favoritos.state_fv.empty -> {
+            mostrar_loading=false
             mostar_succes = false
             mostarsin_continuar = true
 
         }
 
         is viewModel_favoritos.state_fv.error -> {
+            mostrar_loading=false
             mostar_succes = false
             mostarsin_continuar = true
         }
 
         viewModel_favoritos.state_fv.loading -> {
+            mostrar_loading=true
             mostar_succes = false
             mostarsin_continuar = false
-            Box(modifier = Modifier.fillMaxSize()) {
-                texto_generico_one_line("cargando tus guardados")
-            }
+
         }
 
         is viewModel_favoritos.state_fv.succes -> {
+            mostrar_loading=false
             val listaFavoritos = (lista_fb_size as viewModel_favoritos.state_fv.succes).item
             val listaCategorias =
                 (lista_fb_size as viewModel_favoritos.state_fv.succes).lista_categoria
@@ -266,12 +294,58 @@ fun iu_favoritos(
             }
         }
     }
+    val listState = rememberLazyListState()
+
+    val isAtEnd by remember {
+        derivedStateOf {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+            val totalItems = listState.layoutInfo.totalItemsCount
+            lastVisible == totalItems - 1 && totalItems > 0
+        }
+    }
+
+    LaunchedEffect(isAtEnd) {
+        if (isAtEnd) {
+            ocultar_sombnra = true
+            // Aquí llamas tu función:
+            // cargarMásDatos()
+        } else {
+            ocultar_sombnra = false
+        }
+    }
+
+    LaunchedEffect(mostrar_loading) {
+        if (mostrar_loading) {
+            delay(3000)
+            if (!mostrar_loading) return@LaunchedEffect
+            mostar_succes = true
+            mostrar_loading = false
+            mostarsin_continuar = false
+        }
+    }
+
+
 
     Crossfade(
-        targetState = if (mostarsin_continuar) "empty" else if (mostar_succes) "success" else "none",
+        targetState = if (mostarsin_continuar) "empty" else if (mostrar_loading) "loading" else if (mostar_succes) "success" else "none",
         animationSpec = tween(500)
     ) { state ->
+        var fv_por_fuera by remember { mutableStateOf(true) }
         when (state) {
+
+            "loading" -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(60.dp),
+                        strokeWidth = 5.dp
+                    )
+                }
+            }
 
             "empty" -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -408,19 +482,23 @@ fun iu_favoritos(
             }
 
             "success" -> {
-                Box {
-                    LazyVerticalStaggeredGrid(
-                        columns = StaggeredGridCells.Fixed(2),
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalItemSpacing = 10.dp
+                Box(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        state = listState,
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier,
                     ) {
-                        item(span = StaggeredGridItemSpan.FullLine) {
-                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        item {
+                            Column(
+                                modifier = Modifier.padding(
+                                    start = 10.dp,
+                                    end = 10.dp,
+                                    top = 15.dp
+                                )
+                            ) {
                                 fraces_cambio(datos_principales_user.nombre)
                                 val lista_mas_todos = listOf("Todos") + lista_subcategorias
-
+                                spacer_vertical(10.dp)
                                 TextoFavoritosConFiltros(
                                     localidad = "Barranca",
                                     categoria = cat_selecionada,
@@ -432,34 +510,30 @@ fun iu_favoritos(
                                         click_categoria = true
                                         click_localida = false
                                     })
-                                spacer_vertical(7.dp)
-                                Box(modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(45.dp)) {
+                                spacer_vertical(15.dp)
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(45.dp)
+                                ) {
                                     this@Column.AnimatedVisibility(
                                         click_categoria,
                                         enter = fadeIn(),
                                         exit = fadeOut()
                                     ) {
+                                        LazyRowConSombras() {
+                                            items(lista_mas_todos) { cat ->
+                                                val catSeleccionada = cat_selecionada == cat
 
-
-                                            LazyRowConSombras {
-                                                items(lista_mas_todos) { cat ->
-                                                    val catSeleccionada = cat_selecionada == cat
-
-                                                    chisp_filtrado_busqueda(
-                                                        carta_selecionada = catSeleccionada,
-                                                        filtrado = cat,
-                                                        btn_visible = false,
-                                                        clik_card = { cat_selecionada = cat },
-                                                        onClick_delete = {}
-                                                    )
-                                                }
+                                                chisp_filtrado_busqueda(
+                                                    carta_selecionada = catSeleccionada,
+                                                    filtrado = cat,
+                                                    btn_visible = false,
+                                                    clik_card = { cat_selecionada = cat },
+                                                    onClick_delete = {},
+                                                )
                                             }
-
-
-
-
+                                        }
                                     }
                                     this@Column.AnimatedVisibility(
                                         click_localida,
@@ -475,159 +549,392 @@ fun iu_favoritos(
                                                     btn_visible = false,
                                                     clik_card = { localidad_select = cat },
                                                     onClick_delete = {
-                                                    }
+                                                    },
                                                 )
                                             }
                                         }
-
                                     }
                                 }
-                                spacer_vertical(10.dp)
+                                spacer_vertical(15.dp)
                             }
                         }
-
-                        itemsIndexed(lista_datos) { index, item ->
-                            Log.d("safdSADFGJSAIUGHAsuorg", item.horario.toString())
-                            val heightOptions = listOf(300.dp, 350.dp)
-                            val boxHeight =
-                                if (index % 2 == 0) heightOptions[0] else heightOptions[1]
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(boxHeight)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(MaterialTheme.colorScheme.surface)
-                            ) {
-                                Column(modifier = Modifier.fillMaxSize()) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .weight(1.7f)
-                                    ) {
-                                        AsyncImage(
-                                            model = ImageRequest.Builder(context)
-                                                .data(item.img_tienda)
-                                                .placeholder(R.drawable.cargando_img_categorias)
-                                                .error(R.drawable.cargando_img_categorias)
-                                                .build(),
-                                            contentDescription = null,
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .clickable {
-                                                    bottomhseet_tienda = true
-                                                    id_tienda_select = item.id_tienda_lugar
-                                                    localida_tienda_select = item.localida_tienda
-                                                },
-
-                                            contentScale = ContentScale.Crop
-                                        )
-
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(80.dp)
-                                                .align(Alignment.BottomCenter)
-                                                .background(
-
-                                                    brush = Brush.verticalGradient(
-                                                        colors = listOf(
-                                                            Color.Transparent,
-                                                            Color(0xFF262626)
-                                                        ),
-
-                                                        )
-                                                )
-                                        )
-
-                                    }
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .wrapContentHeight()
-                                            .padding(start = 8.dp, end = 8.dp, bottom = 10.dp),
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.SpaceBetween
-                                        ) {
-                                            Text(
-                                                text = item.nombre_lugar_tienda,
-                                                fontFamily = textos_titulos_geinz_wokr,
-                                                color = Color.White,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                                fontSize = 17.sp,
-                                                modifier = Modifier.weight(1f)
-                                            )
-                                            Spacer(modifier = Modifier.width(5.dp))
-                                            val coordenadasValidas =
-                                                item.lat != 0.0 && item.lng != 0.0
-                                            if (coordenadasValidas) {
-                                                FloatingActionButton(
-                                                    containerColor = MaterialTheme.colorScheme.primary,
-                                                    contentColor = Color.White,
-                                                    onClick = {
-                                                        dialog_Crear_ruta = true
-                                                        lat = item.lat
-                                                        lng = item.lng
-
-
-                                                    },
-
-                                                    modifier = Modifier.size(30.dp)
-                                                ) {
-                                                    Icon(
-                                                        Icons.Default.LocationOn,
-                                                        contentDescription = "centrar",
-                                                        modifier = Modifier.padding(5.dp)
-                                                    )
-                                                }
-                                            }
-                                        }
-
-
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Image(
-                                                painter = painterResource(R.drawable.localidad_icon_general),
-                                                contentDescription = "",
-                                                modifier = Modifier
-                                                    .size(20.dp)
-                                                    .padding(end = 5.dp)
-                                            )
-                                            texto_generico_one_line(
-                                                item.localida_tienda.capitalizeFirst(),
-                                                MaterialTheme.typography.bodyMedium
-                                            )
-                                        }
-                                        spacer_vertical(5.dp)
-                                        TiempoRestanteCierre(
-                                            horario_total = item.horario,
-                                            hCierre = item.horario.h_cierre,
-                                            cerrado = item.horario.cerrado,
-                                            motivo = item.horario.motivo,
-                                            pagado = true,
-                                            max_line = 1, tick = tick
-                                        ) {}
-                                        spacer_vertical(5.dp)
-                                        val iconCategoria =
-                                            constantes_lista_localidades.getCategoriaIcon(item.categoria)
-                                        texto_generico_one_line(
-                                            "$iconCategoria ${item.categoria}",
-                                            MaterialTheme.typography.bodyMedium
-                                        )
-                                        spacer_vertical(5.dp)
-                                        tags_subcateogiras(
-                                            item.tag_sub,
-                                            brush_start = Brush.horizontalGradient(colors = shadow_top_filtrado_v1),
-                                            brush_end = Brush.horizontalGradient(colors = shadow_botonm_filtrado_v1)
-                                        )
-                                    }
-                                }
+                        items(lista_datos) { item ->
+                            carta_desing_fv(
+                                fv_por_fuera,
+                                viewModelFiltros,
+                                id_user,
+                                context,
+                                item,
+                                tick
+                            ) { id_tienda, localida ->
+                                bottomhseet_tienda = true
+                                id_tienda_select = id_tienda
+                                localida_tienda_select = localida
                             }
                         }
                     }
+//                    LazyVerticalStaggeredGrid(
+//                        columns = StaggeredGridCells.Fixed(2),
+//                        modifier = Modifier.fillMaxSize(),
+//                        contentPadding = PaddingValues(16.dp),
+//                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+//                        verticalItemSpacing = 10.dp,
+//                                state = listState,
+//                    ) {
+//                        item(span = StaggeredGridItemSpan.FullLine) {
+//                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+//                                fraces_cambio(datos_principales_user.nombre)
+//                                val lista_mas_todos = listOf("Todos") + lista_subcategorias
+//
+//                                TextoFavoritosConFiltros(
+//                                    localidad = "Barranca",
+//                                    categoria = cat_selecionada,
+//                                    onClickLocalidad = {
+//                                        click_categoria = false
+//                                        click_localida = true
+//                                    },
+//                                    onClickCategoria = {
+//                                        click_categoria = true
+//                                        click_localida = false
+//                                    })
+//                                spacer_vertical(7.dp)
+//                                Box(
+//                                    modifier = Modifier
+//                                        .fillMaxWidth()
+//                                        .height(45.dp)
+//                                ) {
+//                                    this@Column.AnimatedVisibility(
+//                                        click_categoria,
+//                                        enter = fadeIn(),
+//                                        exit = fadeOut()
+//                                    ) {
+//                                        LazyRowConSombras {
+//                                            items(lista_mas_todos) { cat ->
+//                                                val catSeleccionada = cat_selecionada == cat
+//
+//                                                chisp_filtrado_busqueda(
+//                                                    carta_selecionada = catSeleccionada,
+//                                                    filtrado = cat,
+//                                                    btn_visible = false,
+//                                                    clik_card = { cat_selecionada = cat },
+//                                                    onClick_delete = {}
+//                                                )
+//                                            }
+//                                        }
+//                                    }
+//                                    this@Column.AnimatedVisibility(
+//                                        click_localida,
+//                                        enter = fadeIn(),
+//                                        exit = fadeOut()
+//                                    ) {
+//                                        LazyRowConSombras() {
+//                                            items(lista_localidad_filtrado) { cat ->
+//                                                val catSeleccionada = localidad_select == cat
+//                                                chisp_filtrado_busqueda(
+//                                                    carta_selecionada = catSeleccionada,
+//                                                    filtrado = cat,
+//                                                    btn_visible = false,
+//                                                    clik_card = { localidad_select = cat },
+//                                                    onClick_delete = {
+//                                                    }
+//                                                )
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                                spacer_vertical(10.dp)
+//                            }
+//                        }
+//
+//                        itemsIndexed(lista_datos) { index, item ->
+//                            Log.d("safdSADFGJSAIUGHAsuorg", item.horario.toString())
+//                            val heightOptions = listOf(300.dp, 350.dp)
+//                            val boxHeight =
+//                                if (index % 2 == 0) heightOptions[0] else heightOptions[1]
+//
+//                            Box(
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .height(boxHeight)
+//                                    .clip(RoundedCornerShape(12.dp))
+//                                    .background(MaterialTheme.colorScheme.surface)
+//                            ) {
+//                                Column(modifier = Modifier.fillMaxSize()) {
+//                                    Box(
+//                                        modifier = Modifier
+//                                            .fillMaxWidth()
+//                                            .weight(1.7f)
+//                                    ) {
+//                                        Box(
+//                                            modifier = Modifier
+//                                                .fillMaxSize()
+//                                        ) {
+//                                            AsyncImage(
+//                                                model = ImageRequest.Builder(context)
+//                                                    .data(item.img_tienda)
+//                                                    .placeholder(R.drawable.cargando_img_categorias)
+//                                                    .error(R.drawable.cargando_img_categorias)
+//                                                    .build(),
+//                                                contentDescription = null,
+//                                                modifier = Modifier .fillMaxSize().clickable {
+//                                                    bottomhseet_tienda = true
+//                                                    id_tienda_select = item.id_tienda_lugar
+//                                                    localida_tienda_select = item.localida_tienda
+//                                                },
+//                                                contentScale = ContentScale.Crop
+//                                            )
+//
+//                                        }
+//                                        Box(
+//                                            modifier = Modifier
+//                                                .fillMaxWidth()
+//                                                .height(80.dp)
+//                                                .align(Alignment.BottomCenter)
+//                                                .background(
+//                                                    brush = Brush.verticalGradient(
+//                                                        colors = listOf(
+//                                                            Color.Transparent,
+//                                                            Color(0xFF262626)
+//                                                        ),
+//
+//                                                        )
+//                                                )
+//                                        )
+//
+//                                    }
+//                                    Column(
+//                                        modifier = Modifier
+//                                            .fillMaxWidth()
+//                                            .wrapContentHeight()
+//                                            .padding(start = 8.dp, end = 8.dp, bottom = 10.dp),
+//                                    ) {
+//                                        Row(
+//                                            modifier = Modifier.fillMaxWidth(),
+//                                            verticalAlignment = Alignment.CenterVertically,
+//                                            horizontalArrangement = Arrangement.Center
+//                                        ) {
+//                                            Text(
+//                                                text = item.nombre_lugar_tienda,
+//                                                fontFamily = textos_titulos_geinz_wokr,
+//                                                color = Color.White,
+//                                                maxLines = 1,
+//                                                overflow = TextOverflow.Ellipsis,
+//                                                fontSize = 17.sp,
+//                                                modifier = Modifier.weight(1f)
+//                                            )
+//                                            Spacer(modifier = Modifier.width(5.dp))
+//                                            btn_listener_fv_externo(
+//                                                fv_por_fuera,
+//                                                Modifier.padding(top = 5.dp , start = 5.dp , end = 5.dp)
+//                                                    ,{
+//                                                    viewModelFiltros.eliminar_tienda_favorita(id_user,item.id_tienda_lugar)
+//                                                }
+//                                            )
+////                                            val coordenadasValidas =
+////                                                item.lat != 0.0 && item.lng != 0.0
+////                                            if (coordenadasValidas) {
+////                                                FloatingActionButton(
+////                                                    containerColor = MaterialTheme.colorScheme.primary,
+////                                                    contentColor = Color.White,
+////                                                    onClick = {
+////                                                        dialog_Crear_ruta = true
+////                                                        lat = item.lat
+////                                                        lng = item.lng
+////
+////
+////                                                    },
+////
+////                                                    modifier = Modifier.size(30.dp)
+////                                                ) {
+////                                                    Icon(
+////                                                        Icons.Default.LocationOn,
+////                                                        contentDescription = "centrar",
+////                                                        modifier = Modifier.padding(5.dp)
+////                                                    )
+//
+//                                        }
+//
+//
+////                                        Row(verticalAlignment = Alignment.CenterVertically) {
+////                                            Image(
+////                                                painter = painterResource(R.drawable.localidad_icon_general),
+////                                                contentDescription = "",
+////                                                modifier = Modifier
+////                                                    .size(20.dp)
+////                                                    .padding(end = 5.dp)
+////                                            )
+////                                            texto_generico_one_line(
+////                                                item.localida_tienda.capitalizeFirst(),
+////                                                MaterialTheme.typography.bodyMedium
+////                                            )
+////                                        }
+//                                        spacer_vertical(5.dp)
+//                                        TiempoRestanteCierre(
+//                                            horario_total = item.horario,
+//                                            hCierre = item.horario.h_cierre,
+//                                            cerrado = item.horario.cerrado,
+//                                            motivo = item.horario.motivo,
+//                                            pagado = true,
+//                                            max_line = 1, tick = tick
+//                                        ) {}
+//                                        spacer_vertical(5.dp)
+//                                        val iconCategoria =
+//                                            constantes_lista_localidades.getCategoriaIcon(item.categoria)
+//                                        texto_generico_one_line(
+//                                            "$iconCategoria ${item.categoria}",
+//                                            MaterialTheme.typography.bodyMedium
+//                                        )
+//                                        spacer_vertical(5.dp)
+//                                        tags_subcateogiras(
+//                                            item.tag_sub,
+//                                            brush_start = Brush.horizontalGradient(colors = shadow_top_filtrado_v1),
+//                                            brush_end = Brush.horizontalGradient(colors = shadow_botonm_filtrado_v1)
+//                                        )
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+                    AnimatedVisibility(
+                        !ocultar_sombnra,
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color.Transparent,
+                                            Color.Black
+                                        )
+                                    )
+                                )
+                        )
+                    }
+
+
+                }
+            }
+
+            else -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Crossfade(targetState = imagenActiva, animationSpec = tween(500)) { index ->
+                            if (index != null) {
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    Image(
+                                        painter = painterResource(id = listaImg[index]),
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(Color.Black.copy(alpha = 0.8f))
+                                    )
+                                }
+                            }
+                        }
+
+
+                    }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+
+                    ) {
+//            TextoConIconoFinal("Aun no cuentas con favoritos")
+                        Text(
+                            "Aun no cuentas con favoritos",
+                            fontFamily = baners_geinz_work,
+                            modifier = Modifier.padding(horizontal = 10.dp),
+                            fontSize = 30.sp,
+                            textAlign = TextAlign.Center
+                        )
+                        spacer_vertical(5.dp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.corazon_canva_icon),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(30.dp)
+                            )
+                            spacer_horizonta(5.dp)
+                            Image(
+                                painter = painterResource(R.drawable.estrella_3d_icon),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(30.dp)
+                            )
+                        }
+                        spacer_vertical(15.dp)
+                        Text(
+                            modifier = Modifier.padding(horizontal = 30.dp),
+                            text = "Guarda tus negocios y lugares favoritos en GEINZ y encuéntralos al instante. Ahorra tiempo, evita búsquedas y ten todo a un toque.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                        )
+
+                        spacer_vertical(20.dp)
+                        ChipsCategorias(
+                            categorias = categorias_defaul,
+                            imagenActiva = imagenActiva, select = { cat ->
+                                empty_select_chip(
+                                    datos_principales_user.nombre,
+                                    cat,
+                                    ultimaLocalidad ?: "barranca"
+                                )
+                            }
+
+                        )
+                        spacer_vertical(10.dp)
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 20.dp, vertical = 30.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            // --- Foto 1 (Izquierda) ---
+                            ImagenConInclinacion(
+                                drawableResId = R.drawable.f1,
+                                anguloRotacion = -8f,
+                                desplazamientoX = -70.dp,
+                                desplazamientoY = 20.dp,
+                                factorTamaño = 0.33f,
+                                { imagenActiva = if (imagenActiva == 0) null else 0 },
+                                imagenActiva == 0
+                            )
+
+                            ImagenConInclinacion(
+                                drawableResId = R.drawable.f2,
+                                anguloRotacion = 3f,
+                                desplazamientoX = 0.dp,
+                                desplazamientoY = 0.dp,
+                                factorTamaño = 0.33f,
+                                { imagenActiva = if (imagenActiva == 1) null else 1 },
+                                imagenActiva == 1
+                            )
+
+                            // --- Foto 3 (Derecha) ---
+                            ImagenConInclinacion(
+                                drawableResId = R.drawable.f4,
+                                anguloRotacion = 7f,
+                                desplazamientoX = 70.dp,
+                                desplazamientoY = 40.dp,
+                                factorTamaño = 0.33f,
+                                { imagenActiva = if (imagenActiva == 2) null else 2 },
+                                imagenActiva == 2
+                            )
+                        }
+                    }
+
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -642,9 +949,7 @@ fun iu_favoritos(
                                 )
                             )
                     )
-
                 }
-
             }
         }
     }
@@ -658,7 +963,6 @@ fun iu_favoritos(
             bottomhseet_tienda = false
         }
     }
-
     if (dialog_Crear_ruta) {
         dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
             dialog_Crear_ruta = false
@@ -854,6 +1158,120 @@ fun TextoFavoritosConFiltros(
 
         texto.getStringAnnotations("CATEGORIA", start = offset, end = offset)
             .firstOrNull()?.let { onClickCategoria() }
+    }
+}
+
+@Composable
+fun carta_desing_fv(
+    fv_bool: Boolean,
+    viewModelFiltros: viewModel_filtado_tiendas,
+    id_user: String,
+    context: Context,
+    item: favoritos_guardados,
+    tick: Long, clik_card: (id_tienda: String, localida: String) -> Unit
+) {
+    var mostrar_dialog_eliminar by remember { mutableStateOf(false) }
+    Column(Modifier.padding(horizontal = 20.dp)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(item.img_tienda)
+                    .placeholder(R.drawable.cargando_img_categorias)
+                    .error(R.drawable.cargando_img_categorias)
+                    .build(),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .height(120.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable {
+                        clik_card(item.id_tienda_lugar, item.localida_tienda)
+//                bottomhseet_tienda = true
+//                id_tienda_select = item.id_tienda_lugar
+//                localida_tienda_select = item.localida_tienda
+                    },
+                contentScale = ContentScale.Crop
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)   // altura exacta de la sombra
+                    .clip(RoundedCornerShape(10.dp))
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color(0xAA000000) // negro sutil abajo
+                            ),
+                            startY = 0f,
+                            endY = Float.POSITIVE_INFINITY
+                        )
+                    )
+            )
+
+        }
+        spacer_vertical(10.dp)
+
+        Row() {
+            Column(modifier = Modifier.weight(1f)) {
+                Box(
+                    Modifier
+                        .clip(RoundedCornerShape(5.dp))
+                        .background(MaterialTheme.colorScheme.primary)
+                ) {
+                    texto_generico_one_line(
+                        item.localida_tienda.capitalizeFirst(),
+                        MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp)
+                    )
+                }
+                spacer_vertical(5.dp)
+                Text(
+                    text = item.nombre_lugar_tienda.capitalizeFirst(),
+                    maxLines = 1,
+                    fontSize = 20.sp,
+                    fontFamily = baners_geinz_work
+                )
+                spacer_vertical(5.dp)
+                TiempoRestanteCierre(
+                    horario_total = item.horario,
+                    hCierre = item.horario.h_cierre,
+                    cerrado = item.horario.cerrado,
+                    motivo = item.horario.motivo,
+                    pagado = true,
+                    max_line = 1, tick = tick
+                ) {}
+                spacer_vertical(5.dp)
+                val iconCategoria = constantes_lista_localidades.getCategoriaIcon(item.categoria)
+                texto_generico_one_line(
+                    "$iconCategoria ${item.categoria}",
+                    MaterialTheme.typography.bodyMedium
+                )
+                spacer_vertical(5.dp)
+            }
+
+            btn_listener_fv_externo(
+                fv_bool,
+                Modifier.padding(top = 5.dp, start = 5.dp, end = 5.dp), {
+                    mostrar_dialog_eliminar = true
+//                    viewModelFiltros.eliminar_tienda_favorita(id_user, item.id_tienda_lugar)
+                }
+            )
+        }
+    }
+    spacer_vertical(10.dp)
+
+    if (mostrar_dialog_eliminar) {
+        dialog_eliminar_favoritos(
+            viewModelFiltros,
+            id_user,
+            item.id_tienda_lugar,
+            item.nombre_lugar_tienda,
+            { mostrar_dialog_eliminar = false })
     }
 }
 

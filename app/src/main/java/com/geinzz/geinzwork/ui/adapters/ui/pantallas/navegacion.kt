@@ -47,6 +47,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.geinzz.geinzwork.Network_internet.ConnectivityViewModel
+import com.geinzz.geinzwork.data.model.FavoritosFactory
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -95,7 +96,8 @@ fun nativationWrapper(
     val viewModel_filtrado_tiendas: viewModel_filtado_tiendas = viewModel()
     val viewmode_segurirdad_Salud: viewmode_seguridad_salud = viewModel()
     val viewmodelMapa: viewmodel_mapa_personalizado = viewModel()
-    val viewmodelFavoritos : viewModel_favoritos = viewModel()
+
+
     val mostrarCarga by viewModel_login_user.mostrarCarga.observeAsState(false)
     val systemUiController = rememberSystemUiController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -110,6 +112,11 @@ fun nativationWrapper(
     val email_respald_user by data_store_localidad.get_email_user(context)
         .collectAsState(initial = "")
     var id_respado_user by remember { mutableStateOf("") }
+    val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
+    ?: ""
+    val viewmodelFavoritos: viewModel_favoritos = viewModel(
+        factory = FavoritosFactory(id_user)
+    )
     var email_respaldo_user by remember { mutableStateOf("") }
     var datos_principales_user by remember {
         mutableStateOf(
@@ -268,7 +275,6 @@ fun nativationWrapper(
                         )
                     )
                 ) {
-
                     bottom_navigation(
                         datos_principales_user = datos_principales_user,
                         navController = navController,
@@ -394,16 +400,26 @@ fun nativationWrapper(
                 }
 
                 composable("favoritos") {
-                    iu_favoritos(viewModel_filtrado_tiendas,viewmodelFavoritos,datos_principales_user,{nombre,categoria,localidad->
-                        Log.d("adsd13413rdwF","$nombre $categoria $localidad")
-                        navController.navigate(
-                            screen_filtrado(
-                                categoria,
-                                localidad,
-                                nombre,
+                    iu_favoritos(
+                        viewModelFiltros = viewModel_filtrado_tiendas,
+                        viewmodelFavoritos = viewmodelFavoritos,
+                        datos_principales_user = datos_principales_user,
+                        empty_select_chip = { nombre, categoria, localidad->
+                            Log.d("adsd13413rdwF","$nombre $categoria $localidad")
+                            navController.navigate(
+                                screen_filtrado(
+                                    categoria,
+                                    localidad,
+                                    nombre,
+                                )
                             )
-                        )
-                    })
+                        },
+                        mostar_butom_var = {
+                            isvisble_buttomvar = true
+                        },
+                        ocultar_buttom_var = {
+                            isvisble_buttomvar = false
+                        })
                 }
 
 
@@ -474,6 +490,7 @@ fun nativationWrapper(
 
 
                     Pantalla_filtrado_tiendas(
+                        viewmodelFavoritos,
                         viewModelFiltros = viewModel_filtrado_tiendas,
                         categoria = categoria_localidad.categoria,
                         localida = categoria_localidad.localidad,

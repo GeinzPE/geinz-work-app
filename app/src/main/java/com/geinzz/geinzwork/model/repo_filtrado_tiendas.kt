@@ -20,6 +20,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.datos_teindas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerProximoDiaAbierto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
 import com.geinzz.geinzwork.viewModels.viewmodel_usuario_registrado
@@ -426,6 +427,45 @@ class repo_filtrado_tiendas {
             throw e
         }
 
+    }
+
+    suspend fun obtener_datos_tienda_id(localidad: String, id_tienda: String): favoritos_guardados {
+        val ref = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(id_tienda)
+            .get()
+            .await()
+
+        return if (ref.exists()) {
+            val data = ref.data ?: emptyMap<String, Any>()
+
+            val imgMap = data["img_tienda"] as? Map<String, Any> ?: emptyMap()
+            val metodoPagoMap = data["metodos_pago"] as? Map<String, Any> ?: emptyMap()
+            val ubicacionMap = data["ubicacion"] as? Map<String, Any> ?: emptyMap()
+            val horarioMap = data["horario_atencion"] as? Map<String, Any> ?: emptyMap()
+            val metodo_pago_tienda = metodoPagoMap.to_metodo_pago()
+            val horario_atencio =horarioMap.to_horario_atencion()
+            favoritos_guardados(
+                img_tienda = imgMap["logo_tienda"] as? String ?: "",
+                id_tienda_lugar = data["id_tienda"] as? String ?: "",
+                nombre_lugar_tienda = data["nombre_tienda"] as? String ?: "",
+                tag_sub = (data["subcategoria"] as? List<String>) ?: emptyList(),
+                categoria = data["categoria_tienda"] as? String ?: "",
+                timesLap = "", // si quieres, calcula el lapso
+                horario_tienda = horario_atencio, // aquí puedes mapearlo si tienes los datos
+                metodos_pago = metodo_pago_tienda,
+                lat = (ubicacionMap["latitud"] as? Double) ?: 0.0,
+                lng = (ubicacionMap["longitud"] as? Double) ?: 0.0,
+                localida_tienda = data["localidad"] as? String ?: "",
+                estaAbierto = false,
+                horario = horario_tienda() // si tienes horario detallado, mapéalo aquí
+            )
+        } else {
+            favoritos_guardados(
+                localida_tienda = localidad
+            )
+        }
     }
 
     suspend fun eliminar_tienda_favorito(id_user: String,id_tienda: String){

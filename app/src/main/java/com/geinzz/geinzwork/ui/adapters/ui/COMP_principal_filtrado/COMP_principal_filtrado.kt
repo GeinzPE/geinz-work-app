@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -43,11 +44,22 @@ fun icon_geinz_mas_fondo_violeta(size: Dp =40.dp){
 }
 
 @Composable
-fun btn_aceptar_etc_dialog_general(txt_btn:String="Aceptar",ondimis:()-> Unit){
-    Button(onClick = {
-        ondimis()
-    }) {
-        texto_generico_one_line(txt_btn, style = MaterialTheme.typography.bodyMedium)
+fun btn_aceptar_etc_dialog_general(
+    color: Color = MaterialTheme.colorScheme.primary,
+    txt_btn: String = "Aceptar",
+    ondimis: () -> Unit,
+) {
+    Button(
+        onClick = { ondimis() },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = color,        // ⬅️ color del parámetro
+            contentColor = Color.White     // opcional, para el texto
+        )
+    ) {
+        texto_generico_one_line(
+            txt_btn,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
 

@@ -6,6 +6,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
@@ -83,8 +84,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -94,11 +95,13 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario
 //import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.selec_class_estados_carga
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoExpandibleEnLinea
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_listener_fv_externo
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.existencia_dato
@@ -127,6 +130,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.strat_subcategoria_shadow
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
+import com.geinzz.geinzwork.viewModels.viewModel_favoritos
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas.carga_tiendas
 import kotlinx.coroutines.delay
@@ -136,6 +140,7 @@ import kotlinx.coroutines.launch
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun Pantalla_filtrado_tiendas(
+    viewmodelFavoritos: viewModel_favoritos,
     viewModelFiltros: viewModel_filtado_tiendas,
     categoria: String,
     localida: String,
@@ -199,6 +204,8 @@ fun Pantalla_filtrado_tiendas(
     }
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     var id_respado_user by remember { mutableStateOf("") }
+
+    var texto_falta_registra by remember { mutableStateOf("") }
 
     LaunchedEffect(uid_respald_user) {
         if (uid_respald_user.isNotEmpty()) {
@@ -426,10 +433,13 @@ fun Pantalla_filtrado_tiendas(
                             "${tienda.id_tienda}  ${tienda.metodos_pago_tienda}"
                         )
                         item_tiendas(
-                            viewModelFiltros,
-                            tienda,
-                            tienda.horario_dia, tienda.estaAbierto,
-                            { id_tienda, listener, estado_color, pagado ->
+                            localidad_user = localida,
+                            id_user = uid_respald_user,
+                            viewModelFiltros = viewModelFiltros,
+                            item_tiendas = tienda,
+                            horario_tienda = tienda.horario_dia,
+                            abierto_cerrado = tienda.estaAbierto,
+                            listener_botom_sheet = { id_tienda, listener, estado_color, pagado ->
                                 if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
                                     estadoColor = estado_color
                                     id_tienda_selecionada = id_tienda
@@ -441,10 +451,12 @@ fun Pantalla_filtrado_tiendas(
                                     }
                                 } else {
                                     bottom_sheet_iniciar_seccion = true
+                                    texto_falta_registra= "Regístrate para ver los detalles completos y las funciones exclusivas"
+
                                 }
-//                                tienda_pagada = pagado
-
-
+                            }, {
+                                bottom_sheet_iniciar_seccion = true
+                                texto_falta_registra="Regístrate para agregar a tus favoritos"
                             })
                     }
                 }
@@ -458,7 +470,6 @@ fun Pantalla_filtrado_tiendas(
                         delay(4000)
                         mostrandoCargaGlobal = false
                     }
-
 
                     isLoading = false
                     error_empity = true
@@ -575,19 +586,19 @@ fun Pantalla_filtrado_tiendas(
                                 )
                                 spacer_vertical(10.dp)
 
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(CircleShape)
-                                            .background(MaterialTheme.colorScheme.primary)
-                                            .clickable {
-                                          mostar_bottom_sheet_ayuda_geinz = true
-                                            }
-                                    ) {
-                                        texto_generico_one_line(
-                                            "¿Conoces alguno?",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            modifier = Modifier.padding(12.dp)
-                                        )
+                                Box(
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary)
+                                        .clickable {
+                                            mostar_bottom_sheet_ayuda_geinz = true
+                                        }
+                                ) {
+                                    texto_generico_one_line(
+                                        "¿Conoces alguno?",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.padding(12.dp)
+                                    )
 
 
                                 }
@@ -616,8 +627,10 @@ fun Pantalla_filtrado_tiendas(
 //    }
 
     if (mostar_bottom_sheet_ayuda_geinz) {
-        bottom_sheet_ayudanos_a_creccer(ultimaLocalidad?:"barranca",
-            { mostar_bottom_sheet_ayuda_geinz = false },viewModelFiltros)
+        bottom_sheet_ayudanos_a_creccer(
+            ultimaLocalidad ?: "barranca",
+            { mostar_bottom_sheet_ayuda_geinz = false }, viewModelFiltros
+        )
     }
     if (dialog_tienda_no_pagada) {
         bottom_shet_tienda = false
@@ -657,7 +670,7 @@ fun Pantalla_filtrado_tiendas(
                 crear_cuenta()
                 bottom_sheet_iniciar_seccion
             },
-            texto_bottom_Sheet = "Regístrate para ver los detalles completos y las funciones exclusivas"
+            texto_bottom_Sheet = texto_falta_registra
         )
     }
 }
@@ -688,7 +701,11 @@ fun TiempoRestanteCierre(
                     .background(resultado.color)
             )
             spacer_horizonta(5.dp)
-            TextoExpandibleEnLinea(resultado.texto.capitalizeFirst(),resultado.color,resultado.color)
+            TextoExpandibleEnLinea(
+                resultado.texto.capitalizeFirst(),
+                resultado.color,
+                resultado.color
+            )
 //            Text(
 //                text = resultado.texto.capitalizeFirst(),
 //                color = resultado.color,
@@ -897,12 +914,28 @@ fun Text_fiel_filtrado(
 
 @Composable
 fun item_tiendas(
+    localidad_user: String,
+    id_user: String,
     viewModelFiltros: viewModel_filtado_tiendas,
     item_tiendas: tiendas_por_categoria,
     horario_tienda: horario_tienda,
     abierto_cerrado: Boolean,
-    listener_botom_sheet: (id_tienda: String, showBottomSheet: Boolean, estado_color: Color, Boolean) -> Unit
+    listener_botom_sheet: (id_tienda: String, showBottomSheet: Boolean, estado_color: Color, Boolean) -> Unit,
+    dialog_sin_registrao: () -> Unit
 ) {
+    // --- Estado local instantáneo ---
+    var favoritoEstado by remember { mutableStateOf(false) }
+
+    // --- Escuchar el Flow para sincronizar si viene desde otro lado ---
+    val mapa by viewModelFiltros.favoritos.collectAsState()
+    LaunchedEffect(mapa, item_tiendas.id_tienda) {
+        favoritoEstado = mapa[item_tiendas.id_tienda] ?: favoritoEstado
+    }
+    LaunchedEffect(item_tiendas.id_tienda) {
+        if (id_user.isNotEmpty()) {
+            viewModelFiltros.verificar_existe_favoritoMap(id_user, item_tiendas.id_tienda)
+        }
+    }
     val tick by viewModelFiltros.tick.collectAsState()
     var detalles_tienda by remember { mutableStateOf(false) }
     var estadoColor by remember { mutableStateOf(Color.Red) }
@@ -1025,7 +1058,6 @@ fun item_tiendas(
                     }
 
                 }
-
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(
                     modifier = Modifier.weight(1f)
@@ -1052,13 +1084,47 @@ fun item_tiendas(
                     ) { color ->
                         estadoColor = color
                     }
-
                 }
                 Box(
                     modifier = Modifier.fillMaxHeight(),
                     contentAlignment = Alignment.BottomCenter
                 ) {
-                    Btn_Expandir_card { expandir -> detalles_tienda = expandir }
+                    Column(
+                        modifier = Modifier.fillMaxHeight(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (item_tiendas.pagado) {
+                            btn_listener_fv_externo(
+                                favoritoEstado,
+                                Modifier.padding(bottom = 10.dp),
+                                { nuevoEstado ->
+                                    if (id_user.isNotEmpty()) {
+                                        favoritoEstado = nuevoEstado
+                                        if (nuevoEstado) {
+                                            viewModelFiltros.guardar_tienda_favorita_por_id(
+                                                localidad_user,
+                                                id_user,
+                                                item_tiendas.id_tienda
+                                            )
+                                        } else {
+                                            viewModelFiltros.eliminar_tienda_favorita(
+                                                id_user,
+                                                item_tiendas.id_tienda
+                                            )
+                                        }
+
+                                    } else {
+                                        dialog_sin_registrao()
+                                    }
+                                },
+                                30.dp,
+                                15.dp
+                            )
+                        }
+
+                        Btn_Expandir_card { expandir -> detalles_tienda = expandir }
+                    }
                 }
             }
             AnimatedVisibility(visible = detalles_tienda) {

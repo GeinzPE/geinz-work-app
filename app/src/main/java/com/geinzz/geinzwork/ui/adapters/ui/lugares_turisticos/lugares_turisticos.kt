@@ -62,6 +62,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.abierto_flag
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
@@ -352,7 +353,7 @@ fun carta_turismo(
             .fillMaxWidth()
             .height(boxHeight)
             .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surface)
+//            .background(MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
@@ -385,7 +386,7 @@ fun carta_turismo(
                             Brush.verticalGradient(
                                 colors = listOf(
                                     Color.Transparent,
-                                    Color(0xFF262626)
+                                    Color.Black
                                 )
                             )
                         )
@@ -393,11 +394,13 @@ fun carta_turismo(
             }
             Column (Modifier.padding(top = 10.dp, start = 5.dp, end = 5.dp)){
                 texto_generico_one_line(lugar.titulo.capitalizeFirst())
-                spacer_vertical(10.dp)
+                spacer_vertical(5.dp)
+                texto_generico_one_line("Abierto las 24h", style = MaterialTheme.typography.bodySmall, color = Color.Green)
+                spacer_vertical(5.dp)
                 tags_subcateogiras(
                     lugar.subcategoria_filtrado,
-                    brush_start = Brush.horizontalGradient(colors = strat_subcategoria_shadow),
-                    brush_end = Brush.horizontalGradient(colors = end_subcategoria_shadow),
+                    brush_start = Brush.horizontalGradient(colors = shadow_left),
+                    brush_end = Brush.horizontalGradient(colors = shadow_right),
                     modifier = Modifier.padding(end = 10.dp)
                 )
                 spacer_vertical(10.dp)

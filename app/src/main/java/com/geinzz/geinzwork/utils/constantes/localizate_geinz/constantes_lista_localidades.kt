@@ -88,6 +88,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_metodo_individual
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.google.android.gms.common.api.ResolvableApiException
@@ -2102,6 +2103,31 @@ object constantes_lista_localidades {
         )
 
     }
+
+    fun Map<String, Any>?.to_horario_atencion(): HorarioAtencion {
+        if (this == null) return HorarioAtencion()
+
+        fun mapearDia(diaMap: Map<String, Any>?): HorarioDia {
+            if (diaMap == null) return HorarioDia()
+            return HorarioDia(
+                cerrado = diaMap["cerrado"] as? Boolean ?: false,
+                h_apertura = diaMap["h_apertura"] as? String ?: "",
+                h_cierre = diaMap["h_cierre"] as? String ?: "",
+                motivo = diaMap["motivo"] as? String ?: ""
+            )
+        }
+
+        return HorarioAtencion(
+            lunes = mapearDia(this["lunes"] as? Map<String, Any>),
+            martes = mapearDia(this["martes"] as? Map<String, Any>),
+            miercoles = mapearDia(this["miércoles"] as? Map<String, Any>),
+            jueves = mapearDia(this["jueves"] as? Map<String, Any>),
+            viernes = mapearDia(this["viernes"] as? Map<String, Any>),
+            sabado = mapearDia(this["sábado"] as? Map<String, Any>),
+            domingo = mapearDia(this["domingo"] as? Map<String, Any>)
+        )
+    }
+
 
     data class cordenasdas(val lat: Double, val longitud: Double)
 

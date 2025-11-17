@@ -9,8 +9,11 @@ import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.localizate_geinz.encontradas_por_categoria
 import com.geinzz.geinzwork.model.repo_agregar_cat_sub_localizate
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
 import com.geinzz.geinzwork.data.model.localizate_geinz.tiendas_patrocinadas
+import com.geinzz.geinzwork.data_store.data_store_localidad
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

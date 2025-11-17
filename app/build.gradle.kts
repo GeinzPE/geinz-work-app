@@ -184,6 +184,7 @@ dependencies {
     implementation("androidx.compose.foundation:foundation:1.9.1")
 
     implementation("com.valentinilk.shimmer:compose-shimmer:1.3.3")
- 
+
+    implementation("io.github.panpf.zoomimage:zoomimage-compose:1.1.0")
 
 }

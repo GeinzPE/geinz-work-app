@@ -53,7 +53,7 @@ fun dialog_sin_ubicacion_activa(
     AlertDialog(
         onDismissRequest = { onDismis() },
         confirmButton = {
-            btn_aceptar_etc_dialog_general("Activar Ubicación") {
+            btn_aceptar_etc_dialog_general(txt_btn="Activar Ubicación") {
                 abrir_configuracion()
             }
         },
@@ -116,7 +116,7 @@ fun dialog_sin_ubi__rutas(texto:String,onDismis: () -> Unit,abrir_configuracion:
     AlertDialog(
         onDismissRequest = { onDismis() },
         confirmButton = {
-            btn_aceptar_etc_dialog_general("Activar Ubicación") {
+            btn_aceptar_etc_dialog_general(txt_btn="Activar Ubicación") {
                 abrir_configuracion()
             }
         },
@@ -166,7 +166,7 @@ fun dialog_sin_ubi__rutas(texto:String,onDismis: () -> Unit,abrir_configuracion:
 fun dialog_crear_ruta_lugares(onDismis: () -> Unit, crear_ruta: (Boolean) -> Unit) {
     AlertDialog(
         confirmButton = {
-            btn_aceptar_etc_dialog_general ("Crear ruta"){
+            btn_aceptar_etc_dialog_general (txt_btn="Crear ruta"){
                 crear_ruta(true)
                 onDismis()
             }
@@ -254,7 +254,7 @@ fun dialog_sin_ubi_activa(
     AlertDialog(
         onDismissRequest = { onDismis() },
         confirmButton = {
-            btn_aceptar_etc_dialog_general ( "Abrir con Google Maps"){
+            btn_aceptar_etc_dialog_general ( txt_btn="Abrir con Google Maps"){
                 abrir_maps()
             }
 

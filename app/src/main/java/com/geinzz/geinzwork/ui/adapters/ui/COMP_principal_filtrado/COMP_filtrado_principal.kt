@@ -62,6 +62,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
@@ -1213,7 +1214,7 @@ fun chisp_filtrado_busqueda(
     clik_card: () -> Unit,
     onClick_delete: () -> Unit,
     color_invertido: Boolean = false,
-    alto: Dp = 45.dp
+    alto: Dp = 45.dp,
 ) {
     val color_chips by animateColorAsState(
         targetValue = if (!carta_selecionada)
@@ -1300,7 +1301,7 @@ fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Mod
                 drawableResId = R.drawable.f1,
                 anguloRotacion = -8f,
                 desplazamientoX = -70.dp,
-                desplazamientoY = 20.dp, null, {},true
+                desplazamientoY = 20.dp, null, {}, true
             )
 
             // --- Foto 2 (Centro, la protagonista) ---
@@ -1308,7 +1309,7 @@ fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Mod
                 drawableResId = R.drawable.f2,
                 anguloRotacion = 3f,
                 desplazamientoX = 0.dp,
-                desplazamientoY = 0.dp, null, {},true
+                desplazamientoY = 0.dp, null, {}, true
             )
 
             // --- Foto 3 (Derecha) ---
@@ -1316,7 +1317,7 @@ fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Mod
                 drawableResId = R.drawable.f3,
                 anguloRotacion = 7f,
                 desplazamientoX = 70.dp,
-                desplazamientoY = 40.dp, null, {},true
+                desplazamientoY = 40.dp, null, {}, true
             )
         }
         fracescambiantes(nombre_usuario)
@@ -1430,11 +1431,13 @@ fun ImagenConInclinacion(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
-                .clickable (indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }) {
                     clikeable(!mostrarMascara)
                 }
         )
-        AnimatedVisibility(!mostrarMascara,enter = fadeIn(), exit = fadeOut()) {
+        AnimatedVisibility(!mostrarMascara, enter = fadeIn(), exit = fadeOut()) {
 
             Box(
                 modifier = Modifier
@@ -1709,8 +1712,8 @@ fun shadow_bottom_pantallas_generales(modifier: Modifier) {
 @Composable
 fun TextoExpandibleEnLinea(
     texto: String,
-    color_principla: Color=Color.White,
-    color:Color=MaterialTheme.colorScheme.primary,
+    color_principla: Color = Color.White,
+    color: Color = MaterialTheme.colorScheme.primary,
 ) {
     var expandido by remember { mutableStateOf(false) }
 
@@ -1749,5 +1752,40 @@ fun TextoExpandibleEnLinea(
                 expandido = !expandido
             }
         )
+    }
+}
+
+@Composable
+fun btn_listener_fv_externo(
+    select: Boolean,
+    modifier: Modifier,
+    listener: (Boolean) -> Unit,
+    size_btn: Dp = 35.dp,
+    size_icon: Dp = 20.dp
+) {
+    Box(
+        modifier = modifier
+            .clip(CircleShape)
+            .size(size_btn)
+            .background(Color.White)
+            .clickable {
+                listener(!select)
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+
+        Crossfade(targetState = select, label = "") { seleccionado ->
+            val icono = if (!seleccionado) {
+                R.drawable.corazon_icon_negro_border
+            } else {
+                R.drawable.icon_borde_corazon_completo
+            }
+
+            Image(
+                painter = painterResource(id = icono),
+                contentDescription = null,
+                modifier = Modifier.size(size_icon)
+            )
+        }
     }
 }

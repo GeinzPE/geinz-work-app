@@ -36,6 +36,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -453,11 +454,12 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
         }
     }
 
-
+    val favoritos = MutableStateFlow<Map<String, Boolean>>(emptyMap())
     fun guardar_tienda_favorita(id_user: String, item_favoritos: favoritos_guardados) {
         viewModelScope.launch {
             try {
                 repo_filtrado.guardar_tienda_favorito(id_user, item_favoritos)
+                favoritos.update { it.toMutableMap().apply { put(item_favoritos.id_tienda_lugar, true) } }
             } catch (e: Exception) {
                 Log.d("error", "error al guardar faboritos")
             }
@@ -468,6 +470,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
         viewModelScope.launch {
             try {
                 repo_filtrado.eliminar_tienda_favorito(id_user, id_tienda)
+                favoritos.update { it.toMutableMap().apply { put(id_tienda, false) } }
             } catch (e: Exception) {
                 Log.d("error", "error al eliminar faboritos")
             }
@@ -487,6 +490,27 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
         }
     }
 
+
+
+    fun verificar_existe_favoritoMap(idUser: String, idTienda: String) {
+        viewModelScope.launch {
+            val existe = repo_filtrado.verificar_favorito(idUser, idTienda)
+            favoritos.value += (idTienda to existe)
+        }
+    }
+
+
+    fun guardar_tienda_favorita_por_id(localidad_tienda:String,id_user: String, id_tienda: String) {
+        viewModelScope.launch {
+            try {
+                val datos=repo_filtrado.obtener_datos_tienda_id(localidad_tienda,id_tienda)
+                repo_filtrado.guardar_tienda_favorito(id_user, datos)
+                favoritos.update { it.toMutableMap().apply { put(id_tienda, true) } }
+            } catch (e: Exception) {
+                Log.d("error", "error al guardar faboritos")
+            }
+        }
+    }
 
     sealed class carga_tiendas_sin_pago {
         object loading_tiendas_free : carga_tiendas_sin_pago()

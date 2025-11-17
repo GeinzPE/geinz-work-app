@@ -422,7 +422,7 @@ private fun handleScanResult(
 fun dialog_verificar_si_esta_tienda(onClose: () -> Unit, rpa_si: () -> Unit, rpa_no: () -> Unit) {
     AlertDialog(
         onDismissRequest = { onClose() }, confirmButton = {
-            btn_aceptar_etc_dialog_general("Si") {
+            btn_aceptar_etc_dialog_general(txt_btn="Si") {
                 rpa_si()
             }
 

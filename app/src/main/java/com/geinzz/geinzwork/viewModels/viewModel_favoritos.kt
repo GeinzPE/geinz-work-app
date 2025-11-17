@@ -1,14 +1,16 @@
 package com.geinzz.geinzwork.viewModels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
 import com.geinzz.geinzwork.model.repo_favoritos
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class viewModel_favoritos : ViewModel() {
+class viewModel_favoritos( private val id_user: String,) : ViewModel() {
     private val repo_fv = repo_favoritos()
     private val lista_categoria_filtrad = MutableStateFlow<List<String>>(emptyList())
     private val lista_localidad_filtrado = MutableStateFlow<List<String>>(emptyList())
@@ -18,6 +20,11 @@ class viewModel_favoritos : ViewModel() {
     private val lista_original_items = MutableStateFlow<List<favoritos_guardados>>(emptyList())
 
     private var listenerRegistrado = false
+    init {
+Log.d("id_user",id_user)
+        obtener_favoritos(id_user)
+
+    }
 
     fun obtener_favoritos(id_user: String) {
         // Solo mostrar loading la primera vez
@@ -55,7 +62,6 @@ class viewModel_favoritos : ViewModel() {
     }
 
 
-
     fun filtrar_categoira(cat: String) {
         val lista_original_fv = lista_original_items.value
         val categoria_filtrado = lista_categoria_filtrad.value
@@ -80,8 +86,16 @@ class viewModel_favoritos : ViewModel() {
                         localidad_filtrado
                     )
                 }
-            } catch (_: Exception) { }
+            } catch (_: Exception) {
+            }
         }
+    }
+
+
+    fun limpiar_listas_favoritos() {
+        lista_original_items.value = emptyList()
+        lista_categoria_filtrad.value = emptyList()
+        lista_localidad_filtrado.value = emptyList()
     }
 
 

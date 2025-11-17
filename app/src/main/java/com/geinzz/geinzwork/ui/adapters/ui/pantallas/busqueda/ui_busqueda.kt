@@ -1425,6 +1425,7 @@ fun LazyRowConSombras(
         contentAlignment = Alignment.Center
     ) {
         LazyRow(
+//            contentPadding=PaddingValues(horizontal = 10.dp),
             state = listState,
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,

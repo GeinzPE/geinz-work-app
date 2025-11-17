@@ -25,6 +25,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -35,11 +36,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.github.panpf.zoomimage.ZoomImage
+import com.github.panpf.zoomimage.compose.rememberZoomState
+import com.github.panpf.zoomimage.compose.zoom.rememberZoomableState
+import com.github.panpf.zoomimage.compose.zoom.zoomable
+import com.google.accompanist.pager.rememberPagerState
 
 @Composable
 fun CollageGoogleMapsStyle(
@@ -230,6 +237,7 @@ fun ZoomableGalleryFullScreen(
 
     val pagerState = rememberPagerState(initialPage = startIndex, pageCount = { imagenes.size })
     var allowScroll by remember { mutableStateOf(true) }
+    val zoomableState = rememberZoomableState() // <-- ZoomableState correcto
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -244,16 +252,27 @@ fun ZoomableGalleryFullScreen(
                 // Pager principal
                 HorizontalPager(
                     state = pagerState,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clipToBounds(),
                     userScrollEnabled = allowScroll
+
                 ) { page ->
-                    ZoomableImagePagerItem(
-                        imageUrl = imagenes[page],
-                        onZoomChange = { zoom ->
-                            // Cuando el zoom vuelve al normal, reactiva scroll horizontal
-                            allowScroll = zoom <= 1.02f
-                        }
+                    ZoomImage(
+                        painter = rememberAsyncImagePainter(imagenes[page]),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .zoomable(zoomableState),   // <-- usa zoomable, no zoom
+                        contentScale = ContentScale.Fit
                     )
+//                    ZoomableImagePagerItem(
+//                        imageUrl = imagenes[page],
+//                        onZoomChange = { zoom ->
+//                            // Cuando el zoom vuelve al normal, reactiva scroll horizontal
+//                            allowScroll = zoom <= 1.02f
+//                        }
+//                    )
                 }
 
                 // Botón cerrar
@@ -273,6 +292,35 @@ fun ZoomableGalleryFullScreen(
         }
     }
 }
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun GaleriaZoomablePanpf(
+    imagenes: List<String>,
+    startIndex: Int = 0
+) {
+    val pagerState = rememberPagerState(initialPage = startIndex, pageCount = { imagenes.size })
+
+    HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
+        val zoomableState = rememberZoomableState() // <-- ZoomableState correcto
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        ) {
+            ZoomImage(
+                painter = rememberAsyncImagePainter(imagenes[page]),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zoomable(zoomableState),   // <-- usa zoomable, no zoom
+                contentScale = ContentScale.Fit
+            )
+        }
+    }
+}
+
+
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable

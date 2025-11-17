@@ -136,6 +136,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateo
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.CollageGoogleMapsStyle
+import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_qr_pago_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
@@ -155,6 +156,9 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
+
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.start_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda.retornar_id_Tienda_lugar
@@ -256,7 +260,8 @@ fun bottom_sheet_tiendas_filtradas(
     ModalBottomSheet(
         onDismissRequest = { onClose() },
         modifier = Modifier.fillMaxWidth(),
-        dragHandle = null
+        dragHandle = null,
+        containerColor = MaterialTheme.colorScheme.background
     ) {
         FuenteControladaApp {
             if (cargando) {
@@ -432,7 +437,10 @@ fun bottom_sheet_tiendas_filtradas(
                                 latitud, longitud,
                                 expander_qr_tienda
                             ) { expander_qr_tienda = !expander_qr_tienda }
-                            spacer_vertical(10.dp)
+                        }
+                        item {
+                            spacer_vertical(20.dp)
+
                         }
 
                     }
@@ -481,10 +489,15 @@ fun cabezero_tiendas(
     var mostrarDialogozoom by remember { mutableStateOf(false) }
 
     if (mostrarDialogozoom) {
-        ZoomableImageDialogFullScreen(
-            imageUrl = img_tienda_perfil,
+        ZoomableGalleryFullScreen(
+            imagenes = listOf(img_tienda_perfil),
+            startIndex = 0,
             onDismiss = { mostrarDialogozoom = false }
         )
+//        ZoomableImageDialogFullScreen(
+//            imageUrl = img_tienda_perfil,
+//            onDismiss = { mostrarDialogozoom = false }
+//        )
     }
     var expandir_img by remember { mutableStateOf(false) }
 
@@ -520,20 +533,21 @@ fun cabezero_tiendas(
                 .fillMaxWidth(),
 
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF1D1B20)
+                containerColor = MaterialTheme.colorScheme.background
 
             )
         ) {
             perfil_img_zooom(
-                triggerAnimacion,
-                modifier,
-                img_tienda_perfil,
-                { expdir_img = !expdir_img },
-                { mostrarDialogozoom = true }, {
+                triggerAnimacion = triggerAnimacion,
+                modifier = modifier,
+                img_tienda_perfil = img_tienda_perfil,
+                expandido = { expdir_img = !expdir_img },
+                mostrarDialogozoom = { mostrarDialogozoom = true }, resetear_estado_lott = {
                     resetear_estado_loo()
                 })
 
-            AnimatedVisibility(expdir_img, modifier = Modifier.clip(RoundedCornerShape(12.dp))) {
+            AnimatedVisibility(expdir_img, modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(
+                MaterialTheme.colorScheme.background)) {
                 CollageGoogleMapsStyle(imagenes = lista_img)
 //                LazyRow(
 //                    modifier = Modifier
@@ -735,8 +749,8 @@ fun perfil_cabezero(
         spacer_vertical(10.dp)
         tags_subcateogiras(
             lista_tags,
-            brush_start = Brush.horizontalGradient(colors = start_shadow_bottom_sheet_default),
-            brush_end = Brush.horizontalGradient(colors = end_shadow_bottom_sheet_default),
+            brush_start = Brush.horizontalGradient(colors = shadow_left),
+            brush_end = Brush.horizontalGradient(colors = shadow_right),
             modifier = Modifier.padding(end = 40.dp)
         )
 
@@ -873,8 +887,6 @@ fun Expandible_direccion_ref(
                         TextoExpandibleEnLinea(
                             texto = "Dirección: ${direccion.capitalizeFirst()}",
                         )
-
-
                     }
                     spacer_vertical(10.dp)
                     Row(
