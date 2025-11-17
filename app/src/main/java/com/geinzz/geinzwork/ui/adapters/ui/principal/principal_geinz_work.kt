@@ -344,7 +344,7 @@ fun pantalla_principal(
             }
             item {
                 rutas_turismo(
-                    "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/geinz_work_turismo%2Fbarranca%2Flugares_turisticos%2FDJI_0159.00_00_00_00.Imagen%20fija002.webp?alt=media&token=c4c60311-1293-4731-b2e4-c51265c15860",
+                    "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/walpaper_geinz%2Fimg10.webp?alt=media&token=9d6f2b52-91f8-4f7f-9147-ecace3a1d199",
                     "ver lugares",
                     "Descubre lugares en ${localidad_defaul}"
 

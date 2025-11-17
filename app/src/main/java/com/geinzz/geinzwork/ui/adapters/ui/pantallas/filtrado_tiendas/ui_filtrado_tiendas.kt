@@ -111,6 +111,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateo
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.titulos_genericos_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_eliminar_favoritos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_qr_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_pago_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
@@ -227,16 +228,10 @@ fun Pantalla_filtrado_tiendas(
 
         val hayTiendas = tiendasActuales.isNotEmpty()
 
-        // Esperamos un poco para evitar parpadeos por estados intermedios
         delay(150)
 
-        // 🧠 Lógica corregida:
-        // - Si hay tiendas → se muestra.
-        // - Si no hay tiendas pero antes sí → se mantiene visible.
-        // - Si nunca hubo → se oculta.
         visibleTextField = subCategoriaSeleccionada != "Todos" && (hayTiendas || habiaTiendasAntes)
 
-        // 🔁 Actualizamos el flag para el siguiente ciclo
         habiaTiendasAntes = hayTiendas || habiaTiendasAntes
     }
 
@@ -313,20 +308,20 @@ fun Pantalla_filtrado_tiendas(
         }
     }
     LaunchedEffect(estadoTiendaFree) {
-        val estado = estadoTiendaFree  // ✅ Smart cast habilitado
+        val estado = estadoTiendaFree
         when (estado) {
             is viewModel_filtado_tiendas.carga_tiendas_sin_pago.loading_tiendas_free -> {
-                mostrandoCarga_free = true // 🌀 Empieza a cargar
+                mostrandoCarga_free = true
             }
 
             is viewModel_filtado_tiendas.carga_tiendas_sin_pago.succes_tiendas_free -> {
-                mostrandoCarga_free = false // ✅ Deja de cargar
+                mostrandoCarga_free = false
                 dataclass_datos_tienda_free = estado.item
-                dialog_tienda_no_pagada = true // 👉 Abre el diálogo
+                dialog_tienda_no_pagada = true
             }
 
             is viewModel_filtado_tiendas.carga_tiendas_sin_pago.error_tiendas_free -> {
-                mostrandoCarga_free = false // ❌ Error, deja de cargar
+                mostrandoCarga_free = false
             }
 
             is viewModel_filtado_tiendas.carga_tiendas_sin_pago.empty_tiendas_free -> {
@@ -613,18 +608,7 @@ fun Pantalla_filtrado_tiendas(
     }
 
 
-//    if (showBottomSheet && firebaseAuth.currentUser != null) {
-//        if (tienda_pagada) {
-//            bottom_shet_tienda = true
-//        } else {
-//            dialog_tienda_no_pagada = true
-//            bottom_shet_tienda = false
-//        }
-//        bottom_sheet_iniciar_seccion = false
-//    } else if (showBottomSheet && firebaseAuth.currentUser == null) {
-//        bottom_shet_tienda = false
-//        bottom_sheet_iniciar_seccion = true
-//    }
+
 
     if (mostar_bottom_sheet_ayuda_geinz) {
         bottom_sheet_ayudanos_a_creccer(
@@ -973,6 +957,8 @@ fun item_tiendas(
         targetValue = if (showRightShadow) 1f else 0f,
         animationSpec = tween(400), label = "alphaRight"
     )
+    var estado_fv_btn by remember { mutableStateOf(false) }
+    var nuevo_Estadp_btn_fv by remember { mutableStateOf(false) }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -1099,19 +1085,23 @@ fun item_tiendas(
                                 favoritoEstado,
                                 Modifier.padding(bottom = 10.dp),
                                 { nuevoEstado ->
+                                    nuevo_Estadp_btn_fv=nuevoEstado
                                     if (id_user.isNotEmpty()) {
-                                        favoritoEstado = nuevoEstado
+
                                         if (nuevoEstado) {
                                             viewModelFiltros.guardar_tienda_favorita_por_id(
                                                 localidad_user,
                                                 id_user,
                                                 item_tiendas.id_tienda
                                             )
+                                            favoritoEstado = nuevo_Estadp_btn_fv
                                         } else {
-                                            viewModelFiltros.eliminar_tienda_favorita(
-                                                id_user,
-                                                item_tiendas.id_tienda
-                                            )
+
+                                            estado_fv_btn=true
+//                                            viewModelFiltros.eliminar_tienda_favorita(
+//                                                id_user,
+//                                                item_tiendas.id_tienda
+//                                            )
                                         }
 
                                     } else {
@@ -1153,6 +1143,17 @@ fun item_tiendas(
             nombre_tienda = item_tiendas.nombre_tienda,
             onDismis = { showDialog = false }
         )
+    }
+    if(estado_fv_btn){
+            dialog_eliminar_favoritos(
+                viewModelFiltros = viewModelFiltros,
+                id_user = id_user,
+                id_tienda = item_tiendas.id_tienda,
+                nombre_tienda = item_tiendas.nombre_tienda,
+                ondimis = { estado_fv_btn = false }, aceptado = {
+                    nuevo_Estadp_btn_fv= favoritoEstado
+                })
+
     }
 
 }

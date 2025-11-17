@@ -21,13 +21,15 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerra_etc
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.google.firebase.firestore.model.mutation.ArrayTransformOperation
 
 @Composable
 fun dialog_eliminar_favoritos(
     viewModelFiltros: viewModel_filtado_tiendas,
     id_user:String,id_tienda:String,
     nombre_tienda: String,
-    ondimis: () -> Unit
+    ondimis: () -> Unit,
+    aceptado:()-> Unit
 ) {
 
     AlertDialog(
@@ -36,6 +38,7 @@ fun dialog_eliminar_favoritos(
             btn_aceptar_etc_dialog_general (Color.Red){
                 ondimis()
                 viewModelFiltros.eliminar_tienda_favorita(id_user,id_tienda)
+                aceptado()
             }
         },
         dismissButton = {

@@ -137,6 +137,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandib
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.CollageGoogleMapsStyle
 import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_eliminar_favoritos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_qr_pago_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
@@ -149,6 +150,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes_publicaciones_general_user_tiendas.obtenerDiaActualEnEspañol
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
+import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.ZoomIconButton
@@ -200,6 +202,9 @@ fun bottom_sheet_tiendas_filtradas(
     ?: ""
     var cargando by remember { mutableStateOf(true) }
     var guardar_icon by remember { mutableStateOf(false) }
+    var mostar_eliminar_guardado_dialog by remember { mutableStateOf(false) }
+
+    var icono_select_fv by remember { mutableStateOf(false) }
 
     var triggerAnimacion by remember { mutableStateOf(false) }
     LaunchedEffect(verificarfavorito) {
@@ -319,6 +324,7 @@ fun bottom_sheet_tiendas_filtradas(
                                 lista_img = tiendas_filtradas.lista_img,
                                 lista_tags = tiendas_filtradas.subcategoria,
                                 guaradar_select = { i ->
+                                    icono_select_fv=i
                                     val datos_guardar = favoritos_guardados(
                                         img_tienda = tiendas_filtradas.img_perfil,
                                         id_tienda_lugar = tiendas_filtradas.id_tienda,
@@ -347,16 +353,19 @@ fun bottom_sheet_tiendas_filtradas(
                                             datos_guardar
                                         )
                                         triggerAnimacion = true
+                                        guardar_icon = i
+
                                     } else {
-                                        viewModelFiltros.eliminar_tienda_favorita(
-                                            id_user,
-                                            tiendas_filtradas.id_tienda
-                                        )
-                                        triggerAnimacion = false
+                                        mostar_eliminar_guardado_dialog=true
+//                                        viewModelFiltros.eliminar_tienda_favorita(
+//                                            id_user,
+//                                            tiendas_filtradas.id_tienda
+//                                        )
+
 
                                     }
-                                    guardar_icon = i
 
+//                                    guardar_icon = i
                                 }, { triggerAnimacion = false }
                             )
                             spacer_vertical(20.dp)
@@ -445,6 +454,17 @@ fun bottom_sheet_tiendas_filtradas(
 
                     }
                 }
+            }
+            if(mostar_eliminar_guardado_dialog){
+                dialog_eliminar_favoritos(
+                    viewModelFiltros = viewModelFiltros,
+                    id_user = id_user,
+                    id_tienda = tiendas_filtradas.id_tienda,
+                    nombre_tienda = tiendas_filtradas.nombre_tienda,
+                    ondimis = { mostar_eliminar_guardado_dialog = false }, aceptado = {
+                        triggerAnimacion = false
+                        guardar_icon=icono_select_fv
+                    })
             }
         }
     }

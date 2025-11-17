@@ -1267,11 +1267,11 @@ fun carta_desing_fv(
 
     if (mostrar_dialog_eliminar) {
         dialog_eliminar_favoritos(
-            viewModelFiltros,
-            id_user,
-            item.id_tienda_lugar,
-            item.nombre_lugar_tienda,
-            { mostrar_dialog_eliminar = false })
+            viewModelFiltros = viewModelFiltros,
+            id_user = id_user,
+            id_tienda = item.id_tienda_lugar,
+            nombre_tienda = item.nombre_lugar_tienda,
+            ondimis = { mostrar_dialog_eliminar = false }, aceptado = {})
     }
 }
 
