@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.viewModels
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -11,6 +12,9 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_tur
 import com.geinzz.geinzwork.model.repo_agregar_cat_sub_localizate
 import com.geinzz.geinzwork.model.repo_principal_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.principal.carga_progres_categoria
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class viewModel_principal_geinz_work : ViewModel() {
@@ -27,11 +31,15 @@ class viewModel_principal_geinz_work : ViewModel() {
     private val _userData = MutableLiveData<datos_principales_user>()
     val userData: LiveData<datos_principales_user> = _userData
 
-    private val state_cat= MutableLiveData<carga_categorias>()
-    val _state_cat : LiveData<carga_categorias> = state_cat
+    private val state_cat = MutableLiveData<carga_categorias>()
+    val _state_cat: LiveData<carga_categorias> = state_cat
 
     private val lista_filtrado_localida = MutableLiveData<List<localidades_filtrado>>()
     val _lista_filtrado_localidades: LiveData<List<localidades_filtrado>> get() = lista_filtrado_localida
+
+
+    private val _estado_version_PS = MutableStateFlow(Triple("", false,""))
+    val estado_version_PS = _estado_version_PS.asStateFlow()
 
     init {
         // Se carga una sola vez cuando el ViewModel se crea
@@ -53,13 +61,13 @@ class viewModel_principal_geinz_work : ViewModel() {
     fun obtener_subcategorias(solo5: Boolean = true) {
         viewModelScope.launch {
             try {
-                state_cat.value=carga_categorias.Loading
+                state_cat.value = carga_categorias.Loading
                 sub_cat_tiendas.value =
                     instacia_repo_cat_sub.obtener_categorias_subcategorias(solo5)
-                state_cat.value=carga_categorias.succes
+                state_cat.value = carga_categorias.succes
             } catch (e: Exception) {
                 sub_cat_tiendas.value = emptyList()
-                state_cat.value= carga_categorias.error
+                state_cat.value = carga_categorias.error
             }
         }
     }
@@ -74,10 +82,27 @@ class viewModel_principal_geinz_work : ViewModel() {
         }
     }
 
-    sealed class carga_categorias{
-        object Loading: carga_categorias()
-        object succes: carga_categorias()
-        object error: carga_categorias()
+
+    fun verificar_vesion_actulizacion(context: Context) {
+        viewModelScope.launch {
+            try {
+                val existe_version = instacia.verificarControlVersiones(context)
+                val txt_cambios = instacia.txt_cambios_realziados()
+                val (version,existe)=existe_version
+                if (existe) {
+                    _estado_version_PS.value = Triple(txt_cambios, true,version)
+                }
+            } catch (e: Exception) {
+                _estado_version_PS.value = Triple("sin txt", false,"")
+                Log.d("error", "error al obtenr lso datos")
+            }
+        }
+    }
+
+    sealed class carga_categorias {
+        object Loading : carga_categorias()
+        object succes : carga_categorias()
+        object error : carga_categorias()
 
 
     }

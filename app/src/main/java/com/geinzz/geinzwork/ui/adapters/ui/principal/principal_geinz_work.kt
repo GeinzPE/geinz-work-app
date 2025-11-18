@@ -4,7 +4,6 @@ package com.geinzz.geinzwork.ui.adapters.ui.principal
 import android.util.Log
 import android.Manifest
 import android.content.pm.PackageManager
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -60,7 +59,6 @@ import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -70,7 +68,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -106,7 +103,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContene
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.localidad_Selecionada
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.rutas_turismo
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.seguridad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.titulo_referenciales_geinz_work
@@ -117,8 +113,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.esAniversarioHoy
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.extractPaletteColors
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.getScaledBitmap
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerAniversarioLocalidad
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.simplificarCategoria
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
@@ -127,7 +121,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.text.TextStyle
 import androidx.core.content.ContextCompat
-import coil3.compose.AsyncImagePainter
 import coil3.request.CachePolicy
 import com.geinzz.geinzwork.data_store.data_store_localidad.guarar_dialogo_notifi
 import com.geinzz.geinzwork.data_store.data_store_localidad.sendNotificacion
@@ -135,6 +128,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_registr
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_servicios_basicos_
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permiso_primario_notifi
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_ayudanos_a_creccer
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.verificar_version
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.guarar_token_user
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_carga_img_general
@@ -169,6 +163,7 @@ fun pantalla_principal(
         emptyList()
     )
     var mostar_bottom_sheet_ayuda_geinz by remember { mutableStateOf(false) }
+    val actulizacionE_stado_play by viewModel_cordenadas.estado_version_PS.collectAsState()
     val urls by vm_fotos_salud.urlsCarga.collectAsState()
     val urls_turistico by vm_fotos_salud.urlsCarga_turistico.collectAsState()
     val urlAleatoria = remember(urls) {
@@ -183,6 +178,9 @@ fun pantalla_principal(
 ////        viewModel_cordenadas.obtener_subcategorias(true)
 ////        viewModel_cordenadas.obtner_filtrado_localidades()
 //    }
+    LaunchedEffect(Unit) {
+        viewModel_cordenadas.verificar_vesion_actulizacion(context)
+    }
     val ultimaLocalidad by data_store_localidad
         .obtener_localidad(context)
         .collectAsState(initial = null)
@@ -198,8 +196,6 @@ fun pantalla_principal(
 
     val stickyHeaderIndex = 1
     var toastShown by remember { mutableStateOf(false) }
-
-
 
 
     LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
@@ -310,6 +306,7 @@ fun pantalla_principal(
         ) {
             item {
                 nombre_texto_img_perfil(
+                    actulizacionE_stado_play,
                     datos_principales_user.nombre,
                     datos_principales_user.img_perfil
                 )
@@ -896,7 +893,11 @@ fun filtrado_localidades(
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
+fun nombre_texto_img_perfil(
+    actulizacionE_stado_play: Triple<String, Boolean, String>,
+    nombre_user: String, img_url: String = ""
+) {
+    var mostrar_bottom_sheet_new_version by remember { mutableStateOf(false) }
     val fraces = constantes_lista_localidades.lista_fraces_inicio
     var index by remember { mutableStateOf(0) }
 
@@ -951,23 +952,50 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
                 )
             }
         }
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(img_url)
-                .size(40)
-                .crossfade(true)
-                .memoryCachePolicy(CachePolicy.ENABLED)
-                .diskCachePolicy(CachePolicy.ENABLED)
-                .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.logo_geinz_500x500)
-                .build(),
-            contentDescription = null,
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
-        )
+
+        Box(modifier = Modifier.size(45.dp)) {
+
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(img_url)
+                    .size(40)
+                    .crossfade(true)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .placeholder(R.drawable.cargando_img_categorias)
+                    .error(R.drawable.logo_geinz_500x500)
+                    .build(),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }) {
+                        if (actulizacionE_stado_play.second) {
+                            mostrar_bottom_sheet_new_version = true
+                        }
+                    },
+                contentScale = ContentScale.Crop
+            )
+            if (actulizacionE_stado_play.second) {
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .clip(CircleShape)
+                        .background(Color.Red)
+                        .align(Alignment.TopEnd)
+                )
+            }
+
+        }
         spacer_vertical(5.dp)
+    }
+    if (mostrar_bottom_sheet_new_version) {
+        verificar_version(
+            actulizacionE_stado_play.first,
+            actulizacionE_stado_play.third,
+            { mostrar_bottom_sheet_new_version = false })
     }
 
 }

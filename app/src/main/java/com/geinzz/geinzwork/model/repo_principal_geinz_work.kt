@@ -1,13 +1,21 @@
 package com.geinzz.geinzwork.model
 
 import android.R
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import android.text.Html
 import android.util.Log
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.localidades_filtrado
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.seguridad_salud_publica
+
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
+import com.google.firebase.remoteconfig.remoteConfigSettings
 import kotlinx.coroutines.tasks.await
 
 class repo_principal_geinz_work {
@@ -69,6 +77,104 @@ class repo_principal_geinz_work {
             localidades_filtrado(nombre, listOf(imgPrincipal), dia, mes)
         }
     }
+
+    suspend fun verificarControlVersiones(context: Context): Pair<String, Boolean> {
+        val remoteConfig = FirebaseRemoteConfig.getInstance()
+
+        Log.d("VERSION_CHECK", "Iniciando verificación de versión...")
+
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 0
+        }
+        remoteConfig.setConfigSettingsAsync(configSettings)
+
+        // Fetch remoto
+        val fetchSuccess = remoteConfig.fetchAndActivate().await()
+        Log.d("VERSION_CHECK", "Fetch remoto success = $fetchSuccess")
+
+        if (!fetchSuccess) {
+            Log.d("VERSION_CHECK", "No se pudo obtener Remote Config → retornando default")
+            return Pair("0.0.0", false)
+        }
+
+        // Versión remota SEGURA
+        val versionRemota = remoteConfig.getString("latest_version").ifBlank { "0.0.0" }
+        Log.d("VERSION_CHECK", "Versión remota recibida = $versionRemota")
+
+        // Versión actual SEGURA
+        val versionActual = try {
+            val pkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getPackageInfo(
+                    context.packageName,
+                    PackageManager.PackageInfoFlags.of(0)
+                )
+            } else {
+                context.packageManager.getPackageInfo(context.packageName, 0)
+            }
+
+            (pkgInfo.versionName ?: "0.0.0").also {
+                Log.d("VERSION_CHECK", "Versión actual del dispositivo = $it")
+            }
+
+        } catch (e: Exception) {
+            Log.e("VERSION_CHECK", "ERROR al obtener versión actual: ${e.message}")
+            "0.0.0"
+        }
+
+        // Validar formato remoto
+        if (!versionRemota.matches(Regex("""\d+(\.\d+)*"""))) {
+            Log.e("VERSION_CHECK", "Versión remota con formato inválido → $versionRemota")
+            return Pair(versionRemota, false)
+        }
+
+        // Comparación final
+        val debeActualizar = esVersionMenor(versionActual, versionRemota)
+        Log.d(
+            "VERSION_CHECK",
+            "Comparando versiones → actual=$versionActual  remota=$versionRemota  debeActualizar=$debeActualizar"
+        )
+
+        return Pair(versionRemota, debeActualizar)
+    }
+    suspend fun txt_cambios_realziados(): String {
+        return try {
+            val snapshot = FirebaseFirestore.getInstance()
+                .collection("controVersiones")
+                .document("control")
+                .get()
+                .await()
+
+            if (!snapshot.exists()) return ""
+
+            val texto = snapshot.getString("texto") ?: ""
+
+            if (texto.isNotEmpty()) {
+                Html.fromHtml(texto, Html.FROM_HTML_MODE_COMPACT).toString()
+            } else {
+                ""
+            }
+
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
+
+    fun esVersionMenor(actual: String, remota: String): Boolean {
+        val a = actual.split(".")
+        val b = remota.split(".")
+        val max = maxOf(a.size, b.size)
+
+        for (i in 0 until max) {
+            val numA = a.getOrNull(i)?.toIntOrNull() ?: 0
+            val numB = b.getOrNull(i)?.toIntOrNull() ?: 0
+
+            if (numA < numB) return true
+            if (numA > numB) return false
+        }
+        return false
+    }
+
 
 
 //    suspend fun obtenerDatosUser(idUser: String): datos_principales_user? {
