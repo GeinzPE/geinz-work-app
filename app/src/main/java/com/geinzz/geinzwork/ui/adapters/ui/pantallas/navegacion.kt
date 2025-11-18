@@ -112,9 +112,12 @@ fun nativationWrapper(
     val email_respald_user by data_store_localidad.get_email_user(context)
         .collectAsState(initial = "")
     var id_respado_user by remember { mutableStateOf("") }
+
     val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
     ?: ""
+
     val viewmodelFavoritos: viewModel_favoritos = viewModel(
+        key = "favoritos_$id_user",
         factory = FavoritosFactory(id_user)
     )
     var email_respaldo_user by remember { mutableStateOf("") }

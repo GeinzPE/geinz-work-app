@@ -1,9 +1,7 @@
 package com.geinzz.geinzwork.data_store
 
-import android.R
 import android.content.Context
 import android.util.Log
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -12,11 +10,10 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import org.json.JSONArray
 import java.io.IOException
 
 val Context.dataStore by preferencesDataStore(name = "settings")
@@ -35,9 +32,59 @@ object data_store_localidad {
 
     private val UID_USER_REGISTER = stringPreferencesKey("uid_user_register")
     private val EMAIL_USER_REGISTER = stringPreferencesKey("email_user_register")
-    private val _radioUserFlow = MutableStateFlow(1f)
 
 
+    private val KEY_URLS_salud = stringPreferencesKey("urls_carga_salud")
+
+    private val KEY_URLS_turistmo=stringPreferencesKey("urls_carga_turismo")
+
+    private val KEY_URLS_FILTRADO_LOC=stringPreferencesKey("urls_carga_filtrado_loc")
+
+
+    suspend fun guardarUrlsCarga(context: Context,lista: List<String>) {
+        val json = JSONArray(lista).toString()
+        context.dataStore.edit { prefs ->
+            prefs[KEY_URLS_salud] = json
+        }
+    }
+
+    suspend fun guardarUrlsCarga_turismo(context: Context,lista: List<String>) {
+        val json = JSONArray(lista).toString()
+        context.dataStore.edit { prefs ->
+            prefs[KEY_URLS_turistmo] = json
+        }
+    }
+
+    suspend fun guardarUrlsCarga_filtrado(context: Context,lista: List<String>) {
+        val json = JSONArray(lista).toString()
+        context.dataStore.edit { prefs ->
+            prefs[KEY_URLS_FILTRADO_LOC] = json
+        }
+    }
+
+    suspend fun obtenerUrlsCarga_filtrado(context: Context): List<String> {
+        val prefs = context.dataStore.data.first()
+        val json = prefs[KEY_URLS_FILTRADO_LOC] ?: return emptyList()
+
+        val array = JSONArray(json)
+        return List(array.length()) { i -> array.getString(i) }
+    }
+
+    suspend fun obtenerUrlsCarga_turismo(context: Context): List<String> {
+        val prefs = context.dataStore.data.first()
+        val json = prefs[KEY_URLS_turistmo] ?: return emptyList()
+
+        val array = JSONArray(json)
+        return List(array.length()) { i -> array.getString(i) }
+    }
+
+    suspend fun obtenerUrlsCarga(context: Context): List<String> {
+        val prefs = context.dataStore.data.first()
+        val json = prefs[KEY_URLS_salud] ?: return emptyList()
+
+        val array = JSONArray(json)
+        return List(array.length()) { i -> array.getString(i) }
+    }
 
     suspend fun guardar_datos_user(context: Context, uid: String, email: String) {
         context.dataStore.edit { preferences ->

@@ -127,6 +127,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.text.TextStyle
 import androidx.core.content.ContextCompat
+import coil3.compose.AsyncImagePainter
 import coil3.request.CachePolicy
 import com.geinzz.geinzwork.data_store.data_store_localidad.guarar_dialogo_notifi
 import com.geinzz.geinzwork.data_store.data_store_localidad.sendNotificacion
@@ -136,33 +137,47 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permiso_primario_notif
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_ayudanos_a_creccer
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.guarar_token_user
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.geinzz.geinzwork.viewModels.viewmodel_carga_img_general
+import com.geinzz.geinzwork.viewmodel_carga_img_generalFactory
 import com.google.firebase.messaging.FirebaseMessaging
 
 private lateinit var firebaseAuth: FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun pantalla_principal(verificar_intener: Boolean,
+fun pantalla_principal(
+    verificar_intener: Boolean,
     datos_principales_user: datos_principales_user,
     categorias: (localidad: String, nombre_user: String) -> Unit,
     clikear_cartas: (String, String, String) -> Unit,
     ver_lugares: (String) -> Unit,
     listner_busqueda: () -> Unit,
     listener_seguridad: (String) -> Unit,
-    listner_sevicios_tramites:(String)-> Unit
+    listner_sevicios_tramites: (String) -> Unit
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val vm_fotos_salud: viewmodel_carga_img_general = viewModel(
+        factory = viewmodel_carga_img_generalFactory.Factory(context)
+    )
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
-    val viewModel_filtado_tiendas :viewModel_filtado_tiendas =viewModel()
+    val viewModel_filtado_tiendas: viewModel_filtado_tiendas = viewModel()
     val stateCat by viewModel_cordenadas._state_cat.observeAsState()
     val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
     val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(
         emptyList()
     )
     var mostar_bottom_sheet_ayuda_geinz by remember { mutableStateOf(false) }
+    val urls by vm_fotos_salud.urlsCarga.collectAsState()
+    val urls_turistico by vm_fotos_salud.urlsCarga_turistico.collectAsState()
+    val urlAleatoria = remember(urls) {
+        if (urls.isNotEmpty()) urls.random() else null
+    }
 
+    val url_turistico_aleatoria = remember(urls_turistico) {
+        if (urls_turistico.isNotEmpty()) urls_turistico.random() else null
+    }
 
 //    LaunchedEffect(Unit) {
 ////        viewModel_cordenadas.obtener_subcategorias(true)
@@ -260,7 +275,7 @@ fun pantalla_principal(verificar_intener: Boolean,
                     sendNotificacion(context, true)
                     guarar_dialogo_notifi(context, true)
                 }
-                Log.d("clikeamos","si")
+                Log.d("clikeamos", "si")
 
             },
             clik_no = {
@@ -268,13 +283,13 @@ fun pantalla_principal(verificar_intener: Boolean,
                     sendNotificacion(context, false)
                     guarar_dialogo_notifi(context, true)
                 }
-                Log.d("clikeamos","no")
+                Log.d("clikeamos", "no")
             },
             ondimis = {
                 scope.launch {
                     guarar_dialogo_notifi(context, true)
                 }
-                Log.d("clikeamos","ocultamos")
+                Log.d("clikeamos", "ocultamos")
             }
         )
     }
@@ -339,18 +354,19 @@ fun pantalla_principal(verificar_intener: Boolean,
             }
             item {
                 spacer_vertical(10.dp)
-                baner_servicios_basicos_{listner_sevicios_tramites(localidad_defaul)}
+                baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul) }
                 spacer_vertical(20.dp)
             }
             item {
                 rutas_turismo(
-                    "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/walpaper_geinz%2Fimg10.webp?alt=media&token=9d6f2b52-91f8-4f7f-9147-ecace3a1d199",
+                    url_turistico_aleatoria ?: "",
                     "ver lugares",
                     "Descubre lugares en ${localidad_defaul}"
 
                 ) {
                     ver_lugares(localidad_defaul)
                 }
+                urlAleatoria
                 spacer_vertical(30.dp)
             }
             item {
@@ -358,19 +374,28 @@ fun pantalla_principal(verificar_intener: Boolean,
                 val imgActual by rememberSaveable {
                     mutableStateOf(constantes_lista_localidades.lista_img_seguridad.random())
                 }
-                seguridad(
-                    imgActual,
+                rutas_turismo(
+                    urlAleatoria ?: "",
                     "Contactar",
                     "Salud y seguridad Pública"
-                ) { listener_seguridad(localidad_defaul) }
+
+                ) {
+                    listener_seguridad(localidad_defaul)
+                }
+
+//                seguridad(
+//                    imgActual,
+//                    "Contactar",
+//                    "Salud y seguridad Pública"
+//                ) { listener_seguridad(localidad_defaul) }
 
                 spacer_vertical(20.dp)
             }
 
             item {
                 spacer_vertical(10.dp)
-                baner_registra_tu_negocio{
-                    mostar_bottom_sheet_ayuda_geinz=true
+                baner_registra_tu_negocio {
+                    mostar_bottom_sheet_ayuda_geinz = true
                 }
             }
         }
@@ -390,8 +415,10 @@ fun pantalla_principal(verificar_intener: Boolean,
                 .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
         )
         if (mostar_bottom_sheet_ayuda_geinz) {
-            bottom_sheet_ayudanos_a_creccer(verificar_intener,ultimaLocalidad?:"barranca",
-                { mostar_bottom_sheet_ayuda_geinz = false },viewModel_filtado_tiendas)
+            bottom_sheet_ayudanos_a_creccer(
+                verificar_intener, ultimaLocalidad ?: "barranca",
+                { mostar_bottom_sheet_ayuda_geinz = false }, viewModel_filtado_tiendas
+            )
         }
     }
 
@@ -420,7 +447,7 @@ fun apartado_explora_cat(
         Crossfade(targetState = stateCat, label = "crossfadeCategorias") { state ->
             when (state) {
                 is viewModel_principal_geinz_work.carga_categorias.Loading -> {
-                    carga_progres_categoria(130.dp,190.dp)
+                    carga_progres_categoria(130.dp, 190.dp)
                 }
 
                 is viewModel_principal_geinz_work.carga_categorias.succes -> {
@@ -479,8 +506,10 @@ fun cartas_filtrado(
                     .width(anchoAnimado)
                     .height(alturaFija)
                     .clip(RoundedCornerShape(15.dp))
-                    .clickable (    interactionSource = remember { MutableInteractionSource() },
-                        indication = null){
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
                         cartaSeleccionada = if (seleccionada) null else i.nombre
                     }
             ) {
@@ -737,8 +766,6 @@ fun filtrado_localidades(
         }
     }
 
-
-
     Spacer(modifier = Modifier.height(10.dp))
     if (lista_localidades.isNotEmpty()) {
         val index = lista_localidades.indexOfFirst {
@@ -784,7 +811,7 @@ fun filtrado_localidades(
                     model =
                         ImageRequest.Builder(LocalContext.current)
                             .data(randomImg)
-                            .crossfade(true)
+
                             .memoryCachePolicy(CachePolicy.ENABLED)
                             .diskCachePolicy(CachePolicy.ENABLED)
                             .placeholder(R.drawable.cargando_img_categorias)
@@ -794,7 +821,10 @@ fun filtrado_localidades(
                     modifier = Modifier
                         .fillMaxSize()
                         .maskClip(RoundedCornerShape(20.dp)),
-                    contentScale = ContentScale.Crop
+
+
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.BottomCenter
                 )
                 Box(
                     modifier = Modifier
@@ -910,7 +940,7 @@ fun nombre_texto_img_perfil(nombre_user: String, img_url: String = "") {
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier,
 
-                    )
+                        )
                 }
             }
             spacer_vertical(15.dp)
@@ -974,17 +1004,16 @@ fun AutoResizeOneLineText(
 @Composable
 fun carga_progres_categoria(anchoAnimado: Dp, alturaFija: Dp) {
     val cantidad_items = 5
-    LazyRow (
-        horizontalArrangement=Arrangement.spacedBy(8.dp)
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(cantidad_items) {
             Box(
                 modifier = Modifier
                     .width(anchoAnimado)
                     .height(alturaFija)
-                    .clip(RoundedCornerShape(15.dp))
-                , contentAlignment = Alignment.Center
-            ){
+                    .clip(RoundedCornerShape(15.dp)), contentAlignment = Alignment.Center
+            ) {
                 CircularProgressIndicator()
             }
         }

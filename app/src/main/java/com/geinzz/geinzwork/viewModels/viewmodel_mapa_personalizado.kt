@@ -99,16 +99,16 @@ class viewmodel_mapa_personalizado : ViewModel() {
         _estadoLocation.value=valor
     }
 
-    fun lugares_turisticos(localidad: String) {
-        viewModelScope.launch {
-            try {
-                lugares_turisiticos.value =
-                    repo_principal_geinz.obtener_lugares_turisticos(localidad)
-            } catch (e: Exception) {
-                lugares_turisiticos.value = emptyList()
-            }
-        }
-    }
+//    fun lugares_turisticos(localidad: String) {
+//        viewModelScope.launch {
+//            try {
+//                lugares_turisiticos.value =
+//                    repo_principal_geinz.obtener_lugares_turisticos(localidad)
+//            } catch (e: Exception) {
+//                lugares_turisiticos.value = emptyList()
+//            }
+//        }
+//    }
 
     fun todos_lugares(lista: List<lugares_turisticos>) {
         todosLosLugares = lista

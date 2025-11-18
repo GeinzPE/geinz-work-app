@@ -670,7 +670,7 @@ fun rutas_turismo(
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(img_baner)
-                .crossfade(true)
+
                 .memoryCachePolicy(CachePolicy.ENABLED)
                 .diskCachePolicy(CachePolicy.ENABLED)
                 .placeholder(R.drawable.cargando_img_categorias)
