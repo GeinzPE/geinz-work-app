@@ -7,6 +7,7 @@ import com.geinzz.geinzwork.data.model.dataclass_repo_agregar_datos
 import com.geinzz.geinzwork.data.model.direccion_lugar
 import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 class repo_agregar_datos(context: Context) {
     private val db: FirebaseFirestore
@@ -104,4 +105,33 @@ class repo_agregar_datos(context: Context) {
 
 
     }
+
+
+    suspend fun obtener_categorias(): Pair<List<String>, List<List<String>>> {
+        Log.d("docuemtos","obtenmimosad")
+        val listaDocs = mutableListOf<String>()           // IDs de documentos
+        val listaSubcategorias = mutableListOf<List<String>>() // Lista de listas internas
+
+        val ref = FirebaseFirestore.getInstance().collection("Tiendas")
+            .document("categorias")
+            .collection("categorias")
+            .get()
+            .await()
+
+        for (doc in ref.documents) {
+          Log.d("docuemtos","${doc.id}")
+            listaDocs.add(doc.id)
+
+            // 2. Obtener la lista interna "subcategorias"
+            val sub = doc.get("subcategorias") as? List<String> ?: emptyList()
+
+            listaSubcategorias.add(sub)
+        }
+
+        return Pair(listaDocs, listaSubcategorias)
+    }
+
+
+
+
 }

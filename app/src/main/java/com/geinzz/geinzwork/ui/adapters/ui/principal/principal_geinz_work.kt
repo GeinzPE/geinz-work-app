@@ -147,7 +147,8 @@ fun pantalla_principal(
     ver_lugares: (String) -> Unit,
     listner_busqueda: () -> Unit,
     listener_seguridad: (String) -> Unit,
-    listner_sevicios_tramites: (String) -> Unit
+    listner_sevicios_tramites: (String) -> Unit,
+    abrir_guardar_datos:()-> Unit,
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -306,6 +307,7 @@ fun pantalla_principal(
         ) {
             item {
                 nombre_texto_img_perfil(
+                    abrir_guardar_datos,
                     actulizacionE_stado_play,
                     datos_principales_user.nombre,
                     datos_principales_user.img_perfil
@@ -894,9 +896,12 @@ fun filtrado_localidades(
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun nombre_texto_img_perfil(
+    abrir_guardar_datos: () -> Unit,
     actulizacionE_stado_play: Triple<String, Boolean, String>,
-    nombre_user: String, img_url: String = ""
+    nombre_user: String,
+    img_url: String = ""
 ) {
+    val contex = LocalContext.current
     var mostrar_bottom_sheet_new_version by remember { mutableStateOf(false) }
     val fraces = constantes_lista_localidades.lista_fraces_inicio
     var index by remember { mutableStateOf(0) }
@@ -939,7 +944,9 @@ fun nombre_texto_img_perfil(
                     texto_generico_one_line(
                         texto = constantes_lista_localidades.saludo_user_principal(nombre),
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier,
+                        modifier = Modifier.clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){
+                            abrir_guardar_datos()
+                        },
 
                         )
                 }
@@ -953,7 +960,8 @@ fun nombre_texto_img_perfil(
             }
         }
 
-        Box(modifier = Modifier.size(45.dp)) {
+        Box(modifier = Modifier.size(43.dp).padding(end = 5.dp)) {
+
 
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
@@ -975,10 +983,15 @@ fun nombre_texto_img_perfil(
                         if (actulizacionE_stado_play.second) {
                             mostrar_bottom_sheet_new_version = true
                         }
-                    },
+                    }, alignment = Alignment.BottomStart,
                 contentScale = ContentScale.Crop
             )
-            if (actulizacionE_stado_play.second) {
+            this@Row.AnimatedVisibility(
+                actulizacionE_stado_play.second,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier.align(Alignment.TopEnd)
+            ) {
                 Box(
                     modifier = Modifier
                         .size(12.dp)
@@ -993,9 +1006,10 @@ fun nombre_texto_img_perfil(
     }
     if (mostrar_bottom_sheet_new_version) {
         verificar_version(
-            actulizacionE_stado_play.first,
-            actulizacionE_stado_play.third,
-            { mostrar_bottom_sheet_new_version = false })
+            context = contex,
+            nueva_version = actulizacionE_stado_play.first,
+            cambiosrealizados = actulizacionE_stado_play.third,
+            ondimis = { mostrar_bottom_sheet_new_version = false })
     }
 
 }

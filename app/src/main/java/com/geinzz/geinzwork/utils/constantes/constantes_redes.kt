@@ -28,5 +28,30 @@ object constantes_redes {
         }
     }
 
+    fun openPlayStore(context: Context, appPackage: String) {
+        try {
+            val playStoreUri = Uri.parse("market://details?id=$appPackage")
+            val intent = Intent(Intent.ACTION_VIEW, playStoreUri)
+
+            val packageManager = context.packageManager
+            val isPlayStoreInstalled =
+                packageManager.getLaunchIntentForPackage("com.android.vending") != null
+
+            if (isPlayStoreInstalled) {
+                // Abrir directamente la Play Store
+                intent.setPackage("com.android.vending")
+                context.startActivity(intent)
+            } else {
+                // Abrir en navegador si Play Store no está instalada
+                val webUri = Uri.parse("https://play.google.com/store/apps/details?id=$appPackage")
+                Toast.makeText(context, "Play Store no instalada. Abriendo en navegador.", Toast.LENGTH_SHORT).show()
+                context.startActivity(Intent(Intent.ACTION_VIEW, webUri))
+            }
+
+        } catch (e: Exception) {
+            Toast.makeText(context, "Error al abrir Play Store", Toast.LENGTH_SHORT).show()
+            e.printStackTrace()
+        }
+    }
 
 }

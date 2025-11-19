@@ -309,12 +309,6 @@ fun nativationWrapper(
                         clikear_cartas = { categoria, localidad, nombre_user ->
                             Log.d("categoriass", "$categoria $nombre_user $localidad")
                             if (categoria.equals("turismo")) {
-//                                Toast.makeText(
-//                                    context,
-//                                    "Geinz esta trabajando para darle mejor experiencia",
-//                                    Toast.LENGTH_SHORT
-//                                ).show()
-//                                return@pantalla_principal
                                 navController.navigate(lugares_turisticos(localidad))
                             } else {
                                 navController.navigate(
@@ -345,7 +339,7 @@ fun nativationWrapper(
 //                            }
 
 //                            Log.d("localidad_defautl_user", localidad)
-                            navController.navigate(lugares_turisticos(localidad))
+                          navController.navigate(lugares_turisticos(localidad))
 //                            agregar_horario_tiendas(listaDeTiendas)
                         },
                         listner_busqueda = {
@@ -357,6 +351,8 @@ fun nativationWrapper(
                         listner_sevicios_tramites = { localidad ->
                             navController.navigate(ui_servicios_tramites(localidad))
 
+                        },{
+                            navController.navigate(ui_agregar_lugares)
                         },
                     )
                 }

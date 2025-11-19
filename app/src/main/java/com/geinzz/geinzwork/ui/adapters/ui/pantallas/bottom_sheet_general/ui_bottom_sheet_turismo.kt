@@ -413,7 +413,7 @@ fun card_img_container(
                 MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(10.dp)
             )
-            abierto_flag("Abierto las 24h")
+            abierto_flag(datos.subcategoria_filtrado)
             spacer_vertical(10.dp)
             CollageGoogleMapsStyle(aspectRatio = 1.1f, with = 360.dp, imagenes = datos.lista_img)
             spacer_vertical(10.dp)
@@ -1132,17 +1132,27 @@ fun chips_filtrado(list: List<botom_shet_turismobtn>, item_clikeado: (String) ->
 
 
 @Composable
-fun abierto_flag(texto: String) {
+fun abierto_flag(subcategoria_filtrado: List<String>) {
+    val categoriasRojo = listOf("iglesia", "historico", "arqueologico", "museo", "cultura", "leyenda")
+
+    val colorTxtAbierto =
+        if (subcategoria_filtrado.any { it in categoriasRojo })  Color(0xFFFF9800)
+        else Color(0xFF43A047)
+
+
+    val txt =
+        if (subcategoria_filtrado.any { it in categoriasRojo }) "Cambio frecuente"
+        else "Abierto las 24 h"
     Box(
         modifier = Modifier
             .padding(horizontal = 10.dp)
             .clip(CircleShape)
 
-            .background(Color(0xFF43A047))
+            .background(colorTxtAbierto)
         // Verde intermedio, más natural
     ) {
         texto_generico_one_line(
-            texto.capitalizeFirst(),
+            txt,
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
             color = Color.White

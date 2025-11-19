@@ -38,7 +38,7 @@ class viewModel_principal_geinz_work : ViewModel() {
     val _lista_filtrado_localidades: LiveData<List<localidades_filtrado>> get() = lista_filtrado_localida
 
 
-    private val _estado_version_PS = MutableStateFlow(Triple("", false,""))
+    private val _estado_version_PS = MutableStateFlow(Triple("", false, ""))
     val estado_version_PS = _estado_version_PS.asStateFlow()
 
     init {
@@ -85,15 +85,13 @@ class viewModel_principal_geinz_work : ViewModel() {
 
     fun verificar_vesion_actulizacion(context: Context) {
         viewModelScope.launch {
+            val txt_cambios = instacia.txt_cambios_realziados()
             try {
-                val existe_version = instacia.verificarControlVersiones(context)
-                val txt_cambios = instacia.txt_cambios_realziados()
-                val (version,existe)=existe_version
-                if (existe) {
-                    _estado_version_PS.value = Triple(txt_cambios, true,version)
+                instacia.verificarControlVersiones(context) { versionRemota, debeActualizar ->
+                    _estado_version_PS.value = Triple(txt_cambios, debeActualizar, versionRemota)
                 }
             } catch (e: Exception) {
-                _estado_version_PS.value = Triple("sin txt", false,"")
+                _estado_version_PS.value = Triple("sin txt", false, "")
                 Log.d("error", "error al obtenr lso datos")
             }
         }

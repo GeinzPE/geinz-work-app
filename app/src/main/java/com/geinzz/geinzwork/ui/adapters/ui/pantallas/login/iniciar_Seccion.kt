@@ -204,7 +204,7 @@ fun IniciarSeccion(
                             painter = painterResource(R.drawable.logo_geinz_blanco),
                             contentDescription = "",
                             modifier = Modifier.size(70.dp).clickable{
-                                mostar_errores_bottom_sheet=true
+//                                mostar_errores_bottom_sheet=true
                             }
                         )
                     }

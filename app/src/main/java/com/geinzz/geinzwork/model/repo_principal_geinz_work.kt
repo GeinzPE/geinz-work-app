@@ -78,64 +78,70 @@ class repo_principal_geinz_work {
         }
     }
 
-    suspend fun verificarControlVersiones(context: Context): Pair<String, Boolean> {
+    fun verificarControlVersiones(
+        context: Context,
+        callback: (versionRemota: String, debeActualizar: Boolean) -> Unit
+    ) {
         val remoteConfig = FirebaseRemoteConfig.getInstance()
 
         Log.d("VERSION_CHECK", "Iniciando verificación de versión...")
 
         val configSettings = remoteConfigSettings {
-            minimumFetchIntervalInSeconds = 0
+            minimumFetchIntervalInSeconds =3600
         }
         remoteConfig.setConfigSettingsAsync(configSettings)
 
-        // Fetch remoto
-        val fetchSuccess = remoteConfig.fetchAndActivate().await()
-        Log.d("VERSION_CHECK", "Fetch remoto success = $fetchSuccess")
+        remoteConfig.fetchAndActivate()
+            .addOnCompleteListener { task ->
 
-        if (!fetchSuccess) {
-            Log.d("VERSION_CHECK", "No se pudo obtener Remote Config → retornando default")
-            return Pair("0.0.0", false)
-        }
+                val fetchSuccess = task.isSuccessful
+                Log.d("VERSION_CHECK", "Fetch remoto success = $fetchSuccess")
 
-        // Versión remota SEGURA
-        val versionRemota = remoteConfig.getString("latest_version").ifBlank { "0.0.0" }
-        Log.d("VERSION_CHECK", "Versión remota recibida = $versionRemota")
+                if (!fetchSuccess) {
+                    Log.d("VERSION_CHECK", "No se pudo obtener Remote Config → retornando default")
+                    callback("0.0.0", false)
+                    return@addOnCompleteListener
+                }
 
-        // Versión actual SEGURA
-        val versionActual = try {
-            val pkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                context.packageManager.getPackageInfo(
-                    context.packageName,
-                    PackageManager.PackageInfoFlags.of(0)
+                val versionRemota = remoteConfig.getString("latest_version").ifBlank { "0.0.0" }
+                Log.d("VERSION_CHECK", "Versión remota recibida = $versionRemota")
+
+                // Versión actual
+                val versionActual = try {
+                    val pkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        context.packageManager.getPackageInfo(
+                            context.packageName,
+                            PackageManager.PackageInfoFlags.of(0)
+                        )
+                    } else {
+                        context.packageManager.getPackageInfo(context.packageName, 0)
+                    }
+
+                    (pkgInfo.versionName ?: "0.0.0").also {
+                        Log.d("VERSION_CHECK", "Versión actual del dispositivo = $it")
+                    }
+
+                } catch (e: Exception) {
+                    Log.e("VERSION_CHECK", "ERROR al obtener versión actual: ${e.message}")
+                    "0.0.0"
+                }
+
+                if (!versionRemota.matches(Regex("""\d+(\.\d+)*"""))) {
+                    Log.e("VERSION_CHECK", "Versión remota con formato inválido → $versionRemota")
+                    callback(versionRemota, false)
+                    return@addOnCompleteListener
+                }
+
+                val debeActualizar = esVersionMenor(versionActual, versionRemota)
+                Log.d(
+                    "VERSION_CHECK",
+                    "Comparando versiones → actual=$versionActual  remota=$versionRemota  debeActualizar=$debeActualizar"
                 )
-            } else {
-                context.packageManager.getPackageInfo(context.packageName, 0)
+
+                callback(versionRemota, debeActualizar)
             }
-
-            (pkgInfo.versionName ?: "0.0.0").also {
-                Log.d("VERSION_CHECK", "Versión actual del dispositivo = $it")
-            }
-
-        } catch (e: Exception) {
-            Log.e("VERSION_CHECK", "ERROR al obtener versión actual: ${e.message}")
-            "0.0.0"
-        }
-
-        // Validar formato remoto
-        if (!versionRemota.matches(Regex("""\d+(\.\d+)*"""))) {
-            Log.e("VERSION_CHECK", "Versión remota con formato inválido → $versionRemota")
-            return Pair(versionRemota, false)
-        }
-
-        // Comparación final
-        val debeActualizar = esVersionMenor(versionActual, versionRemota)
-        Log.d(
-            "VERSION_CHECK",
-            "Comparando versiones → actual=$versionActual  remota=$versionRemota  debeActualizar=$debeActualizar"
-        )
-
-        return Pair(versionRemota, debeActualizar)
     }
+
     suspend fun txt_cambios_realziados(): String {
         return try {
             val snapshot = FirebaseFirestore.getInstance()

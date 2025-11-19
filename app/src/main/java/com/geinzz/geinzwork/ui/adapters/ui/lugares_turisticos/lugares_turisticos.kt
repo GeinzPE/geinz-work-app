@@ -350,6 +350,17 @@ fun carta_turismo(
 
     val heightOptions = listOf(250.dp, 280.dp)
     val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
+    val categoriasRojo = listOf("iglesia", "historico", "arqueologico", "museo", "cultura", "leyenda")
+
+    val colorTxtAbierto =
+        if (lugar.subcategoria_filtrado.any { it in categoriasRojo })  Color(0xFFFF9800)
+        else Color.Green
+
+
+    val txt =
+        if (lugar.subcategoria_filtrado.any { it in categoriasRojo }) "Cambio frecuente"
+        else "Abierto las 24 h"
+
 
     Box(
         modifier = Modifier
@@ -398,7 +409,7 @@ fun carta_turismo(
             Column (Modifier.padding(top = 10.dp, start = 5.dp, end = 5.dp)){
                 texto_generico_one_line(lugar.titulo.capitalizeFirst())
                 spacer_vertical(5.dp)
-                texto_generico_one_line("Abierto las 24h", style = MaterialTheme.typography.bodySmall, color = Color.Green)
+                texto_generico_one_line(txt, style = MaterialTheme.typography.bodySmall, color = colorTxtAbierto)
                 spacer_vertical(5.dp)
                 tags_subcateogiras(
                     lugar.subcategoria_filtrado,
