@@ -25,12 +25,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Chip
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ProgressIndicatorDefaults
+import androidx.compose.material3.RadioButton
 
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -40,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,8 +53,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.airbnb.lottie.model.content.CircleShape
+import com.geinzz.geinzwork.data.model.data_class_tienda_geinz
 import com.geinzz.geinzwork.data.model.dataclass_repo_agregar_datos
 import com.geinzz.geinzwork.model.repo_agregar_datos
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown
@@ -74,25 +81,52 @@ import java.nio.file.WatchEvent
 
 @Composable
 fun datos_teindas() {
-
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
+    var latitud by rememberSaveable { mutableStateOf("") }
+    var longitud by rememberSaveable { mutableStateOf("") }
+    var lat_ by rememberSaveable { mutableStateOf(0.0) }
+    var lng_ by rememberSaveable { mutableStateOf(0.0) }
+    var direccion by rememberSaveable { mutableStateOf("") }
+    var referencia by rememberSaveable { mutableStateOf("") }
+    var mostar_geo by rememberSaveable { mutableStateOf(false) }
+    val lista_metood_pago = listOf("Yape", "Plin", "Efectivo", "Agora", "visa/Mastercard")
+    val lista_medood_contacto = listOf("tiktok", "facebook", "instagram", "whatsapp", "telefono")
 
-    var latitud by remember { mutableStateOf("") }
-    var longitud by remember { mutableStateOf("") }
-    var lat_ by remember { mutableStateOf(0.0) }
-    var lng_ by remember { mutableStateOf(0.0) }
-    var direccion by remember { mutableStateOf("") }
-    var referencia by remember { mutableStateOf("") }
-    var numero_telefoono by remember { mutableStateOf("") }
-    var mostar_geo by remember { mutableStateOf(false) }
+    var yape_select by rememberSaveable { mutableStateOf(false) }
+    var plin_select by rememberSaveable { mutableStateOf(false) }
+
+
+    var tk2 by rememberSaveable { mutableStateOf(false) }
+    var fb2 by rememberSaveable { mutableStateOf(false) }
+    var ig2 by rememberSaveable { mutableStateOf(false) }
+    var ws2 by rememberSaveable { mutableStateOf(false) }
+    var tlf2 by rememberSaveable { mutableStateOf(false) }
+
+    var numero_yape by rememberSaveable { mutableStateOf("") }
+    var titular_yape by rememberSaveable { mutableStateOf("") }
+
+    var numero_plin by rememberSaveable { mutableStateOf("") }
+    var titular_plin by rememberSaveable { mutableStateOf("") }
+
+    var user_tk by rememberSaveable { mutableStateOf("") }
+    var user_fb by rememberSaveable { mutableStateOf("") }
+    var user_ig by rememberSaveable { mutableStateOf("") }
+
+    var numero_whatsap by rememberSaveable { mutableStateOf("") }
+    var numero_telefono by rememberSaveable { mutableStateOf("") }
+
+
+
     LaunchedEffect(latitud, longitud) {
         mostar_geo = latitud.isNotEmpty() && longitud.isNotEmpty()
     }
-    LazyColumn(   modifier = Modifier
-        .fillMaxSize()
-        .imePadding() ) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding()
+    ) {
         item {
             _agregar_campos_txt(context)
             spacer_vertical(10.dp)
@@ -113,7 +147,9 @@ fun datos_teindas() {
                         unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
                         unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        focusedPlaceholderColor = Color.Gray,
+                        unfocusedPlaceholderColor = Color.Gray,
                     ), readOnly = true
                 )
                 spacer_horizonta(10.dp)
@@ -132,7 +168,9 @@ fun datos_teindas() {
                         unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
                         unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        focusedPlaceholderColor = Color.Gray,
+                        unfocusedPlaceholderColor = Color.Gray,
                     ), readOnly = true
                 )
 
@@ -151,7 +189,9 @@ fun datos_teindas() {
                     unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
                     unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    focusedPlaceholderColor = Color.Gray,
+                    unfocusedPlaceholderColor = Color.Gray,
                 ),
             )
             spacer_vertical(10.dp)
@@ -168,7 +208,9 @@ fun datos_teindas() {
                     unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
                     unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    focusedPlaceholderColor = Color.Gray,
+                    unfocusedPlaceholderColor = Color.Gray,
                 ),
             )
             spacer_vertical(10.dp)
@@ -223,23 +265,157 @@ fun datos_teindas() {
             }
             spacer_vertical(20.dp)
         }
+        item {
+            texto_generico_one_line(
+                "Metodos de pago",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(start = 10.dp)
+            )
+            spacer_vertical(5.dp)
+            ChipsCategoriasCheck(lista_metood_pago) { seleccionados ->
+                val yapeSelected = "Yape" in seleccionados
+                val plinSelected = "Plin" in seleccionados
+
+                if (yapeSelected) {
+                    yape_select = true
+                } else {
+                    yape_select = false
+                }
+
+                if (plinSelected) {
+                    plin_select = true
+                } else {
+                    plin_select = false
+                }
+            }
+
+        }
+        item {
+            if (yape_select) {
+                valor_txt_contacto("yape", numero_yape) { numero_yape = it }
+                spacer_vertical(5.dp)
+                OutlinedTextField(
+                    value = titular_yape,
+                    onValueChange = { it ->
+                        titular_yape = it
+                    },
+                    label = { texto_generico_one_line("titular de yape") },
+                    shape = RoundedCornerShape(20.dp),
+                    placeholder = { texto_generico_one_line("titular de yape") },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        focusedPlaceholderColor = Color.Gray,
+                        unfocusedPlaceholderColor = Color.Gray,
+                    ),
+                )
+                spacer_vertical(20.dp)
+            }
+            if (plin_select) {
+                valor_txt_contacto("plin", numero_plin) { numero_plin = it }
+                spacer_vertical(5.dp)
+                OutlinedTextField(
+                    value = titular_plin,
+                    onValueChange = { it ->
+                        titular_plin = it
+                    },
+                    label = { texto_generico_one_line("titular de plin") },
+                    shape = RoundedCornerShape(20.dp),
+                    placeholder = { texto_generico_one_line("titular de plin") },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        focusedPlaceholderColor = Color.Gray,
+                        unfocusedPlaceholderColor = Color.Gray,
+                    ),
+                )
+                spacer_vertical(20.dp)
+            }
+        }
+
+        item {
+            texto_generico_one_line(
+                "Metodos de contacto",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(start = 10.dp)
+            )
+            spacer_vertical(5.dp)
+            ChipsCategoriasCheck(lista_medood_contacto) { seleccionados ->
+                val tk = "tiktok" in seleccionados
+                val fb = "facebook" in seleccionados
+                val ig = "instagram" in seleccionados
+                val ws = "whatsapp" in seleccionados
+                val tlf = "telefono" in seleccionados
+                if (tk) {
+                    tk2 = true
+                } else {
+                    tk2 = false
+                }
+                if (fb) {
+                    fb2 = true
+                } else {
+                    fb2 = false
+                }
+                if (ig) {
+                    ig2 = true
+                } else {
+                    ig2 = false
+                }
+                if (ws) {
+                    ws2 = true
+                } else {
+                    ws2 = false
+                }
+                if (tlf) {
+                    tlf2 = true
+                } else {
+                    tlf2 = false
+                }
+            }
+
+        }
+
+        item {
+            if (tk2) {
+                valor_txt_contacto("tiktok", user_tk) { user_tk = it }
+            }
+            spacer_vertical(5.dp)
+
+            if (fb2) {
+                valor_txt_contacto("facebook", user_fb) { user_fb = it }
+            }
+            spacer_vertical(5.dp)
+
+            if (ig2) {
+                valor_txt_contacto("instagram", user_ig) { user_ig = it }
+            }
+            spacer_vertical(5.dp)
+
+            if (ws2) {
+                valor_txt_contacto("whatsapp", numero_whatsap) { numero_whatsap = it }
+            }
+            spacer_vertical(5.dp)
+
+            if (tlf2) {
+                valor_txt_contacto("telefono", numero_telefono) { numero_telefono = it }
+            }
+
+            spacer_vertical(20.dp)
+        }
+
+
 
         item {
             Button(onClick = {
                 var repo_agregar_datos = repo_agregar_datos(context)
-//            val data = dataclass_repo_agregar_datos(
-//                nombre_lugar = texto_nombre_lugar,
-//                lat = latitud.toDouble(),
-//                long = longitud.toDouble(),
-//                numero_telefono = numero_telefoono.toInt()
-//            )
-//            repo_agregar_datos.agregar_datos(data)
-//            longitud = ""
-//            latitud = ""
-//            numero_telefoono = ""
-//            texto_nombre_lugar = ""
-                repo_agregar_datos.pasar_datos()
 
+                repo_agregar_datos.pasar_datos()
 
             }) { texto_generico_one_line("enviar") }
         }
@@ -247,38 +423,63 @@ fun datos_teindas() {
     }
 }
 
-@SuppressLint("MissingPermission")
-fun obtenerLatLogNoComposable(
-    fusedLocationClient: FusedLocationProviderClient,
-    onUbicacionObtenida: (LatLng?) -> Unit
+@Composable
+fun valor_txt_contacto(
+    tipo: String,
+    valor: String,
+    valor_retorno: (String) -> Unit
 ) {
-    val locationRequest = LocationRequest.Builder(
-        Priority.PRIORITY_HIGH_ACCURACY,
-        1000L
-    ).build()
-
-    val locationCallback = object : LocationCallback() {
-        override fun onLocationResult(locationResult: LocationResult) {
-            fusedLocationClient.removeLocationUpdates(this)
-            val location = locationResult.lastLocation
-            if (location != null) {
-                onUbicacionObtenida(LatLng(location.latitude, location.longitude))
-            } else {
-                onUbicacionObtenida(null)
-            }
+    val txt = remember(tipo) {
+        if (tipo.equals("whatsapp", ignoreCase = true) ||
+            tipo.equals("telefono", ignoreCase = true) || tipo.equals(
+                "yape",
+                ignoreCase = true
+            ) || tipo.equals("plin", ignoreCase = true)
+        ) {
+            "Número de $tipo"
+        } else {
+            "Usuario de $tipo"
         }
     }
 
-    fusedLocationClient.requestLocationUpdates(
-        locationRequest,
-        locationCallback,
-        Looper.getMainLooper()
+    val keyboardType = remember(tipo) {
+        if (tipo.equals("whatsapp", ignoreCase = true) ||
+            tipo.equals("telefono", ignoreCase = true) || tipo.equals(
+                "yape",
+                ignoreCase = true
+            ) || tipo.equals("plin", ignoreCase = true)
+        ) {
+            KeyboardType.Phone  // teclado numérico
+        } else {
+            KeyboardType.Text   // texto normal
+        }
+    }
+
+    OutlinedTextField(
+        value = valor,
+        onValueChange = { valor_retorno(it) },
+        label = { texto_generico_one_line(txt) },
+        placeholder = { texto_generico_one_line(txt) },
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType
+        ),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            focusedPlaceholderColor = Color.Gray,
+            unfocusedPlaceholderColor = Color.Gray,
+        )
     )
 }
 
-
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun _agregar_campos_txt(context: Context) {
+fun _agregar_campos_txt(context: Context,) {
     val id_tienda by remember { mutableStateOf("") }
     var localidad by remember { mutableStateOf("") }
     var subcategoira_tienda by remember { mutableStateOf("") }
@@ -293,7 +494,7 @@ fun _agregar_campos_txt(context: Context) {
     val scope = rememberCoroutineScope()
     var txt_descipcion by remember { mutableStateOf("") }
     var repo_agregar_datos = repo_agregar_datos(context)
-    var lista_modelo_negocio = listOf("Virtual", "Fisico")
+    var lista_modelo_negocio = listOf("Fisico", "virtual")
     var lista_pagado = listOf("Premiun", "Free")
     var contadorClicks by remember { mutableStateOf(0) }
     scope.launch {
@@ -362,7 +563,9 @@ fun _agregar_campos_txt(context: Context) {
             unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
             unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
             focusedBorderColor = MaterialTheme.colorScheme.primary,
-            focusedLabelColor = MaterialTheme.colorScheme.primary
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            focusedPlaceholderColor = Color.Gray,
+            unfocusedPlaceholderColor = Color.Gray,
         ),
     )
     spacer_vertical(10.dp)
@@ -399,7 +602,9 @@ fun _agregar_campos_txt(context: Context) {
             unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
             unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
             focusedBorderColor = MaterialTheme.colorScheme.primary,
-            focusedLabelColor = MaterialTheme.colorScheme.primary
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            focusedPlaceholderColor = Color.Gray,
+            unfocusedPlaceholderColor = Color.Gray,
         ),
         shape = RoundedCornerShape(20.dp),
         maxLines = 8,          // varias líneas
@@ -476,6 +681,70 @@ fun _agregar_campos_txt(context: Context) {
     }
 }
 
+@Composable
+fun ChipsCategoriasCheck(
+    lista: List<String>,
+    lista_select: (List<String>) -> Unit
+) {
+    var seleccionados by rememberSaveable {
+        mutableStateOf(listOf<String>())
+    }
+    spacer_vertical(10.dp)
+
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        items(lista) { item ->
+
+            val isSelected = item in seleccionados
+
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+
+                    .clickable {
+                        seleccionados = if (isSelected)
+                            seleccionados - item
+                        else
+                            seleccionados + item
+
+                        lista_select(seleccionados)
+                    }
+
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+
+                    Checkbox(
+                        checked = isSelected,
+                        onCheckedChange = {
+                            seleccionados = if (isSelected)
+                                seleccionados - item
+                            else
+                                seleccionados + item
+
+                            lista_select(seleccionados)
+                        },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = MaterialTheme.colorScheme.primary,   // Check marcado
+                            uncheckedColor = Color.White,                      // Check desmarcado
+                            checkmarkColor = Color.White                       // ✔ icon
+                        )
+                    )
+
+                    texto_generico_one_line(
+                        texto = item,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White
+                    )
+                }
+            }
+        }
+    }
+
+    spacer_vertical(10.dp)
+}
+
 
 @Composable
 fun chips_categorias(
@@ -526,7 +795,6 @@ fun chips_categorias(
     spacer_vertical(10.dp)
 }
 
-
 fun generarPrompt(
     nombre: String,
     categoria: String,
@@ -560,6 +828,35 @@ fun generarPrompt(
             Genera una descripción diferente artística poética motivadora y única para la tienda "$nombre" enfocada en "$categoria"$extraSub Puedes incluir emojis inspiradores como ✨🌟⚡💡🏆 sin usar corazones y sin usar puntos ni saltos de línea El texto debe transmitir autenticidad encanto y no superar seis líneas solo entrega la descripción final
         """.trimIndent()
     }
+}
+
+@SuppressLint("MissingPermission")
+fun obtenerLatLogNoComposable(
+    fusedLocationClient: FusedLocationProviderClient,
+    onUbicacionObtenida: (LatLng?) -> Unit
+) {
+    val locationRequest = LocationRequest.Builder(
+        Priority.PRIORITY_HIGH_ACCURACY,
+        1000L
+    ).build()
+
+    val locationCallback = object : LocationCallback() {
+        override fun onLocationResult(locationResult: LocationResult) {
+            fusedLocationClient.removeLocationUpdates(this)
+            val location = locationResult.lastLocation
+            if (location != null) {
+                onUbicacionObtenida(LatLng(location.latitude, location.longitude))
+            } else {
+                onUbicacionObtenida(null)
+            }
+        }
+    }
+
+    fusedLocationClient.requestLocationUpdates(
+        locationRequest,
+        locationCallback,
+        Looper.getMainLooper()
+    )
 }
 
 

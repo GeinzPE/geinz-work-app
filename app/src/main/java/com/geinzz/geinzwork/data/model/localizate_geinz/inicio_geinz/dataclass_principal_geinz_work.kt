@@ -77,10 +77,10 @@ data class datos_principales_user(
 )
 
 data class ref_ubi(
-    val latitud: Double,
-    val longitud: Double,
-    val referencia: String,
-    val direccion: String
+    val latitud: Double=0.0,
+    val longitud: Double=0.0,
+    val referencia: String="",
+    val direccion: String=""
 )
 
 data class seguridad_salud_publica(
