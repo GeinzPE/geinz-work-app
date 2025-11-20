@@ -3,6 +3,7 @@ package com.geinzz.geinzwork.data.model
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.ref_ubi
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
+import com.google.firebase.Timestamp
 
 data class data_class_tienda_geinz(
     val categoria_tienda: String,
@@ -16,7 +17,15 @@ data class data_class_tienda_geinz(
     val subcategoria: List<String>,
     val ubicacion: ref_ubi=ref_ubi(),
     val metodo_pago:modelo_pagos_tienda =modelo_pagos_tienda(),
-    val metodo_contacto:metodo_contacto_tienda= metodo_contacto_tienda()
+    val metodo_contacto:metodo_contacto_tienda= metodo_contacto_tienda(),
+    val fechas:ingreso_date,
+    val timeSlamp: String
+)
+
+data class ingreso_date(
+    val hora_ingreso:String="",
+    val fecha_ingreso:String="",
+    val fecha_fin:String=""
 )
 data class DatosTienda(
     val idTienda: String,

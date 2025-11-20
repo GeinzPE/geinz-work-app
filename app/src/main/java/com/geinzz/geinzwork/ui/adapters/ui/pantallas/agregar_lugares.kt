@@ -4,9 +4,11 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -59,6 +61,7 @@ import androidx.core.content.ContextCompat
 import com.airbnb.lottie.model.content.CircleShape
 import com.geinzz.geinzwork.data.model.data_class_tienda_geinz
 import com.geinzz.geinzwork.data.model.dataclass_repo_agregar_datos
+import com.geinzz.geinzwork.data.model.ingreso_date
 import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_numero
 import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_red
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.ref_ubi
@@ -70,6 +73,9 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDow
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.fechaActual
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.fechaUnaSemanaDespues
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.lista_localidad
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -87,6 +93,8 @@ import kotlinx.coroutines.launch
 import java.nio.file.WatchEvent
 
 
+@SuppressLint("CoroutineCreationDuringComposition")
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun datos_teindas() {
     val lista_metood_pago = listOf("Yape", "Plin", "Efectivo", "Agora", "visa/Mastercard")
@@ -207,7 +215,13 @@ fun datos_teindas() {
                 },
                 label = { texto_generico_one_line("nombre") },
                 shape = RoundedCornerShape(20.dp),
-                placeholder = { texto_generico_one_line("nombre",style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+                placeholder = {
+                    texto_generico_one_line(
+                        "nombre",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.onBackground,
                     unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
@@ -253,7 +267,13 @@ fun datos_teindas() {
                 value = txt_descipcion,
                 onValueChange = { txt_descipcion = it },
                 label = { texto_generico_one_line("Descripción") },
-                placeholder = { texto_generico_one_line("Escribe una descripción atractiva...",style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+                placeholder = {
+                    texto_generico_one_line(
+                        "Escribe una descripción atractiva...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp),   // altura tipo textarea
@@ -365,7 +385,13 @@ fun datos_teindas() {
                     },
                     shape = RoundedCornerShape(20.dp),
                     label = { texto_generico_one_line("Latitud") },
-                    placeholder = { texto_generico_one_line("Latitud",style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+                    placeholder = {
+                        texto_generico_one_line(
+                            "Latitud",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                    },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = MaterialTheme.colorScheme.onBackground,
                         unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
@@ -385,7 +411,13 @@ fun datos_teindas() {
                     },
                     shape = RoundedCornerShape(20.dp),
                     label = { texto_generico_one_line("longitud") },
-                    placeholder = { texto_generico_one_line("longitud",style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+                    placeholder = {
+                        texto_generico_one_line(
+                            "longitud",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                    },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = MaterialTheme.colorScheme.onBackground,
                         unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
@@ -433,7 +465,13 @@ fun datos_teindas() {
                 },
                 label = { texto_generico_one_line("direccion") },
                 shape = RoundedCornerShape(20.dp),
-                placeholder = { texto_generico_one_line("direccion",style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+                placeholder = {
+                    texto_generico_one_line(
+                        "direccion",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.onBackground,
                     unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
@@ -450,9 +488,15 @@ fun datos_teindas() {
                 onValueChange = { it ->
                     referencia = it
                 },
-                label = { texto_generico_one_line("referencia",) },
+                label = { texto_generico_one_line("referencia") },
                 shape = RoundedCornerShape(20.dp),
-                placeholder = { texto_generico_one_line("referencia", style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+                placeholder = {
+                    texto_generico_one_line(
+                        "referencia",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.onBackground,
                     unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
@@ -543,7 +587,13 @@ fun datos_teindas() {
                     },
                     label = { texto_generico_one_line("titular de yape") },
                     shape = RoundedCornerShape(20.dp),
-                    placeholder = { texto_generico_one_line("titular de yape",style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+                    placeholder = {
+                        texto_generico_one_line(
+                            "titular de yape",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                    },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = MaterialTheme.colorScheme.onBackground,
                         unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
@@ -566,7 +616,13 @@ fun datos_teindas() {
                     },
                     label = { texto_generico_one_line("titular de plin") },
                     shape = RoundedCornerShape(20.dp),
-                    placeholder = { texto_generico_one_line("titular de plin",style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+                    placeholder = {
+                        texto_generico_one_line(
+                            "titular de plin",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                    },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = MaterialTheme.colorScheme.onBackground,
                         unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
@@ -660,6 +716,7 @@ fun datos_teindas() {
             spacer_vertical(5.dp)
             Button(onClick = {
                 val repo_agregar_datos = repo_agregar_datos(context)
+                val timeStamp = com.google.firebase.Timestamp.now()
                 val datos_enviar = data_class_tienda_geinz(
                     categoria_tienda = categoria,
                     descripcion = txt_descipcion,
@@ -738,6 +795,12 @@ fun datos_teindas() {
                             url = ""
                         ),
                     ),
+                    fechas = ingreso_date(
+                        hora_ingreso = constantes_horas.horaActual(),
+                        fecha_ingreso = fechaActual(),
+                        fecha_fin = fechaUnaSemanaDespues()
+                    ),
+                    timeSlamp = timeStampNumero()
                 )
 //                repo_agregar_datos.pasar_datos()
                 val gson = GsonBuilder().setPrettyPrinting().create()
@@ -748,6 +811,11 @@ fun datos_teindas() {
         }
 
     }
+}
+
+
+fun timeStampNumero(): String {
+    return System.currentTimeMillis().toString()
 }
 
 @Composable
@@ -788,7 +856,13 @@ fun valor_txt_contacto(
         value = valor,
         onValueChange = { valor_retorno(it) },
         label = { texto_generico_one_line(txt) },
-        placeholder = { texto_generico_one_line(txt,style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+        placeholder = {
+            texto_generico_one_line(
+                txt,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
+        },
         shape = RoundedCornerShape(20.dp),
         modifier = Modifier.fillMaxWidth(),
         keyboardOptions = KeyboardOptions(

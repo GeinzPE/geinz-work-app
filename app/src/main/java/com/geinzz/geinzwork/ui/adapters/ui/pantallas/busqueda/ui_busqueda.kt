@@ -1718,7 +1718,7 @@ fun ramdoBox(
                                         // Si no hay coordenadas, no hace nada
                                     }
 
-                                    firebaseAuth.currentUser != null -> {
+                                    firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()-> {
                                         // Categoría diferente y usuario registrado
                                         if (coordenadasValidas) {
                                             abrir_gogle_map(i.latitud, i.longitud)

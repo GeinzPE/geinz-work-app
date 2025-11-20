@@ -1,6 +1,11 @@
 package com.geinzz.geinzwork.utils.constantes.localizate_geinz
 
 import android.location.Location
+import android.os.Build
+import androidx.annotation.RequiresApi
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 
 object constantes_horas {
@@ -33,4 +38,23 @@ object constantes_horas {
         Location.distanceBetween(lat1, lon1, lat2, lon2, resultados)
         return resultados[0] / 1000.0 // Pasa de metros a kilómetros
     }
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun fechaActual(): String {
+        val hoy = LocalDate.now()
+        return hoy.toString() // formato YYYY-MM-DD
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun fechaUnaSemanaDespues(): String {
+        val fecha = LocalDate.now().plusWeeks(1)
+        return fecha.toString() // formato YYYY-MM-DD
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun horaActual(): String {
+        val hora = LocalTime.now()
+        return hora.format(DateTimeFormatter.ofPattern("HH:mm"))
+    }
+
+
 }

@@ -167,13 +167,16 @@ fun pantalla_principal(
     val actulizacionE_stado_play by viewModel_cordenadas.estado_version_PS.collectAsState()
     val urls by vm_fotos_salud.urlsCarga.collectAsState()
     val urls_turistico by vm_fotos_salud.urlsCarga_turistico.collectAsState()
-    val urlAleatoria = remember(urls) {
-        if (urls.isNotEmpty()) urls.random() else null
+    val urlAleatoria = rememberSaveable(urls.hashCode()) {
+        urls.randomOrNull() ?: ""
     }
 
-    val url_turistico_aleatoria = remember(urls_turistico) {
-        if (urls_turistico.isNotEmpty()) urls_turistico.random() else null
+    val url_turistico_aleatoria = rememberSaveable(urls_turistico.hashCode()) {
+        urls_turistico.randomOrNull() ?: ""
     }
+
+
+
 
 //    LaunchedEffect(Unit) {
 ////        viewModel_cordenadas.obtener_subcategorias(true)
@@ -214,7 +217,17 @@ fun pantalla_principal(
     val dialogo_notifi_ret by data_store_localidad.get_dialog_notifi(context)
         .collectAsState(initial = false)
 
+    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+    var id_respado_user by remember { mutableStateOf("") }
 
+    LaunchedEffect(uid_respald_user) {
+        if (uid_respald_user.isNotEmpty()) {
+            id_respado_user = uid_respald_user
+            Log.d("UID_DataStore", "✅ Recuperado UID válido desde DataStore: $id_respado_user")
+        } else {
+            id_respado_user = ""
+        }
+    }
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -238,7 +251,7 @@ fun pantalla_principal(
     }
 
     LaunchedEffect(firebaseAuth.currentUser, dialgo_notificacion) {
-        if (firebaseAuth.currentUser != null && dialgo_notificacion) {
+        if ((firebaseAuth.currentUser != null  || id_respado_user.isNotEmpty() )&& dialgo_notificacion) {
             Log.d("dialgo_notificacion", "si hay user registrado y si hay si de permiso")
             if (ContextCompat.checkSelfPermission(
                     context,
@@ -365,14 +378,11 @@ fun pantalla_principal(
                 ) {
                     ver_lugares(localidad_defaul)
                 }
-                urlAleatoria
                 spacer_vertical(30.dp)
             }
             item {
                 spacer_vertical(10.dp)
-                val imgActual by rememberSaveable {
-                    mutableStateOf(constantes_lista_localidades.lista_img_seguridad.random())
-                }
+
                 rutas_turismo(
                     urlAleatoria ?: "",
                     "Contactar",

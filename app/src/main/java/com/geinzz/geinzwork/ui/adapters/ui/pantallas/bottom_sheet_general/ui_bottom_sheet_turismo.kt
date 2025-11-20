@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Settings
@@ -116,15 +117,12 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.verificar_hora_abierta_ykm
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.firebaseAuth
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.retornar_color_estado_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.calcularDistanciaKm
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp_bottom_sheet_dialog
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.data_redes_tiendas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.lista_turismo_bottom_sheet
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
@@ -366,6 +364,17 @@ fun card_img_container(
     var lugares_turisticos_filtrados by remember { mutableStateOf(emptyList<lugares_cercanos>()) }
     val snackbarHostState = remember { SnackbarHostState() }
     var scope = rememberCoroutineScope()
+    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+    var id_respado_user by remember { mutableStateOf("") }
+
+    LaunchedEffect(uid_respald_user) {
+        if (uid_respald_user.isNotEmpty()) {
+            id_respado_user = uid_respald_user
+            Log.d("UID_DataStore", "✅ Recuperado UID válido desde DataStore: $id_respado_user")
+        } else {
+            id_respado_user = ""
+        }
+    }
 
     LaunchedEffect(sub_categoria_selecionada) {
         viewmodel_turismo.actualizarCategoria(sub_categoria_selecionada)
@@ -471,7 +480,7 @@ fun card_img_container(
                                 ) == PackageManager.PERMISSION_GRANTED
                             ) {
                                 if (lugares_turisticos_filtrados.isNotEmpty()) {
-                                    if (firebaseAuth.currentUser != null) {
+                                    if (firebaseAuth.currentUser != null|| id_respado_user.isNotEmpty()) {
                                         ver_mapa(lugares_turisticos_filtrados)
                                         viewmodel_turismo.actualizarRadio(nueva_busqueda.toDouble())
                                         viewmodel_turismo.actualizar_lat_lugar(datos.latitud)
@@ -705,6 +714,7 @@ fun card_img_container(
                             ) {
                                 items(listaOrdenada, key = { it.id_tienda }) { item ->
                                     item_cercanos(
+                                        context,
                                         firebaseAuth,
                                         expanded = expandedItemId == item.id_tienda,
                                         tick,
@@ -812,6 +822,7 @@ fun card_img_container(
 
 @Composable
 fun item_cercanos(
+    context: Context,
     firebaseAuth: FirebaseAuth,
     expanded: Boolean,
     tick: Long,
@@ -836,7 +847,17 @@ fun item_cercanos(
     val widthImg by animateDpAsState(
         targetValue = if (expanded) 130.dp else 160.dp, label = "heightAnim"
     )
+    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+    var id_respado_user by remember { mutableStateOf("") }
 
+    LaunchedEffect(uid_respald_user) {
+        if (uid_respald_user.isNotEmpty()) {
+            id_respado_user = uid_respald_user
+            Log.d("UID_DataStore", "✅ Recuperado UID válido desde DataStore: $id_respado_user")
+        } else {
+            id_respado_user = ""
+        }
+    }
     Column {
         Box(
             modifier = Modifier
@@ -1012,7 +1033,7 @@ fun item_cercanos(
                                         .clip(CircleShape)
 
                                         .clickable {
-                                            if (firebaseAuth.currentUser != null) {
+                                            if (firebaseAuth.currentUser != null|| id_respado_user.isNotEmpty()) {
                                                 clik_icono(i)
                                             } else {
                                                 mostrar_dialog_registro()
