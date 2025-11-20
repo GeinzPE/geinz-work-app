@@ -9,6 +9,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,6 +59,12 @@ import androidx.core.content.ContextCompat
 import com.airbnb.lottie.model.content.CircleShape
 import com.geinzz.geinzwork.data.model.data_class_tienda_geinz
 import com.geinzz.geinzwork.data.model.dataclass_repo_agregar_datos
+import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_numero
+import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_red
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.ref_ubi
+import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_metodo_individual
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.model.repo_agregar_datos
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -75,439 +82,74 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.Firebase
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
+import com.google.gson.GsonBuilder
 import kotlinx.coroutines.launch
 import java.nio.file.WatchEvent
 
 
 @Composable
 fun datos_teindas() {
+    val lista_metood_pago = listOf("Yape", "Plin", "Efectivo", "Agora", "visa/Mastercard")
+    val lista_medood_contacto =
+        listOf("whatsapp", "telefono", "tiktok", "facebook", "instagram", "sitio web")
+    val lista_modelo_negocio = listOf("Fisico", "virtual")
+    val lista_pagado = listOf("Premiun", "Free")
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val scope = rememberCoroutineScope()
+    var repo_agregar_datos = repo_agregar_datos(context)
 
-    var latitud by rememberSaveable { mutableStateOf("") }
-    var longitud by rememberSaveable { mutableStateOf("") }
     var lat_ by rememberSaveable { mutableStateOf(0.0) }
     var lng_ by rememberSaveable { mutableStateOf(0.0) }
-    var direccion by rememberSaveable { mutableStateOf("") }
-    var referencia by rememberSaveable { mutableStateOf("") }
+    var contadorClicks by rememberSaveable { mutableStateOf(0) }
     var mostar_geo by rememberSaveable { mutableStateOf(false) }
-    val lista_metood_pago = listOf("Yape", "Plin", "Efectivo", "Agora", "visa/Mastercard")
-    val lista_medood_contacto = listOf("tiktok", "facebook", "instagram", "whatsapp", "telefono")
-
     var yape_select by rememberSaveable { mutableStateOf(false) }
     var plin_select by rememberSaveable { mutableStateOf(false) }
-
-
+    var Efectivo2 by rememberSaveable { mutableStateOf(false) }
+    var Agora2 by rememberSaveable { mutableStateOf(false) }
+    var visa2 by rememberSaveable { mutableStateOf(false) }
     var tk2 by rememberSaveable { mutableStateOf(false) }
     var fb2 by rememberSaveable { mutableStateOf(false) }
     var ig2 by rememberSaveable { mutableStateOf(false) }
     var ws2 by rememberSaveable { mutableStateOf(false) }
     var tlf2 by rememberSaveable { mutableStateOf(false) }
+    var stw2 by rememberSaveable { mutableStateOf(false) }
+    var modelo_negocio by rememberSaveable { mutableStateOf(false) }
+    var pagado by rememberSaveable { mutableStateOf(false) }
+    var pedir_ayuda_ia by rememberSaveable { mutableStateOf(false) }
+    var mostar_progrs_var_IA by remember { mutableStateOf(false) }
 
+    var latitud by rememberSaveable { mutableStateOf("") }
+    var longitud by rememberSaveable { mutableStateOf("") }
+    var direccion by rememberSaveable { mutableStateOf("") }
+    var referencia by rememberSaveable { mutableStateOf("") }
     var numero_yape by rememberSaveable { mutableStateOf("") }
     var titular_yape by rememberSaveable { mutableStateOf("") }
-
     var numero_plin by rememberSaveable { mutableStateOf("") }
     var titular_plin by rememberSaveable { mutableStateOf("") }
-
     var user_tk by rememberSaveable { mutableStateOf("") }
     var user_fb by rememberSaveable { mutableStateOf("") }
     var user_ig by rememberSaveable { mutableStateOf("") }
-
     var numero_whatsap by rememberSaveable { mutableStateOf("") }
     var numero_telefono by rememberSaveable { mutableStateOf("") }
+    var sitio_web by rememberSaveable { mutableStateOf("") }
+    var localidad by rememberSaveable { mutableStateOf("") }
+    var categoria by rememberSaveable { mutableStateOf("") }
+    var texto_nombre_lugar by rememberSaveable { mutableStateOf("") }
+    var txt_descipcion by rememberSaveable { mutableStateOf("") }
+    var valor_geohashin by rememberSaveable { (mutableStateOf("")) }
+
+    var subcategoarias_selet by rememberSaveable { mutableStateOf(listOf<String>()) }
+    var lista_subcategoria by rememberSaveable { mutableStateOf(listOf<String>()) }
+    var lista_categorias by rememberSaveable { mutableStateOf(listOf<String>()) }
+    var lista_subcategorias_full by rememberSaveable { mutableStateOf(listOf<List<String>>()) }
 
 
-
-    LaunchedEffect(latitud, longitud) {
-        mostar_geo = latitud.isNotEmpty() && longitud.isNotEmpty()
-    }
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .imePadding()
-    ) {
-        item {
-            _agregar_campos_txt(context)
-            spacer_vertical(10.dp)
-        }
-        item {
-            Row() {
-                OutlinedTextField(
-                    modifier = Modifier.weight(1f),
-                    value = latitud,
-                    onValueChange = { it ->
-                        latitud = it
-                    },
-                    shape = RoundedCornerShape(20.dp),
-                    label = { texto_generico_one_line("Latitud") },
-                    placeholder = { texto_generico_one_line("Latitud") },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        focusedPlaceholderColor = Color.Gray,
-                        unfocusedPlaceholderColor = Color.Gray,
-                    ), readOnly = true
-                )
-                spacer_horizonta(10.dp)
-                OutlinedTextField(
-                    modifier = Modifier.weight(1f),
-                    value = longitud,
-                    onValueChange = { it ->
-
-                        longitud = it
-                    },
-                    shape = RoundedCornerShape(20.dp),
-                    label = { texto_generico_one_line("longitud") },
-                    placeholder = { texto_generico_one_line("longitud") },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        focusedPlaceholderColor = Color.Gray,
-                        unfocusedPlaceholderColor = Color.Gray,
-                    ), readOnly = true
-                )
-
-            }
-            spacer_vertical(10.dp)
-            OutlinedTextField(
-                value = direccion,
-                onValueChange = { it ->
-                    direccion = it
-                },
-                label = { texto_generico_one_line("direccion") },
-                shape = RoundedCornerShape(20.dp),
-                placeholder = { texto_generico_one_line("direccion") },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    focusedPlaceholderColor = Color.Gray,
-                    unfocusedPlaceholderColor = Color.Gray,
-                ),
-            )
-            spacer_vertical(10.dp)
-            OutlinedTextField(
-                value = referencia,
-                onValueChange = { it ->
-                    referencia = it
-                },
-                label = { texto_generico_one_line("referencia") },
-                shape = RoundedCornerShape(20.dp),
-                placeholder = { texto_generico_one_line("referencia") },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    focusedPlaceholderColor = Color.Gray,
-                    unfocusedPlaceholderColor = Color.Gray,
-                ),
-            )
-            spacer_vertical(10.dp)
-        }
-
-        item {
-            if (mostar_geo) {
-                spacer_vertical(10.dp)
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.padding(start = 10.dp)
-                ) {
-                    texto_generico_one_line("geohasing:")
-                    texto_generico_one_line(
-                        "${
-                            constantes_lista_localidades.geohashing(
-                                lat_,
-                                lng_
-                            )
-                        }"
-                    )
-                }
-                spacer_vertical(10.dp)
-
-            }
-        }
-
-        item {
-            Button(onClick = {
-                if (ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-                    obtenerLatLogNoComposable(fusedLocationClient) { ubicacion ->
-                        if (ubicacion != null) {
-                            latitud = ubicacion.latitude.toString()
-                            lat_ = ubicacion.latitude
-                            lng_ = ubicacion.longitude
-                            longitud = ubicacion.longitude.toString()
-                        } else {
-                            latitud = "No disponible"
-                            longitud = "No disponible"
-                        }
-                    }
-                } else {
-                    Toast.makeText(context, "Activa el permiso de ubicación", Toast.LENGTH_SHORT)
-                        .show()
-                }
-            }) {
-                Text(text = "Obtener lat/log", color = Color.White)
-            }
-            spacer_vertical(20.dp)
-        }
-        item {
-            texto_generico_one_line(
-                "Metodos de pago",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-            spacer_vertical(5.dp)
-            ChipsCategoriasCheck(lista_metood_pago) { seleccionados ->
-                val yapeSelected = "Yape" in seleccionados
-                val plinSelected = "Plin" in seleccionados
-
-                if (yapeSelected) {
-                    yape_select = true
-                } else {
-                    yape_select = false
-                }
-
-                if (plinSelected) {
-                    plin_select = true
-                } else {
-                    plin_select = false
-                }
-            }
-
-        }
-        item {
-            if (yape_select) {
-                valor_txt_contacto("yape", numero_yape) { numero_yape = it }
-                spacer_vertical(5.dp)
-                OutlinedTextField(
-                    value = titular_yape,
-                    onValueChange = { it ->
-                        titular_yape = it
-                    },
-                    label = { texto_generico_one_line("titular de yape") },
-                    shape = RoundedCornerShape(20.dp),
-                    placeholder = { texto_generico_one_line("titular de yape") },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        focusedPlaceholderColor = Color.Gray,
-                        unfocusedPlaceholderColor = Color.Gray,
-                    ),
-                )
-                spacer_vertical(20.dp)
-            }
-            if (plin_select) {
-                valor_txt_contacto("plin", numero_plin) { numero_plin = it }
-                spacer_vertical(5.dp)
-                OutlinedTextField(
-                    value = titular_plin,
-                    onValueChange = { it ->
-                        titular_plin = it
-                    },
-                    label = { texto_generico_one_line("titular de plin") },
-                    shape = RoundedCornerShape(20.dp),
-                    placeholder = { texto_generico_one_line("titular de plin") },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        focusedPlaceholderColor = Color.Gray,
-                        unfocusedPlaceholderColor = Color.Gray,
-                    ),
-                )
-                spacer_vertical(20.dp)
-            }
-        }
-
-        item {
-            texto_generico_one_line(
-                "Metodos de contacto",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-            spacer_vertical(5.dp)
-            ChipsCategoriasCheck(lista_medood_contacto) { seleccionados ->
-                val tk = "tiktok" in seleccionados
-                val fb = "facebook" in seleccionados
-                val ig = "instagram" in seleccionados
-                val ws = "whatsapp" in seleccionados
-                val tlf = "telefono" in seleccionados
-                if (tk) {
-                    tk2 = true
-                } else {
-                    tk2 = false
-                }
-                if (fb) {
-                    fb2 = true
-                } else {
-                    fb2 = false
-                }
-                if (ig) {
-                    ig2 = true
-                } else {
-                    ig2 = false
-                }
-                if (ws) {
-                    ws2 = true
-                } else {
-                    ws2 = false
-                }
-                if (tlf) {
-                    tlf2 = true
-                } else {
-                    tlf2 = false
-                }
-            }
-
-        }
-
-        item {
-            if (tk2) {
-                valor_txt_contacto("tiktok", user_tk) { user_tk = it }
-            }
-            spacer_vertical(5.dp)
-
-            if (fb2) {
-                valor_txt_contacto("facebook", user_fb) { user_fb = it }
-            }
-            spacer_vertical(5.dp)
-
-            if (ig2) {
-                valor_txt_contacto("instagram", user_ig) { user_ig = it }
-            }
-            spacer_vertical(5.dp)
-
-            if (ws2) {
-                valor_txt_contacto("whatsapp", numero_whatsap) { numero_whatsap = it }
-            }
-            spacer_vertical(5.dp)
-
-            if (tlf2) {
-                valor_txt_contacto("telefono", numero_telefono) { numero_telefono = it }
-            }
-
-            spacer_vertical(20.dp)
-        }
-
-
-
-        item {
-            Button(onClick = {
-                var repo_agregar_datos = repo_agregar_datos(context)
-
-                repo_agregar_datos.pasar_datos()
-
-            }) { texto_generico_one_line("enviar") }
-        }
-
-    }
-}
-
-@Composable
-fun valor_txt_contacto(
-    tipo: String,
-    valor: String,
-    valor_retorno: (String) -> Unit
-) {
-    val txt = remember(tipo) {
-        if (tipo.equals("whatsapp", ignoreCase = true) ||
-            tipo.equals("telefono", ignoreCase = true) || tipo.equals(
-                "yape",
-                ignoreCase = true
-            ) || tipo.equals("plin", ignoreCase = true)
-        ) {
-            "Número de $tipo"
-        } else {
-            "Usuario de $tipo"
-        }
-    }
-
-    val keyboardType = remember(tipo) {
-        if (tipo.equals("whatsapp", ignoreCase = true) ||
-            tipo.equals("telefono", ignoreCase = true) || tipo.equals(
-                "yape",
-                ignoreCase = true
-            ) || tipo.equals("plin", ignoreCase = true)
-        ) {
-            KeyboardType.Phone  // teclado numérico
-        } else {
-            KeyboardType.Text   // texto normal
-        }
-    }
-
-    OutlinedTextField(
-        value = valor,
-        onValueChange = { valor_retorno(it) },
-        label = { texto_generico_one_line(txt) },
-        placeholder = { texto_generico_one_line(txt) },
-        shape = RoundedCornerShape(20.dp),
-        modifier = Modifier.fillMaxWidth(),
-        keyboardOptions = KeyboardOptions(
-            keyboardType = keyboardType
-        ),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = MaterialTheme.colorScheme.onBackground,
-            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-            unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            focusedLabelColor = MaterialTheme.colorScheme.primary,
-            focusedPlaceholderColor = Color.Gray,
-            unfocusedPlaceholderColor = Color.Gray,
-        )
-    )
-}
-
-@SuppressLint("CoroutineCreationDuringComposition")
-@Composable
-fun _agregar_campos_txt(context: Context,) {
-    val id_tienda by remember { mutableStateOf("") }
-    var localidad by remember { mutableStateOf("") }
-    var subcategoira_tienda by remember { mutableStateOf("") }
-    var subcategoarias_selet by remember { mutableStateOf(listOf<String>()) }
-    var modelo_negocio by remember { mutableStateOf(false) }
-    var pagado by remember { mutableStateOf(false) }
-    var categoria by remember { mutableStateOf("") }
-    var lista_subcategoria by remember { mutableStateOf(listOf<String>()) }
-    var lista_categorias by remember { mutableStateOf(listOf<String>()) }
-    var lista_subcategorias_full by remember { mutableStateOf(listOf<List<String>>()) } // TODAS
-    var texto_nombre_lugar by remember { mutableStateOf("") }
-    val scope = rememberCoroutineScope()
-    var txt_descipcion by remember { mutableStateOf("") }
-    var repo_agregar_datos = repo_agregar_datos(context)
-    var lista_modelo_negocio = listOf("Fisico", "virtual")
-    var lista_pagado = listOf("Premiun", "Free")
-    var contadorClicks by remember { mutableStateOf(0) }
     scope.launch {
-        var (d1, d2) = repo_agregar_datos.obtener_categorias()
+        val (d1, d2) = repo_agregar_datos.obtener_categorias()
         lista_categorias = d1
         lista_subcategorias_full = d2
     }
-
-    var pedir_ayuda_ia by remember { mutableStateOf(false) }
-    var mostar_progrs_var_IA by remember { mutableStateOf(false) }
-    var obtner_lat_log_carga by remember { mutableStateOf(false) }
-
-
     if (pedir_ayuda_ia) {
         scope.launch {
 
@@ -548,137 +190,632 @@ fun _agregar_campos_txt(context: Context,) {
         }
     }
 
-
-
-    OutlinedTextField(
-        value = texto_nombre_lugar,
-        onValueChange = { it ->
-            texto_nombre_lugar = it
-        },
-        label = { texto_generico_one_line("nombre") },
-        shape = RoundedCornerShape(20.dp),
-        placeholder = { texto_generico_one_line("nombre") },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = MaterialTheme.colorScheme.onBackground,
-            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-            unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            focusedLabelColor = MaterialTheme.colorScheme.primary,
-            focusedPlaceholderColor = Color.Gray,
-            unfocusedPlaceholderColor = Color.Gray,
-        ),
-    )
-    spacer_vertical(10.dp)
-    ExpandDropDown(
-        lista_categorias,
-        false,
-        "",
-        "categoria"
-    ) { seleccionado ->
-        categoria = seleccionado
-        val index = lista_categorias.indexOf(seleccionado)
-
-        if (index != -1) {
-            lista_subcategoria = lista_subcategorias_full[index]
-        }
+    LaunchedEffect(latitud, longitud) {
+        mostar_geo = latitud.isNotEmpty() && longitud.isNotEmpty()
     }
-    if (categoria.isNotEmpty()) {
-        spacer_vertical(10.dp)
-        chips_categorias(lista_subcategoria) { lista ->
-            subcategoarias_selet = lista
-        }
-    }
-    spacer_vertical(10.dp)
-    OutlinedTextField(
-        value = txt_descipcion,
-        onValueChange = { txt_descipcion = it },
-        label = { texto_generico_one_line("Descripción") },
-        placeholder = { texto_generico_one_line("Escribe una descripción atractiva...") },
+    LazyColumn(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(150.dp),   // altura tipo textarea
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = MaterialTheme.colorScheme.onBackground,
-            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-            unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            focusedLabelColor = MaterialTheme.colorScheme.primary,
-            focusedPlaceholderColor = Color.Gray,
-            unfocusedPlaceholderColor = Color.Gray,
-        ),
-        shape = RoundedCornerShape(20.dp),
-        maxLines = 8,          // varias líneas
-        singleLine = false     // textarea
-    )
-    spacer_vertical(10.dp)
-    if (texto_nombre_lugar.length > 3 && categoria.isNotEmpty()) {
-        Box(
-            modifier = Modifier
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary)
-                .clickable {
-                    contadorClicks++
-                    pedir_ayuda_ia = true
-                    mostar_progrs_var_IA = true
-                }) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(10.dp),
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                texto_generico_one_line(
-                    if (mostar_progrs_var_IA) "Generando..." else "Generar con IA",
-                    style = MaterialTheme.typography.bodyMedium
-                )
+            .fillMaxSize()
+            .imePadding()
+    ) {
 
-                if (mostar_progrs_var_IA) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .size(16.dp)           // más pequeño
-                        ,
-                        strokeWidth = 2.dp,
-                        trackColor = Color.White// delgado y elegante
-                    )
+        item {
+            OutlinedTextField(
+                value = texto_nombre_lugar,
+                onValueChange = { it ->
+                    texto_nombre_lugar = it
+                },
+                label = { texto_generico_one_line("nombre") },
+                shape = RoundedCornerShape(20.dp),
+                placeholder = { texto_generico_one_line("nombre",style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    focusedPlaceholderColor = Color.Gray,
+                    unfocusedPlaceholderColor = Color.Gray,
+                ),
+            )
+            spacer_vertical(10.dp)
+        }
+
+        item {
+            ExpandDropDown(
+                lista_categorias,
+                false,
+                "",
+                "categoria"
+            ) { seleccionado ->
+                categoria = seleccionado
+                val index = lista_categorias.indexOf(seleccionado)
+
+                if (index != -1) {
+                    lista_subcategoria = lista_subcategorias_full[index]
                 }
+            }
+            spacer_vertical(10.dp)
+        }
+
+        item {
+            if (categoria.isNotEmpty()) {
+                chips_categorias(lista_subcategoria) { lista ->
+                    subcategoarias_selet = lista
+                }
+                spacer_vertical(10.dp)
             }
 
         }
+
+        item {
+            OutlinedTextField(
+                value = txt_descipcion,
+                onValueChange = { txt_descipcion = it },
+                label = { texto_generico_one_line("Descripción") },
+                placeholder = { texto_generico_one_line("Escribe una descripción atractiva...",style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp),   // altura tipo textarea
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    focusedPlaceholderColor = Color.Gray,
+                    unfocusedPlaceholderColor = Color.Gray,
+                ),
+                shape = RoundedCornerShape(20.dp),
+                maxLines = 8,          // varias líneas
+                singleLine = false     // textarea
+            )
+            spacer_vertical(10.dp)
+            if (texto_nombre_lugar.length > 3 && categoria.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .clickable {
+                            contadorClicks++
+                            pedir_ayuda_ia = true
+                            mostar_progrs_var_IA = true
+                        }) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        texto_generico_one_line(
+                            if (mostar_progrs_var_IA) "Generando..." else "Generar con IA",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+
+                        if (mostar_progrs_var_IA) {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .size(16.dp)           // más pequeño
+                                ,
+                                strokeWidth = 2.dp,
+                                trackColor = Color.White// delgado y elegante
+                            )
+                        }
+                    }
+
+                }
+            }
+            spacer_vertical(10.dp)
+        }
+
+        item {
+            ExpandDropDown(
+                lista_localidad,
+                false,
+                "",
+                "localidad",
+            ) { sub ->
+                localidad = sub
+            }
+            spacer_vertical(10.dp)
+        }
+
+        item {
+
+            ExpandDropDown(
+                lista_modelo_negocio,
+                false,
+                "",
+                "modelo de negocio",
+            ) { modelo ->
+                if (modelo.equals("Fisico")) {
+                    modelo_negocio = true
+                } else {
+                    modelo_negocio = false
+                }
+            }
+        }
+
+        item {
+            spacer_vertical(10.dp)
+            ExpandDropDown(
+                lista_pagado,
+                false,
+                "",
+                "Pagado",
+            ) { modelo ->
+                if (modelo.equals("Premiun")) {
+                    pagado = true
+                } else {
+                    pagado = false
+                }
+            }
+            spacer_vertical(10.dp)
+        }
+
+        item {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    modifier = Modifier.weight(1f),
+                    value = latitud,
+                    onValueChange = { it ->
+                        latitud = it
+                    },
+                    shape = RoundedCornerShape(20.dp),
+                    label = { texto_generico_one_line("Latitud") },
+                    placeholder = { texto_generico_one_line("Latitud",style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        focusedPlaceholderColor = Color.Gray,
+                        unfocusedPlaceholderColor = Color.Gray,
+                    ), readOnly = true
+                )
+                OutlinedTextField(
+                    modifier = Modifier.weight(1f),
+                    value = longitud,
+                    onValueChange = { it ->
+
+                        longitud = it
+                    },
+                    shape = RoundedCornerShape(20.dp),
+                    label = { texto_generico_one_line("longitud") },
+                    placeholder = { texto_generico_one_line("longitud",style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        focusedPlaceholderColor = Color.Gray,
+                        unfocusedPlaceholderColor = Color.Gray,
+                    ), readOnly = true
+                )
+                Button(onClick = {
+                    if (ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        obtenerLatLogNoComposable(fusedLocationClient) { ubicacion ->
+                            if (ubicacion != null) {
+                                latitud = ubicacion.latitude.toString()
+                                lat_ = ubicacion.latitude
+                                lng_ = ubicacion.longitude
+                                longitud = ubicacion.longitude.toString()
+                            } else {
+                                latitud = "No disponible"
+                                longitud = "No disponible"
+                            }
+                        }
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Activa el permiso de ubicación",
+                            Toast.LENGTH_SHORT
+                        )
+                            .show()
+                    }
+                }) {
+                    Text(text = "Obtener lat/log", color = Color.White)
+                }
+            }
+            spacer_vertical(10.dp)
+            OutlinedTextField(
+                value = direccion,
+                onValueChange = { it ->
+                    direccion = it
+                },
+                label = { texto_generico_one_line("direccion") },
+                shape = RoundedCornerShape(20.dp),
+                placeholder = { texto_generico_one_line("direccion",style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    focusedPlaceholderColor = Color.Gray,
+                    unfocusedPlaceholderColor = Color.Gray,
+                ),
+            )
+            spacer_vertical(10.dp)
+            OutlinedTextField(
+                value = referencia,
+                onValueChange = { it ->
+                    referencia = it
+                },
+                label = { texto_generico_one_line("referencia",) },
+                shape = RoundedCornerShape(20.dp),
+                placeholder = { texto_generico_one_line("referencia", style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    focusedPlaceholderColor = Color.Gray,
+                    unfocusedPlaceholderColor = Color.Gray,
+                ),
+            )
+            spacer_vertical(10.dp)
+        }
+
+        item {
+            if (mostar_geo) {
+                spacer_vertical(10.dp)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.padding(start = 10.dp)
+                ) {
+                    texto_generico_one_line("geohasing:")
+                    valor_geohashin = constantes_lista_localidades.geohashing(
+                        lat_,
+                        lng_
+                    )
+                    texto_generico_one_line(
+                        valor_geohashin
+                    )
+
+                }
+                spacer_vertical(10.dp)
+
+            }
+        }
+
+
+
+        item {
+            spacer_vertical(10.dp)
+            texto_generico_one_line(
+                "Metodos de pago",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(start = 10.dp)
+            )
+            spacer_vertical(5.dp)
+            ChipsCategoriasCheck(lista_metood_pago) { seleccionados ->
+                val yapeSelected = "Yape" in seleccionados
+                val plinSelected = "Plin" in seleccionados
+                val Efectivo = "Efectivo" in seleccionados
+                val Agora = "Agora" in seleccionados
+                val visa = "visa/Mastercard" in seleccionados
+
+                if (yapeSelected) {
+                    yape_select = true
+                } else {
+                    yape_select = false
+                }
+
+                if (plinSelected) {
+                    plin_select = true
+                } else {
+                    plin_select = false
+                }
+
+                if (Efectivo) {
+                    Efectivo2 = true
+                } else {
+                    Efectivo2 = false
+                }
+                if (Agora) {
+                    Agora2 = true
+                } else {
+                    Agora2 = false
+                }
+                if (visa) {
+                    visa2 = true
+                } else {
+                    visa2 = false
+                }
+            }
+            if (yape_select) {
+                valor_txt_contacto("yape", numero_yape) { numero_yape = it }
+                spacer_vertical(5.dp)
+                OutlinedTextField(
+                    value = titular_yape,
+                    onValueChange = { it ->
+                        titular_yape = it
+                    },
+                    label = { texto_generico_one_line("titular de yape") },
+                    shape = RoundedCornerShape(20.dp),
+                    placeholder = { texto_generico_one_line("titular de yape",style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        focusedPlaceholderColor = Color.Gray,
+                        unfocusedPlaceholderColor = Color.Gray,
+                    ),
+                )
+                spacer_vertical(20.dp)
+            }
+            if (plin_select) {
+                valor_txt_contacto("plin", numero_plin) { numero_plin = it }
+                spacer_vertical(5.dp)
+                OutlinedTextField(
+                    value = titular_plin,
+                    onValueChange = { it ->
+                        titular_plin = it
+                    },
+                    label = { texto_generico_one_line("titular de plin") },
+                    shape = RoundedCornerShape(20.dp),
+                    placeholder = { texto_generico_one_line("titular de plin",style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        focusedPlaceholderColor = Color.Gray,
+                        unfocusedPlaceholderColor = Color.Gray,
+                    ),
+                )
+                spacer_vertical(20.dp)
+            }
+
+        }
+
+        item {
+            spacer_vertical(10.dp)
+            texto_generico_one_line(
+                "Metodos de contacto",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(start = 10.dp)
+            )
+            ChipsCategoriasCheck(lista_medood_contacto) { seleccionados ->
+                val tk = "tiktok" in seleccionados
+                val fb = "facebook" in seleccionados
+                val ig = "instagram" in seleccionados
+                val ws = "whatsapp" in seleccionados
+                val tlf = "telefono" in seleccionados
+                val stw = "sitio web" in seleccionados
+                if (tk) {
+                    tk2 = true
+                } else {
+                    tk2 = false
+                }
+                if (fb) {
+                    fb2 = true
+                } else {
+                    fb2 = false
+                }
+                if (ig) {
+                    ig2 = true
+                } else {
+                    ig2 = false
+                }
+                if (ws) {
+                    ws2 = true
+                } else {
+                    ws2 = false
+                }
+                if (tlf) {
+                    tlf2 = true
+                } else {
+                    tlf2 = false
+                }
+                if (stw) {
+                    stw2 = true
+                } else {
+                    stw2 = false
+                }
+            }
+            if (tk2) {
+                valor_txt_contacto("tiktok", user_tk) { user_tk = it }
+            }
+            spacer_vertical(5.dp)
+
+            if (fb2) {
+                valor_txt_contacto("facebook", user_fb) { user_fb = it }
+            }
+            spacer_vertical(5.dp)
+
+            if (ig2) {
+                valor_txt_contacto("instagram", user_ig) { user_ig = it }
+            }
+            spacer_vertical(5.dp)
+
+            if (ws2) {
+                valor_txt_contacto("whatsapp", numero_whatsap) { numero_whatsap = it }
+            }
+            spacer_vertical(5.dp)
+
+            if (tlf2) {
+                valor_txt_contacto("telefono", numero_telefono) { numero_telefono = it }
+            }
+            spacer_vertical(5.dp)
+            if (stw2) {
+                valor_txt_contacto("sitio web", sitio_web) { sitio_web = it }
+            }
+        }
+
+        item {
+            spacer_vertical(5.dp)
+            Button(onClick = {
+                val repo_agregar_datos = repo_agregar_datos(context)
+                val datos_enviar = data_class_tienda_geinz(
+                    categoria_tienda = categoria,
+                    descripcion = txt_descipcion,
+                    geogash = valor_geohashin,
+                    id_tienda = generarIdSeguro(),
+                    localida_tienda = localidad,
+                    modelo_negocio = modelo_negocio,
+                    nombre_tienda = texto_nombre_lugar,
+                    pagado = pagado,
+                    subcategoria = subcategoarias_selet,
+                    ubicacion = ref_ubi(
+                        latitud = lat_,
+                        longitud = lng_,
+                        referencia = referencia,
+                        direccion = direccion,
+                    ),
+                    metodo_pago = modelo_pagos_tienda(
+                        visa_mastercard = modelo_metodo_individual(
+                            numero = "",
+                            qr = "",
+                            nombre = "",
+                            enable = visa2,
+                        ),
+                        agora = modelo_metodo_individual(
+                            numero = "",
+                            qr = "",
+                            nombre = "",
+                            enable = Agora2,
+                        ),
+                        efectivo = modelo_metodo_individual(
+                            numero = "",
+                            qr = "",
+                            nombre = "",
+                            enable = Efectivo2,
+                        ),
+                        plin = modelo_metodo_individual(
+                            numero = numero_plin,
+                            qr = "",
+                            nombre = titular_plin,
+                            enable = yape_select,
+                        ),
+                        yape = modelo_metodo_individual(
+                            numero = numero_yape,
+                            qr = "",
+                            nombre = titular_yape,
+                            enable = plin_select,
+                        ),
+                    ),
+                    metodo_contacto = metodo_contacto_tienda(
+                        whatsapp = contacto_numero(
+                            estado = ws2,
+                            numero = numero_whatsap
+                        ),
+                        llamada = contacto_numero(
+                            estado = tlf2,
+                            numero = numero_telefono
+                        ),
+                        facebook = contacto_red(
+                            estado = fb2,
+                            nombre = user_fb,
+                            url = ""
+                        ),
+                        instagram = contacto_red(
+                            estado = ig2,
+                            nombre = user_ig,
+                            url = ""
+                        ),
+                        tiktok = contacto_red(
+                            estado = tk2,
+                            nombre = user_tk,
+                            url = ""
+                        ),
+                        sitio_web = contacto_red(
+                            estado = stw2,
+                            nombre = sitio_web,
+                            url = ""
+                        ),
+                    ),
+                )
+//                repo_agregar_datos.pasar_datos()
+                val gson = GsonBuilder().setPrettyPrinting().create()
+                Log.d("datos_enviamor", gson.toJson(datos_enviar))
+
+
+            }) { texto_generico_one_line("enviar") }
+        }
+
     }
-    spacer_vertical(10.dp)
-    ExpandDropDown(
-        lista_localidad,
-        false,
-        "",
-        "localidad",
-    ) { sub ->
-        localidad = sub
-    }
-    spacer_vertical(10.dp)
-    ExpandDropDown(
-        lista_modelo_negocio,
-        false,
-        "",
-        "modelo de negocio",
-    ) { modelo ->
-        if (modelo.equals("Fisico")) {
-            modelo_negocio = true
-        } else {
-            modelo_negocio = false
+}
+
+@Composable
+fun valor_txt_contacto(
+    tipo: String,
+    valor: String,
+    valor_retorno: (String) -> Unit
+) {
+    val txt = remember(tipo) {
+
+        when (tipo.lowercase()) {
+
+            "whatsapp", "telefono", "yape", "plin" ->
+                "Número de $tipo"
+
+            "sitio web" ->
+                "Nombre del sitio web"
+
+            else ->
+                "Usuario de $tipo"
         }
     }
-    spacer_vertical(10.dp)
-    ExpandDropDown(
-        lista_pagado,
-        false,
-        "",
-        "Pagado",
-    ) { modelo ->
-        if (modelo.equals("Premiun")) {
-            pagado = true
+
+    val keyboardType = remember(tipo) {
+        if (tipo.equals("whatsapp", ignoreCase = true) ||
+            tipo.equals("telefono", ignoreCase = true) || tipo.equals(
+                "yape",
+                ignoreCase = true
+            ) || tipo.equals("plin", ignoreCase = true)
+        ) {
+            KeyboardType.Phone
         } else {
-            pagado = false
+            KeyboardType.Text
         }
     }
+
+    OutlinedTextField(
+        value = valor,
+        onValueChange = { valor_retorno(it) },
+        label = { texto_generico_one_line(txt) },
+        placeholder = { texto_generico_one_line(txt,style = MaterialTheme.typography.bodyMedium,color= Color.Gray) },
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType
+        ),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            focusedPlaceholderColor = Color.Gray,
+            unfocusedPlaceholderColor = Color.Gray,
+        )
+    )
+}
+
+fun generarIdSeguro(): String {
+    val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    val random = java.security.SecureRandom()
+    val idLength = 20
+
+    val sb = StringBuilder(idLength)
+    repeat(idLength) {
+        sb.append(chars[random.nextInt(chars.length)])
+    }
+    return sb.toString()
 }
 
 @Composable
@@ -689,7 +826,7 @@ fun ChipsCategoriasCheck(
     var seleccionados by rememberSaveable {
         mutableStateOf(listOf<String>())
     }
-    spacer_vertical(10.dp)
+    spacer_vertical(5.dp)
 
     LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         items(lista) { item ->
@@ -700,7 +837,9 @@ fun ChipsCategoriasCheck(
                 modifier = Modifier
                     .clip(CircleShape)
 
-                    .clickable {
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }) {
                         seleccionados = if (isSelected)
                             seleccionados - item
                         else
@@ -742,7 +881,7 @@ fun ChipsCategoriasCheck(
         }
     }
 
-    spacer_vertical(10.dp)
+    spacer_vertical(3.dp)
 }
 
 
@@ -751,7 +890,7 @@ fun chips_categorias(
     lista: List<String>,
     lista_select: (List<String>) -> Unit
 ) {
-    var seleccionados by remember { mutableStateOf(listOf<String>()) }
+    var seleccionados by rememberSaveable { mutableStateOf(listOf<String>()) }
 
     spacer_vertical(10.dp)
 
@@ -765,11 +904,13 @@ fun chips_categorias(
                     .clip(CircleShape)
                     .background(
                         if (isSelected)
-                            Color.White // Blanco
+                            Color.White
                         else
-                            MaterialTheme.colorScheme.primary      // Primario
+                            MaterialTheme.colorScheme.primary
                     )
-                    .clickable {
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }) {
                         seleccionados =
                             if (isSelected)
                                 seleccionados - item
@@ -777,11 +918,11 @@ fun chips_categorias(
                                 seleccionados + item
 
                         lista_select(seleccionados)
-                    }
+                    }, contentAlignment = Alignment.Center
             ) {
                 texto_generico_one_line(
                     item,
-                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 16.dp),
+                    modifier = Modifier.padding(horizontal = 15.dp, vertical = 10.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (isSelected)
                         Color.Black

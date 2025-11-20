@@ -324,7 +324,7 @@ fun ExpandDropDown(
     selecionado: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var selected by remember { mutableStateOf("") }
+    var selected by rememberSaveable { mutableStateOf("") }
 
     Column {
         ExposedDropdownMenuBox(
