@@ -1589,6 +1589,7 @@ fun ramdoBox(
             )
         }
     }
+
     viewModelFiltros.setear_color(resultado.color)
 
     val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]

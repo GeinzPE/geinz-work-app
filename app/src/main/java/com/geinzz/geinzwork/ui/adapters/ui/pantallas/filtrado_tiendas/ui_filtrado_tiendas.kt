@@ -91,6 +91,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 //import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.selec_class_estados_carga
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
@@ -124,6 +125,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.firebaseAuth
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.centrado_hori_vertical
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularTiempoRestante
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularTiempoRestante_box
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_subcategoria_shadow
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.mostrar_iconos_pagos
@@ -742,6 +744,19 @@ fun retornar_color_estado_tienda(
     val resultado by remember(horario_total, hCierre, cerrado, motivo, tick) {
         derivedStateOf { calcularTiempoRestante(horario_total, hCierre, cerrado, motivo) }
     }
+    color(resultado.color)
+}
+
+@Composable
+fun retornar_color_estado_tienda_Box(
+    horario_total: HorarioDia_box,
+    tick: Long,
+    color: (Color) -> Unit
+) {
+    val resultado by remember(horario_total, tick) {
+        derivedStateOf { calcularTiempoRestante_box(horario_total) }
+    }
+    Log.d("resutlaodssad_tiempo",resultado.texto)
     color(resultado.color)
 }
 

@@ -146,6 +146,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.requestCallPermission
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.TiempoRestanteCierre
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes_publicaciones_general_user_tiendas.obtenerDiaActualEnEspañol
@@ -187,6 +188,7 @@ fun bottom_sheet_tiendas_filtradas(
     val context = LocalContext.current
     val firebaseAuth = FirebaseAuth.getInstance()
     viewModelFiltros.cast_horario_atencion_horario_tienda(tiendas_filtradas.horario_atencion)
+    viewModelFiltros.cast_horario_atencion_horario_tienda_box(tiendas_filtradas.horario_tienda_box)
     var expandir_descripcion by rememberSaveable { mutableStateOf(false) }
     var expander_caracterisiticas by rememberSaveable { mutableStateOf(false) }
     var expander_contacto by rememberSaveable { mutableStateOf(false) }
@@ -738,10 +740,10 @@ fun perfil_cabezero(
     lista_tags: List<String>
 ) {
     val horario_tiempo_real by viewModelFiltros.color_estado_tienda.collectAsState()
+    val _color_estado_tienda_Box by viewModelFiltros.color_estado_tienda_box.collectAsState()
     val tick by viewModelFiltros.tick.collectAsState()
 
     Column {
-
         Text(
             text = nombre_tienda.uppercase(),
             style = MaterialTheme.typography.titleLarge,
@@ -762,6 +764,12 @@ fun perfil_cabezero(
         ) { color ->
             viewModelFiltros.setear_color(color)
         }
+
+        retornar_color_estado_tienda_Box(_color_estado_tienda_Box,tick,{colr->
+
+        })
+
+
 
         spacer_vertical(5.dp)
 

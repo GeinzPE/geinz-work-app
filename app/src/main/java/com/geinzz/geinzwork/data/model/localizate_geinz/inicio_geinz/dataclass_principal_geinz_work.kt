@@ -3,6 +3,7 @@ package com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz
 import android.R
 import android.os.Parcelable
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.item_metodos_pago
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
@@ -115,4 +116,5 @@ data class favoritos_guardados(
     val localida_tienda:String,
     val estaAbierto: Boolean = false,
     val horario: horario_tienda =  horario_tienda(),
+    val horario_tienda_box:HorarioAtencion_box = HorarioAtencion_box()
 )

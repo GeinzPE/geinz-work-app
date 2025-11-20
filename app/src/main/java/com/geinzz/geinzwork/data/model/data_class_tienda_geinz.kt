@@ -1,9 +1,8 @@
 package com.geinzz.geinzwork.data.model
-
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.ref_ubi
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
-import com.google.firebase.Timestamp
 
 data class data_class_tienda_geinz(
     val categoria_tienda: String,
@@ -19,8 +18,12 @@ data class data_class_tienda_geinz(
     val metodo_pago:modelo_pagos_tienda =modelo_pagos_tienda(),
     val metodo_contacto:metodo_contacto_tienda= metodo_contacto_tienda(),
     val fechas:ingreso_date,
-    val timeSlamp: String
+    val timeSlamp: String,
+    val horario_atencion: HorarioAtencion_box,
+    val lista_img:img_tienda
 )
+
+data class img_tienda(val lista_img: List<String> =emptyList(),val logo_tienda:String="")
 
 data class ingreso_date(
     val hora_ingreso:String="",

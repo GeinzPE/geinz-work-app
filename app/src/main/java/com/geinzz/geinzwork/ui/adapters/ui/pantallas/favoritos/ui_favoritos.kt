@@ -84,6 +84,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda.LazyRowConSombras
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.TiempoRestanteCierre
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.principal.AutoResizeOneLineText
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
@@ -1005,6 +1006,8 @@ fun carta_desing_fv(
                     pagado = true,
                     max_line = 1, tick = tick
                 ) {}
+
+
                 spacer_vertical(5.dp)
                 val iconCategoria = constantes_lista_localidades.getCategoriaIcon(item.categoria)
                 texto_generico_one_line(

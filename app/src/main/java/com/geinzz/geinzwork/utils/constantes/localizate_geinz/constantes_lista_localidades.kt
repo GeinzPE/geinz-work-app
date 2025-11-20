@@ -88,7 +88,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_metodo_individual
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.google.android.gms.common.api.ResolvableApiException
@@ -292,6 +296,40 @@ object constantes_lista_localidades {
         } catch (e: Exception) {
             Log.e("HORARIO_CHECK", "Error al verificar horario", e)
             false
+        }
+    }
+
+    fun estaAbiertoHoy(horarioHoy: HorarioDia_box): Boolean {
+        try {
+            if (horarioHoy.cerrado) return false
+            if (horarioHoy.bloques.isEmpty()) return false
+
+            val formato = SimpleDateFormat("HH:mm", Locale.getDefault())
+            val horaActual = formato.parse(formato.format(Date())) ?: return false
+
+            for (bloque in horarioHoy.bloques) {
+
+                val apertura = formato.parse(bloque.h_apertura)
+                val cierre = formato.parse(bloque.h_cierre)
+
+                if (apertura == null || cierre == null) continue
+
+                val abierto = if (cierre.after(apertura)) {
+                    // HORARIO NORMAL → 09:00 → 14:00
+                    horaActual in apertura..cierre
+                } else {
+                    // CRUCE MEDIANOCHE → 20:00 → 02:00
+                    horaActual.after(apertura) || horaActual.before(cierre)
+                }
+
+                if (abierto) return true
+            }
+
+            return false
+
+        } catch (e: Exception) {
+            Log.e("HORARIO_CHECK", "Error verificando horario: ${e.message}")
+            return false
         }
     }
 
@@ -2059,6 +2097,104 @@ object constantes_lista_localidades {
         }
     }
 
+    fun calcularTiempoRestante_box(
+        horarioDia: HorarioDia_box
+    ): TiempoRestanteResult {
+        return try {
+            val ahora = Calendar.getInstance()
+            val formato24 = SimpleDateFormat("HH:mm", Locale.getDefault())
+            val formato12 = SimpleDateFormat("hh:mm a", Locale.getDefault())
+
+            // 🔹 Local cerrado temporalmente
+            if (horarioDia.cerrado) {
+                if (horarioDia.motivo.isNotBlank()) {
+                    return TiempoRestanteResult(horarioDia.motivo, Color(0xFFF4C524))
+                } else if (horarioDia.dia_prox_apertura.isNotBlank() && horarioDia.hora_prox_apertura.isNotBlank()) {
+                    val horaFormateada = try {
+                        formato12.format(formato24.parse(horarioDia.hora_prox_apertura)!!)
+                    } catch (e: Exception) {
+                        horarioDia.hora_prox_apertura
+                    }
+                    return TiempoRestanteResult(
+                        "Abre ${horarioDia.dia_prox_apertura} a las $horaFormateada",
+                        Color.Red
+                    )
+                } else {
+                    return TiempoRestanteResult("Cerrado", Color.Red)
+                }
+            }
+
+            // 🔹 Iterar sobre los bloques del día
+            for (bloque in horarioDia.bloques) {
+                val apertura = Calendar.getInstance()
+                val cierre = Calendar.getInstance()
+
+                val parsedApertura = formato24.parse(bloque.h_apertura)
+                val parsedCierre = formato24.parse(bloque.h_cierre)
+
+                if (parsedApertura == null || parsedCierre == null) continue
+
+                apertura.time = parsedApertura
+                cierre.time = parsedCierre
+
+                // Ajustar la fecha al día actual
+                listOf(apertura, cierre).forEach { cal ->
+                    cal.set(Calendar.YEAR, ahora.get(Calendar.YEAR))
+                    cal.set(Calendar.MONTH, ahora.get(Calendar.MONTH))
+                    cal.set(Calendar.DAY_OF_MONTH, ahora.get(Calendar.DAY_OF_MONTH))
+                }
+
+                val ahoraMillis = ahora.timeInMillis
+
+                when {
+                    // Antes de abrir este bloque
+                    ahoraMillis < apertura.timeInMillis -> {
+                        val horaFormateada = formato12.format(apertura.time)
+                        return TiempoRestanteResult("Abre hoy a las $horaFormateada", Color.Red)
+                    }
+
+                    // Durante este bloque
+                    ahoraMillis in apertura.timeInMillis..cierre.timeInMillis -> {
+                        val diffMillis = cierre.timeInMillis - ahoraMillis
+                        val horas = TimeUnit.MILLISECONDS.toHours(diffMillis)
+                        val minutos = TimeUnit.MILLISECONDS.toMinutes(diffMillis) % 60
+
+                        val texto = when {
+                            horas > 0 && minutos > 0 -> "Cierra en ${horas}h ${minutos}m"
+                            horas > 0 -> "Cierra en ${horas}h"
+                            minutos > 0 -> "Cierra en ${minutos}m"
+                            else -> "Cerrando"
+                        }
+
+                        val color = when {
+                            horas >= 1 -> Color.Green
+                            minutos in 15..59 -> Color(0xFFFFC107)
+                            else -> Color(0xFFFF5722)
+                        }
+
+                        return TiempoRestanteResult(texto, color)
+                    }
+                }
+            }
+
+            // 🔴 Todos los bloques ya pasaron → mostrar próximo día de apertura
+            if (horarioDia.dia_prox_apertura.isNotBlank() && horarioDia.hora_prox_apertura.isNotBlank()) {
+                val horaFormateada = try {
+                    formato12.format(formato24.parse(horarioDia.hora_prox_apertura)!!)
+                } catch (e: Exception) {
+                    horarioDia.hora_prox_apertura
+                }
+                TiempoRestanteResult("Abre ${horarioDia.dia_prox_apertura} a las $horaFormateada", Color.Red)
+            } else {
+                TiempoRestanteResult("Cerrado", Color.Red)
+            }
+
+        } catch (e: Exception) {
+            TiempoRestanteResult("", Color.Gray)
+        }
+    }
+
+
     fun Map<String, Any>?.toMetodoContacto(): metodo_contacto_tienda {
         fun Map<String, Any>?.toNumero() = contacto_numero(
             estado = this?.get("estado") as? Boolean ?: false,
@@ -2127,6 +2263,89 @@ object constantes_lista_localidades {
             domingo = mapearDia(this["domingo"] as? Map<String, Any>)
         )
     }
+
+
+    fun Map<String, Any>?.to_horario_atencion_box_dia(): HorarioAtencion_box {
+        Log.d("HORARIO_BOX_MAP", "---- INICIO to_horario_atencion_box_dia ----")
+
+        if (this == null) {
+            Log.d("HORARIO_BOX_MAP", "El mapa recibido ES NULL. Retornando HorarioAtencion_box vacío.")
+            return HorarioAtencion_box()
+        }
+
+        // Logear todo el mapa recibido
+        Log.d("HORARIO_BOX_MAP", "Mapa completo recibido: $this")
+
+        fun logDia(nombre: String, valor: Any?) {
+            Log.d("HORARIO_BOX_MAP", "Día '$nombre' recibido: $valor")
+        }
+
+        // Loguear día por día
+        logDia("lunes", this["lunes"])
+        logDia("martes", this["martes"])
+        logDia("miércoles", this["miércoles"])
+        logDia("jueves", this["jueves"])
+        logDia("viernes", this["viernes"])
+        logDia("sábado", this["sábado"])
+        logDia("domingo", this["domingo"])
+
+        val horario = HorarioAtencion_box(
+            lunes = mapearHorario_box_Dia(this["lunes"] as? Map<String, Any>),
+            martes = mapearHorario_box_Dia(this["martes"] as? Map<String, Any>),
+            miercoles = mapearHorario_box_Dia(this["miércoles"] as? Map<String, Any>),
+            jueves = mapearHorario_box_Dia(this["jueves"] as? Map<String, Any>),
+            viernes = mapearHorario_box_Dia(this["viernes"] as? Map<String, Any>),
+            sabado = mapearHorario_box_Dia(this["sábado"] as? Map<String, Any>),
+            domingo = mapearHorario_box_Dia(this["domingo"] as? Map<String, Any>)
+        )
+
+        Log.d("HORARIO_BOX_MAP", "Resultado final mapeado: $horario")
+        Log.d("HORARIO_BOX_MAP", "---- FIN to_horario_atencion_box_dia ----")
+
+        return horario
+    }
+
+
+    fun mapearHorario_box_Dia(diaMap: Map<String, Any>?): HorarioDia_bloques {
+        if (diaMap == null) return HorarioDia_bloques()
+
+        // Obtener cerrado y motivo
+        val cerrado = diaMap["cerrado"] as? Boolean ?: false
+        val motivo = diaMap["motivo"] as? String ?: ""
+
+        // Obtener bloques
+        val bloquesList = (diaMap["bloques"] as? List<Map<String, Any>>)?.map { bloqueMap ->
+            HorarioBloque(
+                h_apertura = bloqueMap["h_apertura"] as? String ?: "00:00",
+                h_cierre = bloqueMap["h_cierre"] as? String ?: "00:00"
+            )
+        } ?: emptyList()
+
+        return HorarioDia_bloques(
+            bloques = bloquesList,
+            cerrado = cerrado,
+            motivo = motivo
+        )
+    }
+
+    fun mapearHorarioDia_box2(diaMap: Map<String, Any>?): HorarioDia_box {
+        if (diaMap == null) return HorarioDia_box()
+
+        // Mapear los bloques
+        val bloquesMapeados = (diaMap["bloques"] as? List<Map<String, Any>>)?.map { bloqueMap ->
+            com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque(
+                h_apertura = bloqueMap["h_apertura"] as? String ?: "",
+                h_cierre = bloqueMap["h_cierre"] as? String ?: ""
+            )
+        } ?: emptyList()
+
+        return HorarioDia_box(
+            bloques = bloquesMapeados,
+            cerrado = diaMap["cerrado"] as? Boolean ?: false,
+            motivo = diaMap["motivo"] as? String ?: ""
+        )
+    }
+
 
 
     data class cordenasdas(val lat: Double, val longitud: Double)

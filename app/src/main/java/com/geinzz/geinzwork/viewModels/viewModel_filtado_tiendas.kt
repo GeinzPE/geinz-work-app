@@ -11,10 +11,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioTienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub_lista_cat
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener_tiendas_lat_log_id
@@ -102,6 +104,10 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
 
     private val _color_estado_tienda = MutableStateFlow(horario_tienda())
     val color_estado_tienda: StateFlow<horario_tienda> = _color_estado_tienda
+
+
+    private val _color_estado_tienda_Box = MutableStateFlow(HorarioDia_box())
+    val color_estado_tienda_box: StateFlow<HorarioDia_box> = _color_estado_tienda_Box
 
 
     private val _color_estado_tienda_flow = MutableStateFlow(Color.Gray)
@@ -404,17 +410,17 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
         }
     }
 
-
-    fun obtenerHorarioPorTienda(localidad: String, idTienda: String) {
-        viewModelScope.launch {
-            try {
-                val data = repo_filtrado.obtenerHorarioPorTienda2(idTienda, localidad)
-                _horarioTienda.value = data
-            } catch (e: Exception) {
-                _horarioTienda.value = null
-            }
-        }
-    }
+//
+//    fun obtenerHorarioPorTienda(localidad: String, idTienda: String) {
+//        viewModelScope.launch {
+//            try {
+//                val data = repo_filtrado.obtenerHorarioPorTienda2(idTienda, localidad)
+//                _horarioTienda.value = data
+//            } catch (e: Exception) {
+//                _horarioTienda.value = null
+//            }
+//        }
+//    }
 
     fun obtener_numeros_seguridad_salud(localidad: String, idSelect: String) {
         viewModelScope.launch {
@@ -446,10 +452,20 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
         Log.d("cast_horario_atencion_horario_tienda", horarioAtencion.toString())
         viewModelScope.launch {
             try {
-                _color_estado_tienda.value =
-                    repo_filtrado.obtener_estado_horario_tienda(horarioAtencion)
+                _color_estado_tienda.value = repo_filtrado.obtener_estado_horario_tienda(horarioAtencion)
             } catch (e: Exception) {
                 _color_estado_tienda.value = horario_tienda()
+            }
+        }
+    }
+    fun cast_horario_atencion_horario_tienda_box(horarioAtencion: HorarioAtencion_box) {
+        Log.d("cast_horario_atencion_horario_tienda", horarioAtencion.toString())
+        viewModelScope.launch {
+            try {
+                _color_estado_tienda_Box.value =
+                    repo_filtrado.obtener_estado_horario_tienda_Box(horarioAtencion)
+            } catch (e: Exception) {
+                _color_estado_tienda_Box.value = HorarioDia_box()
             }
         }
     }

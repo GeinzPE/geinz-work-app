@@ -2,6 +2,8 @@ package com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas
 
 import android.os.Parcelable
 import androidx.compose.ui.graphics.Color
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import kotlinx.android.parcel.Parcelize
@@ -56,7 +58,8 @@ data class tiendas_por_categoria(
     val horario_dia: horario_tienda = horario_tienda(),
     val estaAbierto: Boolean = false,
     var contacto_tienda: metodo_contacto_tienda,
-    val metodos_pago_tienda: modelo_pagos_tienda = modelo_pagos_tienda()
+    val metodos_pago_tienda: modelo_pagos_tienda = modelo_pagos_tienda(),
+    val horario_tienda_box: HorarioAtencion_box
 ) : Parcelable
 
 @Parcelize
@@ -107,6 +110,18 @@ data class tiendas_cecanas_km(
 data class horario_tienda(
     val h_apertura: String = "",
     val h_cierre: String = "",
+    val cerrado: Boolean = false,
+    val motivo: String = "",
+    val dia_prox_apertura: String = "",
+    val hora_prox_apertura: String = ""
+) : Parcelable
+
+
+
+
+@Parcelize
+data class HorarioDia_box(
+    val bloques: List<HorarioBloque> = emptyList(),
     val cerrado: Boolean = false,
     val motivo: String = "",
     val dia_prox_apertura: String = "",

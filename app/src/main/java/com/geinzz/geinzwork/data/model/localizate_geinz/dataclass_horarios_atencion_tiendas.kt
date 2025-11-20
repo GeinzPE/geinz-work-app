@@ -51,7 +51,8 @@ data class modelo_tienda(
     val pagado: Boolean=false,
     val metodo_contacto_tienda:metodo_contacto_tienda= metodo_contacto_tienda(),
     val horario_atencion: HorarioAtencion = HorarioAtencion(), // 🔹 Aquí se agrega el horario
-    val metodos_pago_tienda:modelo_pagos_tienda =modelo_pagos_tienda()
+    val metodos_pago_tienda:modelo_pagos_tienda =modelo_pagos_tienda(),
+    val horario_tienda_box:HorarioAtencion_box=HorarioAtencion_box()
 )
 @Parcelize
 data class modelo_pagos_tienda(
@@ -99,6 +100,18 @@ data class HorarioDia(
     val h_cierre: String = "",
     val motivo: String = ""
 )
+@Parcelize
+data class HorarioBloque(
+    val h_apertura: String,      // "09:00"
+    val h_cierre: String,        // "14:00"
+): Parcelable
+
+@Parcelize
+data class HorarioDia_bloques(
+    val bloques: List<HorarioBloque> = emptyList(),
+    val cerrado: Boolean = false, // si el día completo está cerrado
+    val motivo: String = ""       // motivo del cierre del día
+): Parcelable
 
 data class HorarioAtencion(
     val lunes: HorarioDia = HorarioDia(),
@@ -109,6 +122,16 @@ data class HorarioAtencion(
     val sabado: HorarioDia = HorarioDia(),
     val domingo: HorarioDia = HorarioDia()
 )
+@Parcelize
+data class HorarioAtencion_box(
+    val lunes: HorarioDia_bloques = HorarioDia_bloques(),
+    val martes: HorarioDia_bloques = HorarioDia_bloques(),
+    val miercoles: HorarioDia_bloques = HorarioDia_bloques(),
+    val jueves: HorarioDia_bloques = HorarioDia_bloques(),
+    val viernes: HorarioDia_bloques = HorarioDia_bloques(),
+    val sabado: HorarioDia_bloques = HorarioDia_bloques(),
+    val domingo: HorarioDia_bloques = HorarioDia_bloques()
+): Parcelable
 
 
 //

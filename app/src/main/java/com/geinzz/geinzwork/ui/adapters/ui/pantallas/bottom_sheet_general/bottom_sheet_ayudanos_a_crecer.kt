@@ -50,6 +50,7 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
 import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_numero
 import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_red
@@ -136,7 +137,7 @@ fun bottom_sheet_ayudanos_a_creccer(
             efectivo = modelo_metodo_individual(enable = true),
             yape = modelo_metodo_individual(enable = true, numero = "987654321"),
             visa_mastercard = modelo_metodo_individual(enable = true)
-        )
+        ),horario_tienda_box=HorarioAtencion_box()
     )
 
     var ejemplo_tienda_free = datos_tienda_free(

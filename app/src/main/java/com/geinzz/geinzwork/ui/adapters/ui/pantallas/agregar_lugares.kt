@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.TimePickerDialog
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -9,6 +10,7 @@ import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Chip
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,11 +42,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
 
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,10 +64,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.airbnb.lottie.model.content.CircleShape
 import com.geinzz.geinzwork.data.model.data_class_tienda_geinz
 import com.geinzz.geinzwork.data.model.dataclass_repo_agregar_datos
+import com.geinzz.geinzwork.data.model.img_tienda
 import com.geinzz.geinzwork.data.model.ingreso_date
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
 import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_numero
 import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_red
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.ref_ubi
@@ -78,6 +90,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.f
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.fechaUnaSemanaDespues
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.lista_localidad
+import com.geinzz.geinzwork.viewModels.viewmodel_agregar_datos
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -86,11 +99,13 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.Firebase
+import com.google.firebase.Timestamp
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.launch
 import java.nio.file.WatchEvent
+import java.security.SecureRandom
 
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -102,11 +117,13 @@ fun datos_teindas() {
         listOf("whatsapp", "telefono", "tiktok", "facebook", "instagram", "sitio web")
     val lista_modelo_negocio = listOf("Fisico", "virtual")
     val lista_pagado = listOf("Premiun", "Free")
+
+    val viewmodel_agregar_datos: viewmodel_agregar_datos = viewModel()
     val context = LocalContext.current
+    val horario_atencion = viewmodel_agregar_datos.obtenerHorarioAtencion()
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val scope = rememberCoroutineScope()
     var repo_agregar_datos = repo_agregar_datos(context)
-
     var lat_ by rememberSaveable { mutableStateOf(0.0) }
     var lng_ by rememberSaveable { mutableStateOf(0.0) }
     var contadorClicks by rememberSaveable { mutableStateOf(0) }
@@ -151,6 +168,7 @@ fun datos_teindas() {
     var lista_subcategoria by rememberSaveable { mutableStateOf(listOf<String>()) }
     var lista_categorias by rememberSaveable { mutableStateOf(listOf<String>()) }
     var lista_subcategorias_full by rememberSaveable { mutableStateOf(listOf<List<String>>()) }
+
 
 
     scope.launch {
@@ -532,8 +550,6 @@ fun datos_teindas() {
             }
         }
 
-
-
         item {
             spacer_vertical(10.dp)
             texto_generico_one_line(
@@ -713,16 +729,27 @@ fun datos_teindas() {
         }
 
         item {
+            spacer_vertical(10.dp)
+            texto_generico_one_line(
+                "Horario",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(start = 10.dp)
+            )
+
+            HorarioSemanal(viewmodel_agregar_datos)
+
+        }
+
+        item {
             spacer_vertical(5.dp)
             Button(onClick = {
                 val repo_agregar_datos = repo_agregar_datos(context)
-                val timeStamp = com.google.firebase.Timestamp.now()
                 val datos_enviar = data_class_tienda_geinz(
                     categoria_tienda = categoria,
                     descripcion = txt_descipcion,
                     geogash = valor_geohashin,
                     id_tienda = generarIdSeguro(),
-                    localida_tienda = localidad,
+                    localida_tienda = localidad.lowercase(),
                     modelo_negocio = modelo_negocio,
                     nombre_tienda = texto_nombre_lugar,
                     pagado = pagado,
@@ -800,9 +827,18 @@ fun datos_teindas() {
                         fecha_ingreso = fechaActual(),
                         fecha_fin = fechaUnaSemanaDespues()
                     ),
-                    timeSlamp = timeStampNumero()
+                    timeSlamp = timeStampNumero(),
+                    horario_atencion = HorarioAtencion_box(
+                        lunes = horario_atencion.lunes,
+                        martes = horario_atencion.martes,
+                        miercoles = horario_atencion.miercoles,
+                        jueves = horario_atencion.jueves,
+                        viernes = horario_atencion.viernes,
+                        sabado = horario_atencion.sabado,
+                        domingo = horario_atencion.domingo,
+                    ), lista_img = img_tienda()
                 )
-//                repo_agregar_datos.pasar_datos()
+                repo_agregar_datos.agraegar_datos_db_2(datos_enviar)
                 val gson = GsonBuilder().setPrettyPrinting().create()
                 Log.d("datos_enviamor", gson.toJson(datos_enviar))
 
@@ -811,6 +847,213 @@ fun datos_teindas() {
         }
 
     }
+}
+
+@Composable
+fun HorarioSemanal(viewmodel_agregar_datos: viewmodel_agregar_datos) {
+
+    val context = LocalContext.current
+
+    val dias = listOf(
+        "Lunes", "Martes", "Miércoles",
+        "Jueves", "Viernes", "Sábado", "Domingo"
+    )
+
+    val mapaHoras = viewmodel_agregar_datos.mapaHoras
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+
+        dias.forEach { dia ->
+
+            val item = mapaHoras[dia]!!
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+
+                        Box(
+                            modifier = Modifier.weight(1f),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            texto_generico_one_line(dia)
+                        }
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+
+                            Text(if (item.cerrado.value) "Abierto" else "Cerrado")
+
+                            spacer_horizonta(5.dp)
+
+                            Switch(
+                                checked = item.cerrado.value,
+                                onCheckedChange = { value ->
+                                    item.cerrado.value = value
+                                    if (!value) { // si el día se marca como cerrado
+                                        item.h1AM.value = ""
+                                        item.h2AM.value = ""
+                                        item.h1PM.value = ""
+                                        item.h2PM.value = ""
+                                        item.solo_horario.value = false
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    // Mostrar horarios solo si NO está cerrado
+                    AnimatedVisibility(item.cerrado.value) {
+
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+
+                                Checkbox(
+                                    checked = item.solo_horario.value,
+                                    onCheckedChange = { nuevo ->
+                                        item.solo_horario.value = nuevo
+                                    }
+                                )
+
+                                Text(
+                                    text = if (item.solo_horario.value)
+                                        "Trabajo de corrido"
+                                    else
+                                        "Trabajo con descanso"
+                                )
+                            }
+
+                            // MAÑANA ---------------------
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+
+                                campoHora(
+                                    valor = item.h1AM.value,
+                                    etiqueta = "Apertura AM",
+                                    onHoraSeleccionada = { new ->
+                                        item.h1AM.value = new
+                                    },
+                                    abrirTimePicker = { valorActual, onSelect ->
+                                        abrirTimePicker(context, valorActual, onSelect)
+                                    }
+                                )
+
+                                texto_generico_one_line(" a ")
+
+                                campoHora(
+                                    valor = item.h2AM.value,
+                                    etiqueta = "Cierre AM",
+                                    onHoraSeleccionada = { new ->
+                                        item.h2AM.value = new
+                                    },
+                                    abrirTimePicker = { valorActual, onSelect ->
+                                        abrirTimePicker(context, valorActual, onSelect)
+                                    }
+                                )
+                            }
+
+                            // TARDE ----------------------
+                            AnimatedVisibility(!item.solo_horario.value) {
+
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+
+                                    campoHora(
+                                        valor = item.h1PM.value,
+                                        etiqueta = "Apertura PM",
+                                        onHoraSeleccionada = { new ->
+                                            item.h1PM.value = new
+                                        },
+                                        abrirTimePicker = { valorActual, onSelect ->
+                                            abrirTimePicker(context, valorActual, onSelect)
+                                        }
+                                    )
+
+                                    texto_generico_one_line(" a ")
+
+                                    campoHora(
+                                        valor = item.h2PM.value,
+                                        etiqueta = "Cierre PM",
+                                        onHoraSeleccionada = { new ->
+                                            item.h2PM.value = new
+                                        },
+                                        abrirTimePicker = { valorActual, onSelect ->
+                                            abrirTimePicker(context, valorActual, onSelect)
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun RowScope.campoHora(
+    valor: String,
+    etiqueta: String,
+    onHoraSeleccionada: (String) -> Unit,
+    abrirTimePicker: (String, (String) -> Unit) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .weight(1f)
+            .clickable { abrirTimePicker(valor, onHoraSeleccionada) }
+    ) {
+        OutlinedTextField(
+            value = valor,
+            onValueChange = {},
+            readOnly = true,
+            enabled = false,
+            label = { texto_generico_one_line(etiqueta) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp)
+        )
+    }
+}
+
+
+fun abrirTimePicker(
+    context: Context,
+    valorActual: String,
+    onSelect: (String) -> Unit
+) {
+    val parts = valorActual.split(":")
+    val horaInicial = parts.getOrNull(0)?.toIntOrNull() ?: 0
+    val minutoInicial = parts.getOrNull(1)?.toIntOrNull() ?: 0
+
+    TimePickerDialog(
+        context,
+        { _, hour: Int, minute: Int ->
+            val resultado = "%02d:%02d".format(hour, minute)
+            onSelect(resultado)
+        },
+        horaInicial,
+        minutoInicial,
+        true
+    ).show()
 }
 
 
@@ -882,7 +1125,7 @@ fun valor_txt_contacto(
 
 fun generarIdSeguro(): String {
     val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-    val random = java.security.SecureRandom()
+    val random = SecureRandom()
     val idLength = 20
 
     val sb = StringBuilder(idLength)
@@ -1073,5 +1316,15 @@ fun obtenerLatLogNoComposable(
         Looper.getMainLooper()
     )
 }
+
+
+data class HorasDia(
+    var h1AM: MutableState<String> = mutableStateOf(""),
+    var h2AM: MutableState<String> = mutableStateOf(""),
+    var h1PM: MutableState<String> = mutableStateOf(""),
+    var h2PM: MutableState<String> = mutableStateOf(""),
+    var cerrado: MutableState<Boolean> = mutableStateOf(false),
+    var solo_horario: MutableState<Boolean> = mutableStateOf(false)
+)
 
 

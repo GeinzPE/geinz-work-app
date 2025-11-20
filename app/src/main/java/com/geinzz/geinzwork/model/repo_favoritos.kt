@@ -7,6 +7,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerProximoDiaAbierto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion_box_dia
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
 import com.google.firebase.firestore.FirebaseFirestore
@@ -54,6 +55,7 @@ class repo_favoritos {
                     val metodo_pago = data["metodos_pago"] as? Map<String, Any> ?: emptyMap()
                     val categoria = data["categoria"] as? String ?: ""
                     val localidad =data["localidad_lugar_tienda"] as? String ?: ""
+                    val horario_map_box=horarioMap.to_horario_atencion_box_dia()
 
                     val metodo_pago_tienda = metodo_pago.to_metodo_pago()
 
@@ -81,7 +83,7 @@ class repo_favoritos {
                         metodos_pago = metodo_pago_tienda,
                         lat = (data["latitud"] as? Number)?.toDouble() ?: 0.0,
                         lng = (data["longitud"] as? Number)?.toDouble() ?: 0.0,
-                        localida_tienda = localidad
+                        localida_tienda = localidad,horario_tienda_box=horario_map_box
                     )
 
                     listaFavoritos.add(favorito)

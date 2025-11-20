@@ -2,29 +2,27 @@ package com.geinzz.geinzwork.model
 
 import android.util.Log
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
-import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioTienda
-import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_numero
-import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_red
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener_tiendas_lat_log_id
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
-import com.geinzz.geinzwork.data.model.localizate_geinz.horario_Dia
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
-import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.datos_teindas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerProximoDiaAbierto
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularTiempoRestante_box
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.estaAbiertoHoy
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.mapearHorarioDia_box2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion_box_dia
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
-import com.geinzz.geinzwork.viewModels.viewmodel_usuario_registrado
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import java.util.Calendar
@@ -74,6 +72,53 @@ class repo_filtrado_tiendas {
             horarioDia.motivo
         )
     }
+
+
+    fun obtener_estado_horario_tienda_Box(horarioAtencion: HorarioAtencion_box): HorarioDia_box {
+        Log.d("HORARIO_BOX", "---- INICIO obtener_estado_horario_tienda_Box ----")
+
+        val dias = listOf("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
+        val calendar = Calendar.getInstance()
+        val diaActual = dias[calendar.get(Calendar.DAY_OF_WEEK) - 1]
+
+        Log.d("HORARIO_BOX", "Día detectado: $diaActual")
+
+        // OBTENEMOS EL HorarioDia_bloques DEL DÍA
+        val diaBloques: HorarioDia_bloques = when (diaActual) {
+            "lunes" -> horarioAtencion.lunes
+            "martes" -> horarioAtencion.martes
+            "miércoles" -> horarioAtencion.miercoles
+            "jueves" -> horarioAtencion.jueves
+            "viernes" -> horarioAtencion.viernes
+            "sábado" -> horarioAtencion.sabado
+            "domingo" -> horarioAtencion.domingo
+            else -> HorarioDia_bloques()
+        }
+
+        Log.d("HORARIO_BOX", "Datos obtenidos: $diaBloques")
+
+        // Convertimos a HorarioDia_box
+        val resultado = diaBloques.toHorarioDiaBox()
+
+        Log.d("HORARIO_BOX", "Resultado mapeado: $resultado")
+        Log.d("HORARIO_BOX", "---- FIN obtener_estado_horario_tienda_Box ----")
+
+        return resultado
+    }
+
+
+    fun HorarioDia_bloques.toHorarioDiaBox(): HorarioDia_box {
+        return HorarioDia_box(
+            bloques = this.bloques,
+            cerrado = this.cerrado,
+            motivo = this.motivo,
+            dia_prox_apertura = "",
+            hora_prox_apertura = ""
+        )
+    }
+
+
+
 
     suspend fun obtenerSubcategorias(categoria: String): List<String> {
         Log.d("categoriacategoria", categoria)
@@ -139,8 +184,12 @@ class repo_filtrado_tiendas {
                 val motivo = horarioDia["motivo"] as? String ?: ""
                 val contacto_obs = metodos_contacto.toMetodoContacto()
                 val metodo_pago_tienda = metodo_pago.to_metodo_pago()
+                val horario_tienda_box=horario.to_horario_atencion_box_dia()
 
+                val datossss=obtener_estado_horario_tienda_Box(horario_tienda_box)
+                Log.d("hoario_atencion_establecio","${estaAbiertoHoy(datossss)}")
 
+Log.d("calcularTiempoRestante","${calcularTiempoRestante_box(datossss)}")
                 var datos_horario_actual = horario_tienda(hApertura, hCierre, cerrado, motivo)
                 val estaAbierto =
                     if (!cerrado) verificarSiEstaAbiertoHoy(datos_horario_actual) else false
@@ -169,7 +218,7 @@ class repo_filtrado_tiendas {
                         pagado = pagado,
                         horario_dia = datos_horario_actual,
                         estaAbierto = estaAbierto, contacto_tienda = contacto_obs,
-                        metodos_pago_tienda = metodo_pago_tienda
+                        metodos_pago_tienda = metodo_pago_tienda,horario_tienda_box
                     )
                 )
 
@@ -202,6 +251,7 @@ class repo_filtrado_tiendas {
             val metodos_contacto = data?.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
             val metodo_pago = data?.get("metodos_pago") as? Map<String, Any> ?: emptyMap()
             val metodo_pago_tienda = metodo_pago.to_metodo_pago()
+            val horario_atencion_Box=horarioMap.to_horario_atencion_box_dia()
             Log.d("viendo_contacto", metodos_contacto.toString())
 
             // Función auxiliar para mapear un día
@@ -243,7 +293,7 @@ class repo_filtrado_tiendas {
                 pagado = data?.get("pagado") as? Boolean ?: false,
                 metodo_contacto_tienda = contacto_obs,
                 horario_atencion = horarioTienda,
-                metodos_pago_tienda = metodo_pago_tienda
+                metodos_pago_tienda = metodo_pago_tienda,horario_tienda_box=horario_atencion_Box
             )
 
             lista_modelo_tienda.add(tiendaModelo)
@@ -274,70 +324,70 @@ class repo_filtrado_tiendas {
         )
     }
 
-    suspend fun obtenerHorarioPorTienda(idTienda: String, localidad: String): horario_Dia? {
-        val diasSemana = listOf(
-            "domingo", "lunes", "martes", "miércoles",
-            "jueves", "viernes", "sábado"
-        )
-
-        // Obtener día actual
-        val hoyIndex = Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1
-        val diaHoy = diasSemana[hoyIndex]
-
-        val tiendaSnapshot = db.collection("Tiendas")
-            .document(localidad)
-            .collection(localidad)
-            .document(idTienda)
-            .collection("horario_atencion")
-            .document("horario_atencion")
-            .get()
-            .await()
-
-        if (!tiendaSnapshot.exists()) return null
-
-        val data = tiendaSnapshot.data ?: return null
-        val infoDia = data[diaHoy] as? Map<*, *> ?: return null
-
-        return horario_Dia(
-            dia = diaHoy,
-            h_apertura = infoDia["h_apertura"] as? String ?: "",
-            h_cierre =
-                infoDia["h_cierre"] as? String ?: ""
-        )
-    }
-
-
-    suspend fun obtenerHorarioPorTienda2(idTienda: String, localidad: String): HorarioTienda? {
-        val listaDias = listOf(
-            "lunes", "martes", "miércoles",
-            "jueves", "viernes", "sábado", "domingo"
-        )
-
-        val tiendaSnapshot = db.collection("Tiendas")
-            .document(localidad)
-            .collection(localidad)
-            .document(idTienda)
-            .collection("horario_atencion")
-            .document("horario_atencion")
-            .get()
-            .await()
-
-        if (!tiendaSnapshot.exists()) return null
-
-        val data = tiendaSnapshot.data ?: emptyMap<String, Any>()
-        val listaHorarios = listaDias.map { dia ->
-            val infoDia = data[dia] as? Map<*, *>
-            horario_Dia(
-                dia = dia,
-                h_apertura = infoDia?.get("h_apertura") as? String ?: "",
-                h_cierre = infoDia?.get("h_cierre") as? String ?: ""
+//    suspend fun obtenerHorarioPorTienda(idTienda: String, localidad: String): horario_Dia? {
+//        val diasSemana = listOf(
+//            "domingo", "lunes", "martes", "miércoles",
+//            "jueves", "viernes", "sábado"
+//        )
+//
+//        // Obtener día actual
+//        val hoyIndex = Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1
+//        val diaHoy = diasSemana[hoyIndex]
+//
+//        val tiendaSnapshot = db.collection("Tiendas")
+//            .document(localidad)
+//            .collection(localidad)
+//            .document(idTienda)
+//            .collection("horario_atencion")
+//            .document("horario_atencion")
+//            .get()
+//            .await()
+//
+//        if (!tiendaSnapshot.exists()) return null
+//
+//        val data = tiendaSnapshot.data ?: return null
+//        val infoDia = data[diaHoy] as? Map<*, *> ?: return null
+//
+//        return horario_Dia(
+//            dia = diaHoy,
+//            h_apertura = infoDia["h_apertura"] as? String ?: "",
+//            h_cierre =
+//                infoDia["h_cierre"] as? String ?: ""
+//        )
+//    }
 
 
-            )
-        }
-
-        return HorarioTienda(idTienda, listaHorarios)
-    }
+//    suspend fun obtenerHorarioPorTienda2(idTienda: String, localidad: String): HorarioTienda? {
+//        val listaDias = listOf(
+//            "lunes", "martes", "miércoles",
+//            "jueves", "viernes", "sábado", "domingo"
+//        )
+//
+//        val tiendaSnapshot = db.collection("Tiendas")
+//            .document(localidad)
+//            .collection(localidad)
+//            .document(idTienda)
+//            .collection("horario_atencion")
+//            .document("horario_atencion")
+//            .get()
+//            .await()
+//
+//        if (!tiendaSnapshot.exists()) return null
+//
+//        val data = tiendaSnapshot.data ?: emptyMap<String, Any>()
+//        val listaHorarios = listaDias.map { dia ->
+//            val infoDia = data[dia] as? Map<*, *>
+//            horario_Dia(
+//                dia = dia,
+//                h_apertura = infoDia?.get("h_apertura") as? String ?: "",
+//                h_cierre = infoDia?.get("h_cierre") as? String ?: ""
+//
+//
+//            )
+//        }
+//
+//        return HorarioTienda(idTienda, listaHorarios)
+//    }
 
 
 //    suspend fun obtener_tiendas_por_subcateogira(G
@@ -446,6 +496,7 @@ class repo_filtrado_tiendas {
             val horarioMap = data["horario_atencion"] as? Map<String, Any> ?: emptyMap()
             val metodo_pago_tienda = metodoPagoMap.to_metodo_pago()
             val horario_atencio =horarioMap.to_horario_atencion()
+            val horario_atencion_box =horarioMap.to_horario_atencion_box_dia()
             favoritos_guardados(
                 img_tienda = imgMap["logo_tienda"] as? String ?: "",
                 id_tienda_lugar = data["id_tienda"] as? String ?: "",
@@ -459,7 +510,7 @@ class repo_filtrado_tiendas {
                 lng = (ubicacionMap["longitud"] as? Double) ?: 0.0,
                 localida_tienda = data["localidad"] as? String ?: "",
                 estaAbierto = false,
-                horario = horario_tienda() // si tienes horario detallado, mapéalo aquí
+                horario = horario_tienda() ,horario_tienda_box = horario_atencion_box
             )
         } else {
             favoritos_guardados(

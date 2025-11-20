@@ -458,41 +458,41 @@ object constantes {
 
     val db = FirebaseFirestore . getInstance ()
 
-    fun agregar_horario_tiendas(lista: List<tiendas_ramdom>) {
-        lista.forEach { tienda ->
-            // Generar un ID único automáticamente
-            val docRef = db.collection("Tiendas")
-                .document(tienda.localidad)
-                .collection(tienda.localidad)
-                .document() // <-- sin parámetros, Firestore genera un ID único
-
-            val idTiendaGenerado = docRef.id
-
-            // Map para subir los datos
-            val mp = hashMapOf<String, Any>(
-                "categoria_tienda" to tienda.categoria_tienda,
-                "descripcion" to tienda.descripcion,
-                "id_tienda" to idTiendaGenerado, // Guardar el ID generado
-                "localidad" to tienda.localidad,
-                "modelo_negocio" to tienda.modelo_negocio,
-                "nombre_tienda" to tienda.nombre_tienda,
-                "pagado" to tienda.pagado,
-                "subcategoria" to tienda.subcategoria,
-                "ubicacion" to tienda.ubicacion,
-                "lista_img" to tienda.img_tienda,
-                "horario_atencion" to tienda.horario
-            )
-
-            // Subir la tienda
-            docRef.set(mp)
-                .addOnSuccessListener {
-                    Log.d("Firestore", "Tienda subida correctamente con ID: $idTiendaGenerado")
-                }
-                .addOnFailureListener { e ->
-                    Log.e("Firestore", "Error al subir tienda", e)
-                }
-        }
-    }
+//    fun agregar_horario_tiendas(lista: List<tiendas_ramdom>) {
+//        lista.forEach { tienda ->
+//            // Generar un ID único automáticamente
+//            val docRef = db.collection("Tiendas")
+//                .document(tienda.localidad)
+//                .collection(tienda.localidad)
+//                .document() // <-- sin parámetros, Firestore genera un ID único
+//
+//            val idTiendaGenerado = docRef.id
+//
+//            // Map para subir los datos
+//            val mp = hashMapOf<String, Any>(
+//                "categoria_tienda" to tienda.categoria_tienda,
+//                "descripcion" to tienda.descripcion,
+//                "id_tienda" to idTiendaGenerado, // Guardar el ID generado
+//                "localidad" to tienda.localidad,
+//                "modelo_negocio" to tienda.modelo_negocio,
+//                "nombre_tienda" to tienda.nombre_tienda,
+//                "pagado" to tienda.pagado,
+//                "subcategoria" to tienda.subcategoria,
+//                "ubicacion" to tienda.ubicacion,
+//                "lista_img" to tienda.img_tienda,
+//                "horario_atencion" to tienda.horario
+//            )
+//
+//            // Subir la tienda
+//            docRef.set(mp)
+//                .addOnSuccessListener {
+//                    Log.d("Firestore", "Tienda subida correctamente con ID: $idTiendaGenerado")
+//                }
+//                .addOnFailureListener { e ->
+//                    Log.e("Firestore", "Error al subir tienda", e)
+//                }
+//        }
+//    }
 
 
     fun vistaTrabajador(contexto: Context, dataClassTrabajosd: dataClassTrabajosd) {
