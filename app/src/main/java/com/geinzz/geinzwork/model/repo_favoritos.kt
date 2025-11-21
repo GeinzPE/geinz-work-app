@@ -5,7 +5,10 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
+import com.geinzz.geinzwork.utils.constantes.constantes.constantes_bottomShet_fourdItem.obtenerHorarioDeHoy_BOX
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerProximoDiaAbierto
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.convertirABox
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.estaAbiertoHoy
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion_box_dia
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
@@ -19,7 +22,7 @@ class repo_favoritos {
     val repo_filtrado = repo_filtrado_tiendas()
     fun obtener_favoritos_realtime(
         id_user: String,
-        onUpdate: (Triple<List<favoritos_guardados>, List<String>,List<String>>) -> Unit
+        onUpdate: (Triple<List<favoritos_guardados>, List<String>, List<String>>) -> Unit
     ) {
         val ref = db.collection("Trabajadores_Usuarios_Drivers")
             .document("users")
@@ -36,7 +39,7 @@ class repo_favoritos {
             if (snapshot != null) {
                 val listaFavoritos = mutableListOf<favoritos_guardados>()
                 val listaCategorias = mutableListOf<String>()
-                val lista_localidades=mutableListOf<String>()
+                val lista_localidades = mutableListOf<String>()
 
                 for (doc in snapshot.documents) {
                     val data = doc.data ?: continue
@@ -54,10 +57,13 @@ class repo_favoritos {
                     val horarioMap = data["horario"] as? Map<String, Any> ?: emptyMap()
                     val metodo_pago = data["metodos_pago"] as? Map<String, Any> ?: emptyMap()
                     val categoria = data["categoria"] as? String ?: ""
-                    val localidad =data["localidad_lugar_tienda"] as? String ?: ""
-                    val horario_map_box=horarioMap.to_horario_atencion_box_dia()
-
+                    val localidad = data["localidad_lugar_tienda"] as? String ?: ""
+                    val horario_map_box = horarioMap.to_horario_atencion_box_dia()
                     val metodo_pago_tienda = metodo_pago.to_metodo_pago()
+                    val horarioHoyBloques = obtenerHorarioDeHoy_BOX(horario_map_box)
+                    val horarioHoyBox = convertirABox(horarioHoyBloques)
+                    val estaAbierto = estaAbiertoHoy(horarioHoyBox)
+                    Log.d("estaabeirtooo",estaAbierto.toString())
 
                     val horarioTienda = HorarioAtencion(
                         lunes = mapearDia(horarioMap["lunes"] as? Map<String, Any>),
@@ -82,8 +88,8 @@ class repo_favoritos {
                         horario = cast_horario,
                         metodos_pago = metodo_pago_tienda,
                         lat = (data["latitud"] as? Number)?.toDouble() ?: 0.0,
-                        lng = (data["longitud"] as? Number)?.toDouble() ?: 0.0,
-                        localida_tienda = localidad,horario_tienda_box=horario_map_box
+                        lng = (data["longitud"] as? Number)?.toDouble() ?: 0.0,estaAbierto=estaAbierto,
+                        localida_tienda = localidad, horario_tienda_box = horario_map_box
                     )
 
                     listaFavoritos.add(favorito)
@@ -91,7 +97,7 @@ class repo_favoritos {
                     lista_localidades.add(localidad)
                 }
 
-                onUpdate(Triple(listaFavoritos, listaCategorias,lista_localidades))
+                onUpdate(Triple(listaFavoritos, listaCategorias, lista_localidades))
             }
         }
     }

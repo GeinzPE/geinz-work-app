@@ -353,6 +353,16 @@ object constantes_lista_localidades {
         }
     }
 
+    fun convertirABox(horario: HorarioDia_bloques): HorarioDia_box {
+        return HorarioDia_box(
+            bloques = horario.bloques,
+            cerrado = horario.cerrado,
+            motivo = horario.motivo,
+            dia_prox_apertura = "",  // puedes dejar vacío o calcular si quieres
+            hora_prox_apertura = ""
+        )
+    }
+
     @Composable
     fun ZoomIconButton(mostrarDialogozoom: () -> Unit) {
         Box(
@@ -2231,7 +2241,7 @@ object constantes_lista_localidades {
             )
         }
         return modelo_pagos_tienda(
-            visa_mastercard = getMetodo("Visa/Mastercard"),
+            visa_mastercard = getMetodo("visa_mastercard"),
             agora = getMetodo("agora"),
             efectivo = getMetodo("efectivo"),
             plin = getMetodo("plin"),

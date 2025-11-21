@@ -23,10 +23,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.geinzz.geinzwork.NotificacionRS
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.ui.adapters.adapter_radioButton_envios
 import com.geinzz.geinzwork.databinding.BottomSheetReservaProductosBinding
 import com.geinzz.geinzwork.model.dataclasscompra_reserva_promociones
 import com.geinzz.geinzwork.model.dataclassradiobtn
+import com.geinzz.geinzwork.utils.constantes.constantes.constantes_publicaciones_general_user_tiendas.obtenerDiaActualEnEspañol
 import com.geinzz.geinzwork.vistaTiendas.direccion_entrega_lat_log
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.imageview.ShapeableImageView
@@ -1175,6 +1179,24 @@ object constantes_bottomShet_fourdItem {
             callback(isWithinHours) // Llamar al callback con el resultado de la comparación
         }
     }
+    fun obtenerDiaActualClaveFirestore(): String {
+        return obtenerDiaActualEnEspañol().lowercase()
+    }
+
+    fun obtenerHorarioDeHoy_BOX(horario: HorarioAtencion_box): HorarioDia_bloques {
+        return when (obtenerDiaActualClaveFirestore()) {
+            "lunes" -> horario.lunes
+            "martes" -> horario.martes
+            "miércoles" -> horario.miercoles
+            "jueves" -> horario.jueves
+            "viernes" -> horario.viernes
+            "sábado" -> horario.sabado
+            "domingo" -> horario.domingo
+            else -> HorarioDia_bloques()
+        }
+    }
+
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun obtenerHorarioDeHoy(

@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -93,12 +92,14 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openFacebook
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openTiktok
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openWebLink
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
@@ -111,9 +112,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_mapa
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.TiempoRestanteCierre
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.campos_de_pago
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.retornar_color_estado_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
@@ -155,7 +154,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun pantalla_mapa_perzonalizado(
     verificar_intener: Boolean,
-    viewmodelMapa:viewmodel_mapa_personalizado,
+    viewmodelMapa: viewmodel_mapa_personalizado,
     viewmode_segurirdad_Salud: viewmode_seguridad_salud,
     viewModel_filtrado_tiendas: viewModel_filtado_tiendas,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
@@ -163,7 +162,8 @@ fun pantalla_mapa_perzonalizado(
     localidad: String
 ) {
     Box() {
-        MyGoogle_maps(verificar_intener,
+        MyGoogle_maps(
+            verificar_intener,
             viewmodelMapa,
             tipo,
             viewmodel_lugares_turisticos,
@@ -201,12 +201,14 @@ fun MyGoogle_maps(
     val estado by viewmodel_lugares_turisticos.estadoFiltrado.collectAsState()
 
     LaunchedEffect(estado) {
-        Log.d("FILTRADO_DEBUG", """
+        Log.d(
+            "FILTRADO_DEBUG", """
         Categoría: ${estado.categoriaFiltrada}
         Radio: ${estado.radioFiltrado}
         Categorías disponibles: ${estado.listaCategorias.joinToString()}
         Tiendas totales: ${estado.listaCompleta.size}
-    """.trimIndent())
+    """.trimIndent()
+        )
     }
 
     val datosTienda by viewModel_filtrado_tiendas._datos_tienda.observeAsState(emptyList())
@@ -487,7 +489,7 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         horario_tienda = tienda.horario_dia,
                                         contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda ,horario_box = tienda.horario_box
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -522,9 +524,8 @@ fun MyGoogle_maps(
                                         categoria = "",
                                         direccion = tienda.direccion,
                                         referencia = tienda.referencia,
-                                        horario_tienda = tienda.horario_dia,
                                         contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda ,horario_box = tienda.horario_tienda_box
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -568,13 +569,15 @@ fun MyGoogle_maps(
                 .collect { isMoving ->
                     if (isMoving && !animatingMap.value) {
                         seguirUbicacion.value = false
-                        animatingMap.value=false
-                        Log.d("movemos_mapa","deedmoes")
+                        animatingMap.value = false
+                        Log.d("movemos_mapa", "deedmoes")
                     }
                 }
         }
         val fabColor by animateColorAsState(
-            targetValue = if (seguirUbicacion.value) MaterialTheme.colorScheme.primary else Color(0xFF9C7BFF),
+            targetValue = if (seguirUbicacion.value) MaterialTheme.colorScheme.primary else Color(
+                0xFF9C7BFF
+            ),
             animationSpec = tween(
                 durationMillis = 300 // 0.3 segundos, suave pero rápido
             )
@@ -600,7 +603,7 @@ fun MyGoogle_maps(
                                 )
                                 animatingMap.value = false
                                 seguirUbicacion.value = true
-                                Log.d("movemos_mapa","auto")
+                                Log.d("movemos_mapa", "auto")
                             }
                         }
                     }
@@ -647,7 +650,7 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         horario_tienda = tienda.horario_dia,
                                         contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda ,horario_box = tienda.horario_box
                                     )
                                     Log.d("ecnotramos", "${tienda.contacto_tienda}")
 
@@ -685,9 +688,8 @@ fun MyGoogle_maps(
                                         categoria = "",
                                         direccion = tienda.direccion,
                                         referencia = tienda.referencia,
-                                        horario_tienda = tienda.horario_dia,
                                         contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda ,horario_box = tienda.horario_tienda_box
                                     )
                                     Log.d("ecnotramos", "${tienda.contacto_tienda}")
 
@@ -746,7 +748,12 @@ fun MyGoogle_maps(
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
+            val horarioTienda = viewModel_filtrado_tiendas
+                .horariosTiendas
+                .collectAsState()
+                .value[lister_marker.id]
             dialogo_lugar_tienda(
+                horarioTienda,
                 viewmodelMapa,
                 lat_user, log_user,
                 time = tick,
@@ -862,7 +869,7 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         horario_tienda = tienda.horario_dia,
                                         contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda   ,horario_box = tienda.horario_box
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -901,9 +908,9 @@ fun MyGoogle_maps(
                                         categoria = "",
                                         direccion = tienda.direccion,
                                         referencia = tienda.referencia,
-                                        horario_tienda = tienda.horario_dia,
                                         contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda,
+                                        horario_box = tienda.horario_tienda_box
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -948,7 +955,7 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         horario_tienda = tienda.horario_dia,
                                         contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda ,horario_box = tienda.horario_box
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -985,9 +992,8 @@ fun MyGoogle_maps(
                                         categoria = "",
                                         direccion = tienda.direccion,
                                         referencia = tienda.referencia,
-                                        horario_tienda = tienda.horario_dia,
                                         contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda ,horario_box = tienda.horario_tienda_box
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -1089,6 +1095,7 @@ fun MarkerIcon(
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun dialogo_lugar_tienda(
+    horario_box1: HorarioDia_box?,
     viewmodelMapa: viewmodel_mapa_personalizado,
     lat_user: Double,
     log_user: Double,
@@ -1122,6 +1129,7 @@ fun dialogo_lugar_tienda(
             )
         }
     }
+
     val estadoKM by viewmodelMapa.estadoLocation.collectAsState(initial = false)
     val esta_cerca_tienda by viewmodelMapa.estaCercaTienda.collectAsState(initial = false)
 
@@ -1131,10 +1139,10 @@ fun dialogo_lugar_tienda(
         }
     }
 
-    LaunchedEffect(dataclass_map.id,estadoKM) {
-        if(estadoKM){
+    LaunchedEffect(dataclass_map.id, estadoKM) {
+        if (estadoKM) {
             viewmodelMapa.limpiarCoordenadas()
-            viewmodelMapa.setTienda_selecionada(dataclass_map.latitud,dataclass_map.longitud)
+            viewmodelMapa.setTienda_selecionada(dataclass_map.latitud, dataclass_map.longitud)
         }
     }
 
@@ -1206,7 +1214,11 @@ fun dialogo_lugar_tienda(
     var totalDY by remember { mutableStateOf(0f) }
     var validad_horario by remember { mutableStateOf(false) }
     var dialogo_distancia by remember { mutableStateOf(false) }
-
+    val horarioSeguro = horario_box1 ?: HorarioDia_box(
+        bloques = emptyList(),
+        cerrado = true,
+        motivo = "Cargando..."
+    )
     val lista_redes_tiendas = listOf(
         data_redes_tiendas(
             enable = dataclass_map.contacto_tienda.llamada.estado,
@@ -1272,6 +1284,8 @@ fun dialogo_lugar_tienda(
                         .data(dataclass_map.img)
                         .build(),
                     contentDescription = null,
+                    placeholder = painterResource(R.drawable.cargando_img_categorias),
+                    error = painterResource(R.drawable.cargando_img_categorias),
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(cornerShape)
@@ -1331,8 +1345,8 @@ fun dialogo_lugar_tienda(
                         modifier = Modifier
                             .clip(RoundedCornerShape(16.dp))
                             .background(Color.Black.copy(alpha = 0.85f))
-                            .clickable{
-                                dialogo_distancia=true
+                            .clickable {
+                                dialogo_distancia = true
                             }
                     ) {
                         Row(
@@ -1501,16 +1515,25 @@ fun dialogo_lugar_tienda(
 //                            )
                             spacer_vertical(10.dp)
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                TiempoRestanteCierre(
-                                    horario_total = dataclass_map.horario_tienda,
-                                    hCierre = dataclass_map.horario_tienda.h_cierre,
-                                    cerrado = dataclass_map.horario_tienda.cerrado,
-                                    motivo = dataclass_map.horario_tienda.motivo,
+
+                                retornar_color_estado_tienda_Box(
+                                    id_tienda = dataclass_map.id,
+                                    horario_total = horarioSeguro,
+                                    tick = tick,
                                     pagado = true,
-                                    max_line = 1, tick
-                                ) { color ->
-                                    estadoColor = color
-                                }
+                                    color = { color, txt ->
+                                        estadoColor = color
+                                    })
+//                                TiempoRestanteCierre(
+//                                    horario_total = dataclass_map.horario_tienda,
+//                                    hCierre = dataclass_map.horario_tienda.h_cierre,
+//                                    cerrado = dataclass_map.horario_tienda.cerrado,
+//                                    motivo = dataclass_map.horario_tienda.motivo,
+//                                    pagado = true,
+//                                    max_line = 1, tick
+//                                ) { color ->
+//                                    estadoColor = color
+//                                }
 
                             }
                             spacer_vertical(10.dp)
@@ -1688,18 +1711,32 @@ fun dialogo_lugar_tienda(
             }
         }
         if (validad_horario) {
-            retornar_color_estado_tienda(
-                dataclass_map.horario_tienda,
-                dataclass_map.horario_tienda.h_cierre,
-                dataclass_map.horario_tienda.cerrado,
-                dataclass_map.horario_tienda.motivo,
-                tick
-            ) { color ->
-                estadoColor = color
-            }
+            retornar_color_estado_tienda_Box(
+                id_tienda = dataclass_map.id,
+                horario_total = horarioSeguro,
+                tick = tick, pagado = true, color = { color, txt->
+                    estadoColor = color
+                }, mostrar_txt = false
+            )
+//            retornar_color_estado_tienda(
+//                dataclass_map.horario_tienda,
+//                dataclass_map.horario_tienda.h_cierre,
+//                dataclass_map.horario_tienda.cerrado,
+//                dataclass_map.horario_tienda.motivo,
+//                tick
+//            ) { color ->
+//                estadoColor = color
+//            }
         }
-        if(dialogo_distancia){
-            dialog_distancia_map_km_m(distancia, dataclass_map,tick,estadoColor,{dialogo_distancia=false})
+        if (dialogo_distancia) {
+            dialog_distancia_map_km_m(
+                dataclass_map.id,
+                distancia,
+                horarioSeguro,
+                dataclass_map.nombre,dataclass_map.img,
+                tick,
+                estadoColor,
+                { dialogo_distancia = false })
         }
     }
 

@@ -32,33 +32,45 @@ import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_aceptar_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerra_etc_dialog_general
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.texto_tiempo_restante
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 
 @Composable
 fun dialog_distancia_map_km_m(
+    id_tienda:String,
     distancia: String,
-    dataclass_map: dataclass_map,
+    HorarioDia_box: HorarioDia_box,
+    img: String, nombre: String,
     tick: Long,
     estadoColor: Color,
     ondimis: () -> Unit
 ) {
     var horario_restante by remember { mutableStateOf("") }
 
-    texto_tiempo_restante(
-        dataclass_map.horario_tienda,
-        dataclass_map.horario_tienda.h_cierre,
-        dataclass_map.horario_tienda.cerrado,
-        dataclass_map.horario_tienda.motivo,
-        tick
-    ) { txt ->
-        horario_restante = txt
-    }
+    retornar_color_estado_tienda_Box(
+        id_tienda = id_tienda,
+        horario_total = HorarioDia_box,
+        tick = tick,
+        pagado = true,
+        color = { color, txt ->
+            horario_restante = txt
+        }, mostrar_txt = false
+    )
+//    texto_tiempo_restante(
+//        dataclass_map.horario_tienda,
+//        dataclass_map.horario_tienda.h_cierre,
+//        dataclass_map.horario_tienda.cerrado,
+//        dataclass_map.horario_tienda.motivo,
+//        tick
+//    ) { txt ->
+//        horario_restante = txt
+//    }
 
     AlertDialog(
         onDismissRequest = { ondimis() },
@@ -78,7 +90,7 @@ fun dialog_distancia_map_km_m(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(dataclass_map.img)
+                                .data(img)
                                 .size(40, 40)
                                 .crossfade(true)
                                 .placeholder(R.drawable.cargando_img_categorias)
@@ -92,7 +104,7 @@ fun dialog_distancia_map_km_m(
                         )
                         spacer_horizonta(10.dp)
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            texto_generico_one_line(dataclass_map.nombre)
+                            texto_generico_one_line(nombre.capitalizeFirst())
                             spacer_horizonta(5.dp)
                             Box(
                                 modifier = Modifier

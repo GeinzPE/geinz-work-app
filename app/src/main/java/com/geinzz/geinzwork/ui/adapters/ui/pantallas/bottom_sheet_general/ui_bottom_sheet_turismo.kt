@@ -94,6 +94,7 @@ import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.data.model.localizate_geinz.botom_shet_turismobtn
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.lugares_cercanos
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_cecanas_km
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
@@ -104,7 +105,7 @@ import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openTiktok
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openWebLink
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
-
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -117,7 +118,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.verificar_hora_abierta_ykm
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.retornar_color_estado_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.calcularDistanciaKm
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
@@ -246,6 +246,7 @@ fun bottom_sheet_lugares_turisticos(
                             .padding(bottom = 20.dp)
                     ) {
                         card_img_container(
+                            viewmodel_filtrado,
                             viewmodel_turismo,
                             firebaseAuth1 = firebaseAuth,
                             datos = datos,
@@ -327,6 +328,7 @@ fun bottom_sheet_lugares_turisticos(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun card_img_container(
+    viewmodel_filtrado: viewModel_filtado_tiendas,
     viewmodel_turismo: viewModel_lugares_turisticos,
     firebaseAuth1: FirebaseAuth,
     datos: lugares_turisticos,
@@ -713,7 +715,9 @@ fun card_img_container(
                                 contentPadding = PaddingValues(horizontal = 7.dp, vertical = 8.dp)
                             ) {
                                 items(listaOrdenada, key = { it.id_tienda }) { item ->
+                                    Log.d("teindashoraiobox",item.horario_box.toString())
                                     item_cercanos(
+                                        viewmodel_filtrado,
                                         context,
                                         firebaseAuth,
                                         expanded = expandedItemId == item.id_tienda,
@@ -822,6 +826,7 @@ fun card_img_container(
 
 @Composable
 fun item_cercanos(
+    viewmodel_filtrado: viewModel_filtado_tiendas,
     context: Context,
     firebaseAuth: FirebaseAuth,
     expanded: Boolean,
@@ -835,6 +840,7 @@ fun item_cercanos(
     click_crear_ruta: (lat: Double, long: Double) -> Unit
 ) {
 
+    Log.d("item1313213","${item.horario_box.toString()}")
     var estado_color by remember { mutableStateOf(Color.Gray) }
     var mostar_dialog_km by remember { mutableStateOf(false) }
     var datosdialog_km by remember { mutableStateOf(tiendas_cecanas_km()) }
@@ -858,6 +864,22 @@ fun item_cercanos(
             id_respado_user = ""
         }
     }
+    LaunchedEffect(item.id_tienda) {
+        viewmodel_filtrado.calcularHorarioParaTienda(
+            item.id_tienda,
+            item.horario_box
+        )
+    }
+
+    val horarioTienda = viewmodel_filtrado
+        .horariosTiendas
+        .collectAsState()
+        .value[item.id_tienda]
+    val horarioSeguro = horarioTienda ?: HorarioDia_box(
+        bloques = emptyList(),
+        cerrado = true,
+        motivo = "Cargando..."
+    )
     Column {
         Box(
             modifier = Modifier
@@ -924,17 +946,17 @@ fun item_cercanos(
                             .clickable(
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() }) {
+
                                 mostar_dialog_km = true
+
                                 datosdialog_km = tiendas_cecanas_km(
+                                    id_tienda=item.id_tienda,
                                     img_tienda = item.logo_tienda,
                                     nombre_tienda = item.nombre_tienda,
                                     kl = "%.2f km".format(distanciaKm),
                                     nombre_lugar = datos.titulo,
                                     color = estado_color,
-                                    horario_total = item.horario_dia,
-                                    hora_cierre = item.horario_dia.h_cierre,
-                                    cerrado = item.horario_dia.cerrado,
-                                    motivo = item.horario_dia.motivo,
+                                    HorarioDia_box=horarioSeguro,
                                     tick = tick
                                 )
                             }
@@ -945,15 +967,14 @@ fun item_cercanos(
                                 .padding(10.dp)
                                 .animateContentSize()
                         ) {
-                            retornar_color_estado_tienda(
-                                horario_total = item.horario_dia,
-                                hCierre = item.horario_dia.h_cierre,
-                                cerrado = item.horario_dia.cerrado,
-                                motivo = item.horario_dia.motivo,
-                                tick = tick
-                            ) { color ->
-                                estado_color = color
-                            }
+                            retornar_color_estado_tienda_Box(
+                                id_tienda = item.id_tienda,
+                                horario_total = horarioSeguro, tick = tick, pagado = true,
+                                color = { color, txt->
+                                    estado_color = color
+                                },
+                                mostrar_txt = false,
+                            )
                             texto_generico_one_line(
                                 "A: %.2f km".format(distanciaKm),
                                 style = MaterialTheme.typography.bodyMedium,
@@ -1100,6 +1121,7 @@ fun item_cercanos(
         }
     }
     if (mostar_dialog_km) {
+
         verificar_hora_abierta_ykm(datosdialog_km, { mostar_dialog_km = false })
     }
 }

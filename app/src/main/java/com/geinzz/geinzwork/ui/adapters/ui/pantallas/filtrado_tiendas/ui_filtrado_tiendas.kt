@@ -6,7 +6,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
@@ -84,29 +83,28 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 //import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.selec_class_estados_carga
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
-import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoExpandibleEnLinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_listener_fv_externo
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.existencia_dato
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.open_map_perzonlizado
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.shadow_bottom_pantallas_generales
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -115,7 +113,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.titulos_gener
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_eliminar_favoritos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_qr_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_pago_tiendas
-import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
@@ -124,8 +121,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.firebaseAuth
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.centrado_hori_vertical
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularTiempoRestante
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularTiempoRestante_box
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_subcategoria_shadow
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.mostrar_iconos_pagos
@@ -206,6 +201,7 @@ fun Pantalla_filtrado_tiendas(
             subCategoriaSeleccionada != "Todos" && hayTiendas
         }
     }
+    val horario_box by viewModelFiltros.color_estado_tienda_box.collectAsState()
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     var id_respado_user by remember { mutableStateOf("") }
 
@@ -288,6 +284,7 @@ fun Pantalla_filtrado_tiendas(
             yaInicializado = true
             lista_base_seguridad = lista_datos_tiendas
             viewModelFiltros.tiendas_iniciales(lista_datos_tiendas)
+
         }
     }
     LaunchedEffect(datosTienda) {
@@ -426,17 +423,22 @@ fun Pantalla_filtrado_tiendas(
                     )
 
                     items(listaOrdenada, key = { tienda -> tienda.id_tienda }) { tienda ->
+
+                        LaunchedEffect(tienda.id_tienda) {
+                            viewModelFiltros.calcularHorarioParaTienda(tienda.id_tienda, tienda.horario_tienda_box)
+                        }
                         Log.d(
                             "metoods_pago_teindas",
                             "${tienda.id_tienda}  ${tienda.metodos_pago_tienda}"
                         )
                         item_tiendas(
+                            horario_box1 = viewModelFiltros.horariosTiendas.collectAsState().value[tienda.id_tienda] ?: HorarioDia_box(),
+                            horario_box = tienda.horario_tienda_box,
                             verificar_intener,
                             localidad_user = localida,
                             id_user = uid_respald_user,
                             viewModelFiltros = viewModelFiltros,
                             item_tiendas = tienda,
-                            horario_tienda = tienda.horario_dia,
                             abierto_cerrado = tienda.estaAbierto,
                             listener_botom_sheet = { id_tienda, listener, estado_color, pagado ->
                                 if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
@@ -450,12 +452,13 @@ fun Pantalla_filtrado_tiendas(
                                     }
                                 } else {
                                     bottom_sheet_iniciar_seccion = true
-                                    texto_falta_registra= "Regístrate para ver los detalles completos y las funciones exclusivas"
+                                    texto_falta_registra =
+                                        "Regístrate para ver los detalles completos y las funciones exclusivas"
 
                                 }
                             }, {
                                 bottom_sheet_iniciar_seccion = true
-                                texto_falta_registra="Regístrate para agregar a tus favoritos"
+                                texto_falta_registra = "Regístrate para agregar a tus favoritos"
                             })
                     }
                 }
@@ -667,101 +670,6 @@ fun Pantalla_filtrado_tiendas(
 
 
 @Composable
-fun TiempoRestanteCierre(
-    horario_total: horario_tienda,
-    hCierre: String,
-    cerrado: Boolean,
-    motivo: String,
-    pagado: Boolean,
-    max_line: Int = 1,
-    tick: Long,
-    color: (Color) -> Unit
-) {
-
-    Log.d("horario_total", horario_total.toString())
-    val resultado by remember(horario_total, hCierre, cerrado, motivo, tick) {
-        derivedStateOf { calcularTiempoRestante(horario_total, hCierre, cerrado, motivo) }
-    }
-    if (pagado) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(10.dp)
-                    .clip(RoundedCornerShape(50))
-                    .background(resultado.color)
-            )
-            spacer_horizonta(5.dp)
-            TextoExpandibleEnLinea(
-                resultado.texto.capitalizeFirst(),
-                resultado.color,
-                resultado.color
-            )
-//            Text(
-//                text = resultado.texto.capitalizeFirst(),
-//                color = resultado.color,
-//                style = MaterialTheme.typography.bodyMedium,
-//                maxLines = max_line,
-//                overflow = TextOverflow.Ellipsis
-//            )
-            color(resultado.color)
-        }
-    } else {
-        Text(
-            text = "Consultar al negocio",
-            color = Color(0xFFA5A5A5),
-            style = MaterialTheme.typography.bodyMedium
-        )
-    }
-}
-
-@Composable
-fun texto_tiempo_restante(
-    horario_total: horario_tienda,
-    hCierre: String,
-    cerrado: Boolean,
-    motivo: String,
-    tick: Long,
-    txt: (String) -> Unit
-) {
-    Log.d("horario_total", horario_total.toString())
-    val resultado by remember(horario_total, hCierre, cerrado, motivo, tick) {
-        derivedStateOf { calcularTiempoRestante(horario_total, hCierre, cerrado, motivo) }
-    }
-    txt(resultado.texto.capitalizeFirst())
-
-}
-
-
-@Composable
-fun retornar_color_estado_tienda(
-    horario_total: horario_tienda,
-    hCierre: String,
-    cerrado: Boolean,
-    motivo: String,
-    tick: Long,
-    color: (Color) -> Unit
-) {
-    val resultado by remember(horario_total, hCierre, cerrado, motivo, tick) {
-        derivedStateOf { calcularTiempoRestante(horario_total, hCierre, cerrado, motivo) }
-    }
-    color(resultado.color)
-}
-
-@Composable
-fun retornar_color_estado_tienda_Box(
-    horario_total: HorarioDia_box,
-    tick: Long,
-    color: (Color) -> Unit
-) {
-    val resultado by remember(horario_total, tick) {
-        derivedStateOf { calcularTiempoRestante_box(horario_total) }
-    }
-    Log.d("resutlaodssad_tiempo",resultado.texto)
-    color(resultado.color)
-}
-
-
-@Composable
 fun encabezado_chis_categorias() {
     titulos_genericos_one_line(
         "Busca tus tiendas favoritas", MaterialTheme.typography.headlineSmall,
@@ -917,19 +825,22 @@ fun Text_fiel_filtrado(
 
 @Composable
 fun item_tiendas(
+    horario_box1: HorarioDia_box,
+    horario_box: HorarioAtencion_box,
     verificar_interner: Boolean,
     localidad_user: String,
     id_user: String,
     viewModelFiltros: viewModel_filtado_tiendas,
     item_tiendas: tiendas_por_categoria,
-    horario_tienda: horario_tienda,
     abierto_cerrado: Boolean,
     listener_botom_sheet: (id_tienda: String, showBottomSheet: Boolean, estado_color: Color, Boolean) -> Unit,
     dialog_sin_registrao: () -> Unit
 ) {
     // --- Estado local instantáneo ---
     var favoritoEstado by remember { mutableStateOf(false) }
-
+    LaunchedEffect(item_tiendas.id_tienda, horario_box) {
+        viewModelFiltros.cast_horario_atencion_horario_tienda_box(horario_box)
+    }
     // --- Escuchar el Flow para sincronizar si viene desde otro lado ---
     val mapa by viewModelFiltros.favoritos.collectAsState()
     LaunchedEffect(mapa, item_tiendas.id_tienda) {
@@ -1080,16 +991,15 @@ fun item_tiendas(
                         brush_end = Brush.horizontalGradient(colors = end_subcategoria_shadow)
                     )
                     Spacer(modifier = Modifier.height(5.dp))
-                    TiempoRestanteCierre(
-                        horario_total = horario_tienda,
-                        hCierre = horario_tienda.h_cierre,
-                        cerrado = horario_tienda.cerrado,
-                        motivo = horario_tienda.motivo,
+//
+                    retornar_color_estado_tienda_Box(
+                        id_tienda = item_tiendas.id_tienda,
+                        horario_total = horario_box1,
+                        tick = tick,
                         pagado = item_tiendas.pagado,
-                        max_line = 1, tick = tick
-                    ) { color ->
-                        estadoColor = color
-                    }
+                        color = { color, txt ->
+                            estadoColor = color
+                        })
                 }
                 Box(
                     modifier = Modifier.fillMaxHeight(),
@@ -1100,12 +1010,16 @@ fun item_tiendas(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        AnimatedVisibility (item_tiendas.pagado && verificar_interner, enter = fadeIn(), exit = fadeOut()) {
+                        AnimatedVisibility(
+                            item_tiendas.pagado && verificar_interner,
+                            enter = fadeIn(),
+                            exit = fadeOut()
+                        ) {
                             btn_listener_fv_externo(
                                 favoritoEstado,
                                 Modifier.padding(bottom = 10.dp),
                                 { nuevoEstado ->
-                                    nuevo_Estadp_btn_fv=nuevoEstado
+                                    nuevo_Estadp_btn_fv = nuevoEstado
                                     if (id_user.isNotEmpty()) {
 
                                         if (nuevoEstado) {
@@ -1117,11 +1031,8 @@ fun item_tiendas(
                                             favoritoEstado = nuevo_Estadp_btn_fv
                                         } else {
 
-                                            estado_fv_btn=true
-//                                            viewModelFiltros.eliminar_tienda_favorita(
-//                                                id_user,
-//                                                item_tiendas.id_tienda
-//                                            )
+                                            estado_fv_btn = true
+
                                         }
 
                                     } else {
@@ -1164,15 +1075,15 @@ fun item_tiendas(
             onDismis = { showDialog = false }
         )
     }
-    if(estado_fv_btn){
-            dialog_eliminar_favoritos(
-                viewModelFiltros = viewModelFiltros,
-                id_user = id_user,
-                id_tienda = item_tiendas.id_tienda,
-                nombre_tienda = item_tiendas.nombre_tienda,
-                ondimis = { estado_fv_btn = false }, aceptado = {
-                    nuevo_Estadp_btn_fv= favoritoEstado
-                })
+    if (estado_fv_btn) {
+        dialog_eliminar_favoritos(
+            viewModelFiltros = viewModelFiltros,
+            id_user = id_user,
+            id_tienda = item_tiendas.id_tienda,
+            nombre_tienda = item_tiendas.nombre_tienda,
+            ondimis = { estado_fv_btn = false }, aceptado = {
+                nuevo_Estadp_btn_fv = favoritoEstado
+            })
 
     }
 
@@ -1254,8 +1165,10 @@ fun campos_de_pago(
             else Modifier.width(80.dp)
         )
     ) {
-        var lista_metodos_pagos = mostrar_iconos_pagos(metodosPagoTienda)
+        val lista_metodos_pagos = mostrar_iconos_pagos(metodosPagoTienda)
+            .filter { it.enable }
         items(lista_metodos_pagos, key = { it.nombre_metodo }) { i ->
+
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(i.img)

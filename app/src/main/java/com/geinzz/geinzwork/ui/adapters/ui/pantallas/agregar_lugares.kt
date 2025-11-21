@@ -758,7 +758,7 @@ fun datos_teindas() {
                         latitud = lat_,
                         longitud = lng_,
                         referencia = referencia,
-                        direccion = direccion,
+                        dirección = direccion,
                     ),
                     metodo_pago = modelo_pagos_tienda(
                         visa_mastercard = modelo_metodo_individual(

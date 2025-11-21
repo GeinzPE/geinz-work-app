@@ -39,30 +39,47 @@ import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_cecanas_km
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.texto_tiempo_restante
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_tiempo_restante
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 
 @Composable
 fun verificar_hora_abierta_ykm(item: tiendas_cecanas_km, ondimis: () -> Unit) {
     var texto_cierre by remember { mutableStateOf("") }
-    texto_tiempo_restante(
-        item.horario_total,
-        item.hora_cierre,
-        item.cerrado,
-        item.motivo,
-        item.tick
-    ) { txt ->
-        Log.d("falta", txt)
-        texto_cierre = txt
-    }
+
+    Log.d("horario_bozx123123213",item.HorarioDia_box.toString())
+    var color_txt by remember { mutableStateOf(Color.Transparent) }
+
+
+    retornar_color_estado_tienda_Box(
+        id_tienda = item.id_tienda,
+        horario_total = item.HorarioDia_box,
+        tick = item.tick,
+        pagado = true,
+        color = { color, txt ->
+            texto_cierre = txt
+            color_txt=color
+        }, mostrar_txt = false
+    )
+//    texto_tiempo_restante(
+//        item.horario_total,
+//        item.hora_cierre,
+//        item.cerrado,
+//        item.motivo,
+//        item.tick
+//    ) { txt ->
+//        Log.d("falta", txt)
+//        texto_cierre = txt
+//    }
     val textoFinal = buildAnnotatedString {
         withStyle(style = SpanStyle(color = Color.White)) {
             append("Actualmente su horario indica: ")
         }
-        withStyle(style = SpanStyle(color = item.color)) {
+        withStyle(style = SpanStyle(color = color_txt)) {
             append(texto_cierre)
         }
     }
@@ -112,7 +129,7 @@ fun verificar_hora_abierta_ykm(item: tiendas_cecanas_km, ondimis: () -> Unit) {
                             modifier = Modifier
                                 .size(10.dp)
                                 .clip(CircleShape)
-                                .background(item.color)
+                                .background(color_txt)
                         )
                     }
                 }
@@ -120,13 +137,13 @@ fun verificar_hora_abierta_ykm(item: tiendas_cecanas_km, ondimis: () -> Unit) {
 
                 val texto = buildAnnotatedString {
                     append("A solo ")
-                    withStyle(style = SpanStyle(color =item.color)) {
+                    withStyle(style = SpanStyle(color =color_txt)) {
                         append(item.kl)
                     }
                     append(" de ${item.nombre_lugar}, encontrarás ${item.nombre_tienda}.")
                 }
                 Text(
-                    texto, style = MaterialTheme.typography.bodyMedium,
+                    texto, style = MaterialTheme.typography.bodyMedium, color = Color.White,
                 )
                 spacer_vertical(5.dp)
                 Text(

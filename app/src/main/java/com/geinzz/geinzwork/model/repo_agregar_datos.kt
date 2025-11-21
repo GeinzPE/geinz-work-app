@@ -7,12 +7,15 @@ import com.geinzz.geinzwork.data.model.dataclass_lugares_db
 import com.geinzz.geinzwork.data.model.dataclass_repo_agregar_datos
 import com.geinzz.geinzwork.data.model.direccion_lugar
 import com.geinzz.geinzwork.data.model.img_tienda
+import com.geinzz.geinzwork.data.model.ingreso_date
 import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
 class repo_agregar_datos(context: Context) {
     private val db: FirebaseFirestore
+
+    val db2 = FirebaseFirestore.getInstance()
 
     init {
         // Inicializa Firebase secundario una sola vez
@@ -39,8 +42,8 @@ class repo_agregar_datos(context: Context) {
         }
     }
 
-    fun agraegar_datos_db_2(data_class_tienda_geinz:data_class_tienda_geinz){
-        val hasmap=hashMapOf<String, Any>(
+    fun agraegar_datos_db_2(data_class_tienda_geinz: data_class_tienda_geinz) {
+        val hasmap = hashMapOf<String, Any>(
             "categoria_tienda" to data_class_tienda_geinz.categoria_tienda,
             "descripcion" to data_class_tienda_geinz.descripcion,
             "geohash" to data_class_tienda_geinz.geogash,
@@ -54,15 +57,24 @@ class repo_agregar_datos(context: Context) {
             "pagado" to data_class_tienda_geinz.pagado,
             "subcategoria" to data_class_tienda_geinz.subcategoria,
             "ubicacion" to data_class_tienda_geinz.ubicacion,
-            "img_tienda" to img_tienda()
+            "img_tienda" to img_tienda(),
+            "fechas" to data_class_tienda_geinz.fechas,
+            "timeSlamp" to data_class_tienda_geinz.timeSlamp
         )
-        db.collection("datos_lugares").document(data_class_tienda_geinz.id_tienda).set(hasmap).addOnSuccessListener { documentReference ->
-               Log.d("datos_agregados","correcto")
-        }.addOnFailureListener {
-            Log.d("datos_agregados","malo")
-        }
-    }
+//        db.collection("datos_lugares").document(data_class_tienda_geinz.id_tienda).set(hasmap).addOnSuccessListener { documentReference ->
+//               Log.d("datos_agregados","correcto")
+//        }.addOnFailureListener {
+//            Log.d("datos_agregados","malo")
+//        }
 
+        db2.collection("Tiendas").document(data_class_tienda_geinz.localida_tienda)
+            .collection(data_class_tienda_geinz.localida_tienda)
+            .document(data_class_tienda_geinz.id_tienda).set(hasmap).addOnSuccessListener { e ->
+                Log.d("datos_agregados", "correcto")
+            }.addOnFailureListener {
+                Log.d("datos_agregados", "malo")
+            }
+    }
 
 
 //    fun pasar_datos() {
@@ -136,7 +148,7 @@ class repo_agregar_datos(context: Context) {
 
 
     suspend fun obtener_categorias(): Pair<List<String>, List<List<String>>> {
-        Log.d("docuemtos","obtenmimosad")
+        Log.d("docuemtos", "obtenmimosad")
         val listaDocs = mutableListOf<String>()           // IDs de documentos
         val listaSubcategorias = mutableListOf<List<String>>() // Lista de listas internas
 
@@ -147,7 +159,7 @@ class repo_agregar_datos(context: Context) {
             .await()
 
         for (doc in ref.documents) {
-          Log.d("docuemtos","${doc.id}")
+            Log.d("docuemtos", "${doc.id}")
             listaDocs.add(doc.id)
 
             // 2. Obtener la lista interna "subcategorias"
@@ -158,8 +170,5 @@ class repo_agregar_datos(context: Context) {
 
         return Pair(listaDocs, listaSubcategorias)
     }
-
-
-
 
 }

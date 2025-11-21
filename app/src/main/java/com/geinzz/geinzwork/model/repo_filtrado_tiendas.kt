@@ -3,6 +3,7 @@ package com.geinzz.geinzwork.model
 import android.util.Log
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
@@ -14,8 +15,11 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.utils.constantes.constantes.constantes_bottomShet_fourdItem.obtenerHorarioDeHoy
+import com.geinzz.geinzwork.utils.constantes.constantes.constantes_bottomShet_fourdItem.obtenerHorarioDeHoy_BOX
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerProximoDiaAbierto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularTiempoRestante_box
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.convertirABox
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.estaAbiertoHoy
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.mapearHorarioDia_box2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
@@ -172,37 +176,12 @@ class repo_filtrado_tiendas {
                 val horario = i.get("horario_atencion") as? Map<String, Any> ?: emptyMap()
                 val metodos_contacto = i.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
                 val metodo_pago = i.get("metodos_pago") as? Map<String, Any> ?: emptyMap()
-                val dias =
-                    listOf("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
-                val calendar = Calendar.getInstance()
-                val diaActual = dias[calendar.get(Calendar.DAY_OF_WEEK) - 1]
-
-                val horarioDia = horario[diaActual] as? Map<String, Any> ?: emptyMap()
-                val cerrado = horarioDia["cerrado"] as? Boolean ?: false
-                val hApertura = horarioDia["h_apertura"] as? String ?: ""
-                val hCierre = horarioDia["h_cierre"] as? String ?: ""
-                val motivo = horarioDia["motivo"] as? String ?: ""
                 val contacto_obs = metodos_contacto.toMetodoContacto()
                 val metodo_pago_tienda = metodo_pago.to_metodo_pago()
                 val horario_tienda_box=horario.to_horario_atencion_box_dia()
-
-                val datossss=obtener_estado_horario_tienda_Box(horario_tienda_box)
-                Log.d("hoario_atencion_establecio","${estaAbiertoHoy(datossss)}")
-
-Log.d("calcularTiempoRestante","${calcularTiempoRestante_box(datossss)}")
-                var datos_horario_actual = horario_tienda(hApertura, hCierre, cerrado, motivo)
-                val estaAbierto =
-                    if (!cerrado) verificarSiEstaAbiertoHoy(datos_horario_actual) else false
-                if (!estaAbierto) {
-                    val proximo = obtenerProximoDiaAbierto(horario, diaActual)
-                    if (proximo != null) {
-                        val (diaProx, horarioProx) = proximo
-                        datos_horario_actual = datos_horario_actual.copy(
-                            dia_prox_apertura = diaProx,
-                            hora_prox_apertura = horarioProx["h_apertura"] as? String ?: ""
-                        )
-                    }
-                }
+                val horarioHoyBloques = obtenerHorarioDeHoy_BOX(horario_tienda_box)
+                val horarioHoyBox = convertirABox(horarioHoyBloques)
+                val estaAbierto = estaAbiertoHoy(horarioHoyBox)
 
                 lista_tiendas_filtradas.add(
                     tiendas_por_categoria(
@@ -216,7 +195,6 @@ Log.d("calcularTiempoRestante","${calcularTiempoRestante_box(datossss)}")
                         descripcion = descripcion,
                         id_tienda = id_tienda,
                         pagado = pagado,
-                        horario_dia = datos_horario_actual,
                         estaAbierto = estaAbierto, contacto_tienda = contacto_obs,
                         metodos_pago_tienda = metodo_pago_tienda,horario_tienda_box
                     )
@@ -229,6 +207,11 @@ Log.d("calcularTiempoRestante","${calcularTiempoRestante_box(datossss)}")
         }
         return lista_tiendas_filtradas
     }
+
+
+
+
+
 
 
     suspend fun obtenner_campos_tiendas_espesifica(
@@ -461,7 +444,7 @@ Log.d("calcularTiempoRestante","${calcularTiempoRestante_box(datossss)}")
             "tag_sub" to item.tag_sub,
             "categoria" to item.categoria,
             "timesLap_local" to item.timesLap,
-            "horario" to item.horario_tienda,
+            "horario" to item.horario_tienda_box,
             "metodos_pago" to item.metodos_pago,
             "latitud" to item.lat,
             "longitud" to item.lng,

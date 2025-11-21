@@ -68,6 +68,7 @@ import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
@@ -75,6 +76,7 @@ import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ImagenConInclinacion
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_listener_fv_externo
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_eliminar_favoritos
@@ -83,8 +85,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda.LazyRowConSombras
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.TiempoRestanteCierre
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.principal.AutoResizeOneLineText
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
@@ -256,13 +256,14 @@ fun iu_favoritos(
         is viewModel_favoritos.state_fv.succes -> {
             mostrar_loading = false
             val listaFavoritos = (lista_fb_size as viewModel_favoritos.state_fv.succes).item
-            val listaCategorias =
-                (lista_fb_size as viewModel_favoritos.state_fv.succes).lista_categoria
-            val listalocalidad =
-                (lista_fb_size as viewModel_favoritos.state_fv.succes).localidad_list
+            val listaOrdenada = listaFavoritos.sortedByDescending { it.estaAbierto }
+
+            val listaCategorias = (lista_fb_size as viewModel_favoritos.state_fv.succes).lista_categoria
+            val listalocalidad = (lista_fb_size as viewModel_favoritos.state_fv.succes).localidad_list
+
             if (listaFavoritos.isNotEmpty() || listaCategorias.isNotEmpty()) {
                 lista_subcategorias = listaCategorias
-                lista_datos = listaFavoritos
+                lista_datos = listaOrdenada
                 lista_localidad_filtrado = listalocalidad
                 mostar_succes = true
                 mostarsin_continuar = false
@@ -524,7 +525,11 @@ fun iu_favoritos(
                             }
                         }
                         items(lista_datos) { item ->
+                            LaunchedEffect(item.id_tienda_lugar) {
+                                viewModelFiltros.calcularHorarioParaTienda(item.id_tienda_lugar, item.horario_tienda_box)
+                            }
                             carta_desing_fv(
+                                viewModelFiltros.horariosTiendas.collectAsState().value[item.id_tienda_lugar] ?: HorarioDia_box(),
                                 verificar_intener,
                                 fv_por_fuera,
                                 viewModelFiltros,
@@ -923,13 +928,13 @@ fun TextoFavoritosConFiltros(
 
 @Composable
 fun carta_desing_fv(
+    HorarioDia_box: HorarioDia_box,
     verificar_internet: Boolean,
     fv_bool: Boolean,
     viewModelFiltros: viewModel_filtado_tiendas,
     id_user: String,
     context: Context,
-    item: favoritos_guardados,
-    tick: Long, clik_card: (id_tienda: String, localida: String) -> Unit
+    item: favoritos_guardados, tick: Long, clik_card: (id_tienda: String, localida: String) -> Unit
 ) {
     var mostrar_dialog_eliminar by remember { mutableStateOf(false) }
     Column(Modifier.padding(horizontal = 20.dp)) {
@@ -998,15 +1003,21 @@ fun carta_desing_fv(
                     fontFamily = baners_geinz_work
                 )
                 spacer_vertical(5.dp)
-                TiempoRestanteCierre(
-                    horario_total = item.horario,
-                    hCierre = item.horario.h_cierre,
-                    cerrado = item.horario.cerrado,
-                    motivo = item.horario.motivo,
-                    pagado = true,
-                    max_line = 1, tick = tick
-                ) {}
+//                TiempoRestanteCierre(
+//                    horario_total = item.horario,
+//                    hCierre = item.horario.h_cierre,
+//                    cerrado = item.horario.cerrado,
+//                    motivo = item.horario.motivo,
+//                    pagado = true,
+//                    max_line = 1, tick = tick
+//                ) {}
 
+                retornar_color_estado_tienda_Box(
+                    id_tienda = item.id_tienda_lugar,
+                    horario_total = HorarioDia_box,
+                    tick = tick,
+                    pagado = true,
+                    color = { color, txt->})
 
                 spacer_vertical(5.dp)
                 val iconCategoria = constantes_lista_localidades.getCategoriaIcon(item.categoria)

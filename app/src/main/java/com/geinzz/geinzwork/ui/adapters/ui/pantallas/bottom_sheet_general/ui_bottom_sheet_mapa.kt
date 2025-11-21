@@ -181,7 +181,6 @@ fun bottom_sheet_mapa(
                                         categoria = "",
                                         direccion = id.direccion,
                                         referencia = id.referencia,
-                                        horario_tienda = id.horario_dia,
                                         contacto_tienda = id.contacto_tienda,
                                         metodos_pago_tienda = id.metodos_pago_tienda
                                     )

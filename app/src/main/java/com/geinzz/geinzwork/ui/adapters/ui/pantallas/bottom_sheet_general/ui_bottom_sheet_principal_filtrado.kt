@@ -3,14 +3,11 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
-import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -21,11 +18,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.gestures.rememberTransformableState
-import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,20 +31,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.InlineTextContent
-import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.Icon
@@ -59,8 +45,6 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -81,7 +65,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -91,17 +74,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.Placeholder
-import androidx.compose.ui.text.PlaceholderVerticalAlign
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
@@ -109,16 +84,15 @@ import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
-import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.item_metodos_pago
-import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_filtradas
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
@@ -129,11 +103,13 @@ import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openTiktok
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openWebLink
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoExpandibleEnLinea
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.cargando_progess_mas_texto
+
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.generar_qr_ubi_tinda
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.CollageGoogleMapsStyle
 import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
@@ -145,25 +121,19 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permisos_llamadas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.requestCallPermission
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.TiempoRestanteCierre
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes_publicaciones_general_user_tiendas.obtenerDiaActualEnEspañol
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
-import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.ZoomIconButton
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_shadow_bottom_sheet_default
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isInternetAvailable
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.start_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda.retornar_id_Tienda_lugar
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
@@ -184,7 +154,7 @@ fun bottom_sheet_tiendas_filtradas(
     iconos_cosas_clikeables: Boolean = true,
     onClose: () -> Unit,
 ) {
-    Log.d("datoasadasda",tiendas_filtradas.toString())
+    Log.d("datoasadasda", tiendas_filtradas.toString())
     val context = LocalContext.current
     val firebaseAuth = FirebaseAuth.getInstance()
     viewModelFiltros.cast_horario_atencion_horario_tienda(tiendas_filtradas.horario_atencion)
@@ -313,6 +283,7 @@ fun bottom_sheet_tiendas_filtradas(
                         }
                         item {
                             cabezero_tiendas(
+                                tiendas_filtradas.id_tienda,
                                 verificar_intener,
                                 triggerAnimacion,
                                 guardar_icon = guardar_icon,
@@ -329,7 +300,7 @@ fun bottom_sheet_tiendas_filtradas(
                                 lista_img = tiendas_filtradas.lista_img,
                                 lista_tags = tiendas_filtradas.subcategoria,
                                 guaradar_select = { i ->
-                                    icono_select_fv=i
+                                    icono_select_fv = i
                                     val datos_guardar = favoritos_guardados(
                                         img_tienda = tiendas_filtradas.img_perfil,
                                         id_tienda_lugar = tiendas_filtradas.id_tienda,
@@ -341,7 +312,9 @@ fun bottom_sheet_tiendas_filtradas(
                                         metodos_pago = tiendas_filtradas.metodos_pago_tienda,
                                         lat = latitud,
                                         lng = longitud,
-                                        localida_tienda = tiendas_filtradas.localidad ?: ""
+                                        localida_tienda = tiendas_filtradas.localidad ?: "",
+                                        horario_tienda_box = tiendas_filtradas.horario_tienda_box
+
                                     )
                                     if (id_user.isEmpty()) {
                                         Toast.makeText(
@@ -361,7 +334,7 @@ fun bottom_sheet_tiendas_filtradas(
                                         guardar_icon = i
 
                                     } else {
-                                        mostar_eliminar_guardado_dialog=true
+                                        mostar_eliminar_guardado_dialog = true
 //                                        viewModelFiltros.eliminar_tienda_favorita(
 //                                            id_user,
 //                                            tiendas_filtradas.id_tienda
@@ -414,7 +387,7 @@ fun bottom_sheet_tiendas_filtradas(
                         item {
                             Expandible_horario_atencion(
                                 modifier = Modifier.padding(horizontal = 10.dp),
-                                tiendas_filtradas.horario_atencion,
+                                tiendas_filtradas.horario_tienda_box,
                                 color_Estado_flow,
                                 tiendas_filtradas.localidad,
                                 tiendas_filtradas.id_tienda,
@@ -460,7 +433,7 @@ fun bottom_sheet_tiendas_filtradas(
                     }
                 }
             }
-            if(mostar_eliminar_guardado_dialog){
+            if (mostar_eliminar_guardado_dialog) {
                 dialog_eliminar_favoritos(
                     viewModelFiltros = viewModelFiltros,
                     id_user = id_user,
@@ -468,7 +441,7 @@ fun bottom_sheet_tiendas_filtradas(
                     nombre_tienda = tiendas_filtradas.nombre_tienda,
                     ondimis = { mostar_eliminar_guardado_dialog = false }, aceptado = {
                         triggerAnimacion = false
-                        guardar_icon=icono_select_fv
+                        guardar_icon = icono_select_fv
                     })
             }
         }
@@ -480,6 +453,7 @@ fun bottom_sheet_tiendas_filtradas(
 
 @Composable
 fun cabezero_tiendas(
+    id_tienda: String,
     verificar_intener: Boolean,
     triggerAnimacion: Boolean,
     guardar_icon: Boolean,
@@ -572,8 +546,13 @@ fun cabezero_tiendas(
                     resetear_estado_loo()
                 })
 
-            AnimatedVisibility(expdir_img, modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(
-                MaterialTheme.colorScheme.background)) {
+            AnimatedVisibility(
+                expdir_img, modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        MaterialTheme.colorScheme.background
+                    )
+            ) {
                 CollageGoogleMapsStyle(imagenes = lista_img)
 //                LazyRow(
 //                    modifier = Modifier
@@ -601,6 +580,7 @@ fun cabezero_tiendas(
         ) {
             Box(modifier = Modifier.weight(1f)) {
                 perfil_cabezero(
+                    id_tienda,
                     viewModel_filtado_tiendas,
                     nombre_tienda,
                     estadoColor,
@@ -609,9 +589,16 @@ fun cabezero_tiendas(
                 )
             }
             spacer_horizonta(15.dp)
-            abrir_google_maps(verificar_intener,guardar_icon, context, latitud, longitud, { dialog_ ->
-                mostrarDialogo.value = dialog_
-            }, { guaradar_select(!guardar_icon) })
+            abrir_google_maps(
+                verificar_intener,
+                guardar_icon,
+                context,
+                latitud,
+                longitud,
+                { dialog_ ->
+                    mostrarDialogo.value = dialog_
+                },
+                { guaradar_select(!guardar_icon) })
         }
     }
 }
@@ -733,6 +720,7 @@ fun perfil_img_zooom(
 
 @Composable
 fun perfil_cabezero(
+    id_tienda: String,
     viewModelFiltros: viewModel_filtado_tiendas,
     nombre_tienda: String,
     estadoColor: Color,
@@ -754,22 +742,14 @@ fun perfil_cabezero(
             )
         spacer_vertical(5.dp)
 
-        TiempoRestanteCierre(
-            horario_total = horario_tiempo_real,
-            hCierre = horario_tiempo_real.h_cierre,
-            cerrado = horario_tiempo_real.cerrado,
-            motivo = horario_tiempo_real.motivo,
+        retornar_color_estado_tienda_Box(
+            id_tienda = id_tienda,
+            horario_total = _color_estado_tienda_Box,
+            tick = tick,
             pagado = true,
-            max_line = 1, tick = tick
-        ) { color ->
-            viewModelFiltros.setear_color(color)
-        }
-
-        retornar_color_estado_tienda_Box(_color_estado_tienda_Box,tick,{colr->
-
-        })
-
-
+            color = { color, txt ->
+                viewModelFiltros.setear_color(color)
+            })
 
         spacer_vertical(5.dp)
 
@@ -837,18 +817,18 @@ fun abrir_google_maps(
         } else {
             R.drawable.icon_borde_corazon_completo
         }
-        AnimatedVisibility (verificar_intener, enter = fadeIn(), exit = fadeOut()){
-        FloatingActionButton(
-            onClick = { guaradar_select() },
-            modifier = Modifier.size(40.dp),
-            containerColor = color_guardar_fondo,
-        ) {
-            Image(
-                painter = painterResource(icono_entrega),
-                modifier = Modifier.size(22.dp),
-                contentDescription = "Favorito",
-            )
-        }
+        AnimatedVisibility(verificar_intener, enter = fadeIn(), exit = fadeOut()) {
+            FloatingActionButton(
+                onClick = { guaradar_select() },
+                modifier = Modifier.size(40.dp),
+                containerColor = color_guardar_fondo,
+            ) {
+                Image(
+                    painter = painterResource(icono_entrega),
+                    modifier = Modifier.size(22.dp),
+                    contentDescription = "Favorito",
+                )
+            }
         }
 
     }
@@ -931,7 +911,7 @@ fun Expandible_direccion_ref(
                     ) {
                         TextoExpandibleEnLinea(
                             texto = "Referencia : ${referencia.capitalizeFirst()}",
-                            )
+                        )
 
                     }
 //                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center){
@@ -954,8 +934,6 @@ fun Expandible_direccion_ref(
         }
     }
 }
-
-
 
 
 @Composable
@@ -1339,7 +1317,7 @@ fun texto_expandido_wrapp_sin_max_line(
 @Composable
 fun Expandible_horario_atencion(
     modifier: Modifier = Modifier,
-    horario_atencion: HorarioAtencion,
+    horario_atencion: HorarioAtencion_box,
     estadoColor: Color,
     localidad_tienda: String?,
     id_tienda: String,
@@ -1374,6 +1352,10 @@ fun Expandible_horario_atencion(
                         .fillMaxWidth()
                         .animateContentSize()
                 ) {
+                    texto_generico_multilinea(
+                        "El horario mostrado corresponde al horario continuo del negocio.Si la tienda maneja turnos divididos —por ejemplo, mañana y tarde—, estos se reflejarán correctamente en el horario actualizado en tiempo real.",
+                        style = MaterialTheme.typography.bodyMedium, Modifier.padding(horizontal = 10.dp))
+                    spacer_vertical(5.dp)
                     MostrarHorarioTienda(horario_atencion, estadoColor)
                 }
             }
@@ -1383,12 +1365,11 @@ fun Expandible_horario_atencion(
 
 @Composable
 fun MostrarHorarioTienda(
-    horarioTienda: HorarioAtencion,
+    horarioTienda: HorarioAtencion_box,
     estadoColor: Color,
 ) {
     val diaActual = obtenerDiaActualEnEspañol().lowercase()
 
-    // Convertimos el objeto a lista de pares (día, horario)
     val listaHorarios = listOf(
         "lunes" to horarioTienda.lunes,
         "martes" to horarioTienda.martes,
@@ -1419,8 +1400,8 @@ fun MostrarHorarioTienda(
                     modifier = Modifier
                 )
 
-                val aperturaAMPM = formatearHoraAMPM(horario.h_apertura)
-                val cierreAMPM = formatearHoraAMPM(horario.h_cierre)
+//                val aperturaAMPM = formatearHoraAMPM(horario.h_apertura)
+//                val cierreAMPM = formatearHoraAMPM(horario.h_cierre)
 
                 val textoHorario = when {
                     horario.cerrado -> if (horario.motivo.isEmpty()) {
@@ -1429,8 +1410,15 @@ fun MostrarHorarioTienda(
                         horario.motivo.capitalizeFirst()
                     }
 
-                    horario.h_apertura == "00:00" && horario.h_cierre == "23:59" -> "Abierto las 24h"
-                    else -> "$aperturaAMPM - $cierreAMPM"
+                    horario.bloques.isEmpty() -> "Cerrado"
+
+                    else -> {
+                        val texto = unificarBloques(horario.bloques)
+                        if (horario.bloques.size == 1 &&
+                            horario.bloques.first().h_apertura == "00:00" &&
+                            horario.bloques.first().h_cierre == "23:59"
+                        ) "Abierto las 24h" else texto
+                    }
                 }
                 spacer_horizonta(7.dp)
 
@@ -1466,6 +1454,21 @@ fun formatearHoraAMPM(hora24: String): String {
     } catch (e: Exception) {
         ""
     }
+}
+
+fun unificarBloques(bloques: List<HorarioBloque>): String {
+    if (bloques.isEmpty()) return "Sin horario"
+
+    // Ordenar por hora de apertura por seguridad
+    val ordenados = bloques.sortedBy { it.h_apertura }
+
+    val primeraApertura = ordenados.first().h_apertura
+    val ultimaCierre = ordenados.last().h_cierre
+
+    val aperturaAMPM = formatearHoraAMPM(primeraApertura)
+    val cierreAMPM = formatearHoraAMPM(ultimaCierre)
+
+    return "$aperturaAMPM - $cierreAMPM"
 }
 
 

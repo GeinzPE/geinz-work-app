@@ -82,6 +82,7 @@ import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_normas_de_verificacion
@@ -89,7 +90,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_verificacion_pr
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_verificada_automatico
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.retornar_color_estado_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textos_titulos_geinz_wokr
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
@@ -240,15 +240,6 @@ fun bottom_sheet_review(
 
                         is viewmodel_review.datos_tienda_review.succes -> {
                             val datos = state.item
-                            retornar_color_estado_tienda(
-                                datos.datos_horario_actual,
-                                datos.datos_horario_actual.h_cierre,
-                                datos.datos_horario_actual.cerrado,
-                                datos.datos_horario_actual.motivo,
-                                tick
-                            ) { color_res ->
-                                color = color_res
-                            }
 
                             FuenteControladaApp {
                                 Column(
@@ -739,15 +730,7 @@ fun bottom_Sheet_seguro(
 
                             is viewmodel_review.datos_tienda_review.succes -> {
                                 val datos = state.item
-                                retornar_color_estado_tienda(
-                                    datos.datos_horario_actual,
-                                    datos.datos_horario_actual.h_cierre,
-                                    datos.datos_horario_actual.cerrado,
-                                    datos.datos_horario_actual.motivo,
-                                    tick
-                                ) { color_res ->
-                                    color = color_res
-                                }
+
                                 Column(
                                     modifier = Modifier
                                         .padding(

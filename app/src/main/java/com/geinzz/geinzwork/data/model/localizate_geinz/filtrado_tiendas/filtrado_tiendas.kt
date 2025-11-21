@@ -55,7 +55,6 @@ data class tiendas_por_categoria(
     val descripcion: String = "",
     val id_tienda: String = "",
     val pagado: Boolean,
-    val horario_dia: horario_tienda = horario_tienda(),
     val estaAbierto: Boolean = false,
     var contacto_tienda: metodo_contacto_tienda,
     val metodos_pago_tienda: modelo_pagos_tienda = modelo_pagos_tienda(),
@@ -79,7 +78,8 @@ data class lugares_cercanos(
     val direccion: String,
     val referencia: String,
     val descripcion: String,
-    val metodos_pago_tienda: modelo_pagos_tienda
+    val metodos_pago_tienda: modelo_pagos_tienda,
+    val horario_box:HorarioAtencion_box
 ) : Parcelable
 
 
@@ -95,14 +95,12 @@ data class TiendasCercanasFiltrada(
 
 
 data class tiendas_cecanas_km(
+    val id_tienda: String="",
     val img_tienda: String = "",
     val nombre_tienda: String = "",
     val kl: String = "",
     val nombre_lugar: String = "", val color: Color = Color.Transparent,
-    val horario_total: horario_tienda = horario_tienda(),
-    val hora_cierre: String = "",
-    val cerrado: Boolean = false,
-    val motivo: String = "",
+    val HorarioDia_box :HorarioDia_box= HorarioDia_box(),
     val tick: Long = 0,
 )
 

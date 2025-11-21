@@ -471,6 +471,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     }
 
     val favoritos = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+
     fun guardar_tienda_favorita(id_user: String, item_favoritos: favoritos_guardados) {
         viewModelScope.launch {
             try {
@@ -481,6 +482,23 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
             }
         }
     }
+
+    private val _horariosTiendas = MutableStateFlow<Map<String, HorarioDia_box>>(emptyMap())
+    val horariosTiendas: StateFlow<Map<String, HorarioDia_box>> = _horariosTiendas
+
+    fun calcularHorarioParaTienda(idTienda: String, horarioAtencion: HorarioAtencion_box) {
+        viewModelScope.launch {
+            val result = try {
+                repo_filtrado.obtener_estado_horario_tienda_Box(horarioAtencion)
+            } catch (e: Exception) {
+                HorarioDia_box()
+            }
+            _horariosTiendas.update { current ->
+                current + (idTienda to result)
+            }
+        }
+    }
+
 
     fun eliminar_tienda_favorita(id_user: String, id_tienda: String) {
         viewModelScope.launch {

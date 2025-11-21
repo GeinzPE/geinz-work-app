@@ -8,6 +8,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.lugares
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerProximoDiaAbierto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion_box_dia
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
 import com.google.android.gms.tasks.Task
@@ -204,6 +205,7 @@ class repo_lugares_turisticos {
                     val contacto_obs = metodos_contacto.toMetodoContacto()
                     val metodo_pago = doc.get("metodos_pago") as? Map<String, Any> ?: emptyMap()
                     val metodo_pago_separado = metodo_pago.to_metodo_pago()
+                    val horario_box_mapeo=horario_dia.to_horario_atencion_box_dia()
                     var datos_horario_actual = horario_tienda(hApertura, hCierre, cerrado, motivo)
                     val estaAbierto =
                         if (!cerrado) verificarSiEstaAbiertoHoy(datos_horario_actual) else false
@@ -242,7 +244,7 @@ class repo_lugares_turisticos {
                                 has_tienda = geohash,
                                 direccion = direccion, referencia = referencia,
                                 descripcion = descripcion,
-                                metodos_pago_tienda = metodo_pago_separado,
+                                metodos_pago_tienda = metodo_pago_separado,horario_box_mapeo
                             )
                         )
 
