@@ -15,6 +15,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 import java.util.Calendar
 import kotlin.collections.mapOf
@@ -51,6 +52,7 @@ class repo_favoritos {
                     val localidad = data["localidad_lugar_tienda"] as? String ?: ""
                     val horario_map_box = horarioMap.to_horario_atencion_box_dia()
 
+
                     val horarioHoyBloques = obtenerHorarioDeHoy_BOX(horario_map_box)
                     val horarioHoyBox = convertirABox(horarioHoyBloques)
                     val estaAbierto = estaAbiertoHoy(horarioHoyBox)
@@ -61,7 +63,7 @@ class repo_favoritos {
                         id_tienda_lugar = data["id_tienda_lugar"] as? String ?: "",
                         nombre_lugar_tienda = data["nombre_lugar_tienda"] as? String ?: "",
                         categoria = categoria,
-                        timesLap = data["timesLap"] as? String ?: "",
+                        timesLap = data["timesLap_local"] as? String ?: "",
                         lat = (data["latitud"] as? Number)?.toDouble() ?: 0.0,
                         lng = (data["longitud"] as? Number)?.toDouble() ?: 0.0,
                         estaAbierto = estaAbierto,
@@ -173,6 +175,36 @@ class repo_favoritos {
             localida_tienda       = localidad
         )
     }
+
+
+    fun actalizar_tienda(item:favoritos_guardados,id_user: String,id_tienda:String){
+        val ref = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("users")
+            .collection("users")
+            .document(id_user)
+            .collection("favoritos").document(id_tienda)
+
+        val data = mapOf(
+            "id_tienda_lugar" to item.id_tienda_lugar,
+            "nombre_lugar_tienda" to item.nombre_lugar_tienda,
+            "categoria" to item.categoria,
+            "timesLap_local" to item.timesLap,
+            "horario" to item.horario_tienda_box,
+            "latitud" to item.lat,
+            "longitud" to item.lng,
+            "img_tienda_lugar" to item.img_tienda ,
+            "localidad_lugar_tienda" to item.localida_tienda
+
+        )
+        ref.set(data, SetOptions.merge()).addOnSuccessListener {
+            Log.d("tienda","actualziado")
+        }.addOnFailureListener { e->
+            Log.d("tienda","error al actualizar")
+
+        }
+
+    }
+
 
 
 }

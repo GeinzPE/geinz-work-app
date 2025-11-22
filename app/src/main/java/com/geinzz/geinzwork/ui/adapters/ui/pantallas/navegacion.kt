@@ -49,6 +49,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.geinzz.geinzwork.Network_internet.ConnectivityViewModel
+import com.geinzz.geinzwork.NotificacionRS
 import com.geinzz.geinzwork.data.model.FavoritosFactory
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data_store.data_store_localidad
@@ -80,6 +81,7 @@ import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 import com.geinzz.geinzwork.viewModels.viewmodel_usuario_registrado
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 private lateinit var firebaseAuth: FirebaseAuth
 
@@ -133,16 +135,16 @@ fun nativationWrapper(
             )
         )
     }
-    LaunchedEffect(firebaseAuth.currentUser,uid_respald_user) {
+    LaunchedEffect(firebaseAuth.currentUser, uid_respald_user) {
         val current = firebaseAuth.currentUser
         if (current != null) {
-            Log.d("id_firebase","firebase ${firebaseAuth.uid.toString()}")
+            Log.d("id_firebase", "firebase ${firebaseAuth.uid.toString()}")
             viewmodel_usuario_registrado.obtener_datos_user_registrado(current.uid)
         } else if (uid_respald_user.isNotEmpty()) {
-            Log.d("id_firebase","estatico ${uid_respald_user}")
+            Log.d("id_firebase", "estatico ${uid_respald_user}")
             viewmodel_usuario_registrado.obtener_datos_user_registrado(uid_respald_user)
         } else {
-            Log.d("id_firebase","vacio ${uid_respald_user}")
+            Log.d("id_firebase", "vacio ${uid_respald_user}")
             datos_principales_user = datos_principales_user("", "", "barranca")
         }
     }
@@ -192,6 +194,37 @@ fun nativationWrapper(
         "pantalla_principal", "buscar", "favoritos", "principal", "login_principal" -> isvisble_buttomvar
         else -> false
     }
+    fun enviar_notificacion_lista_dispo(titutlo: String, txt: String) {
+
+        FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers")
+            .document("users")
+            .collection("tokens")
+            .document(id_user)
+            .get()
+            .addOnSuccessListener { res ->
+
+                if (!res.exists()) {
+                    Log.d("TOKENS", "❌ No existe documento para este usuario")
+                    return@addOnSuccessListener
+                }
+
+                val mapaTokens = (res.data?.get("tokens") as? Map<String, String>) ?: emptyMap()
+
+                mapaTokens.forEach { (dispositivo, token) ->
+                    Log.d("TOKENS", "📨 Enviando a $dispositivo → $token")
+                    val notificacion = NotificacionRS()
+                    notificacion.enviarNotificacionFCM(
+                        token, "", "", "", "", titutlo, txt, "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0"
+                    )
+                }
+
+            }
+            .addOnFailureListener { e ->
+                Log.e("TOKENS", "🔥 Error al obtener tokens", e)
+            }
+    }
+
 
     LaunchedEffect(currentRoute) {
         if (currentRoute == "buscar") {
@@ -300,7 +333,7 @@ fun nativationWrapper(
                 // Pantalla principal
                 composable("pantalla_principal") {
                     pantalla_principal(
-                        isConnected,datos_principales_user,
+                        isConnected, datos_principales_user,
                         categorias = { localidad, nombre ->
                             navController.navigate(
                                 mostrar_tiendas(
@@ -342,7 +375,7 @@ fun nativationWrapper(
 //                            }
 
 //                            Log.d("localidad_defautl_user", localidad)
-                          navController.navigate(lugares_turisticos(localidad))
+                            navController.navigate(lugares_turisticos(localidad))
 //                            agregar_horario_tiendas(listaDeTiendas)
                         },
                         listner_busqueda = {
@@ -354,8 +387,11 @@ fun nativationWrapper(
                         listner_sevicios_tramites = { localidad ->
                             navController.navigate(ui_servicios_tramites(localidad))
 
-                        },{
+                        },
+                        {
+                            enviar_notificacion_lista_dispo("notificaion","prueva")
 //                            navController.navigate(ui_agregar_lugares)
+
                         },
                     )
                 }
@@ -380,7 +416,8 @@ fun nativationWrapper(
                 }
 
                 composable("buscar") {
-                    ui_pantalla_busqueda(isConnected,
+                    ui_pantalla_busqueda(
+                        isConnected,
                         viewmodelMapa,
                         viewModelLugares,
                         localida_defauld = datos_principales_user,
@@ -408,8 +445,8 @@ fun nativationWrapper(
                         viewModelFiltros = viewModel_filtrado_tiendas,
                         viewmodelFavoritos = viewmodelFavoritos,
                         datos_principales_user = datos_principales_user,
-                        empty_select_chip = { nombre, categoria, localidad->
-                            Log.d("adsd13413rdwF","$nombre $categoria $localidad")
+                        empty_select_chip = { nombre, categoria, localidad ->
+                            Log.d("adsd13413rdwF", "$nombre $categoria $localidad")
                             navController.navigate(
                                 screen_filtrado(
                                     categoria,
@@ -480,7 +517,8 @@ fun nativationWrapper(
 
                 composable<map_perzonalizado> { navback ->
                     val direcciones = navback.toRoute<map_perzonalizado>()
-                    pantalla_mapa_perzonalizado(isConnected,
+                    pantalla_mapa_perzonalizado(
+                        isConnected,
                         viewmodelMapa,
                         viewmode_segurirdad_Salud = viewmode_segurirdad_Salud,
                         viewModel_filtrado_tiendas = viewModel_filtrado_tiendas,
@@ -494,7 +532,8 @@ fun nativationWrapper(
                     val categoria_localidad = navBackStackEntry.toRoute<screen_filtrado>()
 
 
-                    Pantalla_filtrado_tiendas(isConnected,
+                    Pantalla_filtrado_tiendas(
+                        isConnected,
                         viewmodelFavoritos,
                         viewModelFiltros = viewModel_filtrado_tiendas,
                         categoria = categoria_localidad.categoria,
@@ -552,7 +591,7 @@ fun nativationWrapper(
 
                 composable<ui_servicios_tramites> { navback ->
                     val servicio = navback.toRoute<ui_servicios_tramites>()
-                    ui_servicio_tramite(isConnected,servicio.localidad)
+                    ui_servicio_tramite(isConnected, servicio.localidad)
                 }
 
             }
@@ -609,4 +648,6 @@ fun nativationWrapper(
             )
         }
     }
+
+
 }

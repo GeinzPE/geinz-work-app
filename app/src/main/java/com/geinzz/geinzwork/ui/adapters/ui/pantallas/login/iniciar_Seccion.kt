@@ -75,6 +75,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.ui_bot
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.viewModels.LoginState_inicio
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -429,6 +430,7 @@ fun bottom_sheet_login(
         dragHandle = null,
         containerColor = Color.Black
     ) {
+        FuenteControladaApp{
         Column(
             modifier = Modifier.padding(vertical = 25.dp, horizontal = 15.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -493,7 +495,6 @@ fun bottom_sheet_login(
                         }
                     }
                 )
-
             }
             if (cambiar_contra) {
                 spacer_vertical(20.dp)
@@ -514,7 +515,6 @@ fun bottom_sheet_login(
                         password = ""
                     }
             ) {
-
                 texto_generico_one_line(
                     texto = if (cambiar_contra) {
                         "Olvidaste tu contraseña?"
@@ -552,6 +552,7 @@ fun bottom_sheet_login(
                 })
             spacer_vertical(10.dp)
 
+        }
         }
     }
 }

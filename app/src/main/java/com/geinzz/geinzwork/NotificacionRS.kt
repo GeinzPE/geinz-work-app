@@ -85,20 +85,18 @@ class NotificacionRS {
         entrada: String,
         titulo: String,
         cuerpo: String,
-        urlImagen: String? = null // <-- imagen opcional
+        urlImagen: String? = null
     ) {
-        val imageField = if (urlImagen != null) """, "image": "$urlImagen"""" else ""
-
         val jsonBody = """
         {
-            "token": "$token",
-            "title": "$titulo",
-            "body": "$cuerpo",
-            "click_action": "$clickAction",
-            "idAnuncio": "$idAnuncio",
-            "idTienda": "$idTienda",
-            "entrada": "$entrada"
-            $imageField
+          "token": "$token",
+          "title": "$titulo",
+          "body": "$cuerpo",
+          "image": "${urlImagen ?: ""}",
+          "click_action": "$clickAction",
+          "idAnuncio": "$idAnuncio",
+          "idTienda": "$idTienda",
+          "entrada": "$entrada"
         }
     """.trimIndent()
 
@@ -120,6 +118,7 @@ class NotificacionRS {
             }
         })
     }
+
 
 
 

@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class viewModel_favoritos( private val id_user: String,) : ViewModel() {
+class viewModel_favoritos(private val id_user: String) : ViewModel() {
     private val repo_fv = repo_favoritos()
     private val lista_categoria_filtrad = MutableStateFlow<List<String>>(emptyList())
     private val lista_localidad_filtrado = MutableStateFlow<List<String>>(emptyList())
@@ -28,76 +28,129 @@ class viewModel_favoritos( private val id_user: String,) : ViewModel() {
     }
 
     fun obtener_favoritos(id_user: String) {
-        // Solo mostrar loading la primera vez
+
         if (!listenerRegistrado) {
             _lista_fv.value = state_fv.loading
         }
-viewModelScope.launch {
-    
-}
-        try {
-            repo_fv.obtener_favoritos_realtime(id_user) { pair ->
-                listenerRegistrado = true
 
-                val (favoritos, categorias, localidad) = pair
+        viewModelScope.launch {
 
-                val categoriasSinRepetir = categorias.distinct()
-                val localidad_sin_rep = localidad.distinct()
+            try {
 
-                lista_categoria_filtrad.value = categoriasSinRepetir
-                lista_localidad_filtrado.value = localidad_sin_rep
-                val listaIdsLocalidad = favoritos.map { fav ->
-                    fav.id_tienda_lugar to fav.localida_tienda
-                }
+                Log.d("favorios123123213123123", "🔵 Registrando listener de favoritos...")
 
-                repo_fv.obtener_timestamps_tiendas(listaIdsLocalidad) { mapTiemposTiendas ->
+                repo_fv.obtener_favoritos_realtime(id_user) { pair ->
 
-                    favoritos.forEachIndexed { index, fav ->
+                    listenerRegistrado = true
+                    Log.d("favorios123123213123123", "🟢 Favoritos recibidos del realtime listener")
 
-                        val timestampRemoto = mapTiemposTiendas[fav.id_tienda_lugar]?.toLongOrNull() ?: 0L
-                        val timestampLocal = fav.timesLap.toLongOrNull() ?: 0L
+                    val (favoritos, categorias, localidad) = pair
 
-                        val necesitaActualizar = timestampRemoto > timestampLocal
+                    val categoriasSinRepetir = categorias.distinct()
+                    val localidadSinRep = localidad.distinct()
 
-                        if (necesitaActualizar) {
+                    lista_categoria_filtrad.value = categoriasSinRepetir
+                    lista_localidad_filtrado.value = localidadSinRep
 
-                            // 1) pedir al backend los datos nuevos de ESTE favorito
-                            repo_fv.obtener_nuevos_datos(
-                                fav.id_tienda_lugar,
-                                fav.localida_tienda
-                            ) { datosActualizados ->
+                    // Preparamos lista (id, localidad)
+                    val listaIdsLocalidad = favoritos.map { fav ->
+                        fav.id_tienda_lugar to fav.localida_tienda
+                    }
 
-                                // 2) Creamos una lista nueva con SOLO este favorito actualizado
-                                val nuevaLista = lista_original_items.value.toMutableList()
-                                nuevaLista[index] = nuevaLista[index].copy(
-                                    // lo que quieras actualizar
-                                    timesLap = timestampRemoto.toString(),
-                                    descripcion = datosActualizados.descripcion,
-                                    nombre = datosActualizados.nombre,
-                                    // ...
+                    // Pedimos timestamps remotos de tiendas
+                    repo_fv.obtener_timestamps_tiendas(listaIdsLocalidad) { mapTiemposTiendas ->
+
+                        Log.d(
+                            "favorios123123213123123",
+                            "🟣 Timestamps remotos obtenidos: $mapTiemposTiendas"
+                        )
+
+                        favoritos.forEachIndexed { index, fav ->
+
+                            val timestampRemoto =
+                                mapTiemposTiendas[fav.id_tienda_lugar]?.toLongOrNull() ?: 0L
+                            val timestampLocal = fav.timesLap.toLongOrNull() ?: 0L
+
+                            Log.d(
+                                "favorios123123213123123",
+                                "⭐ Comparando tienda=${fav.id_tienda_lugar} local=$timestampLocal remoto=$timestampRemoto"
+                            )
+
+                            val necesitaActualizar = timestampRemoto > timestampLocal
+
+                            if (necesitaActualizar) {
+
+                                Log.d(
+                                    "favorios123123213123123",
+                                    "🟠 Necesita actualizar → ${fav.nombre_lugar_tienda}"
                                 )
 
-                                // 3) Emitir lista actualizada para que Compose refresque SOLO ese item
-                                lista_original_items.value = nuevaLista
+                                viewModelScope.launch {
+
+                                    Log.d(
+                                        "favorios123123213123123",
+                                        "🔄 Descargando datos nuevos de ${fav.id_tienda_lugar}"
+                                    )
+
+                                    val nuevosDatos = repo_fv.obtener_nuevos_datos(
+                                        fav.localida_tienda,
+                                        fav.id_tienda_lugar
+                                    )
+
+                                    Log.d(
+                                        "favorios123123213123123",
+                                        "🟢 Datos nuevos descargados: $nuevosDatos"
+                                    )
+
+
+                                    val timestampActualizado = timestampRemoto.toString()
+                                    val dato_nuevo = favoritos_guardados(
+                                        img_tienda = nuevosDatos.img_tienda,
+                                        id_tienda_lugar = nuevosDatos.id_tienda_lugar,
+                                        nombre_lugar_tienda = nuevosDatos.nombre_lugar_tienda,
+                                        categoria = nuevosDatos.categoria,
+                                        timesLap = timestampActualizado,
+                                        lat = nuevosDatos.lat,
+                                        lng = nuevosDatos.lng,
+                                        localida_tienda = nuevosDatos.localida_tienda,
+                                        estaAbierto = false,
+                                        horario_tienda_box = nuevosDatos.horario_tienda_box
+                                    )
+                                    repo_fv.actalizar_tienda(
+                                        dato_nuevo,
+                                        id_user,
+                                        nuevosDatos.id_tienda_lugar
+                                    )
+
+                                }
+                            } else {
+                                Log.d(
+                                    "favorios123123213123123",
+                                    "🟢 No necesita actualizar → ${fav.nombre_lugar_tienda}"
+                                )
                             }
                         }
                     }
+
+                    // Emitimos éxito
+                    if (favoritos.isNotEmpty()) {
+                        lista_original_items.value = favoritos
+                        _lista_fv.value = state_fv.succes(
+                            favoritos,
+                            categoriasSinRepetir,
+                            localidadSinRep
+                        )
+                        Log.d("favorios123123213123123", "🟢 Favoritos cargados correctamente")
+                    } else {
+                        _lista_fv.value = state_fv.empty
+                        Log.d("favorios123123213123123", "⚪ No hay favoritos")
+                    }
                 }
 
-                if (favoritos.isNotEmpty()) {
-                    lista_original_items.value = favoritos
-                    _lista_fv.value = state_fv.succes(
-                        favoritos,
-                        categoriasSinRepetir,
-                        localidad_sin_rep
-                    )
-                } else {
-                    _lista_fv.value = state_fv.empty
-                }
+            } catch (e: Exception) {
+                Log.e("favorios123123213123123", "🔴 Error cargando favoritos", e)
+                _lista_fv.value = state_fv.error("Ocurrió un error, inténtalo nuevamente")
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            _lista_fv.value = state_fv.error("Ocurrió un error, inténtalo nuevamente")
         }
     }
 

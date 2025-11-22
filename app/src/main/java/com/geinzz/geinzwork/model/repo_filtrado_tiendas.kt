@@ -476,7 +476,7 @@ class repo_filtrado_tiendas {
             "id_tienda_lugar" to item.id_tienda_lugar,
             "nombre_lugar_tienda" to item.nombre_lugar_tienda,
             "categoria" to item.categoria,
-            "timesLap_local" to timestampLocal,
+            "timesLap_local" to timestampLocal.toString(),
             "horario" to item.horario_tienda_box,
             "latitud" to item.lat,
             "longitud" to item.lng,

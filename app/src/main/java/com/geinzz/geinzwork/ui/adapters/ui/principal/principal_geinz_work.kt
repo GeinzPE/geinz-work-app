@@ -357,7 +357,7 @@ fun pantalla_principal(
                     localidad_defaul,
                     datos_principales_user.nombre,
                     { nombre, localidad ->
-                        categorias(localidad, nombre)
+                       categorias(localidad, nombre)
                     }, { categoria, localidad, nombre ->
                         clikear_cartas(categoria, localidad, nombre)
                     })
