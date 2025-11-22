@@ -32,7 +32,9 @@ class viewModel_favoritos( private val id_user: String,) : ViewModel() {
         if (!listenerRegistrado) {
             _lista_fv.value = state_fv.loading
         }
-
+viewModelScope.launch {
+    
+}
         try {
             repo_fv.obtener_favoritos_realtime(id_user) { pair ->
                 listenerRegistrado = true
@@ -49,8 +51,39 @@ class viewModel_favoritos( private val id_user: String,) : ViewModel() {
                 }
 
                 repo_fv.obtener_timestamps_tiendas(listaIdsLocalidad) { mapTiemposTiendas ->
-                    
+
+                    favoritos.forEachIndexed { index, fav ->
+
+                        val timestampRemoto = mapTiemposTiendas[fav.id_tienda_lugar]?.toLongOrNull() ?: 0L
+                        val timestampLocal = fav.timesLap.toLongOrNull() ?: 0L
+
+                        val necesitaActualizar = timestampRemoto > timestampLocal
+
+                        if (necesitaActualizar) {
+
+                            // 1) pedir al backend los datos nuevos de ESTE favorito
+                            repo_fv.obtener_nuevos_datos(
+                                fav.id_tienda_lugar,
+                                fav.localida_tienda
+                            ) { datosActualizados ->
+
+                                // 2) Creamos una lista nueva con SOLO este favorito actualizado
+                                val nuevaLista = lista_original_items.value.toMutableList()
+                                nuevaLista[index] = nuevaLista[index].copy(
+                                    // lo que quieras actualizar
+                                    timesLap = timestampRemoto.toString(),
+                                    descripcion = datosActualizados.descripcion,
+                                    nombre = datosActualizados.nombre,
+                                    // ...
+                                )
+
+                                // 3) Emitir lista actualizada para que Compose refresque SOLO ese item
+                                lista_original_items.value = nuevaLista
+                            }
+                        }
+                    }
                 }
+
                 if (favoritos.isNotEmpty()) {
                     lista_original_items.value = favoritos
                     _lista_fv.value = state_fv.succes(

@@ -475,11 +475,9 @@ class repo_filtrado_tiendas {
         val data = mapOf(
             "id_tienda_lugar" to item.id_tienda_lugar,
             "nombre_lugar_tienda" to item.nombre_lugar_tienda,
-//            "tag_sub" to item.tag_sub,
             "categoria" to item.categoria,
             "timesLap_local" to timestampLocal,
             "horario" to item.horario_tienda_box,
-//            "metodos_pago" to item.metodos_pago,
             "latitud" to item.lat,
             "longitud" to item.lng,
             "img_tienda_lugar" to item.img_tienda ,

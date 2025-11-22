@@ -112,5 +112,5 @@ data class favoritos_guardados(
     val lng: Double=0.0,
     val localida_tienda:String,
     val estaAbierto: Boolean = false,
-    val horario_tienda_box:HorarioAtencion_box = HorarioAtencion_box()
+    val horario_tienda_box:HorarioAtencion_box = HorarioAtencion_box(),
 )

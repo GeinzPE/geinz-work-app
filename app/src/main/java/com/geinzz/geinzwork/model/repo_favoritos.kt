@@ -17,6 +17,7 @@ import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import java.util.Calendar
+import kotlin.collections.mapOf
 
 class repo_favoritos {
     val db = FirebaseFirestore.getInstance()
@@ -53,7 +54,7 @@ class repo_favoritos {
                     val horarioHoyBloques = obtenerHorarioDeHoy_BOX(horario_map_box)
                     val horarioHoyBox = convertirABox(horarioHoyBloques)
                     val estaAbierto = estaAbiertoHoy(horarioHoyBox)
-                    Log.d("estaabeirtooo",estaAbierto.toString())
+                    Log.d("estaabeirtooo", estaAbierto.toString())
 
                     val favorito = favoritos_guardados(
                         img_tienda = data["img_tienda_lugar"] as? String ?: "",
@@ -62,8 +63,10 @@ class repo_favoritos {
                         categoria = categoria,
                         timesLap = data["timesLap"] as? String ?: "",
                         lat = (data["latitud"] as? Number)?.toDouble() ?: 0.0,
-                        lng = (data["longitud"] as? Number)?.toDouble() ?: 0.0,estaAbierto=estaAbierto,
-                        localida_tienda = localidad, horario_tienda_box = horario_map_box
+                        lng = (data["longitud"] as? Number)?.toDouble() ?: 0.0,
+                        estaAbierto = estaAbierto,
+                        localida_tienda = localidad,
+                        horario_tienda_box = horario_map_box
                     )
 
                     listaFavoritos.add(favorito)
@@ -132,6 +135,44 @@ class repo_favoritos {
         }
     }
 
+
+    suspend fun obtener_nuevos_datos(localidad: String, id: String): favoritos_guardados {
+        val ref = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(id)
+            .get()
+            .await()
+
+        if (!ref.exists()) {
+            return favoritos_guardados(
+                localida_tienda = TODO()
+            )
+        }
+
+        val data = ref.data ?: emptyMap<String, Any>()
+
+        val horario=data["horario_atencion"] as? Map<String, Any> ?: emptyMap()
+        val hoarario_mapBox=horario.to_horario_atencion_box_dia()
+
+        val lat_lng =data["ubicacion"] as? Map<String, Any> ?:emptyMap()
+        val lat=lat_lng.get("latitud") as? Number ?: 0
+        val lng=lat_lng.get("latitud") as? Number ?: 0
+        val img_tienda =data["img_tienda"] as? Map<String, Any> ?: emptyMap()
+        val logo=img_tienda.get("logo_tienda") as? String?:""
+
+        return favoritos_guardados(
+            id_tienda_lugar       = id,
+            nombre_lugar_tienda   = data["nombre_tienda"] as? String ?: "",
+            categoria             = data["categoria_tienda"] as? String ?: "",
+            timesLap              = data["timeSlamp"] as? String ?: "",
+            horario_tienda_box   = hoarario_mapBox,
+            lat               = lat.toDouble(),
+            lng              = lng.toDouble(),
+            img_tienda      = logo,
+            localida_tienda       = localidad
+        )
+    }
 
 
 }
