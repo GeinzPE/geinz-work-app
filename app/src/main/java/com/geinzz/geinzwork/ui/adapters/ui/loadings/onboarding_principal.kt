@@ -88,6 +88,8 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.fracespantalla11
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.fracespantalla12
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.fracespantalla13
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -427,7 +429,7 @@ fun pantalla3(
 
         FondoOscuroAlto(lista_colores_degradado)
         CartaLocalizacion(
-            lugar = "Explora a tu manera",
+            lugar = "Tu camino más fácil",
             localida = "Geinz", false
         )
 
@@ -446,7 +448,7 @@ fun pantalla4(
 
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(fracespantalla11.img)
+                .data(fracespantalla12.img)
                 .build(),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
@@ -477,14 +479,14 @@ fun pantalla4(
                             .height(IntrinsicSize.Min)
                     ) {
                         texto_generico_multilinea(
-                            fracespantalla11.titulo.uppercase(),
+                            fracespantalla12.titulo.uppercase(),
                             MaterialTheme.typography.busquedaGeinzWork, Color = Color.White
                         )
                     }
 
                     spacer_vertical(10.dp)
                     texto_generico_multilinea(
-                        fracespantalla11.texto,
+                        fracespantalla12.texto,
                         MaterialTheme.typography.bodyMedium, Color = Color.White
                     )
 
@@ -505,7 +507,7 @@ fun pantalla4(
 
         FondoOscuroAlto(lista_colores_degradado)
         CartaLocalizacion(
-            lugar = "Explora a tu manera",
+            lugar = "Explora tu zona",
             localida = "Geinz", false
         )
 
@@ -524,7 +526,7 @@ fun pantalla5(
 
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(fracespantalla11.img)
+                .data(fracespantalla13.img)
                 .build(),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
@@ -555,14 +557,14 @@ fun pantalla5(
                             .height(IntrinsicSize.Min)
                     ) {
                         texto_generico_multilinea(
-                            fracespantalla11.titulo.uppercase(),
+                            fracespantalla13.titulo.uppercase(),
                             MaterialTheme.typography.busquedaGeinzWork, Color = Color.White
                         )
                     }
 
                     spacer_vertical(10.dp)
                     texto_generico_multilinea(
-                        fracespantalla11.texto,
+                        fracespantalla13.texto,
                         MaterialTheme.typography.bodyMedium, Color = Color.White
                     )
 
@@ -583,7 +585,7 @@ fun pantalla5(
 
         FondoOscuroAlto(lista_colores_degradado)
         CartaLocalizacion(
-            lugar = "Explora a tu manera",
+            lugar = "Rutas rápidas",
             localida = "Geinz", false
         )
 

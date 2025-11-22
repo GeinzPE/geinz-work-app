@@ -136,7 +136,7 @@ fun dialog_distancia_map_km_m(
                     texto_generico_one_line("Horaro en tiempo real")
                     spacer_vertical(5.dp)
                     texto_generico_multilinea(
-                        "La disponibilidad  se muestra en el momento exacto. ¡Siempre sabrás si la tienda está lista para recibirte!",
+                        "La disponibilidad  se muestra en el momento exacto. ¡Siempre sabrás si la tienda,negocio o lugar está listo para recibirte!",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     spacer_vertical(5.dp)

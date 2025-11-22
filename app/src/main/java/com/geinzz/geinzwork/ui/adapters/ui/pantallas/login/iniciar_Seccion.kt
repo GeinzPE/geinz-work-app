@@ -203,9 +203,10 @@ fun IniciarSeccion(
                         Image(
                             painter = painterResource(R.drawable.logo_geinz_blanco),
                             contentDescription = "",
-                            modifier = Modifier.size(70.dp).clickable{
+                            modifier = Modifier.size(70.dp)
+//                                .clickable{
 //                                mostar_errores_bottom_sheet=true
-                            }
+//                            }
                         )
                     }
                     spacer_vertical(5.dp)

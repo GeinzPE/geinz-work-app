@@ -1196,6 +1196,35 @@ object constantes_bottomShet_fourdItem {
         }
     }
 
+    fun calcularProximaApertura(
+        diaActual: String,
+        horarioSemanal: Map<String, HorarioDia_bloques>
+    ): Pair<String, String> {
+
+        val diasOrden = listOf(
+            "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"
+        )
+
+        var index = diasOrden.indexOf(diaActual.lowercase())
+        if (index == -1) return "" to ""
+
+        for (i in 1..7) {
+            index = (index + 1) % 7
+            val dia = diasOrden[index]
+
+            val diaHorario = horarioSemanal[dia] ?: continue
+
+            if (!diaHorario.cerrado && diaHorario.bloques.isNotEmpty()) {
+                val h = diaHorario.bloques.first().h_apertura
+                return dia to h
+            }
+        }
+
+        return "" to ""
+    }
+
+
+
 
 
     @RequiresApi(Build.VERSION_CODES.O)

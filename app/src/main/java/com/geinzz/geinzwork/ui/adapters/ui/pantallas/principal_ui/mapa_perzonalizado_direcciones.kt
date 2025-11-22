@@ -489,7 +489,8 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         horario_tienda = tienda.horario_dia,
                                         contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda ,horario_box = tienda.horario_box
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda,
+                                        horario_box = tienda.horario_box
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -525,7 +526,8 @@ fun MyGoogle_maps(
                                         direccion = tienda.direccion,
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda ,horario_box = tienda.horario_tienda_box
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda,
+                                        horario_box = tienda.horario_tienda_box
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -650,7 +652,8 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         horario_tienda = tienda.horario_dia,
                                         contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda ,horario_box = tienda.horario_box
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda,
+                                        horario_box = tienda.horario_box
                                     )
                                     Log.d("ecnotramos", "${tienda.contacto_tienda}")
 
@@ -689,7 +692,8 @@ fun MyGoogle_maps(
                                         direccion = tienda.direccion,
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda ,horario_box = tienda.horario_tienda_box
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda,
+                                        horario_box = tienda.horario_tienda_box
                                     )
                                     Log.d("ecnotramos", "${tienda.contacto_tienda}")
 
@@ -869,7 +873,8 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         horario_tienda = tienda.horario_dia,
                                         contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda   ,horario_box = tienda.horario_box
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda,
+                                        horario_box = tienda.horario_box
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -955,7 +960,8 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         horario_tienda = tienda.horario_dia,
                                         contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda ,horario_box = tienda.horario_box
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda,
+                                        horario_box = tienda.horario_box
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -993,7 +999,8 @@ fun MyGoogle_maps(
                                         direccion = tienda.direccion,
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda ,horario_box = tienda.horario_tienda_box
+                                        metodos_pago_tienda = tienda.metodos_pago_tienda,
+                                        horario_box = tienda.horario_tienda_box
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -1537,10 +1544,17 @@ fun dialogo_lugar_tienda(
 
                             }
                             spacer_vertical(10.dp)
-                            texto_generico_one_line(
-                                dataclass_map.direccion,
-                                MaterialTheme.typography.bodyMedium
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                texto_generico_one_line("Dirección: ",  MaterialTheme.typography.bodyMedium)
+                                texto_generico_one_line(
+                                    dataclass_map.direccion,
+                                    MaterialTheme.typography.bodyMedium
+                                )
+                            }
+
                             spacer_vertical(10.dp)
                             if (dataclass_map.metodos_pago_tienda != modelo_pagos_tienda()) {
                                 Box(
@@ -1714,7 +1728,7 @@ fun dialogo_lugar_tienda(
             retornar_color_estado_tienda_Box(
                 id_tienda = dataclass_map.id,
                 horario_total = horarioSeguro,
-                tick = tick, pagado = true, color = { color, txt->
+                tick = tick, pagado = true, color = { color, txt ->
                     estadoColor = color
                 }, mostrar_txt = false
             )
@@ -1733,7 +1747,7 @@ fun dialogo_lugar_tienda(
                 dataclass_map.id,
                 distancia,
                 horarioSeguro,
-                dataclass_map.nombre,dataclass_map.img,
+                dataclass_map.img, dataclass_map.nombre,
                 tick,
                 estadoColor,
                 { dialogo_distancia = false })

@@ -2,7 +2,9 @@
 
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -81,6 +83,7 @@ import com.google.firebase.auth.FirebaseAuth
 
 private lateinit var firebaseAuth: FirebaseAuth
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun nativationWrapper(
@@ -352,7 +355,7 @@ fun nativationWrapper(
                             navController.navigate(ui_servicios_tramites(localidad))
 
                         },{
-                            navController.navigate(ui_agregar_lugares)
+//                            navController.navigate(ui_agregar_lugares)
                         },
                     )
                 }

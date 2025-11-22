@@ -363,6 +363,34 @@ object constantes_lista_localidades {
         )
     }
 
+    fun calcularProximaApertura(
+        diaActual: String,
+        horarioSemanal: Map<String, HorarioDia_bloques>
+    ): Pair<String, String> {
+
+        val ordenDias = listOf(
+            "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"
+        )
+
+        var index = ordenDias.indexOf(diaActual.lowercase())
+        if (index == -1) return "" to ""
+
+        for (i in 1..7) {
+            index = (index + 1) % 7
+            val dia = ordenDias[index]
+
+            val horarioDia = horarioSemanal[dia] ?: continue
+
+            if (!horarioDia.cerrado && horarioDia.bloques.isNotEmpty()) {
+                val primerBloque = horarioDia.bloques.first()
+                return dia to primerBloque.h_apertura
+            }
+        }
+
+        return "" to ""
+    }
+
+
     @Composable
     fun ZoomIconButton(mostrarDialogozoom: () -> Unit) {
         Box(
@@ -470,8 +498,8 @@ object constantes_lista_localidades {
         // inicio
         Color.Black.copy(alpha = 0.2f),        // un poco oscuro
         Color.Black.copy(alpha = 0.5f),        // intermedio
-        Color.Black.copy(alpha = 0.85f),       // ya casi negro
-        Color.Black.copy(alpha = 0.95f),       // más negro aún
+        Color.Black.copy(alpha = 0.80f),       // ya casi negro
+        Color.Black.copy(alpha = 0.90f),       // más negro aún
         Color.Black.copy(alpha = 1f)
     )
 
@@ -521,17 +549,17 @@ object constantes_lista_localidades {
         dataclass_pantalla1(
             "Tu camino más fácil",
             "Encuentra rápido las tiendas y servicios que necesitas cerca de ti. Todo en un solo lugar, para que tu día sea más simple.",
-            R.drawable.p1_1
+            R.drawable.onb1
         ),
         dataclass_pantalla1(
             "Explora tu zona",
             "Descubre restaurantes, tiendas y servicios en tu ciudad. Aprovecha promociones exclusivas y conoce lo que tienes alrededor.",
-            R.drawable.p1_2
+            R.drawable.onb2
         ),
         dataclass_pantalla1(
             "Rutas rápidas",
             "Sigue rutas directas y seguras para llegar más rápido a tu destino. Encuentra siempre lo que buscas sin complicaciones.",
-            R.drawable.p1_3
+            R.drawable.onb3
         )
     )
 
@@ -539,10 +567,23 @@ object constantes_lista_localidades {
     val fracespantalla11 = dataclass_pantalla1(
         "Tu camino más fácil",
         "Encuentra rápido las tiendas y servicios que necesitas cerca de ti. Todo en un solo lugar, para que tu día sea más simple.",
-        R.drawable.f4
-
+        R.drawable.onb1
 
     )
+    val fracespantalla12 = dataclass_pantalla1(
+        "Explora tu zona",
+        "Descubre restaurantes, tiendas y servicios en tu ciudad.",
+        R.drawable.onb2
+
+    )
+    val fracespantalla13 = dataclass_pantalla1(
+        "Rutas rápidas",
+        "Sigue rutas directas y seguras para llegar más rápido a tu destino. Encuentra siempre lo que buscas sin complicaciones.",
+        R.drawable.onb3
+
+    )
+
+
 
     @Composable
     fun FuenteControladaApp_bottom_sheet_dialog(content: @Composable () -> Unit) {
