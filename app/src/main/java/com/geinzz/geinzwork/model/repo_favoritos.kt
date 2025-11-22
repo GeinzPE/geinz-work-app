@@ -13,6 +13,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion_box_dia
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import java.util.Calendar
@@ -44,49 +45,22 @@ class repo_favoritos {
                 for (doc in snapshot.documents) {
                     val data = doc.data ?: continue
 
-//                    fun mapearDia(diaMap: Map<String, Any>?): HorarioDia {
-//                        if (diaMap == null) return HorarioDia()
-//                        return HorarioDia(
-//                            cerrado = diaMap["cerrado"] as? Boolean ?: false,
-//                            h_apertura = diaMap["h_apertura"] as? String ?: "",
-//                            h_cierre = diaMap["h_cierre"] as? String ?: "",
-//                            motivo = diaMap["motivo"] as? String ?: ""
-//                        )
-//                    }
-
                     val horarioMap = data["horario"] as? Map<String, Any> ?: emptyMap()
-//                    val metodo_pago = data["metodos_pago"] as? Map<String, Any> ?: emptyMap()
                     val categoria = data["categoria"] as? String ?: ""
                     val localidad = data["localidad_lugar_tienda"] as? String ?: ""
                     val horario_map_box = horarioMap.to_horario_atencion_box_dia()
-//                    val metodo_pago_tienda = metodo_pago.to_metodo_pago()
+
                     val horarioHoyBloques = obtenerHorarioDeHoy_BOX(horario_map_box)
                     val horarioHoyBox = convertirABox(horarioHoyBloques)
                     val estaAbierto = estaAbiertoHoy(horarioHoyBox)
                     Log.d("estaabeirtooo",estaAbierto.toString())
 
-//                    val horarioTienda = HorarioAtencion(
-//                        lunes = mapearDia(horarioMap["lunes"] as? Map<String, Any>),
-//                        martes = mapearDia(horarioMap["martes"] as? Map<String, Any>),
-//                        miercoles = mapearDia(horarioMap["miercoles"] as? Map<String, Any>),
-//                        jueves = mapearDia(horarioMap["jueves"] as? Map<String, Any>),
-//                        viernes = mapearDia(horarioMap["viernes"] as? Map<String, Any>),
-//                        sabado = mapearDia(horarioMap["sabado"] as? Map<String, Any>),
-//                        domingo = mapearDia(horarioMap["domingo"] as? Map<String, Any>)
-//                    )
-
-//                    val cast_horario = repo_filtrado.obtener_estado_horario_tienda(horarioTienda)
-//                    Log.d("3fafgSDGSDAFTGSDF", cast_horario.toString())
-
                     val favorito = favoritos_guardados(
                         img_tienda = data["img_tienda_lugar"] as? String ?: "",
                         id_tienda_lugar = data["id_tienda_lugar"] as? String ?: "",
                         nombre_lugar_tienda = data["nombre_lugar_tienda"] as? String ?: "",
-//                        tag_sub = data["tag_sub"] as? List<String> ?: emptyList(),
                         categoria = categoria,
                         timesLap = data["timesLap"] as? String ?: "",
-//                        horario = cast_horario,
-//                        metodos_pago = metodo_pago_tienda,
                         lat = (data["latitud"] as? Number)?.toDouble() ?: 0.0,
                         lng = (data["longitud"] as? Number)?.toDouble() ?: 0.0,estaAbierto=estaAbierto,
                         localida_tienda = localidad, horario_tienda_box = horario_map_box
@@ -101,6 +75,63 @@ class repo_favoritos {
             }
         }
     }
+
+
+    fun obtener_timestamps_tiendas(
+        idsFavoritos: List<Pair<String, String>>,
+        onComplete: (Map<String, String>) -> Unit
+    ) {
+        if (idsFavoritos.isEmpty()) {
+            onComplete(emptyMap())
+            return
+        }
+
+        // Agrupar IDs por localidad
+        val agrupadosPorLocalidad = idsFavoritos.groupBy { it.second } // segundo = localidad
+
+        val resultadoFinal = mutableMapOf<String, String>()
+        var consultasPendientes = 0
+
+        for ((localidad, listaIds) in agrupadosPorLocalidad) {
+
+            // Partir cada lista en grupos de máximo 10 IDs (por límite de Firestore)
+            val chunks = listaIds.chunked(10)
+
+            consultasPendientes += chunks.size
+
+            for (chunk in chunks) {
+
+                val ids = chunk.map { it.first } // primer elemento = id_tienda
+
+                val ref = db.collection("Tiendas")
+                    .document(localidad)
+                    .collection(localidad)
+
+                ref.whereIn(FieldPath.documentId(), ids)
+                    .get()
+                    .addOnSuccessListener { snapshot ->
+
+                        for (doc in snapshot.documents) {
+                            val timestampTienda = doc.getString("timeSlamp") ?: "0"
+                            resultadoFinal[doc.id] = timestampTienda
+                        }
+
+                        consultasPendientes--
+
+                        if (consultasPendientes == 0) {
+                            onComplete(resultadoFinal)
+                        }
+                    }
+                    .addOnFailureListener {
+                        consultasPendientes--
+                        if (consultasPendientes == 0) {
+                            onComplete(resultadoFinal)
+                        }
+                    }
+            }
+        }
+    }
+
 
 
 }

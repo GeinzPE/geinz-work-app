@@ -20,8 +20,9 @@ class viewModel_favoritos( private val id_user: String,) : ViewModel() {
     private val lista_original_items = MutableStateFlow<List<favoritos_guardados>>(emptyList())
 
     private var listenerRegistrado = false
+
     init {
-Log.d("id_user",id_user)
+
         obtener_favoritos(id_user)
 
     }
@@ -43,7 +44,13 @@ Log.d("id_user",id_user)
 
                 lista_categoria_filtrad.value = categoriasSinRepetir
                 lista_localidad_filtrado.value = localidad_sin_rep
+                val listaIdsLocalidad = favoritos.map { fav ->
+                    fav.id_tienda_lugar to fav.localida_tienda
+                }
 
+                repo_fv.obtener_timestamps_tiendas(listaIdsLocalidad) { mapTiemposTiendas ->
+                    
+                }
                 if (favoritos.isNotEmpty()) {
                     lista_original_items.value = favoritos
                     _lista_fv.value = state_fv.succes(
