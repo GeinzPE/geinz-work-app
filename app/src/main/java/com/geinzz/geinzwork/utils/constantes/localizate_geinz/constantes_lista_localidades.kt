@@ -2302,10 +2302,10 @@ object constantes_lista_localidades {
         val horario = HorarioAtencion_box(
             lunes = mapearHorario_box_Dia(this["lunes"] as? Map<String, Any>),
             martes = mapearHorario_box_Dia(this["martes"] as? Map<String, Any>),
-            miercoles = mapearHorario_box_Dia(this["miércoles"] as? Map<String, Any>),
+            miércoles = mapearHorario_box_Dia(this["miércoles"] as? Map<String, Any>),
             jueves = mapearHorario_box_Dia(this["jueves"] as? Map<String, Any>),
             viernes = mapearHorario_box_Dia(this["viernes"] as? Map<String, Any>),
-            sabado = mapearHorario_box_Dia(this["sábado"] as? Map<String, Any>),
+            sábado = mapearHorario_box_Dia(this["sábado"] as? Map<String, Any>),
             domingo = mapearHorario_box_Dia(this["domingo"] as? Map<String, Any>)
         )
 

@@ -1187,10 +1187,10 @@ object constantes_bottomShet_fourdItem {
         return when (obtenerDiaActualClaveFirestore()) {
             "lunes" -> horario.lunes
             "martes" -> horario.martes
-            "miércoles" -> horario.miercoles
+            "miércoles" -> horario.miércoles
             "jueves" -> horario.jueves
             "viernes" -> horario.viernes
-            "sábado" -> horario.sabado
+            "sábado" -> horario.sábado
             "domingo" -> horario.domingo
             else -> HorarioDia_bloques()
         }

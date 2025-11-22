@@ -831,10 +831,10 @@ fun datos_teindas() {
                     horario_atencion = HorarioAtencion_box(
                         lunes = horario_atencion.lunes,
                         martes = horario_atencion.martes,
-                        miercoles = horario_atencion.miercoles,
+                        miércoles = horario_atencion.miércoles,
                         jueves = horario_atencion.jueves,
                         viernes = horario_atencion.viernes,
-                        sabado = horario_atencion.sabado,
+                        sábado = horario_atencion.sábado,
                         domingo = horario_atencion.domingo,
                     ), lista_img = img_tienda()
                 )

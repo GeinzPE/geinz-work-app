@@ -126,10 +126,10 @@ data class HorarioAtencion(
 data class HorarioAtencion_box(
     val lunes: HorarioDia_bloques = HorarioDia_bloques(),
     val martes: HorarioDia_bloques = HorarioDia_bloques(),
-    val miercoles: HorarioDia_bloques = HorarioDia_bloques(),
+    val miércoles: HorarioDia_bloques = HorarioDia_bloques(),
     val jueves: HorarioDia_bloques = HorarioDia_bloques(),
     val viernes: HorarioDia_bloques = HorarioDia_bloques(),
-    val sabado: HorarioDia_bloques = HorarioDia_bloques(),
+    val sábado: HorarioDia_bloques = HorarioDia_bloques(),
     val domingo: HorarioDia_bloques = HorarioDia_bloques()
 ): Parcelable
 

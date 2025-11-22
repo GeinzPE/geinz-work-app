@@ -91,10 +91,10 @@ class repo_filtrado_tiendas {
         val diaBloques: HorarioDia_bloques = when (diaActual) {
             "lunes" -> horarioAtencion.lunes
             "martes" -> horarioAtencion.martes
-            "miércoles" -> horarioAtencion.miercoles
+            "miércoles" -> horarioAtencion.miércoles
             "jueves" -> horarioAtencion.jueves
             "viernes" -> horarioAtencion.viernes
-            "sábado" -> horarioAtencion.sabado
+            "sábado" -> horarioAtencion.sábado
             "domingo" -> horarioAtencion.domingo
             else -> HorarioDia_bloques()
         }

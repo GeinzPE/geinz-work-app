@@ -1373,10 +1373,10 @@ fun MostrarHorarioTienda(
     val listaHorarios = listOf(
         "lunes" to horarioTienda.lunes,
         "martes" to horarioTienda.martes,
-        "miércoles" to horarioTienda.miercoles,
+        "miércoles" to horarioTienda.miércoles,
         "jueves" to horarioTienda.jueves,
         "viernes" to horarioTienda.viernes,
-        "sábado" to horarioTienda.sabado,
+        "sábado" to horarioTienda.sábado,
         "domingo" to horarioTienda.domingo
     )
 

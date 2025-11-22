@@ -69,7 +69,7 @@ class viewmodel_agregar_datos : ViewModel() {
                 cerrado = !mapaHoras["Martes"]!!.cerrado.value,
                 motivo = ""
             ),
-            miercoles = HorarioDia_bloques(
+            miércoles = HorarioDia_bloques(
                 bloques = crearBloques(mapaHoras["Miércoles"]!!),
                 cerrado = !mapaHoras["Miércoles"]!!.cerrado.value,
                 motivo = ""
@@ -84,7 +84,7 @@ class viewmodel_agregar_datos : ViewModel() {
                 cerrado = !mapaHoras["Viernes"]!!.cerrado.value,
                 motivo = ""
             ),
-            sabado = HorarioDia_bloques(
+            sábado = HorarioDia_bloques(
                 bloques = crearBloques(mapaHoras["Sábado"]!!),
                 cerrado = !mapaHoras["Sábado"]!!.cerrado.value,
                 motivo = ""
