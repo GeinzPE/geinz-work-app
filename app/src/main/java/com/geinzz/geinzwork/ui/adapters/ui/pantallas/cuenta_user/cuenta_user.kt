@@ -73,6 +73,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.eres_socio_geinz
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.viewModels.LoginState_inicio
 import com.geinzz.geinzwork.viewModels.viewModel_login_user
@@ -192,6 +193,7 @@ fun protada_perfil_user(
     val contex = LocalContext.current
     val scope = rememberCoroutineScope()
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    var eres_socio by remember { mutableStateOf(false) }
     AnimatedVisibility(
         visible = ocultar_contenido_Boolean, enter = fadeIn(
             animationSpec = tween(
@@ -297,8 +299,21 @@ fun protada_perfil_user(
                                 abrir_whattsapp(contex, "958 120 920")
                             })
                     }
-                    spacer_vertical(20.dp)
+                    spacer_vertical(10.dp)
 
+                }
+
+                item {
+                    Text(
+                        text = "Eres socio de Geinz?",
+                        color = MaterialTheme.colorScheme.primary,
+                        textDecoration = TextDecoration.Underline,
+                        fontWeight = FontWeight.Medium,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.clickable {
+                            eres_socio = true
+                        })
+                    spacer_vertical(20.dp)
                 }
 
                 item {
@@ -350,6 +365,9 @@ fun protada_perfil_user(
             }
 
         }
+    }
+    if (eres_socio) {
+        eres_socio_geinz { eres_socio = false }
     }
 
 }

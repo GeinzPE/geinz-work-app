@@ -33,29 +33,44 @@ object data_store_localidad {
     private val UID_USER_REGISTER = stringPreferencesKey("uid_user_register")
     private val EMAIL_USER_REGISTER = stringPreferencesKey("email_user_register")
 
-
     private val KEY_URLS_salud = stringPreferencesKey("urls_carga_salud")
 
-    private val KEY_URLS_turistmo=stringPreferencesKey("urls_carga_turismo")
+    private val KEY_URLS_turistmo = stringPreferencesKey("urls_carga_turismo")
 
-    private val KEY_URLS_FILTRADO_LOC=stringPreferencesKey("urls_carga_filtrado_loc")
+    private val KEY_URLS_FILTRADO_LOC = stringPreferencesKey("urls_carga_filtrado_loc")
 
 
-    suspend fun guardarUrlsCarga(context: Context,lista: List<String>) {
+    private val KEY_ID_SOCIO = stringPreferencesKey("id_key_socio")
+
+
+    suspend fun set_id_socio(context: Context, id: String) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_ID_SOCIO] = id
+        }
+    }
+
+    fun get_id_socio(context: Context): Flow<String>{
+        return context.dataStore.data.map { preferences ->
+            preferences[KEY_ID_SOCIO] ?:""
+        }
+    }
+
+
+    suspend fun guardarUrlsCarga(context: Context, lista: List<String>) {
         val json = JSONArray(lista).toString()
         context.dataStore.edit { prefs ->
             prefs[KEY_URLS_salud] = json
         }
     }
 
-    suspend fun guardarUrlsCarga_turismo(context: Context,lista: List<String>) {
+    suspend fun guardarUrlsCarga_turismo(context: Context, lista: List<String>) {
         val json = JSONArray(lista).toString()
         context.dataStore.edit { prefs ->
             prefs[KEY_URLS_turistmo] = json
         }
     }
 
-    suspend fun guardarUrlsCarga_filtrado(context: Context,lista: List<String>) {
+    suspend fun guardarUrlsCarga_filtrado(context: Context, lista: List<String>) {
         val json = JSONArray(lista).toString()
         context.dataStore.edit { prefs ->
             prefs[KEY_URLS_FILTRADO_LOC] = json
@@ -104,6 +119,7 @@ object data_store_localidad {
             preferences[EMAIL_USER_REGISTER] ?: ""
         }
     }
+
     suspend fun limpiar_datos_autenticacion(context: Context) {
         context.dataStore.edit { preferences ->
             preferences.remove(UID_USER_REGISTER)
