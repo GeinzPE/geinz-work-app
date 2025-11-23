@@ -40,6 +40,7 @@ class repo_filtrado_tiendas {
     val db = FirebaseFirestore.getInstance()
 
     suspend fun obtener_subcategorias_tiendas(categorias: String): List<filtrado_tiendas_cat_sub> {
+        Log.d("obtenos_",categorias.toString())
         val lista_cat_subcategoria = mutableListOf<filtrado_tiendas_cat_sub>()
         val subcategorias_ref =
             db.collection("Tiendas").document("categorias").collection("categorias")
@@ -49,6 +50,7 @@ class repo_filtrado_tiendas {
         if (subcategorias_ref.exists()) {
             val data = subcategorias_ref.data
             val subcategories = data?.get("subcategorias") as? List<String> ?: emptyList()
+            Log.d("obtenos_",subcategories.toString())
             lista_cat_subcategoria.add(filtrado_tiendas_cat_sub(categorias, subcategories))
         }
         return lista_cat_subcategoria
