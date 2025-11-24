@@ -1,8 +1,6 @@
 package com.geinzz.geinzwork.data.model
 
-import androidx.compose.ui.graphics.Color
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
-import com.google.firebase.firestore.DocumentSnapshot
 
 data class datos_tienda(
     val id_tienda: String = "",

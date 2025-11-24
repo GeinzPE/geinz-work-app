@@ -12,23 +12,8 @@ class viewmodel_agregar_datos : ViewModel() {
         "Jueves", "Viernes", "Sábado", "Domingo"
     )
 
-    // Estado que NO se pierde
     val mapaHoras = dias.associateWith { HorasDia() }.toMutableMap()
 
-
-    fun obtenerMapaParaGuardar(): Map<String, Map<String, Any>> {
-        return mapaHoras.mapValues { (_, h) ->
-            mapOf(
-                "h1AM" to h.h1AM.value,
-                "h2AM" to h.h2AM.value,
-                "h1PM" to h.h1PM.value,
-                "h2PM" to h.h2PM.value,
-                "cerrado" to h.cerrado.value,
-                "solo_horario" to h.solo_horario.value
-            )
-        }
-
-    }
     fun obtenerHorarioAtencion(): HorarioAtencion_box {
 
         fun crearBloques(h: HorasDia): List<HorarioBloque> {

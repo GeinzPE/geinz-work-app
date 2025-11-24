@@ -86,8 +86,11 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.abrirTimePicker
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.fechaActual
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.fechaUnaSemanaDespues
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.generarIdSeguro
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.timeStampNumero
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.lista_localidad
 import com.geinzz.geinzwork.viewModels.viewmodel_agregar_datos
@@ -1035,32 +1038,6 @@ fun RowScope.campoHora(
 }
 
 
-fun abrirTimePicker(
-    context: Context,
-    valorActual: String,
-    onSelect: (String) -> Unit
-) {
-    val parts = valorActual.split(":")
-    val horaInicial = parts.getOrNull(0)?.toIntOrNull() ?: 0
-    val minutoInicial = parts.getOrNull(1)?.toIntOrNull() ?: 0
-
-    TimePickerDialog(
-        context,
-        { _, hour: Int, minute: Int ->
-            val resultado = "%02d:%02d".format(hour, minute)
-            onSelect(resultado)
-        },
-        horaInicial,
-        minutoInicial,
-        true
-    ).show()
-}
-
-
-fun timeStampNumero(): String {
-    return System.currentTimeMillis().toString()
-}
-
 @Composable
 fun valor_txt_contacto(
     tipo: String,
@@ -1121,18 +1098,6 @@ fun valor_txt_contacto(
             unfocusedPlaceholderColor = Color.Gray,
         )
     )
-}
-
-fun generarIdSeguro(): String {
-    val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-    val random = SecureRandom()
-    val idLength = 20
-
-    val sb = StringBuilder(idLength)
-    repeat(idLength) {
-        sb.append(chars[random.nextInt(chars.length)])
-    }
-    return sb.toString()
 }
 
 @Composable

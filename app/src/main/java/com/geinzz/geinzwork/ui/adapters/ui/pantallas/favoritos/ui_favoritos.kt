@@ -955,9 +955,6 @@ fun carta_desing_fv(
                     .clip(RoundedCornerShape(10.dp))
                     .clickable {
                         clik_card(item.id_tienda_lugar, item.localida_tienda)
-//                bottomhseet_tienda = true
-//                id_tienda_select = item.id_tienda_lugar
-//                localida_tienda_select = item.localida_tienda
                     },
                 contentScale = ContentScale.Crop
             )

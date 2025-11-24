@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -22,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -39,23 +41,37 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.error
+import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.datos_grafico
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp_socio_geinzz
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_mostar_leyendas_graficos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.HorarioSemanal
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.geinzz.geinzwork.viewModels.viewmodel_agregar_datos
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import io.github.dautovicharis.charts.PieChart
 import io.github.dautovicharis.charts.model.toChartDataSet
@@ -72,12 +88,14 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
     val labels2 = listOf("Facebook", "Instagram", "TikTok", "sitio web")
     val labels3 = listOf("Llamada", "Whatsapp", "Rutas")
     val viewmodel: viewmodel_eres_socio = viewModel()
+    val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
+    val viewmodel_agregar_datos: viewmodel_agregar_datos = viewModel()
     val state_socio = viewmodel.state_eres_socio.collectAsState()
+    val _tick by viewModelFiltros.tick.collectAsState()
 
     var mostar_interes by remember { mutableStateOf(false) }
     var mostrar_convesion by remember { mutableStateOf(false) }
     var mostrar_trafico_externo by remember { mutableStateOf(false) }
-
     val uid_respald_user by data_store_localidad
         .get_id_socio(context)
         .collectAsState(initial = "")
@@ -86,6 +104,11 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
     var titulo_leyenda_dialog by remember { mutableStateOf("") }
     var txt_leyenda by remember { mutableStateOf("") }
     var icono_mostar_leyendas_graficos by remember { mutableStateOf(0) }
+    var id_tienda by remember { mutableStateOf("") }
+    var horarioMap by remember { mutableStateOf(HorarioAtencion_box()) }
+    LaunchedEffect(id_tienda) {
+        viewModelFiltros.calcularHorarioParaTienda(id_tienda, horarioMap)
+    }
     ModalBottomSheet(
         onDismissRequest = { ondimis() },
         modifier = Modifier.fillMaxWidth(),
@@ -220,7 +243,8 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
 
                                     is viewmodel_eres_socio.carga_acces_socio.succes -> {
                                         val datos = state.datos
-
+                                        id_tienda = datos.id_tienda
+                                        horarioMap = datos.horario_tiendaMap
                                         val values by remember(datos.id_tienda) {
                                             mutableStateOf(
                                                 listOf(
@@ -249,7 +273,13 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
                                                 )
                                             )
                                         }
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+
+
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center,
+                                            modifier = Modifier.padding(top = 20.dp)
+                                        ) {
                                             texto_generico_one_line(
                                                 "Bienvenido a GEINZ PANEL",
                                                 style = MaterialTheme.typography.titleLarge
@@ -261,6 +291,42 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
                                                 "Hola $nombre_user, aquí puedes ver la información principal de ${datos.nombre}.  Accede a las estadísticas de vistas, guardados y clics, y actualiza el horario de tu tienda de forma rápida y sencilla.",
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
+
+                                            spacer_vertical(10.dp)
+
+                                            Column(
+                                                Modifier.clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.surface),
+                                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                                            ) {
+                                                AsyncImage(
+                                                    model = ImageRequest.Builder(context)
+                                                        .data(datos.img_tienda)
+                                                        .placeholder(R.drawable.cargando_img_categorias)
+                                                        .error(R.drawable.cargando_img_categorias)
+                                                        .build(),
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .height(200.dp)
+                                                        .clip(RoundedCornerShape(10.dp)),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                                texto_generico_one_line(datos.nombre.capitalizeFirst(), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = 5.dp))
+                                                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                                    texto_generico_one_line("Horario de hoy :", style = MaterialTheme.typography.bodyMedium,modifier = Modifier.padding(start = 5.dp,bottom = 10.dp))
+                                                    retornar_color_estado_tienda_Box(
+                                                        "",
+                                                        viewModelFiltros.horariosTiendas.collectAsState().value[id_tienda]
+                                                            ?: HorarioDia_box(),
+                                                        _tick,
+                                                        true,
+                                                        { color, txt -> }
+                                                    )
+                                                }
+                                                HorarioSemanal123(datos.horario_tiendaMap)
+                                            }
+
+
 
                                             spacer_vertical(10.dp)
 
@@ -343,13 +409,14 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
 
                                                                         spacer_horizonta(8.dp)
 
-                                                                        texto_generico_one_line("${labels[index]}: ${value.toInt()}")
+                                                                        texto_generico_one_line("${labels[index]}: ${value.toInt()}",MaterialTheme.typography.bodyMedium)
                                                                     }
                                                                 }
                                                             }
                                                             spacer_vertical(10.dp)
                                                             PieChart(
                                                                 dataSet = values.toChartDataSet(
+                                                                    labels = labels,
                                                                     title = "",
                                                                     postfix = ""     // nada
                                                                 ),
@@ -369,7 +436,6 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
 
                                             Cartas_expandibles(
                                                 modifier = Modifier.padding(
-
                                                     vertical = 10.dp
                                                 )
                                             ) {
@@ -486,13 +552,14 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
 
                                                                         spacer_horizonta(8.dp)
 
-                                                                        texto_generico_one_line("${labels2[index]}: ${value.toInt()}")
+                                                                        texto_generico_one_line("${labels2[index]}: ${value.toInt()}",MaterialTheme.typography.bodyMedium)
                                                                     }
                                                                 }
                                                             }
                                                             spacer_vertical(10.dp)
                                                             PieChart(
                                                                 dataSet = values2.toChartDataSet(
+                                                                    labels = labels2,
                                                                     title = "",
                                                                     postfix = ""     // nada
                                                                 ),
@@ -594,13 +661,14 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
 
                                                                         spacer_horizonta(8.dp)
 
-                                                                        texto_generico_one_line("${labels3[index]}: ${value.toInt()}")
+                                                                        texto_generico_one_line("${labels3[index]}: ${value.toInt()}",MaterialTheme.typography.bodyMedium)
                                                                     }
                                                                 }
                                                             }
                                                             spacer_vertical(10.dp)
                                                             PieChart(
                                                                 dataSet = values3.toChartDataSet(
+                                                                    labels = labels3,
                                                                     title = "",
                                                                     postfix = ""     // nada
                                                                 ),
@@ -616,13 +684,9 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
                                                         }
                                                     }
                                                 }
-
                                             }
-
                                         }
-
                                     }
-
                                 }
                             }
                         }
