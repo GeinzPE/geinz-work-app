@@ -5,7 +5,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -78,6 +77,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
@@ -86,6 +86,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -128,6 +129,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
+import coil3.Image
 import coil3.compose.AsyncImage
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.CachePolicy
@@ -139,6 +141,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.datos_grafico
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
@@ -214,10 +217,7 @@ fun estados_tiendas(estado: String, color_estado: Color) {
 
 @Composable
 fun tags_subcateogiras(
-    lista_tags: List<String>,
-    modifier: Modifier = Modifier,
-    brush_start: Brush,
-    brush_end: Brush
+    lista_tags: List<String>, modifier: Modifier = Modifier, brush_start: Brush, brush_end: Brush
 ) {
     val listState = rememberLazyListState()
 
@@ -234,17 +234,18 @@ fun tags_subcateogiras(
     // 🔥 animar alpha, no crear/destruir Box
     val alphaLeft by animateFloatAsState(
         targetValue = if (showLeftShadow) 1f else 0f,
-        animationSpec = tween(400), label = "alphaLeft"
+        animationSpec = tween(400),
+        label = "alphaLeft"
     )
     val alphaRight by animateFloatAsState(
         targetValue = if (showRightShadow) 1f else 0f,
-        animationSpec = tween(400), label = "alphaRight"
+        animationSpec = tween(400),
+        label = "alphaRight"
     )
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(25.dp),
-        contentAlignment = Alignment.Center
+            .height(25.dp), contentAlignment = Alignment.Center
     ) {
         LazyRow(
             state = listState,
@@ -353,16 +354,14 @@ fun cargando_progess_mas_texto(text: String) {
         )
         Spacer(modifier = Modifier.width(8.dp))
         CircularProgressIndicator(
-            modifier = Modifier.size(20.dp),
-            strokeWidth = 2.dp
+            modifier = Modifier.size(20.dp), strokeWidth = 2.dp
         )
     }
 }
 
 @Composable
 fun ColumnContenedorComun(
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit
+    modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit
 ) {
     Column(
         modifier = modifier
@@ -399,8 +398,7 @@ fun floatin_actionButton(
             onClick()
         },
         elevation = FloatingActionButtonDefaults.elevation(
-            defaultElevation = 6.dp,
-            pressedElevation = 10.dp
+            defaultElevation = 6.dp, pressedElevation = 10.dp
         ),
         containerColor = MaterialTheme.colorScheme.primary,
 
@@ -408,7 +406,8 @@ fun floatin_actionButton(
         Image(
             modifier = Modifier.size(20.dp),
             painter = painterResource(id = drawable),
-            contentDescription = "Icono", colorFilter = colorFilter
+            contentDescription = "Icono",
+            colorFilter = colorFilter
         )
     }
 }
@@ -475,8 +474,7 @@ fun titulos_genericos_one_line(
 
 @Composable
 fun Cartas_expandibles(
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit
+    modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -495,11 +493,9 @@ fun Cartas_expandibles(
 
 @Composable
 fun expandibles_wrapp(
-    texto_params: String,
-    iconRes: Int? = null,           // para R.drawable
+    texto_params: String, iconRes: Int? = null,           // para R.drawable
     iconVector: ImageVector? = null, // para Material Icons
-    expandido: Boolean,
-    onClickExpand: () -> Unit
+    expandido: Boolean, onClickExpand: () -> Unit
 ) {
     ConstraintLayout(
         modifier = Modifier
@@ -510,12 +506,10 @@ fun expandibles_wrapp(
         val (texto, btn) = createRefs()
 
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.constrainAs(texto) {
+            verticalAlignment = Alignment.CenterVertically, modifier = Modifier.constrainAs(texto) {
                 top.linkTo(parent.top)
                 bottom.linkTo(parent.bottom)
-            }
-        ) {
+            }) {
             when {
                 iconRes != null -> {
                     Icon(
@@ -554,21 +548,98 @@ fun expandibles_wrapp(
                 },
             onClick = { onClickExpand() },
             elevation = FloatingActionButtonDefaults.elevation(
-                defaultElevation = 6.dp,
-                pressedElevation = 10.dp
+                defaultElevation = 6.dp, pressedElevation = 10.dp
             ),
             containerColor = MaterialTheme.colorScheme.primary,
         ) {
             Image(
-                modifier = Modifier.size(20.dp),
-                painter = painterResource(
+                modifier = Modifier.size(20.dp), painter = painterResource(
                     constantes_lista_localidades.cambiar_icono_exapndible(expandido)
-                ),
-                contentDescription = "",
-                colorFilter = ColorFilter.tint(Color.White)
+                ), contentDescription = "", colorFilter = ColorFilter.tint(Color.White)
             )
         }
     }
+}
+
+
+@Composable
+fun expandibles_wrapp_socio_geinzz(
+    lsita_datos: List<datos_grafico>,
+    txtdescpcion: String,
+    texto_params: String,
+    expandido: Boolean,
+    onClickExpand: () -> Unit
+) {
+    ConstraintLayout(
+        modifier = Modifier
+            .clip(CircleShape)
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(horizontal = 10.dp, vertical = 15.dp)
+    ) {
+        val (texto, btn) = createRefs()
+        LazyRow(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(15.dp),
+            modifier = Modifier
+                .constrainAs(texto) {
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                }
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }) {
+                    onClickExpand()
+                }) {
+            if (!expandido) {
+                items(lsita_datos) { i ->
+                    campos_datos_graficos(i)
+                }
+
+            } else {
+                item {
+                    Column(modifier = Modifier
+                        .fillMaxWidth()
+                        .fillParentMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        texto_generico_one_line(
+                            texto_params,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        spacer_vertical(10.dp)
+                        texto_generico_multilinea(
+                            txtdescpcion,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(horizontal = 10.dp)
+                        )
+                    }
+
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun campos_datos_graficos(item: datos_grafico) {
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        texto_generico_one_line(
+            "${item.label} : ${item.cantidad}", MaterialTheme.typography.bodyMedium
+        )
+
+        Image(
+            modifier = Modifier
+                .size(20.dp)
+                .clip(CircleShape),
+            painter = painterResource(item.img_),
+            contentDescription = "Google maps",
+        )
+    }
+
+
 }
 
 
@@ -592,10 +663,7 @@ fun text_expandible_wrapp(
 
 @Composable
 fun generar_qr_ubi_tinda(
-    bottom_text: String,
-    content: String,
-    sizeDp: Int = 200,
-    modifier: Modifier = Modifier
+    bottom_text: String, content: String, sizeDp: Int = 200, modifier: Modifier = Modifier
 ) {
     val bitmap = rememberSaveable(content) {
         val dimension = 512
@@ -612,8 +680,7 @@ fun generar_qr_ubi_tinda(
         bmp
     }
     Column(
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
             bitmap = bitmap.asImageBitmap(),
@@ -626,8 +693,7 @@ fun generar_qr_ubi_tinda(
         )
         spacer_vertical(10.dp)
         texto_generico_multilinea(
-            bottom_text,
-            MaterialTheme.typography.bodyMedium
+            bottom_text, MaterialTheme.typography.bodyMedium
         )
     }
 }
@@ -636,8 +702,7 @@ fun generar_qr_ubi_tinda(
 fun btn_clasico_shap_50f(text: String, onClick: () -> Unit) {
     Button(onClick = { onClick() }, modifier = Modifier, shape = RoundedCornerShape(40)) {
         Text(
-            text,
-            color = Color.White, style = MaterialTheme.typography.bodyMedium
+            text, color = Color.White, style = MaterialTheme.typography.bodyMedium
         )
     }
 }
@@ -647,7 +712,8 @@ fun btn_clasico_shap_50f(text: String, onClick: () -> Unit) {
 fun TextoSubrayado(
     texto: String,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
-    modifier: Modifier = Modifier, color_subrallado: Color = MaterialTheme.colorScheme.onBackground
+    modifier: Modifier = Modifier,
+    color_subrallado: Color = MaterialTheme.colorScheme.onBackground
 ) {
     Text(
         text = texto,
@@ -660,22 +726,16 @@ fun TextoSubrayado(
 
 @Composable
 fun rutas_turismo(
-    img_baner: String,
-    texto_button: String,
-    texto_baner: String,
-    clik_button: () -> Unit
+    img_baner: String, texto_button: String, texto_baner: String, clik_button: () -> Unit
 ) {
     spacer_vertical(10.dp)
     Box() {
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(img_baner)
+            model = ImageRequest.Builder(LocalContext.current).data(img_baner)
 
-                .memoryCachePolicy(CachePolicy.ENABLED)
-                .diskCachePolicy(CachePolicy.ENABLED)
+                .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
                 .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.cargando_img_categorias)
-                .build(),
+                .error(R.drawable.cargando_img_categorias).build(),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth()
@@ -715,10 +775,7 @@ fun rutas_turismo(
 
 @Composable
 fun seguridad(
-    drawable: Int,
-    texto_button: String,
-    texto_baner: String,
-    clik_button: () -> Unit
+    drawable: Int, texto_button: String, texto_baner: String, clik_button: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -727,14 +784,10 @@ fun seguridad(
             .clip(RoundedCornerShape(5))
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(drawable)
-                .memoryCachePolicy(CachePolicy.ENABLED)
-                .diskCachePolicy(CachePolicy.ENABLED)
-                .crossfade(true)
-                .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.cargando_img_categorias)
-                .build(),
+            model = ImageRequest.Builder(LocalContext.current).data(drawable)
+                .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
+                .crossfade(true).placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.cargando_img_categorias).build(),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
@@ -776,27 +829,22 @@ fun seguridad(
 
 @Composable
 fun texto_encimado(
-    modifier: Modifier,
-    texto_button: String,
-    texto_apartado: String,
-    onClick: () -> Unit
+    modifier: Modifier, texto_button: String, texto_apartado: String, onClick: () -> Unit
 ) {
     Column(modifier = modifier.padding(start = 10.dp, end = 70.dp, bottom = 10.dp)) {
         texto_generico_multilinea(
-            texto_apartado,
-            MaterialTheme.typography.banerGeinzWork
+            texto_apartado, MaterialTheme.typography.banerGeinzWork
         )
         spacer_vertical(10.dp)
         Button(
             onClick = { onClick() },
-            modifier = Modifier.clip(RoundedCornerShape(50)), colors = ButtonDefaults.buttonColors(
+            modifier = Modifier.clip(RoundedCornerShape(50)),
+            colors = ButtonDefaults.buttonColors(
                 containerColor = Color.White,
             )
         ) {
             texto_generico_one_line(
-                texto_button,
-                MaterialTheme.typography.titleSmall,
-                color = Color(0xFF8700F3)
+                texto_button, MaterialTheme.typography.titleSmall, color = Color(0xFF8700F3)
             )
         }
     }
@@ -807,9 +855,7 @@ fun texto_encimado(
 fun titulo_referenciales_geinz_work(texto: String, texto_subrallado: String, listener: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         texto_generico_one_line(
-            texto,
-            MaterialTheme.typography.textosTituloGeinzWork,
-            modifier = Modifier.weight(1f)
+            texto, MaterialTheme.typography.textosTituloGeinzWork, modifier = Modifier.weight(1f)
         )
         TextoSubrayado(
             texto = texto_subrallado,
@@ -831,8 +877,7 @@ fun mascara_img(rounder: Int, alto: Dp, ancho: Dp, modifier: Modifier = Modifier
                         Color.Black,                   // negro sólido abajo
                         Color.Black.copy(alpha = 0.7f),// transición
                         Color.Transparent              // transparente arriba
-                    ),
-                    startY = Float.POSITIVE_INFINITY, // fuerza el gradiente desde abajo
+                    ), startY = Float.POSITIVE_INFINITY, // fuerza el gradiente desde abajo
                     endY = 0f
                 )
             )
@@ -921,11 +966,9 @@ fun carta_turismo_google_mpa(
 @Composable
 fun img_carta_google_maps(img: String) {
     AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(img)
+        model = ImageRequest.Builder(LocalContext.current).data(img)
             .placeholder(R.drawable.cargando_img_categorias)
-            .error(R.drawable.cargando_img_categorias)
-            .build(),
+            .error(R.drawable.cargando_img_categorias).build(),
         contentDescription = null,
         modifier = Modifier
             .fillMaxSize()
@@ -1019,8 +1062,7 @@ fun localidad_Selecionada(modifier: Modifier = Modifier) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.cargando_categorias))
 
     Box(
-        modifier = modifier
-            .height(25.dp), // altura constante
+        modifier = modifier.height(25.dp), // altura constante
         contentAlignment = Alignment.Center
     ) {
         LottieAnimation(
@@ -1037,9 +1079,7 @@ fun localidad_Selecionada(modifier: Modifier = Modifier) {
 
 @Composable
 fun open_map_perzonlizado(
-    modifier: Modifier = Modifier,
-    tipo: String,
-    abrir_mapa: (String) -> Unit
+    modifier: Modifier = Modifier, tipo: String, abrir_mapa: (String) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -1065,16 +1105,14 @@ fun open_map_perzonlizado(
                 .fillMaxSize()
                 .clickable {
                     if (ContextCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.ACCESS_FINE_LOCATION
+                            context, Manifest.permission.ACCESS_FINE_LOCATION
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
                         abrir_mapa(tipo)
                     } else {
                         permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                     }
-                },
-            contentAlignment = Alignment.Center
+                }, contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Filled.Map,
@@ -1180,13 +1218,11 @@ fun btn_close_gris(
         modifier = modifier
             .size(size_container)
             .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null
+                interactionSource = remember { MutableInteractionSource() }, indication = null
             ) {
                 Log.d("realizaste", "click")
                 onClick()
-            },
-        contentAlignment = Alignment.Center
+            }, contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
@@ -1217,13 +1253,9 @@ fun chisp_filtrado_busqueda(
     alto: Dp = 45.dp,
 ) {
     val color_chips by animateColorAsState(
-        targetValue = if (!carta_selecionada)
-            MaterialTheme.colorScheme.primary
-        else
-            Color.White,
-        animationSpec = tween(
-            durationMillis = 500,
-            easing = LinearOutSlowInEasing
+        targetValue = if (!carta_selecionada) MaterialTheme.colorScheme.primary
+        else Color.White, animationSpec = tween(
+            durationMillis = 500, easing = LinearOutSlowInEasing
         ), label = ""
     )
     val color_invertido_chips by animateColorAsState(
@@ -1278,9 +1310,7 @@ fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Mod
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
 //        Text(text = "Hola benjamin \uD83D\uDC4B", fontSize = 25.sp, fontFamily = baners_geinz_work)
         Box(
-            modifier = modifier
-                .padding(horizontal = 20.dp),
-            contentAlignment = Alignment.Center
+            modifier = modifier.padding(horizontal = 20.dp), contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = Modifier
@@ -1288,11 +1318,9 @@ fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Mod
                     .background(
                         brush = Brush.radialGradient(
                             colors = listOf(
-                                Color(0xFF8700F3).copy(alpha = 0.7f),
-                                Color.Transparent
+                                Color(0xFF8700F3).copy(alpha = 0.7f), Color.Transparent
                             ),
-                        ),
-                        shape = RoundedCornerShape(200.dp)
+                        ), shape = RoundedCornerShape(200.dp)
                     )
             )
 
@@ -1301,7 +1329,10 @@ fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Mod
                 drawableResId = R.drawable.f1,
                 anguloRotacion = -8f,
                 desplazamientoX = -70.dp,
-                desplazamientoY = 20.dp, null, {}, true
+                desplazamientoY = 20.dp,
+                null,
+                {},
+                true
             )
 
             // --- Foto 2 (Centro, la protagonista) ---
@@ -1309,7 +1340,10 @@ fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Mod
                 drawableResId = R.drawable.f2,
                 anguloRotacion = 3f,
                 desplazamientoX = 0.dp,
-                desplazamientoY = 0.dp, null, {}, true
+                desplazamientoY = 0.dp,
+                null,
+                {},
+                true
             )
 
             // --- Foto 3 (Derecha) ---
@@ -1317,7 +1351,10 @@ fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Mod
                 drawableResId = R.drawable.f3,
                 anguloRotacion = 7f,
                 desplazamientoX = 70.dp,
-                desplazamientoY = 40.dp, null, {}, true
+                desplazamientoY = 40.dp,
+                null,
+                {},
+                true
             )
         }
         fracescambiantes(nombre_usuario)
@@ -1341,17 +1378,16 @@ fun fracescambiantes(nombre_user: String) {
     }
 
     AnimatedContent(
-        targetState = fraces[index],
-        transitionSpec = {
-            fadeIn(animationSpec = tween(600)) togetherWith
-                    fadeOut(animationSpec = tween(600))
-        },
-        label = "frases"
+        targetState = fraces[index], transitionSpec = {
+            fadeIn(animationSpec = tween(600)) togetherWith fadeOut(animationSpec = tween(600))
+        }, label = "frases"
     ) { txt ->
         Text(
             text = txt,
-            style = MaterialTheme.typography.titleLarge, color = Color.White,
-            textAlign = TextAlign.Center, modifier = Modifier.animateContentSize()
+            style = MaterialTheme.typography.titleLarge,
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.animateContentSize()
         )
     }
 }
@@ -1421,12 +1457,9 @@ fun ImagenConInclinacion(
             .clip(RoundedCornerShape(12.dp))
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(drawableResId)
+            model = ImageRequest.Builder(LocalContext.current).data(drawableResId)
                 .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.cargando_img_categorias)
-                .crossfade(false)
-                .build(),
+                .error(R.drawable.cargando_img_categorias).crossfade(false).build(),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -1435,8 +1468,7 @@ fun ImagenConInclinacion(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() }) {
                     clikeable(!mostrarMascara)
-                }
-        )
+                })
         AnimatedVisibility(!mostrarMascara, enter = fadeIn(), exit = fadeOut()) {
 
             Box(
@@ -1453,8 +1485,7 @@ fun ImagenConInclinacion(
 fun ShadowBottomPantallas(listState: LazyListState, modifier: Modifier = Modifier) {
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
     val alphaAnim by animateFloatAsState(
-        targetValue = targetAlpha,
-        animationSpec = tween(durationMillis = 500)
+        targetValue = targetAlpha, animationSpec = tween(durationMillis = 500)
     )
     Box(
         modifier = modifier
@@ -1463,8 +1494,7 @@ fun ShadowBottomPantallas(listState: LazyListState, modifier: Modifier = Modifie
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color.Transparent,
-                        Color.Black
+                        Color.Transparent, Color.Black
                     )
                 )
             )
@@ -1482,14 +1512,11 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
             .fillMaxWidth()
             .defaultMinSize(minHeight = 180.dp)
             .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }) {
+                indication = null, interactionSource = remember { MutableInteractionSource() }) {
                 listener_servicios()
-            }
-    ) {
+            }) {
         Row(
-            modifier = Modifier
-                .matchParentSize() // 🔹 el Row ocupa todo el Box
+            modifier = Modifier.matchParentSize() // 🔹 el Row ocupa todo el Box
         ) {
             // === COLUMNA DE TEXTO Y BOTÓN ===
             Column(
@@ -1532,8 +1559,7 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
                             listener_servicios()
                         }
                         .align(Alignment.Start), // evita que se estire horizontalmente
-                    contentAlignment = Alignment.Center
-                ) {
+                    contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Default.ArrowForward,
                         contentDescription = "Ir",
@@ -1552,10 +1578,8 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .memoryCachePolicy(CachePolicy.ENABLED)
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .data(R.drawable.servicios_basicos)
-                        .build(),
+                        .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
+                        .data(R.drawable.servicios_basicos).build(),
 
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
@@ -1588,14 +1612,11 @@ fun baner_registra_tu_negocio(listener_registra_tu_negocio: () -> Unit) {
             .fillMaxWidth()
             .defaultMinSize(minHeight = 180.dp)
             .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }) {
+                indication = null, interactionSource = remember { MutableInteractionSource() }) {
                 listener_registra_tu_negocio()
-            }
-    ) {
+            }) {
         Row(
-            modifier = Modifier
-                .matchParentSize() // 🔹 el Row ocupa todo el Box
+            modifier = Modifier.matchParentSize() // 🔹 el Row ocupa todo el Box
         ) {
             // === COLUMNA DE TEXTO Y BOTÓN ===
             Column(
@@ -1638,8 +1659,7 @@ fun baner_registra_tu_negocio(listener_registra_tu_negocio: () -> Unit) {
                             listener_registra_tu_negocio()
                         }
                         .align(Alignment.Start), // evita que se estire horizontalmente
-                    contentAlignment = Alignment.Center
-                ) {
+                    contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Default.ArrowForward,
                         contentDescription = "Ir",
@@ -1658,10 +1678,8 @@ fun baner_registra_tu_negocio(listener_registra_tu_negocio: () -> Unit) {
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .memoryCachePolicy(CachePolicy.ENABLED)
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .data(R.drawable.geinz_baner)
-                        .build(),
+                        .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
+                        .data(R.drawable.geinz_baner).build(),
 
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
@@ -1690,8 +1708,7 @@ fun shadow_bottom_pantallas_generales(modifier: Modifier) {
     val listState = rememberLazyListState()
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
     val alphaAnim by animateFloatAsState(
-        targetValue = targetAlpha,
-        animationSpec = tween(durationMillis = 500)
+        targetValue = targetAlpha, animationSpec = tween(durationMillis = 500)
     )
     Box(
         modifier = modifier
@@ -1700,8 +1717,7 @@ fun shadow_bottom_pantallas_generales(modifier: Modifier) {
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color.Transparent,
-                        Color.Black
+                        Color.Transparent, Color.Black
                     )
                 )
             )
@@ -1736,22 +1752,17 @@ fun TextoExpandibleEnLinea(
 
                 withStyle(
                     style = SpanStyle(
-                        color = color,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium
+                        color = color, fontSize = 13.sp, fontWeight = FontWeight.Medium
                     )
-                ) {
-                }
+                ) {}
             },
             style = MaterialTheme.typography.bodyMedium,
             maxLines = if (expandido) Int.MAX_VALUE else 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }) {
+                indication = null, interactionSource = remember { MutableInteractionSource() }) {
                 expandido = !expandido
-            }
-        )
+            })
     }
 }
 

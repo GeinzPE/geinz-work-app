@@ -367,7 +367,7 @@ fun protada_perfil_user(
         }
     }
     if (eres_socio) {
-        eres_socio_geinz { eres_socio = false }
+        eres_socio_geinz ("Benjamin",{eres_socio = false})
     }
 
 }

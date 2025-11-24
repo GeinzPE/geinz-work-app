@@ -190,4 +190,8 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
 
 
+        implementation("io.github.dautovicharis:charts-android:2.0.1")
+
+
+
 }
