@@ -25,15 +25,18 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
@@ -53,6 +57,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.campoHora
 import com.geinzz.geinzwork.viewModels.viewmodel_agregar_datos
+import com.google.firebase.firestore.FirebaseFirestore
 import java.security.SecureRandom
 import java.time.LocalDate
 import java.time.LocalTime
@@ -147,9 +152,88 @@ object constantes_horas {
         return sb.toString()
     }
 
+    fun guardar_horario_cerrado(
+        id_tienda: String,
+        dia: String,
+        motivo: String
+    ) {
+        val db = FirebaseFirestore.getInstance()
+            .collection("Tiendas").document("barranca")
+            .collection("barranca").document(id_tienda)
+
+        val dataDia = mapOf(
+            "cerrado" to true,
+            "motivo" to motivo
+        )
+
+        db.update("horario_atencion.${dia.lowercase()}", dataDia)
+            .addOnSuccessListener { Log.d("DB", "Horario de $dia actualizado!") }
+            .addOnFailureListener { Log.e("DB", "Error", it) }
+    }
+
+    fun guardar_horario_atencion_abierto(
+        id_tienda: String,
+        dia: String,
+        bloques: List<Map<String, String>>
+    ) {
+        val db = FirebaseFirestore.getInstance()
+            .collection("Tiendas").document("barranca")
+            .collection("barranca").document(id_tienda)
+
+        val dataDia = mapOf(
+            "bloques" to bloques,
+            "cerrado" to false,
+            "motivo" to ""
+        )
+        db.update("horario_atencion.${dia.lowercase()}", dataDia)
+            .addOnSuccessListener {
+                Log.d("DB", "Horario de $dia actualizado correctamente")
+            }
+            .addOnFailureListener {
+                Log.e("DB", "Error al actualizar horario de $dia", it)
+            }
+    }
+
+    fun construirBloques(
+        hAperturaAM: String,
+        hCierreAM: String,
+        hAperturaPM: String,
+        hCierrePM: String
+    ): List<Map<String, String>> {
+
+        val bloques = mutableListOf<Map<String, String>>()
+
+        // Bloque AM
+        if (hAperturaAM.isNotEmpty() && hCierreAM.isNotEmpty()) {
+            bloques.add(
+                mapOf(
+                    "h_apertura" to hAperturaAM,
+                    "h_cierre" to hCierreAM,
+                )
+            )
+        }
+
+        // Bloque PM
+        if (hAperturaPM.isNotEmpty() && hCierrePM.isNotEmpty()) {
+            bloques.add(
+                mapOf(
+                    "h_apertura" to hAperturaPM,
+                    "h_cierre" to hCierrePM,
+                )
+            )
+        }
+
+        return bloques
+    }
+
 
     @Composable
-    fun HorarioSemanal123(horario: HorarioAtencion_box) {
+    fun HorarioSemanal123(
+        horario: HorarioAtencion_box,
+        cerrar_tienda: (nombre_dia: String, motivo_cierre: String) -> Unit,
+        abrir_tienda: (nombre_dia: String, List<Map<String, String>>) -> Unit
+    ) {
+        val context = LocalContext.current
 
         val motivos = listOf(
             "Mantenimiento",
@@ -171,11 +255,6 @@ object constantes_horas {
             "Sábado" to horario.sábado,
             "Domingo" to horario.domingo
         )
-
-        val context = LocalContext.current
-
-
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -253,7 +332,16 @@ object constantes_horas {
                                             true
                                         }
 
-                                    }
+                                    }, colors = SwitchDefaults.colors(
+                                        checkedThumbColor = MaterialTheme.colorScheme.primary,
+                                        checkedTrackColor = MaterialTheme.colorScheme.primary.copy(
+                                            alpha = 0.5f
+                                        ),
+                                        uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                                        uncheckedTrackColor = MaterialTheme.colorScheme.outline.copy(
+                                            alpha = 0.3f
+                                        )
+                                    )
                                 )
                             }
                         }
@@ -267,40 +355,54 @@ object constantes_horas {
                             ) { abierto ->
                                 if (abierto) {
                                     // Contenido cuando el día está cerrado (mostrar motivos)
-                                    Column {
+                                    Column() {
                                         texto_generico_one_line(
                                             "Selecciona tu motivo de cierre",
                                             style = MaterialTheme.typography.bodyMedium
                                         )
-                                        LazyRow {
+                                        LazyRow(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center,
+                                            contentPadding = PaddingValues(0.dp)
+                                        ) {
                                             items(motivos) { motivo ->
                                                 Row(
+                                                    horizontalArrangement = Arrangement.spacedBy(5.dp),
                                                     verticalAlignment = Alignment.CenterVertically,
                                                     modifier = Modifier
-                                                        .padding(horizontal = 4.dp)
+                                                        .padding(
+                                                            vertical = 15.dp,
+                                                            horizontal = 5.dp
+                                                        )
                                                         .clickable {
-                                                            motivo_cierre = if (motivo_cierre == motivo) "" else motivo
+                                                            motivo_cierre =
+                                                                if (motivo_cierre == motivo) "" else motivo
                                                         }
                                                 ) {
                                                     RadioButton(
                                                         selected = motivo_cierre == motivo,     // ← CORREGIDO
                                                         onClick = {
-                                                            motivo_cierre = if (motivo_cierre == motivo) "" else motivo
-                                                        }
+                                                            motivo_cierre =
+                                                                if (motivo_cierre == motivo) "" else motivo
+                                                        }, modifier = Modifier.size(20.dp)
                                                     )
 
                                                     Text(
                                                         text = motivo,
                                                         style = MaterialTheme.typography.bodyMedium,
                                                         modifier = Modifier.clickable {
-                                                            motivo_cierre = if (motivo_cierre == motivo) "" else motivo
+                                                            motivo_cierre =
+                                                                if (motivo_cierre == motivo) "" else motivo
                                                         }
                                                     )
                                                 }
                                             }
                                         }
 
-                                        Log.d("dasadadada","${motivo_cierre.isNotEmpty()}  $motivo_cierre  $motivo_cierre_tienda"   )
+                                        Log.d(
+                                            "dasadadada",
+                                            "${motivo_cierre.isNotEmpty()}  $motivo_cierre  $motivo_cierre_tienda"
+                                        )
                                         if (motivo_cierre.isNotEmpty() && motivo_cierre != motivo_cierre_tienda) {
                                             Box(
                                                 modifier = Modifier.fillMaxWidth(),
@@ -310,6 +412,16 @@ object constantes_horas {
                                                     modifier = Modifier
                                                         .clip(CircleShape)
                                                         .background(MaterialTheme.colorScheme.primary)
+                                                        .clickable {
+
+                                                            Toast.makeText(
+                                                                context,
+                                                                "guardmos en el dia de $nombreDia de cerrado",
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
+                                                            cerrar_tienda(nombreDia, motivo_cierre)
+
+                                                        }
                                                 ) {
                                                     texto_generico_one_line(
                                                         "Guardar cambios",
@@ -358,10 +470,20 @@ object constantes_horas {
                                                     Checkbox(
                                                         checked = corrido,
                                                         onCheckedChange = {
-                                                            corrido = true   // si hace click → activar corrido
-                                                        }
+                                                            corrido =
+                                                                true   // si hace click → activar corrido
+                                                        }, colors = CheckboxDefaults.colors(
+                                                            checkedColor = MaterialTheme.colorScheme.primary,
+                                                            uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(
+                                                                alpha = 0.6f
+                                                            ),
+                                                            checkmarkColor = Color.White   // ← importante
+                                                        )
                                                     )
-                                                    Text("Trabajo de corrido")
+                                                    texto_generico_one_line(
+                                                        "Trabajo de corrido",
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
                                                 }
                                             }
 
@@ -370,10 +492,21 @@ object constantes_horas {
                                                     Checkbox(
                                                         checked = !corrido,
                                                         onCheckedChange = {
-                                                            corrido = false  // si hace click → activar descanso
-                                                        }
+                                                            corrido =
+                                                                false  // si hace click → activar descanso
+                                                        }, colors = CheckboxDefaults.colors(
+                                                            checkedColor = MaterialTheme.colorScheme.primary,
+                                                            uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(
+                                                                alpha = 0.6f
+                                                            ),
+                                                            checkmarkColor = Color.White   // ← importante
+                                                        )
                                                     )
-                                                    Text("Trabajo con descanso")
+                                                    texto_generico_one_line(
+                                                        "Trabajo con descanso",
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
+
                                                 }
                                             }
                                         }
@@ -470,16 +603,30 @@ object constantes_horas {
                                                     texto_generico_one_line(
                                                         "Guardar",
                                                         style = MaterialTheme.typography.bodyMedium,
-                                                        modifier = Modifier.padding(
-                                                            horizontal = 10.dp,
-                                                            vertical = 10.dp
-                                                        )
+                                                        modifier = Modifier
+                                                            .padding(
+                                                                horizontal = 10.dp,
+                                                                vertical = 10.dp
+                                                            )
+                                                            .clickable {
+                                                                val bloque = construirBloques(
+                                                                    hAperturaAM.value,
+                                                                    hCierreAM.value,
+                                                                    hAperturaPM.value,
+                                                                    hCierrePM.value
+                                                                )
+                                                                Toast.makeText(
+                                                                    context,
+                                                                    "guardmos en el dia de $nombreDia de abierto",
+                                                                    Toast.LENGTH_SHORT
+                                                                ).show()
+                                                                abrir_tienda(nombreDia, bloque)
+                                                            }
                                                     )
                                                 }
                                             }
                                         }
                                     }
-
 
 
                                 }

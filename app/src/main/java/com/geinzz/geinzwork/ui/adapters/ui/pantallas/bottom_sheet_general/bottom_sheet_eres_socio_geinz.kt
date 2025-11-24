@@ -68,6 +68,8 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.HorarioSemanal
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.guardar_horario_atencion_abierto
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.guardar_horario_cerrado
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
@@ -184,7 +186,7 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
                                 when (val state = state_socio.value) {
 
                                     is viewmodel_eres_socio.carga_acces_socio.loading -> {
-                                        texto_generico_one_line("Verificando ID…")
+
                                     }
 
                                     is viewmodel_eres_socio.carga_acces_socio.error -> {
@@ -295,7 +297,9 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
                                             spacer_vertical(10.dp)
 
                                             Column(
-                                                Modifier.clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.surface),
+                                                Modifier
+                                                    .clip(RoundedCornerShape(10.dp))
+                                                    .background(MaterialTheme.colorScheme.surface),
                                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                                             ) {
                                                 AsyncImage(
@@ -311,9 +315,20 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
                                                         .clip(RoundedCornerShape(10.dp)),
                                                     contentScale = ContentScale.Crop
                                                 )
-                                                texto_generico_one_line(datos.nombre.capitalizeFirst(), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = 5.dp))
+                                                texto_generico_one_line(
+                                                    datos.nombre.capitalizeFirst(),
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    modifier = Modifier.padding(start = 5.dp)
+                                                )
                                                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                                    texto_generico_one_line("Horario de hoy :", style = MaterialTheme.typography.bodyMedium,modifier = Modifier.padding(start = 5.dp,bottom = 10.dp))
+                                                    texto_generico_one_line(
+                                                        "Horario de hoy :",
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        modifier = Modifier.padding(
+                                                            start = 5.dp,
+                                                            bottom = 10.dp
+                                                        )
+                                                    )
                                                     retornar_color_estado_tienda_Box(
                                                         "",
                                                         viewModelFiltros.horariosTiendas.collectAsState().value[id_tienda]
@@ -323,7 +338,11 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
                                                         { color, txt -> }
                                                     )
                                                 }
-                                                HorarioSemanal123(datos.horario_tiendaMap)
+                                                HorarioSemanal123(datos.horario_tiendaMap, {nombre_dia,motivo_cierre->
+                                                    guardar_horario_cerrado(datos.id_tienda,nombre_dia,motivo_cierre)
+                                                },{dia,lista_horarios->
+                                                    guardar_horario_atencion_abierto(datos.id_tienda,dia,lista_horarios)
+                                                })
                                             }
 
 
@@ -409,7 +428,10 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
 
                                                                         spacer_horizonta(8.dp)
 
-                                                                        texto_generico_one_line("${labels[index]}: ${value.toInt()}",MaterialTheme.typography.bodyMedium)
+                                                                        texto_generico_one_line(
+                                                                            "${labels[index]}: ${value.toInt()}",
+                                                                            MaterialTheme.typography.bodyMedium
+                                                                        )
                                                                     }
                                                                 }
                                                             }
@@ -552,7 +574,10 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
 
                                                                         spacer_horizonta(8.dp)
 
-                                                                        texto_generico_one_line("${labels2[index]}: ${value.toInt()}",MaterialTheme.typography.bodyMedium)
+                                                                        texto_generico_one_line(
+                                                                            "${labels2[index]}: ${value.toInt()}",
+                                                                            MaterialTheme.typography.bodyMedium
+                                                                        )
                                                                     }
                                                                 }
                                                             }
@@ -661,7 +686,10 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
 
                                                                         spacer_horizonta(8.dp)
 
-                                                                        texto_generico_one_line("${labels3[index]}: ${value.toInt()}",MaterialTheme.typography.bodyMedium)
+                                                                        texto_generico_one_line(
+                                                                            "${labels3[index]}: ${value.toInt()}",
+                                                                            MaterialTheme.typography.bodyMedium
+                                                                        )
                                                                     }
                                                                 }
                                                             }
