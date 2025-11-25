@@ -1,20 +1,16 @@
 package com.geinzz.geinzwork.utils.constantes.localizate_geinz
 
-import android.R
 import android.app.TimePickerDialog
 import android.content.Context
 import android.location.Location
 import android.os.Build
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -28,22 +24,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,20 +54,26 @@ import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
-import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.campoHora
-import com.geinzz.geinzwork.viewModels.viewmodel_agregar_datos
-import com.google.firebase.firestore.FirebaseFirestore
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.chips_filtrado
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
+import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.security.SecureRandom
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 
-
+@RequiresApi(Build.VERSION_CODES.O)
 object constantes_horas {
     fun obtenerProximoDiaAbierto(
-        horario: Map<String, Any>,
-        diaActual: String
+        horario: Map<String, Any>, diaActual: String
     ): Pair<String, Map<String, Any>>? {
         val dias = listOf("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
         val indiceActual = dias.indexOf(diaActual)
@@ -115,23 +121,17 @@ object constantes_horas {
 
     fun abrirTimePicker(
 
-        context: Context,
-        valorActual: String,
-        onSelect: (String) -> Unit
+        context: Context, valorActual: String, onSelect: (String) -> Unit
     ) {
         val parts = valorActual.split(":")
         val horaInicial = parts.getOrNull(0)?.toIntOrNull() ?: 0
         val minutoInicial = parts.getOrNull(1)?.toIntOrNull() ?: 0
 
         TimePickerDialog(
-            context,
-            { _, hour: Int, minute: Int ->
+            context, { _, hour: Int, minute: Int ->
                 val resultado = "%02d:%02d".format(hour, minute)
                 onSelect(resultado)
-            },
-            horaInicial,
-            minutoInicial,
-            true
+            }, horaInicial, minutoInicial, true
         ).show()
     }
 
@@ -152,58 +152,13 @@ object constantes_horas {
         return sb.toString()
     }
 
-    fun guardar_horario_cerrado(
-        id_tienda: String,
-        dia: String,
-        motivo: String
-    ) {
-        val db = FirebaseFirestore.getInstance()
-            .collection("Tiendas").document("barranca")
-            .collection("barranca").document(id_tienda)
-
-        val dataDia = mapOf(
-            "cerrado" to true,
-            "motivo" to motivo
-        )
-
-        db.update("horario_atencion.${dia.lowercase()}", dataDia)
-            .addOnSuccessListener { Log.d("DB", "Horario de $dia actualizado!") }
-            .addOnFailureListener { Log.e("DB", "Error", it) }
-    }
-
-    fun guardar_horario_atencion_abierto(
-        id_tienda: String,
-        dia: String,
-        bloques: List<Map<String, String>>
-    ) {
-        val db = FirebaseFirestore.getInstance()
-            .collection("Tiendas").document("barranca")
-            .collection("barranca").document(id_tienda)
-
-        val dataDia = mapOf(
-            "bloques" to bloques,
-            "cerrado" to false,
-            "motivo" to ""
-        )
-        db.update("horario_atencion.${dia.lowercase()}", dataDia)
-            .addOnSuccessListener {
-                Log.d("DB", "Horario de $dia actualizado correctamente")
-            }
-            .addOnFailureListener {
-                Log.e("DB", "Error al actualizar horario de $dia", it)
-            }
-    }
-
     fun construirBloques(
-        hAperturaAM: String,
-        hCierreAM: String,
-        hAperturaPM: String,
-        hCierrePM: String
+        hAperturaAM: String, hCierreAM: String, hAperturaPM: String, hCierrePM: String
     ): List<Map<String, String>> {
 
         val bloques = mutableListOf<Map<String, String>>()
 
-        // Bloque AM
+
         if (hAperturaAM.isNotEmpty() && hCierreAM.isNotEmpty()) {
             bloques.add(
                 mapOf(
@@ -213,7 +168,6 @@ object constantes_horas {
             )
         }
 
-        // Bloque PM
         if (hAperturaPM.isNotEmpty() && hCierrePM.isNotEmpty()) {
             bloques.add(
                 mapOf(
@@ -227,24 +181,38 @@ object constantes_horas {
     }
 
 
+    fun DiaHoy(): String {
+        val localeEs = Locale("es", "ES")
+
+        val dia = LocalDate.now().dayOfWeek.getDisplayName(TextStyle.FULL, localeEs)
+
+        return dia.replaceFirstChar { it.titlecase(localeEs) }
+
+    }
+
+
     @Composable
     fun HorarioSemanal123(
+        isConnected: Boolean,
+        viewmodel: viewmodel_eres_socio,
         horario: HorarioAtencion_box,
-        cerrar_tienda: (nombre_dia: String, motivo_cierre: String) -> Unit,
-        abrir_tienda: (nombre_dia: String, List<Map<String, String>>) -> Unit
+        cerrar_tienda: (nombre_dia: String, motivo_cierre: String, List<Map<String, String>>) -> Unit,
+        abrir_tienda: (nombre_dia: String, List<Map<String, String>>) -> Unit,
+        error_sin_internet:()-> Unit,
     ) {
-        val context = LocalContext.current
 
+        val DELAY_REBOTE_UI_MS = 1000L
         val motivos = listOf(
             "Mantenimiento",
             "Renovación",
             "Inventario",
             "Capacitación del personal",
-            "Cierre temporal",
+            "Cierre",
             "Emergencia",
             "Limpieza",
             "Clausura",
-            "No disponible"
+            "No disponible",
+            "Descanso",
         )
         val diasConDatos = listOf(
             "Lunes" to horario.lunes,
@@ -255,21 +223,55 @@ object constantes_horas {
             "Sábado" to horario.sábado,
             "Domingo" to horario.domingo
         )
+        val lista_filtrado = listOf("hoy", "solo dias abiertos", "solo dias cerrados")
+        var seleciondao by remember { mutableStateOf("Todos") }
+
+        val listState = rememberLazyListState()
+
+        val diasFiltrados = when (seleciondao) {
+            "hoy" -> diasConDatos.filter { it.first == DiaHoy() }
+
+            "solo dias abiertos" -> {
+                diasConDatos.filter { !it.second.cerrado }
+            }
+
+            "solo dias cerrados" -> diasConDatos.filter { it.second.cerrado }
+
+            else -> diasConDatos
+        }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
 
-                .padding(10.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(10.dp), verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            diasConDatos.forEach { (nombreDia, datosDia) ->
+            chips_filtrado(
+                listState = listState,
+                sub_categoria_selecionada = seleciondao,
+                lista_subcategorias = lista_filtrado,
+                expandir_carta = { expandir -> },
+                selecionado = { categoria_selecionada ->
+                    seleciondao = categoria_selecionada
+                }, color_left = shadow_top_filtrado_v1, color_right = shadow_botonm_filtrado_v1
+            )
+
+
+
+
+            diasFiltrados.forEach { (nombreDia, datosDia) ->
+                var expndir_todo by remember(seleciondao) { mutableStateOf(false) }
+                var btn_guardado_abierto_oculto by remember { mutableStateOf(false) }
+                var btn_guardado_cerrado_oculto by remember { mutableStateOf(false) }
 
                 val bloqueManana = datosDia.bloques.getOrNull(0)
                 val bloqueTarde = datosDia.bloques.getOrNull(1)
                 val trabajoCorrido = bloqueTarde == null
 
-                var dia_enable by remember { mutableStateOf(datosDia.cerrado) }
+                var dia_enable by remember(nombreDia, datosDia.cerrado) {
+                    mutableStateOf(datosDia.cerrado)
+                }
                 var motivo_cierre_tienda by remember { mutableStateOf(datosDia.motivo) }
+
                 var corrido by remember { mutableStateOf(trabajoCorrido) }
 
                 // Bloque Mañana
@@ -283,17 +285,42 @@ object constantes_horas {
 
                 var hubo_cambios by remember { mutableStateOf(false) }
 
-                var expndir_todo by remember { mutableStateOf(false) }
 
-                var motivo_cierre by remember { mutableStateOf(motivo_cierre_tienda) }     // lo editable
+                var motivo_cierre by remember { mutableStateOf(motivo_cierre_tienda) }
 
+                var cambios_tiene_horario_activarlo by remember { mutableStateOf(false) }
+                var cambios_tiene_horario_cerrarlo by remember { mutableStateOf(false) }
+                var leersolo_si_no_fue by remember { mutableStateOf(false) }
 
+                LaunchedEffect(expndir_todo, leersolo_si_no_fue) {
+
+                    if (!leersolo_si_no_fue) {
+                        Log.d("cambiamosdadasd123", "${expndir_todo} $dia_enable")
+
+                        if (!expndir_todo && !dia_enable) {
+                            dia_enable = datosDia.cerrado
+                        }
+
+                        if (!expndir_todo && dia_enable) {
+                            dia_enable = datosDia.cerrado
+                        }
+                    }
+
+                    delay(DELAY_REBOTE_UI_MS)
+                    leersolo_si_no_fue = false
+
+                }
 
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .animateContentSize(),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(20.dp),
+                    colors = if (nombreDia == DiaHoy()) {
+                        CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceVariant)
+                    } else {
+                        CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
+                    }
                 ) {
                     Column(
                         modifier = Modifier
@@ -318,19 +345,35 @@ object constantes_horas {
                                             expndir_todo = !expndir_todo
                                         })
                             }
-
+                            val tieneBloque =
+                                (hAperturaAM.value.isNotEmpty() && hCierreAM.value.isNotEmpty()) ||
+                                        (hAperturaPM.value.isNotEmpty() && hCierrePM.value.isNotEmpty())
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(if (!dia_enable) "Abierto" else "Cerrado")
                                 spacer_horizonta(5.dp)
                                 Switch(
-                                    checked = !dia_enable,
-                                    onCheckedChange = { value ->
+                                    checked = !dia_enable, onCheckedChange = { value ->
                                         dia_enable = !value
-                                        expndir_todo = if (value) {
-                                            true
-                                        } else {
-                                            true
-                                        }
+                                        expndir_todo = true
+
+                                        onSwitchChange(
+                                            value = value,
+                                            tieneBloque = tieneBloque,
+                                            motivo_cierre = motivo_cierre,
+                                            motivo_cierre_tienda = motivo_cierre_tienda,
+                                            setActivar = { cambios_tiene_horario_activarlo = it },
+                                            setCerrar = { cambios_tiene_horario_cerrarlo = it },
+                                            setOcultarAbierto = {
+                                                btn_guardado_abierto_oculto = it
+                                            },
+                                            setOcultarCerrado = {
+                                                btn_guardado_cerrado_oculto = it
+                                            },
+                                            valor_seleciondao = { valor ->
+//                                                motivo_cierre=valor
+                                            }
+                                        )
+
 
                                     }, colors = SwitchDefaults.colors(
                                         checkedThumbColor = MaterialTheme.colorScheme.primary,
@@ -371,14 +414,12 @@ object constantes_horas {
                                                     verticalAlignment = Alignment.CenterVertically,
                                                     modifier = Modifier
                                                         .padding(
-                                                            vertical = 15.dp,
-                                                            horizontal = 5.dp
+                                                            vertical = 15.dp, horizontal = 5.dp
                                                         )
                                                         .clickable {
                                                             motivo_cierre =
                                                                 if (motivo_cierre == motivo) "" else motivo
-                                                        }
-                                                ) {
+                                                        }) {
                                                     RadioButton(
                                                         selected = motivo_cierre == motivo,     // ← CORREGIDO
                                                         onClick = {
@@ -393,17 +434,16 @@ object constantes_horas {
                                                         modifier = Modifier.clickable {
                                                             motivo_cierre =
                                                                 if (motivo_cierre == motivo) "" else motivo
-                                                        }
-                                                    )
+                                                        })
                                                 }
                                             }
                                         }
 
-                                        Log.d(
-                                            "dasadadada",
-                                            "${motivo_cierre.isNotEmpty()}  $motivo_cierre  $motivo_cierre_tienda"
-                                        )
-                                        if (motivo_cierre.isNotEmpty() && motivo_cierre != motivo_cierre_tienda) {
+
+                                        if (!btn_guardado_cerrado_oculto &&
+                                            ((motivo_cierre.isNotEmpty() && motivo_cierre != motivo_cierre_tienda)
+                                                    || cambios_tiene_horario_cerrarlo)
+                                        ) {
                                             Box(
                                                 modifier = Modifier.fillMaxWidth(),
                                                 contentAlignment = Alignment.BottomEnd
@@ -413,27 +453,34 @@ object constantes_horas {
                                                         .clip(CircleShape)
                                                         .background(MaterialTheme.colorScheme.primary)
                                                         .clickable {
-
-                                                            Toast.makeText(
-                                                                context,
-                                                                "guardmos en el dia de $nombreDia de cerrado",
-                                                                Toast.LENGTH_SHORT
-                                                            ).show()
-                                                            cerrar_tienda(nombreDia, motivo_cierre)
-
-                                                        }
-                                                ) {
+                                                            val bloque = construirBloques(
+                                                                hAperturaAM.value,
+                                                                hCierreAM.value,
+                                                                hAperturaPM.value,
+                                                                hCierrePM.value
+                                                            )
+                                                            if (isConnected) {
+                                                                cerrar_tienda(
+                                                                    nombreDia, motivo_cierre, bloque
+                                                                )
+                                                                btn_guardado_cerrado_oculto = true
+                                                                expndir_todo = false
+                                                                leersolo_si_no_fue = true
+                                                            } else {
+                                                                error_sin_internet()
+                                                            }
+                                                        }) {
                                                     texto_generico_one_line(
                                                         "Guardar cambios",
                                                         style = MaterialTheme.typography.bodyMedium,
                                                         modifier = Modifier.padding(
-                                                            horizontal = 10.dp,
-                                                            vertical = 10.dp
+                                                            horizontal = 10.dp, vertical = 10.dp
                                                         )
                                                     )
                                                 }
                                             }
                                         }
+
 
                                     }
                                 } else {
@@ -453,11 +500,8 @@ object constantes_horas {
                                             hAperturaPM.value,
                                             hCierrePM.value
                                         ) {
-                                            val cambio = corrido != initCorrido ||
-                                                    hAperturaAM.value != initHApAM ||
-                                                    hCierreAM.value != initHCiAM ||
-                                                    hAperturaPM.value != initHApPM ||
-                                                    hCierrePM.value != initHCiPM
+                                            val cambio =
+                                                corrido != initCorrido || hAperturaAM.value != initHApAM || hCierreAM.value != initHCiAM || hAperturaPM.value != initHApPM || hCierrePM.value != initHCiPM
 
                                             hubo_cambios = cambio
 
@@ -468,8 +512,7 @@ object constantes_horas {
                                             item {
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     Checkbox(
-                                                        checked = corrido,
-                                                        onCheckedChange = {
+                                                        checked = corrido, onCheckedChange = {
                                                             corrido =
                                                                 true   // si hace click → activar corrido
                                                         }, colors = CheckboxDefaults.colors(
@@ -490,8 +533,7 @@ object constantes_horas {
                                             item {
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     Checkbox(
-                                                        checked = !corrido,
-                                                        onCheckedChange = {
+                                                        checked = !corrido, onCheckedChange = {
                                                             corrido =
                                                                 false  // si hace click → activar descanso
                                                         }, colors = CheckboxDefaults.colors(
@@ -525,12 +567,9 @@ object constantes_horas {
                                                 },
                                                 abrirTimePicker = { valorActual, onSelect ->
                                                     abrirTimePicker(
-                                                        context,
-                                                        valorActual,
-                                                        onSelect
+                                                        context, valorActual, onSelect
                                                     )
-                                                }
-                                            )
+                                                })
 
                                             texto_generico_one_line(" a ")
 
@@ -542,12 +581,9 @@ object constantes_horas {
                                                 },
                                                 abrirTimePicker = { valorActual, onSelect ->
                                                     abrirTimePicker(
-                                                        context,
-                                                        valorActual,
-                                                        onSelect
+                                                        context, valorActual, onSelect
                                                     )
-                                                }
-                                            )
+                                                })
                                         }
                                         if (!corrido) {
                                             Row(
@@ -563,12 +599,9 @@ object constantes_horas {
                                                     },
                                                     abrirTimePicker = { valorActual, onSelect ->
                                                         abrirTimePicker(
-                                                            context,
-                                                            valorActual,
-                                                            onSelect
+                                                            context, valorActual, onSelect
                                                         )
-                                                    }
-                                                )
+                                                    })
 
                                                 texto_generico_one_line(" a ")
 
@@ -580,17 +613,18 @@ object constantes_horas {
                                                     },
                                                     abrirTimePicker = { valorActual, onSelect ->
                                                         abrirTimePicker(
-                                                            context,
-                                                            valorActual,
-                                                            onSelect
+                                                            context, valorActual, onSelect
                                                         )
-                                                    }
-                                                )
+                                                    })
                                             }
                                         }
 
 
-                                        if (hubo_cambios) {
+
+                                        if (!btn_guardado_abierto_oculto &&
+                                            (hubo_cambios || cambios_tiene_horario_activarlo)
+                                        ) {
+
                                             Box(
                                                 modifier = Modifier.fillMaxWidth(),
                                                 contentAlignment = Alignment.BottomEnd
@@ -605,8 +639,7 @@ object constantes_horas {
                                                         style = MaterialTheme.typography.bodyMedium,
                                                         modifier = Modifier
                                                             .padding(
-                                                                horizontal = 10.dp,
-                                                                vertical = 10.dp
+                                                                horizontal = 10.dp, vertical = 10.dp
                                                             )
                                                             .clickable {
                                                                 val bloque = construirBloques(
@@ -615,19 +648,22 @@ object constantes_horas {
                                                                     hAperturaPM.value,
                                                                     hCierrePM.value
                                                                 )
-                                                                Toast.makeText(
-                                                                    context,
-                                                                    "guardmos en el dia de $nombreDia de abierto",
-                                                                    Toast.LENGTH_SHORT
-                                                                ).show()
-                                                                abrir_tienda(nombreDia, bloque)
-                                                            }
-                                                    )
+                                                                if (isConnected) {
+                                                                    motivo_cierre = ""
+                                                                    motivo_cierre_tienda = ""
+                                                                    abrir_tienda(nombreDia, bloque)
+                                                                    btn_guardado_abierto_oculto =
+                                                                        true
+                                                                    expndir_todo = false
+                                                                    leersolo_si_no_fue = true
+                                                                } else {
+                                                                    error_sin_internet()
+                                                                }
+                                                            })
                                                 }
                                             }
                                         }
                                     }
-
 
                                 }
                             }
@@ -638,6 +674,48 @@ object constantes_horas {
             }
         }
     }
-}
 
+    fun onSwitchChange(
+        value: Boolean,
+        tieneBloque: Boolean,
+        motivo_cierre: String,
+        motivo_cierre_tienda: String,
+        setActivar: (Boolean) -> Unit,
+        setCerrar: (Boolean) -> Unit,
+        setOcultarAbierto: (Boolean) -> Unit,
+        setOcultarCerrado: (Boolean) -> Unit,
+        valor_seleciondao: (String) -> Unit,
+    ) {
+
+        val abriendo = value       // true = abrir tienda
+        val cerrando = !value      // false = cerrar tienda
+
+        if (abriendo) {
+            // Estamos abriendo la tienda
+            setCerrar(false)
+
+            if (tieneBloque) {
+                setActivar(true)
+            } else {
+                setActivar(false)
+            }
+
+            setOcultarAbierto(false)
+            setOcultarCerrado(true)
+            valor_seleciondao("")
+        } else {
+            // Estamos cerrando la tienda
+            setActivar(false)
+
+            val debeGuardar = motivo_cierre.isNotEmpty() &&
+                    motivo_cierre != motivo_cierre_tienda
+
+            setCerrar(debeGuardar)
+
+            setOcultarCerrado(false)
+            setOcultarAbierto(true)
+        }
+    }
+
+}
 

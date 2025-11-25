@@ -399,6 +399,7 @@ fun nativationWrapper(
                 composable("login_principal") {
                     if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
                         cuenta_user(
+                            isConnected,
                             viewModel_login_user,
                             correo_registrado,
                             navController,

@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user
 
-import android.util.Log
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -8,30 +9,20 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,7 +36,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -57,18 +47,14 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data_store.data_store_localidad
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
@@ -84,9 +70,11 @@ val firebaseAuth = FirebaseAuth.getInstance()
 
 @Composable
 fun cuenta_user(
+    isConnected: Boolean,
     viewModel_login_user: viewModel_login_user,
-
-    correo_registrado: String, navController: NavController, terminar_configurar: (String) -> Unit
+    correo_registrado: String,
+    navController: NavController,
+    terminar_configurar: (String) -> Unit
 ) {
     val loginState_principal by viewModel_login_user.loginStateCamposInicial.collectAsState()
     val registrado_google = viewModel_login_user.registrado_google.observeAsState()
@@ -123,13 +111,14 @@ fun cuenta_user(
             mostrar_fondo = true
         })
         protada_perfil_user(
-            mostrar_btn_termianr_configurar,
-            mostrar_fondo,
-            { mostrar_fondo = false },
-            {
+            isConnected = isConnected,
+            terminar_configurar_btn = mostrar_btn_termianr_configurar,
+            ocultar_contenido_Boolean = mostrar_fondo,
+            ocultar_contenido = { mostrar_fondo = false },
+            cerrar_seccion = {
                 viewModel_login_user.logout()
             },
-            {
+            terminar_configurar = {
                 terminar_configurar(correo_registrado)
             })
 
@@ -182,8 +171,10 @@ fun img_fondo_user(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun protada_perfil_user(
+    isConnected: Boolean,
     terminar_configurar_btn: Boolean,
     ocultar_contenido_Boolean: Boolean,
     ocultar_contenido: () -> Unit,
@@ -367,7 +358,7 @@ fun protada_perfil_user(
         }
     }
     if (eres_socio) {
-        eres_socio_geinz ("Benjamin",{eres_socio = false})
+        eres_socio_geinz (isConnected,"Benjamin",{eres_socio = false})
     }
 
 }

@@ -691,7 +691,9 @@ fun chips_filtrado(
     sub_categoria_selecionada: String?,
     lista_subcategorias: List<String>,
     expandir_carta: (Boolean) -> Unit,
-    selecionado: (String) -> Unit
+    selecionado: (String) -> Unit,
+    color_left: List<Color> = shadow_left,
+    color_right: List<Color> = shadow_right,
 ) {
     val lista_con_todos = listOf("Todos") + lista_subcategorias
     Box(
@@ -740,7 +742,7 @@ fun chips_filtrado(
                 .align(Alignment.CenterStart)
                 .zIndex(1f)
                 .alpha(alphaLeft)
-                .background(Brush.horizontalGradient(colors = shadow_left))
+                .background(Brush.horizontalGradient(colors = color_left))
         )
 
         // 👉 derecha
@@ -751,7 +753,7 @@ fun chips_filtrado(
                 .align(Alignment.CenterEnd)
                 .zIndex(1f)
                 .alpha(alphaRight)
-                .background(Brush.horizontalGradient(colors = shadow_right))
+                .background(Brush.horizontalGradient(colors = color_right))
         )
     }
 

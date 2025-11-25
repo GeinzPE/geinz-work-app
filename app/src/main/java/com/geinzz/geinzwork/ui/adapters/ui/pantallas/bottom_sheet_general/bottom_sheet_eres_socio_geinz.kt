@@ -1,6 +1,8 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 
@@ -11,14 +13,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -28,24 +28,23 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -58,7 +57,6 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.Horario
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp_socio_geinzz
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -66,10 +64,8 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_mostar_leyendas_graficos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.HorarioSemanal
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.guardar_horario_atencion_abierto
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.guardar_horario_cerrado
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
@@ -78,11 +74,12 @@ import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import io.github.dautovicharis.charts.PieChart
 import io.github.dautovicharis.charts.model.toChartDataSet
 import io.github.dautovicharis.charts.style.PieChartDefaults
-import io.ktor.client.content.LocalFileContent
+import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
+fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> Unit) {
 
     val context = LocalContext.current
     var id_registrado by remember { mutableStateOf("") }
@@ -108,9 +105,14 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
     var icono_mostar_leyendas_graficos by remember { mutableStateOf(0) }
     var id_tienda by remember { mutableStateOf("") }
     var horarioMap by remember { mutableStateOf(HorarioAtencion_box()) }
-    LaunchedEffect(id_tienda) {
+
+    var mostar_horario__bool by remember { mutableStateOf(false) }
+    LaunchedEffect(id_tienda, horarioMap) {
         viewModelFiltros.calcularHorarioParaTienda(id_tienda, horarioMap)
     }
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     ModalBottomSheet(
         onDismissRequest = { ondimis() },
         modifier = Modifier.fillMaxWidth(),
@@ -207,8 +209,6 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
                             }
 
                         } else {
-
-
                             LaunchedEffect(uid_respald_user) {
                                 viewmodel.verificar_seccion(context, uid_respald_user)
                             }
@@ -312,7 +312,11 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
                                                     modifier = Modifier
                                                         .fillMaxSize()
                                                         .height(200.dp)
-                                                        .clip(RoundedCornerShape(10.dp)),
+                                                        .clip(RoundedCornerShape(10.dp))
+                                                        .clickable {
+                                                            mostar_horario__bool =
+                                                                !mostar_horario__bool
+                                                        },
                                                     contentScale = ContentScale.Crop
                                                 )
                                                 texto_generico_one_line(
@@ -338,11 +342,35 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
                                                         { color, txt -> }
                                                     )
                                                 }
-                                                HorarioSemanal123(datos.horario_tiendaMap, {nombre_dia,motivo_cierre->
-                                                    guardar_horario_cerrado(datos.id_tienda,nombre_dia,motivo_cierre)
-                                                },{dia,lista_horarios->
-                                                    guardar_horario_atencion_abierto(datos.id_tienda,dia,lista_horarios)
-                                                })
+                                                AnimatedVisibility(mostar_horario__bool) {
+                                                    Log.d("vislibe", "hacemos_campovilse")
+                                                    HorarioSemanal123(
+                                                        isConnected = isConnected,
+                                                        viewmodel = viewmodel,
+                                                        horario = datos.horario_tiendaMap,
+                                                        cerrar_tienda = { nombre_dia, motivo_cierre, lista ->
+                                                            viewmodel.cambiar_cerrado(
+                                                                datos.id_tienda,
+                                                                nombre_dia,
+                                                                motivo_cierre,
+                                                                lista
+                                                            )
+                                                        },
+                                                        abrir_tienda = { dia, lista_horarios ->
+                                                            viewmodel.cambiar_abierto(
+                                                                datos.id_tienda,
+                                                                dia,
+                                                                lista_horarios
+                                                            )
+                                                        }, {
+                                                            scope.launch {
+                                                                snackbarHostState.showSnackbar(
+                                                                    message = "No puedes realizar cambios sin conexion a internet",
+                                                                    duration = SnackbarDuration.Short
+                                                                )
+                                                            }
+                                                        })
+                                                }
                                             }
 
 
@@ -720,6 +748,7 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
                         }
                     }
                 }
+                SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
             }
 
             if (dialog_mostar_leyendas_graficos) {
@@ -732,7 +761,7 @@ fun eres_socio_geinz(nombre_user: String, ondimis: () -> Unit) {
         }
 
 
+
     }
 }
-
 

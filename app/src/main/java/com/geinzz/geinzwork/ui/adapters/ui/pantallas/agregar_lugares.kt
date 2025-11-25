@@ -852,6 +852,7 @@ fun datos_teindas() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HorarioSemanal(viewmodel_agregar_datos: viewmodel_agregar_datos) {
 
