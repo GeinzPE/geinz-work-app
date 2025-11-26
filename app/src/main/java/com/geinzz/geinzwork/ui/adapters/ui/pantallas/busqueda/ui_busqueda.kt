@@ -910,7 +910,7 @@ fun ui_pantalla_busqueda(
             dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
                 dialog_Crear_ruta = false
                 if (crear_ruta && verificarUbiActiva(context)) {
-                    constantes_lista_localidades.abrir_google_maps(
+                    constantes_lista_localidades.abrir_google_maps("tienda",id_tienda_selecionada,localidad_tienda_seklecioanda,
                         context, latitud, longitud,
                     ) { dialogo ->
                         validacion_mostrar_dialog_ubi_off = dialogo

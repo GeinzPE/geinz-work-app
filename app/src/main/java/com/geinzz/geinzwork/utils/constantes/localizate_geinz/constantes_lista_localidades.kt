@@ -95,6 +95,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_metodo_individual
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
+import com.geinzz.geinzwork.model.repo_eres_socio
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -106,6 +107,7 @@ import kotlinx.coroutines.launch
 
 
 object constantes_lista_localidades {
+    val repo_socios= repo_eres_socio()
     val lista = listOf(
         dataclass_localidad_escudos("Barranca".lowercase(), R.drawable.escudo_barranca),
         dataclass_localidad_escudos("Paramonga".lowercase(), R.drawable.escudo_paramonga),
@@ -340,6 +342,7 @@ object constantes_lista_localidades {
     }
 
     fun abrir_google_maps(
+        tipo:String="tienda",id_tienda:String,localidad:String,
         context: Context,
         latitud: Double,
         longitud: Double,
@@ -347,6 +350,9 @@ object constantes_lista_localidades {
     ) {
         Log.d("lateitudes", "${latitud} ${longitud}")
         if (verificarUbiActiva(context)) {
+            if(tipo == "tienda"){
+                repo_socios.agregar_contador("ruta",id_tienda,localidad)
+            }
             abrirRutaEnGoogleMaps(context, latitud, longitud)
         } else {
             mostrar_dialog(true)
@@ -1968,7 +1974,7 @@ object constantes_lista_localidades {
     }
 
 
-    fun llamar(context: Context, numero: String, open_dialog: () -> Unit) {
+    fun llamar(tipo:String="tienda",id_tienda:String,localidad: String,context: Context, numero: String, open_dialog: () -> Unit) {
         if (ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.CALL_PHONE
@@ -1976,11 +1982,12 @@ object constantes_lista_localidades {
         ) {
             open_dialog()
         } else {
-            makePhoneCall(context, numero)
+            makePhoneCall(tipo,id_tienda,localidad,context, numero)
+
         }
     }
 
-    private fun requestCallPermission(context: Context, phoneNumber: String) {
+    private fun requestCallPermission(tipo:String="tienda",id_tienda:String,localidad: String,context: Context, phoneNumber: String) {
         if (ContextCompat.checkSelfPermission(
                 context,
                 android.Manifest.permission.CALL_PHONE
@@ -1992,11 +1999,11 @@ object constantes_lista_localidades {
                 REQUEST_CALL_PHONE
             )
         } else {
-            makePhoneCall(context, phoneNumber)
+            makePhoneCall(tipo,id_tienda,localidad,context, phoneNumber)
         }
     }
 
-    private fun makePhoneCall(context: Context, phoneNumber: String) {
+    private fun makePhoneCall(tipo:String="tienda",id_tienda:String,localidad: String,context: Context, phoneNumber: String) {
         val callIntent = Intent(Intent.ACTION_CALL)
         callIntent.data = Uri.parse("tel:$phoneNumber")
         if (ActivityCompat.checkSelfPermission(
@@ -2004,9 +2011,12 @@ object constantes_lista_localidades {
                 android.Manifest.permission.CALL_PHONE
             ) == PackageManager.PERMISSION_GRANTED
         ) {
+            if(tipo=="tienda"){
+            repo_socios.agregar_contador("llamada",id_tienda,localidad)
+            }
             context.startActivity(callIntent)
         } else {
-            requestCallPermission(context, phoneNumber)
+            requestCallPermission(tipo,id_tienda,localidad,context, phoneNumber)
         }
     }
 

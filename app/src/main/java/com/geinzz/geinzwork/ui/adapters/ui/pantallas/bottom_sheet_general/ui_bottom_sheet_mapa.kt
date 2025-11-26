@@ -137,9 +137,8 @@ fun bottom_sheet_mapa(
                                         categoria = "",
                                         direccion = id.direccion,
                                         referencia = id.referencia,
-                                        horario_tienda = id.horario_dia,
                                         contacto_tienda = id.contacto_tienda,
-                                        metodos_pago_tienda = id.metodos_pago_tienda
+                                        metodos_pago_tienda = id.metodos_pago_tienda, horario_box = id.horario_box
                                     )
                                 )
                             }, estados_guardado = { categoria, radio ->
@@ -182,7 +181,7 @@ fun bottom_sheet_mapa(
                                         direccion = id.direccion,
                                         referencia = id.referencia,
                                         contacto_tienda = id.contacto_tienda,
-                                        metodos_pago_tienda = id.metodos_pago_tienda
+                                        metodos_pago_tienda = id.metodos_pago_tienda, horario_box = id.horario_tienda_box
                                     )
                                 )
                             },{_,_->}

@@ -43,11 +43,11 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dialog_seguridad_salud_algolia
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general.copiarTexto_portapapeles_compouse
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
 import kotlinx.coroutines.delay
 
@@ -93,149 +93,149 @@ fun dialog_salud_seguridad_algolia(
         title = {},
         text = {
             FuenteControladaApp{
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(item.img)
-                            .size(40, 40)
-                            .memoryCachePolicy(CachePolicy.ENABLED)
-                            .diskCachePolicy(CachePolicy.ENABLED)
-                            .crossfade(true)
-                            .placeholder(R.drawable.cargando_img_categorias)
-                            .error(R.drawable.cargando_img_categorias)
-                            .build(), contentDescription = "Imagen",
-                        modifier = Modifier
-                            .width(40.dp)
-                            .height(40.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(item.img)
+                                .size(40, 40)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .crossfade(true)
+                                .placeholder(R.drawable.cargando_img_categorias)
+                                .error(R.drawable.cargando_img_categorias)
+                                .build(), contentDescription = "Imagen",
+                            modifier = Modifier
+                                .width(40.dp)
+                                .height(40.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                        spacer_horizonta(10.dp)
+                        texto_generico_one_line(item.nombre)
+
+                    }
+                    spacer_vertical(20.dp)
+                    texto_generico_multilinea(
+                        "Estos son los contactos de emergencia disponibles. Úsalos únicamente en situaciones urgentes. Mantén la calma",
+                        style = MaterialTheme.typography.bodyMedium
                     )
-                    spacer_horizonta(10.dp)
-                    texto_generico_one_line(item.nombre)
-
-                }
-                spacer_vertical(20.dp)
-                texto_generico_multilinea(
-                    "Estos son los contactos de emergencia disponibles. Úsalos únicamente en situaciones urgentes. Mantén la calma",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                spacer_vertical(20.dp)
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                    spacer_vertical(20.dp)
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
 
 
-                    Crossfade(targetState = isLoading, label = "") { loading ->
-                        if (loading) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(70.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        } else {
-                            Row(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .height(50.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                if (item.lista_llamada.isNotEmpty()) {
-                                    Box(
-                                        modifier = Modifier.weight(1f),
-                                        contentAlignment = Alignment.Center
-                                    ) {
+                        Crossfade(targetState = isLoading, label = "") { loading ->
+                            if (loading) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(70.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            } else {
+                                Row(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .height(50.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    if (item.lista_llamada.isNotEmpty()) {
                                         Box(
-                                            modifier = Modifier
-                                                .size(53.dp)
-                                                .clip(CircleShape)
-                                                .background(colorLlamada),
+                                            modifier = Modifier.weight(1f),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Image(
-                                                painter = painterResource(R.drawable.llamada_icon),
-                                                contentDescription = "",
+                                            Box(
                                                 modifier = Modifier
-                                                    .size(45.dp)
-                                                    .clickable (indication = null,interactionSource= remember { MutableInteractionSource() }){
-                                                        mostrar_lista_numero = "llamada"
-                                                    }
-                                            )
+                                                    .size(53.dp)
+                                                    .clip(CircleShape)
+                                                    .background(colorLlamada),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Image(
+                                                    painter = painterResource(R.drawable.llamada_icon),
+                                                    contentDescription = "",
+                                                    modifier = Modifier
+                                                        .size(45.dp)
+                                                        .clickable (indication = null,interactionSource= remember { MutableInteractionSource() }){
+                                                            mostrar_lista_numero = "llamada"
+                                                        }
+                                                )
+                                            }
                                         }
                                     }
-                                }
-                                if (item.lista_whatsapp.isNotEmpty()) {
-                                    Box(
-                                        modifier = Modifier.weight(1f),
-                                        contentAlignment = Alignment.Center
-                                    ) {
+                                    if (item.lista_whatsapp.isNotEmpty()) {
                                         Box(
-                                            modifier = Modifier
-                                                .size(53.dp)
-                                                .clip(CircleShape)
-                                                .background(colorWhatsapp),
+                                            modifier = Modifier.weight(1f),
                                             contentAlignment = Alignment.Center
                                         ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(53.dp)
+                                                    .clip(CircleShape)
+                                                    .background(colorWhatsapp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
 
-                                        Image(
-                                            painter = painterResource(R.drawable.whatsapp_icon),
-                                            contentDescription = "",
-                                            modifier = Modifier
-                                                .size(45.dp)
-                                                .clickable (indication = null,interactionSource= remember { MutableInteractionSource() }){
-                                                    mostrar_lista_numero = "whatsapp"
-                                                }
-                                        )
+                                                Image(
+                                                    painter = painterResource(R.drawable.whatsapp_icon),
+                                                    contentDescription = "",
+                                                    modifier = Modifier
+                                                        .size(45.dp)
+                                                        .clickable (indication = null,interactionSource= remember { MutableInteractionSource() }){
+                                                            mostrar_lista_numero = "whatsapp"
+                                                        }
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                spacer_vertical(10.dp)
+                    spacer_vertical(10.dp)
 
 
-                if (mostrar_lista_numero == "llamada") {
-                    Log.d("lsita", "${item.lista_llamada.size}")
-                    spacer_vertical(5.dp)
-                    item.lista_llamada.forEach { i ->
-                        box_llamada_whatsap(
-                            i, mostrar_lista_numero,
-                            click_icon = {
-                                llamar(context, i, {
-                                    call_dialog_permise = true
-                                    numero_llamada = i
-                                })
-                            },
-                            click_copiar = { copiarTexto_portapapeles_compouse(i, context) })
+                    if (mostrar_lista_numero == "llamada") {
+                        Log.d("lsita", "${item.lista_llamada.size}")
+                        spacer_vertical(5.dp)
+                        item.lista_llamada.forEach { i ->
+                            box_llamada_whatsap(
+                                numero = i, tipo = mostrar_lista_numero,
+                                click_icon = {
+                                    llamar("emergencia","","",context, i, {
+                                        call_dialog_permise = true
+                                        numero_llamada = i
+                                    })
+                                },
+                                click_copiar = { copiarTexto_portapapeles_compouse(i, context) })
+                        }
+                        spacer_vertical(5.dp)
+                    } else if (mostrar_lista_numero == "whatsapp") {
+                        Log.d("lsita", "${item.lista_whatsapp.size}")
+                        spacer_vertical(5.dp)
+
+                        item.lista_whatsapp.forEach { i ->
+                            box_llamada_whatsap(
+                                i, mostrar_lista_numero,
+                                click_icon = {
+                                    abrir_whattsapp("emergencia","","",context, i)
+                                },
+                                click_copiar = { copiarTexto_portapapeles_compouse(i, context) })
+                        }
+                        spacer_vertical(5.dp)
+
                     }
-                    spacer_vertical(5.dp)
-                } else if (mostrar_lista_numero == "whatsapp") {
-                    Log.d("lsita", "${item.lista_whatsapp.size}")
-                    spacer_vertical(5.dp)
 
-                    item.lista_whatsapp.forEach { i ->
-                        box_llamada_whatsap(
-                            i, mostrar_lista_numero,
-                            click_icon = {
-                                abrir_whattsapp(context, i)
-                            },
-                            click_copiar = { copiarTexto_portapapeles_compouse(i, context) })
-                    }
-                    spacer_vertical(5.dp)
 
                 }
-
-
-            }
             }
         }
     )

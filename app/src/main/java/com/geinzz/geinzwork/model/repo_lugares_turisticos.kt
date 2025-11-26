@@ -1,6 +1,8 @@
 package com.geinzz.geinzwork.model
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.firebase.geofire.GeoFireUtils
 import com.firebase.geofire.GeoLocation
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
@@ -119,6 +121,7 @@ class repo_lugares_turisticos {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun obtenerTiendasCercanas(
         lat: Double,
         lon: Double,
@@ -181,44 +184,13 @@ class repo_lugares_turisticos {
                     if (categoria_tienda.isNotEmpty()) {
                         categoriasSet.add(categoria_tienda) // 🔹 Guardamos la categoría
                     }
-
-                    val dias =
-                        listOf(
-                            "domingo",
-                            "lunes",
-                            "martes",
-                            "miércoles",
-                            "jueves",
-                            "viernes",
-                            "sábado"
-                        )
-                    val calendar = Calendar.getInstance()
-                    val diaActual = dias[calendar.get(Calendar.DAY_OF_WEEK) - 1]
-
-                    val horarioDia = horario_dia[diaActual] as? Map<String, Any> ?: emptyMap()
-                    val cerrado = horarioDia["cerrado"] as? Boolean ?: false
-                    val hApertura = horarioDia["h_apertura"] as? String ?: ""
-                    val hCierre = horarioDia["h_cierre"] as? String ?: ""
-                    val motivo = horarioDia["motivo"] as? String ?: ""
                     val metodos_contacto =
                         doc.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
                     val contacto_obs = metodos_contacto.toMetodoContacto()
                     val metodo_pago = doc.get("metodos_pago") as? Map<String, Any> ?: emptyMap()
+                    val lcalidad_tienda = doc.get("localidad") as? String ?:""
                     val metodo_pago_separado = metodo_pago.to_metodo_pago()
                     val horario_box_mapeo=horario_dia.to_horario_atencion_box_dia()
-                    var datos_horario_actual = horario_tienda(hApertura, hCierre, cerrado, motivo)
-                    val estaAbierto =
-                        if (!cerrado) verificarSiEstaAbiertoHoy(datos_horario_actual) else false
-                    if (!estaAbierto) {
-                        val proximo = obtenerProximoDiaAbierto(horario_dia, diaActual)
-                        if (proximo != null) {
-                            val (diaProx, horarioProx) = proximo
-                            datos_horario_actual = datos_horario_actual.copy(
-                                dia_prox_apertura = diaProx,
-                                hora_prox_apertura = horarioProx["h_apertura"] as? String ?: ""
-                            )
-                        }
-                    }
 
                     val distancia = GeoFireUtils.getDistanceBetween(
                         center,
@@ -236,15 +208,13 @@ class repo_lugares_turisticos {
                                 lista_subcategoiras = tag,
                                 id_tienda = idTienda,
                                 pagado = pagado,
-                                horario_dia = datos_horario_actual,
                                 latitud = latitud.toDouble(),
                                 longitud = longitud.toDouble(),
-                                esta_abierto = estaAbierto,
                                 contacto_tienda = contacto_obs,
                                 has_tienda = geohash,
                                 direccion = direccion, referencia = referencia,
                                 descripcion = descripcion,
-                                metodos_pago_tienda = metodo_pago_separado,horario_box_mapeo
+                                metodos_pago_tienda = metodo_pago_separado,horario_box_mapeo,lcalidad_tienda
                             )
                         )
 

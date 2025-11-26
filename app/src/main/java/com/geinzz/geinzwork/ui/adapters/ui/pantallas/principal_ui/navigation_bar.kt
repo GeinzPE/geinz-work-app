@@ -107,6 +107,8 @@ fun bottom_navigation(
     var bottom_sheet by remember { mutableStateOf(false) }
     var bottom_sheet_review_privado by remember { mutableStateOf(false) }
     var id_tienda_review by remember { mutableStateOf(data_class_review("", "")) }
+    var id_tienda_params by remember { mutableStateOf("") }
+    var localida_tienda by remember { mutableStateOf("") }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -136,7 +138,7 @@ fun bottom_navigation(
                 context,
                 result?.contents,
                 crear_ruta = { lat, lng ->
-                    constantes_lista_localidades.abrir_google_maps(context, lat, lng) { dialogo ->
+                    constantes_lista_localidades.abrir_google_maps("tienda",id_tienda_params,localida_tienda,context, lat, lng) { dialogo ->
                         if (dialogo) Toast.makeText(
                             context,
                             "Activa tu ubicación primero",
@@ -154,6 +156,8 @@ fun bottom_navigation(
                 },
                 open_review_public = { id_tienda, localidad ->
                     id_tienda_review = data_class_review(id_tienda, localidad)
+                    id_tienda_params=id_tienda
+                        localida_tienda=localidad
                     bottom_sheet = true
                 })
 

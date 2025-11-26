@@ -9,6 +9,7 @@ import com.geinzz.geinzwork.data.model.direccion_lugar
 import com.geinzz.geinzwork.data.model.img_tienda
 import com.geinzz.geinzwork.data.model.ingreso_date
 import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -61,19 +62,37 @@ class repo_agregar_datos(context: Context) {
             "fechas" to data_class_tienda_geinz.fechas,
             "timeSlamp" to data_class_tienda_geinz.timeSlamp
         )
-//        db.collection("datos_lugares").document(data_class_tienda_geinz.id_tienda).set(hasmap).addOnSuccessListener { documentReference ->
-//               Log.d("datos_agregados","correcto")
-//        }.addOnFailureListener {
-//            Log.d("datos_agregados","malo")
-//        }
-
         db2.collection("Tiendas").document(data_class_tienda_geinz.localida_tienda)
             .collection(data_class_tienda_geinz.localida_tienda)
             .document(data_class_tienda_geinz.id_tienda).set(hasmap).addOnSuccessListener { e ->
                 Log.d("datos_agregados", "correcto")
+                agregar_datos_alglia(data_class_tienda_geinz)
             }.addOnFailureListener {
                 Log.d("datos_agregados", "malo")
             }
+    }
+
+    fun agregar_datos_alglia(data_class_tienda_geinz: data_class_tienda_geinz){
+        val db = FirebaseFirestore.getInstance().collection("lugares").document(data_class_tienda_geinz.id_tienda)
+        val hasmap_ubicacion = hashMapOf<String, Any>(
+            "latitud" to data_class_tienda_geinz.ubicacion.latitud,
+            "longitud" to data_class_tienda_geinz.ubicacion.longitud
+        )
+        val hashMap = hashMapOf<String, Any>(
+            "categoria" to data_class_tienda_geinz.categoria_tienda,
+            "id_tienda" to data_class_tienda_geinz.id_tienda,
+            "img" to "",
+            "lugar" to data_class_tienda_geinz.ubicacion,
+            "nombre" to data_class_tienda_geinz.nombre_tienda,
+            "tag" to data_class_tienda_geinz.subcategoria,
+            "ubicacion" to hasmap_ubicacion
+        )
+        db.set(hashMap).addOnSuccessListener { res ->
+            Log.d("creado_correcto", "${data_class_tienda_geinz.id_tienda} creado correctamente :)")
+        }.addOnFailureListener { e ->
+            Log.d("error_subir_datos", "error")
+        }
+
     }
 
 
@@ -170,5 +189,8 @@ class repo_agregar_datos(context: Context) {
 
         return Pair(listaDocs, listaSubcategorias)
     }
+
+
+
 
 }

@@ -36,7 +36,7 @@ data class tiendas_filtradas(
 )
 
 data class item_metodos_pago(
-   val codigo_qr:String="",
+    val codigo_qr:String="",
     val numero_String:String="",
     val icono_metodo_pago: Int=0,
     val nombre_metodo_pago:String="",
@@ -70,17 +70,16 @@ data class lugares_cercanos(
     val lista_subcategoiras: List<String> = emptyList(),
     val id_tienda: String = "",
     val pagado: Boolean,
-    val horario_dia: horario_tienda = horario_tienda(),
     val latitud: Double = 0.0,
     val longitud: Double = 0.0,
-    val esta_abierto: Boolean = false,
     var contacto_tienda: metodo_contacto_tienda,
     var has_tienda: String,
     val direccion: String,
     val referencia: String,
     val descripcion: String,
     val metodos_pago_tienda: modelo_pagos_tienda,
-    val horario_box:HorarioAtencion_box
+    val horario_box:HorarioAtencion_box,
+    val localidad_tienda: String
 ) : Parcelable
 
 

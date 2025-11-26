@@ -1,6 +1,8 @@
 package com.geinzz.geinzwork.viewModels
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
@@ -42,7 +44,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
-
+@RequiresApi(Build.VERSION_CODES.O)
 class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) : ViewModel() {
 
     val repo_filtrado = repo_filtrado_tiendas()
@@ -542,7 +544,8 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     }
 
 
-    fun guardar_tienda_favorita_por_id(localidad_tienda:String,id_user: String, id_tienda: String) {
+
+    fun guardar_tienda_favorita_por_id(localidad_tienda:String, id_user: String, id_tienda: String) {
         viewModelScope.launch {
             try {
                 val datos=repo_filtrado.obtener_datos_tienda_id(localidad_tienda,id_tienda)

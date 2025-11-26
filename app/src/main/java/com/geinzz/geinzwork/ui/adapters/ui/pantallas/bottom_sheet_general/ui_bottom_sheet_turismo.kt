@@ -4,11 +4,13 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
@@ -100,6 +102,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openFacebook
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openTiktok
@@ -139,6 +142,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_lugares_turisticos(
@@ -174,6 +178,9 @@ fun bottom_sheet_lugares_turisticos(
     var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     var id_respado_user by remember { mutableStateOf("") }
+
+    val id_tienda_parms by remember { mutableStateOf("") }
+    val localidad_tienda by remember { mutableStateOf("") }
 
     LaunchedEffect(uid_respald_user) {
         if (uid_respald_user.isNotEmpty()) {
@@ -325,6 +332,7 @@ fun bottom_sheet_lugares_turisticos(
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun card_img_container(
@@ -361,6 +369,8 @@ fun card_img_container(
 //    val nueva_busqueda by viewmodel_turismo.estado_categoria_filtrada.collectAsState()
 //    val sub_categoria_selecionada by viewmodel_turismo.estado_radio_filtrada.collectAsState()
 //
+    var id_tienda_parms by remember { mutableStateOf("") }
+    var localidad_tienda by remember { mutableStateOf("") }
     var lista_string_filtrado_tiendas by remember { mutableStateOf(emptyList<String>()) }
 
     var lugares_turisticos_filtrados by remember { mutableStateOf(emptyList<lugares_cercanos>()) }
@@ -368,6 +378,8 @@ fun card_img_container(
     var scope = rememberCoroutineScope()
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     var id_respado_user by remember { mutableStateOf("") }
+
+    var tipo_creacion_ruta by remember { mutableStateOf("") }
 
     LaunchedEffect(uid_respald_user) {
         if (uid_respald_user.isNotEmpty()) {
@@ -431,6 +443,7 @@ fun card_img_container(
             chips_filtrado(lista_turismo_bottom_sheet) { i ->
                 when (i) {
                     "Ir al lugar" -> {
+                        tipo_creacion_ruta = "turismo"
                         lat_tienda = datos.latitud
                         long_tienda = datos.longitud
                         dialog_Crear_ruta = true
@@ -482,7 +495,7 @@ fun card_img_container(
                                 ) == PackageManager.PERMISSION_GRANTED
                             ) {
                                 if (lugares_turisticos_filtrados.isNotEmpty()) {
-                                    if (firebaseAuth.currentUser != null|| id_respado_user.isNotEmpty()) {
+                                    if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
                                         ver_mapa(lugares_turisticos_filtrados)
                                         viewmodel_turismo.actualizarRadio(nueva_busqueda.toDouble())
                                         viewmodel_turismo.actualizar_lat_lugar(datos.latitud)
@@ -703,10 +716,6 @@ fun card_img_container(
                         val lista_subcat = listOf("Todos") + state.lista_categorias
                         lista_string_filtrado_tiendas = lista_subcat
                         Column {
-                            val listaOrdenada = state.lista_lugares.sortedWith(
-                                compareByDescending { it.esta_abierto }
-                            )
-
                             spacer_vertical(10.dp)
                             LazyRow(
                                 modifier = Modifier.fillMaxWidth(),
@@ -714,8 +723,8 @@ fun card_img_container(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 contentPadding = PaddingValues(horizontal = 7.dp, vertical = 8.dp)
                             ) {
-                                items(listaOrdenada, key = { it.id_tienda }) { item ->
-                                    Log.d("teindashoraiobox",item.horario_box.toString())
+                                items(state.lista_lugares, key = { it.id_tienda }) { item ->
+                                    Log.d("teindashoraiobox", item.horario_box.toString())
                                     item_cercanos(
                                         viewmodel_filtrado,
                                         context,
@@ -735,46 +744,73 @@ fun card_img_container(
                                         clik_icono = { i ->
                                             when (i.nombre_red) {
                                                 "llamar" -> {
-                                                    llamar(context, i.valor, {
-                                                        call_dialog_permise = true
-                                                        numero_llamada = i.valor
-                                                    })
+                                                    llamar(
+                                                        "tienda",
+                                                        item.id_tienda,
+                                                        item.localidad_tienda,
+                                                        context,
+                                                        i.valor,
+                                                        {
+                                                            call_dialog_permise = true
+                                                            numero_llamada = i.valor
+                                                        })
                                                 }
 
                                                 "whatsapp" -> {
-                                                    abrir_whattsapp(context, i.valor)
+                                                    abrir_whattsapp(
+                                                        "tienda",
+                                                        item.id_tienda,
+                                                        item.localidad_tienda,
+                                                        context,
+                                                        i.valor
+                                                    )
                                                 }
 
                                                 "tiktok" -> {
                                                     openTiktok(
-                                                        context, i.valor
+                                                        context,
+                                                        i.valor,
+                                                        item.id_tienda,
+                                                        item.localidad_tienda
                                                     )
                                                 }
 
                                                 "facebook" -> {
                                                     openFacebook(
-                                                        context, i.valor
+                                                        context,
+                                                        i.valor,
+                                                        item.id_tienda,
+                                                        item.localidad_tienda
                                                     )
                                                 }
 
                                                 "instagram" -> {
                                                     openInstagram(
-                                                        context, i.valor
+                                                        context,
+                                                        i.valor,
+                                                        item.id_tienda,
+                                                        item.localidad_tienda
                                                     )
                                                 }
 
                                                 "Web" -> {
                                                     openWebLink(
-                                                        context, i.valor
+                                                        context,
+                                                        i.valor,
+                                                        item.id_tienda,
+                                                        item.localidad_tienda
                                                     )
                                                 }
 
                                             }
                                         },
-                                        click_crear_ruta = { lat, log ->
+                                        click_crear_ruta = { id_tienda, localidad, lat, log ->
                                             lat_tienda = lat
                                             long_tienda = log
                                             dialog_Crear_ruta = true
+                                            tipo_creacion_ruta = "tienda"
+                                            id_tienda_parms = id_tienda
+                                            localidad_tienda = localidad
                                         }, mostrar_dialog_registro = {
                                             mostrar_login_seccion_bottom_sheet()
                                         })
@@ -797,6 +833,7 @@ fun card_img_container(
             dialog_Crear_ruta = false
             if (crear_ruta && verificarUbiActiva(context)) {
                 constantes_lista_localidades.abrir_google_maps(
+                    tipo_creacion_ruta, id_tienda_parms, localidad_tienda,
                     context, lat_tienda, long_tienda,
                 ) { dialogo ->
 
@@ -824,6 +861,7 @@ fun card_img_container(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun item_cercanos(
     viewmodel_filtrado: viewModel_filtado_tiendas,
@@ -837,10 +875,10 @@ fun item_cercanos(
     clik_card: (String, String, Color) -> Unit,
     clik_icono: (data_redes_tiendas) -> Unit,
     mostrar_dialog_registro: () -> Unit,
-    click_crear_ruta: (lat: Double, long: Double) -> Unit
+    click_crear_ruta: (id_teinda: String, localida: String, lat: Double, long: Double) -> Unit
 ) {
 
-    Log.d("item1313213","${item.horario_box.toString()}")
+    Log.d("item1313213", "${item.horario_box.toString()}")
     var estado_color by remember { mutableStateOf(Color.Gray) }
     var mostar_dialog_km by remember { mutableStateOf(false) }
     var datosdialog_km by remember { mutableStateOf(tiendas_cecanas_km()) }
@@ -950,13 +988,13 @@ fun item_cercanos(
                                 mostar_dialog_km = true
 
                                 datosdialog_km = tiendas_cecanas_km(
-                                    id_tienda=item.id_tienda,
+                                    id_tienda = item.id_tienda,
                                     img_tienda = item.logo_tienda,
                                     nombre_tienda = item.nombre_tienda,
                                     kl = "%.2f km".format(distanciaKm),
                                     nombre_lugar = datos.titulo,
                                     color = estado_color,
-                                    HorarioDia_box=horarioSeguro,
+                                    HorarioDia_box = horarioSeguro,
                                     tick = tick
                                 )
                             }
@@ -970,7 +1008,7 @@ fun item_cercanos(
                             retornar_color_estado_tienda_Box(
                                 id_tienda = item.id_tienda,
                                 horario_total = horarioSeguro, tick = tick, pagado = true,
-                                color = { color, txt->
+                                color = { color, txt ->
                                     estado_color = color
                                 },
                                 mostrar_txt = false,
@@ -1052,9 +1090,8 @@ fun item_cercanos(
                                     modifier = Modifier
                                         .size(40.dp)
                                         .clip(CircleShape)
-
                                         .clickable {
-                                            if (firebaseAuth.currentUser != null|| id_respado_user.isNotEmpty()) {
+                                            if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
                                                 clik_icono(i)
                                             } else {
                                                 mostrar_dialog_registro()
@@ -1069,7 +1106,12 @@ fun item_cercanos(
                                     .clip(CircleShape)
                                     .background(MaterialTheme.colorScheme.primary)
                                     .clickable {
-                                        click_crear_ruta(item.latitud, item.longitud)
+                                        click_crear_ruta(
+                                            item.id_tienda,
+                                            item.localidad_tienda,
+                                            item.latitud,
+                                            item.longitud
+                                        )
                                     }, contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -1176,10 +1218,11 @@ fun chips_filtrado(list: List<botom_shet_turismobtn>, item_clikeado: (String) ->
 
 @Composable
 fun abierto_flag(subcategoria_filtrado: List<String>) {
-    val categoriasRojo = listOf("iglesia", "historico", "arqueologico", "museo", "cultura", "leyenda")
+    val categoriasRojo =
+        listOf("iglesia", "historico", "arqueologico", "museo", "cultura", "leyenda")
 
     val colorTxtAbierto =
-        if (subcategoria_filtrado.any { it in categoriasRojo })  Color(0xFFFF9800)
+        if (subcategoria_filtrado.any { it in categoriasRojo }) Color(0xFFFF9800)
         else Color(0xFF43A047)
 
 

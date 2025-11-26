@@ -3,10 +3,12 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
@@ -97,10 +99,12 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_g
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openFacebook
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openTiktok
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openWebLink
+import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoExpandibleEnLinea
 
@@ -128,7 +132,6 @@ import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.ZoomIconButton
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
@@ -144,6 +147,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.Unit
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun bottom_sheet_tiendas_filtradas(
@@ -157,8 +161,9 @@ fun bottom_sheet_tiendas_filtradas(
     Log.d("datoasadasda", tiendas_filtradas.toString())
     val context = LocalContext.current
     val firebaseAuth = FirebaseAuth.getInstance()
-    viewModelFiltros.cast_horario_atencion_horario_tienda(tiendas_filtradas.horario_atencion)
-    viewModelFiltros.cast_horario_atencion_horario_tienda_box(tiendas_filtradas.horario_tienda_box)
+    val repo_socio = repo_eres_socio()
+//    viewModelFiltros.cast_horario_atencion_horario_tienda(tiendas_filtradas.horario_atencion)
+//    viewModelFiltros.cast_horario_atencion_horario_tienda_box(tiendas_filtradas.horario_tienda_box)
     var expandir_descripcion by rememberSaveable { mutableStateOf(false) }
     var expander_caracterisiticas by rememberSaveable { mutableStateOf(false) }
     var expander_contacto by rememberSaveable { mutableStateOf(false) }
@@ -175,6 +180,7 @@ fun bottom_sheet_tiendas_filtradas(
     val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
     ?: ""
     var cargando by remember { mutableStateOf(true) }
+
     var guardar_icon by remember { mutableStateOf(false) }
     var mostar_eliminar_guardado_dialog by remember { mutableStateOf(false) }
 
@@ -184,9 +190,69 @@ fun bottom_sheet_tiendas_filtradas(
     LaunchedEffect(verificarfavorito) {
         guardar_icon = verificarfavorito
     }
-    LaunchedEffect(id_user, tiendas_filtradas.id_tienda) {
-        viewModelFiltros.verificar_existe_favorito(id_user, tiendas_filtradas.id_tienda)
+    var ultimoProcesado by rememberSaveable { mutableStateOf("") }
+    var inicioPerfil by rememberSaveable { mutableStateOf(0L) }
+
+    LaunchedEffect(tiendas_filtradas.id_tienda) {
+
+        val nuevoId = tiendas_filtradas.id_tienda
+
+        // Si el ID es vacío o igual al último → NO HACER NADA
+//        if (nuevoId.isBlank() || nuevoId == ultimoProcesado) {
+//            Log.d("SKIP", "Ignorando recomposición con $nuevoId")
+//            return@LaunchedEffect
+//        }
+//
+//        // Marcar como procesado
+//        ultimoProcesado = nuevoId
+//        inicioPerfil = System.currentTimeMillis()
+//
+//        // Registrar clic SOLO cuando es realmente nuevo
+//        repo_socio.agregar_contador(
+//            "clic",
+//            nuevoId,
+//            tiendas_filtradas.localidad ?: "barranca"
+//        )
+//        Log.d("CLIC", "Clic real: $nuevoId")
+
+        // Lógica normal
+        viewModelFiltros.cast_horario_atencion_horario_tienda(tiendas_filtradas.horario_atencion)
+        viewModelFiltros.cast_horario_atencion_horario_tienda_box(tiendas_filtradas.horario_tienda_box)
+        viewModelFiltros.verificar_existe_favorito(id_user, nuevoId)
+
+//        delay(6000)
+//
+//        val diferencia = System.currentTimeMillis() - inicioPerfil
+//
+//        if (diferencia >= 6000 && ultimoProcesado == nuevoId) {
+//            repo_socio.agregar_contador(
+//                "vistas",
+//                nuevoId,
+//                tiendas_filtradas.localidad ?: "barranca"
+//            )
+//            Log.d("VISTA", "+6s en: $nuevoId")
+//        }
     }
+
+
+
+
+// Cuando la pantalla se destruye → resetea
+
+//    LaunchedEffect(tiendas_filtradas.id_tienda) {
+//        if (!ejecutado && tiendas_filtradas.id_tienda.isNotEmpty()) {
+//            ejecutado = true
+//
+//            repo_socio.agregar_contador(
+//                "clic",
+//                tiendas_filtradas.id_tienda,
+//                tiendas_filtradas.localidad ?: "barranca"
+//            )
+//
+//            Log.d("datod_tiendas", "${tiendas_filtradas.id_tienda} ${tiendas_filtradas.localidad ?: "barranca"}")
+//        }
+//    }
+
 
 //    LaunchedEffect(tiendas_filtradas) {
 //        if(tiendas_filtradas != tiendas_filtradas()){
@@ -203,32 +269,64 @@ fun bottom_sheet_tiendas_filtradas(
 //            cargando = false
 //        }
 //    }
-    LaunchedEffect(visible, tiendas_filtradas) {
+    var ultimoIdProcesado by rememberSaveable { mutableStateOf("") }
 
+// Este efecto NO debe hacer nada con el ID
+    LaunchedEffect(visible, tiendas_filtradas) {
         if (visible) {
             cargando = true
-            val tiempoMinimo = 2000L   // mínimo 2 segundos
-            val tiempoMaximo = 3000L   // máximo 3 segundos
-            val startTime = System.currentTimeMillis()
+            val start = System.currentTimeMillis()
 
             while (cargando) {
+                val datosListos =
+                    tiendas_filtradas.id_tienda.isNotBlank() ||
+                            tiendas_filtradas.ubicacion.isNotEmpty()
 
-                val datosCargados = tiendas_filtradas.id_tienda.isNotBlank() ||
-                        tiendas_filtradas.ubicacion.isNotEmpty()
+                val paso = System.currentTimeMillis() - start
 
-                val tiempoPasado = System.currentTimeMillis() - startTime
-
-                if (tiempoPasado >= tiempoMinimo && (datosCargados || tiempoPasado >= tiempoMaximo)) {
+                if (paso >= 1500 && (datosListos || paso >= 2500)) {
                     cargando = false
                     break
                 }
-
-                delay(100)
+                delay(80)
             }
         } else {
             cargando = false
         }
     }
+
+// 👇 AHORA SÍ: solo cuando ya cargó + visible
+    LaunchedEffect(visible, cargando) {
+        if (!visible || cargando) return@LaunchedEffect
+
+        val nuevoId = tiendas_filtradas.id_tienda
+        if (nuevoId.isBlank()) return@LaunchedEffect
+
+        if (nuevoId != ultimoIdProcesado) {
+            repo_socio.agregar_contador(
+                "clic",
+                nuevoId,
+                tiendas_filtradas.localidad ?: "barranca"
+            )
+            Log.d("CLIC", "Clic REAL: $nuevoId")
+        }
+
+        ultimoIdProcesado = nuevoId
+        inicioPerfil = System.currentTimeMillis()
+
+        delay(6000)
+
+        if (ultimoIdProcesado == nuevoId) {
+            repo_socio.agregar_contador(
+                "vistas",
+                nuevoId,
+                tiendas_filtradas.localidad ?: "barranca"
+            )
+            Log.d("VISTA", "Vista REAL: $nuevoId")
+        }
+    }
+
+
 
 
 
@@ -283,6 +381,7 @@ fun bottom_sheet_tiendas_filtradas(
                         }
                         item {
                             cabezero_tiendas(
+                                tiendas_filtradas.localidad?:"barranca",
                                 tiendas_filtradas.id_tienda,
                                 verificar_intener,
                                 triggerAnimacion,
@@ -398,6 +497,8 @@ fun bottom_sheet_tiendas_filtradas(
                         }
                         item {
                             Expandible_Metodo_contacto(
+                                tiendas_filtradas.id_tienda,
+                                tiendas_filtradas.localidad ?: "barranca",
                                 iconos_cosas_clikeables,
                                 context,
                                 modifier = Modifier.padding(horizontal = 10.dp),
@@ -436,7 +537,7 @@ fun bottom_sheet_tiendas_filtradas(
             if (mostar_eliminar_guardado_dialog) {
                 dialog_eliminar_favoritos(
                     viewModelFiltros = viewModelFiltros,
-                    localidad_tienda=tiendas_filtradas.localidad?:"barranca",
+                    localidad_tienda = tiendas_filtradas.localidad ?: "barranca",
                     id_user = id_user,
                     id_tienda = tiendas_filtradas.id_tienda,
                     nombre_tienda = tiendas_filtradas.nombre_tienda,
@@ -454,6 +555,7 @@ fun bottom_sheet_tiendas_filtradas(
 
 @Composable
 fun cabezero_tiendas(
+    localidad:String,
     id_tienda: String,
     verificar_intener: Boolean,
     triggerAnimacion: Boolean,
@@ -591,6 +693,8 @@ fun cabezero_tiendas(
             }
             spacer_horizonta(15.dp)
             abrir_google_maps(
+                id_tienda,
+                localidad,
                 verificar_intener,
                 guardar_icon,
                 context,
@@ -773,6 +877,8 @@ fun perfil_cabezero(
 
 @Composable
 fun abrir_google_maps(
+    id_tienda:String,
+    localidad: String,
     verificar_intener: Boolean,
     guardar_icon: Boolean,
     context: Context,
@@ -794,6 +900,7 @@ fun abrir_google_maps(
         FloatingActionButton(
             onClick = {
                 constantes_lista_localidades.abrir_google_maps(
+                    "tienda",id_tienda,localidad,
                     context,
                     latitud,
                     longitud
@@ -939,6 +1046,8 @@ fun Expandible_direccion_ref(
 
 @Composable
 fun Expandible_Metodo_contacto(
+    id_tienda: String,
+    localidad_tienda: String,
     iconos_cosas_clikeables: Boolean,
     context: Context,
     modifier: Modifier = Modifier,
@@ -973,7 +1082,10 @@ fun Expandible_Metodo_contacto(
                             R.drawable.whatsapp_icon,
                             constantes_lista_localidades.ocultarNumero(metodos_contactos.whatsapp.numero)
                         ) {
-                            abrir_whattsapp(context, metodos_contactos.whatsapp.numero)
+                            abrir_whattsapp(
+                                "tienda", id_tienda,
+                                localidad_tienda, context, metodos_contactos.whatsapp.numero
+                            )
                         }
                     }
                     if (metodos_contactos.llamada.estado) {
@@ -982,7 +1094,8 @@ fun Expandible_Metodo_contacto(
                             R.drawable.llamada_icon,
                             constantes_lista_localidades.ocultarNumero(metodos_contactos.llamada.numero)
                         ) {
-                            llamar(context, metodos_contactos.llamada.numero, {
+                            llamar("tienda",id_tienda,
+                                localidad_tienda,context, metodos_contactos.llamada.numero, {
                                 call_dialog_permise = true
                                 numero_llamada = metodos_contactos.llamada.numero
                             })
@@ -994,7 +1107,10 @@ fun Expandible_Metodo_contacto(
                             R.drawable.tik_tok_icon,
                             metodos_contactos.tiktok.nombre
                         ) {
-                            openTiktok(context, metodos_contactos.tiktok.url)
+                            openTiktok(
+                                context, metodos_contactos.tiktok.url, id_tienda,
+                                localidad_tienda
+                            )
                         }
                     }
                     if (metodos_contactos.sitio_web.estado) {
@@ -1003,7 +1119,10 @@ fun Expandible_Metodo_contacto(
                             R.drawable.web_icon,
                             metodos_contactos.sitio_web.nombre
                         ) {
-                            openWebLink(context, metodos_contactos.sitio_web.url)
+                            openWebLink(
+                                context, metodos_contactos.sitio_web.url, id_tienda,
+                                localidad_tienda
+                            )
                         }
                     }
                     if (metodos_contactos.instagram.estado) {
@@ -1012,7 +1131,12 @@ fun Expandible_Metodo_contacto(
                             R.drawable.instagram_icon,
                             metodos_contactos.instagram.nombre
                         ) {
-                            openInstagram(context, metodos_contactos.instagram.url)
+                            openInstagram(
+                                context,
+                                metodos_contactos.instagram.url,
+                                id_tienda,
+                                localidad_tienda
+                            )
                         }
                     }
                     if (metodos_contactos.facebook.estado) {
@@ -1021,7 +1145,10 @@ fun Expandible_Metodo_contacto(
                             R.drawable.facebook_icon,
                             metodos_contactos.facebook.nombre
                         ) {
-                            openFacebook(context, metodos_contactos.facebook.url)
+                            openFacebook(
+                                context, metodos_contactos.facebook.url, id_tienda,
+                                localidad_tienda
+                            )
                         }
                     }
                 }
@@ -1355,7 +1482,9 @@ fun Expandible_horario_atencion(
                 ) {
                     texto_generico_multilinea(
                         "El horario mostrado corresponde al horario continuo del negocio.Si la tienda maneja turnos divididos —por ejemplo, mañana y tarde—, estos se reflejarán correctamente en el horario actualizado en tiempo real.",
-                        style = MaterialTheme.typography.bodyMedium, Modifier.padding(horizontal = 10.dp))
+                        style = MaterialTheme.typography.bodyMedium,
+                        Modifier.padding(horizontal = 10.dp)
+                    )
                     spacer_vertical(5.dp)
                     MostrarHorarioTienda(horario_atencion, estadoColor)
                 }
@@ -1566,5 +1695,4 @@ fun tienda_cercana() {
         )
     }
 }
-
 

@@ -95,6 +95,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openFacebook
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openTiktok
@@ -115,7 +116,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.campos_de_pago
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.actualizarUbicacion
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.bitmapDescriptorFromDrawable
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.data_redes_tiendas
@@ -230,6 +230,7 @@ fun MyGoogle_maps(
     var lister_marker by remember { mutableStateOf(dataclass_map()) }
     var dialog_Crear_ruta by remember { mutableStateOf(false) }
     var latitud by remember { mutableStateOf(0.0) }
+    var id_tienda by remember { mutableStateOf("") }
     var longitud by remember { mutableStateOf(0.0) }
     var show_botoom_sheet by remember { mutableStateOf(true) }
     var show_dialog_datos_lugares by remember { mutableStateOf(false) }
@@ -287,6 +288,25 @@ fun MyGoogle_maps(
     val seguirUbicacion = remember { mutableStateOf(false) }
     val animatingMap = remember { mutableStateOf(false) }
 
+    val horariosMap by viewModel_filtrado_tiendas
+        .horariosTiendas
+        .collectAsState(initial = emptyMap())
+
+    val horarioTienda = horariosMap[lister_marker.id]
+
+
+
+    LaunchedEffect(lister_marker.id) {
+
+        if (lister_marker.id.isBlank()) return@LaunchedEffect
+
+        Log.d("id_tienda_cambiada", "${lister_marker.id} ${lister_marker.horario_box}" ,)
+
+        viewModel_filtrado_tiendas.calcularHorarioParaTienda(
+            lister_marker.id,
+            lister_marker.horario_box
+        )
+    }
 
     LaunchedEffect(id_lugar_tienda_select) {
         viewModel_filtrado_tiendas.obtener_campos_tiendas_por_id(
@@ -420,7 +440,7 @@ fun MyGoogle_maps(
         dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
             dialog_Crear_ruta = false
             if (crear_ruta && verificarUbiActiva(context)) {
-                constantes_lista_localidades.abrir_google_maps(
+                constantes_lista_localidades.abrir_google_maps("tienda",id_tienda,localidad,
                     context, latitud, longitud,
                 ) { dialogo ->
                     validacion_mostrar_dialog_ubi_off = dialogo
@@ -487,7 +507,6 @@ fun MyGoogle_maps(
                                         categoria = "",
                                         direccion = tienda.direccion,
                                         referencia = tienda.referencia,
-                                        horario_tienda = tienda.horario_dia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
                                         horario_box = tienda.horario_box
@@ -650,7 +669,6 @@ fun MyGoogle_maps(
                                         categoria = "",
                                         direccion = tienda.direccion,
                                         referencia = tienda.referencia,
-                                        horario_tienda = tienda.horario_dia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
                                         horario_box = tienda.horario_box
@@ -752,10 +770,8 @@ fun MyGoogle_maps(
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
-            val horarioTienda = viewModel_filtrado_tiendas
-                .horariosTiendas
-                .collectAsState()
-                .value[lister_marker.id]
+
+
             dialogo_lugar_tienda(
                 horarioTienda,
                 viewmodelMapa,
@@ -769,9 +785,10 @@ fun MyGoogle_maps(
                 limpiar = {
                     seleccionadoId = ""
                 },
-                crear_ruta = { lat, log ->
+                crear_ruta = { id,lat, log ->
                     latitud = lat
                     longitud = log
+                    id_tienda=id
                     dialog_Crear_ruta = true
                 },
                 actualizar = {
@@ -802,45 +819,54 @@ fun MyGoogle_maps(
                     id_lugar_tienda_select = id_tienda_lugar
                     show_bottom_sheet_datos_tienda_lugares = true
                 },
-                onclick_iconos = { datos ->
+                onclick_iconos = {id, datos ->
                     when (datos.nombre_red) {
                         "llamar" -> {
-                            llamar(context, datos.valor, {
+                            llamar("tienda",id,localidad,context, datos.valor, {
                                 call_dialog_permise = true
                                 numero_llamada = datos.valor
                             })
                         }
 
                         "whatsapp" -> {
-                            abrir_whattsapp(context, datos.valor)
+                            abrir_whattsapp("tienda",id,localidad,context, datos.valor)
                         }
 
                         "tiktok" -> {
                             openTiktok(
-                                context,
-                                datos.valor
+                                context = context,
+                                username = datos.valor,
+                                id_tienda = id,
+                                localidad_tienda = localidad
                             )
                         }
 
                         "facebook" -> {
                             Log.d("    datos.valor", "${datos.valor}")
                             openFacebook(
-                                context,
-                                datos.valor
+                                context = context,
+                                pageUrl = datos.valor,
+                                id_tienda = id,
+                                localidad_tienda = localidad
                             )
                         }
 
                         "instagram" -> {
                             Log.d("    datos.valor", "${datos.valor}")
                             openInstagram(
-                                context,
-                                datos.valor
+                                context = context,
+                                url = datos.valor,
+                                id_tienda = id,
+                                localidad_tienda = localidad
                             )
                         }
 
                         "Web" -> {
                             openWebLink(
-                                context, datos.valor
+                                context = context,
+                                url = datos.valor,
+                                id_tienda = id,
+                                localidad_tienda = localidad
                             )
                         }
 
@@ -871,7 +897,6 @@ fun MyGoogle_maps(
                                         categoria = "",
                                         direccion = tienda.direccion,
                                         referencia = tienda.referencia,
-                                        horario_tienda = tienda.horario_dia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
                                         horario_box = tienda.horario_box
@@ -958,7 +983,6 @@ fun MyGoogle_maps(
                                         categoria = "",
                                         direccion = tienda.direccion,
                                         referencia = tienda.referencia,
-                                        horario_tienda = tienda.horario_dia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
                                         horario_box = tienda.horario_box
@@ -1110,13 +1134,13 @@ fun dialogo_lugar_tienda(
     dataclass_map: dataclass_map,
     cerra_dialog: () -> Unit,
     limpiar: () -> Unit,
-    crear_ruta: (lat: Double, log: Double) -> Unit,
+    crear_ruta: (it_tienda:String,lat: Double, log: Double) -> Unit,
     actualizar: () -> Unit,
     boxVisible: Boolean,
     onBoxVisibleChange: (Boolean) -> Unit,
     centrar_camara: (Double, Double) -> Unit,
     retornar_id_select: (String, Color) -> Unit,
-    onclick_iconos: (data_redes_tiendas) -> Unit,
+    onclick_iconos: (String,data_redes_tiendas) -> Unit,
     mostrar_lista: () -> Unit,
     move_izquierda: () -> Unit,
     move_derecha: () -> Unit
@@ -1224,7 +1248,7 @@ fun dialogo_lugar_tienda(
     val horarioSeguro = horario_box1 ?: HorarioDia_box(
         bloques = emptyList(),
         cerrado = true,
-        motivo = "Cargando..."
+        motivo = ""
     )
     val lista_redes_tiendas = listOf(
         data_redes_tiendas(
@@ -1522,7 +1546,6 @@ fun dialogo_lugar_tienda(
 //                            )
                             spacer_vertical(10.dp)
                             Row(verticalAlignment = Alignment.CenterVertically) {
-
                                 retornar_color_estado_tienda_Box(
                                     id_tienda = dataclass_map.id,
                                     horario_total = horarioSeguro,
@@ -1531,16 +1554,7 @@ fun dialogo_lugar_tienda(
                                     color = { color, txt ->
                                         estadoColor = color
                                     })
-//                                TiempoRestanteCierre(
-//                                    horario_total = dataclass_map.horario_tienda,
-//                                    hCierre = dataclass_map.horario_tienda.h_cierre,
-//                                    cerrado = dataclass_map.horario_tienda.cerrado,
-//                                    motivo = dataclass_map.horario_tienda.motivo,
-//                                    pagado = true,
-//                                    max_line = 1, tick
-//                                ) { color ->
-//                                    estadoColor = color
-//                                }
+
 
                             }
                             spacer_vertical(10.dp)
@@ -1638,6 +1652,7 @@ fun dialogo_lugar_tienda(
                                     contentColor = Color.White,
                                     onClick = {
                                         crear_ruta(
+                                            dataclass_map.id,
                                             dataclass_map.latitud,
                                             dataclass_map.longitud
                                         )
@@ -1691,7 +1706,7 @@ fun dialogo_lugar_tienda(
                                 modifier = Modifier
                                     .clip(CircleShape)
                                     .clickable {
-                                        onclick_iconos(i)
+                                        onclick_iconos(dataclass_map.id,i)
                                     }
                             )
                         }

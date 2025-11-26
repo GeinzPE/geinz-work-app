@@ -140,8 +140,6 @@ fun iu_favoritos(
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     var id_tienda_select by remember { mutableStateOf("") }
     var localida_tienda_select by remember { mutableStateOf("") }
-    var dialog_Crear_ruta by remember { mutableStateOf(false) }
-    var validacion_mostrar_dialog_ubi_off by remember { mutableStateOf(false) }
     var lat by remember { mutableStateOf(0.0) }
     var lng by remember { mutableStateOf(0.0) }
     val localidad_storage_user by data_store_localidad.obtener_localidad(context)
@@ -728,29 +726,7 @@ fun iu_favoritos(
             bottomhseet_tienda = false
         }
     }
-    if (dialog_Crear_ruta) {
-        dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
-            dialog_Crear_ruta = false
-            if (crear_ruta && verificarUbiActiva(context)) {
-                constantes_lista_localidades.abrir_google_maps(
-                    context, lat, lng,
-                ) { dialogo ->
-                    validacion_mostrar_dialog_ubi_off = dialogo
-                }
-            } else {
-                validacion_mostrar_dialog_ubi_off = true
-            }
-        })
-    }
-    if (validacion_mostrar_dialog_ubi_off) {
-        dialog_sin_ubi__rutas(
-            "Te recomendamos activar el GPS para que podamos mostrarte la mejor ruta hasta el lugar en Google Maps.",
-            { validacion_mostrar_dialog_ubi_off = false },
-            {
-                validacion_mostrar_dialog_ubi_off = false
-                verificarGPS(context, launcher)
-            })
-    }
+
 
 }
 

@@ -548,7 +548,7 @@ fun carta_salud_cuidad(
                         R.drawable.vector_ruta_icon,
                         fondo = MaterialTheme.colorScheme.primary
                     ) {
-                        constantes_lista_localidades.abrir_google_maps(
+                        constantes_lista_localidades.abrir_google_maps("emergencia","","",
                             context = context,
                             i.latidud, i.longitud
                         ) { mostrar_dialog ->
