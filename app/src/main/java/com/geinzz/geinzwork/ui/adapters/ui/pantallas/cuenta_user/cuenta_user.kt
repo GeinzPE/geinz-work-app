@@ -107,7 +107,7 @@ fun cuenta_user(
     }
     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
 
-        img_fondo_user(mostrar_fondo, R.drawable.logo_geinz_500x500, {
+        img_fondo_user(mostrar_fondo, R.drawable.fondo_img_parte_geinz, {
             mostrar_fondo = true
         })
         protada_perfil_user(

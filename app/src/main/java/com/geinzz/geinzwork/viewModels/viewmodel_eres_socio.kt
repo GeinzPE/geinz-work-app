@@ -32,13 +32,14 @@ class viewmodel_eres_socio : ViewModel() {
 
     private var listenerDatosTienda: ListenerRegistration? = null
 
-    fun verificar_seccion(context: Context, id_tienda: String) {
+    fun verificar_seccion(context: Context, id_tienda: String,localidad_tienda:String) {
 
         listenerDatosTienda?.remove()   // si ya había uno activo, lo eliminamos
 
         _state_eres_socio.value = carga_acces_socio.loading
 
         listenerDatosTienda = instace_repo.escuchar_datos_tienda(
+            localidad_tienda,
             id_tienda,
             resultado = { datos ->
                 if (datos.nombre.isNotEmpty()) {

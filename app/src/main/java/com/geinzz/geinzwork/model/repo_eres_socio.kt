@@ -6,23 +6,26 @@ import androidx.annotation.RequiresApi
 import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.timeStampNumero
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion_box_dia
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.tasks.await
+
 @RequiresApi(Build.VERSION_CODES.O)
 
 class repo_eres_socio {
     private val db = FirebaseFirestore.getInstance()
 
     fun escuchar_datos_tienda(
+        localidad_tienda: String,
         id_tienda: String,
         resultado: (datos_tienda) -> Unit,
-        error: (Exception) -> Unit
+        error: (Exception) -> Unit,
     ): ListenerRegistration {
 
         val ref = db.collection("Tiendas")
-            .document("barranca")
-            .collection("barranca")
+            .document(localidad_tienda)
+            .collection(localidad_tienda)
             .document(id_tienda)
 
         return ref.addSnapshotListener { snapshot, e ->
@@ -40,57 +43,63 @@ class repo_eres_socio {
                 val logo = img_tienda["logo_tienda"] as? String ?: ""
 
                 val horario_atencion = data["horario_atencion"] as? Map<String, Any> ?: emptyMap()
+                val localidadTienda = data["localidad"] as? String ?: ""
                 val horarioMap = horario_atencion.to_horario_atencion_box_dia()
 
-                // ---- COLECCIÓN DE ESTADÍSTICAS ----
-                val estadRef = ref.collection("estadisticas")
+                // 📌 AHORA ESCUCHAMOS ESTADISTICAS EN TIEMPO REAL
+                ref.collection("estadisticas")
+                    .addSnapshotListener { statsSnap, statsError ->
 
-                estadRef.get().addOnSuccessListener { col ->
+                        if (statsError != null) {
+                            error(statsError)
+                            return@addSnapshotListener
+                        }
 
-                    fun obtenerTotal(nombreDoc: String): Int {
-                        val d = col.documents.find { it.id == nombreDoc }
-                        return (d?.get("total") as? Number)?.toInt() ?: 0
+                        if (statsSnap != null) {
+
+                            fun obtenerTotal(nombreDoc: String): Int {
+                                val d = statsSnap.documents.find { it.id == nombreDoc }
+                                return (d?.get("total") as? Number)?.toInt() ?: 0
+                            }
+
+                            val totalVistas = obtenerTotal("vistas")
+                            val totalGuardados = obtenerTotal("guardados")
+                            val totalClic = obtenerTotal("clic")
+
+                            val fb = obtenerTotal("facebook")
+                            val ig = obtenerTotal("instagram")
+                            val tk = obtenerTotal("tiktok")
+                            val stweb = obtenerTotal("sitio_web")
+                            val wsap = obtenerTotal("whatsapp")
+                            val llamada = obtenerTotal("llamada")
+                            val ruta = obtenerTotal("ruta")
+
+                            resultado(
+                                datos_tienda(
+                                    id_tienda = id_tienda,
+                                    nombre = nombre_tienda,
+                                    img_tienda = logo,
+                                    horario_tiendaMap = horarioMap,
+
+                                    total_vista = totalVistas,
+                                    total_guardados = totalGuardados,
+                                    clic = totalClic,
+
+                                    fb = fb,
+                                    ig = ig,
+                                    tk = tk,
+                                    stweb = stweb,
+                                    wsap = wsap,
+                                    llamada = llamada,
+                                    ruta = ruta,
+                                    localidad_tienda = localidadTienda
+                                )
+                            )
+                        }
                     }
-
-                    val totalVistas = obtenerTotal("vistas")
-                    val totalGuardados = obtenerTotal("guardados")
-                    val totalClic = obtenerTotal("clic")
-
-                    val fb = obtenerTotal("facebook")
-                    val ig = obtenerTotal("instagram")
-                    val tk = obtenerTotal("tiktok")
-                    val stweb = obtenerTotal("sitio_web")
-                    val wsap = obtenerTotal("whatsapp")
-                    val llamada = obtenerTotal("llamada")
-                    val ruta = obtenerTotal("ruta")
-
-                    resultado(
-                        datos_tienda(
-                            id_tienda = id_tienda,
-                            nombre = nombre_tienda,
-                            img_tienda = logo,
-                            horario_tiendaMap = horarioMap,
-
-                            total_vista = totalVistas,
-                            total_guardados = totalGuardados,
-                            clic = totalClic,
-
-                            fb = fb,
-                            ig = ig,
-                            tk = tk,
-                            stweb = stweb,
-                            wsap = wsap,
-                            llamada = llamada,
-                            ruta = ruta
-                        )
-                    )
-                }.addOnFailureListener {
-                    error(it)
-                }
             }
         }
     }
-
 
 
     suspend fun guardar_horario_cerrado(
@@ -147,6 +156,38 @@ class repo_eres_socio {
 
     }
 
+
+    fun agregar_contador(tipo: String,id_tienda:String, localida_tienda: String) {
+        Log.d("agregar","$tipo $localida_tienda $id_tienda")
+        val db = FirebaseFirestore.getInstance()
+            .collection("Tiendas").document(localida_tienda)
+            .collection(localida_tienda).document(id_tienda)
+            .collection("estadisticas").document(tipo)
+
+        db.update("total", FieldValue.increment(1))
+            .addOnSuccessListener {
+                Log.d("CONTADOR", "Contador actualizado correctamente")
+            }
+            .addOnFailureListener { e ->
+                db.set(mapOf("total" to 1))
+            }
+    }
+
+    fun restar_contador(tipo: String, localida_tienda:String,id_tienda: String) {
+        val db = FirebaseFirestore.getInstance()
+            .collection("Tiendas").document(localida_tienda)
+            .collection(localida_tienda).document(id_tienda)
+            .collection("estadisticas").document(tipo)
+
+        db.update("total", FieldValue.increment(-1))
+            .addOnSuccessListener {
+                Log.d("CONTADOR", "Contador decrementado correctamente")
+            }
+            .addOnFailureListener { e ->
+                // Si no existe el doc, lo creamos como 0 (o 1 si prefieres)
+                db.set(mapOf("total" to 0))
+            }
+    }
 
 
 }

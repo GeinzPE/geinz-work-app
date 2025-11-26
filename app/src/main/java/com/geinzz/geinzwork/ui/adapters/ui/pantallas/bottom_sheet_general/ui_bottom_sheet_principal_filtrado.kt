@@ -436,6 +436,7 @@ fun bottom_sheet_tiendas_filtradas(
             if (mostar_eliminar_guardado_dialog) {
                 dialog_eliminar_favoritos(
                     viewModelFiltros = viewModelFiltros,
+                    localidad_tienda=tiendas_filtradas.localidad?:"barranca",
                     id_user = id_user,
                     id_tienda = tiendas_filtradas.id_tienda,
                     nombre_tienda = tiendas_filtradas.nombre_tienda,

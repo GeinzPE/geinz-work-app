@@ -203,6 +203,7 @@ class repo_filtrado_tiendas {
                 val latitud = ubicacion?.get("latitud") as? Number ?: 0
                 val longitud = ubicacion?.get("longitud") as? Number ?: 0
                 val descripcion = i.get("descripcion") as? String ?: ""
+                val localidad = i.get("localidad") as? String ?: ""
                 val id_tienda = i.get("id_tienda") as? String ?: ""
                 val map_img_tienda = i.get("img_tienda") as? Map<String, Any> ?: emptyMap()
                 val logo_tienda = map_img_tienda.get("logo_tienda") as? String ?: ""
@@ -219,6 +220,7 @@ class repo_filtrado_tiendas {
 
                 lista_tiendas_filtradas.add(
                     tiendas_por_categoria(
+                        localidad,
                         nombre_tienda = i.get("nombre_tienda") as? String ?: "",
                         direccion = direccion,
                         referencia = referencia,

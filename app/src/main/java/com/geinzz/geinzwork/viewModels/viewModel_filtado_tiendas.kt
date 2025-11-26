@@ -28,6 +28,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.tiendas_map
 
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.model.repo_agregar_cat_sub_localizate
+import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.model.repo_filtrado_tiendas
 import com.geinzz.geinzwork.model.repo_lugares_turisticos
 import com.geinzz.geinzwork.model.repo_seguridad_salud
@@ -46,6 +47,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
 
     val repo_filtrado = repo_filtrado_tiendas()
     val repo_cat_sub = repo_agregar_cat_sub_localizate()
+    val repo_erese_socio = repo_eres_socio()
 
 
     private val _categoria_filtrado = MutableStateFlow("Todos")
@@ -477,6 +479,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
             try {
                 repo_filtrado.guardar_tienda_favorito(id_user, item_favoritos)
                 favoritos.update { it.toMutableMap().apply { put(item_favoritos.id_tienda_lugar, true) } }
+                repo_erese_socio.agregar_contador("guardados",item_favoritos.id_tienda_lugar,item_favoritos.localida_tienda)
             } catch (e: Exception) {
                 Log.d("error", "error al guardar faboritos")
             }
@@ -545,6 +548,8 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
                 val datos=repo_filtrado.obtener_datos_tienda_id(localidad_tienda,id_tienda)
                 repo_filtrado.guardar_tienda_favorito(id_user, datos)
                 favoritos.update { it.toMutableMap().apply { put(id_tienda, true) } }
+                repo_erese_socio.agregar_contador("guardados",id_tienda,localidad_tienda)
+
             } catch (e: Exception) {
                 Log.d("error", "error al guardar faboritos")
             }

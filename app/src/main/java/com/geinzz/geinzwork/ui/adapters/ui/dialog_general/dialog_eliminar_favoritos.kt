@@ -16,6 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
+import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_aceptar_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerra_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -25,19 +26,20 @@ import com.google.firebase.firestore.model.mutation.ArrayTransformOperation
 
 @Composable
 fun dialog_eliminar_favoritos(
-    viewModelFiltros: viewModel_filtado_tiendas,
+    viewModelFiltros: viewModel_filtado_tiendas,localidad_tienda:String,
     id_user:String,id_tienda:String,
     nombre_tienda: String,
     ondimis: () -> Unit,
     aceptado:()-> Unit
 ) {
-
+val repo_eres_socio= repo_eres_socio()
     AlertDialog(
         onDismissRequest = { ondimis() },
         confirmButton = {
             btn_aceptar_etc_dialog_general (Color.Red){
                 ondimis()
                 viewModelFiltros.eliminar_tienda_favorita(id_user,id_tienda)
+                repo_eres_socio.restar_contador("guardados",localidad_tienda,id_tienda)
                 aceptado()
             }
         },

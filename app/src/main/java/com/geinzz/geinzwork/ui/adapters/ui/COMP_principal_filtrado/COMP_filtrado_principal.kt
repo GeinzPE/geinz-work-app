@@ -594,8 +594,8 @@ fun expandibles_wrapp_socio_geinzz(
             if (!expandido) {
                 items(lsita_datos) { i ->
                     campos_datos_graficos(i)
-                }
 
+                }
             } else {
                 item {
                     Column(modifier = Modifier

@@ -45,6 +45,7 @@ data class item_metodos_pago(
 
 @Parcelize
 data class tiendas_por_categoria(
+    val localidad_tienda:String,
     val nombre_tienda: String = "",
     val direccion: String = "",
     val referencia: String = "",

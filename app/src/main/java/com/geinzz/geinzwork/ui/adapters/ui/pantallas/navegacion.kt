@@ -389,8 +389,8 @@ fun nativationWrapper(
 
                         },
                         {
-                            enviar_notificacion_lista_dispo("notificaion","prueva")
-//                            navController.navigate(ui_agregar_lugares)
+//                            enviar_notificacion_lista_dispo("notificaion","prueva")
+                            navController.navigate(ui_agregar_lugares)
 
                         },
                     )

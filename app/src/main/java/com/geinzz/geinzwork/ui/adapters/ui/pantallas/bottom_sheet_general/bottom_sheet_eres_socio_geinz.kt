@@ -104,6 +104,7 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
     var txt_leyenda by remember { mutableStateOf("") }
     var icono_mostar_leyendas_graficos by remember { mutableStateOf(0) }
     var id_tienda by remember { mutableStateOf("") }
+    var localidad_tienda by remember { mutableStateOf("barranca") }
     var horarioMap by remember { mutableStateOf(HorarioAtencion_box()) }
 
     var mostar_horario__bool by remember { mutableStateOf(false) }
@@ -129,7 +130,6 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
             ) {
                 LazyColumn() {
                     item {
-
                         if (uid_respald_user.isEmpty()) {
 
                             Column(
@@ -166,7 +166,7 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.primary)
                                         .clickable {
-                                            viewmodel.verificar_seccion(context, id_registrado)
+                                            viewmodel.verificar_seccion(context, id_registrado,localidad_tienda)
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -210,7 +210,7 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
 
                         } else {
                             LaunchedEffect(uid_respald_user) {
-                                viewmodel.verificar_seccion(context, uid_respald_user)
+                                viewmodel.verificar_seccion(context, uid_respald_user,localidad_tienda)
                             }
 
                             Box(
@@ -247,34 +247,52 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                         val datos = state.datos
                                         id_tienda = datos.id_tienda
                                         horarioMap = datos.horario_tiendaMap
-                                        val values by remember(datos.id_tienda) {
-                                            mutableStateOf(
-                                                listOf(
-                                                    datos.total_vista.toFloat(),
-                                                    datos.total_guardados.toFloat(),
-                                                    datos.clic.toFloat()
-                                                )
+                                        localidad_tienda=datos.localidad_tienda
+//                                        val values by remember(datos.id_tienda) {
+//                                            mutableStateOf(
+//                                                listOf(
+//                                                    datos.total_vista.toFloat(),
+//                                                    datos.total_guardados.toFloat(),
+//                                                    datos.clic.toFloat()
+//                                                )
+//                                            )
+//                                        }
+
+                                        var values by remember { mutableStateOf(listOf<Float>()) }
+
+                                        var values2 by remember { mutableStateOf(listOf<Float>()) }
+
+                                        var values3 by remember { mutableStateOf(listOf<Float>()) }
+
+                                        LaunchedEffect(datos) {
+                                            values2 = listOf(
+                                                datos.fb.toFloat(),
+                                                datos.ig.toFloat(),
+                                                datos.tk.toFloat(),
+                                                datos.stweb.toFloat()
+                                            )
+
+                                            values = listOf(
+                                                datos.total_vista.toFloat(),
+                                                datos.total_guardados.toFloat(),
+                                                datos.clic.toFloat()
+                                            )
+                                            values3 = listOf(
+                                                datos.llamada.toFloat(),
+                                                datos.wsap.toFloat(),
+                                                datos.ruta.toFloat()
                                             )
                                         }
-                                        val values2 by remember(datos.id_tienda) {
-                                            mutableStateOf(
-                                                listOf(
-                                                    datos.fb.toFloat(),
-                                                    datos.ig.toFloat(),
-                                                    datos.tk.toFloat(),
-                                                    datos.stweb.toFloat()
-                                                )
-                                            )
-                                        }
-                                        val values3 by remember(datos.id_tienda) {
-                                            mutableStateOf(
-                                                listOf(
-                                                    datos.llamada.toFloat(),
-                                                    datos.wsap.toFloat(),
-                                                    datos.ruta.toFloat()
-                                                )
-                                            )
-                                        }
+
+//                                        val values3 by remember(datos.id_tienda) {
+//                                            mutableStateOf(
+//                                                listOf(
+//                                                    datos.llamada.toFloat(),
+//                                                    datos.wsap.toFloat(),
+//                                                    datos.ruta.toFloat()
+//                                                )
+//                                            )
+//                                        }
 
 
                                         Column(
@@ -376,39 +394,45 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
 
 
                                             spacer_vertical(10.dp)
-
-                                            Cartas_expandibles(
-                                                modifier = Modifier.padding(
-                                                    vertical = 10.dp
+                                            val lsita_datos1 = listOf(
+                                                datos_grafico(
+                                                    enable = datos.total_vista != 0,
+                                                    img_ = R.drawable.vizualizacion_icon_3d,
+                                                    label = "Vistas",
+                                                    cantidad = datos.total_vista.toString()
+                                                ),
+                                                datos_grafico(
+                                                    enable = datos.total_guardados != 0,
+                                                    img_ = R.drawable.corazon_gracias,
+                                                    label = "Guardados",
+                                                    cantidad = datos.total_guardados.toString()
+                                                ),
+                                                datos_grafico(
+                                                    enable = datos.clic != 0,
+                                                    img_ = R.drawable.click_icon3d,
+                                                    label = "clics",
+                                                    cantidad = datos.clic.toString()
                                                 )
-                                            ) {
-                                                Column() {
-                                                    val lsita_datos1 = listOf(
-                                                        datos_grafico(
-                                                            R.drawable.vizualizacion_icon_3d,
-                                                            "Vistas",
-                                                            datos.total_vista.toString()
-                                                        ),
-                                                        datos_grafico(
-                                                            R.drawable.corazon_gracias,
-                                                            "Guardados",
-                                                            datos.total_guardados.toString()
-                                                        ),
-                                                        datos_grafico(
-                                                            R.drawable.click_icon3d,
-                                                            "clics",
-                                                            datos.clic.toString()
+                                            )
+
+                                            AnimatedVisibility (lsita_datos1.any { it.enable }) {
+                                                Cartas_expandibles(
+                                                    modifier = Modifier.padding(
+                                                        vertical = 10.dp
+                                                    )
+                                                ) {
+                                                    Column() {
+                                                        val lsita_datos1filtrada= lsita_datos1.filter { it.enable }
+                                                        expandibles_wrapp_socio_geinzz(
+                                                            lsita_datos1filtrada,
+                                                            "El interés real muestra cuántas personas se detienen a ver tu perfil por más de 6 segundos. Esta métrica refleja la atención genuina que tu negocio genera dentro de la plataforma",
+                                                            texto_params = "Interés real",
+                                                            expandido = mostar_interes,
+                                                            onClickExpand = {
+                                                                mostar_interes = !mostar_interes
+                                                            }
                                                         )
-                                                    )
-                                                    expandibles_wrapp_socio_geinzz(
-                                                        lsita_datos1,
-                                                        "El interés real muestra cuántas personas se detienen a ver tu perfil por más de 6 segundos. Esta métrica refleja la atención genuina que tu negocio genera dentro de la plataforma",
-                                                        texto_params = "Interés real",
-                                                        expandido = mostar_interes,
-                                                        onClickExpand = {
-                                                            mostar_interes = !mostar_interes
-                                                        }
-                                                    )
+                                                    }
                                                     AnimatedVisibility(visible = mostar_interes) {
                                                         Column(
                                                             modifier = Modifier
@@ -425,12 +449,42 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                                 )
                                                             ) {
                                                                 itemsIndexed(values) { index, value ->
+                                                                    if(value.toInt()!=0){
                                                                     Row(
                                                                         verticalAlignment = Alignment.CenterVertically,
                                                                         horizontalArrangement = Arrangement.Center,
                                                                         modifier = Modifier.clickable {
                                                                             when (labels[index]) {
-
+                                                                                "Vistas" -> {
+                                                                                    dialog_mostar_leyendas_graficos =
+                                                                                        true
+                                                                                    titulo_leyenda_dialog =
+                                                                                        "Vistas"
+                                                                                    txt_leyenda =
+                                                                                        "Las vistas se registran cuando un usuario permanece viendo tu perfil durante más de 6 segundos. Representan el interés real que genera tu negocio."
+                                                                                    icono_mostar_leyendas_graficos =
+                                                                                        R.drawable.vizualizacion_icon_3d
+                                                                                }
+                                                                                "Guardados" -> {
+                                                                                    dialog_mostar_leyendas_graficos =
+                                                                                        true
+                                                                                    titulo_leyenda_dialog =
+                                                                                        "Guardados"
+                                                                                    txt_leyenda =
+                                                                                        "Los guardados indican cuántos usuarios añadieron a ${datos.nombre} a su lista de favoritos. Es una métrica que refleja cuánta gente quiere volver a encontrar tu tienda rápidamente."
+                                                                                    icono_mostar_leyendas_graficos =
+                                                                                        R.drawable.corazon_gracias
+                                                                                }
+                                                                                "Clics" -> {
+                                                                                    dialog_mostar_leyendas_graficos =
+                                                                                        true
+                                                                                    titulo_leyenda_dialog =
+                                                                                        "clics"
+                                                                                    txt_leyenda =
+                                                                                        "Los clics representan cuántos usuarios tocaron tu negocio y abrieron directamente el perfil de la tienda o negocio. Miden la intención inmediata de conocer más sobre ti."
+                                                                                    icono_mostar_leyendas_graficos =
+                                                                                        R.drawable.click_icon3d
+                                                                                }
                                                                             }
 
                                                                         }
@@ -461,6 +515,8 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                                             MaterialTheme.typography.bodyMedium
                                                                         )
                                                                     }
+
+                                                                    }
                                                                 }
                                                             }
                                                             spacer_vertical(10.dp)
@@ -484,43 +540,48 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                 }
                                             }
 
-                                            Cartas_expandibles(
-                                                modifier = Modifier.padding(
-                                                    vertical = 10.dp
+                                            val lsita_datos2 = listOf(
+                                                datos_grafico(
+                                                    enable = datos.fb != 0,
+                                                    img_ = R.drawable.facebook_icon,
+                                                    label = "Facebook",
+                                                    cantidad = datos.fb.toString()
+                                                ), datos_grafico(
+                                                    enable = datos.ig != 0,
+                                                    img_ = R.drawable.instagram_icon,
+                                                    label = "Instagram",
+                                                    cantidad = datos.ig.toString()
+                                                ), datos_grafico(
+                                                    enable = datos.tk != 0,
+                                                    img_ = R.drawable.tik_tok_icon,
+                                                    label = "Tik tok",
+                                                    cantidad = datos.tk.toString()
+                                                ), datos_grafico(
+                                                    enable = datos.stweb != 0,
+                                                    R.drawable.web_icon,
+                                                    "Sitio web",
+                                                    datos.stweb.toString()
                                                 )
-                                            ) {
-                                                val lsita_datos2 = listOf(
-                                                    datos_grafico(
-                                                        R.drawable.facebook_icon,
-                                                        "Facebook",
-                                                        datos.fb.toString()
-                                                    ),
-                                                    datos_grafico(
-                                                        R.drawable.instagram_icon,
-                                                        "Instagra",
-                                                        datos.ig.toString()
-                                                    ),
-                                                    datos_grafico(
-                                                        R.drawable.tik_tok_icon,
-                                                        "Tik tok",
-                                                        datos.tk.toString()
-                                                    ), datos_grafico(
-                                                        R.drawable.web_icon,
-                                                        "Sitio web",
-                                                        datos.stweb.toString()
+                                            )
+                                            AnimatedVisibility (lsita_datos2.any { it.enable }) {
+                                                Cartas_expandibles(
+                                                    modifier = Modifier.padding(
+                                                        vertical = 10.dp
                                                     )
-                                                )
-                                                Column() {
-                                                    expandibles_wrapp_socio_geinzz(
-
-                                                        lsita_datos2,
-                                                        "Este indicador muestra cuántas personas hicieron clic en tus perfiles de redes sociales o en tu sitio web después de ver tu página. Refleja el nivel de intención que tiene el usuario de saber más sobre tu negocio y avanzar hacia un contacto directo",
-                                                        texto_params = "Convesion",
-                                                        expandido = mostrar_convesion,
-                                                        onClickExpand = {
-                                                            mostrar_convesion = !mostrar_convesion
-                                                        }
-                                                    )
+                                                ) {
+                                                    Column() {
+                                                        val lsita_datos1filtrada= lsita_datos2.filter { it.enable }
+                                                        expandibles_wrapp_socio_geinzz(
+                                                            lsita_datos1filtrada,
+                                                            "Este indicador muestra cuántas personas hicieron clic en tus perfiles de redes sociales o en tu sitio web después de ver tu página. Refleja el nivel de intención que tiene el usuario de saber más sobre tu negocio y avanzar hacia un contacto directo",
+                                                            texto_params = "Convesion",
+                                                            expandido = mostrar_convesion,
+                                                            onClickExpand = {
+                                                                mostrar_convesion =
+                                                                    !mostrar_convesion
+                                                            }
+                                                        )
+                                                    }
                                                     AnimatedVisibility(visible = mostrar_convesion) {
                                                         Column(
                                                             modifier = Modifier
@@ -537,6 +598,7 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                                 )
                                                             ) {
                                                                 itemsIndexed(values2) { index, value ->
+                                                                    if(value.toInt()!=0){
                                                                     Row(
                                                                         verticalAlignment = Alignment.CenterVertically,
                                                                         horizontalArrangement = Arrangement.Center,
@@ -552,7 +614,6 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                                                     icono_mostar_leyendas_graficos =
                                                                                         R.drawable.vizualizacion_icon_3d
                                                                                 }
-
                                                                                 "Guardados" -> {
                                                                                     dialog_mostar_leyendas_graficos =
                                                                                         true
@@ -563,7 +624,6 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                                                     icono_mostar_leyendas_graficos =
                                                                                         R.drawable.corazon_gracias
                                                                                 }
-
                                                                                 "Clics" -> {
                                                                                     dialog_mostar_leyendas_graficos =
                                                                                         true
@@ -607,6 +667,8 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                                             MaterialTheme.typography.bodyMedium
                                                                         )
                                                                     }
+
+                                                                    }
                                                                 }
                                                             }
                                                             spacer_vertical(10.dp)
@@ -631,39 +693,46 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                 }
                                             }
 
-                                            Cartas_expandibles(
-                                                modifier = Modifier.padding(
-                                                    vertical = 10.dp
+                                            val lsita_datos3 = listOf(
+                                                datos_grafico(
+                                                    enable = datos.llamada != 0,
+                                                    img_ = R.drawable.llamada_icon,
+                                                    label = "Llamada",
+                                                    cantidad = datos.llamada.toString()
+                                                ),
+                                                datos_grafico(
+                                                    enable = datos.wsap != 0,
+                                                    img_ = R.drawable.whatsapp_icon,
+                                                    label = "Whatsapp",
+                                                    cantidad = datos.wsap.toString()
+                                                ),
+                                                datos_grafico(
+                                                    enable = datos.ruta != 0,
+                                                    img_ = R.drawable.icon_3d_ruta,
+                                                    label = "Rutas",
+                                                    cantidad = datos.ruta.toString()
                                                 )
-                                            ) {
-                                                val lsita_datos3 = listOf(
-                                                    datos_grafico(
-                                                        R.drawable.llamada_icon,
-                                                        "Llamada",
-                                                        datos.llamada.toString()
-                                                    ),
-                                                    datos_grafico(
-                                                        R.drawable.whatsapp_icon,
-                                                        "Whatsapp",
-                                                        datos.wsap.toString()
-                                                    ),
-                                                    datos_grafico(
-                                                        R.drawable.icon_3d_ruta,
-                                                        "Rutas",
-                                                        datos.ruta.toString()
+                                            )
+                                            AnimatedVisibility (lsita_datos3.any { it.enable }) {
+                                                Cartas_expandibles(
+                                                    modifier = Modifier.padding(
+                                                        vertical = 10.dp
                                                     )
-                                                )
-                                                Column() {
-                                                    expandibles_wrapp_socio_geinzz(
-                                                        lsita_datos3,
-                                                        "Mide cuántas personas usaron accesos externos como WhatsApp, llamadas o enlaces directos para comunicarse contigo fuera de la plataforma.",
-                                                        texto_params = "Tráfico externo",
-                                                        expandido = mostrar_trafico_externo,
-                                                        onClickExpand = {
-                                                            mostrar_trafico_externo =
-                                                                !mostrar_trafico_externo
-                                                        }
-                                                    )
+                                                ) {
+                                                    Column() {
+                                                        val lsita_datos1filtrada= lsita_datos3.filter { it.enable }
+                                                        expandibles_wrapp_socio_geinzz(
+                                                            lsita_datos1filtrada,
+                                                            "Mide cuántas personas usaron accesos externos como WhatsApp, llamadas o enlaces directos para comunicarse contigo fuera de la plataforma.",
+                                                            texto_params = "Tráfico externo",
+                                                            expandido = mostrar_trafico_externo,
+                                                            onClickExpand = {
+                                                                mostrar_trafico_externo =
+                                                                    !mostrar_trafico_externo
+                                                            }
+                                                        )
+                                                    }
+
                                                     AnimatedVisibility(visible = mostrar_trafico_externo) {
                                                         Column(
                                                             modifier = Modifier
@@ -682,6 +751,7 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                                 )
                                                             ) {
                                                                 itemsIndexed(values3) { index, value ->
+                                                                    if(value.toInt()!=0){
                                                                     Row(
                                                                         verticalAlignment = Alignment.CenterVertically,
                                                                         horizontalArrangement = Arrangement.Center,
@@ -718,6 +788,7 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                                             "${labels3[index]}: ${value.toInt()}",
                                                                             MaterialTheme.typography.bodyMedium
                                                                         )
+                                                                    }
                                                                     }
                                                                 }
                                                             }
@@ -759,7 +830,6 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                     { dialog_mostar_leyendas_graficos = false })
             }
         }
-
 
 
     }

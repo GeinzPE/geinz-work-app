@@ -1080,6 +1080,7 @@ fun item_tiendas(
     if (estado_fv_btn) {
         dialog_eliminar_favoritos(
             viewModelFiltros = viewModelFiltros,
+            item_tiendas.localidad_tienda,
             id_user = id_user,
             id_tienda = item_tiendas.id_tienda,
             nombre_tienda = item_tiendas.nombre_tienda,

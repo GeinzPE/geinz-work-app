@@ -1041,6 +1041,7 @@ fun carta_desing_fv(
     if (mostrar_dialog_eliminar) {
         dialog_eliminar_favoritos(
             viewModelFiltros = viewModelFiltros,
+            localidad_tienda = item.localida_tienda,
             id_user = id_user,
             id_tienda = item.id_tienda_lugar,
             nombre_tienda = item.nombre_lugar_tienda,

@@ -16,7 +16,8 @@ data class datos_tienda(
     val stweb: Number = 0,
     val wsap: Number = 0,
     val llamada: Number = 0,
-    val ruta: Number = 0
+    val ruta: Number = 0,
+    val localidad_tienda :String
 )
 
-data class datos_grafico(val img_:Int,val label:String,val cantidad:String)
+data class datos_grafico(val enable: Boolean, val img_:Int, val label:String, val cantidad:String)
