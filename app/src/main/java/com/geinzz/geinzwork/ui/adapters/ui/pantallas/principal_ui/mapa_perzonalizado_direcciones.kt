@@ -3,11 +3,13 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.os.Build
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -175,6 +177,7 @@ fun pantalla_mapa_perzonalizado(
 
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("MissingPermission")
 @Composable
 fun MyGoogle_maps(

@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.utils.constantes.localizate_geinz
 
+import android.R
 import android.app.TimePickerDialog
 import android.content.Context
 import android.location.Location
@@ -12,6 +13,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -20,8 +22,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -31,7 +35,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -48,7 +54,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
@@ -153,7 +163,10 @@ object constantes_horas {
     }
 
     fun construirBloques(
-        hAperturaAM: String, hCierreAM: String, hAperturaPM: String, hCierrePM: String
+        hAperturaAM: String = "",
+        hCierreAM: String = "",
+        hAperturaPM: String = "",
+        hCierrePM: String = ""
     ): List<Map<String, String>> {
 
         val bloques = mutableListOf<Map<String, String>>()
@@ -210,6 +223,19 @@ object constantes_horas {
         return Pair(diasRestantes, color)
     }
 
+    fun convertir24a12(hora24: String): String {
+        return try {
+            val formato24 = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+            val formato12 = java.text.SimpleDateFormat("h:mm a", java.util.Locale.getDefault())
+
+            val date = formato24.parse(hora24)
+            formato12.format(date!!).uppercase() // Para AM / PM
+        } catch (e: Exception) {
+            "Hora inválida"
+        }
+    }
+
+
     @Composable
     fun HorarioSemanal123(
         id_tienda: String,
@@ -220,7 +246,9 @@ object constantes_horas {
         cerrar_tienda: (nombre_dia: String, motivo_cierre: String, List<Map<String, String>>) -> Unit,
         abrir_tienda: (nombre_dia: String, List<Map<String, String>>) -> Unit,
         error_sin_internet: () -> Unit,
-        onclick_expand: () -> Unit
+        onclick_expand: () -> Unit,
+        error_campos_incompletos: () -> Unit,
+        error_horas_invalidas: (String) -> Unit,
     ) {
 
         val DELAY_REBOTE_UI_MS = 1000L
@@ -270,7 +298,7 @@ object constantes_horas {
             Column(
                 modifier = Modifier.clickable(
                     indication = null,
-                    interactionSource = remember { MutableInteractionSource() }){
+                    interactionSource = remember { MutableInteractionSource() }) {
                     onclick_expand()
                 }) {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -285,7 +313,10 @@ object constantes_horas {
                     style = MaterialTheme.typography.bodyMedium
                 )
                 spacer_vertical(7.dp)
-                Row() {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
                     texto_generico_one_line(
                         "Horario de hoy : ",
                         style = MaterialTheme.typography.bodyMedium
@@ -303,6 +334,7 @@ object constantes_horas {
 
 
 
+
             chips_filtrado(
                 listState = listState,
                 sub_categoria_selecionada = seleciondao,
@@ -314,9 +346,11 @@ object constantes_horas {
             )
 
             diasFiltrados.forEach { (nombreDia, datosDia) ->
-                var expndir_todo by remember(seleciondao) { mutableStateOf(false) }
-                var btn_guardado_abierto_oculto by remember { mutableStateOf(false) }
-                var btn_guardado_cerrado_oculto by remember { mutableStateOf(false) }
+
+
+//                var expndir_todo by remember(nombreDia) { mutableStateOf(false) }
+//                var btn_guardado_abierto_oculto by remember { mutableStateOf(false) }
+//                var btn_guardado_cerrado_oculto by remember { mutableStateOf(false) }
 
                 val bloqueManana = datosDia.bloques.getOrNull(0)
                 val bloqueTarde = datosDia.bloques.getOrNull(1)
@@ -327,26 +361,61 @@ object constantes_horas {
                 }
                 var motivo_cierre_tienda by remember { mutableStateOf(datosDia.motivo) }
 
-                var corrido by remember { mutableStateOf(trabajoCorrido) }
+//                var corrido by remember { mutableStateOf(trabajoCorrido) }
 
-                // Bloque Mañana
-                val hAperturaAM = remember { mutableStateOf(bloqueManana?.h_apertura ?: "") }
-                val hCierreAM = remember { mutableStateOf(bloqueManana?.h_cierre ?: "") }
+//                // Bloque Mañana
+//                val hAperturaAM = remember(nombreDia) { mutableStateOf(bloqueManana?.h_apertura ?: "") }
+//                val hCierreAM = remember { mutableStateOf(bloqueManana?.h_cierre ?: "") }
+//
+//
+//                val hAperturaPM = remember { mutableStateOf(bloqueTarde?.h_apertura ?: "") }
+//                val hCierrePM = remember { mutableStateOf(bloqueTarde?.h_cierre ?: "") }
+
+                var expndir_todo by remember(nombreDia) { mutableStateOf(false) }
+
+                var btn_guardado_abierto_oculto by remember(nombreDia) { mutableStateOf(false) }
+                var btn_guardado_cerrado_oculto by remember(nombreDia) { mutableStateOf(false) }
+
+                val hAperturaAM =
+                    remember(nombreDia) { mutableStateOf(bloqueManana?.h_apertura ?: "") }
+                val hCierreAM = remember(nombreDia) { mutableStateOf(bloqueManana?.h_cierre ?: "") }
+
+                val hAperturaPM =
+                    remember(nombreDia) { mutableStateOf(bloqueTarde?.h_apertura ?: "") }
+                val hCierrePM = remember(nombreDia) { mutableStateOf(bloqueTarde?.h_cierre ?: "") }
+
+                val abiertoAM_casteado_12h =convertir24a12(hAperturaAM.value)
+                val cierreAM_casteado_12h =convertir24a12(hCierreAM.value)
+                val aperturaPM_casteado12h =convertir24a12(hAperturaPM.value)
+                val cierrePM_casteado12h =convertir24a12(hCierrePM.value)
 
 
-                val hAperturaPM = remember { mutableStateOf(bloqueTarde?.h_apertura ?: "") }
-                val hCierrePM = remember { mutableStateOf(bloqueTarde?.h_cierre ?: "") }
 
 
-                var hubo_cambios by remember { mutableStateOf(false) }
+                var corrido by remember(nombreDia) { mutableStateOf(trabajoCorrido) }
 
+                var motivo_cierre by remember(nombreDia) { mutableStateOf(motivo_cierre_tienda) }
 
-                var motivo_cierre by remember { mutableStateOf(motivo_cierre_tienda) }
+                var hubo_cambios by remember(nombreDia) { mutableStateOf(false) }
 
-                var cambios_tiene_horario_activarlo by remember { mutableStateOf(false) }
-                var cambios_tiene_horario_cerrarlo by remember { mutableStateOf(false) }
-                var leersolo_si_no_fue by remember { mutableStateOf(false) }
+                var cambios_tiene_horario_activarlo by remember(nombreDia) { mutableStateOf(false) }
+                var cambios_tiene_horario_cerrarlo by remember(nombreDia) { mutableStateOf(false) }
 
+                var leersolo_si_no_fue by remember(nombreDia) { mutableStateOf(false) }
+
+                var mostar_conversion_real_time by remember { mutableStateOf(false) }
+
+//                var hubo_cambios by remember { mutableStateOf(false) }
+//
+//
+//                var motivo_cierre by remember { mutableStateOf(motivo_cierre_tienda) }
+//
+//                var cambios_tiene_horario_activarlo by remember { mutableStateOf(false) }
+//                var cambios_tiene_horario_cerrarlo by remember { mutableStateOf(false) }
+//                var leersolo_si_no_fue by remember { mutableStateOf(false) }
+                val cambioSwitchYTrabajo = remember(dia_enable, corrido) {
+                    mutableStateOf(!dia_enable || !corrido)  // true si abierto + trabajo con descanso
+                }
                 LaunchedEffect(expndir_todo, leersolo_si_no_fue) {
 
                     if (!leersolo_si_no_fue) {
@@ -365,6 +434,7 @@ object constantes_horas {
                     leersolo_si_no_fue = false
 
                 }
+
 
                 Card(
                     modifier = Modifier
@@ -410,6 +480,7 @@ object constantes_horas {
                                     checked = !dia_enable, onCheckedChange = { value ->
                                         dia_enable = !value
                                         expndir_todo = true
+                                        cambioSwitchYTrabajo.value = true
 
                                         onSwitchChange(
                                             value = value,
@@ -486,7 +557,7 @@ object constantes_horas {
                                                     Text(
                                                         text = motivo,
                                                         style = MaterialTheme.typography.bodyMedium,
-                                                        modifier = Modifier.clickable {
+                                                        modifier = Modifier.clickable (indication = null,interactionSource = remember { MutableInteractionSource()}) {
                                                             motivo_cierre =
                                                                 if (motivo_cierre == motivo) "" else motivo
                                                         })
@@ -495,9 +566,7 @@ object constantes_horas {
                                         }
 
 
-                                        if (!btn_guardado_cerrado_oculto &&
-                                            ((motivo_cierre.isNotEmpty() && motivo_cierre != motivo_cierre_tienda)
-                                                    || cambios_tiene_horario_cerrarlo)
+                                        if (!btn_guardado_cerrado_oculto && ((motivo_cierre.isNotEmpty() && motivo_cierre != motivo_cierre_tienda) || cambios_tiene_horario_cerrarlo)
                                         ) {
                                             Box(
                                                 modifier = Modifier.fillMaxWidth(),
@@ -540,7 +609,7 @@ object constantes_horas {
                                     }
                                 } else {
                                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                        val initCorrido = remember { corrido }
+                                        val initCorrido = remember(nombreDia) { corrido }
                                         val initHApAM = remember { hAperturaAM.value }
                                         val initHCiAM = remember { hCierreAM.value }
                                         val initHApPM = remember { hAperturaPM.value }
@@ -553,23 +622,40 @@ object constantes_horas {
                                             hAperturaAM.value,
                                             hCierreAM.value,
                                             hAperturaPM.value,
-                                            hCierrePM.value
+                                            hCierrePM.value,
                                         ) {
                                             val cambio =
-                                                corrido != initCorrido || hAperturaAM.value != initHApAM || hCierreAM.value != initHCiAM || hAperturaPM.value != initHApPM || hCierrePM.value != initHCiPM
+                                                corrido != initCorrido ||
+                                                        hAperturaAM.value != initHApAM ||
+                                                        hCierreAM.value != initHCiAM ||
+                                                        hAperturaPM.value != initHApPM ||
+                                                        hCierrePM.value != initHCiPM
 
                                             hubo_cambios = cambio
-
-
+                                            cambios_tiene_horario_activarlo = cambio
                                         }
+                                        Text(
+                                            text = if(!mostar_conversion_real_time)"Mostrar conversion a 12 h" else "Ocultar conversion a 12 h",
+                                            style = LocalTextStyle.current.copy(
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                textDecoration = TextDecoration.Underline
+                                            ), modifier = Modifier.clickable (indication = null,interactionSource = remember { MutableInteractionSource()}) {
+                                                mostar_conversion_real_time = !mostar_conversion_real_time
+                                            }
+                                        )
+
                                         // --- Trabajo de corrido / descanso ---
                                         LazyRow {
+
                                             item {
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     Checkbox(
                                                         checked = corrido, onCheckedChange = {
-                                                            corrido =
-                                                                true   // si hace click → activar corrido
+                                                            corrido = true
+                                                            hubo_cambios = true
+                                                            cambios_tiene_horario_activarlo = true
                                                         }, colors = CheckboxDefaults.colors(
                                                             checkedColor = MaterialTheme.colorScheme.primary,
                                                             uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(
@@ -589,8 +675,9 @@ object constantes_horas {
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     Checkbox(
                                                         checked = !corrido, onCheckedChange = {
-                                                            corrido =
-                                                                false  // si hace click → activar descanso
+                                                            corrido = false
+                                                            hubo_cambios = true
+                                                            cambios_tiene_horario_activarlo = true
                                                         }, colors = CheckboxDefaults.colors(
                                                             checkedColor = MaterialTheme.colorScheme.primary,
                                                             uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(
@@ -674,12 +761,97 @@ object constantes_horas {
                                             }
                                         }
 
+                                        spacer_vertical(5.dp)
+                                        AnimatedVisibility(mostar_conversion_real_time, modifier = Modifier.clip(
+                                            RoundedCornerShape(20.dp)).background(if(DiaHoy()==nombreDia){
+                                                MaterialTheme.colorScheme.surface
+                                        }else{
+                                            MaterialTheme.colorScheme.surfaceVariant
+                                        })) {
+                                            Column(
+                                                modifier = Modifier.padding(10.dp).animateContentSize(),
+                                                verticalArrangement = Arrangement.spacedBy(7.dp)
+                                            ) {
+                                                texto_generico_one_line("Conversión automática a 12 h")
+                                                texto_generico_multilinea(
+                                                    "Geinz convierte tu horario en tiempo real al formato de 12 horas para facilitar la lectura.",
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+                                                spacer_vertical(2.dp)
 
+                                                if (corrido) {
+                                                    Row(
+                                                        horizontalArrangement = Arrangement.spacedBy(
+                                                            10.dp
+                                                        ),
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        bloques_foramtos_horario(
+                                                            "Apertura",
+                                                            abiertoAM_casteado_12h,
+                                                            modifier = Modifier.weight(1f)
+                                                        )
+                                                        texto_generico_one_line(" a ")
+                                                        bloques_foramtos_horario(
+                                                            "Cierre",
+                                                            cierreAM_casteado_12h,
+                                                            modifier = Modifier.weight(1f)
+                                                        )
+                                                    }
+                                                } else {
+                                                    Row(
+                                                        horizontalArrangement = Arrangement.spacedBy(
+                                                            10.dp
+                                                        ),
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        bloques_foramtos_horario(
+                                                            "Apertura",
+                                                            abiertoAM_casteado_12h,
+                                                            modifier = Modifier.weight(1f)
+                                                        )
+                                                        texto_generico_one_line(" a ")
+                                                        bloques_foramtos_horario(
+                                                            "Cierre ",
+                                                            cierreAM_casteado_12h,
+                                                            modifier = Modifier.weight(1f)
+                                                        )
+                                                    }
+                                                    spacer_vertical(2.dp)
+                                                    Row(
+                                                        horizontalArrangement = Arrangement.spacedBy(
+                                                            10.dp
+                                                        ),
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        bloques_foramtos_horario(
+                                                            "Apertura",
+                                                            aperturaPM_casteado12h,
+                                                            modifier = Modifier.weight(1f)
+                                                        )
+                                                        texto_generico_one_line(" a ")
+                                                        bloques_foramtos_horario(
+                                                            "Cierre",
+                                                            cierrePM_casteado12h,
+                                                            modifier = Modifier.weight(1f)
+                                                        )
+                                                    }
+                                                }
+                                            }
+
+                                        }
+
+
+
+
+                                        Log.d(
+                                            "valores_establecidos",
+                                            "${!btn_guardado_abierto_oculto} ${hubo_cambios} $cambios_tiene_horario_activarlo"
+                                        )
 
                                         if (!btn_guardado_abierto_oculto &&
-                                            (hubo_cambios || cambios_tiene_horario_activarlo)
+                                            (hubo_cambios || cambios_tiene_horario_activarlo || cambioSwitchYTrabajo.value)
                                         ) {
-
                                             Box(
                                                 modifier = Modifier.fillMaxWidth(),
                                                 contentAlignment = Alignment.BottomEnd
@@ -697,20 +869,96 @@ object constantes_horas {
                                                                 horizontal = 10.dp, vertical = 10.dp
                                                             )
                                                             .clickable {
-                                                                val bloque = construirBloques(
-                                                                    hAperturaAM.value,
-                                                                    hCierreAM.value,
-                                                                    hAperturaPM.value,
-                                                                    hCierrePM.value
-                                                                )
+                                                                val bloque = if (corrido) {
+                                                                    construirBloques(
+                                                                        hAperturaAM.value,
+                                                                        hCierreAM.value
+                                                                    )
+                                                                } else {
+                                                                    construirBloques(
+                                                                        hAperturaAM.value,
+                                                                        hCierreAM.value,
+                                                                        hAperturaPM.value,
+                                                                        hCierrePM.value
+                                                                    )
+                                                                }
+
                                                                 if (isConnected) {
-                                                                    motivo_cierre = ""
-                                                                    motivo_cierre_tienda = ""
-                                                                    abrir_tienda(nombreDia, bloque)
-                                                                    btn_guardado_abierto_oculto =
-                                                                        true
-                                                                    expndir_todo = false
-                                                                    leersolo_si_no_fue = true
+                                                                    val camposCompletos =
+                                                                        if (corrido) {
+                                                                            hAperturaAM.value.isNotEmpty() && hCierreAM.value.isNotEmpty()
+                                                                        } else {
+                                                                            hAperturaAM.value.isNotEmpty() &&
+                                                                                    hCierreAM.value.isNotEmpty() &&
+                                                                                    hAperturaPM.value.isNotEmpty() &&
+                                                                                    hCierrePM.value.isNotEmpty()
+                                                                        }
+
+// VALIDACIÓN DE HORAS CON MENSAJES DIFERENCIADOS
+                                                                    var mensajeError: String? = null
+
+                                                                    try {
+                                                                        if (corrido) {
+                                                                            // Validación AM
+                                                                            if (!horaValida(
+                                                                                    hAperturaAM.value,
+                                                                                    hCierreAM.value
+                                                                                )
+                                                                            ) {
+                                                                                mensajeError =
+                                                                                    "La hora de cierre AM no puede ser menor o igual a la hora de apertura."
+                                                                            }
+                                                                        } else {
+                                                                            // Validación AM
+                                                                            if (!horaValida(
+                                                                                    hAperturaAM.value,
+                                                                                    hCierreAM.value
+                                                                                )
+                                                                            ) {
+                                                                                mensajeError =
+                                                                                    "En el bloque AM, la hora de cierre debe ser mayor que la de apertura."
+                                                                            }
+
+                                                                            // Validación PM
+                                                                            else if (!horaValida(
+                                                                                    hAperturaPM.value,
+                                                                                    hCierrePM.value
+                                                                                )
+                                                                            ) {
+                                                                                mensajeError =
+                                                                                    "En el bloque PM, la hora de cierre debe ser mayor que la de apertura."
+                                                                            }
+                                                                        }
+                                                                    } catch (e: Exception) {
+                                                                        mensajeError =
+                                                                            "Formato de hora inválido."
+                                                                    }
+
+
+// ORDEN DE LOS MENSAJES
+                                                                    if (!camposCompletos) {
+                                                                        error_campos_incompletos()
+
+                                                                    } else if (mensajeError != null) {
+                                                                        error_horas_invalidas(
+                                                                            mensajeError
+                                                                        )
+
+                                                                    } else {
+                                                                        motivo_cierre = ""
+                                                                        motivo_cierre_tienda = ""
+                                                                        mostar_conversion_real_time=false
+                                                                        abrir_tienda(
+                                                                            nombreDia,
+                                                                            bloque
+                                                                        )
+                                                                        btn_guardado_abierto_oculto =
+                                                                            false
+                                                                        expndir_todo = false
+                                                                        leersolo_si_no_fue = true
+                                                                    }
+
+
                                                                 } else {
                                                                     error_sin_internet()
                                                                 }
@@ -718,15 +966,27 @@ object constantes_horas {
                                                 }
                                             }
                                         }
-                                    }
 
+                                    }
                                 }
                             }
                         }
                     }
 
                 }
+
             }
+        }
+    }
+
+    fun horaValida(hInicio: String, hFin: String): Boolean {
+        return try {
+            val formato = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+            val inicio = java.time.LocalTime.parse(hInicio, formato)
+            val fin = java.time.LocalTime.parse(hFin, formato)
+            fin.isAfter(inicio)
+        } catch (e: Exception) {
+            false // si no se puede parsear, se considera inválido
         }
     }
 
@@ -770,6 +1030,20 @@ object constantes_horas {
             setOcultarCerrado(false)
             setOcultarAbierto(true)
         }
+    }
+
+    @Composable
+    fun bloques_foramtos_horario(etiqueta: String, horario_convertido: String, modifier: Modifier) {
+        OutlinedTextField(
+            value = horario_convertido,
+            onValueChange = {},
+            readOnly = true,
+            enabled = false,
+            label = { texto_generico_one_line(etiqueta, style = MaterialTheme.typography.bodyMedium) },
+            modifier = modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp)
+        )
+
     }
 
 }

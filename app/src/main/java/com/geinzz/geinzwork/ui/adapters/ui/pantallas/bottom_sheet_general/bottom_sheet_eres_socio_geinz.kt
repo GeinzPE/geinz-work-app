@@ -427,6 +427,20 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                                     duration = SnackbarDuration.Short
                                                                 )
                                                             }
+                                                        },{
+                                                            scope.launch {
+                                                                snackbarHostState.showSnackbar(
+                                                                    message = "Por favor, completa todos los campos antes de actualizar el horario.",
+                                                                    duration = SnackbarDuration.Short
+                                                                )
+                                                            }
+                                                        },{msje->
+                                                            scope.launch {
+                                                                snackbarHostState.showSnackbar(
+                                                                    message = msje,
+                                                                    duration = SnackbarDuration.Short
+                                                                )
+                                                            }
                                                         })
                                                 }
                                             }

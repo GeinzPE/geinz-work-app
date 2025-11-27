@@ -1024,7 +1024,7 @@ fun RowScope.campoHora(
     Box(
         modifier = Modifier
             .weight(1f)
-            .clickable { abrirTimePicker(valor, onHoraSeleccionada) }
+            .clickable (indication = null,interactionSource = remember { MutableInteractionSource()}){ abrirTimePicker(valor, onHoraSeleccionada) }
     ) {
         OutlinedTextField(
             value = valor,

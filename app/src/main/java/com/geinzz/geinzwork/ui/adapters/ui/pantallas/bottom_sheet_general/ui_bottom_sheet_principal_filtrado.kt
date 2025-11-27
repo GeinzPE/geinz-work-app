@@ -1044,6 +1044,7 @@ fun Expandible_direccion_ref(
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Expandible_Metodo_contacto(
     id_tienda: String,
@@ -1529,9 +1530,6 @@ fun MostrarHorarioTienda(
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
                 )
-
-//                val aperturaAMPM = formatearHoraAMPM(horario.h_apertura)
-//                val cierreAMPM = formatearHoraAMPM(horario.h_cierre)
 
                 val textoHorario = when {
                     horario.cerrado -> if (horario.motivo.isEmpty()) {

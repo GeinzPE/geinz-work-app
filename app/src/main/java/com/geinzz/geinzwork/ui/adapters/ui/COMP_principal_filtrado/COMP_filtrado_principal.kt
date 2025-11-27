@@ -671,20 +671,29 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                 ) { estado ->
 
                     if (!estado) {
-                      Box(modifier = Modifier.fillMaxWidth().clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){
-                          onClickExpand()
-                      }){
-                          Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)){
-                          texto_generico_one_line(
-                              "Datos y fechas : ",
-                              style = MaterialTheme.typography.bodyMedium
-                          )
-                              texto_generico_one_line(
-                                  "${datos_tienda_fechas.dias_restantes} días para la renovación del plan." ,
-                                  style = MaterialTheme.typography.bodyMedium, color = datos_tienda_fechas.color
-                              )
-                          }
-                      }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }) {
+                                    onClickExpand()
+                                }) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(5.dp)
+                            ) {
+                                texto_generico_one_line(
+                                    "Datos y fechas : ",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                texto_generico_one_line(
+                                    "${datos_tienda_fechas.dias_restantes} días para la renovación del plan.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = datos_tienda_fechas.color
+                                )
+                            }
+                        }
 
                     } else {
 
@@ -696,9 +705,13 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
                             Box(
-                                modifier = Modifier.fillMaxWidth().clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){
-                                    onClickExpand()
-                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() }) {
+                                        onClickExpand()
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 texto_generico_one_line(
@@ -725,9 +738,16 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                                 Image(
                                     painter = painterResource(R.drawable.baseline_content_copy_24),
                                     contentDescription = "",
-                                    modifier = Modifier.size(20.dp).clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){
-                                        constantestextos_general.copiarTexto_portapapeles_compouse(datos_tienda_fechas.id_tienda, context)
-                                    }
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                        .clickable(
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() }) {
+                                            constantestextos_general.copiarTexto_portapapeles_compouse(
+                                                datos_tienda_fechas.id_tienda,
+                                                context
+                                            )
+                                        }
                                 )
                             }
 
@@ -780,6 +800,7 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
     datos: datos_tienda,
     onClickExpand: () -> Unit,
     sin_conexion: () -> Unit,
+    campos_vacios_o_incompletos: () -> Unit, error_hoario: (String) -> Unit
 ) {
     ConstraintLayout(
         modifier = Modifier
@@ -809,9 +830,9 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
                 if (!estado) {
                     Row(
                         modifier = Modifier.clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) { onClickExpand() }) {
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { onClickExpand() }) {
                         texto_generico_one_line(
                             "Horario de hoy $dia : ",
                             style = MaterialTheme.typography.bodyMedium
@@ -828,8 +849,9 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
 
                 } else {
                     HorarioSemanal123(
-                        datos.id_tienda, tick,
-                        viewModelFiltros,
+                        id_tienda = datos.id_tienda,
+                        tick = tick,
+                        viewModelFiltros = viewModelFiltros,
                         isConnected = isConnected,
                         horario = datos.horario_tiendaMap,
                         cerrar_tienda = { nombre_dia, motivo_cierre, lista ->
@@ -846,9 +868,15 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
                                 dia,
                                 lista_horarios
                             )
-                        }, {
+                        },
+                        error_sin_internet = {
                             sin_conexion()
-                        },{ onClickExpand()})
+                        },
+                        onclick_expand = { onClickExpand() },
+                        error_campos_incompletos = { campos_vacios_o_incompletos() },
+                        { valor ->
+                            error_hoario(valor)
+                        })
                 }
             }
 

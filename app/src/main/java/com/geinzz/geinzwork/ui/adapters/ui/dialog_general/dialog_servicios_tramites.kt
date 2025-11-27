@@ -2,10 +2,12 @@ package com.geinzz.geinzwork.ui.adapters.ui.dialog_general
 
 import android.app.Activity
 import android.content.Intent
+import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -75,6 +77,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import okhttp3.internal.wait
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun dialog_servicios_tramite(
     localida: String,

@@ -82,6 +82,7 @@ import android.os.Looper
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -107,6 +108,7 @@ import kotlinx.coroutines.launch
 
 
 object constantes_lista_localidades {
+    @RequiresApi(Build.VERSION_CODES.O)
     val repo_socios= repo_eres_socio()
     val lista = listOf(
         dataclass_localidad_escudos("Barranca".lowercase(), R.drawable.escudo_barranca),
