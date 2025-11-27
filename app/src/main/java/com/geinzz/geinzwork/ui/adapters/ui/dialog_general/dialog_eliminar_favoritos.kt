@@ -1,6 +1,8 @@
 package com.geinzz.geinzwork.ui.adapters.ui.dialog_general
 
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +26,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.google.firebase.firestore.model.mutation.ArrayTransformOperation
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun dialog_eliminar_favoritos(
     viewModelFiltros: viewModel_filtado_tiendas,localidad_tienda:String,
@@ -38,7 +41,7 @@ val repo_eres_socio= repo_eres_socio()
         confirmButton = {
             btn_aceptar_etc_dialog_general (Color.Red){
                 ondimis()
-                viewModelFiltros.eliminar_tienda_favorita(id_user,id_tienda)
+                viewModelFiltros.eliminar_tienda_favorita(id_user,id_tienda,localidad_tienda)
                 repo_eres_socio.restar_contador("guardados",localidad_tienda,id_tienda)
                 aceptado()
             }

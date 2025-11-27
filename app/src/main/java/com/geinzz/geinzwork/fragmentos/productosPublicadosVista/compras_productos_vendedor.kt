@@ -793,15 +793,15 @@ class compras_productos_vendedor : BaseActivity() {
                             val notificacionRS = NotificacionRS()
                             CoroutineScope(Dispatchers.IO).launch {
                                 for ((_, token) in tokensMap) {
-                                    notificacionRS.enviarNotificacionFCM(
-                                        token,
-                                        "idAdmin",
-                                        "codigoCompra",
-                                        "compraExitosa",
-                                        "entrada",
-                                        "Tu compra fue enviada exitosamente",
-                                        "Recibirás la confirmación del vendedor en unos momentos"
-                                    )
+//                                    notificacionRS.enviarNotificacionFCM(
+//                                        token,
+//                                        "idAdmin",
+//                                        "codigoCompra",
+//                                        "compraExitosa",
+//                                        "entrada",
+//                                        "Tu compra fue enviada exitosamente",
+//                                        "Recibirás la confirmación del vendedor en unos momentos"
+//                                    )
                                 }
                             }
                         },
@@ -814,15 +814,15 @@ class compras_productos_vendedor : BaseActivity() {
                             val notificacionRS = NotificacionRS()
                             CoroutineScope(Dispatchers.IO).launch {
                                 for ((_, token) in tokensMap) {
-                                    notificacionRS.enviarNotificacionFCM(
-                                        token,
-                                        "idAdmin",
-                                        "codigoCompra",
-                                        "nuevaVenta",
-                                        "entrada",
-                                        "¡Nueva Venta Realizada! 🎉",
-                                        "Has recibido un pedido. Toca aquí para aceptar la venta de ${binding.nombreProductoNotifi.text}"
-                                    )
+//                                    notificacionRS.enviarNotificacionFCM(
+//                                        token,
+//                                        "idAdmin",
+//                                        "codigoCompra",
+//                                        "nuevaVenta",
+//                                        "entrada",
+//                                        "¡Nueva Venta Realizada! 🎉",
+//                                        "Has recibido un pedido. Toca aquí para aceptar la venta de ${binding.nombreProductoNotifi.text}"
+//                                    )
                                 }
                             }
                         },

@@ -520,15 +520,15 @@ class verificacion_cuenta_trabajador : AppCompatActivity() {
     private fun enviarNotificacion(token: String, id: String) {
         val notificar = NotificacionRS()
         GlobalScope.launch {
-            notificar.enviarNotificacionFCM(
-                token,
-                "idAdmin",
-                "idasdasda",
-                "iadasdasda",
-                "entrada",
-                getString(R.string.titulo_notificacion_verificacion),
-                getString(R.string.mensaje_notificacion_verificacion)
-            )
+//            notificar.enviarNotificacionFCM(
+//                token,
+//                "idAdmin",
+//                "idasdasda",
+//                "iadasdasda",
+//                "entrada",
+//                getString(R.string.titulo_notificacion_verificacion),
+//                getString(R.string.mensaje_notificacion_verificacion)
+//            )
         }
 
     }

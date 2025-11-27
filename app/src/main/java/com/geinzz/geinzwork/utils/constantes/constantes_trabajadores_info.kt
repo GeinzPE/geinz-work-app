@@ -293,15 +293,15 @@ object constantes_trabajadores_info {
                             Log.d("FCM_rsitaldo", "Dispositivo: $dispositivo -> Token: $token")
 
                             // Enviar notificación
-                            notificacionRS.enviarNotificacionFCM(
-                                token,
-                                "idAdmin",
-                                "idasdasda",
-                                "iadasdasda",
-                                "entrada",
-                                "Nuevo seguidor",
-                                "$nombre $apellido empezó a seguirte"
-                            )
+//                            notificacionRS.enviarNotificacionFCM(
+//                                token,
+//                                "idAdmin",
+//                                "idasdasda",
+//                                "iadasdasda",
+//                                "entrada",
+//                                "Nuevo seguidor",
+//                                "$nombre $apellido empezó a seguirte"
+//                            )
                         }
                     }
                 }

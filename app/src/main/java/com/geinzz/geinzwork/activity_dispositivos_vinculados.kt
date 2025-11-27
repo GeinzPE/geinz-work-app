@@ -678,15 +678,15 @@ class activity_dispositivos_vinculados : AppCompatActivity() {
                                                                 lifecycleScope.launch {
                                                                     val notificacionRS =
                                                                         NotificacionRS()
-                                                                    notificacionRS.enviarNotificacionFCM(
-                                                                        it.tok_dispo.toString(),
-                                                                        "idAdmin",
-                                                                        "idasdasda",
-                                                                        "iadasdasda",
-                                                                        "entrada",
-                                                                        "El administrador cerró tu sesión",
-                                                                        "Tu sesión en el dispositivo $dispositivo fue cerrada por el administrador. Si no reconoces esta acción, te recomendamos contactarte con geinz work "
-                                                                    )
+//                                                                    notificacionRS.enviarNotificacionFCM(
+//                                                                        it.tok_dispo.toString(),
+//                                                                        "idAdmin",
+//                                                                        "idasdasda",
+//                                                                        "iadasdasda",
+//                                                                        "entrada",
+//                                                                        "El administrador cerró tu sesión",
+//                                                                        "Tu sesión en el dispositivo $dispositivo fue cerrada por el administrador. Si no reconoces esta acción, te recomendamos contactarte con geinz work "
+//                                                                    )
                                                                 }
                                                             }
                                                         }

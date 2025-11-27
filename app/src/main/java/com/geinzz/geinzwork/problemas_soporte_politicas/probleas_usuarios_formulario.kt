@@ -180,15 +180,15 @@ class probleas_usuarios_formulario : AppCompatActivity() {
                                                         Log.d("FCM_rsitaldo", "Dispositivo: $dispositivo -> Token: $token")
 
                                                         // Enviar notificación
-                                                        notificacionRS.enviarNotificacionFCM(
-                                                            token,
-                                                            "idAdmin",
-                                                            "idasdasda",
-                                                            "iadasdasda",
-                                                            "entrada",
-                                                            "REPORTE DE TRABAJADOR ",
-                                                            "Hola $nombre $apellido tienes un reporte de un usuario apelalo antes que Geinz tome medidas con tu cuenta"
-                                                        )
+//                                                        notificacionRS.enviarNotificacionFCM(
+//                                                            token,
+//                                                            "idAdmin",
+//                                                            "idasdasda",
+//                                                            "iadasdasda",
+//                                                            "entrada",
+//                                                            "REPORTE DE TRABAJADOR ",
+//                                                            "Hola $nombre $apellido tienes un reporte de un usuario apelalo antes que Geinz tome medidas con tu cuenta"
+//                                                        )
                                                     }
                                                 }
                                             }

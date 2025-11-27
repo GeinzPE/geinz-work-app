@@ -263,7 +263,7 @@ fun pantalla_principal(
             FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val token = task.result
-                    val uid = firebaseAuth.currentUser?.uid
+                    val uid = firebaseAuth.currentUser?.uid ?: uid_respald_user ?:""
                     if (uid != null) {
                         guarar_token_user(uid, token)
                     } else {

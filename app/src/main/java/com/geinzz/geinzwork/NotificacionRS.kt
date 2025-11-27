@@ -3,6 +3,7 @@ package com.geinzz.geinzwork
 import android.content.Context
 import android.util.Log
 import com.google.auth.oauth2.GoogleCredentials
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Call
@@ -14,11 +15,13 @@ import org.json.JSONObject
 
 import okhttp3.Request
 import okhttp3.Response
+import org.json.JSONException
 import java.io.IOException
 
 class NotificacionRS {
     private val FCM_URL = "https://fcm.googleapis.com/v1/projects/geinzworkapp/messages:send"
-    private val CLOUD_FUNCTION_URL = "https://us-central1-geinzworkapp.cloudfunctions.net/enviarNotificacion"
+    private val CLOUD_FUNCTION_URL =
+        "https://us-central1-geinzworkapp.cloudfunctions.net/enviarNotificacion"
 
     private val client = OkHttpClient()
     suspend fun sendNotification_con_parametros(
@@ -32,7 +35,7 @@ class NotificacionRS {
     ) {
         val accessToken = getAccessToken(context)
         Log.e("token", "el token es $accessToken")
-        Log.d("token_valores","obtenemos los valoes$v1,$token")
+        Log.d("token_valores", "obtenemos los valoes$v1,$token")
         if (accessToken == null) {
             println("Error al obtener el token de acceso")
             Log.e("error_token", "Error al obtener el token de acceso}")
@@ -59,7 +62,7 @@ class NotificacionRS {
 
             })
         }
-        Log.d("json","obtenemos el $jsonPayload")
+        Log.d("json", "obtenemos el $jsonPayload")
 
         val requestBody = jsonPayload.toString().toRequestBody("application/json".toMediaType())
         val request = Request.Builder()
@@ -77,7 +80,11 @@ class NotificacionRS {
         }
     }
 
+    // Mapa para llevar control de resultados
+    val resultados = mutableMapOf<String, Boolean>()
+
     fun enviarNotificacionFCM(
+        id_user: String,
         token: String,
         clickAction: String,
         idAnuncio: String,
@@ -85,7 +92,8 @@ class NotificacionRS {
         entrada: String,
         titulo: String,
         cuerpo: String,
-        urlImagen: String? = null
+        urlImagen: String? = null,
+        fallo:(Boolean)-> Unit
     ) {
         val jsonBody = """
         {
@@ -111,16 +119,57 @@ class NotificacionRS {
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e("noti_evadad", "Error al enviar notificación: ${e.message}")
+                // Marcamos fallo en el mapa
+                resultados[id_user] = false
             }
 
             override fun onResponse(call: Call, response: Response) {
-                Log.d("noti_evadad", "Respuesta: ${response.body?.string()}")
+                val bodyStr = response.body?.string() ?: ""
+                Log.d("noti_evadad", "Respuesta: $bodyStr")
+
+                // Detectamos errores por texto
+                if (bodyStr.contains("not a valid FCM registration token", ignoreCase = true)) {
+                    fallo(true)
+                    resultados[id_user] = false
+                } else if (bodyStr.contains("Notificación enviada", ignoreCase = true)) {
+                    resultados[id_user] = true
+                } else {
+                    resultados[id_user] = false
+                }
+
+                Log.d("noti_evadad", "Estado de envío para $id_user: ${resultados[id_user]}")
             }
         })
     }
 
+    fun eliminar_tokens_usuario(id_user: String, dispositivos: List<String>) {
+        val db = FirebaseFirestore.getInstance()
+            .collection("Trabajadores_Usuarios_Drivers")
+            .document("users")
+            .collection("tokens")
+            .document(id_user)
 
+        db.get().addOnSuccessListener { res ->
+            val mapaTokens = (res.data?.get("tokens") as? Map<String, String>)?.toMutableMap() ?: mutableMapOf()
 
+            var cambios = false
+            dispositivos.forEach { disp ->
+                if (mapaTokens.containsKey(disp)) {
+                    mapaTokens.remove(disp)
+                    cambios = true
+                    Log.d("toksens_eliminar", "$id_user $disp eliminado")
+                }
+            }
+
+            if (cambios) {
+                db.update("tokens", mapaTokens)
+                    .addOnSuccessListener { Log.d("noti_evadad", "Tokens eliminados correctamente") }
+                    .addOnFailureListener { e -> Log.e("noti_evadad", "Error eliminando tokens: ${e.message}") }
+            }
+        }.addOnFailureListener { e ->
+            Log.e("noti_evadad", "Error obteniendo tokens: ${e.message}")
+        }
+    }
 
     suspend fun getAccessToken(context: Context): String? {
         return withContext(Dispatchers.IO) {

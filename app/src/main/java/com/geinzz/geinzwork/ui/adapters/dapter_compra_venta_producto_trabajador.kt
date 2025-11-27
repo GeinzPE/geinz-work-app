@@ -173,16 +173,16 @@ class dapter_compra_venta_producto_trabajador(
                     val notificacionRS = NotificacionRS()
                     CoroutineScope(Dispatchers.IO).launch {
                         for ((_, token) in tokensMap) {
-                            notificacionRS.enviarNotificacionFCM(
-                                token,
-                                "idAdmin",
-                                "codigoCompra",
-                                "nuevaVenta",
-                                "entrada",
-                                titulo,
-                                cuerpo
-
-                            )
+//                            notificacionRS.enviarNotificacionFCM(
+//                                token,
+//                                "idAdmin",
+//                                "codigoCompra",
+//                                "nuevaVenta",
+//                                "entrada",
+//                                titulo,
+//                                cuerpo
+//
+//                            )
                         }
                     }
                     cambiar_estado_aceptado_rechazado("aceptado", item)

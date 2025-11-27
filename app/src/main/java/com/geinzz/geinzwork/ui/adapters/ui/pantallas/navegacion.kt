@@ -94,6 +94,7 @@ fun nativationWrapper(
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
+
     val navController = rememberNavController()
     val viewModelLugares: viewModel_lugares_turisticos = viewModel()
     val viewModelCordenadas: viewModel_principal_geinz_work = viewModel()
@@ -194,36 +195,58 @@ fun nativationWrapper(
         "pantalla_principal", "buscar", "favoritos", "principal", "login_principal" -> isvisble_buttomvar
         else -> false
     }
-    fun enviar_notificacion_lista_dispo(titutlo: String, txt: String) {
+//    fun enviar_notificacion_lista_dispo(id_user: String, titulo: String, txt: String) {
+//        val notificacion = NotificacionRS()
+//        FirebaseFirestore.getInstance()
+//            .collection("Trabajadores_Usuarios_Drivers")
+//            .document("users")
+//            .collection("tokens")
+//            .document(id_user)
+//            .get()
+//            .addOnSuccessListener { res ->
+//
+//                if (!res.exists()) {
+//                    Log.d("TOKENS", "❌ No existe documento para este usuario")
+//                    return@addOnSuccessListener
+//                }
+//
+//                val mapaTokens = (res.data?.get("tokens") as? Map<String, String>) ?: emptyMap()
+//                val tokensInvalidos = mutableListOf<String>() // Lista para guardar dispositivos con token inválido
+//
+//                mapaTokens.forEach { (dispositivo, token) ->
+//                    Log.d("TOKENS", "📨 Enviando a $dispositivo → $token")
+//
+//
+//                    notificacion.enviarNotificacionFCM(
+//                        id_user = id_user,
+//                        token = token,
+//                        clickAction = "",
+//                        idAnuncio = "",
+//                        idTienda = "",
+//                        entrada = "",
+//                        titulo = titulo,
+//                        cuerpo = txt,
+//                        urlImagen = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0"
+//                    ) { fallo ->
+//                        Log.d("fallo_dado_enteroa","$fallo")
+//                        if (fallo) {
+//                            tokensInvalidos.add(dispositivo)
+//                            if (tokensInvalidos.isNotEmpty()) {
+//                                notificacion.eliminar_tokens_usuario(id_user, tokensInvalidos)
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                // Después de enviar a todos, eliminamos los tokens inválidos
+//
+//
+//            }
+//            .addOnFailureListener { e ->
+//                Log.e("TOKENS", "🔥 Error al obtener tokens", e)
+//            }
+//    }
 
-        FirebaseFirestore.getInstance()
-            .collection("Trabajadores_Usuarios_Drivers")
-            .document("users")
-            .collection("tokens")
-            .document(id_user)
-            .get()
-            .addOnSuccessListener { res ->
-
-                if (!res.exists()) {
-                    Log.d("TOKENS", "❌ No existe documento para este usuario")
-                    return@addOnSuccessListener
-                }
-
-                val mapaTokens = (res.data?.get("tokens") as? Map<String, String>) ?: emptyMap()
-
-                mapaTokens.forEach { (dispositivo, token) ->
-                    Log.d("TOKENS", "📨 Enviando a $dispositivo → $token")
-                    val notificacion = NotificacionRS()
-                    notificacion.enviarNotificacionFCM(
-                        token, "", "", "", "", titutlo, txt, "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0"
-                    )
-                }
-
-            }
-            .addOnFailureListener { e ->
-                Log.e("TOKENS", "🔥 Error al obtener tokens", e)
-            }
-    }
 
 
     LaunchedEffect(currentRoute) {
@@ -389,7 +412,7 @@ fun nativationWrapper(
 
                         },
                         {
-//                            enviar_notificacion_lista_dispo("notificaion","prueva")
+//                            enviar_notificacion_lista_dispo(id_user,"notificaion","prueva")
                             navController.navigate(ui_agregar_lugares)
 
                         },

@@ -40,7 +40,7 @@ class repo_filtrado_tiendas {
     val db = FirebaseFirestore.getInstance()
 
     suspend fun obtener_subcategorias_tiendas(categorias: String): List<filtrado_tiendas_cat_sub> {
-        Log.d("obtenos_",categorias.toString())
+        Log.d("obtenos_", categorias.toString())
         val lista_cat_subcategoria = mutableListOf<filtrado_tiendas_cat_sub>()
         val subcategorias_ref =
             db.collection("Tiendas").document("categorias").collection("categorias")
@@ -50,7 +50,7 @@ class repo_filtrado_tiendas {
         if (subcategorias_ref.exists()) {
             val data = subcategorias_ref.data
             val subcategories = data?.get("subcategorias") as? List<String> ?: emptyList()
-            Log.d("obtenos_",subcategories.toString())
+            Log.d("obtenos_", subcategories.toString())
             lista_cat_subcategoria.add(filtrado_tiendas_cat_sub(categorias, subcategories))
         }
         return lista_cat_subcategoria
@@ -58,7 +58,7 @@ class repo_filtrado_tiendas {
 
 
     fun obtener_estado_horario_tienda(horarioAtencion: HorarioAtencion): horario_tienda {
-    Log.d("!qefaFsgsAGasgASFDA",horarioAtencion.toString())
+        Log.d("!qefaFsgsAGasgASFDA", horarioAtencion.toString())
         val dias =
             listOf("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
         val calendar = Calendar.getInstance()
@@ -117,7 +117,6 @@ class repo_filtrado_tiendas {
     }
 
 
-
     fun HorarioDia_bloques.toHorarioDiaBox(
         diaActual: String,
         horarioSemanal: Map<String, HorarioDia_bloques>
@@ -152,10 +151,6 @@ class repo_filtrado_tiendas {
 
         return ahora.after(horaCierre)
     }
-
-
-
-
 
 
     suspend fun obtenerSubcategorias(categoria: String): List<String> {
@@ -213,7 +208,7 @@ class repo_filtrado_tiendas {
                 val metodo_pago = i.get("metodos_pago") as? Map<String, Any> ?: emptyMap()
                 val contacto_obs = metodos_contacto.toMetodoContacto()
                 val metodo_pago_tienda = metodo_pago.to_metodo_pago()
-                val horario_tienda_box=horario.to_horario_atencion_box_dia()
+                val horario_tienda_box = horario.to_horario_atencion_box_dia()
                 val horarioHoyBloques = obtenerHorarioDeHoy_BOX(horario_tienda_box)
                 val horarioHoyBox = convertirABox(horarioHoyBloques)
                 val estaAbierto = estaAbiertoHoy(horarioHoyBox)
@@ -232,7 +227,7 @@ class repo_filtrado_tiendas {
                         id_tienda = id_tienda,
                         pagado = pagado,
                         estaAbierto = estaAbierto, contacto_tienda = contacto_obs,
-                        metodos_pago_tienda = metodo_pago_tienda,horario_tienda_box
+                        metodos_pago_tienda = metodo_pago_tienda, horario_tienda_box
                     )
                 )
 
@@ -243,11 +238,6 @@ class repo_filtrado_tiendas {
         }
         return lista_tiendas_filtradas
     }
-
-
-
-
-
 
 
     suspend fun obtenner_campos_tiendas_espesifica(
@@ -270,7 +260,7 @@ class repo_filtrado_tiendas {
             val metodos_contacto = data?.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
             val metodo_pago = data?.get("metodos_pago") as? Map<String, Any> ?: emptyMap()
             val metodo_pago_tienda = metodo_pago.to_metodo_pago()
-            val horario_atencion_Box=horarioMap.to_horario_atencion_box_dia()
+            val horario_atencion_Box = horarioMap.to_horario_atencion_box_dia()
             Log.d("viendo_contacto", metodos_contacto.toString())
 
             // Función auxiliar para mapear un día
@@ -312,7 +302,7 @@ class repo_filtrado_tiendas {
                 pagado = data?.get("pagado") as? Boolean ?: false,
                 metodo_contacto_tienda = contacto_obs,
                 horario_atencion = horarioTienda,
-                metodos_pago_tienda = metodo_pago_tienda,horario_tienda_box=horario_atencion_Box
+                metodos_pago_tienda = metodo_pago_tienda, horario_tienda_box = horario_atencion_Box
             )
 
             lista_modelo_tienda.add(tiendaModelo)
@@ -469,7 +459,7 @@ class repo_filtrado_tiendas {
     }
 
 
-    suspend fun guardar_tienda_favorito( id_user:String,item: favoritos_guardados) {
+    suspend fun guardar_tienda_favorito(id_user: String, item: favoritos_guardados) {
         val ref = db.collection("Trabajadores_Usuarios_Drivers")
             .document("users").collection("users").document(id_user)
             .collection("favoritos").document(item.id_tienda_lugar)
@@ -484,7 +474,7 @@ class repo_filtrado_tiendas {
             "horario" to item.horario_tienda_box,
             "latitud" to item.lat,
             "longitud" to item.lng,
-            "img_tienda_lugar" to item.img_tienda ,
+            "img_tienda_lugar" to item.img_tienda,
             "localidad_lugar_tienda" to item.localida_tienda
 
         )
@@ -492,12 +482,29 @@ class repo_filtrado_tiendas {
         try {
             ref.set(data).await()
             Log.d("FAVORITOS", "Guardado correctamente")
+            guardar_user_para_tienda_db(id_user, item.id_tienda_lugar, item.localida_tienda)
         } catch (e: Exception) {
             Log.e("FAVORITOS", "Error al guardar: ${e.message}")
             throw e
         }
 
     }
+
+    fun guardar_user_para_tienda_db(id_user: String, id_tienda: String, localidad: String) {
+        val ref = db.collection("Tiendas")
+            .document(localidad).collection(localidad).document(id_tienda)
+            .collection("seguidores").document(id_user)
+
+        ref.set(mapOf<String, Any>())  // documento vacío
+    }
+
+    fun eliminar_uer_tienda_fv(id_user: String, id_tienda: String, localidad: String) {
+        val ref = db.collection("Tiendas")
+            .document(localidad).collection(localidad).document(id_tienda)
+            .collection("seguidores").document(id_user).delete()
+            .addOnSuccessListener { Log.d("terminado", "correctamente") }
+    }
+
 
     suspend fun obtener_datos_tienda_id(localidad: String, id_tienda: String): favoritos_guardados {
         val ref = db.collection("Tiendas")
@@ -516,7 +523,7 @@ class repo_filtrado_tiendas {
             val horarioMap = data["horario_atencion"] as? Map<String, Any> ?: emptyMap()
 //            val metodo_pago_tienda = metodoPagoMap.to_metodo_pago()
 //            val horario_atencio =horarioMap.to_horario_atencion()
-            val horario_atencion_box =horarioMap.to_horario_atencion_box_dia()
+            val horario_atencion_box = horarioMap.to_horario_atencion_box_dia()
             favoritos_guardados(
                 img_tienda = imgMap["logo_tienda"] as? String ?: "",
                 id_tienda_lugar = data["id_tienda"] as? String ?: "",
@@ -540,7 +547,7 @@ class repo_filtrado_tiendas {
         }
     }
 
-    suspend fun eliminar_tienda_favorito(id_user: String,id_tienda: String){
+    suspend fun eliminar_tienda_favorito(id_user: String, id_tienda: String) {
         val ref = db.collection("Trabajadores_Usuarios_Drivers")
             .document("users").collection("users").document(id_user)
             .collection("favoritos").document(id_tienda)

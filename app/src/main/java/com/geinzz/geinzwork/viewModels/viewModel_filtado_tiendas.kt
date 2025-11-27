@@ -44,11 +44,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
-@RequiresApi(Build.VERSION_CODES.O)
 class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) : ViewModel() {
 
     val repo_filtrado = repo_filtrado_tiendas()
     val repo_cat_sub = repo_agregar_cat_sub_localizate()
+    @RequiresApi(Build.VERSION_CODES.O)
     val repo_erese_socio = repo_eres_socio()
 
 
@@ -476,6 +476,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
 
     val favoritos = MutableStateFlow<Map<String, Boolean>>(emptyMap())
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun guardar_tienda_favorita(id_user: String, item_favoritos: favoritos_guardados) {
         viewModelScope.launch {
             try {
@@ -505,10 +506,11 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     }
 
 
-    fun eliminar_tienda_favorita(id_user: String, id_tienda: String) {
+    fun eliminar_tienda_favorita(id_user: String, id_tienda: String,localidad_tienda: String) {
         viewModelScope.launch {
             try {
                 repo_filtrado.eliminar_tienda_favorito(id_user, id_tienda)
+                repo_filtrado.eliminar_uer_tienda_fv(id_user,id_tienda,localidad_tienda)
                 favoritos.update { it.toMutableMap().apply { put(id_tienda, false) } }
             } catch (e: Exception) {
                 Log.d("error", "error al eliminar faboritos")

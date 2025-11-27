@@ -228,15 +228,15 @@ class Login : AppCompatActivity() {
                                         if (it.nombre_dispo != deviceName) {
                                             lifecycleScope.launch {
                                                 val notificacionRS = NotificacionRS()
-                                                notificacionRS.enviarNotificacionFCM(
-                                                    it.tok_dispo.toString(),
-                                                    "idAdmin",
-                                                    "idasdasda",
-                                                    "iadasdasda",
-                                                    "entrada",
-                                                    "Nuevo dispositivo vinculado 📱",
-                                                    "${deviceName} ha sido vinculado a tu cuenta. Si reconoces este dispositivo, no necesitas hacer nada. De lo contrario, revisa tu seguridad.",
-                                                )
+//                                                notificacionRS.enviarNotificacionFCM(
+//                                                    it.tok_dispo.toString(),
+//                                                    "idAdmin",
+//                                                    "idasdasda",
+//                                                    "iadasdasda",
+//                                                    "entrada",
+//                                                    "Nuevo dispositivo vinculado 📱",
+//                                                    "${deviceName} ha sido vinculado a tu cuenta. Si reconoces este dispositivo, no necesitas hacer nada. De lo contrario, revisa tu seguridad.",
+//                                                )
                                             }
                                         }
                                     }

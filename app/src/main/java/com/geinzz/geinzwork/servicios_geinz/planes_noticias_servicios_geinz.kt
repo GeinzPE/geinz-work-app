@@ -432,15 +432,15 @@ class planes_noticias_servicios_geinz : AppCompatActivity() {
             val notificacionRS = NotificacionRS()
             obtenertokenIdAdmin.obtenertokenAdmin { token, id ->
                 GlobalScope.launch {
-                    notificacionRS.enviarNotificacionFCM(
-                        token,
-                        "idAdmin",
-                        "idasdasda",
-                        "iadasdasda",
-                        "entrada",
-                        Titulo,
-                        texto
-                    )
+//                    notificacionRS.enviarNotificacionFCM(
+//                        token,
+//                        "idAdmin",
+//                        "idasdasda",
+//                        "iadasdasda",
+//                        "entrada",
+//                        Titulo,
+//                        texto
+//                    )
                 }
             }
         }
