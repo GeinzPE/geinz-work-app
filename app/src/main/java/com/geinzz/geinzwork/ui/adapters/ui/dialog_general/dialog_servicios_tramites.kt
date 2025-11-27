@@ -1,7 +1,11 @@
 package com.geinzz.geinzwork.ui.adapters.ui.dialog_general
 
+import android.app.Activity
 import android.content.Intent
 import android.provider.Settings
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -68,6 +72,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import okhttp3.internal.wait
 
 @Composable
@@ -87,7 +92,17 @@ fun dialog_servicios_tramite(
     var mostrarDialog_sin_google_maps by remember { mutableStateOf(false) }
     val numero_llamada by remember { mutableStateOf("") }
     val contex = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            Log.d("GPS", "✅ El usuario activó el GPS")
 
+        } else {
+            Log.d("GPS", "❌ El usuario canceló el diálogo de ubicación")
+
+        }
+    }
     AlertDialog(
         onDismissRequest = { ondimis() },
         confirmButton = {},
@@ -295,8 +310,8 @@ fun dialog_servicios_tramite(
                             mostar_dialog_ubicacion = false
                         }, abrir_configuracion = {
                             mostar_dialog_ubicacion = false
-                            contex.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-                        },
+                            verificarGPS(contex, launcher)
+                                                 },
                         dialog_sin_maps = {
                             mostar_dialog_ubicacion = false
                             mostrarDialog_sin_google_maps = true

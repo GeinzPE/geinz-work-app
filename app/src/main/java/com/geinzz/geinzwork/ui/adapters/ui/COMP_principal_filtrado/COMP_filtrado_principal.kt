@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado
 
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -55,17 +56,17 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.Bitmap
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -73,40 +74,29 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -119,19 +109,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
-import coil3.Image
 import coil3.compose.AsyncImage
-import coil3.compose.rememberAsyncImagePainter
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -142,17 +127,20 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.datos_grafico
-import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub
+import com.geinzz.geinzwork.data.model.datos_tienda
+import com.geinzz.geinzwork.data.model.datos_tienda_fechas
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
+import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_subcategoria_shadow
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
+import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -572,7 +560,6 @@ fun expandibles_wrapp_socio_geinzz(
 ) {
     ConstraintLayout(
         modifier = Modifier
-            .clip(CircleShape)
             .fillMaxWidth()
             .wrapContentHeight()
             .padding(horizontal = 10.dp, vertical = 15.dp)
@@ -588,36 +575,287 @@ fun expandibles_wrapp_socio_geinzz(
                 }
                 .clickable(
                     indication = null,
-                    interactionSource = remember { MutableInteractionSource() }) {
+                    interactionSource = remember { MutableInteractionSource() }
+                ) {
                     onClickExpand()
-                }) {
-            if (!expandido) {
-                items(lsita_datos) { i ->
-                    campos_datos_graficos(i)
-
                 }
-            } else {
-                item {
-                    Column(modifier = Modifier
-                        .fillMaxWidth()
-                        .fillParentMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        texto_generico_one_line(
-                            texto_params,
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                        spacer_vertical(10.dp)
-                        texto_generico_multilinea(
-                            txtdescpcion,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(horizontal = 10.dp)
-                        )
-                    }
+        ) {
 
+            item {
+
+                AnimatedContent(
+                    targetState = expandido,
+                    transitionSpec = {
+                        fadeIn() togetherWith fadeOut()
+                    }
+                ) { estado ->
+
+                    if (!estado) {
+
+                        // COMO NO ESTÁS EN EL SCOPE DEL LAZYROW
+                        // NO PUEDES USAR items()
+                        // → debes usar Column/Row/FlowRow
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(15.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            lsita_datos.forEach { i ->
+                                campos_datos_graficos(i)
+                            }
+                        }
+
+                    } else {
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillParentMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            texto_generico_one_line(
+                                texto_params,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            spacer_vertical(10.dp)
+                            texto_generico_multilinea(
+                                txtdescpcion,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(horizontal = 10.dp)
+                            )
+                        }
+
+                    }
+                }
+            }
+        }
+
+    }
+}
+
+
+@Composable
+fun expandibles_wrapp_socio_geinzz_datos_tienda(
+    context: Context,
+    expandido: Boolean,
+    datos_tienda_fechas: datos_tienda_fechas,
+    onClickExpand: () -> Unit
+) {
+    ConstraintLayout(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(horizontal = 10.dp, vertical = 15.dp)
+    ) {
+
+        val (texto, btn) = createRefs()
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(15.dp),
+            modifier = Modifier
+                .constrainAs(texto) {
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                }
+
+        ) {
+
+            item {
+
+                AnimatedContent(
+                    targetState = expandido,
+                    transitionSpec = {
+                        fadeIn() togetherWith fadeOut()
+                    }
+                ) { estado ->
+
+                    if (!estado) {
+                      Box(modifier = Modifier.fillMaxWidth().clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){
+                          onClickExpand()
+                      }){
+                          Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)){
+                          texto_generico_one_line(
+                              "Datos y fechas : ",
+                              style = MaterialTheme.typography.bodyMedium
+                          )
+                              texto_generico_one_line(
+                                  "${datos_tienda_fechas.dias_restantes} días para la renovación del plan." ,
+                                  style = MaterialTheme.typography.bodyMedium, color = datos_tienda_fechas.color
+                              )
+                          }
+                      }
+
+                    } else {
+
+                        // 🔹 Vista expandida (tu contenido original)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillParentMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier.fillMaxWidth().clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){
+                                    onClickExpand()
+                                },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                texto_generico_one_line(
+                                    "Datos y fechas",
+                                    style = MaterialTheme.typography.titleLarge
+                                )
+                                spacer_vertical(5.dp)
+                            }
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.padding(
+                                    start = 5.dp,
+                                    bottom = 5.dp, end = 20.dp
+                                )
+                            ) {
+
+                                texto_generico_one_line(
+                                    "ID :${datos_tienda_fechas.id_tienda}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Image(
+                                    painter = painterResource(R.drawable.baseline_content_copy_24),
+                                    contentDescription = "",
+                                    modifier = Modifier.size(20.dp).clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){
+                                        constantestextos_general.copiarTexto_portapapeles_compouse(datos_tienda_fechas.id_tienda, context)
+                                    }
+                                )
+                            }
+
+                            Text(
+                                buildAnnotatedString {
+                                    append("Tipo de plan : ")
+                                    withStyle(style = SpanStyle(color = Color(0xFFFFD700))) {
+                                        append("Premium")
+                                    }
+                                },
+                                style = MaterialTheme.typography.bodyMedium, color = Color.White,
+                                modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
+                            )
+
+                            texto_generico_one_line(
+                                "fecha de inicio :${datos_tienda_fechas.fecha_ingreso}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
+                            )
+
+                            texto_generico_one_line(
+                                "fecha de finalizacion :${datos_tienda_fechas.fecha_termino}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
+                            )
+
+                            texto_generico_one_line(
+                                "${datos_tienda_fechas.dias_restantes} días para la renovación del plan.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = datos_tienda_fechas.color,
+                                modifier = Modifier.padding(start = 5.dp, bottom = 10.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun expandibles_wrapp_socio_geinzz_horario_atencion(
+    tick: Long,
+    viewModelFiltros: viewModel_filtado_tiendas,
+    dia: String,
+    isConnected: Boolean,
+    viewmodel: viewmodel_eres_socio,
+    expandido: Boolean,
+    datos: datos_tienda,
+    onClickExpand: () -> Unit,
+    sin_conexion: () -> Unit,
+) {
+    ConstraintLayout(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(horizontal = 10.dp, vertical = 15.dp)
+    ) {
+
+        val (texto, btn) = createRefs()
+
+        Column(
+            modifier = Modifier
+                .constrainAs(texto) {
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                }
+
+        ) {
+
+            AnimatedContent(
+                targetState = expandido,
+                transitionSpec = {
+                    fadeIn() togetherWith fadeOut()
+                }
+            ) { estado ->
+
+                if (!estado) {
+                    Row(
+                        modifier = Modifier.clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { onClickExpand() }) {
+                        texto_generico_one_line(
+                            "Horario de hoy $dia : ",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        retornar_color_estado_tienda_Box(
+                            "",
+                            viewModelFiltros.horariosTiendas.collectAsState().value[datos.id_tienda]
+                                ?: HorarioDia_box(),
+                            tick,
+                            true,
+                            { color, txt -> }
+                        )
+                    }
+
+                } else {
+                    HorarioSemanal123(
+                        datos.id_tienda, tick,
+                        viewModelFiltros,
+                        isConnected = isConnected,
+                        horario = datos.horario_tiendaMap,
+                        cerrar_tienda = { nombre_dia, motivo_cierre, lista ->
+                            viewmodel.cambiar_cerrado(
+                                datos.id_tienda,
+                                nombre_dia,
+                                motivo_cierre,
+                                lista
+                            )
+                        },
+                        abrir_tienda = { dia, lista_horarios ->
+                            viewmodel.cambiar_abierto(
+                                datos.id_tienda,
+                                dia,
+                                lista_horarios
+                            )
+                        }, {
+                            sin_conexion()
+                        },{ onClickExpand()})
+                }
+            }
+
+        }
+    }
+}
+
 
 @Composable
 fun campos_datos_graficos(item: datos_grafico) {
@@ -626,10 +864,6 @@ fun campos_datos_graficos(item: datos_grafico) {
         horizontalArrangement = Arrangement.spacedBy(5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        texto_generico_one_line(
-            "${item.label} : ${item.cantidad}", MaterialTheme.typography.bodyMedium
-        )
-
         Image(
             modifier = Modifier
                 .size(20.dp)
@@ -637,6 +871,15 @@ fun campos_datos_graficos(item: datos_grafico) {
             painter = painterResource(item.img_),
             contentDescription = "Google maps",
         )
+
+        texto_generico_one_line(
+            "${item.label}", MaterialTheme.typography.bodyMedium
+        )
+        texto_generico_one_line(
+            ": ${item.cantidad}", MaterialTheme.typography.bodyMedium
+        )
+
+
     }
 
 

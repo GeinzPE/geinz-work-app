@@ -33,17 +33,15 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,22 +50,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.campoHora
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.chips_filtrado
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
-import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
+import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.security.SecureRandom
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -109,7 +109,7 @@ object constantes_horas {
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun fechaUnaSemanaDespues(): String {
-        val fecha = LocalDate.now().plusWeeks(1)
+        val fecha = LocalDate.now().plusWeeks(3)
         return fecha.toString()
     }
 
@@ -191,14 +191,36 @@ object constantes_horas {
     }
 
 
+    fun obtenerDiasYColor(fechaFin: String): Pair<Long, Color> {
+        val formato = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+        val hoy = LocalDate.now()
+        val fin = LocalDate.parse(fechaFin, formato)
+
+        val diasRestantes = ChronoUnit.DAYS.between(hoy, fin)
+
+        val color = when {
+            diasRestantes >= 10 -> Color(0xFF4CAF50)   // Verde
+            diasRestantes in 5..9 -> Color(0xFFFFC107) // Amarillo
+            diasRestantes in 0..2 -> Color(0xFFFF0F00) // Rojo
+            diasRestantes < 0 -> Color.Gray            // Fecha ya pasó
+            else -> Color.Gray
+        }
+
+        return Pair(diasRestantes, color)
+    }
+
     @Composable
     fun HorarioSemanal123(
+        id_tienda: String,
+        tick: Long,
+        viewModelFiltros: viewModel_filtado_tiendas,
         isConnected: Boolean,
-        viewmodel: viewmodel_eres_socio,
         horario: HorarioAtencion_box,
         cerrar_tienda: (nombre_dia: String, motivo_cierre: String, List<Map<String, String>>) -> Unit,
         abrir_tienda: (nombre_dia: String, List<Map<String, String>>) -> Unit,
-        error_sin_internet:()-> Unit,
+        error_sin_internet: () -> Unit,
+        onclick_expand: () -> Unit
     ) {
 
         val DELAY_REBOTE_UI_MS = 1000L
@@ -223,7 +245,7 @@ object constantes_horas {
             "Sábado" to horario.sábado,
             "Domingo" to horario.domingo
         )
-        val lista_filtrado = listOf("hoy", "solo dias abiertos", "solo dias cerrados")
+        val lista_filtrado = listOf("hoy", "dias abiertos", "dias cerrados")
         var seleciondao by remember { mutableStateOf("Todos") }
 
         val listState = rememberLazyListState()
@@ -231,20 +253,56 @@ object constantes_horas {
         val diasFiltrados = when (seleciondao) {
             "hoy" -> diasConDatos.filter { it.first == DiaHoy() }
 
-            "solo dias abiertos" -> {
+            "dias abiertos" -> {
                 diasConDatos.filter { !it.second.cerrado }
             }
 
-            "solo dias cerrados" -> diasConDatos.filter { it.second.cerrado }
+            "dias cerrados" -> diasConDatos.filter { it.second.cerrado }
 
             else -> diasConDatos
         }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-
-                .padding(10.dp), verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 5.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            Column(
+                modifier = Modifier.clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }){
+                    onclick_expand()
+                }) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    texto_generico_one_line(
+                        "Horario semanal",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                }
+                spacer_vertical(7.dp)
+                texto_generico_multilinea(
+                    "Actualiza tu horario en tiempo real y GEINZ lo mostrará al instante.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                spacer_vertical(7.dp)
+                Row() {
+                    texto_generico_one_line(
+                        "Horario de hoy : ",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    retornar_color_estado_tienda_Box(
+                        "",
+                        viewModelFiltros.horariosTiendas.collectAsState().value[id_tienda]
+                            ?: HorarioDia_box(),
+                        tick,
+                        true,
+                        { color, txt -> }
+                    )
+                }
+            }
+
+
+
             chips_filtrado(
                 listState = listState,
                 sub_categoria_selecionada = seleciondao,
@@ -254,9 +312,6 @@ object constantes_horas {
                     seleciondao = categoria_selecionada
                 }, color_left = shadow_top_filtrado_v1, color_right = shadow_botonm_filtrado_v1
             )
-
-
-
 
             diasFiltrados.forEach { (nombreDia, datosDia) ->
                 var expndir_todo by remember(seleciondao) { mutableStateOf(false) }

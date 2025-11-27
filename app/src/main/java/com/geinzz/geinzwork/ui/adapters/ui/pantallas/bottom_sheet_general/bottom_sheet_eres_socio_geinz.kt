@@ -1,13 +1,14 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -52,20 +55,24 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.datos_grafico
+import com.geinzz.geinzwork.data.model.datos_tienda_fechas
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
-import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp_socio_geinzz
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp_socio_geinzz_datos_tienda
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp_socio_geinzz_horario_atencion
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_mostar_leyendas_graficos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.DiaHoy
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerDiasYColor
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
@@ -84,7 +91,7 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
     val context = LocalContext.current
     var id_registrado by remember { mutableStateOf("") }
     val labels = listOf("Vistas", "Guardados", "Clics")
-    val labels2 = listOf("Facebook", "Instagram", "TikTok", "sitio web")
+    val labels2 = listOf("Facebook", "Instagram", "TikTok", "Sitio web")
     val labels3 = listOf("Llamada", "Whatsapp", "Rutas")
     val viewmodel: viewmodel_eres_socio = viewModel()
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
@@ -94,6 +101,8 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
 
     var mostar_interes by remember { mutableStateOf(false) }
     var mostrar_convesion by remember { mutableStateOf(false) }
+    var mostrar_datos_teinda by remember { mutableStateOf(false) }
+    var mostar_horario_teinda by remember { mutableStateOf(false) }
     var mostrar_trafico_externo by remember { mutableStateOf(false) }
     val uid_respald_user by data_store_localidad
         .get_id_socio(context)
@@ -105,6 +114,8 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
     var icono_mostar_leyendas_graficos by remember { mutableStateOf(0) }
     var id_tienda by remember { mutableStateOf("") }
     var localidad_tienda by remember { mutableStateOf("barranca") }
+    var fecha_ingreso by remember { mutableStateOf("") }
+    var fecha_termino by remember { mutableStateOf("") }
     var horarioMap by remember { mutableStateOf(HorarioAtencion_box()) }
 
     var mostar_horario__bool by remember { mutableStateOf(false) }
@@ -166,7 +177,11 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.primary)
                                         .clickable {
-                                            viewmodel.verificar_seccion(context, id_registrado,localidad_tienda)
+                                            viewmodel.verificar_seccion(
+                                                context,
+                                                id_registrado,
+                                                localidad_tienda
+                                            )
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -210,7 +225,11 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
 
                         } else {
                             LaunchedEffect(uid_respald_user) {
-                                viewmodel.verificar_seccion(context, uid_respald_user,localidad_tienda)
+                                viewmodel.verificar_seccion(
+                                    context,
+                                    uid_respald_user,
+                                    localidad_tienda
+                                )
                             }
 
                             Box(
@@ -247,16 +266,8 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                         val datos = state.datos
                                         id_tienda = datos.id_tienda
                                         horarioMap = datos.horario_tiendaMap
-                                        localidad_tienda=datos.localidad_tienda
-//                                        val values by remember(datos.id_tienda) {
-//                                            mutableStateOf(
-//                                                listOf(
-//                                                    datos.total_vista.toFloat(),
-//                                                    datos.total_guardados.toFloat(),
-//                                                    datos.clic.toFloat()
-//                                                )
-//                                            )
-//                                        }
+                                        localidad_tienda = datos.localidad_tienda
+                                        fecha_termino = datos.fecha_termino
 
                                         var values by remember { mutableStateOf(listOf<Float>()) }
 
@@ -284,16 +295,14 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                             )
                                         }
 
-//                                        val values3 by remember(datos.id_tienda) {
-//                                            mutableStateOf(
-//                                                listOf(
-//                                                    datos.llamada.toFloat(),
-//                                                    datos.wsap.toFloat(),
-//                                                    datos.ruta.toFloat()
-//                                                )
-//                                            )
-//                                        }
-
+                                        val (dias, color) = obtenerDiasYColor(fecha_termino)
+                                        val datos_fechas = datos_tienda_fechas(
+                                            datos.id_tienda,
+                                            datos.fecha_ingreso,
+                                            datos.fecha_termino,
+                                            dias.toString(),
+                                            color
+                                        )
 
                                         Column(
                                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -317,70 +326,101 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                             Column(
                                                 Modifier
                                                     .clip(RoundedCornerShape(10.dp))
-                                                    .background(MaterialTheme.colorScheme.surface),
+                                                    .background(MaterialTheme.colorScheme.surface)
+                                                    .animateContentSize(),
                                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                                             ) {
-                                                AsyncImage(
-                                                    model = ImageRequest.Builder(context)
-                                                        .data(datos.img_tienda)
-                                                        .placeholder(R.drawable.cargando_img_categorias)
-                                                        .error(R.drawable.cargando_img_categorias)
-                                                        .build(),
-                                                    contentDescription = null,
+                                                Box(
                                                     modifier = Modifier
                                                         .fillMaxSize()
-                                                        .height(200.dp)
+                                                        .height(170.dp)
                                                         .clip(RoundedCornerShape(10.dp))
                                                         .clickable {
-                                                            mostar_horario__bool =
-                                                                !mostar_horario__bool
-                                                        },
-                                                    contentScale = ContentScale.Crop
-                                                )
-                                                texto_generico_one_line(
-                                                    datos.nombre.capitalizeFirst(),
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    modifier = Modifier.padding(start = 5.dp)
-                                                )
-                                                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                                    texto_generico_one_line(
-                                                        "Horario de hoy :",
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        modifier = Modifier.padding(
-                                                            start = 5.dp,
-                                                            bottom = 10.dp
+                                                            mostar_horario__bool = !mostar_horario__bool
+                                                        }
+                                                ) {
+                                                    AsyncImage(
+                                                        model = ImageRequest.Builder(context)
+                                                            .data(datos.img_tienda)
+                                                            .placeholder(R.drawable.cargando_img_categorias)
+                                                            .error(R.drawable.cargando_img_categorias)
+                                                            .build(),
+                                                        contentDescription = null,
+                                                        modifier = Modifier.matchParentSize(),
+                                                        contentScale = ContentScale.Crop
+                                                    )
+
+                                                    this@Column.AnimatedVisibility(!mostar_horario__bool,  modifier = Modifier
+                                                            .matchParentSize()) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .matchParentSize()
+                                                                .background(Color(0x99000000))
                                                         )
-                                                    )
-                                                    retornar_color_estado_tienda_Box(
-                                                        "",
-                                                        viewModelFiltros.horariosTiendas.collectAsState().value[id_tienda]
-                                                            ?: HorarioDia_box(),
-                                                        _tick,
-                                                        true,
-                                                        { color, txt -> }
-                                                    )
+                                                    }
                                                 }
-                                                AnimatedVisibility(mostar_horario__bool) {
-                                                    Log.d("vislibe", "hacemos_campovilse")
-                                                    HorarioSemanal123(
+
+
+                                                Text(
+                                                    text = datos.nombre.capitalizeFirst(),
+                                                    fontFamily = baners_geinz_work,
+                                                    fontSize = 20.sp,
+                                                    modifier = Modifier.padding(start = 10.dp ,end =7.dp)
+                                                )
+                                                Crossfade(
+                                                    targetState = mostar_horario__bool,
+                                                    label = ""
+                                                ) { estado ->
+                                                    if (estado) {
+                                                        texto_generico_multilinea(
+                                                            datos.descripcion,
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            modifier = Modifier.padding(
+                                                                start = 10.dp,
+                                                                end = 10.dp,
+                                                                bottom = 20.dp
+                                                            )
+                                                        )
+                                                    } else {
+                                                        text_expandible_wrapp(
+                                                            modifier = Modifier.padding(
+                                                                start = 10.dp,
+                                                                end = 10.dp,
+                                                                bottom = 20.dp
+                                                            ),
+                                                            texto = datos.descripcion,
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            maxlines = 3
+
+                                                        )
+                                                    }
+                                                }
+
+                                            }
+
+                                            spacer_vertical(10.dp)
+
+                                            Cartas_expandibles(
+                                                modifier = Modifier.padding(
+                                                    vertical = 10.dp
+                                                )
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .animateContentSize() // ← Animación suave
+                                                ) {
+                                                    expandibles_wrapp_socio_geinzz_horario_atencion(
+                                                        tick = _tick,
+                                                        viewModelFiltros = viewModelFiltros,
+                                                        dia = DiaHoy(),
                                                         isConnected = isConnected,
                                                         viewmodel = viewmodel,
-                                                        horario = datos.horario_tiendaMap,
-                                                        cerrar_tienda = { nombre_dia, motivo_cierre, lista ->
-                                                            viewmodel.cambiar_cerrado(
-                                                                datos.id_tienda,
-                                                                nombre_dia,
-                                                                motivo_cierre,
-                                                                lista
-                                                            )
-                                                        },
-                                                        abrir_tienda = { dia, lista_horarios ->
-                                                            viewmodel.cambiar_abierto(
-                                                                datos.id_tienda,
-                                                                dia,
-                                                                lista_horarios
-                                                            )
-                                                        }, {
+                                                        expandido = mostar_horario_teinda,
+                                                        datos = datos,
+                                                        onClickExpand = {
+                                                            mostar_horario_teinda =
+                                                                !mostar_horario_teinda
+                                                        }, sin_conexion = {
                                                             scope.launch {
                                                                 snackbarHostState.showSnackbar(
                                                                     message = "No puedes realizar cambios sin conexion a internet",
@@ -391,38 +431,54 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                 }
                                             }
 
+                                            Cartas_expandibles(
+                                                modifier = Modifier.padding(
+                                                    vertical = 10.dp
+                                                )
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .animateContentSize() // ← Animación suave
+                                                ) {
+                                                    expandibles_wrapp_socio_geinzz_datos_tienda(
+                                                        context,
+                                                        mostrar_datos_teinda,
+                                                        datos_fechas
+                                                    ) {
+                                                        mostrar_datos_teinda = !mostrar_datos_teinda
+                                                    }
+                                                }
+                                            }
 
-
-                                            spacer_vertical(10.dp)
                                             val lsita_datos1 = listOf(
                                                 datos_grafico(
                                                     enable = datos.total_vista != 0,
                                                     img_ = R.drawable.vizualizacion_icon_3d,
-                                                    label = "Vistas",
+                                                    label = "Vistas de perfil",
                                                     cantidad = datos.total_vista.toString()
                                                 ),
                                                 datos_grafico(
                                                     enable = datos.total_guardados != 0,
                                                     img_ = R.drawable.corazon_gracias,
-                                                    label = "Guardados",
+                                                    label = "Guardados de perfil",
                                                     cantidad = datos.total_guardados.toString()
                                                 ),
                                                 datos_grafico(
                                                     enable = datos.clic != 0,
                                                     img_ = R.drawable.click_icon3d,
-                                                    label = "clics",
+                                                    label = "clics en perfil",
                                                     cantidad = datos.clic.toString()
                                                 )
                                             )
-
-                                            AnimatedVisibility (lsita_datos1.any { it.enable }) {
+                                            AnimatedVisibility(lsita_datos1.any { it.enable }) {
                                                 Cartas_expandibles(
                                                     modifier = Modifier.padding(
                                                         vertical = 10.dp
                                                     )
                                                 ) {
                                                     Column() {
-                                                        val lsita_datos1filtrada= lsita_datos1.filter { it.enable }
+                                                        val lsita_datos1filtrada =
+                                                            lsita_datos1.filter { it.enable }
                                                         expandibles_wrapp_socio_geinzz(
                                                             lsita_datos1filtrada,
                                                             "El interés real muestra cuántas personas se detienen a ver tu perfil por más de 6 segundos. Esta métrica refleja la atención genuina que tu negocio genera dentro de la plataforma",
@@ -449,72 +505,74 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                                 )
                                                             ) {
                                                                 itemsIndexed(values) { index, value ->
-                                                                    if(value.toInt()!=0){
-                                                                    Row(
-                                                                        verticalAlignment = Alignment.CenterVertically,
-                                                                        horizontalArrangement = Arrangement.Center,
-                                                                        modifier = Modifier.clickable {
-                                                                            when (labels[index]) {
-                                                                                "Vistas" -> {
-                                                                                    dialog_mostar_leyendas_graficos =
-                                                                                        true
-                                                                                    titulo_leyenda_dialog =
-                                                                                        "Vistas"
-                                                                                    txt_leyenda =
-                                                                                        "Las vistas se registran cuando un usuario permanece viendo tu perfil durante más de 6 segundos. Representan el interés real que genera tu negocio."
-                                                                                    icono_mostar_leyendas_graficos =
-                                                                                        R.drawable.vizualizacion_icon_3d
+                                                                    if (value.toInt() != 0) {
+                                                                        Row(
+                                                                            verticalAlignment = Alignment.CenterVertically,
+                                                                            horizontalArrangement = Arrangement.Center,
+                                                                            modifier = Modifier.clickable (indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                                                                                when (labels[index]) {
+                                                                                    "Vistas" -> {
+                                                                                        dialog_mostar_leyendas_graficos =
+                                                                                            true
+                                                                                        titulo_leyenda_dialog =
+                                                                                            "Vistas"
+                                                                                        txt_leyenda =
+                                                                                            "Las vistas se registran cuando un usuario permanece viendo tu perfil durante más de 6 segundos. Representan el interés real que genera tu negocio."
+                                                                                        icono_mostar_leyendas_graficos =
+                                                                                            R.drawable.vizualizacion_icon_3d
+                                                                                    }
+
+                                                                                    "Guardados" -> {
+                                                                                        dialog_mostar_leyendas_graficos =
+                                                                                            true
+                                                                                        titulo_leyenda_dialog =
+                                                                                            "Guardados"
+                                                                                        txt_leyenda =
+                                                                                            "Los guardados indican cuántos usuarios añadieron a ${datos.nombre} a su lista de favoritos. Es una métrica que refleja cuánta gente quiere volver a encontrar tu tienda rápidamente."
+                                                                                        icono_mostar_leyendas_graficos =
+                                                                                            R.drawable.corazon_gracias
+                                                                                    }
+
+                                                                                    "Clics" -> {
+                                                                                        dialog_mostar_leyendas_graficos =
+                                                                                            true
+                                                                                        titulo_leyenda_dialog =
+                                                                                            "clics"
+                                                                                        txt_leyenda =
+                                                                                            "Los clics representan cuántos usuarios tocaron tu negocio y abrieron directamente el perfil de la tienda o negocio. Miden la intención inmediata de conocer más sobre ti."
+                                                                                        icono_mostar_leyendas_graficos =
+                                                                                            R.drawable.click_icon3d
+                                                                                    }
                                                                                 }
-                                                                                "Guardados" -> {
-                                                                                    dialog_mostar_leyendas_graficos =
-                                                                                        true
-                                                                                    titulo_leyenda_dialog =
-                                                                                        "Guardados"
-                                                                                    txt_leyenda =
-                                                                                        "Los guardados indican cuántos usuarios añadieron a ${datos.nombre} a su lista de favoritos. Es una métrica que refleja cuánta gente quiere volver a encontrar tu tienda rápidamente."
-                                                                                    icono_mostar_leyendas_graficos =
-                                                                                        R.drawable.corazon_gracias
-                                                                                }
-                                                                                "Clics" -> {
-                                                                                    dialog_mostar_leyendas_graficos =
-                                                                                        true
-                                                                                    titulo_leyenda_dialog =
-                                                                                        "clics"
-                                                                                    txt_leyenda =
-                                                                                        "Los clics representan cuántos usuarios tocaron tu negocio y abrieron directamente el perfil de la tienda o negocio. Miden la intención inmediata de conocer más sobre ti."
-                                                                                    icono_mostar_leyendas_graficos =
-                                                                                        R.drawable.click_icon3d
-                                                                                }
+
                                                                             }
+                                                                        ) {
+                                                                            Box(
+                                                                                Modifier
+                                                                                    .size(12.dp)
+                                                                                    .background(
+                                                                                        color = listOf(
+                                                                                            Color(
+                                                                                                0xFFFF6B6B
+                                                                                            ),
+                                                                                            Color(
+                                                                                                0xFF4ECDC4
+                                                                                            ),
+                                                                                            Color(
+                                                                                                0xFF4EFF00
+                                                                                            ),
+                                                                                        )[index],
+                                                                                        shape = CircleShape
+                                                                                    )
+                                                                            )
 
+                                                                            spacer_horizonta(8.dp)
+
+                                                                            texto_generico_one_line(
+                                                                                "${labels[index]}: ${value.toInt()}",
+                                                                                MaterialTheme.typography.bodyMedium
+                                                                            )
                                                                         }
-                                                                    ) {
-                                                                        Box(
-                                                                            Modifier
-                                                                                .size(12.dp)
-                                                                                .background(
-                                                                                    color = listOf(
-                                                                                        Color(
-                                                                                            0xFFFF6B6B
-                                                                                        ),
-                                                                                        Color(
-                                                                                            0xFF4ECDC4
-                                                                                        ),
-                                                                                        Color(
-                                                                                            0xFF4EFF00
-                                                                                        ),
-                                                                                    )[index],
-                                                                                    shape = CircleShape
-                                                                                )
-                                                                        )
-
-                                                                        spacer_horizonta(8.dp)
-
-                                                                        texto_generico_one_line(
-                                                                            "${labels[index]}: ${value.toInt()}",
-                                                                            MaterialTheme.typography.bodyMedium
-                                                                        )
-                                                                    }
 
                                                                     }
                                                                 }
@@ -563,14 +621,15 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                     datos.stweb.toString()
                                                 )
                                             )
-                                            AnimatedVisibility (lsita_datos2.any { it.enable }) {
+                                            AnimatedVisibility(lsita_datos2.any { it.enable }) {
                                                 Cartas_expandibles(
                                                     modifier = Modifier.padding(
                                                         vertical = 10.dp
                                                     )
                                                 ) {
                                                     Column() {
-                                                        val lsita_datos1filtrada= lsita_datos2.filter { it.enable }
+                                                        val lsita_datos1filtrada =
+                                                            lsita_datos2.filter { it.enable }
                                                         expandibles_wrapp_socio_geinzz(
                                                             lsita_datos1filtrada,
                                                             "Este indicador muestra cuántas personas hicieron clic en tus perfiles de redes sociales o en tu sitio web después de ver tu página. Refleja el nivel de intención que tiene el usuario de saber más sobre tu negocio y avanzar hacia un contacto directo",
@@ -598,75 +657,78 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                                 )
                                                             ) {
                                                                 itemsIndexed(values2) { index, value ->
-                                                                    if(value.toInt()!=0){
-                                                                    Row(
-                                                                        verticalAlignment = Alignment.CenterVertically,
-                                                                        horizontalArrangement = Arrangement.Center,
-                                                                        modifier = Modifier.clickable {
-                                                                            when (labels2[index]) {
-                                                                                "Vistas" -> {
-                                                                                    dialog_mostar_leyendas_graficos =
-                                                                                        true
-                                                                                    titulo_leyenda_dialog =
-                                                                                        "Vistas"
-                                                                                    txt_leyenda =
-                                                                                        "Las vistas se registran cuando un usuario permanece viendo tu perfil durante más de 6 segundos. Representan el interés real que genera tu negocio."
-                                                                                    icono_mostar_leyendas_graficos =
-                                                                                        R.drawable.vizualizacion_icon_3d
+                                                                    if (value.toInt() != 0) {
+                                                                        Row(
+                                                                            verticalAlignment = Alignment.CenterVertically,
+                                                                            horizontalArrangement = Arrangement.Center,
+
+                                                                            modifier = Modifier.padding(horizontal = 10.dp).clickable {
+                                                                                when (labels2[index]) {
+                                                                                    "Facebook" -> {
+                                                                                        dialog_mostar_leyendas_graficos = true
+                                                                                        titulo_leyenda_dialog = "Facebook"
+                                                                                        txt_leyenda =
+                                                                                            "Este valor representa cuántos usuarios hicieron clic en el botón de Facebook y fueron redirigidos al perfil oficial de la tienda. Es una métrica clave para medir el interés directo y la intención de conocer más sobre tu negocio."
+                                                                                        icono_mostar_leyendas_graficos = R.drawable.facebook_icon
+                                                                                    }
+
+                                                                                    "Instagram" -> {
+                                                                                        dialog_mostar_leyendas_graficos = true
+                                                                                        titulo_leyenda_dialog = "Instagram"
+                                                                                        txt_leyenda =
+                                                                                            "Aquí se muestra la cantidad de usuarios que tocaron el botón de Instagram y visitaron el perfil de la tienda. Estos clics indican una intención clara de explorar tu contenido, productos y publicaciones recientes."
+                                                                                        icono_mostar_leyendas_graficos = R.drawable.instagram_icon
+                                                                                    }
+
+                                                                                    "TikTok" -> {
+                                                                                        dialog_mostar_leyendas_graficos = true
+                                                                                        titulo_leyenda_dialog = "TikTok"
+                                                                                        txt_leyenda =
+                                                                                            "Este número refleja cuántas personas hicieron clic en el botón de TikTok para ver directamente el contenido de la tienda. Es una medida de la atracción y curiosidad que genera tu negocio en esta plataforma."
+                                                                                        icono_mostar_leyendas_graficos = R.drawable.tik_tok_icon
+                                                                                    }
+
+                                                                                    "Sitio web" -> {
+                                                                                        dialog_mostar_leyendas_graficos = true
+                                                                                        titulo_leyenda_dialog = "Sitio web"
+                                                                                        txt_leyenda =
+                                                                                            "Indica cuántos usuarios ingresaron a tu página web desde la app. Cada clic muestra el interés por obtener más información, ver tu catálogo completo o contactar directamente con tu negocio."
+                                                                                        icono_mostar_leyendas_graficos = R.drawable.web_icon
+                                                                                    }
+
                                                                                 }
-                                                                                "Guardados" -> {
-                                                                                    dialog_mostar_leyendas_graficos =
-                                                                                        true
-                                                                                    titulo_leyenda_dialog =
-                                                                                        "Guardados"
-                                                                                    txt_leyenda =
-                                                                                        "Los guardados indican cuántos usuarios añadieron a ${datos.nombre} a su lista de favoritos. Es una métrica que refleja cuánta gente quiere volver a encontrar tu tienda rápidamente."
-                                                                                    icono_mostar_leyendas_graficos =
-                                                                                        R.drawable.corazon_gracias
-                                                                                }
-                                                                                "Clics" -> {
-                                                                                    dialog_mostar_leyendas_graficos =
-                                                                                        true
-                                                                                    titulo_leyenda_dialog =
-                                                                                        "clics"
-                                                                                    txt_leyenda =
-                                                                                        "Los clics representan cuántos usuarios tocaron tu negocio y abrieron directamente el perfil de la tienda o negocio. Miden la intención inmediata de conocer más sobre ti."
-                                                                                    icono_mostar_leyendas_graficos =
-                                                                                        R.drawable.click_icon3d
-                                                                                }
+
                                                                             }
+                                                                        ) {
+                                                                            Box(
+                                                                                Modifier
+                                                                                    .size(12.dp)
+                                                                                    .background(
+                                                                                        color = listOf(
+                                                                                            Color(
+                                                                                                0xFF1877F2
+                                                                                            ),
+                                                                                            Color(
+                                                                                                0xFFE1306C
+                                                                                            ),
+                                                                                            Color(
+                                                                                                0xFF69C9D0
+                                                                                            ),
+                                                                                            Color(
+                                                                                                0xFF6366F1
+                                                                                            ),
+                                                                                        )[index],
+                                                                                        shape = CircleShape
+                                                                                    )
+                                                                            )
 
+                                                                            spacer_horizonta(8.dp)
+
+                                                                            texto_generico_one_line(
+                                                                                "${labels2[index]}: ${value.toInt()}",
+                                                                                MaterialTheme.typography.bodyMedium
+                                                                            )
                                                                         }
-                                                                    ) {
-                                                                        Box(
-                                                                            Modifier
-                                                                                .size(12.dp)
-                                                                                .background(
-                                                                                    color = listOf(
-                                                                                        Color(
-                                                                                            0xFF1877F2
-                                                                                        ),
-                                                                                        Color(
-                                                                                            0xFFE1306C
-                                                                                        ),
-                                                                                        Color(
-                                                                                            0xFF69C9D0
-                                                                                        ),
-                                                                                        Color(
-                                                                                            0xFF6366F1
-                                                                                        ),
-                                                                                    )[index],
-                                                                                    shape = CircleShape
-                                                                                )
-                                                                        )
-
-                                                                        spacer_horizonta(8.dp)
-
-                                                                        texto_generico_one_line(
-                                                                            "${labels2[index]}: ${value.toInt()}",
-                                                                            MaterialTheme.typography.bodyMedium
-                                                                        )
-                                                                    }
 
                                                                     }
                                                                 }
@@ -713,14 +775,15 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                     cantidad = datos.ruta.toString()
                                                 )
                                             )
-                                            AnimatedVisibility (lsita_datos3.any { it.enable }) {
+                                            AnimatedVisibility(lsita_datos3.any { it.enable }) {
                                                 Cartas_expandibles(
                                                     modifier = Modifier.padding(
                                                         vertical = 10.dp
                                                     )
                                                 ) {
                                                     Column() {
-                                                        val lsita_datos1filtrada= lsita_datos3.filter { it.enable }
+                                                        val lsita_datos1filtrada =
+                                                            lsita_datos3.filter { it.enable }
                                                         expandibles_wrapp_socio_geinzz(
                                                             lsita_datos1filtrada,
                                                             "Mide cuántas personas usaron accesos externos como WhatsApp, llamadas o enlaces directos para comunicarse contigo fuera de la plataforma.",
@@ -740,8 +803,6 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                                 .animateContentSize(),
                                                             horizontalAlignment = Alignment.CenterHorizontally
                                                         ) {
-                                                            spacer_vertical(20.dp)
-                                                            spacer_vertical(5.dp)
                                                             LazyRow(
                                                                 contentPadding = PaddingValues(
                                                                     horizontal = 10.dp
@@ -751,44 +812,66 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                                 )
                                                             ) {
                                                                 itemsIndexed(values3) { index, value ->
-                                                                    if(value.toInt()!=0){
-                                                                    Row(
-                                                                        verticalAlignment = Alignment.CenterVertically,
-                                                                        horizontalArrangement = Arrangement.Center,
-                                                                        modifier = Modifier.clickable {
-                                                                            when (labels3[index]) {
+                                                                    if (value.toInt() != 0) {
+                                                                        Row(
+                                                                            verticalAlignment = Alignment.CenterVertically,
+                                                                            horizontalArrangement = Arrangement.Center,
+                                                                            modifier = Modifier.clickable {
+                                                                                when (labels3[index]) {
+                                                                                    "Llamada" -> {
+                                                                                        dialog_mostar_leyendas_graficos = true
+                                                                                        titulo_leyenda_dialog = "Llamada"
+                                                                                        txt_leyenda =
+                                                                                            "Este valor muestra cuántos usuarios tocaron el botón de llamada para comunicarse directamente con la tienda. Cada clic representa una intención clara de consultar precios, disponibilidad o realizar una compra inmediata."
+                                                                                        icono_mostar_leyendas_graficos = R.drawable.llamada_icon
+                                                                                    }
 
+                                                                                    "Whatsapp" -> {
+                                                                                        dialog_mostar_leyendas_graficos = true
+                                                                                        titulo_leyenda_dialog = "WhatsApp"
+                                                                                        txt_leyenda =
+                                                                                            "Indica cuántas personas hicieron clic en el botón de WhatsApp para chatear con la tienda. Es una métrica muy importante, ya que refleja la intención directa de solicitar información, hacer pedidos o coordinar una reserva."
+                                                                                        icono_mostar_leyendas_graficos = R.drawable.whatsapp_icon
+                                                                                    }
+
+                                                                                    "Rutas" -> {
+                                                                                        dialog_mostar_leyendas_graficos = true
+                                                                                        titulo_leyenda_dialog = "Cómo llegar"
+                                                                                        txt_leyenda =
+                                                                                            "Este número muestra cuántos usuarios presionaron el botón de rutas para abrir el mapa y obtener indicaciones hacia la tienda. Cada clic demuestra un alto interés en visitar físicamente el negocio."
+                                                                                        icono_mostar_leyendas_graficos = R.drawable.icon_3d_ruta
+                                                                                    }
+
+                                                                                }
 
                                                                             }
+                                                                        ) {
+                                                                            Box(
+                                                                                Modifier
+                                                                                    .size(12.dp)
+                                                                                    .background(
+                                                                                        color = listOf(
+                                                                                            Color(
+                                                                                                0xFF18C5A4
+                                                                                            ),
+                                                                                            Color(
+                                                                                                0xFF25D366
+                                                                                            ),
+                                                                                            Color(
+                                                                                                0xFF6A0DAD
+                                                                                            )
+                                                                                        )[index],
+                                                                                        shape = CircleShape
+                                                                                    )
+                                                                            )
 
+                                                                            spacer_horizonta(8.dp)
+
+                                                                            texto_generico_one_line(
+                                                                                "${labels3[index]}: ${value.toInt()}",
+                                                                                MaterialTheme.typography.bodyMedium
+                                                                            )
                                                                         }
-                                                                    ) {
-                                                                        Box(
-                                                                            Modifier
-                                                                                .size(12.dp)
-                                                                                .background(
-                                                                                    color = listOf(
-                                                                                        Color(
-                                                                                            0xFF18C5A4
-                                                                                        ),
-                                                                                        Color(
-                                                                                            0xFF25D366
-                                                                                        ),
-                                                                                        Color(
-                                                                                            0xFF6A0DAD
-                                                                                        )
-                                                                                    )[index],
-                                                                                    shape = CircleShape
-                                                                                )
-                                                                        )
-
-                                                                        spacer_horizonta(8.dp)
-
-                                                                        texto_generico_one_line(
-                                                                            "${labels3[index]}: ${value.toInt()}",
-                                                                            MaterialTheme.typography.bodyMedium
-                                                                        )
-                                                                    }
                                                                     }
                                                                 }
                                                             }

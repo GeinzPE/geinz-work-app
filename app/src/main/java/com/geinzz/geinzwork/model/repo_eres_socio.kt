@@ -41,9 +41,12 @@ class repo_eres_socio {
                 val nombre_tienda = data["nombre_tienda"] as? String ?: ""
                 val img_tienda = data["img_tienda"] as? Map<String, Any> ?: emptyMap()
                 val logo = img_tienda["logo_tienda"] as? String ?: ""
-
                 val horario_atencion = data["horario_atencion"] as? Map<String, Any> ?: emptyMap()
                 val localidadTienda = data["localidad"] as? String ?: ""
+                val fechas =data["fechas"] as? Map<String, Any>?:emptyMap()
+                val fecha_ingreso=fechas.get("fecha_ingreso") as? String ?:""
+                val fecha_termino =fechas.get("fecha_fin") as? String?:""
+                val descripcion =data["descripcion"] as? String?:""
                 val horarioMap = horario_atencion.to_horario_atencion_box_dia()
 
                 // 📌 AHORA ESCUCHAMOS ESTADISTICAS EN TIEMPO REAL
@@ -80,11 +83,9 @@ class repo_eres_socio {
                                     nombre = nombre_tienda,
                                     img_tienda = logo,
                                     horario_tiendaMap = horarioMap,
-
                                     total_vista = totalVistas,
                                     total_guardados = totalGuardados,
                                     clic = totalClic,
-
                                     fb = fb,
                                     ig = ig,
                                     tk = tk,
@@ -92,7 +93,9 @@ class repo_eres_socio {
                                     wsap = wsap,
                                     llamada = llamada,
                                     ruta = ruta,
-                                    localidad_tienda = localidadTienda
+                                    localidad_tienda = localidadTienda,
+                                    fecha_ingreso = fecha_ingreso,
+                                    fecha_termino = fecha_termino,descripcion
                                 )
                             )
                         }

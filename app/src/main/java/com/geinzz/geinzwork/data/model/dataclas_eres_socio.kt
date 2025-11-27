@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.data.model
 
+import androidx.compose.ui.graphics.Color
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 
 data class datos_tienda(
@@ -17,7 +18,23 @@ data class datos_tienda(
     val wsap: Number = 0,
     val llamada: Number = 0,
     val ruta: Number = 0,
-    val localidad_tienda :String
+    val localidad_tienda: String,
+    val fecha_ingreso: String,
+    val fecha_termino: String,
+    val descripcion:String,
 )
 
-data class datos_grafico(val enable: Boolean, val img_:Int, val label:String, val cantidad:String)
+data class datos_grafico(
+    val enable: Boolean,
+    val img_: Int,
+    val label: String,
+    val cantidad: String
+)
+
+data class datos_tienda_fechas(
+    val id_tienda: String,
+    val fecha_ingreso: String,
+    val fecha_termino: String,
+   val dias_restantes: String,
+    val color: Color
+)
