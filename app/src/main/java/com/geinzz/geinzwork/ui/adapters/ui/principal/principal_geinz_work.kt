@@ -175,6 +175,19 @@ fun pantalla_principal(
         urls_turistico.randomOrNull() ?: ""
     }
 
+    val ud_tienda_shader by data_store_localidad.get_id_socio(context).collectAsState(initial = "")
+    var mostrar_widget_tienda by remember { mutableStateOf(false) }
+
+
+    LaunchedEffect(ud_tienda_shader) {
+        if(ud_tienda_shader != ""){
+            mostrar_widget_tienda=true
+        }else{
+            mostrar_widget_tienda=false
+
+        }
+
+    }
 
 
 
@@ -346,7 +359,7 @@ fun pantalla_principal(
 
 
 
-                spacer_vertical(25.dp)
+                spacer_vertical(20.dp)
             }
 
             item {
@@ -364,10 +377,19 @@ fun pantalla_principal(
 
                 spacer_vertical(20.dp)
             }
+
             item {
+                if(mostrar_widget_tienda){
                 spacer_vertical(10.dp)
                 baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul) }
                 spacer_vertical(20.dp)
+                }
+            }
+            item {
+                if(!mostrar_widget_tienda){
+                spacer_vertical(10.dp)
+                baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul) }
+                spacer_vertical(20.dp)}
             }
             item {
                 rutas_turismo(
@@ -380,6 +402,13 @@ fun pantalla_principal(
                 }
                 spacer_vertical(30.dp)
             }
+
+            item {
+                if(mostrar_widget_tienda){
+                    baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul) }
+                    spacer_vertical(10.dp)}
+            }
+
             item {
                 spacer_vertical(10.dp)
 

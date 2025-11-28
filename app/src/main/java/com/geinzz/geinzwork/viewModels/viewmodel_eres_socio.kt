@@ -49,30 +49,39 @@ class viewmodel_eres_socio : ViewModel() {
 
     fun cargarIdSocio(context: Context) {
         _cargandoIdSocio.value = true
+        Log.d("CargarIdSocio", "Inicio de la función. _cargandoIdSocio = true")
 
         viewModelScope.launch {
             val inicio = System.currentTimeMillis()
+            Log.d("CargarIdSocio", "Marca de tiempo de inicio: $inicio")
 
             data_store_localidad.get_id_socio(context).collect { valor ->
+                Log.d("CargarIdSocio", "Valor recibido de data store: '$valor'")
                 _idSocio.value = valor
+                Log.d("CargarIdSocio", "_idSocio actualizado: '${_idSocio.value}'")
 
-                // Inicia la verificación mientras la pantalla de carga sigue mostrando
                 if (valor.isNotEmpty()) {
-                    verificar_seccion(context, valor, "barranca")  // o localidad correspondiente
+                    Log.d("CargarIdSocio", "Valor no vacío, se llama a verificar_seccion")
+                    verificar_seccion(context, valor, "barranca")
+                } else {
+                    Log.d("CargarIdSocio", "Valor vacío, no se verifica sección")
                 }
 
-                // Asegura que la pantalla de carga dure al menos 4 segundos
                 val tiempoTranscurrido = System.currentTimeMillis() - inicio
-                val faltante = 4000 - tiempoTranscurrido  // 4000 ms = 4 segundos
-                if (faltante > 0) delay(faltante)
+                Log.d("CargarIdSocio", "Tiempo transcurrido: $tiempoTranscurrido ms")
+                val faltante = 4000 - tiempoTranscurrido
+                Log.d("CargarIdSocio", "Tiempo faltante para 4 segundos: $faltante ms")
+
+                if (faltante > 0) {
+                    Log.d("CargarIdSocio", "Delay por $faltante ms")
+                    delay(faltante)
+                }
 
                 _cargandoIdSocio.value = false
+                Log.d("CargarIdSocio", "_cargandoIdSocio = false, función finalizada")
             }
         }
     }
-
-
-
 
     /**
      * Para resetear el estado de la pantalla antes de logear
@@ -83,6 +92,7 @@ class viewmodel_eres_socio : ViewModel() {
 
 
     fun verificar_existencia_tienda(id_tienda: String ,localidad_tienda: String){
+        Log.d("daots_tiendas_registrada","$id_tienda $localidad_tienda")
         viewModelScope.launch {
             try {
                 instace_repo.verificar_existencia_tienda(id_tienda,localidad_tienda,{existe->
@@ -94,20 +104,21 @@ class viewmodel_eres_socio : ViewModel() {
             }
         }
     }
+
+    fun cambiar_estado_Seccion() {
+        _verificar_seccion_tienda.value=false
+    }
     fun verificar_seccion(context: Context, id_tienda: String, localidad_tienda: String) {
 
         listenerDatosTienda?.remove()
 
         _state_eres_socio.value = carga_acces_socio.loading
 
-        val inicioCarga = System.currentTimeMillis()
-
         listenerDatosTienda = instace_repo.escuchar_datos_tienda(
             localidad_tienda,
             id_tienda,
             resultado = { datos ->
                 viewModelScope.launch {
-
                     if (datos.nombre.isNotEmpty()) {
                         _state_eres_socio.value = carga_acces_socio.succes(datos)
                         set_id_socio(context, datos.id_tienda)

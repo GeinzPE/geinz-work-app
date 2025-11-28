@@ -150,7 +150,7 @@ fun img_fondo_user(
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
-                .clickable {
+                .clickable (indication = null, interactionSource = remember { MutableInteractionSource() }){
                     ocultar_contenido()
                 },
             contentScale = ContentScale.Crop
@@ -265,37 +265,37 @@ fun protada_perfil_user(
                     )
                     spacer_vertical(10.dp)
                 }
-                item {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            buildAnnotatedString {
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = Color.White
-                                    )
-                                ) {
-                                    append("Whatsapp oficial de Geinz  ")
-                                }
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = MaterialTheme.colorScheme.primary,
-                                        textDecoration = TextDecoration.Underline,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                ) {
-                                    append(" +51 958 120 920")
-                                }
-                            },
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.clickable {
-                                abrir_whattsapp(contex, "958 120 920")
-                            })
-                    }
-                    spacer_vertical(10.dp)
-
-                }
+//                item {
+//                    Row(
+//                        verticalAlignment = Alignment.CenterVertically
+//                    ) {
+//                        Text(
+//                            buildAnnotatedString {
+//                                withStyle(
+//                                    style = SpanStyle(
+//                                        color = Color.White
+//                                    )
+//                                ) {
+//                                    append("Whatsapp oficial de Geinz  ")
+//                                }
+//                                withStyle(
+//                                    style = SpanStyle(
+//                                        color = MaterialTheme.colorScheme.primary,
+//                                        textDecoration = TextDecoration.Underline,
+//                                        fontWeight = FontWeight.Medium
+//                                    )
+//                                ) {
+//                                    append(" +51 958 120 920")
+//                                }
+//                            },
+//                            style = MaterialTheme.typography.bodyMedium,
+//                            modifier = Modifier.clickable {
+//                                abrir_whattsapp(contex, "958 120 920")
+//                            })
+//                    }
+//                    spacer_vertical(10.dp)
+//
+//                }
 
                 item {
                     Text(

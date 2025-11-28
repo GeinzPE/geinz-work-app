@@ -726,7 +726,7 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                                 horizontalArrangement = Arrangement.Center,
                                 modifier = Modifier.padding(
                                     start = 5.dp,
-                                    bottom = 5.dp, end = 20.dp
+                                    bottom = 5.dp, end = 10.dp
                                 )
                             ) {
 
@@ -780,6 +780,10 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                                 color = datos_tienda_fechas.color,
                                 modifier = Modifier.padding(start = 5.dp, bottom = 10.dp)
                             )
+
+                            if(datos_tienda_fechas.dias_restantes=="0"){
+
+                            }
                         }
                     }
                 }

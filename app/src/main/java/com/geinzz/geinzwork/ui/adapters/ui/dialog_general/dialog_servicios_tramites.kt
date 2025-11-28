@@ -111,7 +111,6 @@ fun dialog_servicios_tramite(
         confirmButton = {},
         text = {
             FuenteControladaApp{
-
                 Column {
                     Box(modifier = Modifier.fillMaxWidth()) {
                         btn_close_gris(
