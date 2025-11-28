@@ -201,7 +201,6 @@ fun Pantalla_filtrado_tiendas(
             subCategoriaSeleccionada != "Todos" && hayTiendas
         }
     }
-    val horario_box by viewModelFiltros.color_estado_tienda_box.collectAsState()
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     var id_respado_user by remember { mutableStateOf("") }
 

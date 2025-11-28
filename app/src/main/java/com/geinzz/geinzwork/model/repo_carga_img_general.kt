@@ -1,14 +1,21 @@
 package com.geinzz.geinzwork.model
 
+import android.os.Build
+import androidx.annotation.RequiresApi
+import com.geinzz.geinzwork.data.model.datos_tienda
+import com.geinzz.geinzwork.data.model.widget_tienda
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.DiaHoy
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion_box_dia
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.storage.FirebaseStorage
 import io.ktor.client.plugins.cache.storage.FileStorage
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class repo_carga_img_general {
-    val db= FirebaseFirestore.getInstance()
-    val storage= FirebaseStorage.getInstance()
+    val db = FirebaseFirestore.getInstance()
+    val storage = FirebaseStorage.getInstance()
 
 
     suspend fun obtenerUrlsCarga(): List<String> = suspendCoroutine { continuation ->
@@ -45,38 +52,87 @@ class repo_carga_img_general {
                 continuation.resume(emptyList())
             }
     }
-    suspend fun obtenerUrlsCarga_lugares_turisticos(): List<String> = suspendCoroutine { continuation ->
-        val folderRef = storage.reference.child("walpaper_geinz/fondos_carga")
 
-        folderRef.listAll()
-            .addOnSuccessListener { listResult ->
-                val items = listResult.items
-                val total = items.size
-                val urls = mutableListOf<String>()
+    suspend fun obtenerUrlsCarga_lugares_turisticos(): List<String> =
+        suspendCoroutine { continuation ->
+            val folderRef = storage.reference.child("walpaper_geinz/fondos_carga")
 
-                if (total == 0) {
-                    continuation.resume(emptyList())
-                    return@addOnSuccessListener
-                }
+            folderRef.listAll()
+                .addOnSuccessListener { listResult ->
+                    val items = listResult.items
+                    val total = items.size
+                    val urls = mutableListOf<String>()
 
-                items.forEach { item ->
-                    item.downloadUrl.addOnSuccessListener { uri ->
-                        urls.add(uri.toString())
+                    if (total == 0) {
+                        continuation.resume(emptyList())
+                        return@addOnSuccessListener
+                    }
 
-                        if (urls.size == total) {
-                            continuation.resume(urls)
-                        }
-                    }.addOnFailureListener {
-                        // si falla una, igual seguimos
-                        urls.add("ERROR")
-                        if (urls.size == total) {
-                            continuation.resume(urls)
+                    items.forEach { item ->
+                        item.downloadUrl.addOnSuccessListener { uri ->
+                            urls.add(uri.toString())
+
+                            if (urls.size == total) {
+                                continuation.resume(urls)
+                            }
+                        }.addOnFailureListener {
+                            // si falla una, igual seguimos
+                            urls.add("ERROR")
+                            if (urls.size == total) {
+                                continuation.resume(urls)
+                            }
                         }
                     }
                 }
+                .addOnFailureListener {
+                    continuation.resume(emptyList())
+                }
+        }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    val horario=DiaHoy()
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun obtener_datos_tienda(
+        id_tienda: String, localida: String, resultado: (widget_tienda) -> Unit,
+        error: (Exception) -> Unit,
+    ) : ListenerRegistration {
+
+        val ref =
+            db.collection("Tiendas").document(localida).collection(localida).document(id_tienda)
+        return ref.addSnapshotListener { snapshot, e ->
+            if (e != null) {
+                error(e)
+                return@addSnapshotListener
             }
-            .addOnFailureListener {
-                continuation.resume(emptyList())
+
+            if (snapshot != null && snapshot.exists()) {
+
+                val data = snapshot.data ?: emptyMap<String, Any>()
+
+                val nombre_tienda = data["nombre_tienda"] as? String ?: ""
+                val img_tienda = data["img_tienda"] as? Map<String, Any> ?: emptyMap()
+                val logo = img_tienda["logo_tienda"] as? String ?: ""
+                val horario_atencion = data["horario_atencion"] as? Map<String, Any> ?: emptyMap()
+                val horarioMap = horario_atencion.to_horario_atencion_box_dia()
+                val fechas = data["fechas"] as? Map<String, Any> ?: emptyMap()
+                val fecha_termino = fechas["fecha_fin"] as? String ?: ""
+                val total_puntos =data["puntos_tienda"] as? Number?:0
+
+
+                resultado(
+                    widget_tienda(
+                        total_puntos = total_puntos.toString(),
+                        dia_hoy = horario,
+                        id_tienda = id_tienda,
+                        nombre_tienda = nombre_tienda,
+                        img_tienda =logo,
+                        horario_tiendaMap = horarioMap,
+                        fecha_termino = fecha_termino
+                    )
+                )
+
             }
+        }
+
     }
 }

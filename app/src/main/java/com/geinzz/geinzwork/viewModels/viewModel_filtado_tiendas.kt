@@ -493,6 +493,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     val horariosTiendas: StateFlow<Map<String, HorarioDia_box>> = _horariosTiendas
 
     fun calcularHorarioParaTienda(idTienda: String, horarioAtencion: HorarioAtencion_box) {
+        Log.d("horario_atenicon_estado",horarioAtencion.toString())
         viewModelScope.launch {
             val result = try {
                 repo_filtrado.obtener_estado_horario_tienda_Box(horarioAtencion)

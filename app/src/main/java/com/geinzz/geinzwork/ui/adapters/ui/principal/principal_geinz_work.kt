@@ -4,8 +4,10 @@ package com.geinzz.geinzwork.ui.adapters.ui.principal
 import android.util.Log
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -122,13 +124,18 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.text.TextStyle
 import androidx.core.content.ContextCompat
 import coil3.request.CachePolicy
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
+import com.geinzz.geinzwork.data.model.widget_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad.guarar_dialogo_notifi
 import com.geinzz.geinzwork.data_store.data_store_localidad.sendNotificacion
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_registra_tu_negocio
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_servicios_basicos_
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_widget_tienda_geinz
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_widget_tienda_geinz_baner
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permiso_primario_notifi
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_ayudanos_a_creccer
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.verificar_version
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.guarar_token_user
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_carga_img_general
@@ -137,6 +144,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 
 private lateinit var firebaseAuth: FirebaseAuth
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun pantalla_principal(
@@ -153,6 +161,8 @@ fun pantalla_principal(
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val ud_tienda_shader by data_store_localidad.get_id_socio(context).collectAsState(initial = "")
+
     val vm_fotos_salud: viewmodel_carga_img_general = viewModel(
         factory = viewmodel_carga_img_generalFactory.Factory(context)
     )
@@ -171,25 +181,18 @@ fun pantalla_principal(
         urls.randomOrNull() ?: ""
     }
 
+    var datos_tienda by remember { mutableStateOf(widget_tienda()) }
+
+    val estados_carga_widget by vm_fotos_salud.estado_carga_widget_tienda.collectAsState()
+
+    LaunchedEffect(estados_carga_widget) {
+            datos_tienda=estados_carga_widget
+    }
+
     val url_turistico_aleatoria = rememberSaveable(urls_turistico.hashCode()) {
         urls_turistico.randomOrNull() ?: ""
     }
-
-    val ud_tienda_shader by data_store_localidad.get_id_socio(context).collectAsState(initial = "")
     var mostrar_widget_tienda by remember { mutableStateOf(false) }
-
-
-    LaunchedEffect(ud_tienda_shader) {
-        if(ud_tienda_shader != ""){
-            mostrar_widget_tienda=true
-        }else{
-            mostrar_widget_tienda=false
-
-        }
-
-    }
-
-
 
 //    LaunchedEffect(Unit) {
 ////        viewModel_cordenadas.obtener_subcategorias(true)
@@ -240,6 +243,21 @@ fun pantalla_principal(
         } else {
             id_respado_user = ""
         }
+    }
+
+    val horariosTiendas by viewModel_filtado_tiendas.horariosTiendas.collectAsState()
+    val tick by viewModel_filtado_tiendas.tick.collectAsState()
+    val horario_hoy=viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[datos_tienda.id_tienda] ?: HorarioDia_box()
+
+    LaunchedEffect(ud_tienda_shader) {
+        if(ud_tienda_shader != ""){
+            mostrar_widget_tienda=true
+            viewModel_filtado_tiendas.calcularHorarioParaTienda(ud_tienda_shader,datos_tienda.horario_tiendaMap)
+        }else{
+            mostrar_widget_tienda=false
+
+        }
+
     }
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -381,7 +399,9 @@ fun pantalla_principal(
             item {
                 if(mostrar_widget_tienda){
                 spacer_vertical(10.dp)
-                baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul) }
+
+                    baner_widget_tienda_geinz_baner(datos_tienda,horario_hoy,"",tick)
+
                 spacer_vertical(20.dp)
                 }
             }

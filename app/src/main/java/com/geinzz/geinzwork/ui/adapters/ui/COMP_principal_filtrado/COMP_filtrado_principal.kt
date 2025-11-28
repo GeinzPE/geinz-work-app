@@ -130,11 +130,14 @@ import com.geinzz.geinzwork.data.model.datos_grafico
 import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.data.model.datos_tienda_fechas
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
+import com.geinzz.geinzwork.data.model.widget_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerDiasYColor
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_subcategoria_shadow
@@ -781,7 +784,7 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                                 modifier = Modifier.padding(start = 5.dp, bottom = 10.dp)
                             )
 
-                            if(datos_tienda_fechas.dias_restantes=="0"){
+                            if (datos_tienda_fechas.dias_restantes == "0") {
 
                             }
                         }
@@ -807,7 +810,7 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
     campos_vacios_o_incompletos: () -> Unit, error_hoario: (String) -> Unit
 ) {
 
-    Log.d("datos_teinda_ente131213131231",datos.horario_tiendaMap.toString())
+    Log.d("datos_teinda_ente131213131231", datos.horario_tiendaMap.toString())
 
     ConstraintLayout(
         modifier = Modifier
@@ -839,7 +842,8 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
                         modifier = Modifier.clickable(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
-                        ) { onClickExpand() }, verticalAlignment = Alignment.CenterVertically) {
+                        ) { onClickExpand() }, verticalAlignment = Alignment.CenterVertically
+                    ) {
                         texto_generico_one_line(
                             "Horario de hoy $dia :  ",
                             style = MaterialTheme.typography.bodyMedium
@@ -1880,6 +1884,184 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
         }
     }
 }
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun baner_widget_tienda_geinz(
+    viewModel_filtado_tiendas: viewModel_filtado_tiendas,
+    item: widget_tienda,
+) {
+    val (dias, color) = obtenerDiasYColor(item.fecha_termino)
+
+    val tick by viewModel_filtado_tiendas.tick.collectAsState()
+
+    LaunchedEffect(item.id_tienda) {
+        viewModel_filtado_tiendas.calcularHorarioParaTienda(item.id_tienda,item.horario_tiendaMap)
+    }
+    val horario_hoy=viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[item.id_tienda] ?: HorarioDia_box()
+
+    val hora_de_trabajo= constantes_horas.calcularHorasDiaLegible(horario_hoy)
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color(0xFF1A1A1A))
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 180.dp)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                // Acción al hacer clic (opcional)
+            }
+    ) {
+        Row(modifier = Modifier.matchParentSize()) {
+
+            // Columna con texto e información
+            Column(
+                modifier = Modifier
+                    .weight(2f)
+                    .fillMaxHeight()
+                    .padding(12.dp)
+            ) {
+                texto_generico_one_line(item.nombre_tienda, style = MaterialTheme.typography.titleLarge)
+
+
+                texto_generico_one_line("Horas de trabajo $hora_de_trabajo")
+
+                    // Mostramos el horario calculado desde el ViewModel
+                    retornar_color_estado_tienda_Box(
+                        "",horario_hoy,
+                        tick,
+                        true,
+                        { color, txt -> /* callback si lo necesitas */ },
+                        true
+                    )
+
+
+                texto_generico_one_line(
+                    "Renovación: $dias días a renovar",
+                    color = color, style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            // Imagen de la tienda con gradiente
+            Box(
+                modifier = Modifier
+                    .weight(1.5f)
+                    .fillMaxHeight()
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .data(item.img_tienda)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(80.dp)
+                        .align(Alignment.CenterStart)
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(Color(0xFF1A1A1A), Color.Transparent)
+                            )
+                        )
+                )
+            }
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun baner_widget_tienda_geinz_baner(
+    item: widget_tienda,
+    horario_hoy: HorarioDia_box,
+    hora_de_trabajo: String,
+    tick: Long
+) {
+    val (dias, color) = obtenerDiasYColor(item.fecha_termino)
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color(0xFF1A1A1A))
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 180.dp)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                // Acción al hacer clic (opcional)
+            }
+    ) {
+        Row(modifier = Modifier.matchParentSize()) {
+
+            // Columna con texto e información
+            Column(
+                modifier = Modifier
+                    .weight(2f)
+                    .fillMaxHeight()
+                    .padding(12.dp)
+            ) {
+                texto_generico_one_line(item.nombre_tienda, style = MaterialTheme.typography.titleLarge)
+
+                texto_generico_one_line("Horas de trabajo $hora_de_trabajo")
+
+                retornar_color_estado_tienda_Box(
+                    "", horario_hoy,
+                    tick,
+                    true,
+                    { color, txt -> /* callback si lo necesitas */ },
+                    true
+                )
+
+                texto_generico_one_line(
+                    "Renovación: $dias días a renovar",
+                    color = color, style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            // Imagen de la tienda con gradiente
+            Box(
+                modifier = Modifier
+                    .weight(1.5f)
+                    .fillMaxHeight()
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .data(item.img_tienda)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(80.dp)
+                        .align(Alignment.CenterStart)
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(Color(0xFF1A1A1A), Color.Transparent)
+                            )
+                        )
+                )
+            }
+        }
+    }
+}
+
+
 
 @Composable
 fun baner_registra_tu_negocio(listener_registra_tu_negocio: () -> Unit) {

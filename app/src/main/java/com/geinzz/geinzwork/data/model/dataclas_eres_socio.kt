@@ -21,7 +21,16 @@ data class datos_tienda(
     val localidad_tienda: String,
     val fecha_ingreso: String,
     val fecha_termino: String,
-    val descripcion:String,
+    val descripcion: String,
+)
+
+data class widget_tienda(
+    val total_puntos :String ="",
+    val dia_hoy:String="",
+    val id_tienda: String="",
+    val nombre_tienda: String="",
+    val img_tienda: String="",
+    val horario_tiendaMap: HorarioAtencion_box = HorarioAtencion_box(),val fecha_termino:String="",
 )
 
 data class datos_grafico(
@@ -35,6 +44,6 @@ data class datos_tienda_fechas(
     val id_tienda: String,
     val fecha_ingreso: String,
     val fecha_termino: String,
-   val dias_restantes: String,
+    val dias_restantes: String,
     val color: Color
 )

@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import java.time.Duration
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -221,6 +222,26 @@ object constantes_horas {
         }
 
         return Pair(diasRestantes, color)
+    }
+
+
+    fun calcularHorasDiaLegible(horarioDia: HorarioDia_box): String {
+        if (horarioDia.cerrado || horarioDia.bloques.isEmpty()) return "0h 0m"
+
+        val formatter = DateTimeFormatter.ofPattern("HH:mm")
+        var totalMinutos = 0L
+
+        for (bloque in horarioDia.bloques) {
+            val apertura = LocalTime.parse(bloque.h_apertura, formatter)
+            val cierre = LocalTime.parse(bloque.h_cierre, formatter)
+            val duracion = Duration.between(apertura, cierre).toMinutes()
+            totalMinutos += duracion
+        }
+
+        val horas = totalMinutos / 60
+        val minutos = totalMinutos % 60
+
+        return "${horas}h ${minutos}m"
     }
 
     fun convertir24a12(hora24: String): String {
