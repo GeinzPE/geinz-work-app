@@ -41,15 +41,19 @@ class repo_eres_socio {
                 val nombre_tienda = data["nombre_tienda"] as? String ?: ""
                 val img_tienda = data["img_tienda"] as? Map<String, Any> ?: emptyMap()
                 val logo = img_tienda["logo_tienda"] as? String ?: ""
+
                 val horario_atencion = data["horario_atencion"] as? Map<String, Any> ?: emptyMap()
-                val localidadTienda = data["localidad"] as? String ?: ""
-                val fechas =data["fechas"] as? Map<String, Any>?:emptyMap()
-                val fecha_ingreso=fechas.get("fecha_ingreso") as? String ?:""
-                val fecha_termino =fechas.get("fecha_fin") as? String?:""
-                val descripcion =data["descripcion"] as? String?:""
                 val horarioMap = horario_atencion.to_horario_atencion_box_dia()
 
-                // 📌 AHORA ESCUCHAMOS ESTADISTICAS EN TIEMPO REAL
+                val localidadTienda = data["localidad"] as? String ?: ""
+
+                val fechas = data["fechas"] as? Map<String, Any> ?: emptyMap()
+                val fecha_ingreso = fechas["fecha_ingreso"] as? String ?: ""
+                val fecha_termino = fechas["fecha_fin"] as? String ?: ""
+
+                val descripcion = data["descripcion"] as? String ?: ""
+
+                // 🔥 ESCUCHAR ESTADISTICAS EN TIEMPO REAL
                 ref.collection("estadisticas")
                     .addSnapshotListener { statsSnap, statsError ->
 
@@ -77,6 +81,7 @@ class repo_eres_socio {
                             val llamada = obtenerTotal("llamada")
                             val ruta = obtenerTotal("ruta")
 
+                            // ✔️ AQUÍ ESTABA EL ERROR → faltaba poner el nombre del último parámetro
                             resultado(
                                 datos_tienda(
                                     id_tienda = id_tienda,
@@ -95,7 +100,8 @@ class repo_eres_socio {
                                     ruta = ruta,
                                     localidad_tienda = localidadTienda,
                                     fecha_ingreso = fecha_ingreso,
-                                    fecha_termino = fecha_termino,descripcion
+                                    fecha_termino = fecha_termino,
+                                    descripcion = descripcion // ← corregido aquí
                                 )
                             )
                         }
@@ -103,6 +109,7 @@ class repo_eres_socio {
             }
         }
     }
+
 
 
     suspend fun guardar_horario_cerrado(
@@ -191,6 +198,28 @@ class repo_eres_socio {
                 db.set(mapOf("total" to 0))
             }
     }
+
+
+    fun verificar_existencia_tienda(
+        id_tienda: String,
+        localidad_tienda: String,
+        resultado: (Boolean) -> Unit
+    ) {
+        val ref = FirebaseFirestore.getInstance()
+            .collection("Tiendas")
+            .document(localidad_tienda)
+            .collection(localidad_tienda)
+            .document(id_tienda)
+
+        ref.get()
+            .addOnSuccessListener { snapshot ->
+                resultado(snapshot.exists()) // 👈 true si existe, false si no
+            }
+            .addOnFailureListener {
+                resultado(false) // 👈 en caso de error tratamos como que no existe
+            }
+    }
+
 
 
 }

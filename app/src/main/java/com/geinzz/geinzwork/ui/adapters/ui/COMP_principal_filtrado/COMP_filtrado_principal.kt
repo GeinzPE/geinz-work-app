@@ -802,6 +802,9 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
     sin_conexion: () -> Unit,
     campos_vacios_o_incompletos: () -> Unit, error_hoario: (String) -> Unit
 ) {
+
+    Log.d("datos_teinda_ente131213131231",datos.horario_tiendaMap.toString())
+
     ConstraintLayout(
         modifier = Modifier
             .fillMaxWidth()
@@ -832,9 +835,9 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
                         modifier = Modifier.clickable(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
-                        ) { onClickExpand() }) {
+                        ) { onClickExpand() }, verticalAlignment = Alignment.CenterVertically) {
                         texto_generico_one_line(
-                            "Horario de hoy $dia : ",
+                            "Horario de hoy $dia :  ",
                             style = MaterialTheme.typography.bodyMedium
                         )
                         retornar_color_estado_tienda_Box(

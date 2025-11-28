@@ -68,13 +68,15 @@ import kotlinx.coroutines.launch
 
 val firebaseAuth = FirebaseAuth.getInstance()
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun cuenta_user(
     isConnected: Boolean,
     viewModel_login_user: viewModel_login_user,
     correo_registrado: String,
     navController: NavController,
-    terminar_configurar: (String) -> Unit
+    terminar_configurar: (String) -> Unit,
+    click_login_ver_socio:()-> Unit,
 ) {
     val loginState_principal by viewModel_login_user.loginStateCamposInicial.collectAsState()
     val registrado_google = viewModel_login_user.registrado_google.observeAsState()
@@ -120,7 +122,7 @@ fun cuenta_user(
             },
             terminar_configurar = {
                 terminar_configurar(correo_registrado)
-            })
+            },{click_login_ver_socio()})
 
     }
 
@@ -179,7 +181,8 @@ fun protada_perfil_user(
     ocultar_contenido_Boolean: Boolean,
     ocultar_contenido: () -> Unit,
     cerrar_seccion: () -> Unit,
-    terminar_configurar: () -> Unit
+    terminar_configurar: () -> Unit,
+    click_login_ver_socio:()-> Unit,
 ) {
     val contex = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -302,7 +305,7 @@ fun protada_perfil_user(
                         fontWeight = FontWeight.Medium,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.clickable {
-                            eres_socio = true
+                            click_login_ver_socio()
                         })
                     spacer_vertical(20.dp)
                 }
@@ -357,9 +360,10 @@ fun protada_perfil_user(
 
         }
     }
-    if (eres_socio) {
-        eres_socio_geinz (isConnected,"Benjamin",{eres_socio = false})
-    }
+//    if (eres_socio) {
+//        click_login_ver_socio()
+////        eres_socio_geinz (isConnected,"Benjamin",{eres_socio = false})
+//    }
 
 }
 

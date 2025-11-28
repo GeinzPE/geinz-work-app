@@ -333,7 +333,6 @@ fun bottom_sheet_tiendas_filtradas(
 
     if (!visible) return
 
-
     ModalBottomSheet(
         onDismissRequest = { onClose() },
         modifier = Modifier.fillMaxWidth(),

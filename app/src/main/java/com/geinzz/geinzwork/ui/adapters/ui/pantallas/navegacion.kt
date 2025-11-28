@@ -422,12 +422,14 @@ fun nativationWrapper(
                 composable("login_principal") {
                     if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
                         cuenta_user(
-                            isConnected,
-                            viewModel_login_user,
-                            correo_registrado,
-                            navController,
-                            { correo_google ->
+                            isConnected = isConnected,
+                            viewModel_login_user = viewModel_login_user,
+                            correo_registrado = correo_registrado,
+                            navController = navController,
+                            terminar_configurar = { correo_google ->
                                 navController.navigate(crear_cuenta_geinz(correo_google))
+                            }, click_login_ver_socio = {
+                                navController.navigate(login_scios)
                             })
                     } else {
                         IniciarSeccion(
@@ -586,6 +588,9 @@ fun nativationWrapper(
                     )
                 }
 
+                composable<login_scios> {
+                    login_socios(isConnected)
+                }
 
 
 

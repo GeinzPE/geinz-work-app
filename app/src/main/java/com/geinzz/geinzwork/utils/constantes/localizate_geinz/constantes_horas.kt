@@ -250,6 +250,7 @@ object constantes_horas {
         error_campos_incompletos: () -> Unit,
         error_horas_invalidas: (String) -> Unit,
     ) {
+        Log.d("datos_teinda_ente","${horario.toString()}")
 
         val DELAY_REBOTE_UI_MS = 1000L
         val motivos = listOf(

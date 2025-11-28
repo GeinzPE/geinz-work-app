@@ -55,6 +55,13 @@ object data_store_localidad {
         }
     }
 
+    suspend fun delete_id_socio(context: Context) {
+        context.dataStore.edit { preferences ->
+            preferences.remove(KEY_ID_SOCIO)
+        }
+    }
+
+
 
     suspend fun guardarUrlsCarga(context: Context, lista: List<String>) {
         val json = JSONArray(lista).toString()

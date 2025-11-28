@@ -1,13 +1,13 @@
-package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
+package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
 import android.os.Build
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
-
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -28,9 +28,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -50,6 +48,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -72,11 +71,11 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_mostar_leyendas_graficos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.DiaHoy
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerDiasYColor
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_agregar_datos
@@ -84,13 +83,13 @@ import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import io.github.dautovicharis.charts.PieChart
 import io.github.dautovicharis.charts.model.toChartDataSet
 import io.github.dautovicharis.charts.style.PieChartDefaults
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> Unit) {
-
+fun login_socios(isConnected: Boolean) {
+    val verificar_id by remember { mutableStateOf("") }
     val context = LocalContext.current
     var id_registrado by remember { mutableStateOf("") }
     val labels = listOf("Vistas", "Guardados", "Clics")
@@ -106,7 +105,6 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
     var mostrar_datos_teinda by remember { mutableStateOf(false) }
     var mostar_horario_teinda by remember { mutableStateOf(false) }
     var mostrar_trafico_externo by remember { mutableStateOf(false) }
-    val ud_tienda_shader by data_store_localidad.get_id_socio(context).collectAsState(initial = "")
     var dialog_mostar_leyendas_graficos by remember { mutableStateOf(false) }
     var titulo_leyenda_dialog by remember { mutableStateOf("") }
     var txt_leyenda by remember { mutableStateOf("") }
@@ -116,155 +114,166 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
     var fecha_ingreso by remember { mutableStateOf("") }
     var fecha_termino by remember { mutableStateOf("") }
     var horarioMap by remember { mutableStateOf(HorarioAtencion_box()) }
-
-    val verificarSeccion by viewmodel.verificarSeccion.collectAsState(false)
-
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     var mostar_horario__bool by remember { mutableStateOf(false) }
+    val verificarSeccion by viewmodel.verificarSeccion.collectAsState(false)
+    val ud_tienda_shader by data_store_localidad.get_id_socio(context).collectAsState(initial = "")
+
+    val cargando by viewmodel.cargandoIdSocio.collectAsState()
+    val idSocio by viewmodel.idSocio.collectAsState()
+
+
+
+    LaunchedEffect(Unit) {
+        viewmodel.cargarIdSocio(context)
+    }
+
     LaunchedEffect(id_tienda, horarioMap) {
         viewModelFiltros.calcularHorarioParaTienda(id_tienda, horarioMap)
     }
-
-    val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    ModalBottomSheet(
-        onDismissRequest = { ondimis() },
-        modifier = Modifier.fillMaxWidth(),
-        dragHandle = null,
-        containerColor = MaterialTheme.colorScheme.background
-    ) {
-        LaunchedEffect(verificarSeccion) {
-            when (verificarSeccion) {
-                true -> {
-                    // Guardar ID
-                    scope.launch {
-                        set_id_socio(context, id_registrado)
-                    }
+    LaunchedEffect(verificarSeccion) {
+        when (verificarSeccion) {
+            true -> {
+                // Guardar ID
+                scope.launch {
+                    set_id_socio(context, id_registrado)
                 }
-                false -> {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "El ID no pertenece a ninuna tienda",
-                            duration = SnackbarDuration.Short
-                        )
-                    }
-                }
-                null -> {}
             }
-        }
 
-        FuenteControladaApp {
-            if (ud_tienda_shader.isEmpty()) {
+            false -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = "El ID no pertenece a ninuna tienda",
+                        duration = SnackbarDuration.Short
+                    )
+                }
+            }
+
+            null -> {}
+        }
+    }
+
+
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+
+        when {
+            cargando -> {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 20.dp)
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f))
+                        .zIndex(10f),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Column(
-                        Modifier.padding(10.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        texto_generico_one_line(
-                            "¿Eres socio de Geinz?",
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                        spacer_vertical(10.dp)
-                        texto_generico_multilinea(
-                            "Ingresa tu ID y descubre el impacto real de tu negocio. " +
-                                    "Conoce cuántas personas visitaron tu perfil, cuántos lo guardaron como favorito " +
-                                    "y actualiza tu horario en solo segundos.",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        spacer_vertical(10.dp)
-                        MyOutlinedTextField(
-                            value = id_registrado,
-                            onValueChange = { id_registrado = it },
-                            labelText = "Pega tu ID",
-                            placeholderText = "Pega tu ID"
-                        )
-                        spacer_vertical(10.dp)
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary)
-                                .clickable {
+                    carga_inicial()
+                }
+            }
 
-                                    if (id_registrado.isEmpty()) {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                message = "Ingresa tu id de tienda",
-                                                duration = SnackbarDuration.Short
-                                            )
-                                        }
-                                    } else {
-                                        viewmodel.verificar_existencia_tienda(
-                                            id_registrado,
-                                            "barranca"
-                                        )
-                                    }
-                                },
-                            contentAlignment = Alignment.Center
+            idSocio.isEmpty() -> {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 20.dp)
+                    ) {
+                        Column(
+                            Modifier.padding(10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             texto_generico_one_line(
-                                "Acceder",
-                                modifier = Modifier.padding(
-                                    horizontal = 10.dp,
-                                    vertical = 12.dp
-                                )
+                                "¿Eres socio de Geinz?",
+                                style = MaterialTheme.typography.titleLarge
                             )
-                        }
-                    }
-                    SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
-                }
+                            spacer_vertical(10.dp)
+                            texto_generico_multilinea(
+                                "Ingresa tu ID y descubre el impacto real de tu negocio. " +
+                                        "Conoce cuántas personas visitaron tu perfil, cuántos lo guardaron como favorito " +
+                                        "y actualiza tu horario en solo segundos.",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            spacer_vertical(10.dp)
+                            MyOutlinedTextField(
+                                value = id_registrado,
+                                onValueChange = { id_registrado = it },
+                                labelText = "Pega tu ID",
+                                placeholderText = "Pega tu ID"
+                            )
+                            spacer_vertical(10.dp)
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary)
+                                    .clickable {
 
-
-            }
-
-            else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.85f)
-                        .padding(horizontal = 10.dp)
-                ) {
-                    LazyColumn() {
-                        item {
-                            LaunchedEffect(ud_tienda_shader) {
-                                viewmodel.verificar_seccion(
-                                    context,
-                                    ud_tienda_shader,
-                                    localidad_tienda
+                                        if (id_registrado.isEmpty()) {
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    message = "Ingresa tu id de tienda",
+                                                    duration = SnackbarDuration.Short
+                                                )
+                                            }
+                                        } else {
+                                            viewmodel.verificar_existencia_tienda(
+                                                id_registrado,
+                                                "barranca"
+                                            )
+                                        }
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                texto_generico_one_line(
+                                    "Acceder",
+                                    modifier = Modifier.padding(
+                                        horizontal = 10.dp,
+                                        vertical = 12.dp
+                                    )
                                 )
                             }
+                        }
+                        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
+                    }
+                }
+            }
 
+            else -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 10.dp)
+                ) {
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        item {
+//                            LaunchedEffect(ud_tienda_shader) {
+//                                if (ud_tienda_shader.isNotEmpty()) {
+//                                    viewmodel.verificar_seccion(
+//                                        context,
+//                                        ud_tienda_shader,
+//                                        localidad_tienda
+//                                    )
+//                                }
+//                            }
                             Box(
                                 Modifier
-                                    .padding(10.dp)
-                                    .fillMaxWidth(),
+                                    .fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
 
                                 when (val state = state_socio.value) {
 
                                     is viewmodel_eres_socio.carga_acces_socio.loading -> {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxSize(),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                                CircularProgressIndicator()
-                                                spacer_vertical(8.dp)
-                                                texto_generico_one_line("Cargando, espere un momento...")
-                                            }
-                                        }
+                                        CircularProgressIndicator()
                                     }
 
                                     is viewmodel_eres_socio.carga_acces_socio.error -> {}
 
                                     is viewmodel_eres_socio.carga_acces_socio.succes -> {
                                         val datos = state.datos
+                                        Log.d(
+                                            "daots_teindahorario",
+                                            datos.horario_tiendaMap.toString()
+                                        )
                                         id_tienda = datos.id_tienda
                                         horarioMap = datos.horario_tiendaMap
                                         localidad_tienda = datos.localidad_tienda
@@ -324,7 +333,7 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                             spacer_vertical(10.dp)
 
                                             texto_generico_multilinea(
-                                                "Hola $nombre_user, aquí puedes ver la información principal de ${datos.nombre}.  Accede a las estadísticas de vistas, guardados y clics, y actualiza el horario de tu tienda de forma rápida y sencilla.",
+                                                "Hola, aquí puedes ver la información principal de ${datos.nombre}.  Accede a las estadísticas de vistas, guardados y clics, y actualiza el horario de tu tienda de forma rápida y sencilla.",
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
 
@@ -695,7 +704,9 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                                                 .padding(
                                                                                     horizontal = 10.dp
                                                                                 )
-                                                                                .clickable {
+                                                                                .clickable(
+                                                                                    indication = null,
+                                                                                    interactionSource = remember { MutableInteractionSource() }) {
                                                                                     when (labels2[index]) {
                                                                                         "Facebook" -> {
                                                                                             dialog_mostar_leyendas_graficos =
@@ -861,7 +872,9 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                                                         Row(
                                                                             verticalAlignment = Alignment.CenterVertically,
                                                                             horizontalArrangement = Arrangement.Center,
-                                                                            modifier = Modifier.clickable {
+                                                                            modifier = Modifier.clickable(
+                                                                                indication = null,
+                                                                                interactionSource = remember { MutableInteractionSource() }) {
                                                                                 when (labels3[index]) {
                                                                                     "Llamada" -> {
                                                                                         dialog_mostar_leyendas_graficos =
@@ -955,21 +968,36 @@ fun eres_socio_geinz(isConnected: Boolean, nombre_user: String, ondimis: () -> U
                                     else -> {}
                                 }
                             }
+                            if (dialog_mostar_leyendas_graficos) {
+                                dialog_mostar_leyendas_graficos(
+                                    icono_mostar_leyendas_graficos,
+                                    titulo_leyenda_dialog,
+                                    txt_leyenda,
+                                    { dialog_mostar_leyendas_graficos = false })
+                            }
 
                         }
                     }
                     SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
                 }
             }
-
-            if (dialog_mostar_leyendas_graficos) {
-                dialog_mostar_leyendas_graficos(
-                    icono_mostar_leyendas_graficos,
-                    titulo_leyenda_dialog,
-                    txt_leyenda,
-                    { dialog_mostar_leyendas_graficos = false })
-            }
         }
+
+
     }
+
+
 }
 
+@Composable
+fun carga_inicial() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f))
+            .zIndex(5f),
+        contentAlignment = Alignment.Center
+    ) {
+        pantalla_carga_login(false)
+    }
+}
