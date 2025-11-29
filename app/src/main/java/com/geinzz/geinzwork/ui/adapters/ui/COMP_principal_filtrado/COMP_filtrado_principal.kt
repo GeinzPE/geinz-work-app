@@ -77,6 +77,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -92,6 +94,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -129,6 +133,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.datos_grafico
 import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.data.model.datos_tienda_fechas
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.widget_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
@@ -1885,182 +1890,258 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun baner_widget_tienda_geinz(
-    viewModel_filtado_tiendas: viewModel_filtado_tiendas,
-    item: widget_tienda,
-) {
-    val (dias, color) = obtenerDiasYColor(item.fecha_termino)
-
-    val tick by viewModel_filtado_tiendas.tick.collectAsState()
-
-    LaunchedEffect(item.id_tienda) {
-        viewModel_filtado_tiendas.calcularHorarioParaTienda(item.id_tienda,item.horario_tiendaMap)
-    }
-    val horario_hoy=viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[item.id_tienda] ?: HorarioDia_box()
-
-    val hora_de_trabajo= constantes_horas.calcularHorasDiaLegible(horario_hoy)
-
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFF1A1A1A))
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = 180.dp)
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ) {
-                // Acción al hacer clic (opcional)
-            }
-    ) {
-        Row(modifier = Modifier.matchParentSize()) {
-
-            // Columna con texto e información
-            Column(
-                modifier = Modifier
-                    .weight(2f)
-                    .fillMaxHeight()
-                    .padding(12.dp)
-            ) {
-                texto_generico_one_line(item.nombre_tienda, style = MaterialTheme.typography.titleLarge)
-
-
-                texto_generico_one_line("Horas de trabajo $hora_de_trabajo")
-
-                    // Mostramos el horario calculado desde el ViewModel
-                    retornar_color_estado_tienda_Box(
-                        "",horario_hoy,
-                        tick,
-                        true,
-                        { color, txt -> /* callback si lo necesitas */ },
-                        true
-                    )
-
-
-                texto_generico_one_line(
-                    "Renovación: $dias días a renovar",
-                    color = color, style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
-            // Imagen de la tienda con gradiente
-            Box(
-                modifier = Modifier
-                    .weight(1.5f)
-                    .fillMaxHeight()
-            ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .memoryCachePolicy(CachePolicy.ENABLED)
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .data(item.img_tienda)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(80.dp)
-                        .align(Alignment.CenterStart)
-                        .background(
-                            Brush.horizontalGradient(
-                                colors = listOf(Color(0xFF1A1A1A), Color.Transparent)
-                            )
-                        )
-                )
-            }
-        }
-    }
-}
+//@RequiresApi(Build.VERSION_CODES.O)
+//@Composable
+//fun baner_widget_tienda_geinz(
+//    viewModel_filtado_tiendas: viewModel_filtado_tiendas,
+//    item: widget_tienda,
+//) {
+//    val (dias, color) = obtenerDiasYColor(item.fecha_termino)
+//
+//    val tick by viewModel_filtado_tiendas.tick.collectAsState()
+//
+//    LaunchedEffect(item.id_tienda) {
+//        viewModel_filtado_tiendas.calcularHorarioParaTienda(item.id_tienda,item.horario_tiendaMap)
+//    }
+//    val horario_hoy=viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[item.id_tienda] ?: HorarioDia_box()
+//
+//    val hora_de_trabajo= constantes_horas.calcularHorasDiaLegible(horario_hoy)
+//
+//    Box(
+//        modifier = Modifier
+//            .clip(RoundedCornerShape(20.dp))
+//            .background(Color(0xFF1A1A1A))
+//            .fillMaxWidth()
+//            .defaultMinSize(minHeight = 180.dp)
+//            .clickable(
+//                indication = null,
+//                interactionSource = remember { MutableInteractionSource() }
+//            ) {
+//                // Acción al hacer clic (opcional)
+//            }
+//    ) {
+//        Row(modifier = Modifier.matchParentSize()) {
+//
+//            // Columna con texto e información
+//            Column(
+//                modifier = Modifier
+//                    .weight(2f)
+//                    .fillMaxHeight()
+//                    .padding(12.dp)
+//            ) {
+//                texto_generico_one_line(item.nombre_tienda, style = MaterialTheme.typography.titleLarge)
+//
+//
+//                texto_generico_one_line("Horas de trabajo $hora_de_trabajo")
+//
+//                    // Mostramos el horario calculado desde el ViewModel
+//                    retornar_color_estado_tienda_Box(
+//                        "",horario_hoy,
+//                        tick,
+//                        true,
+//                        { color, txt -> /* callback si lo necesitas */ },
+//                        true
+//                    )
+//
+//
+//                texto_generico_one_line(
+//                    "Renovación: $dias días a renovar",
+//                    color = color, style = MaterialTheme.typography.bodyMedium
+//                )
+//            }
+//
+//            // Imagen de la tienda con gradiente
+//            Box(
+//                modifier = Modifier
+//                    .weight(1.5f)
+//                    .fillMaxHeight()
+//            ) {
+//                AsyncImage(
+//                    model = ImageRequest.Builder(LocalContext.current)
+//                        .memoryCachePolicy(CachePolicy.ENABLED)
+//                        .diskCachePolicy(CachePolicy.ENABLED)
+//                        .data(item.img_tienda)
+//                        .build(),
+//                    contentDescription = null,
+//                    contentScale = ContentScale.Crop,
+//                    modifier = Modifier.fillMaxSize()
+//                )
+//
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxHeight()
+//                        .width(80.dp)
+//                        .align(Alignment.CenterStart)
+//                        .background(
+//                            Brush.horizontalGradient(
+//                                colors = listOf(Color(0xFF1A1A1A), Color.Transparent)
+//                            )
+//                        )
+//                )
+//            }
+//        }
+//    }
+//}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun baner_widget_tienda_geinz_baner(
     item: widget_tienda,
     horario_hoy: HorarioDia_box,
-    hora_de_trabajo: String,
+    horas_de_trabajo: String,
+    bloques_hoy: List<HorarioBloque>,
     tick: Long
 ) {
     val (dias, color) = obtenerDiasYColor(item.fecha_termino)
+    var color_estado by remember { mutableStateOf(Color(0XFF535252)) }
+    var txt_estado_teinda by remember { mutableStateOf("") }
+    retornar_color_estado_tienda_Box(
+        "", horario_hoy,
+        tick,
+        true,
+        { color, txt ->
+            color_estado = color
+            txt_estado_teinda = txt
+        },
+        false
+    )
 
-    Box(
+    var switchActivo by remember { mutableStateOf(true) }
+
+
+    Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFF1A1A1A))
             .fillMaxWidth()
-            .defaultMinSize(minHeight = 180.dp)
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ) {
-                // Acción al hacer clic (opcional)
-            }
+            .height(IntrinsicSize.Min).animateContentSize(),  // ⬅ Ajuste automático
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Row(modifier = Modifier.matchParentSize()) {
 
-            // Columna con texto e información
+        // ======================
+        //      COLUMNA IZQUIERDA
+        // ======================
+        Column(
+            modifier = Modifier
+                .weight(1.7f)
+                .fillMaxHeight()
+                .clip(RoundedCornerShape(15.dp))
+                .background(Color(0xFF1A1A1A))
+                .padding(10.dp),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                texto_generico_one_line(
+                    item.nombre_tienda.capitalizeFirst(),
+                    style = MaterialTheme.typography.titleLarge,modifier = Modifier.weight(1f)
+                )
+
+                Switch(
+                    checked = switchActivo,
+                    onCheckedChange = { switchActivo = it },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.primary,
+                        checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                )
+            }
+
+            texto_generico_one_line(
+                "Horas de trabajo $horas_de_trabajo",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            spacer_vertical(8.dp)
+
+            texto_generico_one_line(
+                "Estado: $dias días a renovar",
+                color = color,
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            spacer_vertical(8.dp)
+            // Caja de horario
             Column(
                 modifier = Modifier
-                    .weight(2f)
-                    .fillMaxHeight()
-                    .padding(12.dp)
+                    .clip(RoundedCornerShape(15.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(10.dp)
+                    .animateContentSize(),
+                verticalArrangement = Arrangement.spacedBy(7.dp)
             ) {
-                texto_generico_one_line(item.nombre_tienda, style = MaterialTheme.typography.titleLarge)
 
-                texto_generico_one_line("Horas de trabajo $hora_de_trabajo")
 
-                retornar_color_estado_tienda_Box(
-                    "", horario_hoy,
-                    tick,
-                    true,
-                    { color, txt -> /* callback si lo necesitas */ },
-                    true
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    texto_generico_one_line("Horario de hoy")
+                    Spacer(Modifier.width(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .clip(CircleShape)
+                            .background(color_estado)
+                    )
+                }
 
-                texto_generico_one_line(
-                    "Renovación: $dias días a renovar",
-                    color = color, style = MaterialTheme.typography.bodyMedium
-                )
+                bloques_hoy.forEach { bloque ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        texto_generico_one_line(
+                            constantes_horas.convertir24a12(bloque.h_apertura), style = MaterialTheme.typography.bodyMedium
+                        )
+                        texto_generico_one_line("a")
+                        texto_generico_one_line(
+                            constantes_horas.convertir24a12(bloque.h_cierre),style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
             }
+            spacer_vertical(8.dp)
+        }
 
-            // Imagen de la tienda con gradiente
+        // ======================
+        //      COLUMNA DERECHA
+        // ======================
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+
+            // Imagen proporcionada
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .data(item.img_tienda)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)                 // ⬅ Le da espacio proporcional
+                    .clip(RoundedCornerShape(10.dp))
+            )
+
+            // Cajita inferior decorativa
             Box(
                 modifier = Modifier
-                    .weight(1.5f)
-                    .fillMaxHeight()
-            ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .memoryCachePolicy(CachePolicy.ENABLED)
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .data(item.img_tienda)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(80.dp)
-                        .align(Alignment.CenterStart)
-                        .background(
-                            Brush.horizontalGradient(
-                                colors = listOf(Color(0xFF1A1A1A), Color.Transparent)
-                            )
-                        )
-                )
+                    .fillMaxWidth()
+                    .height(45.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(Color(0xFF1A1A1A)), contentAlignment = Alignment.Center
+            ){
+                texto_generico_one_line(txt_estado_teinda, style = MaterialTheme.typography.bodyMedium,color=color_estado)
             }
         }
     }
-}
 
+}
 
 
 @Composable

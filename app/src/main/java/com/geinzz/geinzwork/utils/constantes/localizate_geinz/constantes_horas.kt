@@ -61,6 +61,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -206,22 +207,28 @@ object constantes_horas {
 
 
     fun obtenerDiasYColor(fechaFin: String): Pair<Long, Color> {
-        val formato = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        return try {
+            val formato = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-        val hoy = LocalDate.now()
-        val fin = LocalDate.parse(fechaFin, formato)
+            val hoy = LocalDate.now()
+            val fin = LocalDate.parse(fechaFin, formato)
 
-        val diasRestantes = ChronoUnit.DAYS.between(hoy, fin)
+            val diasRestantes = ChronoUnit.DAYS.between(hoy, fin)
 
-        val color = when {
-            diasRestantes >= 10 -> Color(0xFF4CAF50)   // Verde
-            diasRestantes in 5..9 -> Color(0xFFFFC107) // Amarillo
-            diasRestantes in 0..2 -> Color(0xFFFF0F00) // Rojo
-            diasRestantes < 0 -> Color.Gray            // Fecha ya pasó
-            else -> Color.Gray
+            val color = when {
+                diasRestantes >= 10 -> Color(0xFF4CAF50)   // Verde
+                diasRestantes in 5..9 -> Color(0xFFFFC107) // Amarillo
+                diasRestantes in 0..2 -> Color(0xFFFF0F00) // Rojo
+                diasRestantes < 0 -> Color.Gray            // Fecha pasada
+                else -> Color.Gray
+            }
+
+            Pair(diasRestantes, color)
+
+        } catch (e: Exception) {
+            // Si algo sale mal, devolvemos valores seguros
+            Pair(0, Color.Gray)
         }
-
-        return Pair(diasRestantes, color)
     }
 
 
@@ -243,6 +250,26 @@ object constantes_horas {
 
         return "${horas}h ${minutos}m"
     }
+
+    fun obtenerBloquesDeHoy(
+        diaHoy: String,
+        horarioMap: HorarioAtencion_box
+    ): List<HorarioBloque> {
+        return when (diaHoy.lowercase()) {
+            "lunes" -> horarioMap.lunes.bloques
+            "martes" -> horarioMap.martes.bloques
+             "miércoles" -> horarioMap.miércoles.bloques
+            "jueves" -> horarioMap.jueves.bloques
+            "viernes" -> horarioMap.viernes.bloques
+             "sábado" -> horarioMap.sábado.bloques
+            "domingo" -> horarioMap.domingo.bloques
+            else -> emptyList()
+        }
+    }
+
+
+
+
 
     fun convertir24a12(hora24: String): String {
         return try {

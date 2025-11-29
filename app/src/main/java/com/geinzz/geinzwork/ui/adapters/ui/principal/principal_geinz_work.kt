@@ -124,14 +124,15 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.text.TextStyle
 import androidx.core.content.ContextCompat
 import coil3.request.CachePolicy
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.widget_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad.guarar_dialogo_notifi
 import com.geinzz.geinzwork.data_store.data_store_localidad.sendNotificacion
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_registra_tu_negocio
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_servicios_basicos_
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_widget_tienda_geinz
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_widget_tienda_geinz_baner
+
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permiso_primario_notifi
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_ayudanos_a_creccer
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.verificar_version
@@ -156,7 +157,7 @@ fun pantalla_principal(
     listner_busqueda: () -> Unit,
     listener_seguridad: (String) -> Unit,
     listner_sevicios_tramites: (String) -> Unit,
-    abrir_guardar_datos:()-> Unit,
+    abrir_guardar_datos: () -> Unit,
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -186,7 +187,7 @@ fun pantalla_principal(
     val estados_carga_widget by vm_fotos_salud.estado_carga_widget_tienda.collectAsState()
 
     LaunchedEffect(estados_carga_widget) {
-            datos_tienda=estados_carga_widget
+        datos_tienda = estados_carga_widget
     }
 
     val url_turistico_aleatoria = rememberSaveable(urls_turistico.hashCode()) {
@@ -245,16 +246,21 @@ fun pantalla_principal(
         }
     }
 
-    val horariosTiendas by viewModel_filtado_tiendas.horariosTiendas.collectAsState()
     val tick by viewModel_filtado_tiendas.tick.collectAsState()
-    val horario_hoy=viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[datos_tienda.id_tienda] ?: HorarioDia_box()
 
-    LaunchedEffect(ud_tienda_shader) {
-        if(ud_tienda_shader != ""){
-            mostrar_widget_tienda=true
-            viewModel_filtado_tiendas.calcularHorarioParaTienda(ud_tienda_shader,datos_tienda.horario_tiendaMap)
-        }else{
-            mostrar_widget_tienda=false
+    var bloques_hoy by remember { mutableStateOf<List<HorarioBloque>>(emptyList()) }
+
+    LaunchedEffect(ud_tienda_shader,estados_carga_widget) {
+        Log.d("ejecutamro_Carga_neuvaem","nueva_carga_datos")
+        if (ud_tienda_shader != "") {
+            mostrar_widget_tienda = true
+            bloques_hoy= constantes_horas.obtenerBloquesDeHoy(datos_tienda.dia_hoy,datos_tienda.horario_tiendaMap)
+            viewModel_filtado_tiendas.calcularHorarioParaTienda(
+                ud_tienda_shader,
+                datos_tienda.horario_tiendaMap
+            )
+        } else {
+            mostrar_widget_tienda = false
 
         }
 
@@ -282,7 +288,7 @@ fun pantalla_principal(
     }
 
     LaunchedEffect(firebaseAuth.currentUser, dialgo_notificacion) {
-        if ((firebaseAuth.currentUser != null  || id_respado_user.isNotEmpty() )&& dialgo_notificacion) {
+        if ((firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) && dialgo_notificacion) {
             Log.d("dialgo_notificacion", "si hay user registrado y si hay si de permiso")
             if (ContextCompat.checkSelfPermission(
                     context,
@@ -294,7 +300,7 @@ fun pantalla_principal(
             FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val token = task.result
-                    val uid = firebaseAuth.currentUser?.uid ?: uid_respald_user ?:""
+                    val uid = firebaseAuth.currentUser?.uid ?: uid_respald_user ?: ""
                     if (uid != null) {
                         guarar_token_user(uid, token)
                     } else {
@@ -388,7 +394,7 @@ fun pantalla_principal(
                     localidad_defaul,
                     datos_principales_user.nombre,
                     { nombre, localidad ->
-                       categorias(localidad, nombre)
+                        categorias(localidad, nombre)
                     }, { categoria, localidad, nombre ->
                         clikear_cartas(categoria, localidad, nombre)
                     })
@@ -397,19 +403,25 @@ fun pantalla_principal(
             }
 
             item {
-                if(mostrar_widget_tienda){
-                spacer_vertical(10.dp)
-
-                    baner_widget_tienda_geinz_baner(datos_tienda,horario_hoy,"",tick)
-
-                spacer_vertical(20.dp)
+                if (mostrar_widget_tienda) {
+                    spacer_vertical(10.dp)
+                    baner_widget_tienda_geinz_baner(
+                        datos_tienda,
+                        viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[datos_tienda.id_tienda]
+                            ?: HorarioDia_box(),
+                        constantes_horas.calcularHorasDiaLegible( viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[datos_tienda.id_tienda]
+                            ?: HorarioDia_box(),),bloques_hoy,
+                        tick
+                    )
+                    spacer_vertical(20.dp)
                 }
             }
             item {
-                if(!mostrar_widget_tienda){
-                spacer_vertical(10.dp)
-                baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul) }
-                spacer_vertical(20.dp)}
+                if (!mostrar_widget_tienda) {
+                    spacer_vertical(10.dp)
+                    baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul) }
+                    spacer_vertical(20.dp)
+                }
             }
             item {
                 rutas_turismo(
@@ -424,9 +436,10 @@ fun pantalla_principal(
             }
 
             item {
-                if(mostrar_widget_tienda){
+                if (mostrar_widget_tienda) {
                     baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul) }
-                    spacer_vertical(10.dp)}
+                    spacer_vertical(10.dp)
+                }
             }
 
             item {
@@ -1003,7 +1016,9 @@ fun nombre_texto_img_perfil(
                     texto_generico_one_line(
                         texto = constantes_lista_localidades.saludo_user_principal(nombre),
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){
+                        modifier = Modifier.clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }) {
                             abrir_guardar_datos()
                         },
 
@@ -1019,7 +1034,9 @@ fun nombre_texto_img_perfil(
             }
         }
 
-        Box(modifier = Modifier.size(43.dp).padding(end = 5.dp)) {
+        Box(modifier = Modifier
+            .size(43.dp)
+            .padding(end = 5.dp)) {
 
 
             AsyncImage(
