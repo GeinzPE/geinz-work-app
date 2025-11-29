@@ -75,17 +75,23 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
@@ -94,6 +100,7 @@ import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -137,16 +144,20 @@ import com.geinzz.geinzwork.data.model.datos_tienda_fechas
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.widget_tienda
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.eres_socio_geinz
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.motivos
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerDiasYColor
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_subcategoria_shadow
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import kotlinx.coroutines.delay
@@ -866,6 +877,7 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
 
                 } else {
                     HorarioSemanal123(
+                        "todos",
                         id_tienda = datos.id_tienda,
                         tick = tick,
                         viewModelFiltros = viewModelFiltros,
@@ -893,7 +905,8 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
                         error_campos_incompletos = { campos_vacios_o_incompletos() },
                         { valor ->
                             error_hoario(valor)
-                        })
+                        }, shadow_top_filtrado_v1, shadow_botonm_filtrado_v1
+                    )
                 }
             }
 
@@ -1993,9 +2006,24 @@ fun baner_widget_tienda_geinz_baner(
     bloques_hoy: List<HorarioBloque>,
     tick: Long
 ) {
+
+    Log.d("hoaerirodehoy", item.horario_tiendaMap.sábado.cerrado.toString())
     val (dias, color) = obtenerDiasYColor(item.fecha_termino)
     var color_estado by remember { mutableStateOf(Color(0XFF535252)) }
     var txt_estado_teinda by remember { mutableStateOf("") }
+
+    var mostar_Bottom_shet_editar_horario by remember { mutableStateOf(false) }
+    var datos_bottom_Shhet_editar_horario by remember() { mutableStateOf(datos_tienda()) }
+
+    LaunchedEffect(item.id_tienda, item.horario_tiendaMap) {
+        datos_bottom_Shhet_editar_horario = datos_tienda(
+            nombre = item.nombre_tienda,
+            id_tienda = item.id_tienda,
+            horario_tiendaMap = item.horario_tiendaMap
+        )
+    }
+
+
     retornar_color_estado_tienda_Box(
         "", horario_hoy,
         tick,
@@ -2007,15 +2035,36 @@ fun baner_widget_tienda_geinz_baner(
         false
     )
 
-    var switchActivo by remember { mutableStateOf(true) }
+    var switchActivo by remember(item.dia_hoy, horario_hoy.cerrado) {
+        mutableStateOf(horario_hoy.cerrado)
+    }
+    Log.d("switchActivoswitchActivo", switchActivo.toString())
 
+    var motivo_cierre by remember(item.dia_hoy, horario_hoy.motivo) {
+        mutableStateOf(horario_hoy.motivo)
+    }
+    val mostrarSelectorMotivo = switchActivo && motivo_cierre.isEmpty()
+    val mostrarDatosCerrado = !switchActivo || motivo_cierre.isNotEmpty()
+
+    val scrollState = rememberScrollState()
+    var tiempoRestante by remember { mutableStateOf(20) }
+    LaunchedEffect(key1 = mostrarSelectorMotivo) {
+        if (mostrarSelectorMotivo) {
+            tiempoRestante = 20
+            while (tiempoRestante > 0 && switchActivo) {
+                delay(1000L)
+                tiempoRestante--
+            }
+            if (tiempoRestante == 0) switchActivo = false
+        }
+    }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(IntrinsicSize.Min)
             .animateContentSize(),  // ⬅ Ajuste automático
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
 
         // ======================
@@ -2040,8 +2089,8 @@ fun baner_widget_tienda_geinz_baner(
                 )
 
                 Switch(
-                    checked = switchActivo,
-                    onCheckedChange = { switchActivo = it },
+                    checked = !switchActivo,
+                    onCheckedChange = { switchActivo = !it },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = MaterialTheme.colorScheme.primary,
                         checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
@@ -2051,92 +2100,97 @@ fun baner_widget_tienda_geinz_baner(
                 )
             }
 
-            texto_generico_one_line(
-                "Horas de trabajo $horas_de_trabajo",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            spacer_vertical(8.dp)
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                texto_generico_one_line("Estado: ", style = MaterialTheme.typography.bodyMedium)
-                if (dias.toInt() != 0) {
-                    texto_generico_one_line(
-                        "$dias días a renovar",
-                        color = color,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                } else if (dias.toInt() == 0) {
-                    Text(
-                        text = "Por renovar",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            textDecoration = TextDecoration.Underline,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    )
+            Box {
+                this@Column.AnimatedVisibility(mostrarDatosCerrado) {
+                    Column {
+                        // UI de la tienda abierta o cerrada con motivo
+                        texto_generico_one_line("Horas de trabajo $horas_de_trabajo", style = MaterialTheme.typography.bodyMedium)
+                        spacer_vertical(8.dp)
+                        // Estado / dias a renovar
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                            texto_generico_one_line("Estado: ", style = MaterialTheme.typography.bodyMedium)
+                            if (dias.toInt() != 0) {
+                                texto_generico_one_line("$dias días a renovar", color = color, style = MaterialTheme.typography.bodyMedium)
+                            } else {
+                                Text(
+                                    text = "Por renovar",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        textDecoration = TextDecoration.Underline,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                )
+                            }
+                        }
+                        spacer_vertical(8.dp)
+                        // Horarios
+                        Column(modifier = Modifier
+                            .clip(RoundedCornerShape(15.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(10.dp)
+                            .animateContentSize(),
+                            verticalArrangement = Arrangement.spacedBy(7.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                modifier = Modifier.clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }) {
+                                    mostar_Bottom_shet_editar_horario = true
+                                }
+                            ) {
+                                texto_generico_one_line("Hoy ${item.dia_hoy}")
+                                Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(color_estado))
+                                Spacer(modifier = Modifier.fillMaxWidth().weight(1f))
+                                Icon(imageVector = Icons.Filled.Edit, contentDescription = null, tint = Color.White, )
+                            }
 
+                            bloques_hoy.forEach { bloque ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    texto_generico_one_line(constantes_horas.convertir24a12(bloque.h_apertura), style = MaterialTheme.typography.bodyMedium)
+                                    texto_generico_one_line("a")
+                                    texto_generico_one_line(constantes_horas.convertir24a12(bloque.h_cierre), style = MaterialTheme.typography.bodyMedium)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                this@Column.AnimatedVisibility(mostrarSelectorMotivo) {
+                    Column(modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .animateContentSize()
+                    ) {
+                        texto_generico_one_line("Selecciona tu motivo en $tiempoRestante s", style = MaterialTheme.typography.bodyMedium)
+                        spacer_vertical(15.dp)
+                        Row(modifier = Modifier.fillMaxWidth().horizontalScroll(scrollState), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            motivos.forEach { motivo ->
+                                Box(
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary)
+                                        .padding(5.dp)
+                                ) {
+                                    texto_generico_one_line(motivo, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(10.dp))
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
 
-            spacer_vertical(8.dp)
-            // Caja de horario
-            Column(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(15.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .padding(10.dp)
-                    .animateContentSize(),
-                verticalArrangement = Arrangement.spacedBy(7.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        texto_generico_one_line("Hoy ${item.dia_hoy}")
-                        Spacer(Modifier.width(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .size(12.dp)
-                                .clip(CircleShape)
-                                .background(color_estado)
-                        )
-                    }
-                    Icon(
-                        imageVector = Icons.Filled.Edit,
-                        contentDescription = null,
-                        tint = Color.White
-                    )
-
-                }
-
-
-                bloques_hoy.forEach { bloque ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        texto_generico_one_line(
-                            constantes_horas.convertir24a12(bloque.h_apertura),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        texto_generico_one_line("a")
-                        texto_generico_one_line(
-                            constantes_horas.convertir24a12(bloque.h_cierre),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-            }
-            spacer_vertical(8.dp)
         }
+
+
+        spacer_vertical(8.dp)
+
 
         // ======================
         //      COLUMNA DERECHA
@@ -2169,7 +2223,8 @@ fun baner_widget_tienda_geinz_baner(
                     .fillMaxWidth()
                     .weight(1f)
                     .clip(RoundedCornerShape(9.dp))
-                    .background(Color(0xFF1A1A1A)).padding(10.dp),
+                    .background(Color(0xFF1A1A1A))
+                    .padding(10.dp),
             ) {
 
                 Row(
@@ -2184,22 +2239,31 @@ fun baner_widget_tienda_geinz_baner(
                     )
 
                     Icon(
-                        painter = painterResource(id = R.drawable.icon_monedas_3d), // reemplaza con tu imagen
+                        painter = painterResource(id = R.drawable.icon_monedas_3d),
                         contentDescription = "Icono",
                         modifier = Modifier.size(15.dp),
-                        tint = Color.Unspecified // para que mantenga los colores originales
+                        tint = Color.Unspecified
                     )
                 }
 
                 texto_generico_one_line("Atención")
-                texto_generico_one_line(
-                    txt_estado_teinda,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = color_estado
-                )
 
+                TextoExpandibleEnLinea(
+                    txt_estado_teinda.capitalizeFirst(),
+                    color_estado,
+                    color_estado
+                )
             }
         }
+    }
+
+    if (mostar_Bottom_shet_editar_horario) {
+        eres_socio_geinz(
+            true,
+            tick,
+            { mostar_Bottom_shet_editar_horario = false },
+            datos_bottom_Shhet_editar_horario
+        )
     }
 
 }

@@ -105,6 +105,7 @@ class viewmodel_carga_img_general(
                 id_tienda,
                 localidad,
                 resultado = { res ->
+                    Log.d("hoariao;ohafa",res.horario_tiendaMap.sábado.cerrado.toString())
             _estado_carga_widget_tienda.value =res
                 },
                 error = { error ->

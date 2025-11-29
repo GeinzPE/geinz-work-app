@@ -84,6 +84,19 @@ import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 object constantes_horas {
+
+    val motivos = listOf(
+        "Mantenimiento",
+        "Renovación",
+        "Inventario",
+        "Cierre",
+        "Emergencia",
+        "Limpieza",
+        "Clausura",
+        "No disponible",
+        "Descanso",
+    )
+
     fun obtenerProximoDiaAbierto(
         horario: Map<String, Any>, diaActual: String
     ): Pair<String, Map<String, Any>>? {
@@ -132,7 +145,6 @@ object constantes_horas {
     }
 
     fun abrirTimePicker(
-
         context: Context, valorActual: String, onSelect: (String) -> Unit
     ) {
         val parts = valorActual.split(":")
@@ -219,7 +231,7 @@ object constantes_horas {
             if (diasRestantes < 0) diasRestantes = 0
 
             val color = when {
-                diasRestantes >= 10 -> Color(0xFF4CAF50)   // Verde
+                diasRestantes >= 10 -> Color(0xFF00FF0C)   // Verde
                 diasRestantes in 5..9 -> Color(0xFFFFC107) // Amarillo
                 diasRestantes in 0..2 -> Color(0xFFFF0F00) // Rojo
                 else -> Color.Gray
@@ -288,6 +300,7 @@ object constantes_horas {
 
     @Composable
     fun HorarioSemanal123(
+        filtrado:String= "todos",
         id_tienda: String,
         tick: Long,
         viewModelFiltros: viewModel_filtado_tiendas,
@@ -299,22 +312,14 @@ object constantes_horas {
         onclick_expand: () -> Unit,
         error_campos_incompletos: () -> Unit,
         error_horas_invalidas: (String) -> Unit,
+        color_left:List<Color>,
+        color_right: List<Color>
+
     ) {
-        Log.d("datos_teinda_ente","${horario.toString()}")
+        Log.d("datos_teinda_ente","${horario.sábado.cerrado.toString()}")
 
         val DELAY_REBOTE_UI_MS = 1000L
-        val motivos = listOf(
-            "Mantenimiento",
-            "Renovación",
-            "Inventario",
-            "Capacitación del personal",
-            "Cierre",
-            "Emergencia",
-            "Limpieza",
-            "Clausura",
-            "No disponible",
-            "Descanso",
-        )
+
         val diasConDatos = listOf(
             "Lunes" to horario.lunes,
             "Martes" to horario.martes,
@@ -325,7 +330,7 @@ object constantes_horas {
             "Domingo" to horario.domingo
         )
         val lista_filtrado = listOf("hoy", "dias abiertos", "dias cerrados")
-        var seleciondao by remember { mutableStateOf("Todos") }
+        var seleciondao by remember { mutableStateOf(filtrado) }
 
         val listState = rememberLazyListState()
 
@@ -340,6 +345,8 @@ object constantes_horas {
 
             else -> diasConDatos
         }
+
+        Log.d("diasFiltrados","${diasFiltrados.toString()}")
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -393,15 +400,10 @@ object constantes_horas {
                 expandir_carta = { expandir -> },
                 selecionado = { categoria_selecionada ->
                     seleciondao = categoria_selecionada
-                }, color_left = shadow_top_filtrado_v1, color_right = shadow_botonm_filtrado_v1
+                }, color_left = color_left, color_right = color_right
             )
 
             diasFiltrados.forEach { (nombreDia, datosDia) ->
-
-
-//                var expndir_todo by remember(nombreDia) { mutableStateOf(false) }
-//                var btn_guardado_abierto_oculto by remember { mutableStateOf(false) }
-//                var btn_guardado_cerrado_oculto by remember { mutableStateOf(false) }
 
                 val bloqueManana = datosDia.bloques.getOrNull(0)
                 val bloqueTarde = datosDia.bloques.getOrNull(1)
@@ -411,16 +413,6 @@ object constantes_horas {
                     mutableStateOf(datosDia.cerrado)
                 }
                 var motivo_cierre_tienda by remember { mutableStateOf(datosDia.motivo) }
-
-//                var corrido by remember { mutableStateOf(trabajoCorrido) }
-
-//                // Bloque Mañana
-//                val hAperturaAM = remember(nombreDia) { mutableStateOf(bloqueManana?.h_apertura ?: "") }
-//                val hCierreAM = remember { mutableStateOf(bloqueManana?.h_cierre ?: "") }
-//
-//
-//                val hAperturaPM = remember { mutableStateOf(bloqueTarde?.h_apertura ?: "") }
-//                val hCierrePM = remember { mutableStateOf(bloqueTarde?.h_cierre ?: "") }
 
                 var expndir_todo by remember(nombreDia) { mutableStateOf(false) }
 
@@ -456,14 +448,6 @@ object constantes_horas {
 
                 var mostar_conversion_real_time by remember { mutableStateOf(false) }
 
-//                var hubo_cambios by remember { mutableStateOf(false) }
-//
-//
-//                var motivo_cierre by remember { mutableStateOf(motivo_cierre_tienda) }
-//
-//                var cambios_tiene_horario_activarlo by remember { mutableStateOf(false) }
-//                var cambios_tiene_horario_cerrarlo by remember { mutableStateOf(false) }
-//                var leersolo_si_no_fue by remember { mutableStateOf(false) }
                 val cambioSwitchYTrabajo = remember(dia_enable, corrido) {
                     mutableStateOf(!dia_enable || !corrido)  // true si abierto + trabajo con descanso
                 }

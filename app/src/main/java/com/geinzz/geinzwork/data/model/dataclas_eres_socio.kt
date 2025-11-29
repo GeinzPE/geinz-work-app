@@ -18,10 +18,10 @@ data class datos_tienda(
     val wsap: Number = 0,
     val llamada: Number = 0,
     val ruta: Number = 0,
-    val localidad_tienda: String,
-    val fecha_ingreso: String,
-    val fecha_termino: String,
-    val descripcion: String,
+    val localidad_tienda: String="",
+    val fecha_ingreso: String="",
+    val fecha_termino: String="",
+    val descripcion: String="",
 )
 
 data class widget_tienda(

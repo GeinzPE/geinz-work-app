@@ -182,9 +182,9 @@ fun pantalla_principal(
         urls.randomOrNull() ?: ""
     }
 
-    var datos_tienda by remember { mutableStateOf(widget_tienda()) }
-
     val estados_carga_widget by vm_fotos_salud.estado_carga_widget_tienda.collectAsState()
+    var datos_tienda by remember (estados_carga_widget.dia_hoy){ mutableStateOf(widget_tienda()) }
+
 
     LaunchedEffect(estados_carga_widget) {
         datos_tienda = estados_carga_widget
@@ -251,7 +251,7 @@ fun pantalla_principal(
     var bloques_hoy by remember { mutableStateOf<List<HorarioBloque>>(emptyList()) }
 
     LaunchedEffect(ud_tienda_shader,estados_carga_widget) {
-        Log.d("ejecutamro_Carga_neuvaem","nueva_carga_datos")
+        Log.d("ejecutamro_Carga_neuvaem","${datos_tienda.horario_tiendaMap.sábado.cerrado}")
         if (ud_tienda_shader != "") {
             mostrar_widget_tienda = true
             bloques_hoy= constantes_horas.obtenerBloquesDeHoy(datos_tienda.dia_hoy,datos_tienda.horario_tiendaMap)

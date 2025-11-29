@@ -113,10 +113,10 @@ class repo_carga_img_general {
                 val img_tienda = data["img_tienda"] as? Map<String, Any> ?: emptyMap()
                 val logo = img_tienda["logo_tienda"] as? String ?: ""
                 val horario_atencion = data["horario_atencion"] as? Map<String, Any> ?: emptyMap()
-                val horarioMap = horario_atencion.to_horario_atencion_box_dia()
                 val fechas = data["fechas"] as? Map<String, Any> ?: emptyMap()
                 val fecha_termino = fechas["fecha_fin"] as? String ?: ""
                 val total_puntos =data["puntos_tienda"] as? Number?:0
+                val horarioMap = horario_atencion.to_horario_atencion_box_dia()
 
                 resultado(
                     widget_tienda(
