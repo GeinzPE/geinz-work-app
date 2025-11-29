@@ -213,23 +213,25 @@ object constantes_horas {
             val hoy = LocalDate.now()
             val fin = LocalDate.parse(fechaFin, formato)
 
-            val diasRestantes = ChronoUnit.DAYS.between(hoy, fin)
+            var diasRestantes = ChronoUnit.DAYS.between(hoy, fin)
+
+            // 🔥 Evitar negativos
+            if (diasRestantes < 0) diasRestantes = 0
 
             val color = when {
                 diasRestantes >= 10 -> Color(0xFF4CAF50)   // Verde
                 diasRestantes in 5..9 -> Color(0xFFFFC107) // Amarillo
                 diasRestantes in 0..2 -> Color(0xFFFF0F00) // Rojo
-                diasRestantes < 0 -> Color.Gray            // Fecha pasada
                 else -> Color.Gray
             }
 
             Pair(diasRestantes, color)
 
         } catch (e: Exception) {
-            // Si algo sale mal, devolvemos valores seguros
             Pair(0, Color.Gray)
         }
     }
+
 
 
     fun calcularHorasDiaLegible(horarioDia: HorarioDia_box): String {

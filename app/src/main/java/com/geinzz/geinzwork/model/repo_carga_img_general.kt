@@ -118,7 +118,6 @@ class repo_carga_img_general {
                 val fecha_termino = fechas["fecha_fin"] as? String ?: ""
                 val total_puntos =data["puntos_tienda"] as? Number?:0
 
-
                 resultado(
                     widget_tienda(
                         total_puntos = total_puntos.toString(),

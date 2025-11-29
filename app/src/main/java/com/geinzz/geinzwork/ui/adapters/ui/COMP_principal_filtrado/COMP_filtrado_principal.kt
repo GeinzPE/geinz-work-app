@@ -89,6 +89,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -2012,7 +2013,8 @@ fun baner_widget_tienda_geinz_baner(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(IntrinsicSize.Min).animateContentSize(),  // ⬅ Ajuste automático
+            .height(IntrinsicSize.Min)
+            .animateContentSize(),  // ⬅ Ajuste automático
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
 
@@ -2034,7 +2036,7 @@ fun baner_widget_tienda_geinz_baner(
             ) {
                 texto_generico_one_line(
                     item.nombre_tienda.capitalizeFirst(),
-                    style = MaterialTheme.typography.titleLarge,modifier = Modifier.weight(1f)
+                    style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f)
                 )
 
                 Switch(
@@ -2055,11 +2057,29 @@ fun baner_widget_tienda_geinz_baner(
             )
             spacer_vertical(8.dp)
 
-            texto_generico_one_line(
-                "Estado: $dias días a renovar",
-                color = color,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                texto_generico_one_line("Estado: ", style = MaterialTheme.typography.bodyMedium)
+                if (dias.toInt() != 0) {
+                    texto_generico_one_line(
+                        "$dias días a renovar",
+                        color = color,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                } else if (dias.toInt() == 0) {
+                    Text(
+                        text = "Por renovar",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            textDecoration = TextDecoration.Underline,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
+
+                }
+            }
+
 
             spacer_vertical(8.dp)
             // Caja de horario
@@ -2071,18 +2091,31 @@ fun baner_widget_tienda_geinz_baner(
                     .animateContentSize(),
                 verticalArrangement = Arrangement.spacedBy(7.dp)
             ) {
-
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    texto_generico_one_line("Horario de hoy")
-                    Spacer(Modifier.width(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .clip(CircleShape)
-                            .background(color_estado)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        texto_generico_one_line("Hoy ${item.dia_hoy}")
+                        Spacer(Modifier.width(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(color_estado)
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = null,
+                        tint = Color.White
                     )
+
                 }
+
 
                 bloques_hoy.forEach { bloque ->
                     Row(
@@ -2091,11 +2124,13 @@ fun baner_widget_tienda_geinz_baner(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         texto_generico_one_line(
-                            constantes_horas.convertir24a12(bloque.h_apertura), style = MaterialTheme.typography.bodyMedium
+                            constantes_horas.convertir24a12(bloque.h_apertura),
+                            style = MaterialTheme.typography.bodyMedium
                         )
                         texto_generico_one_line("a")
                         texto_generico_one_line(
-                            constantes_horas.convertir24a12(bloque.h_cierre),style = MaterialTheme.typography.bodyMedium
+                            constantes_horas.convertir24a12(bloque.h_cierre),
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 }
@@ -2124,19 +2159,45 @@ fun baner_widget_tienda_geinz_baner(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)                 // ⬅ Le da espacio proporcional
+                    .weight(1.5f)
                     .clip(RoundedCornerShape(10.dp))
             )
 
-            // Cajita inferior decorativa
-            Box(
+            Column(
+                verticalArrangement = Arrangement.spacedBy(5.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(45.dp)
+                    .weight(1f)
                     .clip(RoundedCornerShape(9.dp))
-                    .background(Color(0xFF1A1A1A)), contentAlignment = Alignment.Center
-            ){
-                texto_generico_one_line(txt_estado_teinda, style = MaterialTheme.typography.bodyMedium,color=color_estado)
+                    .background(Color(0xFF1A1A1A)).padding(10.dp),
+            ) {
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    texto_generico_one_line("Saldo : ")
+
+                    texto_generico_one_line(
+                        "${item.total_puntos}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.icon_monedas_3d), // reemplaza con tu imagen
+                        contentDescription = "Icono",
+                        modifier = Modifier.size(15.dp),
+                        tint = Color.Unspecified // para que mantenga los colores originales
+                    )
+                }
+
+                texto_generico_one_line("Atención")
+                texto_generico_one_line(
+                    txt_estado_teinda,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = color_estado
+                )
+
             }
         }
     }

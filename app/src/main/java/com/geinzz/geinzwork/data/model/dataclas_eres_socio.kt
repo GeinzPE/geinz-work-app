@@ -30,7 +30,7 @@ data class widget_tienda(
     val id_tienda: String="",
     val nombre_tienda: String="",
     val img_tienda: String="",
-    val horario_tiendaMap: HorarioAtencion_box = HorarioAtencion_box(),val fecha_termino:String="",
+    val horario_tiendaMap: HorarioAtencion_box = HorarioAtencion_box(),val fecha_termino:String=""
 )
 
 data class datos_grafico(
