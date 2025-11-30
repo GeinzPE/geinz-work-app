@@ -151,6 +151,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.construirBloques
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.motivos
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerDiasYColor
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
@@ -595,20 +596,16 @@ fun expandibles_wrapp_socio_geinzz(
                 }
                 .clickable(
                     indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ) {
+                    interactionSource = remember { MutableInteractionSource() }) {
                     onClickExpand()
-                }
-        ) {
+                }) {
 
             item {
 
                 AnimatedContent(
-                    targetState = expandido,
-                    transitionSpec = {
+                    targetState = expandido, transitionSpec = {
                         fadeIn() togetherWith fadeOut()
-                    }
-                ) { estado ->
+                    }) { estado ->
 
                     if (!estado) {
 
@@ -635,8 +632,7 @@ fun expandibles_wrapp_socio_geinzz(
                             verticalArrangement = Arrangement.Center
                         ) {
                             texto_generico_one_line(
-                                texto_params,
-                                style = MaterialTheme.typography.titleLarge
+                                texto_params, style = MaterialTheme.typography.titleLarge
                             )
                             spacer_vertical(10.dp)
                             texto_generico_multilinea(
@@ -673,8 +669,7 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
 
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(15.dp),
-            modifier = Modifier
-                .constrainAs(texto) {
+            modifier = Modifier.constrainAs(texto) {
                     top.linkTo(parent.top)
                     bottom.linkTo(parent.bottom)
                 }
@@ -684,11 +679,9 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
             item {
 
                 AnimatedContent(
-                    targetState = expandido,
-                    transitionSpec = {
+                    targetState = expandido, transitionSpec = {
                         fadeIn() togetherWith fadeOut()
-                    }
-                ) { estado ->
+                    }) { estado ->
 
                     if (!estado) {
                         Box(
@@ -704,8 +697,7 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                                 horizontalArrangement = Arrangement.spacedBy(5.dp)
                             ) {
                                 texto_generico_one_line(
-                                    "Datos y fechas : ",
-                                    style = MaterialTheme.typography.bodyMedium
+                                    "Datos y fechas : ", style = MaterialTheme.typography.bodyMedium
                                 )
                                 texto_generico_one_line(
                                     "${datos_tienda_fechas.dias_restantes} días para la renovación del plan.",
@@ -731,12 +723,10 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                                         indication = null,
                                         interactionSource = remember { MutableInteractionSource() }) {
                                         onClickExpand()
-                                    },
-                                contentAlignment = Alignment.Center
+                                    }, contentAlignment = Alignment.Center
                             ) {
                                 texto_generico_one_line(
-                                    "Datos y fechas",
-                                    style = MaterialTheme.typography.titleLarge
+                                    "Datos y fechas", style = MaterialTheme.typography.titleLarge
                                 )
                                 spacer_vertical(5.dp)
                             }
@@ -745,8 +735,7 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center,
                                 modifier = Modifier.padding(
-                                    start = 5.dp,
-                                    bottom = 5.dp, end = 10.dp
+                                    start = 5.dp, bottom = 5.dp, end = 10.dp
                                 )
                             ) {
 
@@ -764,11 +753,9 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                                             indication = null,
                                             interactionSource = remember { MutableInteractionSource() }) {
                                             constantestextos_general.copiarTexto_portapapeles_compouse(
-                                                datos_tienda_fechas.id_tienda,
-                                                context
+                                                datos_tienda_fechas.id_tienda, context
                                             )
-                                        }
-                                )
+                                        })
                             }
 
                             Text(
@@ -778,7 +765,8 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                                         append("Premium")
                                     }
                                 },
-                                style = MaterialTheme.typography.bodyMedium, color = Color.White,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.White,
                                 modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
                             )
 
@@ -824,7 +812,8 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
     datos: datos_tienda,
     onClickExpand: () -> Unit,
     sin_conexion: () -> Unit,
-    campos_vacios_o_incompletos: () -> Unit, error_hoario: (String) -> Unit
+    campos_vacios_o_incompletos: () -> Unit,
+    error_hoario: (String) -> Unit
 ) {
 
     Log.d("datos_teinda_ente131213131231", datos.horario_tiendaMap.toString())
@@ -839,8 +828,7 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
         val (texto, btn) = createRefs()
 
         Column(
-            modifier = Modifier
-                .constrainAs(texto) {
+            modifier = Modifier.constrainAs(texto) {
                     top.linkTo(parent.top)
                     bottom.linkTo(parent.bottom)
                 }
@@ -848,22 +836,19 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
         ) {
 
             AnimatedContent(
-                targetState = expandido,
-                transitionSpec = {
+                targetState = expandido, transitionSpec = {
                     fadeIn() togetherWith fadeOut()
-                }
-            ) { estado ->
+                }) { estado ->
 
                 if (!estado) {
                     Row(
                         modifier = Modifier.clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) { onClickExpand() }, verticalAlignment = Alignment.CenterVertically
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }) { onClickExpand() },
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         texto_generico_one_line(
-                            "Horario de hoy $dia :  ",
-                            style = MaterialTheme.typography.bodyMedium
+                            "Horario de hoy $dia :  ", style = MaterialTheme.typography.bodyMedium
                         )
                         retornar_color_estado_tienda_Box(
                             "",
@@ -871,8 +856,7 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
                                 ?: HorarioDia_box(),
                             tick,
                             true,
-                            { color, txt -> }
-                        )
+                            { color, txt -> })
                     }
 
                 } else {
@@ -885,17 +869,12 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
                         horario = datos.horario_tiendaMap,
                         cerrar_tienda = { nombre_dia, motivo_cierre, lista ->
                             viewmodel.cambiar_cerrado(
-                                datos.id_tienda,
-                                nombre_dia,
-                                motivo_cierre,
-                                lista
+                                datos.id_tienda, nombre_dia, motivo_cierre, lista
                             )
                         },
                         abrir_tienda = { dia, lista_horarios ->
                             viewmodel.cambiar_abierto(
-                                datos.id_tienda,
-                                dia,
-                                lista_horarios
+                                datos.id_tienda, dia, lista_horarios
                             )
                         },
                         error_sin_internet = {
@@ -905,7 +884,9 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
                         error_campos_incompletos = { campos_vacios_o_incompletos() },
                         { valor ->
                             error_hoario(valor)
-                        }, shadow_top_filtrado_v1, shadow_botonm_filtrado_v1
+                        },
+                        shadow_top_filtrado_v1,
+                        shadow_botonm_filtrado_v1
                     )
                 }
             }
@@ -1034,9 +1015,9 @@ fun rutas_turismo(
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current).data(img_baner)
 
-                .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
-                .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.cargando_img_categorias).build(),
+            .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
+            .placeholder(R.drawable.cargando_img_categorias)
+            .error(R.drawable.cargando_img_categorias).build(),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth()
@@ -1086,9 +1067,9 @@ fun seguridad(
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current).data(drawable)
-                .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
-                .crossfade(true).placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.cargando_img_categorias).build(),
+            .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
+            .crossfade(true).placeholder(R.drawable.cargando_img_categorias)
+            .error(R.drawable.cargando_img_categorias).build(),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
@@ -1759,8 +1740,8 @@ fun ImagenConInclinacion(
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current).data(drawableResId)
-                .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.cargando_img_categorias).crossfade(false).build(),
+            .placeholder(R.drawable.cargando_img_categorias)
+            .error(R.drawable.cargando_img_categorias).crossfade(false).build(),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -1851,7 +1832,7 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
                 Box(
                     modifier = Modifier
                         .size(40.dp) // 🔹 tamaño fijo y respetado
-                        .clip(CircleShape)
+                    .clip(CircleShape)
                         .background(Color.Gray.copy(alpha = 0.25f))
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -2000,11 +1981,15 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun baner_widget_tienda_geinz_baner(
+    viewmodel: viewmodel_eres_socio,
     item: widget_tienda,
     horario_hoy: HorarioDia_box,
     horas_de_trabajo: String,
     bloques_hoy: List<HorarioBloque>,
-    tick: Long
+    tick: Long,
+    sin_activar_horario: () -> Unit,
+    sin_acceso_motivo_cierre: () -> Unit,
+    sin_acceso_horario: () -> Unit
 ) {
 
     Log.d("hoaerirodehoy", item.horario_tiendaMap.sábado.cerrado.toString())
@@ -2025,14 +2010,10 @@ fun baner_widget_tienda_geinz_baner(
 
 
     retornar_color_estado_tienda_Box(
-        "", horario_hoy,
-        tick,
-        true,
-        { color, txt ->
+        "", horario_hoy, tick, true, { color, txt ->
             color_estado = color
             txt_estado_teinda = txt
-        },
-        false
+        }, false
     )
 
     var switchActivo by remember(item.dia_hoy, horario_hoy.cerrado) {
@@ -2045,6 +2026,29 @@ fun baner_widget_tienda_geinz_baner(
     }
     val mostrarSelectorMotivo = switchActivo && motivo_cierre.isEmpty()
     val mostrarDatosCerrado = !switchActivo || motivo_cierre.isNotEmpty()
+    val msotar_datos_cerrads = switchActivo && motivo_cierre.isNotEmpty()
+    var ya_esta_cerrado by remember { mutableStateOf(false) }
+    var motivoSeleccionado by remember { mutableStateOf<String?>(null) }
+
+    val bloqueManana = bloques_hoy.getOrNull(0)
+    val bloqueTarde = bloques_hoy.getOrNull(1)
+
+    val hAperturaAM = remember { mutableStateOf(bloqueManana?.h_apertura ?: "") }
+    val hCierreAM = remember { mutableStateOf(bloqueManana?.h_cierre ?: "") }
+    val hAperturaPM = remember { mutableStateOf(bloqueTarde?.h_apertura ?: "") }
+    val hCierrePM = remember { mutableStateOf(bloqueTarde?.h_cierre ?: "") }
+
+// 🔥 Esto mantiene sincronizado el estado cuando Firebase cambia
+    LaunchedEffect(item.horario_tiendaMap) {
+        val bloqueMananaActual = bloques_hoy.getOrNull(0)
+        val bloqueTardeActual = bloques_hoy.getOrNull(1)
+
+        hAperturaAM.value = bloqueMananaActual?.h_apertura ?: ""
+        hCierreAM.value = bloqueMananaActual?.h_cierre ?: ""
+        hAperturaPM.value = bloqueTardeActual?.h_apertura ?: ""
+        hCierrePM.value = bloqueTardeActual?.h_cierre ?: ""
+    }
+
 
     val scrollState = rememberScrollState()
     var tiempoRestante by remember { mutableStateOf(20) }
@@ -2056,8 +2060,29 @@ fun baner_widget_tienda_geinz_baner(
                 tiempoRestante--
             }
             if (tiempoRestante == 0) switchActivo = false
+
+            if (tiempoRestante == 0 && ya_esta_cerrado) {
+
+                motivo_cierre = horario_hoy.motivo
+                switchActivo = true
+                ya_esta_cerrado = false
+            }
         }
     }
+    LaunchedEffect(motivoSeleccionado) {
+        if (!motivoSeleccionado.isNullOrEmpty()) {
+            Log.d("Lllego_a", "El user ya seleccionó uno")
+            val bloque = construirBloques(
+                hAperturaAM.value, hCierreAM.value, hAperturaPM.value, hCierrePM.value
+            )
+            viewmodel.cambiar_cerrado(
+                item.id_tienda, item.dia_hoy, motivoSeleccionado ?: "cierre", bloque
+            )
+            motivoSeleccionado = ""
+            return@LaunchedEffect
+        }
+    }
+
 
     Row(
         modifier = Modifier
@@ -2079,18 +2104,34 @@ fun baner_widget_tienda_geinz_baner(
                 .padding(10.dp),
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
             ) {
                 texto_generico_one_line(
                     item.nombre_tienda.capitalizeFirst(),
-                    style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f)
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.weight(1f)
                 )
 
                 Switch(
                     checked = !switchActivo,
-                    onCheckedChange = { switchActivo = !it },
+                    onCheckedChange = {
+                        if (dias.toInt() != 0) {
+                            switchActivo = !it
+                            if (it) {
+                                val bloque = construirBloques(
+                                    hAperturaAM.value,
+                                    hCierreAM.value,
+                                    hAperturaPM.value,
+                                    hCierrePM.value
+                                )
+                                viewmodel.cambiar_abierto(
+                                    item.id_tienda, item.dia_hoy, bloque
+                                )
+                            }
+                        } else {
+                            sin_activar_horario()
+                        }
+                    },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = MaterialTheme.colorScheme.primary,
                         checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
@@ -2105,13 +2146,55 @@ fun baner_widget_tienda_geinz_baner(
                 this@Column.AnimatedVisibility(mostrarDatosCerrado) {
                     Column {
                         // UI de la tienda abierta o cerrada con motivo
-                        texto_generico_one_line("Horas de trabajo $horas_de_trabajo", style = MaterialTheme.typography.bodyMedium)
+                        if (horas_de_trabajo == "0h 0m") {
+                            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                                texto_generico_one_line(
+                                    "Motivo de cierre: ",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = motivo_cierre,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        textDecoration = TextDecoration.Underline,
+                                        color = color_estado
+                                    ),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() }) {
+                                        if (dias.toInt() != 0) {
+                                            motivo_cierre = ""
+                                            motivo_cierre.isEmpty()
+                                            ya_esta_cerrado = true
+                                        } else {
+                                            sin_acceso_motivo_cierre()
+                                        }
+
+                                    })
+
+                            }
+                        } else {
+                            texto_generico_one_line(
+                                "Horas de trabajo $horas_de_trabajo",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                         spacer_vertical(8.dp)
                         // Estado / dias a renovar
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                            texto_generico_one_line("Estado: ", style = MaterialTheme.typography.bodyMedium)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            texto_generico_one_line(
+                                "Estado: ", style = MaterialTheme.typography.bodyMedium
+                            )
                             if (dias.toInt() != 0) {
-                                texto_generico_one_line("$dias días a renovar", color = color, style = MaterialTheme.typography.bodyMedium)
+                                texto_generico_one_line(
+                                    "$dias días a renovar",
+                                    color = color,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
                             } else {
                                 Text(
                                     text = "Por renovar",
@@ -2124,11 +2207,12 @@ fun baner_widget_tienda_geinz_baner(
                         }
                         spacer_vertical(8.dp)
                         // Horarios
-                        Column(modifier = Modifier
-                            .clip(RoundedCornerShape(15.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .padding(10.dp)
-                            .animateContentSize(),
+                        Column(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(15.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .padding(10.dp)
+                                .animateContentSize(),
                             verticalArrangement = Arrangement.spacedBy(7.dp)
                         ) {
                             Row(
@@ -2137,13 +2221,29 @@ fun baner_widget_tienda_geinz_baner(
                                 modifier = Modifier.clickable(
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() }) {
-                                    mostar_Bottom_shet_editar_horario = true
-                                }
-                            ) {
+                                    if (dias.toInt() != 0) {
+                                        mostar_Bottom_shet_editar_horario = true
+                                    } else {
+                                        sin_acceso_horario()
+                                    }
+                                }) {
                                 texto_generico_one_line("Hoy ${item.dia_hoy}")
-                                Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(color_estado))
-                                Spacer(modifier = Modifier.fillMaxWidth().weight(1f))
-                                Icon(imageVector = Icons.Filled.Edit, contentDescription = null, tint = Color.White, )
+                                Box(
+                                    modifier = Modifier
+                                        .size(12.dp)
+                                        .clip(CircleShape)
+                                        .background(color_estado)
+                                )
+                                Spacer(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f)
+                                )
+                                Icon(
+                                    imageVector = Icons.Filled.Edit,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                )
                             }
 
                             bloques_hoy.forEach { bloque ->
@@ -2152,9 +2252,15 @@ fun baner_widget_tienda_geinz_baner(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    texto_generico_one_line(constantes_horas.convertir24a12(bloque.h_apertura), style = MaterialTheme.typography.bodyMedium)
+                                    texto_generico_one_line(
+                                        constantes_horas.convertir24a12(bloque.h_apertura),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
                                     texto_generico_one_line("a")
-                                    texto_generico_one_line(constantes_horas.convertir24a12(bloque.h_cierre), style = MaterialTheme.typography.bodyMedium)
+                                    texto_generico_one_line(
+                                        constantes_horas.convertir24a12(bloque.h_cierre),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
                                 }
                             }
                         }
@@ -2162,23 +2268,45 @@ fun baner_widget_tienda_geinz_baner(
                 }
 
                 this@Column.AnimatedVisibility(mostrarSelectorMotivo) {
-                    Column(modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .animateContentSize()
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .animateContentSize()
                     ) {
-                        texto_generico_one_line("Selecciona tu motivo en $tiempoRestante s", style = MaterialTheme.typography.bodyMedium)
+                        texto_generico_one_line(
+                            "Selecciona tu motivo en $tiempoRestante s",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                         spacer_vertical(15.dp)
-                        Row(modifier = Modifier.fillMaxWidth().horizontalScroll(scrollState), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(scrollState),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
                             motivos.forEach { motivo ->
                                 Box(
                                     modifier = Modifier
                                         .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary)
-                                        .padding(5.dp)
-                                ) {
-                                    texto_generico_one_line(motivo, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(10.dp))
+                                        .background(
+                                            if (motivoSeleccionado == motivo) Color.White
+                                            else MaterialTheme.colorScheme.primary
+                                        )
+                                        .clickable {
+                                            // Alterna la selección: si ya está seleccionado, deselecciona
+                                            motivoSeleccionado =
+                                                if (motivoSeleccionado == motivo) null else motivo
+                                        }
+                                        .padding(5.dp)) {
+                                    texto_generico_one_line(
+                                        motivo,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = if (motivoSeleccionado == motivo) Color.Black else Color.White,
+                                        modifier = Modifier.padding(10.dp)
+                                    )
                                 }
+
                             }
                         }
                     }
@@ -2205,10 +2333,8 @@ fun baner_widget_tienda_geinz_baner(
             // Imagen proporcionada
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .memoryCachePolicy(CachePolicy.ENABLED)
-                    .diskCachePolicy(CachePolicy.ENABLED)
-                    .data(item.img_tienda)
-                    .build(),
+                    .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
+                    .data(item.img_tienda).build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -2232,11 +2358,22 @@ fun baner_widget_tienda_geinz_baner(
                     horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     texto_generico_one_line("Saldo : ")
+                    if (item.total_puntos == "0") {
+                        Text(
+                            text = "Obtener saldo",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                textDecoration = TextDecoration.Underline,
+                                color = MaterialTheme.colorScheme.primary
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
 
-                    texto_generico_one_line(
-                        "${item.total_puntos}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    } else {
+                        texto_generico_one_line(
+                            "${item.total_puntos}", style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
 
                     Icon(
                         painter = painterResource(id = R.drawable.icon_monedas_3d),
@@ -2249,9 +2386,7 @@ fun baner_widget_tienda_geinz_baner(
                 texto_generico_one_line("Atención")
 
                 TextoExpandibleEnLinea(
-                    txt_estado_teinda.capitalizeFirst(),
-                    color_estado,
-                    color_estado
+                    txt_estado_teinda.capitalizeFirst(), color_estado, color_estado
                 )
             }
         }
@@ -2316,7 +2451,7 @@ fun baner_registra_tu_negocio(listener_registra_tu_negocio: () -> Unit) {
                 Box(
                     modifier = Modifier
                         .size(40.dp) // 🔹 tamaño fijo y respetado
-                        .clip(CircleShape)
+                    .clip(CircleShape)
                         .background(Color.Gray.copy(alpha = 0.25f))
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -2407,21 +2542,21 @@ fun TextoExpandibleEnLinea(
     ) {
         Text(
             buildAnnotatedString {
-                // Texto principal (blanco)
-                withStyle(
-                    style = SpanStyle(color = color_principla)
-                ) {
-                    append(texto)
-                }
+            // Texto principal (blanco)
+            withStyle(
+                style = SpanStyle(color = color_principla)
+            ) {
+                append(texto)
+            }
 
-                append(" ")
+            append(" ")
 
-                withStyle(
-                    style = SpanStyle(
-                        color = color, fontSize = 13.sp, fontWeight = FontWeight.Medium
-                    )
-                ) {}
-            },
+            withStyle(
+                style = SpanStyle(
+                    color = color, fontSize = 13.sp, fontWeight = FontWeight.Medium
+                )
+            ) {}
+        },
             style = MaterialTheme.typography.bodyMedium,
             maxLines = if (expandido) Int.MAX_VALUE else 1,
             overflow = TextOverflow.Ellipsis,

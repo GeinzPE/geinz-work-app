@@ -55,6 +55,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
@@ -136,10 +138,12 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_widget_
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permiso_primario_notifi
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_ayudanos_a_creccer
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.verificar_version
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.guarar_token_user
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_carga_img_general
+import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import com.geinzz.geinzwork.viewmodel_carga_img_generalFactory
 import com.google.firebase.messaging.FirebaseMessaging
 
@@ -185,7 +189,6 @@ fun pantalla_principal(
     val estados_carga_widget by vm_fotos_salud.estado_carga_widget_tienda.collectAsState()
     var datos_tienda by remember (estados_carga_widget.dia_hoy){ mutableStateOf(widget_tienda()) }
 
-
     LaunchedEffect(estados_carga_widget) {
         datos_tienda = estados_carga_widget
     }
@@ -195,10 +198,6 @@ fun pantalla_principal(
     }
     var mostrar_widget_tienda by remember { mutableStateOf(false) }
 
-//    LaunchedEffect(Unit) {
-////        viewModel_cordenadas.obtener_subcategorias(true)
-////        viewModel_cordenadas.obtner_filtrado_localidades()
-//    }
     LaunchedEffect(Unit) {
         viewModel_cordenadas.verificar_vesion_actulizacion(context)
     }
@@ -218,6 +217,7 @@ fun pantalla_principal(
     val stickyHeaderIndex = 1
     var toastShown by remember { mutableStateOf(false) }
 
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
         if (listState.firstVisibleItemIndex >= stickyHeaderIndex && !toastShown) {
@@ -248,10 +248,9 @@ fun pantalla_principal(
 
     val tick by viewModel_filtado_tiendas.tick.collectAsState()
 
-    var bloques_hoy by remember { mutableStateOf<List<HorarioBloque>>(emptyList()) }
-
+    var bloques_hoy by remember(estados_carga_widget.dia_hoy) { mutableStateOf<List<HorarioBloque>>(emptyList()) }
+    val viewmodel: viewmodel_eres_socio = viewModel()
     LaunchedEffect(ud_tienda_shader,estados_carga_widget) {
-        Log.d("ejecutamro_Carga_neuvaem","${datos_tienda.horario_tiendaMap.sábado.cerrado}")
         if (ud_tienda_shader != "") {
             mostrar_widget_tienda = true
             bloques_hoy= constantes_horas.obtenerBloquesDeHoy(datos_tienda.dia_hoy,datos_tienda.horario_tiendaMap)
@@ -406,12 +405,38 @@ fun pantalla_principal(
                 if (mostrar_widget_tienda) {
                     spacer_vertical(10.dp)
                     baner_widget_tienda_geinz_baner(
-                        datos_tienda,
-                        viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[datos_tienda.id_tienda]
+                        viewmodel = viewmodel,
+                        item = datos_tienda,
+                        horario_hoy = viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[datos_tienda.id_tienda]
                             ?: HorarioDia_box(),
-                        constantes_horas.calcularHorasDiaLegible( viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[datos_tienda.id_tienda]
-                            ?: HorarioDia_box(),),bloques_hoy,
-                        tick
+                        horas_de_trabajo = constantes_horas.calcularHorasDiaLegible( viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[datos_tienda.id_tienda]
+                            ?: HorarioDia_box(),),
+                        bloques_hoy = bloques_hoy,
+                        tick = tick,
+                        sin_activar_horario = {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "No puedes activar tu horario porque tu plan está por renovar.",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        },
+                        sin_acceso_motivo_cierre = {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "No puedes cambiar el motivo de cierre mientras tu plan esté por renovar",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        },
+                        sin_acceso_horario = {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "No puedes modificar tu horario porque tu plan está por renovar.",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        }
                     )
                     spacer_vertical(20.dp)
                 }
@@ -491,6 +516,8 @@ fun pantalla_principal(
                 { mostar_bottom_sheet_ayuda_geinz = false }, viewModel_filtado_tiendas
             )
         }
+        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
+
     }
 
 }
@@ -867,9 +894,7 @@ fun filtrado_localidades(
                             data_store_localidad.guardar_localida(context, item.nombre)
                             val newIndex =
                                 lista_localidades.indexOfFirst { it.nombre == item.nombre }
-                            if (newIndex >= 0) {
-//                                listState.animateScrollToItem(newIndex)
-                            }
+
                         }
                         localidad_defecto = item.nombre
 
