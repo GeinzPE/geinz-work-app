@@ -295,25 +295,30 @@ object constantes_horas {
 
 
     fun abreviarNumero(num: Long): String {
-        if (num < 1000) return num.toString()
+        return try {
+            if (num < 1000) return num.toString()
 
-        val unidades = listOf("K", "M", "B", "T")
-        var valor = num.toDouble()
-        var index = -1
+            val unidades = listOf("K", "M", "B", "T")
+            var valor = num.toDouble()
+            var index = -1
 
-        while (valor >= 1000 && index < unidades.size - 1) {
-            valor /= 1000
-            index++
+            while (valor >= 1000 && index < unidades.size - 1) {
+                valor /= 1000
+                index++
+            }
+
+            // Redondeo a 2 decimales sin ceros innecesarios
+            val valorStr = when {
+                valor >= 100 -> String.format("%.0f", valor)     // ej. 150K → "150K"
+                valor >= 10  -> String.format("%.1f", valor)     // ej. 12.3K
+                else         -> String.format("%.2f", valor)     // ej. 1.23K
+            }.trimEnd('0').trimEnd('.')  // Elimina ".0"
+
+            valorStr + unidades[index]
+        } catch (e: Exception) {
+            // En caso de error, devuelve el número original como string
+            num.toString()
         }
-
-        // Redondeo a 2 decimales sin ceros innecesarios
-        val valorStr = when {
-            valor >= 100 -> String.format("%.0f", valor)     // ej. 150K → "150K"
-            valor >= 10  -> String.format("%.1f", valor)     // ej. 12.3K
-            else         -> String.format("%.2f", valor)     // ej. 1.23K
-        }.trimEnd('0').trimEnd('.')  // Elimina ".0"
-
-        return valorStr + unidades[index]
     }
 
 

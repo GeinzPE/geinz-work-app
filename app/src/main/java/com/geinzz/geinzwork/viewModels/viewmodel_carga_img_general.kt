@@ -14,11 +14,13 @@ import com.geinzz.geinzwork.data_store.data_store_localidad.guardarUrlsCarga_tur
 import com.geinzz.geinzwork.data_store.data_store_localidad.obtenerUrlsCarga
 import com.geinzz.geinzwork.data_store.data_store_localidad.obtenerUrlsCarga_turismo
 import com.geinzz.geinzwork.model.repo_carga_img_general
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
 class viewmodel_carga_img_general(
     private val context: Context,
 ) : ViewModel() {
@@ -27,6 +29,9 @@ class viewmodel_carga_img_general(
 
     private val _urlsCarga_turistico = MutableStateFlow<List<String>>(emptyList())
     val urlsCarga_turistico = _urlsCarga_turistico.asStateFlow()
+
+    private val _es_aniversario_hoy =MutableStateFlow<Boolean> (false)
+    val es_aniversario_hoy =_es_aniversario_hoy.asStateFlow()
 
 
 
@@ -115,5 +120,17 @@ class viewmodel_carga_img_general(
         }catch (e: Exception){
          Log.d("Error_obtenr","error al obtenr los datos")
         }
+    }
+
+
+    fun esaniversario_hoy(localidad:String){
+        viewModelScope.launch {
+            try {
+                _es_aniversario_hoy.value= constantes_lista_localidades.esAniversarioHoy(localidad)
+            }catch (e: Exception){
+                _es_aniversario_hoy.value=false
+            }
+        }
+
     }
 }

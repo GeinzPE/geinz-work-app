@@ -144,6 +144,7 @@ import com.geinzz.geinzwork.data.model.datos_tienda_fechas
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.widget_tienda
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_renovar_plan
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.eres_socio_geinz
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
@@ -2042,6 +2043,8 @@ fun baner_widget_tienda_geinz_baner(
     val hAperturaPM = remember { mutableStateOf(bloqueTarde?.h_apertura ?: "") }
     val hCierrePM = remember { mutableStateOf(bloqueTarde?.h_cierre ?: "") }
 
+    var por_removar by remember { mutableStateOf(false) }
+
 // 🔥 Esto mantiene sincronizado el estado cuando Firebase cambia
     LaunchedEffect(item.horario_tiendaMap) {
         val bloqueMananaActual = bloques_hoy.getOrNull(0)
@@ -2228,7 +2231,9 @@ fun baner_widget_tienda_geinz_baner(
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         textDecoration = TextDecoration.Underline,
                                         color = MaterialTheme.colorScheme.primary
-                                    )
+                                    ), modifier = Modifier.clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){
+                                        por_removar=true
+                                    }
                                 )
                             }
                         }
@@ -2367,6 +2372,9 @@ fun baner_widget_tienda_geinz_baner(
             }
 
 
+
+
+
         }
 
 
@@ -2421,10 +2429,11 @@ fun baner_widget_tienda_geinz_baner(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-
                     } else {
+                        val puntosSeguros = item.total_puntos.toLongOrNull() ?: 0L
                         texto_generico_one_line(
-                            "${abreviarNumero(item.total_puntos.toLong())}", style = MaterialTheme.typography.bodyMedium
+                            "${abreviarNumero(puntosSeguros)}",
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
 
@@ -2445,6 +2454,9 @@ fun baner_widget_tienda_geinz_baner(
         }
     }
 
+    if(por_removar){
+        dialog_renovar_plan{por_removar=!por_removar}
+    }
     if (mostar_Bottom_shet_editar_horario) {
         eres_socio_geinz(
             true,

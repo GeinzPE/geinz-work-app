@@ -63,6 +63,7 @@ import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -226,9 +227,14 @@ fun pantalla_principal(
             toastShown = false
         }
     }
-    var esAniversarioHoy by rememberSaveable(localidad_defaul) {
-        mutableStateOf(esAniversarioHoy(localidad_defaul))
+
+    val esAniversarioHoy by vm_fotos_salud.es_aniversario_hoy.collectAsState()
+
+    LaunchedEffect(localidad_defaul) {
+        vm_fotos_salud.esaniversario_hoy(localidad_defaul)
     }
+
+
     val dialgo_notificacion by data_store_localidad.getNotificacion(context)
         .collectAsState(initial = false)
     val dialogo_notifi_ret by data_store_localidad.get_dialog_notifi(context)
@@ -374,10 +380,10 @@ fun pantalla_principal(
                     localidad_defaul, _obtener_filtrado_localidades, { localidad_selecionada ->
                         localidadSeleccionada.value = localidad_selecionada
                     }, { esAniversario ->
-                        Log.d("esAniversarioaaaa", esAniversario.toString())
-                        if (esAniversarioHoy != esAniversario) {
-                            esAniversarioHoy = esAniversario
-                        }
+//                        Log.d("esAniversarioaaaa", esAniversario.toString())
+//                        if (esAniversarioHoy != esAniversario) {
+//                            esAniversarioHoy = esAniversario
+//                        }
                     })
 
 
@@ -834,35 +840,8 @@ fun filtrado_localidades(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.confetii))
-    var localidad_defecto by rememberSaveable { mutableStateOf(ultimaLocalidad) }
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-
-    val configuration = LocalConfiguration.current
-    val screenWidthDp = configuration.screenWidthDp
-    val isTablet = screenWidthDp > 600
-
-//    var index by remember { mutableStateOf(0) }
-    LaunchedEffect(ultimaLocalidad) {
-        ultimaLocalidad.let { seleccionada ->
-            localidad_defecto = seleccionada
-
-            clikeable(false)
-
-            val aniversarioHoy = esAniversarioHoy(seleccionada)
-            Log.d("ANIVERSARIO", "Localidad: $seleccionada → $aniversarioHoy")
-
-            clikeable(aniversarioHoy)
-
-//            index = lista_localidades.indexOfFirst {
-//                it.nombre.equals(seleccionada, ignoreCase = true)
-//            }.coerceAtLeast(0)
-//            if (index >= 0) {
-//
-//            }
-        }
-    }
 
     Spacer(modifier = Modifier.height(10.dp))
     if (lista_localidades.isNotEmpty()) {
@@ -874,54 +853,47 @@ fun filtrado_localidades(
             initialItem = index,
             itemCount = { lista_localidades.size }
         )
-        Log.d("indexindex", index.toString())
+
         HorizontalMultiBrowseCarousel(
             state = carouselState,
             preferredItemWidth = screenWidth * 0.8f,
             itemSpacing = 12.dp,
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) { index ->
             val item = lista_localidades[index]
             val randomImg = remember(item.lista_img) { item.lista_img.randomOrNull() }
+
+            val isSelected = item.nombre.equals(ultimaLocalidad, ignoreCase = true)
+            val playAnimation = remember(isSelected, aniversario) { isSelected && aniversario }
+
             Box(
                 modifier = Modifier
-                    .fillMaxWidth() // 👈 más pequeño en tablets
-                    .aspectRatio(1f)  // 👈 menos alto en tablets
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
                     .maskClip(RoundedCornerShape(20.dp))
                     .clickable {
                         scope.launch {
                             data_store_localidad.guardar_localida(context, item.nombre)
-                            val newIndex =
-                                lista_localidades.indexOfFirst { it.nombre == item.nombre }
-
                         }
-                        localidad_defecto = item.nombre
-
                         nombre_localidad_selecionado(item.nombre)
-
                     }
-
             ) {
                 AsyncImage(
-                    model =
-                        ImageRequest.Builder(LocalContext.current)
-                            .data(randomImg)
-
-                            .memoryCachePolicy(CachePolicy.ENABLED)
-                            .diskCachePolicy(CachePolicy.ENABLED)
-                            .placeholder(R.drawable.cargando_img_categorias)
-                            .error(R.drawable.cargando_img_categorias)
-                            .build(),
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(randomImg)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .placeholder(R.drawable.cargando_img_categorias)
+                        .error(R.drawable.cargando_img_categorias)
+                        .build(),
                     contentDescription = item.nombre,
                     modifier = Modifier
                         .fillMaxSize()
                         .maskClip(RoundedCornerShape(20.dp)),
-
-
                     contentScale = ContentScale.Crop,
                     alignment = Alignment.BottomCenter
                 )
+
                 Box(
                     modifier = Modifier
                         .matchParentSize()
@@ -936,8 +908,8 @@ fun filtrado_localidades(
                             )
                         )
                 )
-                if (localidad_defecto.equals(item.nombre, ignoreCase = true) && aniversario) {
-                    Log.d("aniversario", aniversario.toString())
+
+                if (playAnimation) {
                     LottieAnimation(
                         composition,
                         modifier = Modifier
@@ -946,15 +918,7 @@ fun filtrado_localidades(
                     )
                 }
 
-                val titulo = if (localidad_defecto.equals(
-                        item.nombre,
-                        ignoreCase = true
-                    )
-                ) {
-                    "Estás aquí 👋"
-                } else {
-                    "Explorar"
-                }
+                val titulo = if (isSelected) "Estás aquí 👋" else "Explorar"
 
                 Column(
                     modifier = Modifier
@@ -966,7 +930,7 @@ fun filtrado_localidades(
                     Spacer(modifier = Modifier.weight(1f))
                     texto_encimado_cartas(
                         aniversario,
-                        localidad_defecto.equals(item.nombre, ignoreCase = true),
+                        isSelected,
                         modifier = Modifier,
                         item.nombre.capitalizeFirst(),
                         titulo,
@@ -984,11 +948,9 @@ fun filtrado_localidades(
         ) {
             CircularProgressIndicator()
         }
-
-
     }
-
 }
+
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
