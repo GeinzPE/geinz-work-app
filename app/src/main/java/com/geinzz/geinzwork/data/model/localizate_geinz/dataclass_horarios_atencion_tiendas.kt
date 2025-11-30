@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.data.model.localizate_geinz
 
 import android.os.Parcelable
+import com.google.firebase.Timestamp
 import kotlinx.android.parcel.Parcelize
 
 
@@ -52,7 +53,8 @@ data class modelo_tienda(
     val metodo_contacto_tienda:metodo_contacto_tienda= metodo_contacto_tienda(),
     val horario_atencion: HorarioAtencion = HorarioAtencion(), // 🔹 Aquí se agrega el horario
     val metodos_pago_tienda:modelo_pagos_tienda =modelo_pagos_tienda(),
-    val horario_tienda_box:HorarioAtencion_box=HorarioAtencion_box()
+    val horario_tienda_box:HorarioAtencion_box=HorarioAtencion_box(),
+    val timestamp: String ="",
 )
 @Parcelize
 data class modelo_pagos_tienda(

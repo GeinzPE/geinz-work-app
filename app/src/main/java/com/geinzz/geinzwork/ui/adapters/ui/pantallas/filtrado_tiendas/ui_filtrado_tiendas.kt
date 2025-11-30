@@ -342,6 +342,16 @@ fun Pantalla_filtrado_tiendas(
             viewModelFiltros.obtener_tienda_no_pagada(localida, id_tienda_selecionada)
         }
     }
+    val horarios by viewModelFiltros.horariosTiendas_real.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModelFiltros.iniciarEscucha(
+            localidad = localida,
+            categoria = categoria
+        )
+    }
+
+
 
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -423,15 +433,10 @@ fun Pantalla_filtrado_tiendas(
 
                     items(listaOrdenada, key = { tienda -> tienda.id_tienda }) { tienda ->
 
-                        LaunchedEffect(tienda.id_tienda) {
-                            viewModelFiltros.calcularHorarioParaTienda(tienda.id_tienda, tienda.horario_tienda_box)
-                        }
-                        Log.d(
-                            "metoods_pago_teindas",
-                            "${tienda.id_tienda}  ${tienda.metodos_pago_tienda}"
-                        )
+                        val horarioDeEstaTienda = horarios[tienda.id_tienda] ?: HorarioDia_box()
+
                         item_tiendas(
-                            horario_box1 = viewModelFiltros.horariosTiendas.collectAsState().value[tienda.id_tienda] ?: HorarioDia_box(),
+                            horario_box1 = horarioDeEstaTienda,
                             horario_box = tienda.horario_tienda_box,
                             verificar_intener,
                             localidad_user = localida,

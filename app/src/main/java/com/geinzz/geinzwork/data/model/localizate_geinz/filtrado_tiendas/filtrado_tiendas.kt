@@ -62,6 +62,12 @@ data class tiendas_por_categoria(
     val horario_tienda_box: HorarioAtencion_box
 ) : Parcelable
 
+data class TiendaHorarioUpdate(
+    val idTienda: String,
+    val horario: HorarioDia_box,
+    val estaAbierto: Boolean
+)
+
 @Parcelize
 data class lugares_cercanos(
     val nombre_tienda: String = "",

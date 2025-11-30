@@ -94,6 +94,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.item_metodos_pago
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
@@ -129,6 +130,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.amarillo30
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes_publicaciones_general_user_tiendas.obtenerDiaActualEnEspañol
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.convertir_timesTAmp_fecha
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.ZoomIconButton
@@ -174,6 +176,9 @@ fun bottom_sheet_tiendas_filtradas(
     val referencia = tiendas_filtradas.ubicacion["referencia"]?.toString() ?: ""
     val longitud = (tiendas_filtradas.ubicacion["longitud"] as? Number)?.toDouble() ?: 0.0
     val latitud = (tiendas_filtradas.ubicacion["latitud"] as? Number)?.toDouble() ?: 0.0
+
+    val horarios by viewModelFiltros.horariosTiendas_real_completo.collectAsState()
+
     val color_Estado_flow by viewModelFiltros.color_estado_tienda_flow.collectAsState()
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     val verificarfavorito by viewModelFiltros.existe_favorito.collectAsState()
@@ -195,7 +200,9 @@ fun bottom_sheet_tiendas_filtradas(
 
     LaunchedEffect(tiendas_filtradas.id_tienda) {
 
+        Log.d("horarideirecotblotshee","${tiendas_filtradas.id_tienda} ${tiendas_filtradas.localidad}")
         val nuevoId = tiendas_filtradas.id_tienda
+
 
         // Si el ID es vacío o igual al último → NO HACER NADA
 //        if (nuevoId.isBlank() || nuevoId == ultimoProcesado) {
@@ -233,9 +240,6 @@ fun bottom_sheet_tiendas_filtradas(
 //            Log.d("VISTA", "+6s en: $nuevoId")
 //        }
     }
-
-
-
 
 // Cuando la pantalla se destruye → resetea
 
@@ -303,6 +307,10 @@ fun bottom_sheet_tiendas_filtradas(
         if (nuevoId.isBlank()) return@LaunchedEffect
 
         if (nuevoId != ultimoIdProcesado) {
+            viewModelFiltros.repo_filtrado.escucharHorarioCompletoDeTiendaUnica(
+                idTiendaBuscada = nuevoId,
+                localidad =tiendas_filtradas.localidad ?:"barranca"
+            )
             repo_socio.agregar_contador(
                 "clic",
                 nuevoId,
@@ -317,16 +325,18 @@ fun bottom_sheet_tiendas_filtradas(
         delay(6000)
 
         if (ultimoIdProcesado == nuevoId) {
+
             repo_socio.agregar_contador(
                 "vistas",
                 nuevoId,
                 tiendas_filtradas.localidad ?: "barranca"
             )
             Log.d("VISTA", "Vista REAL: $nuevoId")
+
+
+
         }
     }
-
-
 
 
 
@@ -380,7 +390,7 @@ fun bottom_sheet_tiendas_filtradas(
                         }
                         item {
                             cabezero_tiendas(
-                                tiendas_filtradas.localidad?:"barranca",
+                                tiendas_filtradas.localidad ?: "barranca",
                                 tiendas_filtradas.id_tienda,
                                 verificar_intener,
                                 triggerAnimacion,
@@ -485,7 +495,7 @@ fun bottom_sheet_tiendas_filtradas(
                         item {
                             Expandible_horario_atencion(
                                 modifier = Modifier.padding(horizontal = 10.dp),
-                                tiendas_filtradas.horario_tienda_box,
+                                horarios,
                                 color_Estado_flow,
                                 tiendas_filtradas.localidad,
                                 tiendas_filtradas.id_tienda,
@@ -525,6 +535,23 @@ fun bottom_sheet_tiendas_filtradas(
                                 expander_qr_tienda
                             ) { expander_qr_tienda = !expander_qr_tienda }
                         }
+
+                        item {
+                            spacer_vertical(20.dp)
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                texto_generico_one_line(
+                                    "Última actualización: ${
+                                        convertir_timesTAmp_fecha(
+                                            tiendas_filtradas.timestamp
+                                        )
+                                    }", style = MaterialTheme.typography.bodyMedium
+                                )
+
+                            }
+                        }
                         item {
                             spacer_vertical(20.dp)
 
@@ -554,7 +581,8 @@ fun bottom_sheet_tiendas_filtradas(
 
 @Composable
 fun cabezero_tiendas(
-    localidad:String,
+
+    localidad: String,
     id_tienda: String,
     verificar_intener: Boolean,
     triggerAnimacion: Boolean,
@@ -682,6 +710,7 @@ fun cabezero_tiendas(
         ) {
             Box(modifier = Modifier.weight(1f)) {
                 perfil_cabezero(
+                    localidad,
                     id_tienda,
                     viewModel_filtado_tiendas,
                     nombre_tienda,
@@ -824,6 +853,7 @@ fun perfil_img_zooom(
 
 @Composable
 fun perfil_cabezero(
+    localida:String,
     id_tienda: String,
     viewModelFiltros: viewModel_filtado_tiendas,
     nombre_tienda: String,
@@ -833,6 +863,12 @@ fun perfil_cabezero(
 ) {
     val horario_tiempo_real by viewModelFiltros.color_estado_tienda.collectAsState()
     val _color_estado_tienda_Box by viewModelFiltros.color_estado_tienda_box.collectAsState()
+    val horarios by viewModelFiltros.horariosTiendas_real.collectAsState()
+    viewModelFiltros.repo_filtrado.escucharHorarioDeTiendaUnica(
+        idTiendaBuscada = id_tienda,
+        localidad = localida
+    )
+
     val tick by viewModelFiltros.tick.collectAsState()
 
     Column {
@@ -848,13 +884,12 @@ fun perfil_cabezero(
 
         retornar_color_estado_tienda_Box(
             id_tienda = id_tienda,
-            horario_total = _color_estado_tienda_Box,
+            horario_total =  horarios[id_tienda] ?: HorarioDia_box(),
             tick = tick,
             pagado = true,
             color = { color, txt ->
                 viewModelFiltros.setear_color(color)
             })
-
         spacer_vertical(5.dp)
 
 
@@ -876,7 +911,7 @@ fun perfil_cabezero(
 
 @Composable
 fun abrir_google_maps(
-    id_tienda:String,
+    id_tienda: String,
     localidad: String,
     verificar_intener: Boolean,
     guardar_icon: Boolean,
@@ -899,7 +934,7 @@ fun abrir_google_maps(
         FloatingActionButton(
             onClick = {
                 constantes_lista_localidades.abrir_google_maps(
-                    "tienda",id_tienda,localidad,
+                    "tienda", id_tienda, localidad,
                     context,
                     latitud,
                     longitud
@@ -1094,11 +1129,12 @@ fun Expandible_Metodo_contacto(
                             R.drawable.llamada_icon,
                             constantes_lista_localidades.ocultarNumero(metodos_contactos.llamada.numero)
                         ) {
-                            llamar("tienda",id_tienda,
-                                localidad_tienda,context, metodos_contactos.llamada.numero, {
-                                call_dialog_permise = true
-                                numero_llamada = metodos_contactos.llamada.numero
-                            })
+                            llamar(
+                                "tienda", id_tienda,
+                                localidad_tienda, context, metodos_contactos.llamada.numero, {
+                                    call_dialog_permise = true
+                                    numero_llamada = metodos_contactos.llamada.numero
+                                })
                         }
                     }
                     if (metodos_contactos.tiktok.estado) {

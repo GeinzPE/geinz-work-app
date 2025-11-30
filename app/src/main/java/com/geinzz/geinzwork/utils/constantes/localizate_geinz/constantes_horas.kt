@@ -75,11 +75,13 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import kotlinx.coroutines.delay
 import java.security.SecureRandom
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
+import java.util.Date
 import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -208,6 +210,15 @@ object constantes_horas {
     }
 
 
+    fun convertir_timesTAmp_fecha(timestampparams:String):String{
+    val timestamp = timestampparams.toLong()
+    val date = Date(timestamp)
+
+        val formato = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        return  formato.format(date)
+    }
+
+
     fun DiaHoy(): String {
         val localeEs = Locale("es", "ES")
 
@@ -282,6 +293,28 @@ object constantes_horas {
     }
 
 
+
+    fun abreviarNumero(num: Long): String {
+        if (num < 1000) return num.toString()
+
+        val unidades = listOf("K", "M", "B", "T")
+        var valor = num.toDouble()
+        var index = -1
+
+        while (valor >= 1000 && index < unidades.size - 1) {
+            valor /= 1000
+            index++
+        }
+
+        // Redondeo a 2 decimales sin ceros innecesarios
+        val valorStr = when {
+            valor >= 100 -> String.format("%.0f", valor)     // ej. 150K → "150K"
+            valor >= 10  -> String.format("%.1f", valor)     // ej. 12.3K
+            else         -> String.format("%.2f", valor)     // ej. 1.23K
+        }.trimEnd('0').trimEnd('.')  // Elimina ".0"
+
+        return valorStr + unidades[index]
+    }
 
 
 

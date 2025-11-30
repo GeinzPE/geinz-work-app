@@ -7,6 +7,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.TiendaHorarioUpdate
 
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
@@ -28,13 +29,23 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion_box_dia
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
+import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import kotlin.Boolean
 import kotlin.Number
+import kotlin.text.get
 
 class repo_filtrado_tiendas {
     val db = FirebaseFirestore.getInstance()
@@ -212,7 +223,10 @@ class repo_filtrado_tiendas {
                 val horarioHoyBloques = obtenerHorarioDeHoy_BOX(horario_tienda_box)
                 val horarioHoyBox = convertirABox(horarioHoyBloques)
                 val estaAbierto = estaAbiertoHoy(horarioHoyBox)
-
+                Log.d(
+                    "REALTIME-HORARIO-ORIGINAL12312313",
+                    "📅 dia_prox_apertura=${horarioHoyBox.dia_prox_apertura}, ⏰ hora_prox_apertura=${horarioHoyBox.hora_prox_apertura}"
+                )
                 lista_tiendas_filtradas.add(
                     tiendas_por_categoria(
                         localidad,
@@ -237,6 +251,175 @@ class repo_filtrado_tiendas {
             Log.e("Firestore", "Error al obtener tiendas filtradas", e)
         }
         return lista_tiendas_filtradas
+    }
+
+
+
+    private var listenerTiendas: ListenerRegistration? = null
+
+    private val repoScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    private val _cambiosHorarioTiendas = MutableSharedFlow<TiendaHorarioUpdate>()
+    private val cambio_horario_completo= MutableSharedFlow<HorarioAtencion_box>()
+    val cambiosHorarioTiendas = _cambiosHorarioTiendas.asSharedFlow()
+    val cambiosHorariocompleto_tienda = cambio_horario_completo.asSharedFlow()
+
+
+    fun escucharHorariosEnTiempoReal(localidad: String, categoria: String) {
+
+        Log.d("REALTIME", "⏳ Iniciando escucha de horarios ($localidad - $categoria)")
+
+        listenerTiendas = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .whereEqualTo("categoria_tienda", categoria)
+            .addSnapshotListener { snapshot, error ->
+
+                if (error != null) {
+                    Log.e("REALTIME", "❌ Error en snapshot listener: ${error.message}")
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null) {
+                    Log.e("REALTIME", "❌ Snapshot es null!")
+                    return@addSnapshotListener
+                }
+
+                Log.d("REALTIME", "📡 Snapshot recibido. Changes=${snapshot.documentChanges.size}")
+
+
+                snapshot.documentChanges.forEach { change ->
+
+                    val doc = change.document
+                    val idTienda = doc.getString("id_tienda") ?: return@forEach
+                    val horarioMap = doc.get("horario_atencion") as? Map<String, Any> ?: return@forEach
+
+                    val horarioBox = horarioMap.to_horario_atencion_box_dia()
+//                    val horarioHoyBloques = obtenerHorarioDeHoy_BOX(horarioBox)
+//                    val horarioHoyBox = convertirABox(horarioHoyBloques)
+                    val horarioHoyBox=obtener_estado_horario_tienda_Box(horarioBox)
+                    val estaAbierto = estaAbiertoHoy(horarioHoyBox)
+
+                    Log.d(
+                        "REALTIME-HORARIO-ORIGINAL",
+                        "📅 dia_prox_apertura=${horarioHoyBox.dia_prox_apertura}, ⏰ hora_prox_apertura=${horarioHoyBox.hora_prox_apertura}"
+                    )
+                    repoScope.launch {
+
+                        when (change.type) {
+
+                            DocumentChange.Type.ADDED -> {
+                                Log.d("REALTIME", "🟢 ADDED -> Cargando horario inicial $idTienda")
+
+                                _cambiosHorarioTiendas.emit(
+                                    TiendaHorarioUpdate(
+                                        idTienda = idTienda,
+                                        horario = horarioHoyBox,
+                                        estaAbierto = estaAbierto
+                                    )
+                                )
+                            }
+
+                            DocumentChange.Type.MODIFIED -> {
+                                Log.d("REALTIME", "🟡 MODIFIED -> Actualizando horario $idTienda")
+
+                                _cambiosHorarioTiendas.emit(
+                                    TiendaHorarioUpdate(
+                                        idTienda = idTienda,
+                                        horario = horarioHoyBox,
+                                        estaAbierto = estaAbierto
+                                    )
+                                )
+                            }
+
+                            else -> {}
+                        }
+                    }
+                }
+
+            }
+    }
+
+
+    fun escucharHorarioDeTiendaUnica(idTiendaBuscada: String, localidad: String) {
+
+        Log.d("REALTIME-UNICA", "⏳ Escuchando solo la tienda $idTiendaBuscada")
+
+        listenerTiendas = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .whereEqualTo("id_tienda", idTiendaBuscada)   // 🔥 SOLO esta tienda
+            .addSnapshotListener { snapshot, error ->
+
+                if (error != null) {
+                    Log.e("REALTIME-UNICA", "❌ Error: ${error.message}")
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null || snapshot.isEmpty) {
+                    Log.w("REALTIME-UNICA", "⚠ No se encontró la tienda")
+                    return@addSnapshotListener
+                }
+
+                Log.d("REALTIME-UNICA", "📡 Snapshot recibido: ${snapshot.documentChanges.size}")
+
+                snapshot.documentChanges.forEach { change ->
+
+                    val doc = change.document
+
+                    val horarioMap = doc.get("horario_atencion") as? Map<String, Any> ?: return@forEach
+                    val horarioBox = horarioMap.to_horario_atencion_box_dia()
+
+                    val horarioHoyBox = obtener_estado_horario_tienda_Box(horarioBox)
+                    val estaAbierto = estaAbiertoHoy(horarioHoyBox)
+
+                    Log.d(
+                        "REALTIME-UNICA",
+                        "📅 dia_prox=${horarioHoyBox.dia_prox_apertura}, ⏰ hora_prox=${horarioHoyBox.hora_prox_apertura}"
+                    )
+
+                    repoScope.launch {
+
+                        _cambiosHorarioTiendas.emit(
+                            TiendaHorarioUpdate(
+                                idTienda = idTiendaBuscada,
+                                horario = horarioHoyBox,
+                                estaAbierto = estaAbierto
+                            )
+                        )
+
+                    }
+                }
+            }
+    }
+
+    fun escucharHorarioCompletoDeTiendaUnica(idTiendaBuscada: String, localidad: String) {
+Log.d("horaisadasgfsfgfasgsg","$idTiendaBuscada $localidad")
+        listenerTiendas = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(idTiendaBuscada)
+            .addSnapshotListener { snapshot, error ->
+
+                if (error != null) {
+                    Log.e("REALTIME-UNICA", "❌ Error: ${error.message}")
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null || !snapshot.exists()) {
+                    Log.w("REALTIME-UNICA", "⚠ Documento no encontrado")
+                    return@addSnapshotListener
+                }
+
+                val horarioMap = snapshot.get("horario_atencion") as? Map<String, Any> ?: return@addSnapshotListener
+                val horarioCompleto = horarioMap.to_horario_atencion_box_dia() // función que mapea toda la semana
+
+                Log.d("REALTIME-UNICA", "📅 Horario completo recibido: $horarioCompleto")
+
+                repoScope.launch {
+                    cambio_horario_completo.emit(horarioCompleto)
+                }
+            }
     }
 
 
@@ -302,7 +485,7 @@ class repo_filtrado_tiendas {
                 pagado = data?.get("pagado") as? Boolean ?: false,
                 metodo_contacto_tienda = contacto_obs,
                 horario_atencion = horarioTienda,
-                metodos_pago_tienda = metodo_pago_tienda, horario_tienda_box = horario_atencion_Box
+                metodos_pago_tienda = metodo_pago_tienda, horario_tienda_box = horario_atencion_Box,timestamp=data?.get("timeSlamp") as? String ?: ""
             )
 
             lista_modelo_tienda.add(tiendaModelo)

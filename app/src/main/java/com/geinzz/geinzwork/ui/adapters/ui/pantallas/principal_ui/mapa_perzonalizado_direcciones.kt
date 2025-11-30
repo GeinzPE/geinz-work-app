@@ -153,6 +153,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun pantalla_mapa_perzonalizado(
     verificar_intener: Boolean,
@@ -291,13 +292,18 @@ fun MyGoogle_maps(
     val seguirUbicacion = remember { mutableStateOf(false) }
     val animatingMap = remember { mutableStateOf(false) }
 
-    val horariosMap by viewModel_filtrado_tiendas
-        .horariosTiendas
-        .collectAsState(initial = emptyMap())
+//    val horariosMap by viewModel_filtrado_tiendas
+//        .horariosTiendas
+//        .collectAsState(initial = emptyMap())
 
-    val horarioTienda = horariosMap[lister_marker.id]
+    val horarios by viewModel_filtrado_tiendas.horariosTiendas_real.collectAsState()
 
+//    val horarioTienda = horariosMap[lister_marker.id]
 
+    viewModel_filtrado_tiendas.repo_filtrado.escucharHorarioDeTiendaUnica(
+        idTiendaBuscada = lister_marker.id,
+        localidad = "Lima"
+    )
 
     LaunchedEffect(lister_marker.id) {
 
@@ -776,7 +782,7 @@ fun MyGoogle_maps(
 
 
             dialogo_lugar_tienda(
-                horarioTienda,
+                horarios[lister_marker.id] ?: HorarioDia_box(),
                 viewmodelMapa,
                 lat_user, log_user,
                 time = tick,

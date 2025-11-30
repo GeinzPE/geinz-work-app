@@ -151,6 +151,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.abreviarNumero
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.construirBloques
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.motivos
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerDiasYColor
@@ -2423,7 +2424,7 @@ fun baner_widget_tienda_geinz_baner(
 
                     } else {
                         texto_generico_one_line(
-                            "${item.total_puntos}", style = MaterialTheme.typography.bodyMedium
+                            "${abreviarNumero(item.total_puntos.toLong())}", style = MaterialTheme.typography.bodyMedium
                         )
                     }
 

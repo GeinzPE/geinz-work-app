@@ -126,19 +126,48 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
         _color_estado_tienda_flow.value = color
     }
 
+    private val _horariosTiendas_real = MutableStateFlow<Map<String, HorarioDia_box>>(emptyMap())
+    val horariosTiendas_real = _horariosTiendas_real.asStateFlow()
+
+
+    private val _horariosTiendas_real_compelto = MutableStateFlow<HorarioAtencion_box>(HorarioAtencion_box())
+    val horariosTiendas_real_completo = _horariosTiendas_real_compelto.asStateFlow()
 
     init {
+
+        // Guarda las tiendas pagadas
         viewModelScope.launch {
             state_Tiendas_filtradas_por_categoria.collect { estado ->
                 if (estado is carga_tiendas.succes) {
                     val tiendasPagadas = estado.items.filter { it.pagado }
                     _listaTiendasGuardadas.postValue(tiendasPagadas)
                     savedStateHandle["lista_tiendas_guardadas"] = tiendasPagadas
-
                 }
             }
         }
+
+        // Escucha los cambios de horarios en tiempo real
+        viewModelScope.launch {
+            repo_filtrado.cambiosHorarioTiendas.collect { update ->
+                // Actualiza el horario de esa tienda
+                val nuevoMapa = _horariosTiendas_real.value.toMutableMap()
+                nuevoMapa[update.idTienda] = update.horario
+                _horariosTiendas_real.value = nuevoMapa
+
+                Log.d("VM-HORARIO", "Horario actualizado para ${update.idTienda}")
+            }
+        }
+
+
+        viewModelScope.launch {
+            repo_filtrado.cambiosHorariocompleto_tienda.collect { update ->
+                _horariosTiendas_real_compelto.value = update
+
+            }
+        }
     }
+
+
 
     init {
         viewModelScope.launch {
@@ -147,6 +176,10 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
                 _tick.value = System.currentTimeMillis()
             }
         }
+    }
+
+    fun iniciarEscucha(localidad: String, categoria: String) {
+        repo_filtrado.escucharHorariosEnTiempoReal(localidad, categoria)
     }
 
     private val _horarioTienda = MutableLiveData<HorarioTienda?>(null)
@@ -316,6 +349,8 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
         }
     }
 
+
+
     fun filtrar_por_subcategoria(subcategoria: String, lista: List<tiendas_por_categoria>) {
         Log.d("131231312313123", "$subcategoria")
 
@@ -334,6 +369,9 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
             }
         }
     }
+
+
+
 
     fun lista_completa_inicial(subcategoria: String) {
         viewModelScope.launch {
