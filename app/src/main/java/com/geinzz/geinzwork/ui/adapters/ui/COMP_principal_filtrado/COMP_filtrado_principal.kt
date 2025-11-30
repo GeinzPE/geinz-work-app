@@ -156,9 +156,12 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.m
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerDiasYColor
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_subcategoria_shadow
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.start_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import kotlinx.coroutines.delay
@@ -2082,6 +2085,29 @@ fun baner_widget_tienda_geinz_baner(
             return@LaunchedEffect
         }
     }
+    val showLeftShadow by remember {
+        derivedStateOf {
+            scrollState.value > 0
+        }
+    }
+
+    val showRightShadow by remember {
+        derivedStateOf {
+            scrollState.value < scrollState.maxValue
+        }
+    }
+
+    val alphaLeft by animateFloatAsState(
+        targetValue = if (showLeftShadow) 1f else 0f,
+        animationSpec = tween(400),
+        label = "alphaLeft"
+    )
+
+    val alphaRight by animateFloatAsState(
+        targetValue = if (showRightShadow) 1f else 0f,
+        animationSpec = tween(400),
+        label = "alphaRight"
+    )
 
 
     Row(
@@ -2279,36 +2305,62 @@ fun baner_widget_tienda_geinz_baner(
                             style = MaterialTheme.typography.bodyMedium
                         )
                         spacer_vertical(15.dp)
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .horizontalScroll(scrollState),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            motivos.forEach { motivo ->
-                                Box(
-                                    modifier = Modifier
-                                        .clip(CircleShape)
-                                        .background(
-                                            if (motivoSeleccionado == motivo) Color.White
-                                            else MaterialTheme.colorScheme.primary
-                                        )
-                                        .clickable {
-                                            // Alterna la selección: si ya está seleccionado, deselecciona
-                                            motivoSeleccionado =
-                                                if (motivoSeleccionado == motivo) null else motivo
-                                        }
-                                        .padding(5.dp)) {
-                                    texto_generico_one_line(
-                                        motivo,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = if (motivoSeleccionado == motivo) Color.Black else Color.White,
-                                        modifier = Modifier.padding(10.dp)
-                                    )
-                                }
+                        Box( modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp), contentAlignment = Alignment.Center){
 
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(scrollState),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                motivos.forEach { motivo ->
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .background(
+                                                if (motivoSeleccionado == motivo) Color.White
+                                                else MaterialTheme.colorScheme.primary
+                                            )
+                                            .clickable {
+                                                // Alterna la selección: si ya está seleccionado, deselecciona
+                                                motivoSeleccionado =
+                                                    if (motivoSeleccionado == motivo) null else motivo
+                                            }
+                                            .padding(5.dp)) {
+                                        texto_generico_one_line(
+                                            motivo,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = if (motivoSeleccionado == motivo) Color.Black else Color.White,
+                                            modifier = Modifier.padding(10.dp)
+                                        )
+                                    }
+
+                                }
                             }
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .width(40.dp)
+                                    .align(Alignment.CenterStart)
+                                    .zIndex(1f)
+                                    .alpha(alphaLeft)
+                                    .background(Brush.horizontalGradient(colors = start_shadow_bottom_sheet_default))
+                            )
+
+                            // 👉 derecha
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .width(40.dp)
+                                    .align(Alignment.CenterEnd)
+                                    .zIndex(1f)
+                                    .alpha(alphaRight)
+                                    .background(Brush.run { horizontalGradient(colors = end_shadow_bottom_sheet_default) })
+                            )
                         }
+
                     }
                 }
             }

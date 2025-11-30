@@ -1923,12 +1923,12 @@ object constantes_lista_localidades {
     )
 
     val start_shadow_bottom_sheet_default = listOf(
-        Color(0XFF1D1B20),
+        Color(0XFF1A1A1A),
         Color.Transparent,
     )
     val end_shadow_bottom_sheet_default = listOf(
         Color.Transparent,
-        Color(0XFF1D1B20)
+        Color(0XFF1A1A1A)
     )
 
     val end_subcategoria_shadow = listOf(
