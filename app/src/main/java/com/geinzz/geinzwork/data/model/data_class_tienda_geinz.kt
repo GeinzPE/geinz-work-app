@@ -20,7 +20,8 @@ data class data_class_tienda_geinz(
     val fechas:ingreso_date,
     val timeSlamp: String,
     val horario_atencion: HorarioAtencion_box,
-    val lista_img:img_tienda
+    val lista_img:img_tienda,
+    val puntos_tienda: Number = 1200
 )
 
 data class img_tienda(val lista_img: List<String> =emptyList(),val logo_tienda:String="")

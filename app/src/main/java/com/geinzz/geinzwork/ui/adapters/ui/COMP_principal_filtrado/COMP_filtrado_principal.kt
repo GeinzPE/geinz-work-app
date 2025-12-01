@@ -84,6 +84,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -2371,10 +2372,6 @@ fun baner_widget_tienda_geinz_baner(
                 }
             }
 
-
-
-
-
         }
 
 
@@ -2394,13 +2391,15 @@ fun baner_widget_tienda_geinz_baner(
             // Imagen proporcionada
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
-                    .data(item.img_tienda).build(),
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .data(item.img_tienda)
+                    .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1.5f)
+                    .heightIn(max = 120.dp)  // 🔥 Evita que la imagen desborde
                     .clip(RoundedCornerShape(10.dp))
             )
 

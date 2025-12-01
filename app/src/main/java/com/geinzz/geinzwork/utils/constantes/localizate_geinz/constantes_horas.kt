@@ -776,7 +776,7 @@ object constantes_horas {
                                         ) {
                                             campoHora(
                                                 valor = hAperturaAM.value,
-                                                etiqueta = "Apertura AM",
+                                                etiqueta = "Apertura 1",
                                                 onHoraSeleccionada = { new ->
                                                     hAperturaAM.value = new
                                                 },
@@ -790,7 +790,7 @@ object constantes_horas {
 
                                             campoHora(
                                                 valor = hCierreAM.value,
-                                                etiqueta = if (corrido) "Cierre PM" else "Cierre AM",
+                                                etiqueta = if (corrido) "Cierre 1" else "Cierre 1",
                                                 onHoraSeleccionada = { new ->
                                                     hCierreAM.value = new
                                                 },
@@ -808,7 +808,7 @@ object constantes_horas {
 
                                                 campoHora(
                                                     valor = hAperturaPM.value,
-                                                    etiqueta = "Apertura PM",
+                                                    etiqueta = "Apertura 2",
                                                     onHoraSeleccionada = { new ->
                                                         hAperturaPM.value = new
                                                     },
@@ -822,7 +822,7 @@ object constantes_horas {
 
                                                 campoHora(
                                                     valor = hCierrePM.value,
-                                                    etiqueta = "Cierre PM",
+                                                    etiqueta = "Cierre 2",
                                                     onHoraSeleccionada = { new ->
                                                         hCierrePM.value = new
                                                     },

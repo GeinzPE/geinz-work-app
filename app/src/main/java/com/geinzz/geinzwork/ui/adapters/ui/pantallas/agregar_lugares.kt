@@ -147,9 +147,10 @@ fun datos_teindas() {
     var pedir_ayuda_ia by rememberSaveable { mutableStateOf(false) }
     var mostar_progrs_var_IA by remember { mutableStateOf(false) }
 
+    var direccion by rememberSaveable { mutableStateOf("") }
     var latitud by rememberSaveable { mutableStateOf("") }
     var longitud by rememberSaveable { mutableStateOf("") }
-    var direccion by rememberSaveable { mutableStateOf("") }
+//    var direccion by rememberSaveable { mutableStateOf(direccion) }
     var referencia by rememberSaveable { mutableStateOf("") }
     var numero_yape by rememberSaveable { mutableStateOf("") }
     var titular_yape by rememberSaveable { mutableStateOf("") }
@@ -171,7 +172,6 @@ fun datos_teindas() {
     var lista_subcategoria by rememberSaveable { mutableStateOf(listOf<String>()) }
     var lista_categorias by rememberSaveable { mutableStateOf(listOf<String>()) }
     var lista_subcategorias_full by rememberSaveable { mutableStateOf(listOf<List<String>>()) }
-
 
 
     scope.launch {
@@ -220,7 +220,12 @@ fun datos_teindas() {
     }
 
     LaunchedEffect(latitud, longitud) {
+        if(latitud.isNotEmpty() && longitud.isNotEmpty()){
         mostar_geo = latitud.isNotEmpty() && longitud.isNotEmpty()
+            direccion= viewmodel_agregar_datos.obtenerDireccion(lat_,lng_,context) ?:""
+
+
+        }
     }
     LazyColumn(
         modifier = Modifier
@@ -828,7 +833,7 @@ fun datos_teindas() {
                     fechas = ingreso_date(
                         hora_ingreso = constantes_horas.horaActual(),
                         fecha_ingreso = fechaActual(),
-                        fecha_fin = fechaUnaSemanaDespues()
+                        fecha_fin = fechaActual()
                     ),
                     timeSlamp = timeStampNumero(),
                     horario_atencion = HorarioAtencion_box(

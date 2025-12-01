@@ -1,10 +1,16 @@
 package com.geinzz.geinzwork.viewModels
 
+import android.content.Context
+import android.location.Geocoder
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.HorasDia
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.util.Locale
 
 class viewmodel_agregar_datos : ViewModel() {
     val dias = listOf(
@@ -81,5 +87,29 @@ class viewmodel_agregar_datos : ViewModel() {
             )
         )
     }
+
+    suspend fun obtenerDireccion(lat: Double, lon: Double, context: Context): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val geocoder = Geocoder(context, Locale.getDefault())
+                val direcciones = geocoder.getFromLocation(lat, lon, 1)
+
+                if (!direcciones.isNullOrEmpty()) {
+                    val addressLine = direcciones[0].getAddressLine(0)
+
+                    Log.d("GeocoderFunc", "AddressLine(0): $addressLine")
+
+                    addressLine
+                } else {
+                    Log.w("GeocoderFunc", "No se encontró AddressLine(0)")
+                    null
+                }
+            } catch (e: Exception) {
+                Log.e("GeocoderFunc", "Error: ${e.message}")
+                null
+            }
+        }
+    }
+
 
 }

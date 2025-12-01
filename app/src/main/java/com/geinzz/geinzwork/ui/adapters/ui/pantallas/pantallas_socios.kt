@@ -55,6 +55,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -78,6 +79,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandib
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_mostar_leyendas_graficos
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialogo_cerrar_seccion_teinda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
@@ -131,6 +133,7 @@ fun login_socios(isConnected: Boolean) {
     val cargando by viewmodel.cargandoIdSocio.collectAsState()
     val idSocio by viewmodel.idSocio.collectAsState()
 
+    var cerrar_Seccion_cuenta_tienda by remember { mutableStateOf(false) }
 
 
     LaunchedEffect(Unit) {
@@ -201,7 +204,8 @@ fun login_socios(isConnected: Boolean) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Box(modifier = Modifier.fillMaxSize()) {
                             AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current).data(R.drawable.fondo_img_parte_geinz)
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(R.drawable.fondo_img_parte_geinz)
                                     .placeholder(R.drawable.cargando_img_categorias)
                                     .error(R.drawable.cargando_img_categorias).build(),
                                 contentDescription = null,
@@ -254,6 +258,21 @@ fun login_socios(isConnected: Boolean) {
                                     placeholderText = "Pega tu ID"
                                 )
                                 spacer_vertical(10.dp)
+                                Box(modifier = Modifier.fillMaxWidth()){
+                                Text(
+                                    text = "Olvidaste tu id?",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        textDecoration = TextDecoration.Underline,
+                                        color = MaterialTheme.colorScheme.primary
+                                    ),
+                                    modifier = Modifier.clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() }) {
+
+                                    }
+                                )
+                                }
+                                spacer_vertical(15.dp)
                                 Row(
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
@@ -264,22 +283,22 @@ fun login_socios(isConnected: Boolean) {
                                             .clip(CircleShape)
                                             .background(MaterialTheme.colorScheme.primary)
                                             .clickable {
-                                                if(isConnected){
-                                                if (id_registrado.isEmpty()) {
-                                                    scope.launch {
-                                                        snackbarHostState.showSnackbar(
-                                                            message = "Ingresa tu id de tienda",
-                                                            duration = SnackbarDuration.Short
+                                                if (isConnected) {
+                                                    if (id_registrado.isEmpty()) {
+                                                        scope.launch {
+                                                            snackbarHostState.showSnackbar(
+                                                                message = "Ingresa tu id de tienda",
+                                                                duration = SnackbarDuration.Short
+                                                            )
+                                                        }
+                                                    } else {
+                                                        viewmodel.verificar_existencia_tienda(
+                                                            id_registrado,
+                                                            "barranca"
                                                         )
                                                     }
-                                                } else {
-                                                    viewmodel.verificar_existencia_tienda(
-                                                        id_registrado,
-                                                        "barranca"
-                                                    )
-                                                }
 
-                                                }else{
+                                                } else {
                                                     scope.launch {
                                                         snackbarHostState.showSnackbar(
                                                             message = "No cuentas con conexión a internet para iniciar sesión",
@@ -395,7 +414,10 @@ fun login_socios(isConnected: Boolean) {
                                                 Row(
                                                     modifier = Modifier
                                                         .fillMaxWidth()
-                                                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                                                        .padding(
+                                                            horizontal = 16.dp,
+                                                            vertical = 10.dp
+                                                        ),
                                                     verticalAlignment = Alignment.CenterVertically
                                                 ) {
                                                     // Título centrado
@@ -417,11 +439,7 @@ fun login_socios(isConnected: Boolean) {
                                                         contentDescription = "Cerrar sesión",
                                                         tint = Color.White,
                                                         modifier = Modifier.clickable {
-                                                            scope.launch {
-                                                                id_registrado = ""
-                                                                viewmodel.cambiar_estado_Seccion()
-                                                                data_store_localidad.delete_id_socio(context)
-                                                            }
+                                                            cerrar_Seccion_cuenta_tienda = true
                                                         }
                                                     )
                                                 }
@@ -1084,6 +1102,19 @@ fun login_socios(isConnected: Boolean) {
                 }
 
             }
+        }
+
+        if (cerrar_Seccion_cuenta_tienda) {
+            dialogo_cerrar_seccion_teinda(ondimis = {
+                cerrar_Seccion_cuenta_tienda = !cerrar_Seccion_cuenta_tienda
+            }, cerrar_seccion = {
+                scope.launch {
+                    id_registrado = ""
+                    viewmodel.cambiar_estado_Seccion()
+                    data_store_localidad.delete_id_socio(context)
+                }
+            }
+            )
         }
     }
 }

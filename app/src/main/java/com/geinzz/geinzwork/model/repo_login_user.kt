@@ -113,7 +113,8 @@ class repo_login_user {
                         "id_user" to user.uid,
                         "cod_pais" to login_user.cod_pais,
                         "nacionalidad_nacimiento" to login_user.nacionalidad_nacimiento,
-                        "contacto" to contacto
+                        "contacto" to contacto,
+                        "puntos" to 500
                     )
 
 
@@ -180,6 +181,7 @@ class repo_login_user {
             "cod_pais" to login_google.cod_pais,                // ISO del país
             "nacionalidad_nacimiento" to login_google.nacionalidad_nacimiento, // nombre del país
             "contacto" to contacto,
+            "puntos" to 500
         )
 
         collection_user.document(login_google.id).set(hasmap).addOnSuccessListener {

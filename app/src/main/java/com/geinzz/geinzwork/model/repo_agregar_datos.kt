@@ -60,7 +60,8 @@ class repo_agregar_datos(context: Context) {
             "ubicacion" to data_class_tienda_geinz.ubicacion,
             "img_tienda" to img_tienda(),
             "fechas" to data_class_tienda_geinz.fechas,
-            "timeSlamp" to data_class_tienda_geinz.timeSlamp
+            "timeSlamp" to data_class_tienda_geinz.timeSlamp,
+            "puntos_tienda" to data_class_tienda_geinz.puntos_tienda
         )
         db2.collection("Tiendas").document(data_class_tienda_geinz.localida_tienda)
             .collection(data_class_tienda_geinz.localida_tienda)
@@ -82,7 +83,7 @@ class repo_agregar_datos(context: Context) {
             "categoria" to data_class_tienda_geinz.categoria_tienda,
             "id_tienda" to data_class_tienda_geinz.id_tienda,
             "img" to "",
-            "lugar" to data_class_tienda_geinz.ubicacion,
+            "lugar" to data_class_tienda_geinz.localida_tienda,
             "nombre" to data_class_tienda_geinz.nombre_tienda,
             "tag" to data_class_tienda_geinz.subcategoria,
             "ubicacion" to hasmap_ubicacion
