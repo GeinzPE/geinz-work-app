@@ -1995,7 +1995,8 @@ fun baner_widget_tienda_geinz_baner(
     tick: Long,
     sin_activar_horario: () -> Unit,
     sin_acceso_motivo_cierre: () -> Unit,
-    sin_acceso_horario: () -> Unit
+    sin_acceso_horario: () -> Unit,
+    mostar_panel_geinz:()-> Unit
 ) {
 
     Log.d("hoaerirodehoy", item.horario_tiendaMap.sábado.cerrado.toString())
@@ -2400,7 +2401,9 @@ fun baner_widget_tienda_geinz_baner(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = 120.dp)  // 🔥 Evita que la imagen desborde
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(10.dp)).clickable(){
+                        mostar_panel_geinz()
+                    }
             )
 
             Column(

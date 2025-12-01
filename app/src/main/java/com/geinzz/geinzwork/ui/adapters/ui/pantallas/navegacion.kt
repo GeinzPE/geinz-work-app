@@ -415,7 +415,7 @@ fun nativationWrapper(
 //                            enviar_notificacion_lista_dispo(id_user,"notificaion","prueva")
                             navController.navigate(ui_agregar_lugares)
 
-                        },
+                        },{ navController.navigate(login_scios)},
                     )
                 }
                 // Login

@@ -1696,7 +1696,7 @@ fun ramdoBox(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = i.nombre,
+                        text = i.nombre.capitalizeFirst(),
                         fontFamily = textos_titulos_geinz_wokr,
                         color = Color.White,
                         maxLines = 1,
@@ -1766,10 +1766,10 @@ fun ramdoBox(
                 }
                 spacer_vertical(5.dp)
                 texto_generico_one_line(
-                    "$iconCategoria ${i.categoria}",
+                    "$iconCategoria ${i.categoria.capitalizeFirst()}",
                     MaterialTheme.typography.bodyMedium
                 )
-                spacer_vertical(5.dp)
+                spacer_vertical(7.dp)
                 tags_subcateogiras(
                     i.lista,
                     brush_start = Brush.horizontalGradient(colors = shadow_top_filtrado_v1),

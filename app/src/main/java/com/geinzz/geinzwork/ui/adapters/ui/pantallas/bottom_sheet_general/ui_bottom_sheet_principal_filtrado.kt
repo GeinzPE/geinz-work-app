@@ -200,7 +200,10 @@ fun bottom_sheet_tiendas_filtradas(
 
     LaunchedEffect(tiendas_filtradas.id_tienda) {
 
-        Log.d("horarideirecotblotshee","${tiendas_filtradas.id_tienda} ${tiendas_filtradas.localidad}")
+        Log.d(
+            "horarideirecotblotshee",
+            "${tiendas_filtradas.id_tienda} ${tiendas_filtradas.localidad}"
+        )
         val nuevoId = tiendas_filtradas.id_tienda
 
 
@@ -309,7 +312,7 @@ fun bottom_sheet_tiendas_filtradas(
         if (nuevoId != ultimoIdProcesado) {
             viewModelFiltros.repo_filtrado.escucharHorarioCompletoDeTiendaUnica(
                 idTiendaBuscada = nuevoId,
-                localidad =tiendas_filtradas.localidad ?:"barranca"
+                localidad = tiendas_filtradas.localidad ?: "barranca"
             )
             repo_socio.agregar_contador(
                 "clic",
@@ -332,7 +335,6 @@ fun bottom_sheet_tiendas_filtradas(
                 tiendas_filtradas.localidad ?: "barranca"
             )
             Log.d("VISTA", "Vista REAL: $nuevoId")
-
 
 
         }
@@ -853,7 +855,7 @@ fun perfil_img_zooom(
 
 @Composable
 fun perfil_cabezero(
-    localida:String,
+    localida: String,
     id_tienda: String,
     viewModelFiltros: viewModel_filtado_tiendas,
     nombre_tienda: String,
@@ -884,7 +886,7 @@ fun perfil_cabezero(
 
         retornar_color_estado_tienda_Box(
             id_tienda = id_tienda,
-            horario_total =  horarios[id_tienda] ?: HorarioDia_box(),
+            horario_total = horarios[id_tienda] ?: HorarioDia_box(),
             tick = tick,
             pagado = true,
             color = { color, txt ->
@@ -1274,15 +1276,18 @@ fun item_metodos_de_pago(
                             img = R.drawable.yape_logo,
                             nombre = "Yape"
                         ) {
-                            mostrar_dialog_pagos = true
-                            metodoPagoSeleccionado = item_metodos_pago(
-                                metodos_pago.metodos_pago_tienda.yape.qr,
-                                metodos_pago.metodos_pago_tienda.yape.numero,
-                                R.drawable.yape_logo,
-                                "Yape",
-                                metodos_pago.metodos_pago_tienda.yape.nombre,
+                            if (metodos_pago.metodos_pago_tienda.yape.nombre.isNotEmpty() || metodos_pago.metodos_pago_tienda.yape.numero.isNotEmpty()) {
 
-                                )
+                                mostrar_dialog_pagos = true
+                                metodoPagoSeleccionado = item_metodos_pago(
+                                    metodos_pago.metodos_pago_tienda.yape.qr,
+                                    metodos_pago.metodos_pago_tienda.yape.numero,
+                                    R.drawable.yape_logo,
+                                    "Yape",
+                                    metodos_pago.metodos_pago_tienda.yape.nombre,
+
+                                    )
+                            }
                         }
                     }
                 }
@@ -1293,15 +1298,17 @@ fun item_metodos_de_pago(
                             img = R.drawable.logo_plin,
                             nombre = "Plin"
                         ) {
-                            mostrar_dialog_pagos = true
-                            metodoPagoSeleccionado = item_metodos_pago(
-                                metodos_pago.metodos_pago_tienda.plin.qr,
-                                metodos_pago.metodos_pago_tienda.plin.numero,
-                                R.drawable.logo_plin,
-                                "Plin",
-                                metodos_pago.metodos_pago_tienda.plin.nombre,
+                            if (metodos_pago.metodos_pago_tienda.plin.nombre.isNotEmpty() || metodos_pago.metodos_pago_tienda.plin.numero.isNotEmpty()) {
+                                mostrar_dialog_pagos = true
+                                metodoPagoSeleccionado = item_metodos_pago(
+                                    metodos_pago.metodos_pago_tienda.plin.qr,
+                                    metodos_pago.metodos_pago_tienda.plin.numero,
+                                    R.drawable.logo_plin,
+                                    "Plin",
+                                    metodos_pago.metodos_pago_tienda.plin.nombre,
 
-                                )
+                                    )
+                            }
                         }
                     }
                 }

@@ -750,4 +750,22 @@ Log.d("horaisadasgfsfgfasgsg","$idTiendaBuscada $localidad")
         return doc.exists()
     }
 
+    suspend fun vincular_cuenta(id_user: String, id_tienda: String, localidad: String) {
+        val ref = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(id_tienda)
+
+        val hashMap = hashMapOf<String, Any>(
+            "propietario_id" to listOf(id_user)
+        )
+
+        try {
+            ref.set(hashMap).await()
+            Log.d("vincular_cuenta", "Cuenta vinculada correctamente")
+        } catch (e: Exception) {
+            Log.e("vincular_cuenta", "Error al vincular cuenta: ${e.message}")
+        }
+    }
+
 }

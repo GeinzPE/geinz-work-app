@@ -162,7 +162,7 @@ fun pantalla_principal(
     listner_busqueda: () -> Unit,
     listener_seguridad: (String) -> Unit,
     listner_sevicios_tramites: (String) -> Unit,
-    abrir_guardar_datos: () -> Unit,
+    abrir_guardar_datos: () -> Unit,mostrar_panel_geinz:()-> Unit
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -442,7 +442,7 @@ fun pantalla_principal(
                                     duration = SnackbarDuration.Short
                                 )
                             }
-                        }
+                        },{mostrar_panel_geinz()}
                     )
                     spacer_vertical(20.dp)
                 }

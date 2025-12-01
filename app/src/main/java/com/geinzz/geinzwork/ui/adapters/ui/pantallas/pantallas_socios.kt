@@ -1,7 +1,10 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -11,6 +14,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -34,6 +38,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -55,6 +60,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -108,7 +114,6 @@ fun login_socios(isConnected: Boolean) {
     val labels3 = listOf("Llamada", "Whatsapp", "Rutas")
     val viewmodel: viewmodel_eres_socio = viewModel()
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
-    val viewmodel_agregar_datos: viewmodel_agregar_datos = viewModel()
     val state_socio = viewmodel.state_eres_socio.collectAsState()
     val _tick by viewModelFiltros.tick.collectAsState()
     var mostar_interes by remember { mutableStateOf(false) }
@@ -135,7 +140,7 @@ fun login_socios(isConnected: Boolean) {
 
     var cerrar_Seccion_cuenta_tienda by remember { mutableStateOf(false) }
 
-
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     LaunchedEffect(Unit) {
         viewmodel.cargarIdSocio(context)
     }
@@ -251,26 +256,70 @@ fun login_socios(isConnected: Boolean) {
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                                 spacer_vertical(10.dp)
-                                MyOutlinedTextField(
-                                    value = id_registrado,
-                                    onValueChange = { id_registrado = it },
-                                    labelText = "Pega tu ID",
-                                    placeholderText = "Pega tu ID"
-                                )
-                                spacer_vertical(10.dp)
-                                Box(modifier = Modifier.fillMaxWidth()){
-                                Text(
-                                    text = "Olvidaste tu id?",
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        textDecoration = TextDecoration.Underline,
-                                        color = MaterialTheme.colorScheme.primary
-                                    ),
-                                    modifier = Modifier.clickable(
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }) {
-
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .weight(1f)
+                                    ) {
+                                        MyOutlinedTextField(
+                                            value = id_registrado,
+                                            onValueChange = { id_registrado = it },
+                                            labelText = "Pega tu ID",
+                                            placeholderText = "Pega tu ID"
+                                        )
                                     }
-                                )
+                                    spacer_horizonta(2.dp)
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.primary)
+                                            .size(45.dp)
+                                            .clickable() {
+                                                val clipData = clipboard.primaryClip
+                                                if (clipData != null && clipData.itemCount > 0) {
+                                                    val text =
+                                                        clipData.getItemAt(0).coerceToText(context)
+                                                            .toString()
+                                                    id_registrado = text
+                                                } else {
+                                                    Toast
+                                                        .makeText(
+                                                            context,
+                                                            "El portapapeles está vacío",
+                                                            Toast.LENGTH_SHORT
+                                                        )
+                                                        .show()
+                                                }
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Image(
+                                            painter = painterResource(R.drawable.pegar_portapales_webp),
+                                            contentDescription = "",
+                                            modifier = Modifier.size(25.dp)
+                                        )
+                                    }
+                                }
+                                spacer_vertical(10.dp)
+                                Box(modifier = Modifier.fillMaxWidth()) {
+                                    Text(
+                                        text = "Olvidaste tu id?",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            textDecoration = TextDecoration.Underline,
+                                            color = MaterialTheme.colorScheme.primary
+                                        ),
+                                        modifier = Modifier
+                                            .padding(start = 5.dp)
+                                            .clickable(
+                                                indication = null,
+                                                interactionSource = remember { MutableInteractionSource() }) {
+
+                                            }
+                                    )
                                 }
                                 spacer_vertical(15.dp)
                                 Row(
@@ -1079,6 +1128,36 @@ fun login_socios(isConnected: Boolean) {
                                                                 )
                                                             }
                                                         }
+                                                    }
+                                                }
+
+                                                Column(
+                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                                                    modifier = Modifier
+                                                        .clip(RoundedCornerShape(20.dp))
+                                                        .background(
+                                                            MaterialTheme.colorScheme.surface
+                                                        )
+                                                        .padding(10.dp)
+                                                ) {
+                                                    texto_generico_one_line("Vincula tu cuenta", style = MaterialTheme.typography.titleLarge)
+                                                    texto_generico_multilinea(
+                                                        "Vincula tu tienda con tu cuenta Geinz y gestiona todo desde tus dispositivos. Cada tienda puede asociar hasta 3 dispositivos por cuenta.",
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
+                                                    spacer_vertical(5.dp)
+                                                    Box(
+                                                        modifier = Modifier.fillMaxWidth()
+                                                            .clip(CircleShape)
+                                                            .background(MaterialTheme.colorScheme.primary).clickable(){
+                                                                viewModelFiltros.vincular_cuenta(idSocio,idSocio,idSocio)
+                                                            }, contentAlignment = Alignment.Center
+                                                    ) {
+                                                        texto_generico_one_line(
+                                                            "Vincular cuenta ahora",
+                                                            style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp)
+                                                        )
                                                     }
                                                 }
                                             }

@@ -44,10 +44,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
+
 class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) : ViewModel() {
 
     val repo_filtrado = repo_filtrado_tiendas()
     val repo_cat_sub = repo_agregar_cat_sub_localizate()
+
     @RequiresApi(Build.VERSION_CODES.O)
     val repo_erese_socio = repo_eres_socio()
 
@@ -130,7 +132,8 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     val horariosTiendas_real = _horariosTiendas_real.asStateFlow()
 
 
-    private val _horariosTiendas_real_compelto = MutableStateFlow<HorarioAtencion_box>(HorarioAtencion_box())
+    private val _horariosTiendas_real_compelto =
+        MutableStateFlow<HorarioAtencion_box>(HorarioAtencion_box())
     val horariosTiendas_real_completo = _horariosTiendas_real_compelto.asStateFlow()
 
     init {
@@ -166,7 +169,6 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
             }
         }
     }
-
 
 
     init {
@@ -350,7 +352,6 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     }
 
 
-
     fun filtrar_por_subcategoria(subcategoria: String, lista: List<tiendas_por_categoria>) {
         Log.d("131231312313123", "$subcategoria")
 
@@ -369,8 +370,6 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
             }
         }
     }
-
-
 
 
     fun lista_completa_inicial(subcategoria: String) {
@@ -494,12 +493,14 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
         Log.d("cast_horario_atencion_horario_tienda", horarioAtencion.toString())
         viewModelScope.launch {
             try {
-                _color_estado_tienda.value = repo_filtrado.obtener_estado_horario_tienda(horarioAtencion)
+                _color_estado_tienda.value =
+                    repo_filtrado.obtener_estado_horario_tienda(horarioAtencion)
             } catch (e: Exception) {
                 _color_estado_tienda.value = horario_tienda()
             }
         }
     }
+
     fun cast_horario_atencion_horario_tienda_box(horarioAtencion: HorarioAtencion_box) {
         Log.d("cast_horario_atencion_horario_tienda", horarioAtencion.toString())
         viewModelScope.launch {
@@ -519,8 +520,14 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
         viewModelScope.launch {
             try {
                 repo_filtrado.guardar_tienda_favorito(id_user, item_favoritos)
-                favoritos.update { it.toMutableMap().apply { put(item_favoritos.id_tienda_lugar, true) } }
-                repo_erese_socio.agregar_contador("guardados",item_favoritos.id_tienda_lugar,item_favoritos.localida_tienda)
+                favoritos.update {
+                    it.toMutableMap().apply { put(item_favoritos.id_tienda_lugar, true) }
+                }
+                repo_erese_socio.agregar_contador(
+                    "guardados",
+                    item_favoritos.id_tienda_lugar,
+                    item_favoritos.localida_tienda
+                )
             } catch (e: Exception) {
                 Log.d("error", "error al guardar faboritos")
             }
@@ -531,7 +538,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     val horariosTiendas: StateFlow<Map<String, HorarioDia_box>> = _horariosTiendas
 
     fun calcularHorarioParaTienda(idTienda: String, horarioAtencion: HorarioAtencion_box) {
-        Log.d("horario_atenicon_estado",horarioAtencion.toString())
+        Log.d("horario_atenicon_estado", horarioAtencion.toString())
         viewModelScope.launch {
             val result = try {
                 repo_filtrado.obtener_estado_horario_tienda_Box(horarioAtencion)
@@ -545,11 +552,11 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     }
 
 
-    fun eliminar_tienda_favorita(id_user: String, id_tienda: String,localidad_tienda: String) {
+    fun eliminar_tienda_favorita(id_user: String, id_tienda: String, localidad_tienda: String) {
         viewModelScope.launch {
             try {
                 repo_filtrado.eliminar_tienda_favorito(id_user, id_tienda)
-                repo_filtrado.eliminar_uer_tienda_fv(id_user,id_tienda,localidad_tienda)
+                repo_filtrado.eliminar_uer_tienda_fv(id_user, id_tienda, localidad_tienda)
                 favoritos.update { it.toMutableMap().apply { put(id_tienda, false) } }
             } catch (e: Exception) {
                 Log.d("error", "error al eliminar faboritos")
@@ -558,11 +565,14 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     }
 
     fun verificar_existe_favorito(id_user: String, id_tienda: String) {
-        Log.d("varificar_fv","$id_user $id_tienda")
+        Log.d("varificar_fv", "$id_user $id_tienda")
         viewModelScope.launch {
             try {
                 _existe_favorito.value = repo_filtrado.verificar_favorito(id_user, id_tienda)
-                Log.d("exite","${repo_filtrado.verificar_favorito(id_user, id_tienda)} $id_user $id_tienda" )
+                Log.d(
+                    "exite",
+                    "${repo_filtrado.verificar_favorito(id_user, id_tienda)} $id_user $id_tienda"
+                )
             } catch (e: Exception) {
                 _existe_favorito.value = false
                 Log.d("error", "error al eliminar faboritos")
@@ -571,28 +581,40 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     }
 
 
-
     fun verificar_existe_favoritoMap(idUser: String, idTienda: String) {
         viewModelScope.launch {
             try {
                 val existe = repo_filtrado.verificar_favorito(idUser, idTienda)
                 favoritos.value += (idTienda to existe)
-            }catch (e: Exception){
-                Log.d("error_entra","error al encontrar el existente")
+            } catch (e: Exception) {
+                Log.d("error_entra", "error al encontrar el existente")
             }
 
         }
     }
 
-
-
-    fun guardar_tienda_favorita_por_id(localidad_tienda:String, id_user: String, id_tienda: String) {
+    fun vincular_cuenta(id_user: String, id_tienda: String, localida: String) {
         viewModelScope.launch {
             try {
-                val datos=repo_filtrado.obtener_datos_tienda_id(localidad_tienda,id_tienda)
+                repo_filtrado.vincular_cuenta(id_user, id_tienda, localida)
+            } catch (e: Exception) {
+                Log.d("error_entrar", "error al vincular $e")
+            }
+        }
+    }
+
+
+    fun guardar_tienda_favorita_por_id(
+        localidad_tienda: String,
+        id_user: String,
+        id_tienda: String
+    ) {
+        viewModelScope.launch {
+            try {
+                val datos = repo_filtrado.obtener_datos_tienda_id(localidad_tienda, id_tienda)
                 repo_filtrado.guardar_tienda_favorito(id_user, datos)
                 favoritos.update { it.toMutableMap().apply { put(id_tienda, true) } }
-                repo_erese_socio.agregar_contador("guardados",id_tienda,localidad_tienda)
+                repo_erese_socio.agregar_contador("guardados", id_tienda, localidad_tienda)
 
             } catch (e: Exception) {
                 Log.d("error", "error al guardar faboritos")
