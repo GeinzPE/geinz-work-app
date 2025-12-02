@@ -114,6 +114,7 @@ class viewmodel_carga_img_general(
             _estado_carga_widget_tienda.value =res
                 },
                 error = { error ->
+                    Log.d("noxeiste_dato_fiera","no existe")
                     _estado_carga_widget_tienda.value = widget_tienda()
                 })
         }

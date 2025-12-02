@@ -55,6 +55,7 @@ class repo_eres_socio {
 
                 val descripcion = data["descripcion"] as? String ?: ""
                 val propietario_id = data["propietario_id"] as? List<String> ?: emptyList()
+                val saldo_tienda=data["puntos_tienda"] as? Number ?:0
 
                 // 🔥 ESCUCHAR ESTADISTICAS EN TIEMPO REAL
                 ref.collection("estadisticas")
@@ -104,7 +105,7 @@ class repo_eres_socio {
                                     localidad_tienda = localidadTienda,
                                     fecha_ingreso = fecha_ingreso,
                                     fecha_termino = fecha_termino,
-                                    descripcion = descripcion, propietario_id
+                                    descripcion = descripcion, propietario_id,saldo_tienda
                                 )
                             )
                         }
@@ -312,7 +313,7 @@ class repo_eres_socio {
                 val nuevosPuntos = (puntosActuales - puntos_restar).coerceAtLeast(0)
 
                 // NUEVA FECHA FIN (desde hoy)
-                val nuevaFechaFin = sumarMesesDesdeHoy(mes_agregado_cantidad.toInt())
+                val nuevaFechaFin = sumarTiempoDesdeHoy(mes_agregado_cantidad)
 
                 val updates = hashMapOf<String, Any>(
                     "puntos_tienda" to nuevosPuntos,
@@ -334,16 +335,29 @@ class repo_eres_socio {
     }
 
 
-    fun sumarMesesDesdeHoy(meses: Int): String {
+    fun sumarTiempoDesdeHoy(texto: String): String {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val hoy = LocalDate.now()
+
         return try {
-            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-            val hoy = LocalDate.now()                     // ← FECHA ACTUAL
-            val nuevaFecha = hoy.plusMonths(meses.toLong()) // ← SUMA LOS MESES
+            val partes = texto.trim().split(" ")
+            val cantidad = partes[0].toInt()
+            val unidad = partes[1].lowercase()
+
+            val nuevaFecha = when {
+                unidad.contains("día") -> hoy.plusDays(cantidad.toLong())
+                unidad.contains("semana") -> hoy.plusWeeks(cantidad.toLong())
+                unidad.contains("mes") -> hoy.plusMonths(cantidad.toLong())
+                else -> hoy
+            }
+
             nuevaFecha.format(formatter)
+
         } catch (e: Exception) {
-            ""
+            hoy.format(formatter)
         }
     }
+
 
 
 }

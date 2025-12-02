@@ -139,6 +139,7 @@ import com.geinzz.geinzwork.data.model.datos_tienda_fechas
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.widget_tienda
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_cantidad_slado_geinz
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_renovar_plan
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.eres_socio_geinz
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
@@ -652,11 +653,13 @@ fun expandibles_wrapp_socio_geinzz(
 
 @Composable
 fun expandibles_wrapp_socio_geinzz_datos_tienda(
+    viewModelFiltros: viewmodel_eres_socio,
     context: Context,
     expandido: Boolean,
     datos_tienda_fechas: datos_tienda_fechas,
     onClickExpand: () -> Unit
 ) {
+    var por_renovar by remember { mutableStateOf(false)}
     ConstraintLayout(
         modifier = Modifier
             .fillMaxWidth()
@@ -785,17 +788,40 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                                 "${datos_tienda_fechas.dias_restantes} días para la renovación del plan.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = datos_tienda_fechas.color,
-                                modifier = Modifier.padding(start = 5.dp, bottom = 10.dp)
+                                modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
                             )
 
                             if (datos_tienda_fechas.dias_restantes == "0") {
 
+                                Box(
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary)
+                                        .clickable{
+                                            por_renovar=true
+                                        }
+                                ) {
+                                    texto_generico_one_line("Renovar plan", style = MaterialTheme.typography.bodyMedium,modifier = Modifier.padding(horizontal = 15.dp, vertical = 10.dp))
+                                }
                             }
                         }
                     }
                 }
             }
         }
+    }
+    if (por_renovar) {
+        dialog_renovar_plan(
+            datos_tienda_fechas.saldo_cuenta_tienda?.toLongOrNull() ?: 0L,
+            { por_renovar = !por_renovar },
+            { total_cancelar, meses_agregados ->
+                viewModelFiltros.descontar_puntos(
+                    "barranca",
+                    datos_tienda_fechas.id_tienda,
+                    total_cancelar.toInt(),
+                    meses_agregados
+                )
+            })
     }
 }
 
@@ -2110,6 +2136,7 @@ fun baner_widget_tienda_geinz_baner(
         label = "alphaRight"
     )
 
+    var mostarr_dialog_saldo by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier
@@ -2440,7 +2467,12 @@ fun baner_widget_tienda_geinz_baner(
 
                         texto_generico_one_line(
                             "${abreviarNumero(puntosSeguros)}",
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }) {
+                                mostarr_dialog_saldo = true
+                            }
                         )
                     }
 
@@ -2460,8 +2492,15 @@ fun baner_widget_tienda_geinz_baner(
             }
         }
     }
+    if (mostarr_dialog_saldo) {
+        dialog_cantidad_slado_geinz(
+            { mostarr_dialog_saldo = !mostarr_dialog_saldo },
+            item.total_puntos
+        )
+    }
     if (por_removar) {
-        dialog_renovar_plan(puntosSeguros,
+        dialog_renovar_plan(
+            puntosSeguros,
             { por_removar = !por_removar },
             { total_cancelar, meses_agregados ->
                 viewmodel.descontar_puntos(

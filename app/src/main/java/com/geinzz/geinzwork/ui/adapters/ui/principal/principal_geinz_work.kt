@@ -189,6 +189,7 @@ fun pantalla_principal(
     var datos_tienda by remember (estados_carga_widget.dia_hoy){ mutableStateOf(widget_tienda()) }
 
     LaunchedEffect(estados_carga_widget) {
+
         datos_tienda = estados_carga_widget
     }
 

@@ -90,13 +90,22 @@ data class Descuentos(
 
 
 val lista_descuentos = listOf(
+
     Descuentos(
-        meses = "1 mes",
+        meses = "14 días",
         icono_descuento = null,
         descuento_off = "",
         precio_anterior = "",
         procentaje_ahorro = "",
-        porcentaje_int = 0,"1"
+        porcentaje_int = 0, meses_agregados = "14 días"
+    ),
+    Descuentos(
+        meses = "1 mes",
+        icono_descuento = Icons.Filled.LocalFireDepartment,
+        descuento_off = "-5%off",
+        precio_anterior = "1500",
+        procentaje_ahorro ="5%",
+        porcentaje_int = 5,"1 mes"
     ),
 
     Descuentos(
@@ -105,7 +114,7 @@ val lista_descuentos = listOf(
         descuento_off = "-10%off",
         precio_anterior = "2000",
         procentaje_ahorro = "10%",
-        porcentaje_int = 10,"2"
+        porcentaje_int = 10,"2 mes"
     ),
 
     Descuentos(
@@ -114,7 +123,7 @@ val lista_descuentos = listOf(
         descuento_off = "-20%off",
         precio_anterior = "3000",
         procentaje_ahorro = "20%",
-        porcentaje_int = 20,"3"
+        porcentaje_int = 20,"3 mes"
     ),
 
     Descuentos(
@@ -123,7 +132,7 @@ val lista_descuentos = listOf(
         descuento_off = "-30%off",
         precio_anterior = "4000",
         procentaje_ahorro = "30%",
-        porcentaje_int = 30,"4"
+        porcentaje_int = 30,"4 mes"
     )
 )
 
@@ -160,11 +169,12 @@ fun dialog_renovar_plan(saldo_disponible: Long, ondimis: () -> Unit , comprar:(S
         text = {
             FuenteControladaApp {
                 Column() {
+                    spacer_vertical(10.dp)
                     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(30.dp)
+                                .height(15.dp)
                         ) {
 
                             Row(
@@ -255,7 +265,7 @@ fun dialog_renovar_plan(saldo_disponible: Long, ondimis: () -> Unit , comprar:(S
                                             horizontalArrangement = Arrangement.spacedBy(5.dp)
                                         ) {
                                             texto_generico_one_line(
-                                                "Precio anterior",
+                                                "Precio anterior por $almenos_uno_selecion",
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
                                             texto_generico_one_line(
@@ -279,7 +289,7 @@ fun dialog_renovar_plan(saldo_disponible: Long, ondimis: () -> Unit , comprar:(S
                                             horizontalArrangement = Arrangement.spacedBy(5.dp)
                                         ) {
                                             texto_generico_one_line(
-                                                "Saldo disponible al comprar",
+                                                "Saldo disponible al continuar",
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
                                             texto_generico_one_line(

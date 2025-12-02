@@ -18,20 +18,22 @@ data class datos_tienda(
     val wsap: Number = 0,
     val llamada: Number = 0,
     val ruta: Number = 0,
-    val localidad_tienda: String="",
-    val fecha_ingreso: String="",
-    val fecha_termino: String="",
-    val descripcion: String="",
-    val lista_ids_propietarios: List<String> = emptyList()
+    val localidad_tienda: String = "",
+    val fecha_ingreso: String = "",
+    val fecha_termino: String = "",
+    val descripcion: String = "",
+    val lista_ids_propietarios: List<String> = emptyList(),
+    val saldo_disponible_tienda: Number = 0
 )
 
 data class widget_tienda(
-    val total_puntos :String ="",
-    val dia_hoy:String="",
-    val id_tienda: String="",
-    val nombre_tienda: String="",
-    val img_tienda: String="",
-    val horario_tiendaMap: HorarioAtencion_box = HorarioAtencion_box(),val fecha_termino:String=""
+    val total_puntos: String = "",
+    val dia_hoy: String = "",
+    val id_tienda: String = "",
+    val nombre_tienda: String = "",
+    val img_tienda: String = "",
+    val horario_tiendaMap: HorarioAtencion_box = HorarioAtencion_box(),
+    val fecha_termino: String = ""
 )
 
 data class datos_grafico(
@@ -46,5 +48,6 @@ data class datos_tienda_fechas(
     val fecha_ingreso: String,
     val fecha_termino: String,
     val dias_restantes: String,
-    val color: Color
+    val color: Color,
+    val saldo_cuenta_tienda: String
 )

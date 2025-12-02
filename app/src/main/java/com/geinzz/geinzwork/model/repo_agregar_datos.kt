@@ -86,7 +86,8 @@ class repo_agregar_datos(context: Context) {
             "lugar" to data_class_tienda_geinz.localida_tienda,
             "nombre" to data_class_tienda_geinz.nombre_tienda,
             "tag" to data_class_tienda_geinz.subcategoria,
-            "ubicacion" to hasmap_ubicacion
+            "ubicacion" to hasmap_ubicacion,
+            "geohash" to data_class_tienda_geinz.geogash
         )
         db.set(hashMap).addOnSuccessListener { res ->
             Log.d("creado_correcto", "${data_class_tienda_geinz.id_tienda} creado correctamente :)")

@@ -3,7 +3,6 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
-import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
@@ -11,8 +10,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -20,7 +17,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,7 +25,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -45,8 +40,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -63,7 +56,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -93,7 +85,6 @@ import com.geinzz.geinzwork.data_store.data_store_localidad.set_id_socio
 import com.geinzz.geinzwork.data_store.data_store_localidad.set_localidad_tienda_soscio
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp_socio_geinzz
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp_socio_geinzz_datos_tienda
@@ -110,13 +101,9 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.opciones_localida
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.DiaHoy
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.motivos
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerDiasYColor
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_shadow_bottom_sheet_default
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.start_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
-import com.geinzz.geinzwork.viewModels.viewmodel_agregar_datos
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import io.github.dautovicharis.charts.PieChart
 import io.github.dautovicharis.charts.model.toChartDataSet
@@ -588,7 +575,7 @@ fun login_socios(isConnected: Boolean) {
                                                 datos.fecha_ingreso,
                                                 datos.fecha_termino,
                                                 dias.toString(),
-                                                color
+                                                color,datos.saldo_disponible_tienda.toString()?:"0",
                                             )
 
                                             Column(
@@ -780,9 +767,10 @@ fun login_socios(isConnected: Boolean) {
                                                             .animateContentSize() // ← Animación suave
                                                     ) {
                                                         expandibles_wrapp_socio_geinzz_datos_tienda(
-                                                            context,
-                                                            mostrar_datos_teinda,
-                                                            datos_fechas
+                                                            viewModelFiltros = viewmodel,
+                                                            context = context,
+                                                            expandido = mostrar_datos_teinda,
+                                                            datos_tienda_fechas = datos_fechas
                                                         ) {
                                                             mostrar_datos_teinda =
                                                                 !mostrar_datos_teinda
@@ -1370,7 +1358,9 @@ fun login_socios(isConnected: Boolean) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun BtnSoporte(tipo:String, context: Context, id_user:String) {
+fun BtnSoporte(tipo: String, context: Context, id_user: String) {
+
+    val paddingInicial = 5.dp   // ⬅ padding solo para posición inicial
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
@@ -1380,18 +1370,20 @@ fun BtnSoporte(tipo:String, context: Context, id_user:String) {
         val scope = rememberCoroutineScope()
 
         val bubbleSizePx = with(density) { 60.dp.toPx() }
+        val paddingInicialPx = with(density) { paddingInicial.toPx() }
+
         val screenWidth = constraints.maxWidth.toFloat()
         val screenHeight = constraints.maxHeight.toFloat()
 
-        // ❗️ Sin padding — pegado real
+        // Límites REALES (pegado total permitido)
         val minX = 0f
         val minY = 0f
         val maxX = screenWidth - bubbleSizePx
         val maxY = screenHeight - bubbleSizePx
 
-        // Posición inicial: abajo derecha, pegado
-        val offsetX = remember { Animatable(maxX) }
-        val offsetY = remember { Animatable(maxY) }
+        // Posición inicial con padding
+        val offsetX = remember { Animatable(maxX - paddingInicialPx) }
+        val offsetY = remember { Animatable(maxY - paddingInicialPx) }
 
         Box(
             modifier = Modifier
@@ -1413,11 +1405,10 @@ fun BtnSoporte(tipo:String, context: Context, id_user:String) {
                             "",
                             context = context,
                             "958120920",
-                            if (tipo == "Soporte") {
+                            if (tipo == "Soporte")
                                 "Hola, deseo comunicarme con el soporte de Geinz. Mi ID de usuario es: $id_user"
-                            } else {
+                            else
                                 "Hola, tengo problemas para ingresar a mi cuenta de tienda. Mi ID de usuario es: $id_user"
-                            }
                         )
                     }
                     .pointerInput(Unit) {
@@ -1440,7 +1431,6 @@ fun BtnSoporte(tipo:String, context: Context, id_user:String) {
 
                             onDragEnd = {
                                 val middle = screenWidth / 2
-
                                 val targetX = if (offsetX.value < middle) minX else maxX
 
                                 scope.launch {
@@ -1468,6 +1458,7 @@ fun BtnSoporte(tipo:String, context: Context, id_user:String) {
         }
     }
 }
+
 
 
 
