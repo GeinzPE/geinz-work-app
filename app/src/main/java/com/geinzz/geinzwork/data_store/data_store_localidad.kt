@@ -42,16 +42,25 @@ object data_store_localidad {
 
     private val KEY_ID_SOCIO = stringPreferencesKey("id_key_socio")
 
+    private val LOCALIDAD_SOCIO_TIENDA =stringPreferencesKey("localidad_tienda_socio")
 
-    suspend fun set_id_socio(context: Context, id: String) {
+
+    suspend fun set_id_socio(context: Context, id: String,localidad_tienda:String) {
         context.dataStore.edit { preferences ->
             preferences[KEY_ID_SOCIO] = id
+            preferences[LOCALIDAD_SOCIO_TIENDA]=localidad_tienda
         }
     }
+
 
     fun get_id_socio(context: Context): Flow<String>{
         return context.dataStore.data.map { preferences ->
             preferences[KEY_ID_SOCIO] ?:""
+        }
+    }
+    fun get_localidad_tienda_socio(context: Context): Flow<String>{
+        return context.dataStore.data.map { preferences ->
+            preferences[LOCALIDAD_SOCIO_TIENDA] ?:""
         }
     }
 

@@ -17,6 +17,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -36,8 +37,11 @@ class viewmodel_eres_socio : ViewModel() {
 
     private var listenerDatosTienda: ListenerRegistration? = null
 
-    private val _verificar_seccion_tienda = MutableStateFlow<Boolean?>(null)
+    private val _verificar_seccion_tienda =
+        MutableStateFlow<Pair<Boolean, String>?>(null)
+
     val verificarSeccion = _verificar_seccion_tienda.asStateFlow()
+
 
 
 
@@ -54,31 +58,32 @@ class viewmodel_eres_socio : ViewModel() {
         viewModelScope.launch {
             val inicio = System.currentTimeMillis()
             Log.d("CargarIdSocio", "Marca de tiempo de inicio: $inicio")
+            viewModelScope.launch {
+                combine(
+                    data_store_localidad.get_localidad_tienda_socio(context),
+                    data_store_localidad.get_id_socio(context)
+                ) { localidad, idSocio -> Pair(localidad, idSocio) }
+                    .collect { (localidad, idSocio) ->
 
-            data_store_localidad.get_id_socio(context).collect { valor ->
-                Log.d("CargarIdSocio", "Valor recibido de data store: '$valor'")
-                _idSocio.value = valor
-                Log.d("CargarIdSocio", "_idSocio actualizado: '${_idSocio.value}'")
+                        Log.d("CargarIdSocio", "Valor recibido de DataStore: $idSocio")
+                        _idSocio.value = idSocio
 
-                if (valor.isNotEmpty()) {
-                    Log.d("CargarIdSocio", "Valor no vacío, se llama a verificar_seccion")
-                    verificar_seccion(context, valor, "barranca")
-                } else {
-                    Log.d("CargarIdSocio", "Valor vacío, no se verifica sección")
-                }
+                        if (idSocio.isNotEmpty()) {
+                            Log.d("CargarIdSocio", "Valor no vacío, se llama a verificar_seccion")
+                            verificar_seccion(context, idSocio, localidad)
+                        } else {
+                            Log.d("CargarIdSocio", "Valor vacío, no se verifica sección")
+                        }
 
-                val tiempoTranscurrido = System.currentTimeMillis() - inicio
-                Log.d("CargarIdSocio", "Tiempo transcurrido: $tiempoTranscurrido ms")
-                val faltante = 4000 - tiempoTranscurrido
-                Log.d("CargarIdSocio", "Tiempo faltante para 4 segundos: $faltante ms")
+                        val tiempoTranscurrido = System.currentTimeMillis() - inicio
+                        val faltante = 4000 - tiempoTranscurrido
 
-                if (faltante > 0) {
-                    Log.d("CargarIdSocio", "Delay por $faltante ms")
-                    delay(faltante)
-                }
+                        if (faltante > 0) {
+                            delay(faltante)
+                        }
 
-                _cargandoIdSocio.value = false
-                Log.d("CargarIdSocio", "_cargandoIdSocio = false, función finalizada")
+                        _cargandoIdSocio.value = false
+                    }
             }
         }
     }
@@ -95,19 +100,23 @@ class viewmodel_eres_socio : ViewModel() {
         Log.d("daots_tiendas_registrada","$id_tienda $localidad_tienda")
         viewModelScope.launch {
             try {
-                instace_repo.verificar_existencia_tienda(id_tienda,localidad_tienda,{existe->
-                    _verificar_seccion_tienda.value=existe
+                instace_repo.verificar_existencia_tienda(id_tienda,localidad_tienda,{existe,txt->
+                    _verificar_seccion_tienda.value= Pair(existe,txt)
                 })
 
             }catch (e: Exception){
-                _verificar_seccion_tienda.value=false
+                _verificar_seccion_tienda.value=Pair(false,"Error al verificar tu id")
             }
         }
     }
 
     fun cambiar_estado_Seccion() {
-        _verificar_seccion_tienda.value=false
+        _verificar_seccion_tienda.value=Pair(false,"")
     }
+    fun limpiar_verificacion() {
+        _verificar_seccion_tienda.value = null
+    }
+
     fun verificar_seccion(context: Context, id_tienda: String, localidad_tienda: String) {
 
         listenerDatosTienda?.remove()
@@ -121,7 +130,6 @@ class viewmodel_eres_socio : ViewModel() {
                 viewModelScope.launch {
                     if (datos.nombre.isNotEmpty()) {
                         _state_eres_socio.value = carga_acces_socio.succes(datos)
-                        set_id_socio(context, datos.id_tienda)
                     } else {
                         _state_eres_socio.value = carga_acces_socio.error("No se encontraron datos")
                     }

@@ -604,6 +604,18 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     }
 
 
+    fun eliminarvincualcion_cuenta_tienda(id_user: String, id_tienda: String, localida: String) {
+        viewModelScope.launch {
+            try {
+                repo_filtrado.eliminar_vinculacion_cuenta(id_user, id_tienda, localida)
+            } catch (e: Exception) {
+                Log.d("error_entrar", "error al eliminar la vincualcion $e")
+            }
+        }
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
     fun guardar_tienda_favorita_por_id(
         localidad_tienda: String,
         id_user: String,

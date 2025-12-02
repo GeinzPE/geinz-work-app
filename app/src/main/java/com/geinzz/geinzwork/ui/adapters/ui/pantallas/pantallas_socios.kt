@@ -77,6 +77,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.data_store.data_store_localidad.set_id_socio
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp_socio_geinzz
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp_socio_geinzz_datos_tienda
@@ -90,6 +91,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.opciones_localida
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.DiaHoy
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerDiasYColor
@@ -126,6 +128,9 @@ fun login_socios(isConnected: Boolean) {
     var txt_leyenda by remember { mutableStateOf("") }
     var icono_mostar_leyendas_graficos by remember { mutableStateOf(0) }
     var id_tienda by remember { mutableStateOf("") }
+    var listaPropietarios by remember { mutableStateOf(emptyList<String>()) }
+
+    val existe_id_vinculado_tienda by remember { mutableStateOf("") }
     var localidad_tienda by remember { mutableStateOf("barranca") }
     var fecha_ingreso by remember { mutableStateOf("") }
     var fecha_termino by remember { mutableStateOf("") }
@@ -133,12 +138,17 @@ fun login_socios(isConnected: Boolean) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var mostar_horario__bool by remember { mutableStateOf(false) }
-    val verificarSeccion by viewmodel.verificarSeccion.collectAsState(false)
+    val verificarSeccion by viewmodel.verificarSeccion.collectAsState()
     var mostar_progeres_var_en_btn by remember { mutableStateOf(false) }
     val cargando by viewmodel.cargandoIdSocio.collectAsState()
     val idSocio by viewmodel.idSocio.collectAsState()
-
     var cerrar_Seccion_cuenta_tienda by remember { mutableStateOf(false) }
+    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+    var localidad_seleciondad by remember { mutableStateOf("") }
+    val localidad_tienda_select_ by data_store_localidad.get_localidad_tienda_socio(context)
+        .collectAsState(initial = "")
+
+    val estaVinculado = listaPropietarios.contains(uid_respald_user)
 
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     LaunchedEffect(Unit) {
@@ -149,13 +159,15 @@ fun login_socios(isConnected: Boolean) {
         viewModelFiltros.calcularHorarioParaTienda(id_tienda, horarioMap)
     }
     LaunchedEffect(verificarSeccion) {
-        when (verificarSeccion) {
+        val result = verificarSeccion ?: return@LaunchedEffect
+        val (existe, msje) = result
+        when (existe) {
             true -> {
                 // Guardar ID
                 mostar_progeres_var_en_btn = true
                 delay(2000)
                 scope.launch {
-                    set_id_socio(context, id_registrado)
+                    set_id_socio(context, id_registrado, localidad_seleciondad.lowercase())
                 }
                 id_registrado == ""
                 delay(2000)
@@ -165,19 +177,31 @@ fun login_socios(isConnected: Boolean) {
 
             false -> {
                 if (id_registrado != "") {
-                    viewmodel.cambiar_estado_Seccion()
+
+                    // 1) Mostrar progress
                     mostar_progeres_var_en_btn = true
-                    delay(2000)
-                    scope.launch {
+
+                    // 2) Esperar mientras procesa
+                    delay(1500)
+
+                    // 3) Quitar progress ANTES del snackbar
+                    mostar_progeres_var_en_btn = false
+
+                    // 4) Resetear estado
+
+
+                    // 5) Mostrar snackbar SOLO si tiene mensaje
+                    if (msje.isNotEmpty()) {
                         snackbarHostState.showSnackbar(
-                            message = "El ID no pertenece a ninuna tienda",
+                            message = msje,
                             duration = SnackbarDuration.Short
                         )
                     }
-                    mostar_progeres_var_en_btn = false
-
+                    viewmodel.cambiar_estado_Seccion()
+                    viewmodel.limpiar_verificacion()
                 }
             }
+
 
             null -> {}
         }
@@ -255,6 +279,16 @@ fun login_socios(isConnected: Boolean) {
                                             "y actualiza tu horario en solo segundos.",
                                     style = MaterialTheme.typography.bodyMedium
                                 )
+                                spacer_vertical(10.dp)
+
+                                ExpandDropDown(
+                                    opciones_localida,
+                                    false,
+                                    "",
+                                    "Seleciona la localidad de tu negocio"
+                                ) { localida_selecionada ->
+                                    localidad_seleciondad = localida_selecionada
+                                }
                                 spacer_vertical(10.dp)
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -340,11 +374,19 @@ fun login_socios(isConnected: Boolean) {
                                                                 duration = SnackbarDuration.Short
                                                             )
                                                         }
-                                                    } else {
+                                                    } else if(localidad_seleciondad.isEmpty()){
+                                                        scope.launch {
+                                                            snackbarHostState.showSnackbar(
+                                                                message = "Selecciona la localidad de la tienda",
+                                                                duration = SnackbarDuration.Short
+                                                            )
+                                                        }
+                                                    }else{
                                                         viewmodel.verificar_existencia_tienda(
                                                             id_registrado,
                                                             "barranca"
                                                         )
+
                                                     }
 
                                                 } else {
@@ -419,6 +461,7 @@ fun login_socios(isConnected: Boolean) {
                                             horarioMap = datos.horario_tiendaMap
                                             localidad_tienda = datos.localidad_tienda
                                             fecha_termino = datos.fecha_termino
+                                            listaPropietarios = datos.lista_ids_propietarios
 
                                             var values by remember { mutableStateOf(listOf<Float>()) }
 
@@ -1131,36 +1174,65 @@ fun login_socios(isConnected: Boolean) {
                                                     }
                                                 }
 
-                                                Column(
-                                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                                                    modifier = Modifier
-                                                        .clip(RoundedCornerShape(20.dp))
-                                                        .background(
-                                                            MaterialTheme.colorScheme.surface
-                                                        )
-                                                        .padding(10.dp)
-                                                ) {
-                                                    texto_generico_one_line("Vincula tu cuenta", style = MaterialTheme.typography.titleLarge)
-                                                    texto_generico_multilinea(
-                                                        "Vincula tu tienda con tu cuenta Geinz y gestiona todo desde tus dispositivos. Cada tienda puede asociar hasta 3 dispositivos por cuenta.",
-                                                        style = MaterialTheme.typography.bodyMedium
-                                                    )
-                                                    spacer_vertical(5.dp)
-                                                    Box(
-                                                        modifier = Modifier.fillMaxWidth()
-                                                            .clip(CircleShape)
-                                                            .background(MaterialTheme.colorScheme.primary).clickable(){
-                                                                viewModelFiltros.vincular_cuenta(idSocio,idSocio,idSocio)
-                                                            }, contentAlignment = Alignment.Center
+
+                                                if (!estaVinculado && isConnected) {
+                                                    Column(
+                                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                                        verticalArrangement = Arrangement.spacedBy(
+                                                            5.dp
+                                                        ),
+                                                        modifier = Modifier
+                                                            .clip(RoundedCornerShape(20.dp))
+                                                            .background(
+                                                                MaterialTheme.colorScheme.surface
+                                                            )
+                                                            .padding(10.dp)
                                                     ) {
                                                         texto_generico_one_line(
-                                                            "Vincular cuenta ahora",
-                                                            style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp)
+                                                            "Vincula tu cuenta",
+                                                            style = MaterialTheme.typography.titleLarge
                                                         )
+                                                        texto_generico_multilinea(
+                                                            "Vincula tu tienda con tu cuenta Geinz y gestiona todo desde tus dispositivos. Cada tienda puede asociar hasta 3 dispositivos por cuenta.",
+                                                            style = MaterialTheme.typography.bodyMedium
+                                                        )
+                                                        spacer_vertical(5.dp)
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .fillMaxWidth()
+                                                                .clip(CircleShape)
+                                                                .background(MaterialTheme.colorScheme.primary)
+                                                                .clickable() {
+                                                                    viewModelFiltros.vincular_cuenta(
+                                                                        uid_respald_user,
+                                                                        idSocio,
+                                                                        localidad_tienda_select_
+                                                                            ?: "barranca"
+                                                                    )
+                                                                    scope.launch {
+                                                                        snackbarHostState.showSnackbar(
+                                                                            message = "Cuenta vinculada correctamente",
+                                                                            duration = SnackbarDuration.Short
+                                                                        )
+                                                                    }
+
+                                                                },
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            texto_generico_one_line(
+                                                                "Vincular cuenta ahora",
+                                                                style = MaterialTheme.typography.bodyMedium,
+                                                                modifier = Modifier.padding(
+                                                                    horizontal = 10.dp,
+                                                                    vertical = 10.dp
+                                                                )
+                                                            )
+                                                        }
                                                     }
+
                                                 }
                                             }
+
                                         }
 
                                         else -> {}

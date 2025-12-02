@@ -1,6 +1,11 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -29,9 +34,7 @@ fun SnackbarHost(hostState: SnackbarHostState, modifier: Modifier) {
         modifier = modifier
     ) { data ->
 
-        // Solo movimiento vertical hacia ABAJO
         var offsetY by remember { mutableStateOf(0f) }
-
 
         val animatedOffsetY by animateFloatAsState(
             targetValue = offsetY,
@@ -46,27 +49,35 @@ fun SnackbarHost(hostState: SnackbarHostState, modifier: Modifier) {
             }
         }
 
-        Snackbar(
-            snackbarData = data,
-            modifier = Modifier
-                .offset { IntOffset(0, animatedOffsetY.toInt()) }
-                .pointerInput(Unit) {
-                    detectDragGestures { change, dragAmount ->
-                        change.consume()
+        // Reinicia offset cuando aparece un nuevo snackbar
+        LaunchedEffect(data) {
+            offsetY = 0f
+        }
 
-                        // Solo permitir arrastrar HACIA ABAJO
-                        val newOffset = offsetY + dragAmount.y
+        AnimatedVisibility(
+            visible = data != null,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+        ) {
 
-                        if (newOffset > 0) { // solo hacia abajo
-                            offsetY = newOffset
+            Snackbar(
+                snackbarData = data,
+                modifier = Modifier
+                    .offset { IntOffset(0, animatedOffsetY.toInt()) }
+                    .pointerInput(Unit) {
+                        detectDragGestures { change, dragAmount ->
+                            change.consume()
+                            val newOffset = offsetY + dragAmount.y
+                            if (newOffset > 0) offsetY = newOffset
                         }
                     }
-                }
-                .padding(horizontal = 16.dp)
-                .clip(RoundedCornerShape(50.dp)),
-            shape = RoundedCornerShape(50.dp),
-            containerColor = Color.White,
-            contentColor = Color.Black
-        )
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(50.dp)),
+                shape = RoundedCornerShape(50.dp),
+                containerColor = Color.White,
+                contentColor = Color.Black
+            )
+        }
     }
 }
+

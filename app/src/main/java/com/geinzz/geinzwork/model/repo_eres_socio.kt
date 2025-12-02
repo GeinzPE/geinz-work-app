@@ -52,6 +52,7 @@ class repo_eres_socio {
                 val fecha_termino = fechas["fecha_fin"] as? String ?: ""
 
                 val descripcion = data["descripcion"] as? String ?: ""
+                val propietario_id =data["propietario_id"] as? List<String> ?:emptyList()
 
                 // 🔥 ESCUCHAR ESTADISTICAS EN TIEMPO REAL
                 ref.collection("estadisticas")
@@ -101,7 +102,7 @@ class repo_eres_socio {
                                     localidad_tienda = localidadTienda,
                                     fecha_ingreso = fecha_ingreso,
                                     fecha_termino = fecha_termino,
-                                    descripcion = descripcion // ← corregido aquí
+                                    descripcion = descripcion ,propietario_id
                                 )
                             )
                         }
@@ -203,7 +204,7 @@ class repo_eres_socio {
     fun verificar_existencia_tienda(
         id_tienda: String,
         localidad_tienda: String,
-        resultado: (Boolean) -> Unit
+        resultado: (Boolean,String) -> Unit
     ) {
         val ref = FirebaseFirestore.getInstance()
             .collection("Tiendas")
@@ -213,12 +214,26 @@ class repo_eres_socio {
 
         ref.get()
             .addOnSuccessListener { snapshot ->
-                resultado(snapshot.exists()) // 👈 true si existe, false si no
+                if (!snapshot.exists()) {
+                    resultado(false,"El id no existe")  // ❗ Documento no existe
+                    return@addOnSuccessListener
+                }
+
+                val data = snapshot.data
+                val administradores = data?.get("propietario_id") as? List<String> ?: emptyList()
+
+
+                if (administradores.size < 3) {
+                    resultado(true,"")
+                } else {
+                    resultado(false,"Ya tienes 3 disposivos vinculados")
+                }
             }
             .addOnFailureListener {
-                resultado(false) // 👈 en caso de error tratamos como que no existe
+                resultado(false,"Error al verificar tu id ")
             }
     }
+
 
 
 

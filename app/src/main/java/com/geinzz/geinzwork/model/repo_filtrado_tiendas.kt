@@ -30,6 +30,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
 import com.google.firebase.firestore.DocumentChange
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.CoroutineScope
@@ -761,10 +762,32 @@ Log.d("horaisadasgfsfgfasgsg","$idTiendaBuscada $localidad")
         )
 
         try {
-            ref.set(hashMap).await()
+            ref.update(hashMap).await()
             Log.d("vincular_cuenta", "Cuenta vinculada correctamente")
         } catch (e: Exception) {
             Log.e("vincular_cuenta", "Error al vincular cuenta: ${e.message}")
+        }
+    }
+
+    suspend fun eliminar_vinculacion_cuenta(
+        id_user: String,
+        id_tienda: String,
+        localidad: String
+    ) {
+        val ref = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(id_tienda)
+
+        try {
+            ref.update(
+                "propietario_id",
+                FieldValue.arrayRemove(id_user)
+            ).await()
+
+            Log.d("eliminar_cuenta", "Vinculación eliminada correctamente")
+        } catch (e: Exception) {
+            Log.e("eliminar_cuenta", "Error al eliminar vinculación: ${e.message}")
         }
     }
 
