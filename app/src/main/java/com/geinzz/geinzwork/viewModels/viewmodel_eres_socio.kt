@@ -38,11 +38,8 @@ class viewmodel_eres_socio : ViewModel() {
     private var listenerDatosTienda: ListenerRegistration? = null
 
     private val _verificar_seccion_tienda =
-        MutableStateFlow<Pair<Boolean, String>?>(null)
-
+        MutableStateFlow<Triple<Boolean, String, String?>>(Triple(false, "", null))
     val verificarSeccion = _verificar_seccion_tienda.asStateFlow()
-
-
 
 
     private val _idSocio = MutableStateFlow("")
@@ -96,25 +93,43 @@ class viewmodel_eres_socio : ViewModel() {
 //    }
 
 
-    fun verificar_existencia_tienda(id_tienda: String ,localidad_tienda: String){
-        Log.d("daots_tiendas_registrada","$id_tienda $localidad_tienda")
+    fun descontar_puntos(localidad_tienda: String, id_tienda: String, puntos_descuento: Int,meses_agregados:String) {
         viewModelScope.launch {
             try {
-                instace_repo.verificar_existencia_tienda(id_tienda,localidad_tienda,{existe,txt->
-                    _verificar_seccion_tienda.value= Pair(existe,txt)
-                })
+                instace_repo.restar_puntos(localidad_tienda, id_tienda, puntos_descuento,meses_agregados)
 
-            }catch (e: Exception){
-                _verificar_seccion_tienda.value=Pair(false,"Error al verificar tu id")
+            } catch (e: Exception) {
+                Log.d("Error_canjear", "error al cambiar el cange")
+            }
+        }
+    }
+
+    fun verificar_existencia_tienda(
+        id_user: String,
+        ingresa_correo: Boolean,
+        correo_tienda: String,
+        id_tienda: String,
+        localidad_tienda: String
+    ) {
+        viewModelScope.launch {
+            try {
+                instace_repo.verificar_existencia_tienda(
+                    id_user,
+                    ingresa_correo,
+                    correo_tienda,
+                    id_tienda,
+                    localidad_tienda
+                ) { existe, msje, idConfirmado ->
+                    _verificar_seccion_tienda.value = Triple(existe, msje, idConfirmado)
+                }
+            } catch (e: Exception) {
+                _verificar_seccion_tienda.value = Triple(false, "Error al verificar tu id", null)
             }
         }
     }
 
     fun cambiar_estado_Seccion() {
-        _verificar_seccion_tienda.value=Pair(false,"")
-    }
-    fun limpiar_verificacion() {
-        _verificar_seccion_tienda.value = null
+        _verificar_seccion_tienda.value = Triple(false, "", null)
     }
 
     fun verificar_seccion(context: Context, id_tienda: String, localidad_tienda: String) {
@@ -144,9 +159,6 @@ class viewmodel_eres_socio : ViewModel() {
             }
         )
     }
-
-
-
 
 
     fun cambiar_cerrado(

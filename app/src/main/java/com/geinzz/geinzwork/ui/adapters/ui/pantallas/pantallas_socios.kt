@@ -9,6 +9,8 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -17,9 +19,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -28,16 +33,19 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -55,13 +63,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -76,6 +90,8 @@ import com.geinzz.geinzwork.data.model.datos_tienda_fechas
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.data_store.data_store_localidad.set_id_socio
+import com.geinzz.geinzwork.data_store.data_store_localidad.set_localidad_tienda_soscio
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
@@ -94,8 +110,11 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.opciones_localida
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.DiaHoy
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.motivos
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerDiasYColor
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_shadow_bottom_sheet_default
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.start_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_agregar_datos
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
@@ -149,6 +168,8 @@ fun login_socios(isConnected: Boolean) {
         .collectAsState(initial = "")
 
     val estaVinculado = listaPropietarios.contains(uid_respald_user)
+    var ingresar_correo by remember { mutableStateOf(false) }
+    var correo_electronico_cuenta_user by remember { mutableStateOf("") }
 
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     LaunchedEffect(Unit) {
@@ -158,52 +179,38 @@ fun login_socios(isConnected: Boolean) {
     LaunchedEffect(id_tienda, horarioMap) {
         viewModelFiltros.calcularHorarioParaTienda(id_tienda, horarioMap)
     }
+
+    LaunchedEffect(localidad_seleciondad) {
+        if(localidad_seleciondad!=""){
+            set_localidad_tienda_soscio(context, localidad_seleciondad.lowercase())
+        }
+    }
     LaunchedEffect(verificarSeccion) {
-        val result = verificarSeccion ?: return@LaunchedEffect
-        val (existe, msje) = result
-        when (existe) {
-            true -> {
-                // Guardar ID
+        val (existe, msje, idConfirmado) = verificarSeccion
+
+        when {
+            existe && !idConfirmado.isNullOrEmpty() -> {
                 mostar_progeres_var_en_btn = true
                 delay(2000)
+
+                // Guardar en SharedPreferences / DataStore
                 scope.launch {
-                    set_id_socio(context, id_registrado, localidad_seleciondad.lowercase())
+                    set_id_socio(context, idConfirmado)
                 }
-                id_registrado == ""
-                delay(2000)
+
+                mostar_progeres_var_en_btn = false
+            }
+
+            !existe && msje.isNotEmpty() -> {
+                mostar_progeres_var_en_btn = true
+                delay(1500)
                 mostar_progeres_var_en_btn = false
 
+                snackbarHostState.showSnackbar(
+                    message = msje,
+                    duration = SnackbarDuration.Short
+                )
             }
-
-            false -> {
-                if (id_registrado != "") {
-
-                    // 1) Mostrar progress
-                    mostar_progeres_var_en_btn = true
-
-                    // 2) Esperar mientras procesa
-                    delay(1500)
-
-                    // 3) Quitar progress ANTES del snackbar
-                    mostar_progeres_var_en_btn = false
-
-                    // 4) Resetear estado
-
-
-                    // 5) Mostrar snackbar SOLO si tiene mensaje
-                    if (msje.isNotEmpty()) {
-                        snackbarHostState.showSnackbar(
-                            message = msje,
-                            duration = SnackbarDuration.Short
-                        )
-                    }
-                    viewmodel.cambiar_estado_Seccion()
-                    viewmodel.limpiar_verificacion()
-                }
-            }
-
-
-            null -> {}
         }
     }
 
@@ -280,78 +287,132 @@ fun login_socios(isConnected: Boolean) {
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                                 spacer_vertical(10.dp)
-
-                                ExpandDropDown(
-                                    opciones_localida,
-                                    false,
-                                    "",
-                                    "Seleciona la localidad de tu negocio"
-                                ) { localida_selecionada ->
-                                    localidad_seleciondad = localida_selecionada
-                                }
-                                spacer_vertical(10.dp)
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                texto_generico_one_line("Selecciona tu localidad")
+                                spacer_vertical(12.dp)
+                                LazyRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .weight(1f)
-                                    ) {
-                                        MyOutlinedTextField(
-                                            value = id_registrado,
-                                            onValueChange = { id_registrado = it },
-                                            labelText = "Pega tu ID",
-                                            placeholderText = "Pega tu ID"
-                                        )
-                                    }
-                                    spacer_horizonta(2.dp)
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(CircleShape)
-                                            .background(MaterialTheme.colorScheme.primary)
-                                            .size(45.dp)
-                                            .clickable() {
-                                                val clipData = clipboard.primaryClip
-                                                if (clipData != null && clipData.itemCount > 0) {
-                                                    val text =
-                                                        clipData.getItemAt(0).coerceToText(context)
-                                                            .toString()
-                                                    id_registrado = text
-                                                } else {
-                                                    Toast
-                                                        .makeText(
-                                                            context,
-                                                            "El portapapeles está vacío",
-                                                            Toast.LENGTH_SHORT
-                                                        )
-                                                        .show()
+                                    items(opciones_localida) { localidad ->
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(CircleShape)
+                                                .background(
+                                                    if (localidad_seleciondad == localidad) Color.White
+                                                    else MaterialTheme.colorScheme.primary
+                                                )
+                                                .clickable {
+                                                    localidad_seleciondad = localidad
                                                 }
-                                            },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Image(
-                                            painter = painterResource(R.drawable.pegar_portapales_webp),
-                                            contentDescription = "",
-                                            modifier = Modifier.size(25.dp)
-                                        )
+                                                .padding(5.dp)
+                                        ) {
+                                            texto_generico_one_line(
+                                                localidad,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = if (localidad_seleciondad == localidad) Color.Black else Color.White,
+                                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 4.dp)
+                                            )
+                                        }
                                     }
                                 }
+                                }
                                 spacer_vertical(10.dp)
+                                Box(modifier = Modifier.fillMaxWidth().height(70.dp), contentAlignment = Alignment.Center) {
+                                    this@Column.AnimatedVisibility(!ingresar_correo, enter = fadeIn(), exit = fadeOut()) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .weight(1f)
+                                            ) {
+                                                MyOutlinedTextField(
+                                                    value = id_registrado,
+                                                    onValueChange = { id_registrado = it },
+                                                    labelText = "Pega tu ID",
+                                                    placeholderText = "Pega tu ID"
+                                                )
+                                            }
+                                            spacer_horizonta(2.dp)
+                                            Box(
+                                                modifier = Modifier
+                                                    .clip(CircleShape)
+                                                    .background(MaterialTheme.colorScheme.primary)
+                                                    .size(45.dp)
+                                                    .clickable() {
+                                                        val clipData = clipboard.primaryClip
+                                                        if (clipData != null && clipData.itemCount > 0) {
+                                                            val text =
+                                                                clipData.getItemAt(0)
+                                                                    .coerceToText(context)
+                                                                    .toString()
+                                                            id_registrado = text
+                                                        } else {
+                                                            Toast
+                                                                .makeText(
+                                                                    context,
+                                                                    "El portapapeles está vacío",
+                                                                    Toast.LENGTH_SHORT
+                                                                )
+                                                                .show()
+                                                        }
+                                                    },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Image(
+                                                    painter = painterResource(R.drawable.pegar_portapales_webp),
+                                                    contentDescription = "",
+                                                    modifier = Modifier.size(25.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    this@Column.AnimatedVisibility(ingresar_correo, enter = fadeIn(), exit = fadeOut()) {
+                                        MyOutlinedTextField(
+                                            value = correo_electronico_cuenta_user,
+                                            onValueChange = { correo_electronico_cuenta_user = it },
+                                            labelText = "Ingresa tu correo electronico",
+                                            placeholderText = "Ingresa tu correo electronico", keyboardType = KeyboardType.Email
+                                        )
+
+                                    }
+
+                                }
+
+//                                ExpandDropDown(
+//                                    opciones_localida,
+//                                    false,
+//                                    "",
+//                                    "Seleciona la localidad de tu negocio"
+//                                ) { localida_selecionada ->
+//                                    localidad_seleciondad = localida_selecionada
+//                                }
+//
+
+
+
+
+
+                                spacer_vertical(5.dp)
                                 Box(modifier = Modifier.fillMaxWidth()) {
                                     Text(
-                                        text = "Olvidaste tu id?",
+                                        text = if(!ingresar_correo)"Ingresar con cuenta de usuario (solo vinculados)" else "Ingresar con ID ",
                                         style = MaterialTheme.typography.bodyMedium.copy(
                                             textDecoration = TextDecoration.Underline,
-                                            color = MaterialTheme.colorScheme.primary
+                                            color = Color.White
                                         ),
                                         modifier = Modifier
                                             .padding(start = 5.dp)
                                             .clickable(
                                                 indication = null,
                                                 interactionSource = remember { MutableInteractionSource() }) {
-
+                                                ingresar_correo=!ingresar_correo
+                                                correo_electronico_cuenta_user=""
+                                                id_registrado=""
                                             }
                                     )
                                 }
@@ -366,37 +427,68 @@ fun login_socios(isConnected: Boolean) {
                                             .clip(CircleShape)
                                             .background(MaterialTheme.colorScheme.primary)
                                             .clickable {
-                                                if (isConnected) {
-                                                    if (id_registrado.isEmpty()) {
-                                                        scope.launch {
-                                                            snackbarHostState.showSnackbar(
-                                                                message = "Ingresa tu id de tienda",
-                                                                duration = SnackbarDuration.Short
-                                                            )
-                                                        }
-                                                    } else if(localidad_seleciondad.isEmpty()){
-                                                        scope.launch {
-                                                            snackbarHostState.showSnackbar(
-                                                                message = "Selecciona la localidad de la tienda",
-                                                                duration = SnackbarDuration.Short
-                                                            )
-                                                        }
-                                                    }else{
-                                                        viewmodel.verificar_existencia_tienda(
-                                                            id_registrado,
-                                                            "barranca"
-                                                        )
-
-                                                    }
-
-                                                } else {
+                                                if (!isConnected) {
+                                                    // Sin conexión
                                                     scope.launch {
                                                         snackbarHostState.showSnackbar(
                                                             message = "No cuentas con conexión a internet para iniciar sesión",
                                                             duration = SnackbarDuration.Short
                                                         )
                                                     }
+                                                } else {
+                                                    if (ingresar_correo) {
+                                                        // Flujo por correo
+                                                        if (correo_electronico_cuenta_user.isEmpty()) {
+                                                            scope.launch {
+                                                                snackbarHostState.showSnackbar(
+                                                                    message = "Ingresa tu correo electrónico",
+                                                                    duration = SnackbarDuration.Short
+                                                                )
+                                                            }
+                                                        } else if (localidad_seleciondad.isEmpty()) {
+                                                            scope.launch {
+                                                                snackbarHostState.showSnackbar(
+                                                                    message = "Selecciona la localidad de la tienda",
+                                                                    duration = SnackbarDuration.Short
+                                                                )
+                                                            }
+                                                        } else {
+                                                            viewmodel.verificar_existencia_tienda(
+                                                                uid_respald_user,
+                                                                ingresar_correo,
+                                                                correo_electronico_cuenta_user,
+                                                                id_registrado,
+                                                                localidad_seleciondad
+                                                            )
+                                                        }
+                                                    } else {
+                                                            if (id_registrado.isEmpty()) {
+                                                                scope.launch {
+                                                                    snackbarHostState.showSnackbar(
+                                                                        message = "Ingresa tu id de tienda",
+                                                                        duration = SnackbarDuration.Short
+                                                                    )
+                                                                }
+                                                            }else if(localidad_seleciondad.isEmpty()){
+                                                                scope.launch {
+                                                                    snackbarHostState.showSnackbar(
+                                                                        message = "Selecciona la localidad de la tienda",
+                                                                        duration = SnackbarDuration.Short
+                                                                    )
+                                                                }
+                                                            }else{
+                                                                viewmodel.verificar_existencia_tienda(
+                                                                    uid_respald_user,
+                                                                    ingresar_correo,
+                                                                    correo_electronico_cuenta_user,
+                                                                    id_registrado,
+                                                                    localidad_seleciondad
+                                                                )
+                                                            }
+
+                                                    }
                                                 }
+
                                             },
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -428,6 +520,7 @@ fun login_socios(isConnected: Boolean) {
                             }
                             SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
                         }
+                        BtnSoporte("problemas",context,uid_respald_user)
                     }
                 }
 
@@ -1249,6 +1342,7 @@ fun login_socios(isConnected: Boolean) {
                             }
                         }
                         SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
+                        BtnSoporte("Soporte",context,uid_respald_user)
                     }
                 }
 
@@ -1264,11 +1358,118 @@ fun login_socios(isConnected: Boolean) {
                     viewmodel.cambiar_estado_Seccion()
                     data_store_localidad.delete_id_socio(context)
                 }
+                viewModelFiltros.eliminarvincualcion_cuenta_tienda(uid_respald_user,
+                    idSocio,
+                    localidad_tienda_select_
+                        ?: "barranca")
             }
             )
         }
     }
 }
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun BtnSoporte(tipo:String, context: Context, id_user:String) {
+
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxSize()
+    ) {
+
+        val density = LocalDensity.current
+        val scope = rememberCoroutineScope()
+
+        val bubbleSizePx = with(density) { 60.dp.toPx() }
+        val screenWidth = constraints.maxWidth.toFloat()
+        val screenHeight = constraints.maxHeight.toFloat()
+
+        // ❗️ Sin padding — pegado real
+        val minX = 0f
+        val minY = 0f
+        val maxX = screenWidth - bubbleSizePx
+        val maxY = screenHeight - bubbleSizePx
+
+        // Posición inicial: abajo derecha, pegado
+        val offsetX = remember { Animatable(maxX) }
+        val offsetY = remember { Animatable(maxY) }
+
+        Box(
+            modifier = Modifier
+                .offset { IntOffset(offsetX.value.toInt(), offsetY.value.toInt()) }
+        ) {
+
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        abrir_whattsapp(
+                            "",
+                            "",
+                            "",
+                            context = context,
+                            "958120920",
+                            if (tipo == "Soporte") {
+                                "Hola, deseo comunicarme con el soporte de Geinz. Mi ID de usuario es: $id_user"
+                            } else {
+                                "Hola, tengo problemas para ingresar a mi cuenta de tienda. Mi ID de usuario es: $id_user"
+                            }
+                        )
+                    }
+                    .pointerInput(Unit) {
+
+                        detectDragGestures(
+                            onDrag = { change, dragAmount ->
+                                change.consume()
+
+                                val newX = (offsetX.value + dragAmount.x)
+                                    .coerceIn(minX, maxX)
+
+                                val newY = (offsetY.value + dragAmount.y)
+                                    .coerceIn(minY, maxY)
+
+                                scope.launch {
+                                    offsetX.snapTo(newX)
+                                    offsetY.snapTo(newY)
+                                }
+                            },
+
+                            onDragEnd = {
+                                val middle = screenWidth / 2
+
+                                val targetX = if (offsetX.value < middle) minX else maxX
+
+                                scope.launch {
+                                    offsetX.animateTo(
+                                        targetX,
+                                        animationSpec = tween(
+                                            durationMillis = 300,
+                                            easing = FastOutSlowInEasing
+                                        )
+                                    )
+                                }
+                            }
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+
+                Image(
+                    painter = painterResource(R.drawable.soporte_icon),
+                    contentDescription = "",
+                    modifier = Modifier.size(25.dp),
+                    colorFilter = ColorFilter.tint(Color.White)
+                )
+            }
+        }
+    }
+}
+
+
 
 @Composable
 fun carga_inicial() {

@@ -91,9 +91,11 @@ fun dialogo_cerrar_seccion_teinda(ondimis: () -> Unit,cerrar_seccion:()-> Unit) 
 
                     texto_generico_one_line("Cerrar sesión")
 
-                    texto_generico_multilinea("¿Estás seguro de que deseas cerrar sesión de tu cuenta de tienda? Tendrás que volver a iniciar sesión para acceder nuevamente.", style = MaterialTheme.typography.bodyMedium)
+                    texto_generico_multilinea(
+                        "¿Estás seguro de que deseas cerrar sesión de tu cuenta de tienda? Al hacerlo, tu dispositivo se desvinculará completamente de la tienda, incluyendo la eliminación del ID de tienda asociado a tu cuenta. Tendrás que volver a iniciar sesión y vincular nuevamente tu dispositivo para acceder otra vez.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
-
 
             }
         }

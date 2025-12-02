@@ -63,7 +63,6 @@ import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -117,7 +116,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.esAniversarioHoy
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerAniversarioLocalidad
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.simplificarCategoria
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
@@ -154,7 +152,7 @@ private lateinit var firebaseAuth: FirebaseAuth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun pantalla_principal(
-    verificar_intener: Boolean,
+    isConnected: Boolean,
     datos_principales_user: datos_principales_user,
     categorias: (localidad: String, nombre_user: String) -> Unit,
     clikear_cartas: (String, String, String) -> Unit,
@@ -411,6 +409,7 @@ fun pantalla_principal(
                 if (mostrar_widget_tienda) {
                     spacer_vertical(10.dp)
                     baner_widget_tienda_geinz_baner(
+                        isConnected,
                         viewmodel = viewmodel,
                         item = datos_tienda,
                         horario_hoy = viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[datos_tienda.id_tienda]
@@ -442,7 +441,14 @@ fun pantalla_principal(
                                     duration = SnackbarDuration.Short
                                 )
                             }
-                        },{mostrar_panel_geinz()}
+                        },{mostrar_panel_geinz()},{
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "No puedes renovar tu plan verifica tu conexion a internet.",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        }
                     )
                     spacer_vertical(20.dp)
                 }
@@ -518,7 +524,7 @@ fun pantalla_principal(
         )
         if (mostar_bottom_sheet_ayuda_geinz) {
             bottom_sheet_ayudanos_a_creccer(
-                verificar_intener, ultimaLocalidad ?: "barranca",
+                isConnected, ultimaLocalidad ?: "barranca",
                 { mostar_bottom_sheet_ayuda_geinz = false }, viewModel_filtado_tiendas
             )
         }

@@ -51,7 +51,9 @@ import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
+import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
 import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_numero
 import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_red
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
@@ -131,13 +133,79 @@ fun bottom_sheet_ayudanos_a_creccer(
                 motivo = "Día de descanso"
             )
         ),
+        horario_tienda_box = HorarioAtencion_box(
+            lunes = HorarioDia_bloques(
+                cerrado = false,
+                motivo = "",
+                bloques = listOf(
+                    HorarioBloque("07:00", "13:00"),
+                    HorarioBloque("14:00", "23:00")
+                )
+            ),
+
+            martes = HorarioDia_bloques(
+                cerrado = false,
+                motivo = "",
+                bloques = listOf(
+                    HorarioBloque("07:00", "13:00"),
+                    HorarioBloque("14:00", "23:00")
+                )
+            ),
+
+            miércoles = HorarioDia_bloques(
+                cerrado = false,
+                motivo = "",
+                bloques = listOf(
+                    HorarioBloque("07:00", "13:00"),
+                    HorarioBloque("14:00", "23:00")
+                )
+            ),
+
+            jueves = HorarioDia_bloques(
+                cerrado = false,
+                motivo = "",
+                bloques = listOf(
+                    HorarioBloque("07:00", "13:00"),
+                    HorarioBloque("14:00", "23:00")
+                )
+            ),
+
+            viernes = HorarioDia_bloques(
+                cerrado = false,
+                motivo = "",
+                bloques = listOf(
+                    HorarioBloque("07:00", "13:00"),
+                    HorarioBloque("14:00", "23:00")
+                )
+            ),
+
+            sábado = HorarioDia_bloques(
+                cerrado = false,
+                motivo = "",
+                bloques = listOf(
+                    HorarioBloque("07:00", "13:00"),
+                    HorarioBloque("14:00", "23:00")
+                )
+            ),
+
+            domingo = HorarioDia_bloques(
+                cerrado = true,
+                motivo = "Cerrado",
+                bloques = listOf(
+                    HorarioBloque("07:00", "13:00"),
+                    HorarioBloque("14:00", "23:00")
+                )
+            )
+        )
+
+        ,
         metodos_pago_tienda = modelo_pagos_tienda(
             plin = modelo_metodo_individual(enable = true),
             agora = modelo_metodo_individual(enable = true),
             efectivo = modelo_metodo_individual(enable = true),
             yape = modelo_metodo_individual(enable = true, numero = "987654321"),
             visa_mastercard = modelo_metodo_individual(enable = true)
-        ),horario_tienda_box=HorarioAtencion_box()
+        ),timestamp="1764693289927"
     )
 
     var ejemplo_tienda_free = datos_tienda_free(

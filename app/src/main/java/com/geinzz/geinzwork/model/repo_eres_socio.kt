@@ -10,6 +10,8 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 
@@ -52,7 +54,7 @@ class repo_eres_socio {
                 val fecha_termino = fechas["fecha_fin"] as? String ?: ""
 
                 val descripcion = data["descripcion"] as? String ?: ""
-                val propietario_id =data["propietario_id"] as? List<String> ?:emptyList()
+                val propietario_id = data["propietario_id"] as? List<String> ?: emptyList()
 
                 // 🔥 ESCUCHAR ESTADISTICAS EN TIEMPO REAL
                 ref.collection("estadisticas")
@@ -102,7 +104,7 @@ class repo_eres_socio {
                                     localidad_tienda = localidadTienda,
                                     fecha_ingreso = fecha_ingreso,
                                     fecha_termino = fecha_termino,
-                                    descripcion = descripcion ,propietario_id
+                                    descripcion = descripcion, propietario_id
                                 )
                             )
                         }
@@ -110,7 +112,6 @@ class repo_eres_socio {
             }
         }
     }
-
 
 
     suspend fun guardar_horario_cerrado(
@@ -168,8 +169,8 @@ class repo_eres_socio {
     }
 
 
-    fun agregar_contador(tipo: String,id_tienda:String, localida_tienda: String) {
-        Log.d("agregar","$tipo $localida_tienda $id_tienda")
+    fun agregar_contador(tipo: String, id_tienda: String, localida_tienda: String) {
+        Log.d("agregar", "$tipo $localida_tienda $id_tienda")
         val db = FirebaseFirestore.getInstance()
             .collection("Tiendas").document(localida_tienda)
             .collection(localida_tienda).document(id_tienda)
@@ -184,7 +185,7 @@ class repo_eres_socio {
             }
     }
 
-    fun restar_contador(tipo: String, localida_tienda:String,id_tienda: String) {
+    fun restar_contador(tipo: String, localida_tienda: String, id_tienda: String) {
         val db = FirebaseFirestore.getInstance()
             .collection("Tiendas").document(localida_tienda)
             .collection(localida_tienda).document(id_tienda)
@@ -202,39 +203,147 @@ class repo_eres_socio {
 
 
     fun verificar_existencia_tienda(
+        id_user: String,
+        ingresa_correo: Boolean,
+        correo_tienda: String,
         id_tienda: String,
         localidad_tienda: String,
-        resultado: (Boolean,String) -> Unit
+        resultado: (Boolean, String, String?) -> Unit
     ) {
-        val ref = FirebaseFirestore.getInstance()
-            .collection("Tiendas")
-            .document(localidad_tienda)
-            .collection(localidad_tienda)
+        val db = FirebaseFirestore.getInstance()
+
+        Log.d("verificar_existencia", "========== INICIO VERIFICACIÓN ==========")
+
+        // ===========================================
+        // FUNCIÓN AUXILIAR PARA VALIDAR CUPOS
+        // ===========================================
+        fun validarCupos(idTienda: String) {
+            val refTienda = db.collection("Tiendas")
+                .document(localidad_tienda.lowercase())
+                .collection(localidad_tienda.lowercase())
+                .document(idTienda)
+
+            refTienda.get()
+                .addOnSuccessListener { snapshot ->
+                    if (!snapshot.exists()) {
+                        resultado(false, "El id no existe", null)
+                        return@addOnSuccessListener
+                    }
+
+                    val administradores =
+                        snapshot.get("propietario_id") as? List<String> ?: emptyList()
+
+                    if (administradores.size < 3) {
+                        resultado(true, "", idTienda)
+                    } else {
+                        resultado(false, "Ya tienes 3 dispositivos vinculados", null)
+                    }
+                }
+                .addOnFailureListener {
+                    resultado(false, "Error al verificar la tienda", null)
+                }
+        }
+
+        // ======================================================
+        //  OPCIÓN 1: VERIFICACIÓN POR CORREO (NO VALIDAR CUPOS)
+        // ======================================================
+        if (ingresa_correo) {
+            db.collection("Trabajadores_Usuarios_Drivers")
+                .document("users")
+                .collection("users")
+                .document(id_user)
+                .get()
+                .addOnSuccessListener { res ->
+                    if (!res.exists()) {
+                        resultado(false, "Usuario no encontrado", null)
+                        return@addOnSuccessListener
+                    }
+
+                    val correo_user = res.getString("correo")
+                    val id_tienda_propietario = res.getString("id_tienda_propietario")
+
+                    if (correo_user != correo_tienda) {
+                        resultado(false, "El correo ingresado no pertenece a este perfil", null)
+                        return@addOnSuccessListener
+                    }
+
+                    if (id_tienda_propietario.isNullOrEmpty()) {
+                        resultado(false, "No cuentas con una tienda vinculada", null)
+                        return@addOnSuccessListener
+                    }
+
+                    // 👉 CORREO ES CORRECTO Y TIENE TIENDA → PERMITIR SIN VALIDAR CUPOS
+                    resultado(true, "", id_tienda_propietario)
+                }
+                .addOnFailureListener {
+                    resultado(false, "Error al verificar el correo", null)
+                }
+
+            return
+        }
+
+        // ======================================================
+        //  OPCIÓN 2: VERIFICAR POR ID (AQUÍ SÍ VALIDAR CUPOS)
+        // ======================================================
+        if (localidad_tienda.isEmpty() || id_tienda.isEmpty()) {
+            resultado(false, "Localidad o ID inválidos", null)
+            return
+        }
+
+        validarCupos(id_tienda)
+    }
+
+    fun restar_puntos(
+        localidad_tienda: String,
+        id_tienda: String,
+        puntos_restar: Int,
+        mes_agregado_cantidad: String
+    ) {
+
+        val refTienda = db.collection("Tiendas")
+            .document(localidad_tienda.lowercase())
+            .collection(localidad_tienda.lowercase())
             .document(id_tienda)
 
-        ref.get()
-            .addOnSuccessListener { snapshot ->
-                if (!snapshot.exists()) {
-                    resultado(false,"El id no existe")  // ❗ Documento no existe
-                    return@addOnSuccessListener
-                }
+        refTienda.get().addOnSuccessListener { res ->
+            if (res.exists()) {
 
-                val data = snapshot.data
-                val administradores = data?.get("propietario_id") as? List<String> ?: emptyList()
+                val puntosActuales = (res.getLong("puntos_tienda") ?: 0).toInt()
+                val nuevosPuntos = (puntosActuales - puntos_restar).coerceAtLeast(0)
 
+                // NUEVA FECHA FIN (desde hoy)
+                val nuevaFechaFin = sumarMesesDesdeHoy(mes_agregado_cantidad.toInt())
 
-                if (administradores.size < 3) {
-                    resultado(true,"")
-                } else {
-                    resultado(false,"Ya tienes 3 disposivos vinculados")
-                }
+                val updates = hashMapOf<String, Any>(
+                    "puntos_tienda" to nuevosPuntos,
+                    "fechas.fecha_fin" to nuevaFechaFin    // <-- SOLO ESTO SE ACTUALIZA DEL MAPA
+                )
+
+                refTienda.update(updates)
+                    .addOnSuccessListener {
+                        Log.d("Puntos", "Puntos y fecha actualizados")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("Puntos", "Error al actualizar", e)
+                    }
             }
-            .addOnFailureListener {
-                resultado(false,"Error al verificar tu id ")
-            }
+
+        }.addOnFailureListener {
+            Log.e("Puntos", "Error al obtener puntos", it)
+        }
     }
 
 
+    fun sumarMesesDesdeHoy(meses: Int): String {
+        return try {
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+            val hoy = LocalDate.now()                     // ← FECHA ACTUAL
+            val nuevaFecha = hoy.plusMonths(meses.toLong()) // ← SUMA LOS MESES
+            nuevaFecha.format(formatter)
+        } catch (e: Exception) {
+            ""
+        }
+    }
 
 
 }

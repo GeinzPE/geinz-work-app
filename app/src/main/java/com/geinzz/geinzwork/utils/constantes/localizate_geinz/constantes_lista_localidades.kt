@@ -1913,6 +1913,15 @@ object constantes_lista_localidades {
         Color(0xFF262626),
     )
 
+    val shadow_top_filtrado_v21_dialog = listOf(
+        Color(0xFF2B2930),
+        Color.Transparent,
+    )
+    val shadow_botonm_filtrado_v21_dialog = listOf(
+        Color.Transparent,
+        Color(0xFF2B2930),
+    )
+
     val shadow_top_filtrado_v2 = listOf(
         Color(0XFF535252),
         Color.Transparent,

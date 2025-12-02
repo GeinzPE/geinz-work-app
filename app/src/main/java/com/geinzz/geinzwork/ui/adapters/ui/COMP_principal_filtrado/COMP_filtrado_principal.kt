@@ -79,20 +79,15 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
@@ -101,7 +96,6 @@ import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -162,7 +156,6 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_subcategoria_shadow
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.start_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
@@ -676,9 +669,9 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(15.dp),
             modifier = Modifier.constrainAs(texto) {
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
-                }
+                top.linkTo(parent.top)
+                bottom.linkTo(parent.bottom)
+            }
 
         ) {
 
@@ -835,9 +828,9 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
 
         Column(
             modifier = Modifier.constrainAs(texto) {
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
-                }
+                top.linkTo(parent.top)
+                bottom.linkTo(parent.bottom)
+            }
 
         ) {
 
@@ -849,8 +842,8 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
                 if (!estado) {
                     Row(
                         modifier = Modifier.clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }) { onClickExpand() },
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }) { onClickExpand() },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         texto_generico_one_line(
@@ -1021,9 +1014,9 @@ fun rutas_turismo(
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current).data(img_baner)
 
-            .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
-            .placeholder(R.drawable.cargando_img_categorias)
-            .error(R.drawable.cargando_img_categorias).build(),
+                .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
+                .placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.cargando_img_categorias).build(),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth()
@@ -1073,9 +1066,9 @@ fun seguridad(
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current).data(drawable)
-            .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
-            .crossfade(true).placeholder(R.drawable.cargando_img_categorias)
-            .error(R.drawable.cargando_img_categorias).build(),
+                .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
+                .crossfade(true).placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.cargando_img_categorias).build(),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
@@ -1746,8 +1739,8 @@ fun ImagenConInclinacion(
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current).data(drawableResId)
-            .placeholder(R.drawable.cargando_img_categorias)
-            .error(R.drawable.cargando_img_categorias).crossfade(false).build(),
+                .placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.cargando_img_categorias).crossfade(false).build(),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -1838,7 +1831,7 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
                 Box(
                     modifier = Modifier
                         .size(40.dp) // 🔹 tamaño fijo y respetado
-                    .clip(CircleShape)
+                        .clip(CircleShape)
                         .background(Color.Gray.copy(alpha = 0.25f))
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -1987,6 +1980,7 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun baner_widget_tienda_geinz_baner(
+    isConnected: Boolean,
     viewmodel: viewmodel_eres_socio,
     item: widget_tienda,
     horario_hoy: HorarioDia_box,
@@ -1996,7 +1990,7 @@ fun baner_widget_tienda_geinz_baner(
     sin_activar_horario: () -> Unit,
     sin_acceso_motivo_cierre: () -> Unit,
     sin_acceso_horario: () -> Unit,
-    mostar_panel_geinz:()-> Unit
+    mostar_panel_geinz: () -> Unit, sin_internet_al_renovar: () -> Unit
 ) {
 
     Log.d("hoaerirodehoy", item.horario_tiendaMap.sábado.cerrado.toString())
@@ -2047,6 +2041,7 @@ fun baner_widget_tienda_geinz_baner(
 
     var por_removar by remember { mutableStateOf(false) }
 
+    val puntosSeguros = item.total_puntos.toLongOrNull() ?: 0L
 // 🔥 Esto mantiene sincronizado el estado cuando Firebase cambia
     LaunchedEffect(item.horario_tiendaMap) {
         val bloqueMananaActual = bloques_hoy.getOrNull(0)
@@ -2233,8 +2228,15 @@ fun baner_widget_tienda_geinz_baner(
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         textDecoration = TextDecoration.Underline,
                                         color = MaterialTheme.colorScheme.primary
-                                    ), modifier = Modifier.clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){
-                                        por_removar=true
+                                    ),
+                                    modifier = Modifier.clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() }) {
+                                        if (isConnected) {
+                                            por_removar = true
+                                        } else {
+                                            sin_internet_al_renovar()
+                                        }
                                     }
                                 )
                             }
@@ -2313,9 +2315,11 @@ fun baner_widget_tienda_geinz_baner(
                             style = MaterialTheme.typography.bodyMedium
                         )
                         spacer_vertical(15.dp)
-                        Box( modifier = Modifier
-                            .fillMaxWidth()
-                            .height(60.dp), contentAlignment = Alignment.Center){
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp), contentAlignment = Alignment.Center
+                        ) {
 
                             Row(
                                 modifier = Modifier
@@ -2401,7 +2405,8 @@ fun baner_widget_tienda_geinz_baner(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = 120.dp)  // 🔥 Evita que la imagen desborde
-                    .clip(RoundedCornerShape(10.dp)).clickable(){
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable() {
                         mostar_panel_geinz()
                     }
             )
@@ -2432,7 +2437,7 @@ fun baner_widget_tienda_geinz_baner(
                             overflow = TextOverflow.Ellipsis
                         )
                     } else {
-                        val puntosSeguros = item.total_puntos.toLongOrNull() ?: 0L
+
                         texto_generico_one_line(
                             "${abreviarNumero(puntosSeguros)}",
                             style = MaterialTheme.typography.bodyMedium
@@ -2455,9 +2460,17 @@ fun baner_widget_tienda_geinz_baner(
             }
         }
     }
-
-    if(por_removar){
-        dialog_renovar_plan{por_removar=!por_removar}
+    if (por_removar) {
+        dialog_renovar_plan(puntosSeguros,
+            { por_removar = !por_removar },
+            { total_cancelar, meses_agregados ->
+                viewmodel.descontar_puntos(
+                    "barranca",
+                    item.id_tienda,
+                    total_cancelar.toInt(),
+                    meses_agregados
+                )
+            })
     }
     if (mostar_Bottom_shet_editar_horario) {
         eres_socio_geinz(
@@ -2518,7 +2531,7 @@ fun baner_registra_tu_negocio(listener_registra_tu_negocio: () -> Unit) {
                 Box(
                     modifier = Modifier
                         .size(40.dp) // 🔹 tamaño fijo y respetado
-                    .clip(CircleShape)
+                        .clip(CircleShape)
                         .background(Color.Gray.copy(alpha = 0.25f))
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -2609,21 +2622,21 @@ fun TextoExpandibleEnLinea(
     ) {
         Text(
             buildAnnotatedString {
-            // Texto principal (blanco)
-            withStyle(
-                style = SpanStyle(color = color_principla)
-            ) {
-                append(texto)
-            }
+                // Texto principal (blanco)
+                withStyle(
+                    style = SpanStyle(color = color_principla)
+                ) {
+                    append(texto)
+                }
 
-            append(" ")
+                append(" ")
 
-            withStyle(
-                style = SpanStyle(
-                    color = color, fontSize = 13.sp, fontWeight = FontWeight.Medium
-                )
-            ) {}
-        },
+                withStyle(
+                    style = SpanStyle(
+                        color = color, fontSize = 13.sp, fontWeight = FontWeight.Medium
+                    )
+                ) {}
+            },
             style = MaterialTheme.typography.bodyMedium,
             maxLines = if (expandido) Int.MAX_VALUE else 1,
             overflow = TextOverflow.Ellipsis,

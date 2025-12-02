@@ -125,8 +125,6 @@ fun cuenta_user(
             },{click_login_ver_socio()})
 
     }
-
-
 }
 
 @Composable

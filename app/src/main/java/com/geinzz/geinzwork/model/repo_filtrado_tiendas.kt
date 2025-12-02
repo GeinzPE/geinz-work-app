@@ -757,13 +757,23 @@ Log.d("horaisadasgfsfgfasgsg","$idTiendaBuscada $localidad")
             .collection(localidad)
             .document(id_tienda)
 
-        val hashMap = hashMapOf<String, Any>(
-            "propietario_id" to listOf(id_user)
-        )
+        val ref2 = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("users")
+            .collection("users")
+            .document(id_user)
 
+
+        val hashMapuser = hashMapOf<String, Any>(
+            "id_tienda_propietario" to id_tienda
+        )
+        val hashMap = hashMapOf<String, Any>(
+            "propietario_id" to FieldValue.arrayUnion(id_user) // 👈 AGREGA SIN REEMPLAZAR        )
+        )
         try {
             ref.update(hashMap).await()
+            ref2.update(hashMapuser).await()
             Log.d("vincular_cuenta", "Cuenta vinculada correctamente")
+
         } catch (e: Exception) {
             Log.e("vincular_cuenta", "Error al vincular cuenta: ${e.message}")
         }
@@ -774,21 +784,36 @@ Log.d("horaisadasgfsfgfasgsg","$idTiendaBuscada $localidad")
         id_tienda: String,
         localidad: String
     ) {
-        val ref = db.collection("Tiendas")
+        val refTienda = db.collection("Tiendas")
             .document(localidad)
             .collection(localidad)
             .document(id_tienda)
 
+//        val refUsuario = db.collection("Trabajadores_Usuarios_Drivers")
+//            .document("users")
+//            .collection("users")
+//            .document(id_user)
+
         try {
-            ref.update(
+
+            // 1. Eliminar al usuario de la lista propietario_id de la tienda
+            refTienda.update(
                 "propietario_id",
                 FieldValue.arrayRemove(id_user)
             ).await()
 
+            // 2. Eliminar en el usuario el id de tienda
+//            refUsuario.update(
+//                "id_tienda_propietario",
+//                FieldValue.delete() // elimina el campo completo
+//            ).await()
+
             Log.d("eliminar_cuenta", "Vinculación eliminada correctamente")
+
         } catch (e: Exception) {
             Log.e("eliminar_cuenta", "Error al eliminar vinculación: ${e.message}")
         }
     }
+
 
 }

@@ -45,13 +45,18 @@ object data_store_localidad {
     private val LOCALIDAD_SOCIO_TIENDA =stringPreferencesKey("localidad_tienda_socio")
 
 
-    suspend fun set_id_socio(context: Context, id: String,localidad_tienda:String) {
+    suspend fun set_id_socio(context: Context, id: String) {
         context.dataStore.edit { preferences ->
             preferences[KEY_ID_SOCIO] = id
-            preferences[LOCALIDAD_SOCIO_TIENDA]=localidad_tienda
         }
     }
 
+    suspend fun set_localidad_tienda_soscio(context: Context, localidad_tienda:String){
+        context.dataStore.edit { preferences ->
+
+            preferences[LOCALIDAD_SOCIO_TIENDA]=localidad_tienda
+        }
+    }
 
     fun get_id_socio(context: Context): Flow<String>{
         return context.dataStore.data.map { preferences ->
@@ -140,6 +145,8 @@ object data_store_localidad {
         context.dataStore.edit { preferences ->
             preferences.remove(UID_USER_REGISTER)
             preferences.remove(EMAIL_USER_REGISTER)
+            preferences.remove(KEY_ID_SOCIO)
+            preferences.remove(LOCALIDAD_SOCIO_TIENDA)
         }
         Log.d("DataStore", "UID y email eliminados")
     }
