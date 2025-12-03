@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -132,6 +133,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.simplificarCategoria
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
@@ -394,6 +396,17 @@ fun card_img_container(
         viewmodel_turismo.actualizarCategoria(sub_categoria_selecionada)
     }
 
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            Log.d("GPS", "✅ El usuario activó el GPS")
+
+        } else {
+            Log.d("GPS", "❌ El usuario canceló el diálogo de ubicación")
+
+        }
+    }
     // Launcher para pedir permiso
     val permisoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -849,7 +862,9 @@ fun card_img_container(
             { validacion_mostrar_dialog_ubi_off = false },
             {
                 validacion_mostrar_dialog_ubi_off = false
-                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                verificarGPS(context, launcher)
+
+//                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             })
     }
     if (call_dialog_permise) {

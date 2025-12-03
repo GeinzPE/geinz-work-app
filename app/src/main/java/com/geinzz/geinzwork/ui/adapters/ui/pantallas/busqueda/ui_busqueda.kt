@@ -910,18 +910,20 @@ fun ui_pantalla_busqueda(
 
 
         if (dialog_Crear_ruta) {
-            dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
-                dialog_Crear_ruta = false
-                if (crear_ruta && verificarUbiActiva(context)) {
-                    constantes_lista_localidades.abrir_google_maps("tienda",id_tienda_selecionada,localidad_tienda_seklecioanda,
-                        context, latitud, longitud,
-                    ) { dialogo ->
-                        validacion_mostrar_dialog_ubi_off = dialogo
+            dialog_crear_ruta_lugares(
+                onDismis = { dialog_Crear_ruta = false },
+                crear_ruta = { crear_ruta ->
+                    dialog_Crear_ruta = false
+                    if (crear_ruta && verificarUbiActiva(context)) {
+                        constantes_lista_localidades.abrir_google_maps("tienda",id_tienda_selecionada,localidad_tienda_seklecioanda,
+                            context, latitud, longitud,
+                        ) { dialogo ->
+                            validacion_mostrar_dialog_ubi_off = dialogo
+                        }
+                    } else {
+                        validacion_mostrar_dialog_ubi_off = true
                     }
-                } else {
-                    validacion_mostrar_dialog_ubi_off = true
-                }
-            })
+                })
         }
 
         if (validacion_mostrar_dialog_ubi_off) {
@@ -930,7 +932,9 @@ fun ui_pantalla_busqueda(
                 { validacion_mostrar_dialog_ubi_off = false },
                 {
                     validacion_mostrar_dialog_ubi_off = false
-                    context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                    verificarGPS(context, launcher)
+
+//                    context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
                 })
         }
 

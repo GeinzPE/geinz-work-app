@@ -17,5 +17,6 @@ data class dataclass_map(
     val horario_tienda: horario_tienda = horario_tienda(),
     val contacto_tienda: metodo_contacto_tienda = metodo_contacto_tienda(),
     val metodos_pago_tienda:modelo_pagos_tienda = modelo_pagos_tienda(),
-    val horario_box:HorarioAtencion_box =HorarioAtencion_box()
+    val horario_box:HorarioAtencion_box =HorarioAtencion_box(),
+    val localidad:String="",
 )

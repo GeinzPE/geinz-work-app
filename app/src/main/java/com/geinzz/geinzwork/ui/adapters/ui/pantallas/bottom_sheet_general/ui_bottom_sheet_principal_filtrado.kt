@@ -48,6 +48,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Payment
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -392,10 +393,11 @@ fun bottom_sheet_tiendas_filtradas(
                         }
                         item {
                             cabezero_tiendas(
-                                tiendas_filtradas.localidad ?: "barranca",
-                                tiendas_filtradas.id_tienda,
-                                verificar_intener,
-                                triggerAnimacion,
+                                iconos_cosas_clikeables = iconos_cosas_clikeables,
+                                localidad = tiendas_filtradas.localidad ?: "barranca",
+                                id_tienda = tiendas_filtradas.id_tienda,
+                                verificar_intener = verificar_intener,
+                                triggerAnimacion = triggerAnimacion,
                                 guardar_icon = guardar_icon,
                                 viewModel_filtado_tiendas = viewModelFiltros,
                                 modifier = Modifier.padding(horizontal = 10.dp),
@@ -415,11 +417,11 @@ fun bottom_sheet_tiendas_filtradas(
                                         img_tienda = tiendas_filtradas.img_perfil,
                                         id_tienda_lugar = tiendas_filtradas.id_tienda,
                                         nombre_lugar_tienda = tiendas_filtradas.nombre_tienda,
-//                                        tag_sub = tiendas_filtradas.subcategoria,
+                                //                                        tag_sub = tiendas_filtradas.subcategoria,
                                         categoria = tiendas_filtradas.categoria_tienda,
                                         timesLap = "",
-//                                        horario_tienda = tiendas_filtradas.horario_atencion,
-//                                        metodos_pago = tiendas_filtradas.metodos_pago_tienda,
+                                //                                        horario_tienda = tiendas_filtradas.horario_atencion,
+                                //                                        metodos_pago = tiendas_filtradas.metodos_pago_tienda,
                                         lat = latitud,
                                         lng = longitud,
                                         localida_tienda = tiendas_filtradas.localidad ?: "",
@@ -445,16 +447,16 @@ fun bottom_sheet_tiendas_filtradas(
 
                                     } else {
                                         mostar_eliminar_guardado_dialog = true
-//                                        viewModelFiltros.eliminar_tienda_favorita(
-//                                            id_user,
-//                                            tiendas_filtradas.id_tienda
-//                                        )
+                                //                                        viewModelFiltros.eliminar_tienda_favorita(
+                                //                                            id_user,
+                                //                                            tiendas_filtradas.id_tienda
+                                //                                        )
 
 
                                     }
 
-//                                    guardar_icon = i
-                                }, { triggerAnimacion = false }
+                                //                                    guardar_icon = i
+                                }, resetear_estado_loo = { triggerAnimacion = false }
                             )
                             spacer_vertical(20.dp)
                         }
@@ -508,13 +510,13 @@ fun bottom_sheet_tiendas_filtradas(
                         }
                         item {
                             Expandible_Metodo_contacto(
-                                tiendas_filtradas.id_tienda,
-                                tiendas_filtradas.localidad ?: "barranca",
-                                iconos_cosas_clikeables,
-                                context,
+                                id_tienda = tiendas_filtradas.id_tienda,
+                                localidad_tienda = tiendas_filtradas.localidad ?: "barranca",
+                                iconos_cosas_clikeables = iconos_cosas_clikeables,
+                                context = context,
                                 modifier = Modifier.padding(horizontal = 10.dp),
-                                expander_contacto,
-                                tiendas_filtradas.metodo_contacto_tienda
+                                expandido = expander_contacto,
+                                metodos_contactos = tiendas_filtradas.metodo_contacto_tienda
                             ) { expander_contacto = !expander_contacto }
                             spacer_vertical(10.dp)
                         }
@@ -583,7 +585,7 @@ fun bottom_sheet_tiendas_filtradas(
 
 @Composable
 fun cabezero_tiendas(
-
+    iconos_cosas_clikeables: Boolean,
     localidad: String,
     id_tienda: String,
     verificar_intener: Boolean,
@@ -712,6 +714,7 @@ fun cabezero_tiendas(
         ) {
             Box(modifier = Modifier.weight(1f)) {
                 perfil_cabezero(
+                    iconos_cosas_clikeables,
                     localidad,
                     id_tienda,
                     viewModel_filtado_tiendas,
@@ -723,6 +726,7 @@ fun cabezero_tiendas(
             }
             spacer_horizonta(15.dp)
             abrir_google_maps(
+                iconos_cosas_clikeables,
                 id_tienda,
                 localidad,
                 verificar_intener,
@@ -855,6 +859,7 @@ fun perfil_img_zooom(
 
 @Composable
 fun perfil_cabezero(
+    iconos_cosas_clikeables: Boolean,
     localida: String,
     id_tienda: String,
     viewModelFiltros: viewModel_filtado_tiendas,
@@ -913,6 +918,7 @@ fun perfil_cabezero(
 
 @Composable
 fun abrir_google_maps(
+    iconos_cosas_clikeables: Boolean,
     id_tienda: String,
     localidad: String,
     verificar_intener: Boolean,
@@ -963,7 +969,12 @@ fun abrir_google_maps(
         }
         AnimatedVisibility(verificar_intener, enter = fadeIn(), exit = fadeOut()) {
             FloatingActionButton(
-                onClick = { guaradar_select() },
+                onClick = {
+                    if(iconos_cosas_clikeables){
+                        guaradar_select()
+                    }else{
+                        Toast.makeText(context, "solo puedes guardar tiendas reales", Toast.LENGTH_SHORT).show()}
+                },
                 modifier = Modifier.size(40.dp),
                 containerColor = color_guardar_fondo,
             ) {
@@ -1219,11 +1230,11 @@ fun Expandible_qr_tienda(
     Cartas_expandibles(modifier = modifier) {
         Column {
             expandibles_wrapp(
-                "QR de Tienda",
-                iconRes = R.drawable.qr_scaner_icon,
-                null,
-                expandido,
-                onClickExpand
+                texto_params = "Cuentanos tu experiencia",
+                iconRes = null,
+                iconVector = Icons.Filled.Star,
+                expandido = expandido,
+                onClickExpand = onClickExpand
             )
         }
         AnimatedVisibility(visible = expandido) {

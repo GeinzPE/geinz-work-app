@@ -73,7 +73,6 @@ fun dialog_sin_ubicacion_activa(
         text = {
             Column {
                 FuenteControladaApp{
-
                 Text(
                     "Te recomendamos activar el GPS para que podamos mostrarte la mejor ruta hasta el lugar en Google Maps.",
                     color = MaterialTheme.colorScheme.onBackground,

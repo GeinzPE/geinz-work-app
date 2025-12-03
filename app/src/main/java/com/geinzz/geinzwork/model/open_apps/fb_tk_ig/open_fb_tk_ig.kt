@@ -139,8 +139,8 @@ object open_fb_tk_ig {
         }
 
         val webUri = username
-        if (isPackageInstalled(context, "com.zhiliaoapp.musically")) {
-            openUrl(context, webUri, "com.zhiliaoapp.musically")
+        if (isPackageInstalled(context, "com.ss.android.ugc.trill")) {
+            openUrl(context, webUri, "com.ss.android.ugc.trill")
             repo_socios.agregar_contador("tiktok",id_tienda,localidad_tienda)
         } else {
             repo_socios.agregar_contador("tiktok",id_tienda,localidad_tienda)

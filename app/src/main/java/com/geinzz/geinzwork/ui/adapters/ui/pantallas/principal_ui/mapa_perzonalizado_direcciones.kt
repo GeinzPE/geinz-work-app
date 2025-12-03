@@ -292,17 +292,14 @@ fun MyGoogle_maps(
     val seguirUbicacion = remember { mutableStateOf(false) }
     val animatingMap = remember { mutableStateOf(false) }
 
-//    val horariosMap by viewModel_filtrado_tiendas
-//        .horariosTiendas
-//        .collectAsState(initial = emptyMap())
+
 
     val horarios by viewModel_filtrado_tiendas.horariosTiendas_real.collectAsState()
 
-//    val horarioTienda = horariosMap[lister_marker.id]
 
     viewModel_filtrado_tiendas.repo_filtrado.escucharHorarioDeTiendaUnica(
         idTiendaBuscada = lister_marker.id,
-        localidad = "Lima"
+        localidad = "barranca"
     )
 
     LaunchedEffect(lister_marker.id) {
@@ -518,7 +515,7 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_box
+                                        horario_box = tienda.horario_box, localidad = tienda.localidad_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -555,7 +552,7 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_tienda_box
+                                        horario_box = tienda.horario_tienda_box, localidad = tienda.localidad_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -680,7 +677,7 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_box
+                                        horario_box = tienda.horario_box, localidad = tienda.localidad_tienda
                                     )
                                     Log.d("ecnotramos", "${tienda.contacto_tienda}")
 
@@ -720,7 +717,7 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_tienda_box
+                                        horario_box = tienda.horario_tienda_box, localidad = tienda.localidad_tienda
                                     )
                                     Log.d("ecnotramos", "${tienda.contacto_tienda}")
 
@@ -782,9 +779,9 @@ fun MyGoogle_maps(
 
 
             dialogo_lugar_tienda(
-                horarios[lister_marker.id] ?: HorarioDia_box(),
-                viewmodelMapa,
-                lat_user, log_user,
+                horario_box1 = horarios[lister_marker.id] ?: HorarioDia_box(),
+                viewmodelMapa = viewmodelMapa,
+                lat_user = lat_user, log_user = log_user,
                 time = tick,
                 dataclass_map = lister_marker,
                 cerra_dialog = {
@@ -794,7 +791,7 @@ fun MyGoogle_maps(
                 limpiar = {
                     seleccionadoId = ""
                 },
-                crear_ruta = { id,lat, log ->
+                crear_ruta = { id, lat, log ->
                     latitud = lat
                     longitud = log
                     id_tienda=id
@@ -828,7 +825,7 @@ fun MyGoogle_maps(
                     id_lugar_tienda_select = id_tienda_lugar
                     show_bottom_sheet_datos_tienda_lugares = true
                 },
-                onclick_iconos = {id, datos ->
+                onclick_iconos = { id, datos ->
                     when (datos.nombre_red) {
                         "llamar" -> {
                             llamar("tienda",id,localidad,context, datos.valor, {
@@ -908,7 +905,7 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_box
+                                        horario_box = tienda.horario_box, localidad = tienda.localidad_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -949,7 +946,7 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_tienda_box
+                                        horario_box = tienda.horario_tienda_box, localidad = tienda.localidad_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -994,7 +991,7 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_box
+                                        horario_box = tienda.horario_box, localidad = tienda.localidad_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -1033,7 +1030,7 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_tienda_box
+                                        horario_box = tienda.horario_tienda_box, localidad = tienda.localidad_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -1259,6 +1256,7 @@ fun dialogo_lugar_tienda(
         cerrado = true,
         motivo = ""
     )
+    Log.d("motivos_horairo_demapastineda","$horario_box1")
     val lista_redes_tiendas = listOf(
         data_redes_tiendas(
             enable = dataclass_map.contacto_tienda.llamada.estado,

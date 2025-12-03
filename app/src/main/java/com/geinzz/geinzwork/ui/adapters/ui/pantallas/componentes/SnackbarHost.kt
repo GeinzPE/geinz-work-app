@@ -31,7 +31,7 @@ fun SnackbarHost(hostState: SnackbarHostState, modifier: Modifier) {
 
     SnackbarHost(
         hostState = hostState,
-        modifier = modifier
+        modifier = modifier.padding(bottom = 20.dp)
     ) { data ->
 
         var offsetY by remember { mutableStateOf(0f) }

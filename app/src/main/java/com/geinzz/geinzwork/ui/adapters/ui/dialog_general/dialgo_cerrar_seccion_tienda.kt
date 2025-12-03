@@ -42,20 +42,7 @@ import kotlinx.coroutines.launch
 
 
 @Composable
-fun dialogo_cerrar_seccion_teinda(ondimis: () -> Unit,cerrar_seccion:()-> Unit) {
-    val infiniteTransition = rememberInfiniteTransition(label = "")
-
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 0.5f,  // más pequeño al inicio
-        targetValue = 0.8f,   // se expande un poco más
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = 2800, // más lenta = más natural
-                easing = FastOutSlowInEasing // respiración más orgánica
-            ),
-            repeatMode = RepeatMode.Reverse
-        ), label = ""
-    )
+fun dialogo_cerrar_seccion_teinda(txt:String,ondimis: () -> Unit,cerrar_seccion:()-> Unit) {
 
     AlertDialog(
         onDismissRequest = { ondimis() },
@@ -92,7 +79,7 @@ fun dialogo_cerrar_seccion_teinda(ondimis: () -> Unit,cerrar_seccion:()-> Unit) 
                     texto_generico_one_line("Cerrar sesión")
 
                     texto_generico_multilinea(
-                        "¿Estás seguro de que deseas cerrar sesión de tu cuenta de tienda? Al hacerlo, tu dispositivo se desvinculará completamente de la tienda, incluyendo la eliminación del ID de tienda asociado a tu cuenta. Tendrás que volver a iniciar sesión y vincular nuevamente tu dispositivo para acceder otra vez.",
+                        txt,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

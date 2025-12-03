@@ -57,6 +57,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialogo_cerrar_seccion_teinda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.eres_socio_geinz
@@ -186,6 +187,7 @@ fun protada_perfil_user(
     val scope = rememberCoroutineScope()
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     var eres_socio by remember { mutableStateOf(false) }
+    var dialog_cerrar_Seccion by remember { mutableStateOf(false) }
     AnimatedVisibility(
         visible = ocultar_contenido_Boolean, enter = fadeIn(
             animationSpec = tween(
@@ -317,10 +319,8 @@ fun protada_perfil_user(
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primary)
                             .clickable {
-                                cerrar_seccion()
-                                scope.launch {
-                                    data_store_localidad.limpiar_datos_autenticacion(contex)
-                                }
+                                dialog_cerrar_Seccion=true
+
 
                             }, contentAlignment = Alignment.Center
                     ) {
@@ -357,6 +357,15 @@ fun protada_perfil_user(
             }
 
         }
+    }
+    if(dialog_cerrar_Seccion){
+        dialogo_cerrar_seccion_teinda("¿Deseas cerrar sesión? Tendrás que iniciar sesión nuevamente.",{dialog_cerrar_Seccion=!dialog_cerrar_Seccion},{
+            cerrar_seccion()
+            scope.launch {
+                data_store_localidad.limpiar_datos_autenticacion(contex)
+            }
+        })
+
     }
 //    if (eres_socio) {
 //        click_login_ver_socio()

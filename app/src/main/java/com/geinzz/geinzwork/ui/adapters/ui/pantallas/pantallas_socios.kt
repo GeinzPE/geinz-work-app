@@ -1338,19 +1338,22 @@ fun login_socios(isConnected: Boolean) {
         }
 
         if (cerrar_Seccion_cuenta_tienda) {
-            dialogo_cerrar_seccion_teinda(ondimis = {
-                cerrar_Seccion_cuenta_tienda = !cerrar_Seccion_cuenta_tienda
-            }, cerrar_seccion = {
-                scope.launch {
-                    id_registrado = ""
-                    viewmodel.cambiar_estado_Seccion()
-                    data_store_localidad.delete_id_socio(context)
+            dialogo_cerrar_seccion_teinda(
+                txt = "¿Estás seguro de que deseas cerrar sesión de tu cuenta de tienda? Al hacerlo, tu dispositivo se desvinculará completamente de la tienda, incluyendo la eliminación del ID de tienda asociado a tu cuenta. Tendrás que volver a iniciar sesión y vincular nuevamente tu dispositivo para acceder otra vez.",
+                ondimis = {
+                    cerrar_Seccion_cuenta_tienda = !cerrar_Seccion_cuenta_tienda
+                },
+                cerrar_seccion = {
+                    scope.launch {
+                        id_registrado = ""
+                        viewmodel.cambiar_estado_Seccion()
+                        data_store_localidad.delete_id_socio(context)
+                    }
+                    viewModelFiltros.eliminarvincualcion_cuenta_tienda(uid_respald_user,
+                        idSocio,
+                        localidad_tienda_select_
+                            ?: "barranca")
                 }
-                viewModelFiltros.eliminarvincualcion_cuenta_tienda(uid_respald_user,
-                    idSocio,
-                    localidad_tienda_select_
-                        ?: "barranca")
-            }
             )
         }
     }

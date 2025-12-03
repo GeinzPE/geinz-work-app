@@ -544,8 +544,8 @@ fun nativationWrapper(
                 composable<map_perzonalizado> { navback ->
                     val direcciones = navback.toRoute<map_perzonalizado>()
                     pantalla_mapa_perzonalizado(
-                        isConnected,
-                        viewmodelMapa,
+                        verificar_intener = isConnected,
+                        viewmodelMapa = viewmodelMapa,
                         viewmode_segurirdad_Salud = viewmode_segurirdad_Salud,
                         viewModel_filtrado_tiendas = viewModel_filtrado_tiendas,
                         viewmodel_lugares_turisticos = viewModelLugares,

@@ -1,9 +1,11 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -90,6 +92,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud.carga_seguidad
 
@@ -381,6 +384,7 @@ fun chips_filtrado(
     select_alerta: () -> Unit,
 ) {
 
+
     LazyRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -482,6 +486,18 @@ fun carta_salud_cuidad(
     var lista_numero by remember { mutableStateOf(listOf<String>()) }
     var icono_dialogo by remember { mutableStateOf("") }
     var dialog_sin_lat_log by remember { mutableStateOf(false) }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            Log.d("GPS", "✅ El usuario activó el GPS")
+
+        } else {
+            Log.d("GPS", "❌ El usuario canceló el diálogo de ubicación")
+
+        }
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -567,7 +583,8 @@ fun carta_salud_cuidad(
             },
             abrir_configuracion = {
                 dialogo_activar_ubicacion = false
-                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                verificarGPS(context, launcher)
+//                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             },
             dialog_sin_maps = {
                 dialog_sin_lat_log = true

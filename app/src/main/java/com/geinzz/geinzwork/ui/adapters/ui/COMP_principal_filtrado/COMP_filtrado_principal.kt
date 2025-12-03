@@ -651,6 +651,7 @@ fun expandibles_wrapp_socio_geinzz(
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun expandibles_wrapp_socio_geinzz_datos_tienda(
     viewModelFiltros: viewmodel_eres_socio,
@@ -659,7 +660,7 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
     datos_tienda_fechas: datos_tienda_fechas,
     onClickExpand: () -> Unit
 ) {
-    var por_renovar by remember { mutableStateOf(false)}
+    var por_renovar by remember { mutableStateOf(false) }
     ConstraintLayout(
         modifier = Modifier
             .fillMaxWidth()
@@ -699,7 +700,8 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                                 horizontalArrangement = Arrangement.spacedBy(5.dp)
                             ) {
                                 texto_generico_one_line(
-                                    "Datos y fechas : ", style = MaterialTheme.typography.bodyMedium
+                                    "Datos,fechas y saldo: ",
+                                    style = MaterialTheme.typography.bodyMedium
                                 )
                                 texto_generico_one_line(
                                     "${datos_tienda_fechas.dias_restantes} días para la renovación del plan.",
@@ -728,11 +730,13 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                                     }, contentAlignment = Alignment.Center
                             ) {
                                 texto_generico_one_line(
-                                    "Datos y fechas", style = MaterialTheme.typography.titleLarge
+                                    "Datos,fechas y saldo",
+                                    style = MaterialTheme.typography.titleLarge
                                 )
                                 spacer_vertical(5.dp)
                             }
 
+                            spacer_vertical(7.dp)
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center,
@@ -783,6 +787,23 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
                             )
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),   modifier = Modifier.padding(start = 5.dp)) {
+                                texto_generico_one_line(
+                                    "Saldo disponible",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+
+                                texto_generico_one_line(
+                                    datos_tienda_fechas.saldo_cuenta_tienda,
+                                )
+
+                                Image(
+                                    painter = painterResource(R.drawable.icon_monedas_3d),
+                                    contentDescription = "saldo",
+                                    modifier = Modifier.size(20.dp)
+                                )
+
+                            }
 
                             texto_generico_one_line(
                                 "${datos_tienda_fechas.dias_restantes} días para la renovación del plan.",
@@ -791,17 +812,26 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                                 modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
                             )
 
+
+
                             if (datos_tienda_fechas.dias_restantes == "0") {
 
                                 Box(
                                     modifier = Modifier
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.primary)
-                                        .clickable{
-                                            por_renovar=true
+                                        .clickable {
+                                            por_renovar = true
                                         }
                                 ) {
-                                    texto_generico_one_line("Renovar plan", style = MaterialTheme.typography.bodyMedium,modifier = Modifier.padding(horizontal = 15.dp, vertical = 10.dp))
+                                    texto_generico_one_line(
+                                        "Renovar plan",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.padding(
+                                            horizontal = 15.dp,
+                                            vertical = 10.dp
+                                        )
+                                    )
                                 }
                             }
                         }
@@ -816,10 +846,10 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
             { por_renovar = !por_renovar },
             { total_cancelar, meses_agregados ->
                 viewModelFiltros.descontar_puntos(
-                    "barranca",
-                    datos_tienda_fechas.id_tienda,
-                    total_cancelar.toInt(),
-                    meses_agregados
+                    localidad_tienda = "barranca",
+                    id_tienda = datos_tienda_fechas.id_tienda,
+                    puntos_descuento = total_cancelar.toInt(),
+                    meses_agregados = meses_agregados
                 )
             })
     }

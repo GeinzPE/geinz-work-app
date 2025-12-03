@@ -85,7 +85,7 @@ data class Descuentos(
     val precio_anterior: String,
     val procentaje_ahorro: String,
     val porcentaje_int: Int,
-    val meses_agregados:String,
+    val meses_agregados: String,
 )
 
 
@@ -104,8 +104,8 @@ val lista_descuentos = listOf(
         icono_descuento = Icons.Filled.LocalFireDepartment,
         descuento_off = "-5%off",
         precio_anterior = "1500",
-        procentaje_ahorro ="5%",
-        porcentaje_int = 5,"1 mes"
+        procentaje_ahorro = "5%",
+        porcentaje_int = 5, "1 mes"
     ),
 
     Descuentos(
@@ -114,7 +114,7 @@ val lista_descuentos = listOf(
         descuento_off = "-10%off",
         precio_anterior = "2000",
         procentaje_ahorro = "10%",
-        porcentaje_int = 10,"2 mes"
+        porcentaje_int = 10, "2 mes"
     ),
 
     Descuentos(
@@ -123,7 +123,7 @@ val lista_descuentos = listOf(
         descuento_off = "-20%off",
         precio_anterior = "3000",
         procentaje_ahorro = "20%",
-        porcentaje_int = 20,"3 mes"
+        porcentaje_int = 20, "3 mes"
     ),
 
     Descuentos(
@@ -132,12 +132,16 @@ val lista_descuentos = listOf(
         descuento_off = "-30%off",
         precio_anterior = "4000",
         procentaje_ahorro = "30%",
-        porcentaje_int = 30,"4 mes"
+        porcentaje_int = 30, "4 mes"
     )
 )
 
 @Composable
-fun dialog_renovar_plan(saldo_disponible: Long, ondimis: () -> Unit , comprar:(String,String)-> Unit) {
+fun dialog_renovar_plan(
+    saldo_disponible: Long,
+    ondimis: () -> Unit,
+    comprar: (String, String) -> Unit
+) {
     var clikeado by remember { mutableStateOf(false) }
 
     var descuento_aplicado by remember { mutableStateOf("") }
@@ -151,16 +155,16 @@ fun dialog_renovar_plan(saldo_disponible: Long, ondimis: () -> Unit , comprar:(S
     AlertDialog(
         onDismissRequest = { ondimis() },
         confirmButton = {
-            Log.d("sdasdfdgafg2423","$clikeado $saldo_dispopnible")
-            if (clikeado && !saldo_dispopnible.equals("Saldo insuficiente")) {
+            Log.d("sdasdfdgafg2423", "$clikeado $saldo_dispopnible")
+            if (clikeado && !saldo_dispopnible.contains("Te falta")) {
                 btn_aceptar_etc_dialog_general(txt_btn = "continuar") {
                     ondimis()
-                    comprar(total_cancelar,mes_aumentar)
+                    comprar(total_cancelar, mes_aumentar)
                 }
             }
         },
         dismissButton = {
-            if (clikeado && !saldo_dispopnible.equals("Saldo insuficiente")) {
+            if (clikeado && !saldo_dispopnible.contains("Te falta")) {
                 btn_cerra_etc_dialog_general(txt_btn = "Cancelar") {
                     ondimis()
                 }
@@ -171,25 +175,6 @@ fun dialog_renovar_plan(saldo_disponible: Long, ondimis: () -> Unit , comprar:(S
                 Column() {
                     spacer_vertical(10.dp)
                     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(15.dp)
-                        ) {
-
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.align(Alignment.TopEnd)
-                            ) {
-                                texto_generico_one_line("$saldo_disponible")
-                                Image(
-                                    painter = painterResource(R.drawable.icon_monedas_3d),
-                                    contentDescription = "saldo",
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(5.dp),
@@ -217,7 +202,7 @@ fun dialog_renovar_plan(saldo_disponible: Long, ondimis: () -> Unit , comprar:(S
                             desceunto_numero = i.porcentaje_int.toDouble()
                             clikeado = i.meses != ""
                             almenos_uno_selecion = i.meses
-                            mes_aumentar=i.meses_agregados
+                            mes_aumentar = i.meses_agregados
 
 
                         })
@@ -231,34 +216,53 @@ fun dialog_renovar_plan(saldo_disponible: Long, ondimis: () -> Unit , comprar:(S
                                     val precio_double = precio_anteterir.toDouble() ?: 0.0
                                     val total_descuento =
                                         calcularAhorro(precio_double, desceunto_numero)
-                                    val descuento_aplicado_puntos = calcularDescuento(precio_double, desceunto_numero)
-                                    total_cancelar=descuento_aplicado_puntos.toInt().toString()
+                                    val descuento_aplicado_puntos =
+                                        calcularDescuento(precio_double, desceunto_numero)
+                                    total_cancelar = descuento_aplicado_puntos.toInt().toString()
                                     val calcular_sado = calcularSaldo(
                                         descuento_aplicado_puntos,
                                         saldo_disponible.toDouble()
                                     )
-                                    saldo_dispopnible=calcular_sado
+                                    saldo_dispopnible = calcular_sado
                                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+//                                        Row(
+//                                            verticalAlignment = Alignment.CenterVertically,
+//                                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+//                                        ) {
+//                                            texto_generico_one_line(
+//                                                "Ahorras",
+//                                                style = MaterialTheme.typography.titleLarge
+//                                            )
+//                                            texto_generico_one_line(
+//                                                total_descuento.toInt().toString(),
+//                                                style = MaterialTheme.typography.titleLarge
+//                                            )
+//
+//                                            Image(
+//                                                painter = painterResource(R.drawable.icon_monedas_3d),
+//                                                contentDescription = "total",
+//                                                modifier = Modifier.size(16.dp)
+//                                            )
+//
+//                                        }
+
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(5.dp)
                                         ) {
                                             texto_generico_one_line(
-                                                "Ahorras",
-                                                style = MaterialTheme.typography.titleLarge
+                                                "Saldo actual",
+                                                style = MaterialTheme.typography.bodyMedium
                                             )
-                                            texto_generico_one_line(
-                                                total_descuento.toInt().toString(),
-                                                style = MaterialTheme.typography.titleLarge
-                                            )
-
+                                            texto_generico_one_line("$saldo_disponible")
                                             Image(
                                                 painter = painterResource(R.drawable.icon_monedas_3d),
-                                                contentDescription = "total",
-                                                modifier = Modifier.size(16.dp)
+                                                contentDescription = "saldo",
+                                                modifier = Modifier.size(20.dp)
                                             )
 
                                         }
+
 
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
@@ -270,31 +274,55 @@ fun dialog_renovar_plan(saldo_disponible: Long, ondimis: () -> Unit , comprar:(S
                                             )
                                             texto_generico_one_line(
                                                 precio_anteterir,
-                                                )
+                                            )
+                                            Image(
+                                                painter = painterResource(R.drawable.icon_monedas_3d),
+                                                contentDescription = "saldo",
+                                                modifier = Modifier.size(20.dp)
+                                            )
                                         }
 
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(5.dp)
                                         ) {
+                                            texto_generico_one_line(
+                                                "Total con",
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
                                             texto_generico_one_line(porcentaje_ahorro)
                                             texto_generico_one_line(
-                                                "de descuento aplicado",
+                                                "de descuento",
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
                                             texto_generico_one_line("${descuento_aplicado_puntos.toInt()}")
+                                            Image(
+                                                painter = painterResource(R.drawable.icon_monedas_3d),
+                                                contentDescription = "saldo",
+                                                modifier = Modifier.size(20.dp)
+                                            )
                                         }
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(5.dp)
                                         ) {
-                                            texto_generico_one_line(
-                                                "Saldo disponible al continuar",
-                                                style = MaterialTheme.typography.bodyMedium
-                                            )
+                                            if (!calcular_sado.contains("Te falta")) {
+                                                texto_generico_one_line(
+                                                    "Saldo disponible restante",
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+                                            }
+
                                             texto_generico_one_line(
                                                 "$calcular_sado",
                                             )
+                                            if (!calcular_sado.contains("Te falta")) {
+                                                Image(
+                                                    painter = painterResource(R.drawable.icon_monedas_3d),
+                                                    contentDescription = "total",
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                            }
                                         }
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
@@ -317,23 +345,58 @@ fun dialog_renovar_plan(saldo_disponible: Long, ondimis: () -> Unit , comprar:(S
                                 }
                             }
                             if (porcentaje_ahorro == "") {
-                                total_cancelar="1000"
-                                val precio_final=1000.0
+                                total_cancelar = "1000"
+                                val precio_final = 1000.0
                                 val calcular_sado = calcularSaldo(
                                     precio_final,
                                     saldo_disponible.toDouble()
                                 )
-                                saldo_dispopnible=calcular_sado
+                                saldo_dispopnible = calcular_sado
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    texto_generico_one_line(
+                                        "Saldo actual",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    texto_generico_one_line("$saldo_disponible")
+                                    Image(
+                                        painter = painterResource(R.drawable.icon_monedas_3d),
+                                        contentDescription = "saldo",
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    texto_generico_one_line(
+                                        "Total por $almenos_uno_selecion",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    texto_generico_one_line("1000")
+                                    Image(
+                                        painter = painterResource(R.drawable.icon_monedas_3d),
+                                        contentDescription = "saldo",
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(5.dp)
                                 ) {
                                     texto_generico_one_line(
-                                        "Saldo disponible al comprar",
+                                        "Saldo disponible restante",
                                         style = MaterialTheme.typography.bodyMedium
                                     )
                                     texto_generico_one_line(
                                         "$calcular_sado",
+                                    )
+                                    Image(
+                                        painter = painterResource(R.drawable.icon_monedas_3d),
+                                        contentDescription = "saldo",
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
                                 spacer_vertical(5.dp)
@@ -397,56 +460,56 @@ fun chips_renovar(
             .height(40.dp), contentAlignment = Alignment.Center
     ) {
 
-    LazyRow(
-        state =listState ,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        itemsIndexed(lista_planes) { index, i ->
+        LazyRow(
+            state = listState,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            itemsIndexed(lista_planes) { index, i ->
 
-            val esSeleccionado = index == seleccionadoIndex
+                val esSeleccionado = index == seleccionadoIndex
 
-            Box(
-                modifier = Modifier
-                    .height(40.dp)
-                    .width(100.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (esSeleccionado) Color.White
-                        else MaterialTheme.colorScheme.primary
-                    )
-                    .clickable(enabled = !esSeleccionado) { // solo clickeable si NO está seleccionado
-                        seleccionadoIndex = index
-                        onSeleccionar(i)
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-
-                    // 🔥 Si trae ícono, lo muestra
-                    if (i.icono_descuento != null) {
-                        Icon(
-                            imageVector = i.icono_descuento,
-                            contentDescription = null,
-                            tint = if (esSeleccionado) Color.Black else Color.White,
-                            modifier = Modifier.size(18.dp)
+                Box(
+                    modifier = Modifier
+                        .height(40.dp)
+                        .width(100.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (esSeleccionado) Color.White
+                            else MaterialTheme.colorScheme.primary
                         )
+                        .clickable(enabled = !esSeleccionado) { // solo clickeable si NO está seleccionado
+                            seleccionadoIndex = index
+                            onSeleccionar(i)
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+
+                        // 🔥 Si trae ícono, lo muestra
+                        if (i.icono_descuento != null) {
+                            Icon(
+                                imageVector = i.icono_descuento,
+                                contentDescription = null,
+                                tint = if (esSeleccionado) Color.Black else Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+
+                        texto_generico_one_line(
+                            i.meses,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (esSeleccionado) Color.Black else Color.White
+                        )
+
                     }
 
-                    texto_generico_one_line(
-                        i.meses,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (esSeleccionado) Color.Black else Color.White
-                    )
-
                 }
-
             }
         }
-    }
         // 👈 izquierda
         Box(
             modifier = Modifier
@@ -456,7 +519,7 @@ fun chips_renovar(
                 .align(Alignment.CenterStart)
                 .zIndex(1f)
                 .alpha(alphaLeft)
-             .background(Brush.horizontalGradient(colors = shadow_top_filtrado_v21_dialog))
+                .background(Brush.horizontalGradient(colors = shadow_top_filtrado_v21_dialog))
 
         )
 
@@ -469,7 +532,7 @@ fun chips_renovar(
                 .align(Alignment.CenterEnd)
                 .zIndex(1f)
                 .alpha(alphaRight)
-             .background(Brush.horizontalGradient(colors = shadow_botonm_filtrado_v21_dialog))
+                .background(Brush.horizontalGradient(colors = shadow_botonm_filtrado_v21_dialog))
 
         )
     }
@@ -482,9 +545,10 @@ fun calcularAhorro(precio: Double, descuentoPorcentaje: Double): Double {
 fun calcularSaldo(doublePrecioFinal: Double, saldoActual: Double): String {
     return if (saldoActual >= doublePrecioFinal) {
         val nuevoSaldo = saldoActual - doublePrecioFinal
-        "${nuevoSaldo.toInt()}"
+        nuevoSaldo.toInt().toString()
     } else {
-        "Saldo insuficiente"
+        val falta = doublePrecioFinal - saldoActual
+        "Te falta ${falta.toInt()} para continuar"
     }
 }
 
