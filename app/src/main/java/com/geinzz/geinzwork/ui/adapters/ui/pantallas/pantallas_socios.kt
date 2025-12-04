@@ -528,7 +528,7 @@ fun login_socios(isConnected: Boolean) {
                                     when (val state = state_socio.value) {
 
                                         is viewmodel_eres_socio.carga_acces_socio.loading -> {
-                                            Box(modifier = Modifier.fillMaxSize()) {
+                                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                                 CircularProgressIndicator()
                                             }
                                         }

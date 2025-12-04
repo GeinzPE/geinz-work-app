@@ -63,6 +63,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.favoritos.iu_favoritos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.Pantalla_filtrado_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.IniciarSeccion
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.login_principal
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.nuevos_negocios.nuevos_negocios
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.HandleBackPress
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.PantallaExplorarTiendas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.bottom_navigation
@@ -356,7 +357,7 @@ fun nativationWrapper(
                 // Pantalla principal
                 composable("pantalla_principal") {
                     pantalla_principal(
-                        isConnected, datos_principales_user,
+                        isConnected = isConnected, datos_principales_user = datos_principales_user,
                         categorias = { localidad, nombre ->
                             navController.navigate(
                                 mostrar_tiendas(
@@ -381,25 +382,25 @@ fun nativationWrapper(
 
                         },
                         ver_lugares = { localidad ->
-//                            val datos=obtener_seguridad{lista->
-//                                Log.d("datos","${lista}")
-////                                lista.forEach { i->
-////                                    agregar_lugares_turisticos(i)
-////
-////                                }
-//
-//                            }
-//                            lista_cordenadas.forEach { i->
-//                                Log.d("cordenada","${geohashing(i.lat,i.longitud)}")
-//
-//                            }
-//                            scope.launch {
-//                                subir_cordenas_algolioa()
-//                            }
+                        //                            val datos=obtener_seguridad{lista->
+                        //                                Log.d("datos","${lista}")
+                        ////                                lista.forEach { i->
+                        ////                                    agregar_lugares_turisticos(i)
+                        ////
+                        ////                                }
+                        //
+                        //                            }
+                        //                            lista_cordenadas.forEach { i->
+                        //                                Log.d("cordenada","${geohashing(i.lat,i.longitud)}")
+                        //
+                        //                            }
+                        //                            scope.launch {
+                        //                                subir_cordenas_algolioa()
+                        //                            }
 
-//                            Log.d("localidad_defautl_user", localidad)
+                        //                            Log.d("localidad_defautl_user", localidad)
                             navController.navigate(lugares_turisticos(localidad))
-//                            agregar_horario_tiendas(listaDeTiendas)
+                        //                            agregar_horario_tiendas(listaDeTiendas)
                         },
                         listner_busqueda = {
                             navController.navigate("buscar")
@@ -411,11 +412,15 @@ fun nativationWrapper(
                             navController.navigate(ui_servicios_tramites(localidad))
 
                         },
-                        {
-//                            enviar_notificacion_lista_dispo(id_user,"notificaion","prueva")
+                        abrir_guardar_datos = {
+                        //                          enviar_notificacion_lista_dispo(id_user,"notificaion","prueva")
                             navController.navigate(ui_agregar_lugares)
 
-                        },{ navController.navigate(login_scios)},
+                        },
+                        mostrar_panel_geinz = { navController.navigate(login_scios)},
+                        mostar_nuevos_lugares_geinz = { localidad->
+                            navController.navigate(nuevos_negocios_geinz(localidad))
+                        },
                     )
                 }
                 // Login
@@ -523,6 +528,14 @@ fun nativationWrapper(
                         }
                     )
                 }
+                composable <nuevos_negocios_geinz>{navback ->
+                    val datos = navback.toRoute<nuevos_negocios_geinz>()
+                    nuevos_negocios(
+                        verificar_inter = isConnected,
+                        localida_select = datos.localidad,
+                        crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear"))},
+                        iniciar_normal = {navController.navigate("login_principal")})
+                }
                 composable<lugares_turisticos> { navback ->
                     val datos_lugares_turisticos = navback.toRoute<lugares_turisticos>()
                     pantalla_lugares_turisticos(
@@ -591,8 +604,6 @@ fun nativationWrapper(
                 composable<login_scios> {
                     login_socios(isConnected)
                 }
-
-
 
                 composable<crear_cuenta_geinz> { navback ->
                     val tipo_crear_cuenta = navback.toRoute<crear_cuenta_geinz>()

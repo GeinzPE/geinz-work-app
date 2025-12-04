@@ -160,7 +160,7 @@ fun pantalla_principal(
     listner_busqueda: () -> Unit,
     listener_seguridad: (String) -> Unit,
     listner_sevicios_tramites: (String) -> Unit,
-    abrir_guardar_datos: () -> Unit,mostrar_panel_geinz:()-> Unit
+    abrir_guardar_datos: () -> Unit,mostrar_panel_geinz:()-> Unit,mostar_nuevos_lugares_geinz:(String)-> Unit,
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -378,15 +378,7 @@ fun pantalla_principal(
                     esAniversarioHoy,
                     localidad_defaul, _obtener_filtrado_localidades, { localidad_selecionada ->
                         localidadSeleccionada.value = localidad_selecionada
-                    }, { esAniversario ->
-//                        Log.d("esAniversarioaaaa", esAniversario.toString())
-//                        if (esAniversarioHoy != esAniversario) {
-//                            esAniversarioHoy = esAniversario
-//                        }
-                    })
-
-
-
+                    }, {})
                 spacer_vertical(20.dp)
             }
 
@@ -405,6 +397,8 @@ fun pantalla_principal(
 
                 spacer_vertical(20.dp)
             }
+
+
 
             item {
                 if (mostrar_widget_tienda) {
@@ -461,6 +455,20 @@ fun pantalla_principal(
                     spacer_vertical(20.dp)
                 }
             }
+
+            item {
+                spacer_vertical(10.dp)
+                rutas_turismo(
+                    "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/walpaper_geinz%2Fturisticos%2Fcom_1.webp?alt=media&token=389d5e90-e1bb-456d-b9b4-10f0d2189004",
+                    "Ver negocios",
+                    "Nuevos negocios registrados en GEINZ"
+
+                ) {
+                    mostar_nuevos_lugares_geinz(localidad_defaul)
+                }
+                spacer_vertical(20.dp)
+            }
+
             item {
                 rutas_turismo(
                     url_turistico_aleatoria ?: "",
@@ -482,7 +490,6 @@ fun pantalla_principal(
 
             item {
                 spacer_vertical(10.dp)
-
                 rutas_turismo(
                     urlAleatoria ?: "",
                     "Contactar",
@@ -491,15 +498,10 @@ fun pantalla_principal(
                 ) {
                     listener_seguridad(localidad_defaul)
                 }
-
-//                seguridad(
-//                    imgActual,
-//                    "Contactar",
-//                    "Salud y seguridad Pública"
-//                ) { listener_seguridad(localidad_defaul) }
-
                 spacer_vertical(20.dp)
             }
+
+
 
             item {
                 spacer_vertical(10.dp)
@@ -507,6 +509,8 @@ fun pantalla_principal(
                     mostar_bottom_sheet_ayuda_geinz = true
                 }
             }
+
+
         }
         Box(
             modifier = Modifier

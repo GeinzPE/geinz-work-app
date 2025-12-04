@@ -686,7 +686,7 @@ fun iu_favoritos(
 
                             // --- Foto 3 (Derecha) ---
                             ImagenConInclinacion(
-                                drawableResId = R.drawable.f4,
+                                drawableResId = R.drawable.f3,
                                 anguloRotacion = 7f,
                                 desplazamientoX = 70.dp,
                                 desplazamientoY = 40.dp,

@@ -238,7 +238,7 @@ fun ui_pantalla_busqueda(
             }
         }
     }
-
+    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     var localidad_Anterior_select by remember { mutableStateOf(tiendaLocalidadSeleccionada) }
     var categoria_filtrad by remember { mutableStateOf("") }
     Log.d("camibamos", "${categoria_filtrad} ${localidad_Anterior_select}")
@@ -1033,6 +1033,7 @@ fun ui_pantalla_busqueda(
         )
 
         FloatingBubble(
+            uid_respald_user,
             primeraVezCercaDeTi = primeraVezCercaDeTi,
             viewmodel_floating_filtrado = viewmodel_floating_filtrado,
             cerca_de_ti_enable = cerca_de_ti_enable.value,
@@ -1178,7 +1179,7 @@ fun ui_pantalla_busqueda(
                 mostrar_dialog_cambiar_radio = true
             }, fun_primeraVezCercaDeTi = { it ->
                 primeraVezCercaDeTi = it
-            })
+            },iniciar_seccion,crear_cuenta)
     }
 }
 

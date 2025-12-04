@@ -66,6 +66,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.compose.SubcomposeAsyncImage
@@ -90,6 +91,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.titulos_gener
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.cargando_categorias
+import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
@@ -150,9 +152,6 @@ fun PantallaExplorarTiendas(
 //        }
 //    }
 
-    LaunchedEffect(localidadSeleccionada.value) {
-
-    }
 
     LaunchedEffect(encontrados_activos_tiendass) {
         encontrados_activos_tiendass?.let { listaNueva ->
@@ -169,12 +168,7 @@ fun PantallaExplorarTiendas(
             val listaParaMostrar =
                 if (texto_filtrado.length > 2) lista_filtrada else lista
             if (isCargando && fraces_localidad.isNotEmpty()) {
-                cargando_categorias(
-                    composision,
-                    localidadSeleccionada.value,
-                    5.dp,
-                    fraces_localidad
-                )
+                carga_inicial()
             } else {
                 LazyVerticalStaggeredGrid(
                     columns = StaggeredGridCells.Fixed(2),
@@ -247,6 +241,18 @@ fun PantallaExplorarTiendas(
     }
 
 
+}
+@Composable
+fun carga_inicial() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f))
+            .zIndex(99f),
+        contentAlignment = Alignment.Center
+    ) {
+        pantalla_carga_login(false)
+    }
 }
 
 

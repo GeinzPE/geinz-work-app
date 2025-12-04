@@ -42,7 +42,7 @@ object open_fb_tk_ig {
         }
     }
 
-    fun openInstagram(context: Context, url: String,id_tienda:String,localidad_tienda:String) {
+    fun openInstagram(tienda:String,context: Context, url: String,id_tienda:String,localidad_tienda:String) {
 
         if (url.isBlank()) {
             Toast.makeText(context, "Enlace de Instagram no disponible", Toast.LENGTH_SHORT).show()
@@ -52,7 +52,9 @@ object open_fb_tk_ig {
         try {
             val uri = Uri.parse(url)
             val packageName = "com.instagram.android"
+            if(tienda=="Tienda"){
             repo_socios.agregar_contador("instagram",id_tienda,localidad_tienda)
+            }
             // Si la app de Instagram está instalada, intenta abrirla
             if (isPackageInstalled(context, packageName)) {
                 val intent = Intent(Intent.ACTION_VIEW, uri).apply {
@@ -74,7 +76,7 @@ object open_fb_tk_ig {
     }
 
 
-    fun openFacebook(context: Context, pageUrl: String,id_tienda:String,localidad_tienda:String) {
+    fun openFacebook(tipo:String="Tienda",context: Context, pageUrl: String,id_tienda:String,localidad_tienda:String) {
 
         if (pageUrl.isBlank()) {
             Toast.makeText(context, "Enlace de Facebook no disponible", Toast.LENGTH_SHORT).show()
@@ -103,7 +105,9 @@ object open_fb_tk_ig {
                 else -> {
                     val browserIntent = Intent(Intent.ACTION_VIEW, uri)
                     context.startActivity(browserIntent)
+                    if(tipo=="Tienda"){
                     repo_socios.agregar_contador("facebook",id_tienda,localidad_tienda)
+                    }
                 }
             }
         } catch (e: ActivityNotFoundException) {
@@ -131,7 +135,7 @@ object open_fb_tk_ig {
     }
 
 
-    fun openTiktok(context: Context, username: String,id_tienda:String,localidad_tienda:String) {
+    fun openTiktok(tipo:String="Tienda",context: Context, username: String,id_tienda:String,localidad_tienda:String) {
 
         if (username.isBlank()) {
             Toast.makeText(context, "Enlace de sitio web no disponible", Toast.LENGTH_SHORT).show()
@@ -141,9 +145,13 @@ object open_fb_tk_ig {
         val webUri = username
         if (isPackageInstalled(context, "com.ss.android.ugc.trill")) {
             openUrl(context, webUri, "com.ss.android.ugc.trill")
+            if(tipo=="Tienda"){
             repo_socios.agregar_contador("tiktok",id_tienda,localidad_tienda)
+            }
         } else {
+            if(tipo=="Tienda"){
             repo_socios.agregar_contador("tiktok",id_tienda,localidad_tienda)
+            }
             openUrl(context, webUri)
         }
     }

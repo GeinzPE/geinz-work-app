@@ -60,6 +60,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.geinzz.geinzwork.data.model.dataclass_novedades.dataclass_novedades_geinz
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
@@ -72,7 +73,11 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.campoHora
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.chips_filtrado
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion_box_dia
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 import java.security.SecureRandom
 import java.text.SimpleDateFormat
@@ -1118,6 +1123,77 @@ object constantes_horas {
         )
 
     }
+
+
+    fun pasar_teindas_nuevas() {
+        val db = FirebaseFirestore.getInstance()
+
+        db.collection("Tiendas")
+            .document("barranca")
+            .collection("barranca")
+            .get()
+            .addOnSuccessListener { snapshot ->
+
+                for (doc in snapshot) {
+                    try {
+                        val data = doc.data
+
+                        val categoria = data["categoria_tienda"] as? String ?: ""
+                        val descripcion = data["descripcion"] as? String ?: ""
+                        val id_tienda = data["id_tienda"] as? String ?: doc.id
+                        val localidad = data["localidad"] as? String ?: ""
+                        val nombre_tienda = data["nombre_tienda"] as? String ?: ""
+                        val direccion = (data["ubicacion"] as? Map<String, Any>)
+                            ?.get("dirección") as? String ?: ""
+
+                        val subcategorias = data["subcategoria"] as? List<String> ?: emptyList()
+
+                        // Horario
+                        val horarioMap = data["horario_atencion"] as? Map<String, Any> ?: emptyMap()
+                        val horario_atencion_box = horarioMap.to_horario_atencion_box_dia()
+
+                        // Logo
+                        val imgTiendaMap = data["img_tienda"] as? Map<String, Any> ?: emptyMap()
+                        val logoTienda = imgTiendaMap["logo_tienda"] as? String ?: ""
+
+                        // Crear DataClass
+                        val tienda = dataclass_novedades_geinz(
+                            categoria = categoria,
+                            direccion = direccion,
+                            horario_atencion = horario_atencion_box,
+                            id_tienda = id_tienda,
+                            logo_img = logoTienda,
+                            nombre_tienda = nombre_tienda,
+                            lista_subcateogira = subcategorias,
+                            descripcion = descripcion,
+                            localidad_tienda = localidad,fecha=emptyMap()
+                        )
+
+                        // 🔥 GUARDAR EN nuevos_lugares
+                        val ref = db.collection("Tiendas")
+                            .document(localidad)
+                            .collection("nuevos_lugares")
+                            .document(id_tienda) // Se guarda por ID de tienda (sin duplicados)
+
+                        ref.set(tienda)
+                            .addOnSuccessListener {
+                                Log.d("NUEVOS_LUGARES", "Guardado: $id_tienda")
+                            }
+                            .addOnFailureListener {
+                                Log.e("NUEVOS_LUGARES", "Error guardando $id_tienda: ${it.message}")
+                            }
+
+                    } catch (e: Exception) {
+                        Log.e("MAP_NOVEDADES", "Error mapeando tienda: ${e.message}")
+                    }
+                }
+
+            }
+            .addOnFailureListener {
+                Log.e("MAP_NOVEDADES", "Error al obtener tiendas: ${it.message}")
+            }
+    }
+
 
 }
 

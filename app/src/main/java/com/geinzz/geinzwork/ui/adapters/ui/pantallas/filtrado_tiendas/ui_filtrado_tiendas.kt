@@ -1,12 +1,14 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas
 
 import android.annotation.SuppressLint
+import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -829,6 +831,7 @@ fun Text_fiel_filtrado(
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun item_tiendas(
     horario_box1: HorarioDia_box,

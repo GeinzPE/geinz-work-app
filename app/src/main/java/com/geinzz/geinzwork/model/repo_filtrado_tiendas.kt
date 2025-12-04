@@ -96,13 +96,11 @@ class repo_filtrado_tiendas {
 
 
     fun obtener_estado_horario_tienda_Box(horarioAtencion: HorarioAtencion_box): HorarioDia_box {
-        Log.d("HORARIO_BOX", "---- INICIO obtener_estado_horario_tienda_Box ----")
 
         val dias = listOf("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
         val calendar = Calendar.getInstance()
         val diaActual = dias[calendar.get(Calendar.DAY_OF_WEEK) - 1]
 
-        Log.d("HORARIO_BOX", "Día detectado: $diaActual")
 
         // Convertimos el horario semanal en un Map<String, HorarioDia_bloques>
         val horarioSemanal = mapOf(
@@ -122,8 +120,6 @@ class repo_filtrado_tiendas {
         // Convertimos a HorarioDia_box usando la función mejorada
         val resultado = diaBloques.toHorarioDiaBox(diaActual, horarioSemanal)
 
-        Log.d("HORARIO_BOX", "Resultado mapeado: $resultado")
-        Log.d("HORARIO_BOX", "---- FIN obtener_estado_horario_tienda_Box ----")
 
         return resultado
     }
@@ -268,77 +264,57 @@ class repo_filtrado_tiendas {
 
     fun escucharHorariosEnTiempoReal(localidad: String, categoria: String) {
 
-        Log.d("REALTIME", "⏳ Iniciando escucha de horarios ($localidad - $categoria)")
 
-        listenerTiendas = db.collection("Tiendas")
+        val refBase = db.collection("Tiendas")
             .document(localidad)
             .collection(localidad)
-            .whereEqualTo("categoria_tienda", categoria)
-            .addSnapshotListener { snapshot, error ->
 
-                if (error != null) {
-                    Log.e("REALTIME", "❌ Error en snapshot listener: ${error.message}")
-                    return@addSnapshotListener
-                }
+        val consulta = if (categoria == "todos") {
+            refBase   // 👉 trae todo
+        } else {
+            refBase.whereEqualTo("categoria_tienda", categoria)   // 👉 filtra por categoría
+        }
 
-                if (snapshot == null) {
-                    Log.e("REALTIME", "❌ Snapshot es null!")
-                    return@addSnapshotListener
-                }
+        listenerTiendas = consulta.addSnapshotListener { snapshot, error ->
 
-                Log.d("REALTIME", "📡 Snapshot recibido. Changes=${snapshot.documentChanges.size}")
+            if (error != null) {
+                return@addSnapshotListener
+            }
+
+            if (snapshot == null) {
+                return@addSnapshotListener
+            }
 
 
-                snapshot.documentChanges.forEach { change ->
+            snapshot.documentChanges.forEach { change ->
 
-                    val doc = change.document
-                    val idTienda = doc.getString("id_tienda") ?: return@forEach
-                    val horarioMap = doc.get("horario_atencion") as? Map<String, Any> ?: return@forEach
+                val doc = change.document
 
-                    val horarioBox = horarioMap.to_horario_atencion_box_dia()
-//                    val horarioHoyBloques = obtenerHorarioDeHoy_BOX(horarioBox)
-//                    val horarioHoyBox = convertirABox(horarioHoyBloques)
-                    val horarioHoyBox=obtener_estado_horario_tienda_Box(horarioBox)
-                    val estaAbierto = estaAbiertoHoy(horarioHoyBox)
+                val idTienda = doc.getString("id_tienda") ?: return@forEach
+                val horarioMap = doc.get("horario_atencion") as? Map<String, Any> ?: return@forEach
 
-                    Log.d(
-                        "REALTIME-HORARIO-ORIGINAL",
-                        "📅 dia_prox_apertura=${horarioHoyBox.dia_prox_apertura}, ⏰ hora_prox_apertura=${horarioHoyBox.hora_prox_apertura}"
-                    )
-                    repoScope.launch {
+                val horarioBox = horarioMap.to_horario_atencion_box_dia()
+                val horarioHoyBox = obtener_estado_horario_tienda_Box(horarioBox)
+                val estaAbierto = estaAbiertoHoy(horarioHoyBox)
 
-                        when (change.type) {
+                repoScope.launch {
+                    when (change.type) {
+                        DocumentChange.Type.ADDED,
+                        DocumentChange.Type.MODIFIED -> {
 
-                            DocumentChange.Type.ADDED -> {
-                                Log.d("REALTIME", "🟢 ADDED -> Cargando horario inicial $idTienda")
-
-                                _cambiosHorarioTiendas.emit(
-                                    TiendaHorarioUpdate(
-                                        idTienda = idTienda,
-                                        horario = horarioHoyBox,
-                                        estaAbierto = estaAbierto
-                                    )
+                            _cambiosHorarioTiendas.emit(
+                                TiendaHorarioUpdate(
+                                    idTienda = idTienda,
+                                    horario = horarioHoyBox,
+                                    estaAbierto = estaAbierto
                                 )
-                            }
-
-                            DocumentChange.Type.MODIFIED -> {
-                                Log.d("REALTIME", "🟡 MODIFIED -> Actualizando horario $idTienda")
-
-                                _cambiosHorarioTiendas.emit(
-                                    TiendaHorarioUpdate(
-                                        idTienda = idTienda,
-                                        horario = horarioHoyBox,
-                                        estaAbierto = estaAbierto
-                                    )
-                                )
-                            }
-
-                            else -> {}
+                            )
                         }
+                        else -> {}
                     }
                 }
-
             }
+        }
     }
 
 

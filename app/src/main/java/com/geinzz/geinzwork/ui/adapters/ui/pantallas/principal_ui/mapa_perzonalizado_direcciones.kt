@@ -840,6 +840,7 @@ fun MyGoogle_maps(
 
                         "tiktok" -> {
                             openTiktok(
+                                "Tienda",
                                 context = context,
                                 username = datos.valor,
                                 id_tienda = id,
@@ -850,6 +851,7 @@ fun MyGoogle_maps(
                         "facebook" -> {
                             Log.d("    datos.valor", "${datos.valor}")
                             openFacebook(
+                                "Tienda",
                                 context = context,
                                 pageUrl = datos.valor,
                                 id_tienda = id,
@@ -860,6 +862,7 @@ fun MyGoogle_maps(
                         "instagram" -> {
                             Log.d("    datos.valor", "${datos.valor}")
                             openInstagram(
+                                "Tienda",
                                 context = context,
                                 url = datos.valor,
                                 id_tienda = id,

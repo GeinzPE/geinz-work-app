@@ -1157,6 +1157,7 @@ fun Expandible_Metodo_contacto(
                             metodos_contactos.tiktok.nombre
                         ) {
                             openTiktok(
+                                "Tienda",
                                 context, metodos_contactos.tiktok.url, id_tienda,
                                 localidad_tienda
                             )
@@ -1181,6 +1182,7 @@ fun Expandible_Metodo_contacto(
                             metodos_contactos.instagram.nombre
                         ) {
                             openInstagram(
+                                "Tienda",
                                 context,
                                 metodos_contactos.instagram.url,
                                 id_tienda,
@@ -1195,6 +1197,7 @@ fun Expandible_Metodo_contacto(
                             metodos_contactos.facebook.nombre
                         ) {
                             openFacebook(
+                                "Tienda",
                                 context, metodos_contactos.facebook.url, id_tienda,
                                 localidad_tienda
                             )

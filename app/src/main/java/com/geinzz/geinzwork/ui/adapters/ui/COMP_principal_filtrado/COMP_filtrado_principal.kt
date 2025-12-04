@@ -1663,7 +1663,7 @@ fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Mod
 
             // --- Foto 1 (Izquierda) ---
             ImagenConInclinacion(
-                drawableResId = R.drawable.f1,
+                drawableResId = R.drawable.f5,
                 anguloRotacion = -8f,
                 desplazamientoX = -70.dp,
                 desplazamientoY = 20.dp,
@@ -1685,7 +1685,7 @@ fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Mod
 
             // --- Foto 3 (Derecha) ---
             ImagenConInclinacion(
-                drawableResId = R.drawable.f3,
+                drawableResId = R.drawable.f4,
                 anguloRotacion = 7f,
                 desplazamientoX = 70.dp,
                 desplazamientoY = 40.dp,

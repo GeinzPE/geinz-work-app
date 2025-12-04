@@ -121,6 +121,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_cerca_de_ti_desable
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
@@ -146,6 +147,7 @@ import kotlin.math.roundToInt
 @SuppressLint("UnusedBoxWithConstraintsScope", "MissingPermission")
 @Composable
 fun FloatingBubble(
+    id_user:String,
     primeraVezCercaDeTi: Boolean,
     viewmodel_floating_filtrado: viewmodel_floating_filtrado,
     cerca_de_ti_enable: Boolean,
@@ -183,7 +185,7 @@ fun FloatingBubble(
     fun_cerca_de_ti_enable: (Boolean) -> Unit,
     fun_nuevo_geohasing_actualizado: (String) -> Unit,
     fun_abrir_dialog_filtrado_radio: () -> Unit,
-    fun_primeraVezCercaDeTi: (Boolean) -> Unit
+    fun_primeraVezCercaDeTi: (Boolean) -> Unit,iniciar_normal:()-> Unit,crear_cuenta:()-> Unit
 ) {
     Log.d("minitosvalor", subir_btn.toString())
     val density = LocalDensity.current
@@ -350,6 +352,7 @@ fun FloatingBubble(
     var radioActual by remember { mutableStateOf(1f) }
     var mostra_dialog_salud_Seguridad_cerano by remember { mutableStateOf(false) }
     var enable_cerca by remember { mutableStateOf(false) }
+    var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
@@ -1339,10 +1342,14 @@ fun FloatingBubble(
                                                 .padding(end = 20.dp),
                                             checked = cerca_de_ti_enable,
                                             onCheckedChange = {
+                                                if(id_user!=""){
                                                 if (seguidad_salud.isEmpty()) {
                                                     fun_cerca_de_ti_enable(it)
                                                 } else {
                                                     mostra_dialog_salud_Seguridad_cerano = true
+                                                }
+                                                }else{
+                                                    bottom_sheet_iniciar_seccion=true
                                                 }
                                             },
                                             colors = SwitchDefaults.colors(
@@ -1710,9 +1717,25 @@ fun FloatingBubble(
                             }
                         }
                     }
+                    if (bottom_sheet_iniciar_seccion) {
+                        bottom_sheet_registrate(
+                            ondimis = {
+                                bottom_sheet_iniciar_seccion = false
+
+                            },
+                            iniciar_seccion_normal = {
+                                iniciar_normal()
+                                bottom_sheet_iniciar_seccion
+                            },
+                            crear_cuenta_geinz = {
+                                crear_cuenta()
+                                bottom_sheet_iniciar_seccion
+                            },
+                            texto_bottom_Sheet = "Para activar el filtro cerca de ti necesitas registrarte"
+                        )
+                    }
                     SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
                 }
             }
-
         }
 }

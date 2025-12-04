@@ -1,7 +1,9 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos
 
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -81,6 +83,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_servicios_trami
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_pago_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_ayudanos_a_creccer
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad.filtrado_texfiel
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
@@ -94,6 +97,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite
 import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite.carga_servicios
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ui_servicio_tramite(verificar_intener: Boolean, localida: String) {
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
@@ -143,6 +147,7 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String) {
         animationSpec = tween(400), label = "alphaRight"
     )
 
+    var mostar_bottom_sheet_ayuda_geinz by remember { mutableStateOf(false) }
     var yaInicializado by remember { mutableStateOf(false) }
 
     LaunchedEffect(datosTienda) {
@@ -378,18 +383,41 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String) {
             centrado_hori_vertical {
                 when (estado) {
                     "loading" -> {}
-                    "empty" -> Text(
-                        texto_error_empity,
-                        color = Color.Gray,
-                        modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
+                    "empty" ->
+                        Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                texto_error_empity,
+                                color = Color.Gray,
+                                modifier = Modifier.padding(16.dp),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            spacer_vertical(5.dp)
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary)
+                                    .clickable {
+                                        mostar_bottom_sheet_ayuda_geinz = true
+                                    }
+                            ) {
+                                texto_generico_one_line(
+                                    "¿Conoces alguno?",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(12.dp)
+                                )
+                            }
+                        }
+
 
                     "none" -> {}
                 }
             }
         }
 
+        if(mostar_bottom_sheet_ayuda_geinz){
+            bottom_sheet_ayudanos_a_creccer(verificar_intener,localida?:"barranca",
+                { mostar_bottom_sheet_ayuda_geinz = false },viewmodel_filtrado)
+        }
         if (motrar_dialog_tienda_Select) {
             bottom_sheet_tiendas_filtradas(
                 verificar_intener,

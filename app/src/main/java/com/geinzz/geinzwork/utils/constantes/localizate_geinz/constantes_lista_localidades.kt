@@ -455,13 +455,18 @@ object constantes_lista_localidades {
     )
 
     val lista_img_carga = listOf(
-        dataclass_onboarding(R.drawable.f1, "Barranca ", "Plaza de armas barranca"),
-        dataclass_onboarding(R.drawable.f2, "Barranca ", "Plaza de armas barranca"),
-        dataclass_onboarding(R.drawable.f3, "Barranca ", "Plaza de armas barranca"),
-        dataclass_onboarding(R.drawable.f4, "Puerto ", "Playa de puerto supe"),
-        dataclass_onboarding(R.drawable.f5, "pativilca ", "Paza de armas de pativilca"),
-        dataclass_onboarding(R.drawable.f7, "Supe ", "Casa de las brujas supe"),
-        dataclass_onboarding(R.drawable.f8, "Paramonga ", "Plaza de armas de paramonga"),
+        dataclass_onboarding(R.drawable.f9, "Barranca ", "Playa de barranca"),
+        dataclass_onboarding(R.drawable.f10, "Barranca ", "Parque de las plameras"),
+        dataclass_onboarding(R.drawable.f11, "Barranca ", "Parque de las plameras"),
+        dataclass_onboarding(R.drawable.f12, "Barranca ", "Mirador de barranca"),
+        dataclass_onboarding(R.drawable.f13, "Barranca ", "Playa de barranca"),
+        dataclass_onboarding(R.drawable.f14, "Barranca ", "Plaza de armas de barranca"),
+        dataclass_onboarding(R.drawable.f15, "Barranca ", "Plaza de armas de barranca"),
+        dataclass_onboarding(R.drawable.f17, "Barranca ", "Plaza de armas de barranca"),
+        dataclass_onboarding(R.drawable.f18, "Barranca ", "Parque de barranca"),
+        dataclass_onboarding(R.drawable.f19, "Barranca ", "Playa de barranca"),
+        dataclass_onboarding(R.drawable.f20, "Barranca ", "Parque de las plameras"),
+        dataclass_onboarding(R.drawable.f25, "Barranca ", "Parque de las plameras"),
     )
 
     val lista_frases_busqueda = listOf(

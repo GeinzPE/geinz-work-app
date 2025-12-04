@@ -252,6 +252,7 @@ fun dialog_servicios_tramite(
                                                 .clip(CircleShape)
                                                 .clickable {
                                                     openInstagram(
+                                                        "negocio",
                                                         contex,
                                                         dataclass_lugares_db.contacto.ig,dataclass_lugares_db.id,localida
                                                     )
@@ -268,6 +269,7 @@ fun dialog_servicios_tramite(
                                                 .clip(CircleShape)
                                                 .clickable {
                                                     openFacebook(
+                                                        "separado",
                                                         contex,
                                                         dataclass_lugares_db.contacto.facebook,dataclass_lugares_db.id,localida
                                                     )
@@ -275,8 +277,7 @@ fun dialog_servicios_tramite(
                                         )
                                     }
 
-                                    if (dataclass_lugares_db.contacto.ig.isNotEmpty()) {
-
+                                    if (dataclass_lugares_db.contacto.tk.isNotEmpty()) {
                                         Image(
                                             painter = painterResource(R.drawable.tik_tok_icon),
                                             contentDescription = "",
@@ -285,6 +286,7 @@ fun dialog_servicios_tramite(
                                                 .clip(CircleShape)
                                                 .clickable {
                                                     openTiktok(
+                                                        "negocio",
                                                         contex,
                                                         dataclass_lugares_db.contacto.tk,dataclass_lugares_db.id,localida
                                                     )

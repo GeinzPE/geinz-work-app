@@ -35,3 +35,6 @@ object ui_agregar_lugares
 @Serializable
 data class ui_servicios_tramites(val localidad: String)
 
+@Serializable
+data class nuevos_negocios_geinz(val localidad: String)
+

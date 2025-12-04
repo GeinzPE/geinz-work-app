@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.geinzz.geinzwork.data.model.data_class_tienda_geinz
 import com.geinzz.geinzwork.data.model.dataclass_lugares_db
+import com.geinzz.geinzwork.data.model.dataclass_novedades.dataclass_novedades_geinz
 import com.geinzz.geinzwork.data.model.dataclass_repo_agregar_datos
 import com.geinzz.geinzwork.data.model.direccion_lugar
 import com.geinzz.geinzwork.data.model.img_tienda
@@ -12,6 +13,8 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class repo_agregar_datos(context: Context) {
     private val db: FirebaseFirestore
@@ -68,6 +71,7 @@ class repo_agregar_datos(context: Context) {
             .document(data_class_tienda_geinz.id_tienda).set(hasmap).addOnSuccessListener { e ->
                 Log.d("datos_agregados", "correcto")
                 agregar_datos_alglia(data_class_tienda_geinz)
+                agregar_por_14_dias_a_nuevos(data_class_tienda_geinz)
             }.addOnFailureListener {
                 Log.d("datos_agregados", "malo")
             }
@@ -95,6 +99,40 @@ class repo_agregar_datos(context: Context) {
             Log.d("error_subir_datos", "error")
         }
 
+    }
+
+    fun agregar_por_14_dias_a_nuevos(data_class_tienda_geinz: data_class_tienda_geinz) {
+
+        val hoy = LocalDate.now()
+        val fechaFin = hoy.plusDays(14)
+
+        val formato = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+        val mapaFechas = mapOf(
+            "fecha_inicio" to hoy.format(formato),
+            "fecha_fin" to fechaFin.format(formato)
+        )
+
+        val hasmap = dataclass_novedades_geinz(
+            categoria = data_class_tienda_geinz.categoria_tienda,
+            direccion = data_class_tienda_geinz.ubicacion.dirección,
+            horario_atencion = data_class_tienda_geinz.horario_atencion,
+            id_tienda = data_class_tienda_geinz.id_tienda,
+            logo_img = data_class_tienda_geinz.lista_img.logo_tienda,
+            nombre_tienda = data_class_tienda_geinz.nombre_tienda,
+            lista_subcateogira = data_class_tienda_geinz.subcategoria,
+            descripcion = data_class_tienda_geinz.descripcion,
+            localidad_tienda = data_class_tienda_geinz.localida_tienda,
+            fecha = mapaFechas
+        )
+
+        db.collection("Tiendas")
+            .document(data_class_tienda_geinz.localida_tienda)
+            .collection("nuevos_lugares")
+            .document(data_class_tienda_geinz.id_tienda)
+            .set(hasmap)
+            .addOnSuccessListener { Log.d("datos_agregados", "correcto") }
+            .addOnFailureListener { Log.d("datos_agregados", "malo") }
     }
 
 

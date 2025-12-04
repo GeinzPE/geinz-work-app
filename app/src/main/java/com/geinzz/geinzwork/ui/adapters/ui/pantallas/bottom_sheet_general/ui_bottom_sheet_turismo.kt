@@ -781,6 +781,7 @@ fun card_img_container(
 
                                                 "tiktok" -> {
                                                     openTiktok(
+                                                        "Tienda",
                                                         context,
                                                         i.valor,
                                                         item.id_tienda,
@@ -790,6 +791,7 @@ fun card_img_container(
 
                                                 "facebook" -> {
                                                     openFacebook(
+                                                        "Tienda",
                                                         context,
                                                         i.valor,
                                                         item.id_tienda,
@@ -799,6 +801,7 @@ fun card_img_container(
 
                                                 "instagram" -> {
                                                     openInstagram(
+                                                        "Tienda",
                                                         context,
                                                         i.valor,
                                                         item.id_tienda,
