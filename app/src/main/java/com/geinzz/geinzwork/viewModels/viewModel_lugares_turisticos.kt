@@ -1,7 +1,9 @@
 package com.geinzz.geinzwork.viewModels
 
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -180,12 +182,14 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
 //        }
 //    }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun obtener_tiendas_cercanas(
         lat: Double,
         long: Double,
         radio: Double,
         localidad: String
     ) {
+        Log.d("falstapasdrdatosrelevats", "$lat $long $radio $localidad")
         viewModelScope.launch {
             delay(250)
             try {

@@ -50,6 +50,7 @@ import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.NearMe
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -78,6 +79,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -152,6 +154,7 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -286,27 +289,24 @@ fun MyGoogle_maps(
     var call_dialog_permise by rememberSaveable { mutableStateOf(false) }
     var numero_llamada by remember { mutableStateOf("") }
     var isLocationEnabled by remember { mutableStateOf(false) }
-
     var primeravez by remember { mutableStateOf(true) }
-
     val seguirUbicacion = remember { mutableStateOf(false) }
     val animatingMap = remember { mutableStateOf(false) }
-
-
-
     val horarios by viewModel_filtrado_tiendas.horariosTiendas_real.collectAsState()
-
-
-    viewModel_filtrado_tiendas.repo_filtrado.escucharHorarioDeTiendaUnica(
-        idTiendaBuscada = lister_marker.id,
-        localidad = "barranca"
-    )
+    val localidad_default = when (localidad) {
+        "barranca" -> defaultLocation_barranca
+        "paramonga" -> defaultLocation_paramonga
+        "pativilca" -> defaultLocation_pativilca
+        "supe" -> defaultLocation_supe
+        "puerto_supe" -> defaultLocation_puerto_supe
+        else -> defaultLocation_barranca
+    }
 
     LaunchedEffect(lister_marker.id) {
 
         if (lister_marker.id.isBlank()) return@LaunchedEffect
 
-        Log.d("id_tienda_cambiada", "${lister_marker.id} ${lister_marker.horario_box}" ,)
+        Log.d("id_tienda_cambiada", "${lister_marker.id} ${lister_marker.horario_box}")
 
         viewModel_filtrado_tiendas.calcularHorarioParaTienda(
             lister_marker.id,
@@ -328,34 +328,9 @@ fun MyGoogle_maps(
     LaunchedEffect(Unit) {
         while (true) {
             isLocationEnabled = isLocationEnabled(context)
-
             delay(5000L)
         }
     }
-//    LaunchedEffect(Unit) {
-//
-//        val locationRequest = LocationRequest.Builder(
-//            Priority.PRIORITY_HIGH_ACCURACY,
-//            5000L
-//        ).build()
-//
-//        val locationCallback = object : LocationCallback() {
-//            override fun onLocationResult(locationResult: LocationResult) {
-//                val location = locationResult.lastLocation ?: return
-//                lat_user = location.latitude
-//                log_user = location.longitude
-//                viewmodelMapa.actualizar_ubicacion(location.latitude, location.longitude)
-//
-//            }
-//        }
-//
-//        fusedLocationClient.requestLocationUpdates(
-//            locationRequest,
-//            locationCallback,
-//            Looper.getMainLooper()
-//        )
-//
-//    }
 
     LaunchedEffect(seguirUbicacion.value) {
         val mensaje = if (seguirUbicacion.value) {
@@ -386,14 +361,32 @@ fun MyGoogle_maps(
                 if (seguirUbicacion.value) {
                     scope.launch {
                         animatingMap.value = true
+
+                        val newPosition = CameraPosition(
+                            LatLng(lat_user, log_user),  // Posición del usuario
+                            16f,         // Zoom
+                            0f,          // Tilt normal (sin inclinación)
+                            0f           // Bearing hacia el norte
+                        )
+
                         cameraPositionState.animate(
-                            CameraUpdateFactory.newLatLngZoom(
-                                LatLng(lat_user, log_user),
-                                16f
-                            ),
+                            CameraUpdateFactory.newCameraPosition(newPosition),
                             1000
                         )
+
                         animatingMap.value = false
+//                        seguirUbicacion.value = true
+//
+//                        Log.d("movemos_mapa", "auto")
+//                        animatingMap.value = true
+//                        cameraPositionState.animate(
+//                            CameraUpdateFactory.newLatLngZoom(
+//                               ,
+//                                16f
+//                            ),
+//                            1000
+//                        )
+//                        animatingMap.value = false
                     }
                 }
             }
@@ -411,6 +404,57 @@ fun MyGoogle_maps(
             Log.d("MapaScreen", "Se detuvieron las actualizaciones de ubicación")
         }
     }
+
+    viewModel_filtrado_tiendas.repo_filtrado.escucharHorarioDeTiendaUnica(
+        idTiendaBuscada = lister_marker.id,
+        localidad = "barranca"
+    )
+
+    LaunchedEffect(Unit) {
+        cameraPositionState.move(
+            CameraUpdateFactory.newCameraPosition(
+                CameraPosition(
+                    localidad_default,
+                    16f,    // zoom
+                    50f,    // tilt -> inclinación
+                    -40f      // bearing -> opcional
+                )
+            )
+        )
+    }
+
+
+    LaunchedEffect(cameraPositionState) {
+        snapshotFlow { cameraPositionState.isMoving }
+            .collect { isMoving ->
+                if (isMoving && !animatingMap.value) {
+                    seguirUbicacion.value = false
+                    animatingMap.value = false
+                    Log.d("movemos_mapa", "deedmoes")
+                }
+            }
+    }
+
+//    val bearing by remember {
+//        derivedStateOf { cameraPositionState.position.bearing }
+//    }
+//
+//    var lastBearing by remember { mutableStateOf(0f) }
+//
+//    val smoothBearing = remember(bearing) {
+//        val diff = abs(bearing - lastBearing)
+//        if (diff > 3f) {   // <--- limita actualizaciones
+//            lastBearing = bearing
+//        }
+//        lastBearing
+//    }
+//
+//    val rotation by animateFloatAsState(
+//        targetValue = -smoothBearing,
+//        animationSpec = tween(250),
+//        label = "compassRotation"
+//    )
+
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
@@ -446,7 +490,8 @@ fun MyGoogle_maps(
         dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
             dialog_Crear_ruta = false
             if (crear_ruta && verificarUbiActiva(context)) {
-                constantes_lista_localidades.abrir_google_maps("tienda",id_tienda,localidad,
+                constantes_lista_localidades.abrir_google_maps(
+                    "tienda", id_tienda, localidad,
                     context, latitud, longitud,
                 ) { dialogo ->
                     validacion_mostrar_dialog_ubi_off = dialogo
@@ -515,7 +560,8 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_box, localidad = tienda.localidad_tienda
+                                        horario_box = tienda.horario_box,
+                                        localidad = tienda.localidad_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -552,7 +598,8 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_tienda_box, localidad = tienda.localidad_tienda
+                                        horario_box = tienda.horario_tienda_box,
+                                        localidad = tienda.localidad_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -589,18 +636,37 @@ fun MyGoogle_maps(
         }
 
 
-
-
-        LaunchedEffect(cameraPositionState) {
-            snapshotFlow { cameraPositionState.isMoving }
-                .collect { isMoving ->
-                    if (isMoving && !animatingMap.value) {
-                        seguirUbicacion.value = false
-                        animatingMap.value = false
-                        Log.d("movemos_mapa", "deedmoes")
+        Icon(
+            imageVector = Icons.Default.NearMe,
+            contentDescription = "Brújula",
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top=10.dp,end = 16.dp)
+                .size(40.dp)
+//                .graphicsLayer {
+//                    rotationZ = rotation
+//                }
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary)
+                .clickable {
+                    scope.launch {
+                        val pos = cameraPositionState.position
+                        cameraPositionState.animate(
+                            CameraUpdateFactory.newCameraPosition(
+                                CameraPosition(
+                                    pos.target,
+                                    pos.zoom,
+                                    pos.tilt,
+                                    0f     // 👉 reset al norte
+                                )
+                            ),
+                            durationMs = 700
+                        )
                     }
                 }
-        }
+                .padding(8.dp)
+        )
+
         val fabColor by animateColorAsState(
             targetValue = if (seguirUbicacion.value) MaterialTheme.colorScheme.primary else Color(
                 0xFF9C7BFF
@@ -677,7 +743,8 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_box, localidad = tienda.localidad_tienda
+                                        horario_box = tienda.horario_box,
+                                        localidad = tienda.localidad_tienda
                                     )
                                     Log.d("ecnotramos", "${tienda.contacto_tienda}")
 
@@ -717,7 +784,8 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_tienda_box, localidad = tienda.localidad_tienda
+                                        horario_box = tienda.horario_tienda_box,
+                                        localidad = tienda.localidad_tienda
                                     )
                                     Log.d("ecnotramos", "${tienda.contacto_tienda}")
 
@@ -794,7 +862,7 @@ fun MyGoogle_maps(
                 crear_ruta = { id, lat, log ->
                     latitud = lat
                     longitud = log
-                    id_tienda=id
+                    id_tienda = id
                     dialog_Crear_ruta = true
                 },
                 actualizar = {
@@ -828,14 +896,14 @@ fun MyGoogle_maps(
                 onclick_iconos = { id, datos ->
                     when (datos.nombre_red) {
                         "llamar" -> {
-                            llamar("tienda",id,localidad,context, datos.valor, {
+                            llamar("tienda", id, localidad, context, datos.valor, {
                                 call_dialog_permise = true
                                 numero_llamada = datos.valor
                             })
                         }
 
                         "whatsapp" -> {
-                            abrir_whattsapp("tienda",id,localidad,context, datos.valor)
+                            abrir_whattsapp("tienda", id, localidad, context, datos.valor)
                         }
 
                         "tiktok" -> {
@@ -908,7 +976,8 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_box, localidad = tienda.localidad_tienda
+                                        horario_box = tienda.horario_box,
+                                        localidad = tienda.localidad_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -949,7 +1018,8 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_tienda_box, localidad = tienda.localidad_tienda
+                                        horario_box = tienda.horario_tienda_box,
+                                        localidad = tienda.localidad_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -994,7 +1064,8 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_box, localidad = tienda.localidad_tienda
+                                        horario_box = tienda.horario_box,
+                                        localidad = tienda.localidad_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -1033,7 +1104,8 @@ fun MyGoogle_maps(
                                         referencia = tienda.referencia,
                                         contacto_tienda = tienda.contacto_tienda,
                                         metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_tienda_box, localidad = tienda.localidad_tienda
+                                        horario_box = tienda.horario_tienda_box,
+                                        localidad = tienda.localidad_tienda
                                     )
 
                                     seleccionadoId = tienda.id_tienda
@@ -1143,13 +1215,13 @@ fun dialogo_lugar_tienda(
     dataclass_map: dataclass_map,
     cerra_dialog: () -> Unit,
     limpiar: () -> Unit,
-    crear_ruta: (it_tienda:String,lat: Double, log: Double) -> Unit,
+    crear_ruta: (it_tienda: String, lat: Double, log: Double) -> Unit,
     actualizar: () -> Unit,
     boxVisible: Boolean,
     onBoxVisibleChange: (Boolean) -> Unit,
     centrar_camara: (Double, Double) -> Unit,
     retornar_id_select: (String, Color) -> Unit,
-    onclick_iconos: (String,data_redes_tiendas) -> Unit,
+    onclick_iconos: (String, data_redes_tiendas) -> Unit,
     mostrar_lista: () -> Unit,
     move_izquierda: () -> Unit,
     move_derecha: () -> Unit
@@ -1259,7 +1331,7 @@ fun dialogo_lugar_tienda(
         cerrado = true,
         motivo = ""
     )
-    Log.d("motivos_horairo_demapastineda","$horario_box1")
+    Log.d("motivos_horairo_demapastineda", "$horario_box1")
     val lista_redes_tiendas = listOf(
         data_redes_tiendas(
             enable = dataclass_map.contacto_tienda.llamada.estado,
@@ -1572,7 +1644,10 @@ fun dialogo_lugar_tienda(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center
                             ) {
-                                texto_generico_one_line("Dirección: ",  MaterialTheme.typography.bodyMedium)
+                                texto_generico_one_line(
+                                    "Dirección: ",
+                                    MaterialTheme.typography.bodyMedium
+                                )
                                 texto_generico_one_line(
                                     dataclass_map.direccion,
                                     MaterialTheme.typography.bodyMedium
@@ -1716,7 +1791,7 @@ fun dialogo_lugar_tienda(
                                 modifier = Modifier
                                     .clip(CircleShape)
                                     .clickable {
-                                        onclick_iconos(dataclass_map.id,i)
+                                        onclick_iconos(dataclass_map.id, i)
                                     }
                             )
                         }

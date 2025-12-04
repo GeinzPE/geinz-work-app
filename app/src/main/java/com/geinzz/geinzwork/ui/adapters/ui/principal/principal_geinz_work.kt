@@ -461,7 +461,7 @@ fun pantalla_principal(
                 rutas_turismo(
                     "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/walpaper_geinz%2Fturisticos%2Fcom_1.webp?alt=media&token=389d5e90-e1bb-456d-b9b4-10f0d2189004",
                     "Ver negocios",
-                    "Nuevos negocios registrados en GEINZ"
+                    "Nuevos negocios registrados"
 
                 ) {
                     mostar_nuevos_lugares_geinz(localidad_defaul)

@@ -478,10 +478,12 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     }
 
     fun obtener_datos_lugares_turisticos(id: String, localida: String) {
+
         viewModelScope.launch {
             try {
                 _instance_lugar_turistico.value =
                     instancia_repo_lugar_turistico.get_lugar_turistico(localida, id)
+                Log.d("id_tiendasdada123","${_instance_lugar_turistico.value}")
             } catch (e: Exception) {
                 _instance_lugar_turistico.value = lugares_turisticos()
             }

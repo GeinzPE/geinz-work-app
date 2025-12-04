@@ -343,6 +343,7 @@ object constantes_lista_localidades {
         return normalized.replace(Regex("\\p{InCombiningDiacriticalMarks}+"), "")
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun abrir_google_maps(
         tipo:String="tienda",id_tienda:String,localidad:String,
         context: Context,
@@ -350,9 +351,9 @@ object constantes_lista_localidades {
         longitud: Double,
         mostrar_dialog: (Boolean) -> Unit
     ) {
-        Log.d("lateitudes", "${latitud} ${longitud}")
+        Log.d("lateitudes", "${latitud} ${longitud} $id_tienda $localidad")
         if (verificarUbiActiva(context)) {
-            if(tipo == "tienda"){
+            if(tipo == "tienda" && id_tienda.isNotEmpty() &&localidad.isNotEmpty()){
                 repo_socios.agregar_contador("ruta",id_tienda,localidad)
             }
             abrirRutaEnGoogleMaps(context, latitud, longitud)

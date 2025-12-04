@@ -3,9 +3,11 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.favoritos
 
 import android.app.Activity
 import android.content.Context
+import android.os.Build
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -49,6 +51,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -101,6 +104,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun iu_favoritos(
@@ -902,6 +906,7 @@ fun TextoFavoritosConFiltros(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun carta_desing_fv(
     HorarioDia_box: HorarioDia_box,
@@ -952,22 +957,24 @@ fun carta_desing_fv(
                     )
             )
 
+            Box(
+                Modifier
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(Color.Black.copy(alpha = 0.60f))
+                    .blur(12.dp).align(Alignment.BottomStart)
+            ) {
+                texto_generico_one_line(
+                    item.localida_tienda.capitalizeFirst(),
+                    MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp)
+                )
+            }
+
         }
         spacer_vertical(10.dp)
 
         Row() {
             Column(modifier = Modifier.weight(1f)) {
-                Box(
-                    Modifier
-                        .clip(RoundedCornerShape(5.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                ) {
-                    texto_generico_one_line(
-                        item.localida_tienda.capitalizeFirst(),
-                        MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp)
-                    )
-                }
                 spacer_vertical(5.dp)
                 Text(
                     text = item.nombre_lugar_tienda.capitalizeFirst(),
@@ -976,14 +983,6 @@ fun carta_desing_fv(
                     fontFamily = baners_geinz_work
                 )
                 spacer_vertical(5.dp)
-//                TiempoRestanteCierre(
-//                    horario_total = item.horario,
-//                    hCierre = item.horario.h_cierre,
-//                    cerrado = item.horario.cerrado,
-//                    motivo = item.horario.motivo,
-//                    pagado = true,
-//                    max_line = 1, tick = tick
-//                ) {}
 
                 retornar_color_estado_tienda_Box(
                     id_tienda = item.id_tienda_lugar,

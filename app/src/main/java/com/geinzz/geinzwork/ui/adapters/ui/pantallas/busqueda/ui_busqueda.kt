@@ -296,6 +296,8 @@ fun ui_pantalla_busqueda(
 
     var cambioDesdeViewModel by remember { mutableStateOf(false) }
     var mostar_bottom_sheet_ayuda_geinz by remember { mutableStateOf(false) }
+    var id_tienda_crear_ruta by remember { mutableStateOf("") }
+    var localidad_tienda_crear_ruta by remember { mutableStateOf("") }
 
     LaunchedEffect(localida_filtrado_guardado) {
         if (localida_filtrado_guardado.isNotEmpty()) {
@@ -754,12 +756,15 @@ fun ui_pantalla_busqueda(
 //                        viewModelFiltros.obtenerHorarioPorTienda_activa(localidad, id)
                         show_bottom_sheeet = true
                     }, listner_carta_turismo = { id, localidad ->
+                        Log.d("id_tiendasdada","$id $localidad")
                         id_lugar_turistico_select = id
                         localdad_llugar_turistico = localidad
                         bottom_sheet_turismo = true
                     },
-                    abrir_gogle_map = { lat, log ->
+                    abrir_gogle_map = { lat, log,id_tienda,localidad ->
                         dialog_Crear_ruta = true
+                        id_tienda_crear_ruta=id_tienda
+                        localidad_tienda_crear_ruta=localidad
                         latitud = lat
                         longitud = log
                     },
@@ -915,7 +920,7 @@ fun ui_pantalla_busqueda(
                 crear_ruta = { crear_ruta ->
                     dialog_Crear_ruta = false
                     if (crear_ruta && verificarUbiActiva(context)) {
-                        constantes_lista_localidades.abrir_google_maps("tienda",id_tienda_selecionada,localidad_tienda_seklecioanda,
+                        constantes_lista_localidades.abrir_google_maps("tienda",id_tienda_crear_ruta,localidad_tienda_crear_ruta,
                             context, latitud, longitud,
                         ) { dialogo ->
                             validacion_mostrar_dialog_ubi_off = dialogo
@@ -1572,7 +1577,7 @@ fun ramdoBox(
     index: Int,
     listener_carta: (String, String, Color) -> Unit,
     listner_carta_turismo: (String, String) -> Unit,
-    abrir_gogle_map: (Double, Double) -> Unit,
+    abrir_gogle_map: (Double, Double,String,String) -> Unit,
     iniciar_seccion_normal: () -> Unit,
     crear_cuenta_geinz: () -> Unit,
     aler_dialog_contacto_fun: (lugar: String, nombre: String, img: String, id: String) -> Unit
@@ -1722,7 +1727,7 @@ fun ramdoBox(
                                     i.categoria == "seguridad" || i.categoria == "salud" -> {
                                         // Categoría seguridad o salud
                                         if (coordenadasValidas) {
-                                            abrir_gogle_map(i.latitud, i.longitud)
+                                            abrir_gogle_map(i.latitud, i.longitud,i.id_tienda,i.lugar)
                                         }
                                         // Si no hay coordenadas, no hace nada
                                     }
@@ -1730,7 +1735,7 @@ fun ramdoBox(
                                     firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()-> {
                                         // Categoría diferente y usuario registrado
                                         if (coordenadasValidas) {
-                                            abrir_gogle_map(i.latitud, i.longitud)
+                                            abrir_gogle_map(i.latitud, i.longitud,i.id_tienda,i.lugar)
                                         }
                                         // Si no hay coordenadas, no hace nada
                                     }

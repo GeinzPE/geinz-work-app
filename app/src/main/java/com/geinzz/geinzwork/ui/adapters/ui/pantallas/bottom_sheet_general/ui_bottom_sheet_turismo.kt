@@ -158,6 +158,8 @@ fun bottom_sheet_lugares_turisticos(
     iniciar_seccion: () -> Unit,
     crear_cuenta: () -> Unit
 ) {
+
+    Log.d("pasmaoedatos_xetardiaspod","${datos.latitud} ${datos.longitud}")
     val firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
@@ -208,13 +210,19 @@ fun bottom_sheet_lugares_turisticos(
 
     LaunchedEffect(Unit) {
         viewmodel_turismo.limpiar_tiendas_cercanas()
-        viewmodel_turismo.obtener_tiendas_cercanas(datos.latitud, datos.longitud, 1.0, "barranca")
         viewmodelMap.setObjetoSeleccionado(datos)
+    }
+    LaunchedEffect(datos.latitud, datos.longitud) {
+        if(datos.latitud!=0.0 && datos.longitud!=0.0){
+            viewmodel_turismo.obtener_tiendas_cercanas(datos.latitud, datos.longitud, 1.0, "barranca")
+
+        }
     }
 
     LaunchedEffect(lista_general_completa) {
         if (lista_general_completa.isNotEmpty()) {
             viewmodel_turismo.mostrar_listas_completas(datos.latitud, datos.longitud)
+
         } else {
             Log.d("mostrar_listas", "🚫 No se llama aún, lista vacía inicial")
         }
