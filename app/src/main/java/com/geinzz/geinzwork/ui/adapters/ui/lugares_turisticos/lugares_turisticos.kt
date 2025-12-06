@@ -351,7 +351,7 @@ val datos_lugar_brca= viewmodelMapa.obtener_datos_lugares_turisticos(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f))
+                    .background(Color.Black.copy(alpha = 0.1f))
                     .zIndex(5f),
                 contentAlignment = Alignment.Center
             ) {

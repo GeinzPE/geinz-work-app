@@ -890,7 +890,6 @@ fun expandibles_wrapp_socio_geinzz_horario_atencion(
     error_hoario: (String) -> Unit
 ) {
 
-    Log.d("datos_teinda_ente131213131231", datos.horario_tiendaMap.toString())
 
     ConstraintLayout(
         modifier = Modifier
@@ -2096,7 +2095,7 @@ fun baner_widget_tienda_geinz_baner(
     var switchActivo by remember(item.dia_hoy, horario_hoy.cerrado) {
         mutableStateOf(horario_hoy.cerrado)
     }
-    Log.d("switchActivoswitchActivo", switchActivo.toString())
+
 
     var motivo_cierre by remember(item.dia_hoy, horario_hoy.motivo) {
         mutableStateOf(horario_hoy.motivo)
@@ -2192,7 +2191,7 @@ fun baner_widget_tienda_geinz_baner(
         modifier = Modifier
             .fillMaxWidth()
             .height(IntrinsicSize.Min)
-            .animateContentSize(),  // ⬅ Ajuste automático
+            .animateContentSize(),
         horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
 
@@ -2473,11 +2472,11 @@ fun baner_widget_tienda_geinz_baner(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
 
-            // Box para imagen + botón
+            // Imagen - ocupa 40% del espacio del Column
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 120.dp) // Limita la altura de la imagen
+                    .weight(0.5f) // 40% del alto total
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
@@ -2488,7 +2487,7 @@ fun baner_widget_tienda_geinz_baner(
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .fillMaxSize() // Ocupa todo el Box
+                        .fillMaxSize()
                         .clip(RoundedCornerShape(10.dp))
                         .clickable { mostar_panel_geinz() }
                 )
@@ -2521,11 +2520,11 @@ fun baner_widget_tienda_geinz_baner(
                 }
             }
 
-            // Parte inferior con datos
+            // Parte inferior con datos - ocupa 60% del espacio del Column
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f) // Ocupa el espacio restante
+                    .weight(0.5f) // 60% del alto
                     .clip(RoundedCornerShape(9.dp))
                     .background(Color(0xFF1A1A1A))
                     .padding(10.dp)
@@ -2549,7 +2548,7 @@ fun baner_widget_tienda_geinz_baner(
                             overflow = TextOverflow.Ellipsis
                         )
                     } else {
-                        Box( // <- envuelve el texto clickeable
+                        Box(
                             modifier = Modifier.clickable(
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() }
@@ -2572,7 +2571,6 @@ fun baner_widget_tienda_geinz_baner(
                     )
                 }
 
-
                 texto_generico_one_line("Atención")
                 TextoExpandibleEnLinea(
                     txt_estado_teinda.capitalizeFirst(),
@@ -2581,6 +2579,7 @@ fun baner_widget_tienda_geinz_baner(
                 )
             }
         }
+
 
 
     }

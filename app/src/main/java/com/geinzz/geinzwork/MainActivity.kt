@@ -110,36 +110,41 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun manejarDeepLink(uri: Uri) {
-        lifecycleScope.launch { // <- Aquí empieza la coroutine
-            if (uri.path == "/lugar") {
-                val localidad = uri.getQueryParameter("localidad") ?: ""
-                val idLugar = uri.getQueryParameter("idLugar") ?: ""
+        Log.d("objtenosuir", "${uri.toString()}")
 
-                if (localidad.isNotEmpty() && idLugar.isNotEmpty()) {
-                    navController.currentBackStackEntryFlow.first() // ya se puede usar
-                    navController.navigate("lugares_turisticos/$localidad/$idLugar") {
+        lifecycleScope.launch {
+            val tipo = uri.getQueryParameter("tipo") ?: ""
+            val id = uri.getQueryParameter("id") ?: ""
+            val localidad = uri.getQueryParameter("localidad") ?: ""
+            val categoria = uri.getQueryParameter("categoria") ?: ""
+
+            if (tipo.isEmpty() || id.isEmpty() || localidad.isEmpty()) {
+                Log.d("DeepLink", "Faltan parámetros necesarios")
+                return@launch
+            }
+
+            when (tipo.lowercase()) {
+                "lugar", "turismo" -> {
+                    navController.currentBackStackEntryFlow.first()
+                    navController.navigate("lugares_turisticos/$localidad/$id") {
                         popUpTo("pantalla_principal") { inclusive = false }
                     }
                 }
-            } else if (uri.path == "/tienda") {
-                val localidad = uri.getQueryParameter("localidad") ?: ""
-                val idLugar = uri.getQueryParameter("idLugar") ?: ""
-                val categoria = uri.getQueryParameter("categoria") ?: ""
-
-                if (localidad.isNotEmpty() && idLugar.isNotEmpty()) {
-                    val localidadEncoded =localidad
-                    val idLugarEncoded =idLugar
+                "tienda" -> { // tiendas
                     val categoriaEncoded = URLEncoder.encode(categoria, "UTF-8").replace("+", "%20")
+                    val ruta = "mostrar_tiendas/$localidad/$id/$categoriaEncoded"
 
-                    Log.d("dsadasdasdadas","$localidadEncoded $idLugarEncoded $categoriaEncoded")
-                    val ruta = "mostrar_tiendas/$localidadEncoded/$idLugarEncoded/$categoriaEncoded"
                     navController.currentBackStackEntryFlow.first()
                     navController.navigate(ruta) {
                         popUpTo("pantalla_principal") { inclusive = false }
                     }
                 }
+                else -> {
+                    Log.d("DeepLink", "Tipo desconocido: $tipo")
+                }
             }
         }
     }
+
 
 }
