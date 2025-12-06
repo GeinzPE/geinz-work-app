@@ -1,10 +1,22 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
 import android.Manifest
+import android.net.Uri
+
+import androidx.core.content.FileProvider
+
+
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
@@ -92,10 +104,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.request.allowHardware
 import coil3.request.error
 import coil3.request.placeholder
+
 import com.geinzz.geinzwork.data.model.localizate_geinz.botom_shet_turismobtn
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.lugares_cercanos
@@ -139,9 +155,17 @@ import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+import com.bumptech.glide.Glide
+import java.net.URL
+import java.net.URLEncoder
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -480,12 +504,7 @@ fun card_img_container(
                     }
 
                     "compartir" -> {
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                message = "Funcionalidad en desarrollo. Disponible próximamente",
-                                duration = SnackbarDuration.Short
-                            )
-                        }
+                        compartir_link_tienda(context,datos)
                     }
                 }
             }
@@ -886,6 +905,84 @@ fun card_img_container(
         })
     }
 }
+
+fun compartirLugarFirebaseHost(context: Context, datos: lugares_turisticos) {
+    if (datos.lista_img.isEmpty()) {
+        Toast.makeText(context, "No hay imagen para compartir", Toast.LENGTH_SHORT).show()
+        return
+    }
+
+    val imageUrl = datos.lista_img[0]
+    val linkLugar = "https://geinzworkapp.web.app/lugar?localidad=${"barranca"}&idLugar=${datos.id_lugar_turistico}"
+
+
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            // Descarga la imagen con Glide
+            val bitmap = Glide.with(context)
+                .asBitmap()
+                .load(imageUrl)
+                .submit()
+                .get()
+
+            // Guardar bitmap en cache para compartir
+            val cachePath = File(context.cacheDir, "images")
+            cachePath.mkdirs()
+            val file = File(cachePath, "lugar_share.png")
+            FileOutputStream(file).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+
+            val contentUri: Uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider", // Configura tu FileProvider en el Manifest
+                file
+            )
+
+            // Crear Intent de compartir
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/*"
+                putExtra(Intent.EXTRA_STREAM, contentUri)
+                putExtra(Intent.EXTRA_TEXT, "¡Mira este lugar turístico: ${datos.titulo}!\nDescúbrelo aquí: $linkLugar")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+
+            withContext(Dispatchers.Main) {
+                context.startActivity(Intent.createChooser(shareIntent, "Compartir con"))
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, "Error al compartir el lugar", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+}
+
+
+fun compartir_link_tienda(
+    context: Context,
+    datos: lugares_turisticos
+) {
+    // Construimos el link de la Cloud Function
+    val link = "https://geinzworkapp.web.app/share?" +
+            "tipo=turismo" +
+            "&id=${URLEncoder.encode(datos.id_lugar_turistico, "UTF-8")}" +
+            "&localidad=${URLEncoder.encode("barranca", "UTF-8")}"+
+            "&categoria=${"lugares_turisticos"}"
+
+    val texto = "¡Mira ${datos.titulo} en Geinz! 🔥\n$link"
+
+    // Intent simple ya sin imágenes, porque la preview la maneja Firebase Hosting
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TEXT, texto)
+    }
+
+    context.startActivity(Intent.createChooser(intent, "Compartir con"))
+}
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

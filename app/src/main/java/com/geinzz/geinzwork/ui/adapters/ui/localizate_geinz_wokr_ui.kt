@@ -18,9 +18,9 @@ class localizate_geinz_wokr_ui : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            GeinzWorkTheme {
-                nativationWrapper(viewModel)
-            }
+//            GeinzWorkTheme {
+//                nativationWrapper(viewModel)
+//            }
         }
     }
 }

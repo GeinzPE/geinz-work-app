@@ -43,6 +43,7 @@ class viewmodel_mapa_personalizado : ViewModel() {
     val estaCercaTienda = _estaCercaTienda.asStateFlow()
 
     fun setBottomSheetVisible(visible: Boolean) {
+        Log.d("pasdamgfasg","$visible")
         _estadoBottomSheet.value = visible
     }
     fun setObjetoSeleccionado(objeto: lugares_turisticos) {
@@ -109,6 +110,17 @@ class viewmodel_mapa_personalizado : ViewModel() {
 //            }
 //        }
 //    }
+
+    suspend fun obtener_datos_lugares_turisticos(id: String, localida: String): lugares_turisticos {
+        return try {
+            repo_lugares.get_lugar_turistico(localida, id)
+        } catch (e: Exception) {
+            Log.e("obtener_lugar", "Error obteniendo lugar turístico", e)
+            lugares_turisticos() // Devuelve vacío si hay error
+        }
+    }
+
+
 
     fun todos_lugares(lista: List<lugares_turisticos>) {
         todosLosLugares = lista

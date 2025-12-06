@@ -423,22 +423,19 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustNothing">
+            android:launchMode="singleTop"> <!--- clave -->
+
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
-                    android:host="geinzapp.page.link"
-                    android:scheme="https" />
-                <data
-                    android:host="geinzapp.page.link"
-                    android:scheme="http" />
+                    android:scheme="https"
+                    android:host="geinzworkapp.web.app" />
             </intent-filter>
         </activity>
+
+
         <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
             android:screenOrientation="fullSensor"

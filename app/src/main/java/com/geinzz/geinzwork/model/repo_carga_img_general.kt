@@ -116,6 +116,8 @@ class repo_carga_img_general {
                 val fechas = data["fechas"] as? Map<String, Any> ?: emptyMap()
                 val fecha_termino = fechas["fecha_fin"] as? String ?: ""
                 val total_puntos =data["puntos_tienda"] as? Number?:0
+                val categoria_teinda =data["categoria_tienda"] as? String?:""
+                val localidad_teinda=data["localidad"] as? String?:""
                 val horarioMap = horario_atencion.to_horario_atencion_box_dia()
 
                 resultado(
@@ -126,7 +128,7 @@ class repo_carga_img_general {
                         nombre_tienda = nombre_tienda,
                         img_tienda =logo,
                         horario_tiendaMap = horarioMap,
-                        fecha_termino = fecha_termino
+                        fecha_termino = fecha_termino,localidad_teinda,categoria_teinda
                     )
                 )
 

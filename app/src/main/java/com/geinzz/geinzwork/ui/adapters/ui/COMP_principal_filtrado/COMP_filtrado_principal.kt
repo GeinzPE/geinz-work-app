@@ -3,6 +3,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -56,6 +57,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -85,14 +87,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -123,6 +128,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
@@ -132,6 +138,8 @@ import coil3.request.placeholder
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.datos_grafico
 import com.geinzz.geinzwork.data.model.datos_tienda
@@ -161,7 +169,14 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.start_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.net.URLEncoder
 
 
 @Composable
@@ -787,7 +802,11 @@ fun expandibles_wrapp_socio_geinzz_datos_tienda(
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
                             )
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),   modifier = Modifier.padding(start = 5.dp)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                                modifier = Modifier.padding(start = 5.dp)
+                            ) {
                                 texto_generico_one_line(
                                     "Saldo disponible",
                                     style = MaterialTheme.typography.bodyMedium,
@@ -2036,6 +2055,7 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun baner_widget_tienda_geinz_baner(
+    context: Context,
     isConnected: Boolean,
     viewmodel: viewmodel_eres_socio,
     item: widget_tienda,
@@ -2185,7 +2205,7 @@ fun baner_widget_tienda_geinz_baner(
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(15.dp))
                 .background(Color(0xFF1A1A1A))
-                .padding(10.dp),
+                .padding(10.dp).animateContentSize(),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
@@ -2443,6 +2463,9 @@ fun baner_widget_tienda_geinz_baner(
         // ======================
         //      COLUMNA DERECHA
         // ======================
+        // ======================
+//      COLUMNA DERECHA
+// ======================
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -2450,39 +2473,71 @@ fun baner_widget_tienda_geinz_baner(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
 
-            // Imagen proporcionada
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .memoryCachePolicy(CachePolicy.ENABLED)
-                    .diskCachePolicy(CachePolicy.ENABLED)
-                    .data(item.img_tienda)
-                    .build(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
+            // Box para imagen + botón
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 120.dp)  // 🔥 Evita que la imagen desborde
-                    .clip(RoundedCornerShape(10.dp))
-                    .clickable() {
-                        mostar_panel_geinz()
-                    }
-            )
+                    .heightIn(max = 120.dp) // Limita la altura de la imagen
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .data(item.img_tienda)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize() // Ocupa todo el Box
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable { mostar_panel_geinz() }
+                )
 
+                // Botón de compartir encima
+                Box(
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.60f))
+                        .align(Alignment.TopEnd)
+                        .clickable {
+                            compartir_link_tienda(
+                                context = context,
+                                localidad = item.localidad_tienda,
+                                id = item.id_tienda,
+                                categoria = item.categoira_tienda,
+                                nombre_tienda = item.nombre_tienda
+                            )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = "Compartir",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+
+            // Parte inferior con datos
             Column(
-                verticalArrangement = Arrangement.spacedBy(5.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .weight(1f) // Ocupa el espacio restante
                     .clip(RoundedCornerShape(9.dp))
                     .background(Color(0xFF1A1A1A))
-                    .padding(10.dp),
+                    .padding(10.dp)
+                    .animateContentSize(),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     texto_generico_one_line("Saldo : ")
+
                     if (item.total_puntos == "0") {
                         Text(
                             text = "Obtener saldo",
@@ -2494,16 +2549,19 @@ fun baner_widget_tienda_geinz_baner(
                             overflow = TextOverflow.Ellipsis
                         )
                     } else {
-
-                        texto_generico_one_line(
-                            "${abreviarNumero(puntosSeguros)}",
-                            style = MaterialTheme.typography.bodyMedium,
+                        Box( // <- envuelve el texto clickeable
                             modifier = Modifier.clickable(
                                 indication = null,
-                                interactionSource = remember { MutableInteractionSource() }) {
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
                                 mostarr_dialog_saldo = true
                             }
-                        )
+                        ) {
+                            texto_generico_one_line(
+                                "${abreviarNumero(puntosSeguros)}",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                     }
 
                     Icon(
@@ -2514,13 +2572,17 @@ fun baner_widget_tienda_geinz_baner(
                     )
                 }
 
-                texto_generico_one_line("Atención")
 
+                texto_generico_one_line("Atención")
                 TextoExpandibleEnLinea(
-                    txt_estado_teinda.capitalizeFirst(), color_estado, color_estado
+                    txt_estado_teinda.capitalizeFirst(),
+                    color_estado,
+                    color_estado
                 )
             }
         }
+
+
     }
     if (mostarr_dialog_saldo) {
         dialog_cantidad_slado_geinz(
@@ -2552,6 +2614,32 @@ fun baner_widget_tienda_geinz_baner(
 
 }
 
+fun compartir_link_tienda(
+    context: Context,
+    localidad: String,
+    id: String,
+    categoria: String,
+    nombre_tienda: String
+) {
+    // Construimos el link de la Cloud Function
+    val link = "https://geinzworkapp.web.app/share?" +
+            "tipo=tienda" +
+            "&id=${URLEncoder.encode(id, "UTF-8")}" +
+            "&localidad=${URLEncoder.encode(localidad, "UTF-8")}" +
+            "&categoria=${URLEncoder.encode(categoria, "UTF-8")}"
+
+    val texto = "¡Mira $nombre_tienda en Geinz! 🔥\n$link"
+
+    // Intent simple ya sin imágenes, porque la preview la maneja Firebase Hosting
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TEXT, texto)
+    }
+
+    context.startActivity(Intent.createChooser(intent, "Compartir con"))
+}
+
+
 
 @Composable
 fun baner_registra_tu_negocio(listener_registra_tu_negocio: () -> Unit) {
@@ -2578,7 +2666,7 @@ fun baner_registra_tu_negocio(listener_registra_tu_negocio: () -> Unit) {
             ) {
                 Column {
                     Text(
-                        text = "Registra tu negocio en GEINZ",
+                        text = "¿Quieres ser socio de Geinz?",
                         color = Color.White,
                         fontFamily = baners_geinz_work,
                         fontSize = 20.sp,
@@ -2589,7 +2677,7 @@ fun baner_registra_tu_negocio(listener_registra_tu_negocio: () -> Unit) {
                     spacer_vertical(10.dp)
 
                     texto_generico_multilinea(
-                        "Transforma tu negocio en el mapa digital ",
+                        "Llega a más clientes potenciales y aumenta tu presencia digital.",
                         style = MaterialTheme.typography.bodyMedium,
                         Color = Color.White
                     )

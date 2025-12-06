@@ -119,7 +119,7 @@ object constantes_lista_localidades {
     val lista_turismo_bottom_sheet = listOf(
         botom_shet_turismobtn("Ir al lugar", Icons.Filled.Place, true),
         botom_shet_turismobtn("ver en mapa", Icons.Filled.Map, false),
-        botom_shet_turismobtn("compartir", Icons.Filled.Share, false)
+        botom_shet_turismobtn("compartir", Icons.Filled.Share, true)
     )
     val cat_sub_seguirar_salud = listOf("seguridad", "salud")
     val categorias_defaul = listOf(

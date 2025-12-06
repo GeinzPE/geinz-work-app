@@ -404,7 +404,8 @@ fun pantalla_principal(
                 if (mostrar_widget_tienda) {
                     spacer_vertical(10.dp)
                     baner_widget_tienda_geinz_baner(
-                        isConnected,
+                        context = context,
+                        isConnected = isConnected,
                         viewmodel = viewmodel,
                         item = datos_tienda,
                         horario_hoy = viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[datos_tienda.id_tienda]
@@ -436,7 +437,8 @@ fun pantalla_principal(
                                     duration = SnackbarDuration.Short
                                 )
                             }
-                        },{mostrar_panel_geinz()},{
+                        }, mostar_panel_geinz = {mostrar_panel_geinz()},
+                        sin_internet_al_renovar = {
                             scope.launch {
                                 snackbarHostState.showSnackbar(
                                     message = "No puedes renovar tu plan verifica tu conexion a internet.",
@@ -468,6 +470,13 @@ fun pantalla_principal(
                 }
                 spacer_vertical(20.dp)
             }
+            item {
+                if (mostrar_widget_tienda) {
+                    baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul) }
+                    spacer_vertical(10.dp)
+                }
+            }
+
 
             item {
                 rutas_turismo(
@@ -481,12 +490,6 @@ fun pantalla_principal(
                 spacer_vertical(30.dp)
             }
 
-            item {
-                if (mostrar_widget_tienda) {
-                    baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul) }
-                    spacer_vertical(10.dp)
-                }
-            }
 
             item {
                 spacer_vertical(10.dp)

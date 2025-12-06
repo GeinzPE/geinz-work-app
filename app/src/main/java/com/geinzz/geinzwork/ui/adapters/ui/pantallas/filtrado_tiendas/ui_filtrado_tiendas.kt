@@ -135,11 +135,13 @@ import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas.carga_tiendas
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.text.isNotEmpty
 
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun Pantalla_filtrado_tiendas(
+    id_tienda:String,
     verificar_intener: Boolean,
     viewmodelFavoritos: viewModel_favoritos,
     viewModelFiltros: viewModel_filtado_tiendas,
@@ -170,9 +172,12 @@ fun Pantalla_filtrado_tiendas(
 
     var showBottomSheet by remember { mutableStateOf(false) }
 
+
     var estadoColor by remember { mutableStateOf(Color.Gray) }
     var existe by remember { mutableStateOf(false) }
-    var id_tienda_selecionada by remember { mutableStateOf("") }
+    var id_tienda_selecionada by remember {
+        mutableStateOf(if (id_tienda.isNotEmpty()) id_tienda else "")
+    }
     var categoria_seleccionda by rememberSaveable { mutableStateOf("") }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     var dataclass_datos_tienda_free by remember { mutableStateOf(datos_tienda_free()) }
@@ -353,7 +358,22 @@ fun Pantalla_filtrado_tiendas(
         )
     }
 
+    LaunchedEffect(id_tienda) {
+        Log.d("LaunchedEffect_ID", "ID recibido: $id_tienda")
 
+        if (id_tienda.isNotEmpty()) {
+            Log.d("LaunchedEffect_ID", "ID no vacío, mostrando bottom sheet")
+            try {
+                delay(5000L)
+                showBottomSheet=true
+                bottom_shet_tienda=true
+            } catch (e: Exception) {
+                Log.e("LaunchedEffect_ID", "Error obteniendo datos del lugar turístico", e)
+            }
+        } else {
+            Log.d("LaunchedEffect_ID", "ID vacío, no se hace nada")
+        }
+    }
 
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -543,14 +563,19 @@ fun Pantalla_filtrado_tiendas(
 
         if (mostrandoCargaGlobal) {
             Log.d("entramos", "global sii")
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f))
-                    .zIndex(5f),
-                contentAlignment = Alignment.Center
+            AnimatedVisibility(
+                visible = mostrandoCargaGlobal,
+                enter = fadeIn(animationSpec = tween(300)),
+                exit = fadeOut(animationSpec = tween(300))
             ) {
-                pantalla_carga_login(false)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    pantalla_carga_login(false)
+                }
             }
         }
 
@@ -571,7 +596,7 @@ fun Pantalla_filtrado_tiendas(
             ) {
                 centrado_hori_vertical {
                     when (estado) {
-                        "loading" -> CircularProgressIndicator()
+                        "loading" ->{}
                         "empty" -> {
                             Column() {
                                 texto_generico_one_line(
@@ -642,7 +667,7 @@ fun Pantalla_filtrado_tiendas(
             })
     }
 
-    if (bottom_shet_tienda) {
+    AnimatedVisibility(visible = bottom_shet_tienda) {
         bottom_sheet_tiendas_filtradas(
             verificar_intener,
             viewModelFiltros,

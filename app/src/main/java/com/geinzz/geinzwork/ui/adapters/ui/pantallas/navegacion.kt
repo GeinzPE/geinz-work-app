@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -90,21 +91,19 @@ private lateinit var firebaseAuth: FirebaseAuth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun nativationWrapper(
-    viewmodel: viewModel_localizate_geinz,
+    navegacion: NavHostController,
     connectivityViewModel: ConnectivityViewModel = viewModel()
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
 
-    val navController = rememberNavController()
+    val navController = navegacion
     val viewModelLugares: viewModel_lugares_turisticos = viewModel()
     val viewModelCordenadas: viewModel_principal_geinz_work = viewModel()
     val viewModel_login_user: viewModel_login_user = viewModel()
     val viewModel_filtrado_tiendas: viewModel_filtado_tiendas = viewModel()
     val viewmode_segurirdad_Salud: viewmode_seguridad_salud = viewModel()
     val viewmodelMapa: viewmodel_mapa_personalizado = viewModel()
-
-
     val mostrarCarga by viewModel_login_user.mostrarCarga.observeAsState(false)
     val systemUiController = rememberSystemUiController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -123,10 +122,7 @@ fun nativationWrapper(
     val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
     ?: ""
 
-    val viewmodelFavoritos: viewModel_favoritos = viewModel(
-        key = "favoritos_$id_user",
-        factory = FavoritosFactory(id_user)
-    )
+
     var email_respaldo_user by remember { mutableStateOf("") }
     var datos_principales_user by remember {
         mutableStateOf(
@@ -150,6 +146,11 @@ fun nativationWrapper(
             datos_principales_user = datos_principales_user("", "", "barranca")
         }
     }
+
+    val viewmodelFavoritos: viewModel_favoritos = viewModel(
+        key = "favoritos_${uid_respald_user?:""}",
+        factory = FavoritosFactory(id_user)
+    )
 
     LaunchedEffect(datos_user) {
         datos_user?.let {
@@ -504,12 +505,6 @@ fun nativationWrapper(
                         viewModel_localizate_geinz,
                         clik_img = { categoria, localidada, nombre_user ->
                             if (categoria.equals("turismo")) {
-//                                Toast.makeText(
-//                                    context,
-//                                    "Geinz esta trabajando para darle mejor experiencia",
-//                                    Toast.LENGTH_SHORT
-//                                ).show()
-//                                return@PantallaExplorarTiendas
                                 navController.navigate(lugares_turisticos(localidada))
                                 return@PantallaExplorarTiendas
                             } else {
@@ -539,6 +534,7 @@ fun nativationWrapper(
                 composable<lugares_turisticos> { navback ->
                     val datos_lugares_turisticos = navback.toRoute<lugares_turisticos>()
                     pantalla_lugares_turisticos(
+                        "",
                         isConnected,
                         viewmodelMapa = viewmodelMapa,
                         localidad_selecionada = datos_lugares_turisticos.localidad,
@@ -572,6 +568,7 @@ fun nativationWrapper(
 
 
                     Pantalla_filtrado_tiendas(
+                        "",
                         isConnected,
                         viewmodelFavoritos,
                         viewModelFiltros = viewModel_filtrado_tiendas,
@@ -633,6 +630,68 @@ fun nativationWrapper(
                     val servicio = navback.toRoute<ui_servicios_tramites>()
                     ui_servicio_tramite(isConnected, servicio.localidad)
                 }
+
+                composable(
+                    route = "mostrar_tiendas/{localidad}/{idLugar}/{categoria}",
+                ) { backStackEntry ->
+                    val localidad = backStackEntry.arguments?.getString("localidad") ?: ""
+                    val idLugar = backStackEntry.arguments?.getString("idLugar") ?: ""
+                    val categoria = backStackEntry.arguments?.getString("categoria") ?: ""
+
+                    Pantalla_filtrado_tiendas(
+                        idLugar,
+                        isConnected,
+                        viewmodelFavoritos,
+                        viewModelFiltros = viewModel_filtrado_tiendas,
+                        categoria = categoria,
+                        localida =localidad,
+                        nombre_user = "",
+                        navigation_regresar = {
+                            viewModel_filtrado_tiendas.limpiarFiltros()
+                            navController.popBackStack()
+                        },
+                        abrir_mapa = { tipo, localidad ->
+                            if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
+                                navController.navigate(map_perzonalizado(tipo, localidad))
+                            } else {
+                                bottom_sheet_iniciar_seccion = true
+                            }
+                        },
+                        iniciar_normal = {
+                            navController.navigate("login_principal")
+                        },
+                        con_google = {
+                            navController.navigate("login_principal")
+                        },
+                        crear_cuenta = {
+                            navController.navigate(crear_cuenta_geinz("crear"))
+                        }, navController
+                    )
+                }
+
+
+                composable(
+                    route = "lugares_turisticos/{localidad}/{idLugar}",
+                ) { backStackEntry ->
+                    val localidad = backStackEntry.arguments?.getString("localidad") ?: ""
+                    val idLugar = backStackEntry.arguments?.getString("idLugar") ?: ""
+
+                    pantalla_lugares_turisticos(
+                        idLugar,
+                        isConnected,
+                        viewmodelMapa = viewmodelMapa,
+                        localidad_selecionada = localidad,
+                        viewmodel_lugares_turisticos = viewModelLugares,
+                        abrir_mapa = { tipo ->
+                            navController.navigate(map_perzonalizado(tipo, "barranca"))
+                        },
+                        crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
+                        navigation_regresar = { navController.popBackStack() },
+                        iniciar_seccion = { navController.navigate("login_principal") }
+                    )
+                }
+
+
 
             }
         }

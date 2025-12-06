@@ -1,7 +1,9 @@
 package com.geinzz.geinzwork.ui.adapters.ui.lugares_turisticos
 
+import android.os.Build
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -75,15 +77,17 @@ import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun pantalla_lugares_turisticos(
+    id: String = "",
     verificar_intener: Boolean,
     viewmodelMapa: viewmodel_mapa_personalizado,
     localidad_selecionada: String,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
     abrir_mapa: (String) -> Unit,
     crear_cuenta: () -> Unit,
-    navigation_regresar:()-> Unit,
+    navigation_regresar: () -> Unit,
     iniciar_seccion: () -> Unit
 ) {
     val _lugares_turisticos by viewmodel_lugares_turisticos._lugares_turisticos.observeAsState(
@@ -96,19 +100,22 @@ fun pantalla_lugares_turisticos(
     var buttom_mapa by remember { mutableStateOf(false) }
     var Box_mostrar_vacio by remember { mutableStateOf(false) }
     var texto_vacio_error by remember { mutableStateOf("") }
-    val context=LocalContext.current
+    val context = LocalContext.current
+
+    var objdatos_luga_turistico by remember { mutableStateOf(lugares_turisticos()) }
+
 
     BackHandler {
         navigation_regresar()
     }
 
-LaunchedEffect(mostra_pantalla_carga) {
-    Log.d("mostra_pantalla_carga" ,"${mostra_pantalla_carga.toString()}")
-}
+    LaunchedEffect(mostra_pantalla_carga) {
+        Log.d("mostra_pantalla_carga", "${mostra_pantalla_carga.toString()}")
+    }
 
     LaunchedEffect(Unit) {
         viewmodel_lugares_turisticos.resetearEstado()
-        viewmodel_lugares_turisticos.lugares_turisticos(localidad_selecionada,context)
+        viewmodel_lugares_turisticos.lugares_turisticos(localidad_selecionada, context)
     }
 
     LaunchedEffect(subCategoriaSeleccionada) {
@@ -116,6 +123,44 @@ LaunchedEffect(mostra_pantalla_carga) {
             viewmodel_lugares_turisticos.filtrar_lugares_turisticos(subCategoriaSeleccionada)
         }
     }
+    LaunchedEffect(id) {
+        Log.d("LaunchedEffect_ID", "ID recibido: $id")
+
+        if (id.isNotEmpty()) {
+            Log.d("LaunchedEffect_ID", "ID no vacío, mostrando bottom sheet")
+
+
+            try {
+                Log.d("LaunchedEffect_ID", "Llamando a obtener_datos_lugares_turisticos()")
+
+                // Llamada a la función en ViewModel
+val datos_lugar_brca= viewmodelMapa.obtener_datos_lugares_turisticos(
+    id,
+    "barranca"
+)
+                viewmodelMapa.setObjetoSeleccionado(datos_lugar_brca)
+                objdatos_luga_turistico=datos_lugar_brca
+                viewmodelMapa.setBottomSheetVisible(true)
+
+                // Log del estado después de la llamada
+                Log.d(
+                    "LaunchedEffect_ID",
+                    "Valor _instance_lugar_turistico: ${
+                        viewmodelMapa.obtener_datos_lugares_turisticos(
+                            id,
+                            "barranca"
+                        )
+                    }"
+                )
+
+            } catch (e: Exception) {
+                Log.e("LaunchedEffect_ID", "Error obteniendo datos del lugar turístico", e)
+            }
+        } else {
+            Log.d("LaunchedEffect_ID", "ID vacío, no se hace nada")
+        }
+    }
+
 
     LaunchedEffect(_lugares_turisticos) {
         if (_lugares_turisticos.isNotEmpty()) {
@@ -155,6 +200,8 @@ LaunchedEffect(mostra_pantalla_carga) {
     var mostar_error by remember { mutableStateOf(false) }
     var mostrar_texto_error by remember { mutableStateOf("") }
 
+    val bottomSheetVisible by viewmodelMapa.estadoBottomSheet.collectAsState()
+    val lugarSeleccionado by viewmodelMapa.objetoSeleccionado.collectAsState()
 
     Box(
         modifier = Modifier
@@ -177,7 +224,11 @@ LaunchedEffect(mostra_pantalla_carga) {
 //                        style = MaterialTheme.typography.banerGeinzWork,
 //                        modifier = Modifier.padding(end = 20.dp)
 //                    )
-                    Text(text =   "Lugares en ${localidad_selecionada.capitalizeFirst()}", fontFamily = baners_geinz_work, fontSize = 30.sp)
+                    Text(
+                        text = "Lugares en ${localidad_selecionada.capitalizeFirst()}",
+                        fontFamily = baners_geinz_work,
+                        fontSize = 30.sp
+                    )
 
                     spacer_vertical(10.dp)
                     texto_generico_multilinea(
@@ -243,50 +294,60 @@ LaunchedEffect(mostra_pantalla_carga) {
 
             when (state) {
                 viewModel_lugares_turisticos.carga_lugares_turisticos.loading -> {
-                    Log.d("adadasda123123","loading")
+                    Log.d("adadasda123123", "loading")
 
                     mostar_error = false
                 }
 
                 is viewModel_lugares_turisticos.carga_lugares_turisticos.empty -> {
-                    Log.d("adadasda123123","empty")
+                    Log.d("adadasda123123", "empty")
                     mostar_error = true
                     mostrar_texto_error = state.txt
                 }
 
                 is viewModel_lugares_turisticos.carga_lugares_turisticos.error -> {
-                    Log.d("adadasda123123","error")
+                    Log.d("adadasda123123", "error")
 
                     mostar_error = true
                     mostrar_texto_error = state.txt
                 }
 
                 is viewModel_lugares_turisticos.carga_lugares_turisticos.succes -> {
-                    Log.d("adadasda123123","succes")
-
+                    Log.d("adadasda123123", "succes")
                     mostar_error = false
                     lista_categoria = listOf("Todos") + state.lista_categoria
                     itemsIndexed(state.lista_lugares) { index, item ->
                         carta_turismo(
-                            verificar_intener,
-                            mostra_pantalla_carga,
-                            viewmodelMapa,
-                            viewmodel_lugares_turisticos,
-                            index,
-                            item.img_principal,
-                            item,
-                            { tipo ->
+                            verificar_intener = verificar_intener,
+                            mostra_pantalla_carga = mostra_pantalla_carga,
+                            viewmodelMap = viewmodelMapa,
+                            viewmodel_lugares_turisticos = viewmodel_lugares_turisticos,
+                            index = index,
+                            img = item.img_principal,
+                            lugar = item,
+                            abrir_mapa = { tipo ->
                                 abrir_mapa(tipo)
-                            }, { crear_cuenta() }, { iniciar_seccion() })
+                            },
+                            crear_cuenta = { crear_cuenta() },
+                            iniciar_seccion = { iniciar_seccion() },
+                            { lugar ->
+                                objdatos_luga_turistico = lugar
+                                viewmodelMapa.setObjetoSeleccionado(lugar)
+                                viewmodelMapa.setBottomSheetVisible(true)
+                            })
                     }
                 }
 
                 viewModel_lugares_turisticos.carga_lugares_turisticos.idle -> {
-                    Log.d("adadasda123123","idle")
+                    Log.d("adadasda123123", "idle")
                 }
             }
         }
-        if (mostra_pantalla_carga) {
+        AnimatedVisibility(
+            visible = mostra_pantalla_carga,
+            enter = fadeIn(animationSpec = tween(300)),
+            exit = fadeOut(animationSpec = tween(300))
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -297,11 +358,16 @@ LaunchedEffect(mostra_pantalla_carga) {
                 pantalla_carga_login(false)
             }
         }
+
         if (mostar_error) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(    text = mostrar_texto_error,
+                Text(
+                    text = mostrar_texto_error,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 30.dp))
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 30.dp)
+                )
 
             }
         }
@@ -327,11 +393,26 @@ LaunchedEffect(mostra_pantalla_carga) {
                     .graphicsLayer { alpha = alphaAnim }
             )
         }
-
+        if ((bottomSheetVisible && lugarSeleccionado == objdatos_luga_turistico) && !mostra_pantalla_carga) {
+            bottom_sheet_lugares_turisticos(
+                verificar_intener,
+                viewmodelMap = viewmodelMapa,
+                viewmodel_lugares_turisticos = viewmodel_lugares_turisticos,
+                datos = objdatos_luga_turistico,
+                visible = true,
+                onClose = {
+                    viewmodelMapa.setBottomSheetVisible(false)
+                },
+                ver_mapa = {
+                    abrir_mapa("turismo")
+                }, iniciar_seccion = { iniciar_seccion() }, crear_cuenta = { crear_cuenta() }
+            )
+        }
 
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun carta_turismo(
     verificar_intener: Boolean,
@@ -343,17 +424,19 @@ fun carta_turismo(
     lugar: lugares_turisticos,
     abrir_mapa: (String) -> Unit,
     crear_cuenta: () -> Unit,
-    iniciar_seccion: () -> Unit
+    iniciar_seccion: () -> Unit,
+    clikeable: (lugares_turisticos) -> Unit,
 ) {
-    val bottomSheetVisible by viewmodelMap.estadoBottomSheet.collectAsState()
-    val lugarSeleccionado by viewmodelMap.objetoSeleccionado.collectAsState()
+//    val bottomSheetVisible by viewmodelMap.estadoBottomSheet.collectAsState()
+//    val lugarSeleccionado by viewmodelMap.objetoSeleccionado.collectAsState()
 
     val heightOptions = listOf(250.dp, 280.dp)
     val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
-    val categoriasRojo = listOf("iglesia", "historico", "arqueologico", "museo", "cultura", "leyenda")
+    val categoriasRojo =
+        listOf("iglesia", "historico", "arqueologico", "museo", "cultura", "leyenda")
 
     val colorTxtAbierto =
-        if (lugar.subcategoria_filtrado.any { it in categoriasRojo })  Color(0xFFFF9800)
+        if (lugar.subcategoria_filtrado.any { it in categoriasRojo }) Color(0xFFFF9800)
         else Color.Green
 
 
@@ -385,9 +468,8 @@ fun carta_turismo(
                     modifier = Modifier
                         .fillMaxSize()
                         .clickable {
-                            // Solo abre el sheet de este lugar
-                            viewmodelMap.setObjetoSeleccionado(lugar)
-                            viewmodelMap.setBottomSheetVisible(true)
+                            clikeable(lugar)
+
                         },
                     contentScale = ContentScale.Crop
                 )
@@ -406,10 +488,14 @@ fun carta_turismo(
                         )
                 )
             }
-            Column (Modifier.padding(top = 10.dp, start = 5.dp, end = 5.dp)){
+            Column(Modifier.padding(top = 10.dp, start = 5.dp, end = 5.dp)) {
                 texto_generico_one_line(lugar.titulo.capitalizeFirst())
                 spacer_vertical(5.dp)
-                texto_generico_one_line(txt, style = MaterialTheme.typography.bodySmall, color = colorTxtAbierto)
+                texto_generico_one_line(
+                    txt,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colorTxtAbierto
+                )
                 spacer_vertical(5.dp)
                 tags_subcateogiras(
                     lugar.subcategoria_filtrado,
@@ -423,21 +509,21 @@ fun carta_turismo(
         }
     }
 
-    if ((bottomSheetVisible && lugarSeleccionado == lugar) && !mostra_pantalla_carga) {
-        bottom_sheet_lugares_turisticos(
-            verificar_intener,
-            viewmodelMap = viewmodelMap,
-            viewmodel_lugares_turisticos = viewmodel_lugares_turisticos,
-            datos = lugar,
-            visible = true,
-            onClose = {
-                viewmodelMap.setBottomSheetVisible(false)
-            },
-            ver_mapa = {
-                abrir_mapa("turismo")
-            }, iniciar_seccion = { iniciar_seccion() }, crear_cuenta = { crear_cuenta() }
-        )
-    }
+//    if ((bottomSheetVisible && lugarSeleccionado == lugar) && !mostra_pantalla_carga) {
+//        bottom_sheet_lugares_turisticos(
+//            verificar_intener,
+//            viewmodelMap = viewmodelMap,
+//            viewmodel_lugares_turisticos = viewmodel_lugares_turisticos,
+//            datos = lugar,
+//            visible = true,
+//            onClose = {
+//                viewmodelMap.setBottomSheetVisible(false)
+//            },
+//            ver_mapa = {
+//                abrir_mapa("turismo")
+//            }, iniciar_seccion = { iniciar_seccion() }, crear_cuenta = { crear_cuenta() }
+//        )
+//    }
 }
 
 

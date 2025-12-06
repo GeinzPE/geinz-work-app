@@ -2,7 +2,12 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -80,8 +85,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.FileProvider
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
@@ -92,13 +99,17 @@ import coil3.request.placeholder
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.item_metodos_pago
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
@@ -109,7 +120,6 @@ import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openWebLink
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoExpandibleEnLinea
-
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.generar_qr_ubi_tinda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
@@ -144,8 +154,14 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda.retornar_id_Tienda_lugar
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.Unit
@@ -207,76 +223,12 @@ fun bottom_sheet_tiendas_filtradas(
         )
         val nuevoId = tiendas_filtradas.id_tienda
 
-
-        // Si el ID es vacío o igual al último → NO HACER NADA
-//        if (nuevoId.isBlank() || nuevoId == ultimoProcesado) {
-//            Log.d("SKIP", "Ignorando recomposición con $nuevoId")
-//            return@LaunchedEffect
-//        }
-//
-//        // Marcar como procesado
-//        ultimoProcesado = nuevoId
-//        inicioPerfil = System.currentTimeMillis()
-//
-//        // Registrar clic SOLO cuando es realmente nuevo
-//        repo_socio.agregar_contador(
-//            "clic",
-//            nuevoId,
-//            tiendas_filtradas.localidad ?: "barranca"
-//        )
-//        Log.d("CLIC", "Clic real: $nuevoId")
-
-        // Lógica normal
         viewModelFiltros.cast_horario_atencion_horario_tienda(tiendas_filtradas.horario_atencion)
         viewModelFiltros.cast_horario_atencion_horario_tienda_box(tiendas_filtradas.horario_tienda_box)
         viewModelFiltros.verificar_existe_favorito(id_user, nuevoId)
 
-//        delay(6000)
-//
-//        val diferencia = System.currentTimeMillis() - inicioPerfil
-//
-//        if (diferencia >= 6000 && ultimoProcesado == nuevoId) {
-//            repo_socio.agregar_contador(
-//                "vistas",
-//                nuevoId,
-//                tiendas_filtradas.localidad ?: "barranca"
-//            )
-//            Log.d("VISTA", "+6s en: $nuevoId")
-//        }
     }
 
-// Cuando la pantalla se destruye → resetea
-
-//    LaunchedEffect(tiendas_filtradas.id_tienda) {
-//        if (!ejecutado && tiendas_filtradas.id_tienda.isNotEmpty()) {
-//            ejecutado = true
-//
-//            repo_socio.agregar_contador(
-//                "clic",
-//                tiendas_filtradas.id_tienda,
-//                tiendas_filtradas.localidad ?: "barranca"
-//            )
-//
-//            Log.d("datod_tiendas", "${tiendas_filtradas.id_tienda} ${tiendas_filtradas.localidad ?: "barranca"}")
-//        }
-//    }
-
-
-//    LaunchedEffect(tiendas_filtradas) {
-//        if(tiendas_filtradas != tiendas_filtradas()){
-//            Log.d("data_","completa")
-//        }else{
-//            Log.d("data_","se esta cargadno")
-//        }
-//    }
-//
-//    LaunchedEffect(visible) {
-//        if (visible) {
-//            cargando = true
-//            delay(2000)
-//            cargando = false
-//        }
-//    }
     var ultimoIdProcesado by rememberSaveable { mutableStateOf("") }
 
 // Este efecto NO debe hacer nada con el ID
@@ -393,6 +345,7 @@ fun bottom_sheet_tiendas_filtradas(
                         }
                         item {
                             cabezero_tiendas(
+                                tiendas_filtradas.nombre_tienda,tiendas_filtradas.img_perfil,
                                 iconos_cosas_clikeables = iconos_cosas_clikeables,
                                 localidad = tiendas_filtradas.localidad ?: "barranca",
                                 id_tienda = tiendas_filtradas.id_tienda,
@@ -522,13 +475,19 @@ fun bottom_sheet_tiendas_filtradas(
                         }
 
                         item {
-                            item_metodos_de_pago(
-                                modifier = Modifier.padding(horizontal = 10.dp),
-                                tiendas_filtradas,
-                                expander_metodos_pagos,
-                                { expander_metodos_pagos = !expander_metodos_pagos }
-                            )
-                            spacer_vertical(10.dp)
+                            val tieneMetodos = with(tiendas_filtradas.metodos_pago_tienda) {
+                                yape.enable || plin.enable || agora.enable || efectivo.enable || visa_mastercard.enable
+                            }
+
+                            if (tieneMetodos) {
+                                item_metodos_de_pago(
+                                    modifier = Modifier.padding(horizontal = 10.dp),
+                                    metodos_pago = tiendas_filtradas,
+                                    expandido = expander_metodos_pagos,
+                                    onClickExpand = { expander_metodos_pagos = !expander_metodos_pagos }
+                                )
+                                spacer_vertical(10.dp)
+                            }
                         }
 
                         item {
@@ -585,6 +544,7 @@ fun bottom_sheet_tiendas_filtradas(
 
 @Composable
 fun cabezero_tiendas(
+    nombreTienda:String,logo_tienda_img:String,
     iconos_cosas_clikeables: Boolean,
     localidad: String,
     id_tienda: String,
@@ -726,6 +686,8 @@ fun cabezero_tiendas(
             }
             spacer_horizonta(15.dp)
             abrir_google_maps(
+                categoritienda,
+                logo_tienda_img,nombreTienda,
                 iconos_cosas_clikeables,
                 id_tienda,
                 localidad,
@@ -868,6 +830,7 @@ fun perfil_cabezero(
     categoritienda: String,
     lista_tags: List<String>
 ) {
+    Log.d("tienda:tienda:tienda:tienda:tienda:","$id_tienda $localida")
     val horario_tiempo_real by viewModelFiltros.color_estado_tienda.collectAsState()
     val _color_estado_tienda_Box by viewModelFiltros.color_estado_tienda_box.collectAsState()
     val horarios by viewModelFiltros.horariosTiendas_real.collectAsState()
@@ -898,10 +861,9 @@ fun perfil_cabezero(
                 viewModelFiltros.setear_color(color)
             })
         spacer_vertical(5.dp)
-
-
+        TextoCopiable(id_tienda)
         text_expandible_wrapp(
-            texto = "Categoria : $categoritienda",
+            texto = "${categoritienda.capitalizeFirst()}",
             style = MaterialTheme.typography.bodyMedium
         )
         spacer_vertical(10.dp)
@@ -916,8 +878,35 @@ fun perfil_cabezero(
     }
 }
 
+
+
+@Composable
+fun TextoCopiable(id_tienda: String) {
+    val context = LocalContext.current
+
+    Text(
+        text = id_tienda,
+        fontSize = 16.sp,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.clickable {
+            // Obtener el ClipboardManager
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("ID Tienda", id_tienda)
+            clipboard.setPrimaryClip(clip)
+
+            // Opcional: mensaje corto de confirmación
+            Toast.makeText(context, "ID copiado al portapapeles", Toast.LENGTH_SHORT).show()
+        }
+    )
+}
+
+
 @Composable
 fun abrir_google_maps(
+    categoria:String,
+    img_tienda_perfil: String,
+    nombre_tienda: String,
     iconos_cosas_clikeables: Boolean,
     id_tienda: String,
     localidad: String,
@@ -980,6 +969,22 @@ fun abrir_google_maps(
             ) {
                 Image(
                     painter = painterResource(icono_entrega),
+                    modifier = Modifier.size(22.dp),
+                    contentDescription = "Favorito",
+                )
+            }
+        }
+        spacer_horizonta(10.dp)
+        AnimatedVisibility(verificar_intener, enter = fadeIn(), exit = fadeOut()) {
+            FloatingActionButton(
+                onClick = {
+                    compartirLugarFirebaseHosttiendas(categoria,context,localidad,id_tienda,img_tienda_perfil,nombre_tienda )
+                },
+                modifier = Modifier.size(40.dp),
+                containerColor = MaterialTheme.colorScheme.primary,
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.compartir_icon_vector),
                     modifier = Modifier.size(22.dp),
                     contentDescription = "Favorito",
                 )
@@ -1538,7 +1543,7 @@ fun Expandible_horario_atencion(
                         .animateContentSize()
                 ) {
                     texto_generico_multilinea(
-                        "El horario mostrado corresponde al horario continuo del negocio.Si la tienda maneja turnos divididos —por ejemplo, mañana y tarde—, estos se reflejarán correctamente en el horario actualizado en tiempo real.",
+                        "El horario mostrado corresponde al horario continuo .Si se maneja turnos divididos —por ejemplo, mañana y tarde—, estos se reflejarán correctamente en el horario actualizado en tiempo real.",
                         style = MaterialTheme.typography.bodyMedium,
                         Modifier.padding(horizontal = 10.dp)
                     )
@@ -1749,4 +1754,44 @@ fun tienda_cercana() {
         )
     }
 }
+
+
+fun compartirLugarFirebaseHosttiendas(
+    categoria: String,
+    context: Context,
+    localidad_tienda: String,
+    id_tienda: String,
+    img: String,
+    nombre_tienda: String
+) {
+    try {
+        // Construimos el link de la Cloud Function
+        val link = "https://geinzworkapp.web.app/share?" +
+                "tipo=tienda" +
+                "&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
+                "&localidad=${URLEncoder.encode(localidad_tienda, "UTF-8")}" +
+                "&categoria=${URLEncoder.encode(categoria, "UTF-8")}"
+
+        val texto = "¡Mira $nombre_tienda en Geinz! 🔥\n$link"
+
+        // Intent simple de compartir
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, texto)
+        }
+
+        // Abrimos el chooser para que el usuario seleccione la app
+        context.startActivity(
+            Intent.createChooser(intent, "Compartir con")
+                .apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+        )
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Toast.makeText(context, "Error al compartir el lugar", Toast.LENGTH_SHORT).show()
+    }
+}
+
+
 

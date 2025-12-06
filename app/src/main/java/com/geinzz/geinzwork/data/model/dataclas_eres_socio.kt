@@ -33,7 +33,7 @@ data class widget_tienda(
     val nombre_tienda: String = "",
     val img_tienda: String = "",
     val horario_tiendaMap: HorarioAtencion_box = HorarioAtencion_box(),
-    val fecha_termino: String = ""
+    val fecha_termino: String = "",val localidad_tienda: String ="",val categoira_tienda: String=""
 )
 
 data class datos_grafico(

@@ -64,7 +64,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     private val instancia_repo_lugar_turistico = repo_lugares_turisticos()
 
     private val _instance_lugar_turistico = MutableStateFlow(lugares_turisticos())
-    val instance_lugar_turistico: StateFlow<lugares_turisticos> = _instance_lugar_turistico
+    val  instance_lugar_turistico: StateFlow<lugares_turisticos> = _instance_lugar_turistico
 
 
     private val subcategorias = MutableLiveData<List<filtrado_tiendas_cat_sub>>()

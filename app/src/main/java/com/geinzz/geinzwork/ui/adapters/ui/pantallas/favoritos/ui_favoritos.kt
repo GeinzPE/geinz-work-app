@@ -939,36 +939,23 @@ fun carta_desing_fv(
                     },
                 contentScale = ContentScale.Crop
             )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)   // altura exacta de la sombra
-                    .clip(RoundedCornerShape(10.dp))
-                    .align(Alignment.BottomCenter)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color(0xAA000000) // negro sutil abajo
-                            ),
-                            startY = 0f,
-                            endY = Float.POSITIVE_INFINITY
-                        )
-                    )
-            )
+
 
             Box(
-                Modifier
+                modifier = Modifier
+                    .padding(5.dp)
                     .clip(RoundedCornerShape(5.dp))
                     .background(Color.Black.copy(alpha = 0.60f))
-                    .blur(12.dp).align(Alignment.BottomStart)
+                    .align(Alignment.BottomStart)
             ) {
+                // Texto sin blur
                 texto_generico_one_line(
                     item.localida_tienda.capitalizeFirst(),
-                    MaterialTheme.typography.bodySmall,
+                    MaterialTheme.typography.bodySmall.copy(color = Color.White), // asegurar contraste
                     modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp)
                 )
             }
+
 
         }
         spacer_vertical(10.dp)
