@@ -118,7 +118,6 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_princ
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.dataStore
 import com.geinzz.geinzwork.data_store.data_store_localidad
-import com.geinzz.geinzwork.data_store.data_store_localidad.LATITUD_USER_KEY
 import com.geinzz.geinzwork.data_store.data_store_localidad.obtenerLatLonUsuario
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ImagenesSuperpuestasCollage
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_close_gris
@@ -304,13 +303,10 @@ fun ui_pantalla_busqueda(
     var id_tienda_crear_ruta by remember { mutableStateOf("") }
     var localidad_tienda_crear_ruta by remember { mutableStateOf("") }
 
-    val preferencias = context.dataStore.data
-        .catch { emit(emptyPreferences()) }
-        .collectAsState(initial = emptyPreferences())
-
-    val latUsuario = preferencias.value[LATITUD_USER_KEY]
-    val lonUsuario = preferencias.value[LONGITUD_USER_KEY]
-
+    val (latUsuario, lonUsuario) =
+        obtenerLatLonUsuario(context).collectAsState(
+            initial = Pair(null, null)
+        ).value
 
     Log.d("UbicacionUsuario", "Lat: $latUsuario, Lon: $lonUsuario")
 

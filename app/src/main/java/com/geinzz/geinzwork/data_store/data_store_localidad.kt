@@ -226,8 +226,8 @@ object data_store_localidad {
         }
     }
 
-    suspend fun obtenerLatLonUsuario(context: Context): Pair<Double?, Double?> {
-        val preferences = context.dataStore.data
+    fun obtenerLatLonUsuario(context: Context): Flow<Pair<Double?, Double?>> {
+        return context.dataStore.data
             .catch { exception ->
                 if (exception is IOException) {
                     emit(emptyPreferences())
@@ -235,11 +235,13 @@ object data_store_localidad {
                     throw exception
                 }
             }
-            .first()
-        val lat = preferences[LATITUD_USER_KEY]
-        val lon = preferences[LONGITUD_USER_KEY]
-        return Pair(lat, lon)
+            .map { preferences ->
+                val lat = preferences[LATITUD_USER_KEY]
+                val lon = preferences[LONGITUD_USER_KEY]
+                Pair(lat, lon)
+            }
     }
+
 
     fun get_hora_hashin_user(context: Context): Flow<String?> {
         return context.dataStore.data.map { pref ->
