@@ -7,6 +7,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.location.Location
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -153,6 +154,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda.retornar_id_Tienda_lugar
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -674,6 +676,7 @@ fun cabezero_tiendas(
         ) {
             Box(modifier = Modifier.weight(1f)) {
                 perfil_cabezero(
+                    latitud,longitud,
                     iconos_cosas_clikeables,
                     localidad,
                     id_tienda,
@@ -821,6 +824,7 @@ fun perfil_img_zooom(
 
 @Composable
 fun perfil_cabezero(
+    lat: Double, lng: Double, // Lat/lng de la tienda
     iconos_cosas_clikeables: Boolean,
     localida: String,
     id_tienda: String,
@@ -830,6 +834,8 @@ fun perfil_cabezero(
     categoritienda: String,
     lista_tags: List<String>
 ) {
+    val context = LocalContext.current
+
     Log.d("tienda:tienda:tienda:tienda:tienda:","$id_tienda $localida")
     val horario_tiempo_real by viewModelFiltros.color_estado_tienda.collectAsState()
     val _color_estado_tienda_Box by viewModelFiltros.color_estado_tienda_box.collectAsState()
@@ -840,6 +846,34 @@ fun perfil_cabezero(
     )
 
     val tick by viewModelFiltros.tick.collectAsState()
+    // Obtener ubicación del usuario (simple ejemplo, usando fusedLocationProviderClient)
+    val fusedLocationClient = remember {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
+
+    var distanciaUsuarioTienda by remember { mutableStateOf<Float?>(null) }
+
+    LaunchedEffect(Unit) {
+        try {
+            fusedLocationClient.lastLocation
+                .addOnSuccessListener { location ->
+                    if (location != null) {
+                        val resultados = FloatArray(1)
+                        Location.distanceBetween(
+                            location.latitude,
+                            location.longitude,
+                            lat,
+                            lng,
+                            resultados
+                        )
+                        distanciaUsuarioTienda = resultados[0] // distancia en metros
+                        Log.d("perfil_cabezero", "Distancia usuario-tienda: ${distanciaUsuarioTienda} m")
+                    }
+                }
+        } catch (e: Exception) {
+            Log.e("perfil_cabezero", "Error obteniendo ubicación: ${e.message}")
+        }
+    }
 
     Column {
         Text(
@@ -847,10 +881,18 @@ fun perfil_cabezero(
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-
-            )
+            overflow = TextOverflow.Ellipsis
+        )
         spacer_vertical(5.dp)
+
+        // Mostrar distancia real si está disponible
+        distanciaUsuarioTienda?.let { distancia ->
+            Text(
+                text = "Distancia a la tienda: ${"%.0f".format(distancia)} m",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
+        }
 
         retornar_color_estado_tienda_Box(
             id_tienda = id_tienda,
@@ -873,10 +915,9 @@ fun perfil_cabezero(
             brush_end = Brush.horizontalGradient(colors = shadow_right),
             modifier = Modifier.padding(end = 40.dp)
         )
-
-
     }
 }
+
 
 
 

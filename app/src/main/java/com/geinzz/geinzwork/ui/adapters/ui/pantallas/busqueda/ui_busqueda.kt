@@ -106,6 +106,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -115,7 +116,10 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dialog_seguridad_salud_algolia
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.data_store.dataStore
 import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.data_store.data_store_localidad.LATITUD_USER_KEY
+import com.geinzz.geinzwork.data_store.data_store_localidad.obtenerLatLonUsuario
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ImagenesSuperpuestasCollage
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_close_gris
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
@@ -156,6 +160,7 @@ import com.geinzz.geinzwork.viewModels.viewmodel_floating_filtrado
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -299,6 +304,19 @@ fun ui_pantalla_busqueda(
     var id_tienda_crear_ruta by remember { mutableStateOf("") }
     var localidad_tienda_crear_ruta by remember { mutableStateOf("") }
 
+    val preferencias = context.dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .collectAsState(initial = emptyPreferences())
+
+    val latUsuario = preferencias.value[LATITUD_USER_KEY]
+    val lonUsuario = preferencias.value[LONGITUD_USER_KEY]
+
+
+    Log.d("UbicacionUsuario", "Lat: $latUsuario, Lon: $lonUsuario")
+
+
+
+
     LaunchedEffect(localida_filtrado_guardado) {
         if (localida_filtrado_guardado.isNotEmpty()) {
             cambioDesdeViewModel = true
@@ -379,6 +397,7 @@ fun ui_pantalla_busqueda(
                     "Hay categorías o subcategorías seleccionadas, filtrando por radio..."
                 )
                 viewModel.filtrar_por_radio(
+                    latUsuario,lonUsuario,
                     radioActual,
                     context,
                     categoria_filtrad,
@@ -516,6 +535,7 @@ fun ui_pantalla_busqueda(
         if (categoriaFinal.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
             Log.d("buscamosen", "entramos_condiocn")
             viewModel.filtrarSubCat(
+                latUsuario,lonUsuario,
                 radioActual,
                 context,
                 hash_user,
@@ -547,6 +567,7 @@ fun ui_pantalla_busqueda(
         if (ultima_cordenada_actualziada != null && cerca_de_ti_enable.value) {
             Log.d("cambiamos_hasuser", "📍 Nueva coordenada: $ultima_cordenada_actualziada")
             viewModel.filtrar_por_radio(
+                latUsuario,lonUsuario,
                 radioActual,
                 context,
                 categoria_filtrad,
@@ -983,6 +1004,7 @@ fun ui_pantalla_busqueda(
                 ondimis_aceptar = { radio, hasing_user ->
                     Log.d("logemos", "${radio}")
                     viewModel.filtrar_por_radio(
+                        latUsuario,lonUsuario,
                         radio,
                         context,
                         categoria_filtrad,
@@ -1144,6 +1166,7 @@ fun ui_pantalla_busqueda(
             }, filtrado_cerca_de_ti = { radio, hasing_user ->
                 Log.d("logemo13131232s", "${radio} $hasing_user")
                 viewModel.filtrar_por_radio(
+                    latUsuario,lonUsuario,
                     radio,
                     context,
                     categoria_filtrad,

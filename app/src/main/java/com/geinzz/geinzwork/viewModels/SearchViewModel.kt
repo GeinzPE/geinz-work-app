@@ -3,6 +3,7 @@ package com.geinzz.geinzwork.viewModels
 import Item
 import android.app.Application
 import android.content.Context
+import android.location.Location
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -225,6 +226,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     /** ---------- FILTRAR POR SUBCATEGORÍA Y CATEGORÍA ---------- */
     fun filtrarSubCat(
+        lat:Double?,lng:Double?,
         radio: Float,
         context: Context,
         hashUser: String?,
@@ -269,7 +271,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 // 🔹 3️⃣ Aplicar filtro por geohash solo si está habilitado
                 if (cercaDeTiEnable && !hashUser.isNullOrBlank()) {
                     Log.d("isntqa_fun", "Aplicando filtro geohash interno")
-                    listaFiltrada = filtrarPorRadioInterno(radio, context, hashUser, listaFiltrada)
+                    listaFiltrada = filtrarPorRadioInterno(radio, lat,lng, listaFiltrada,categoria)
                     lista_filtrada_geohasing.value = listaFiltrada
                 } else {
                     Log.d(
@@ -319,37 +321,60 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     /** ---------- FILTRAR POR RADIO INTERNO ---------- */
     fun filtrarPorRadioInterno(
-        radio_filtrado: Float,
-        context: Context,
-        hashUser: String,
-        listaBase: List<Item>
+        paso: Float,                // cada paso = 100 m
+        latUser: Double?,
+        lngUser: Double?,
+        listaMaster: List<Item>,    // lista completa de la app
+        categoriaSeleccionada: String? = null
     ): List<Item> {
         return try {
-            Log.d("isntqa_fun", "filtrarPorRadioInterno")
+            Log.d("isntqa_fun", "📌 Iniciando filtrarPorRadioInterno $latUser $lngUser")
+            Log.d("isntqa_fun", "Paso recibido: $paso")
+            Log.d("isntqa_fun", "Categoría seleccionada: $categoriaSeleccionada")
 
-            val radioGuardado = radio_filtrado
-            Log.d("radio_user", radioGuardado.toString())
+            val radioMetros = paso.toInt().coerceAtLeast(1) * 100.0
+            Log.d("isntqa_fun", "Radio en metros: $radioMetros m")
 
-            val precision = when {
-                radioGuardado <= 0.1 -> 8
-                radioGuardado <= 0.3 -> 7
-                radioGuardado <= 1 -> 6
-                radioGuardado <= 5 -> 5
-                else -> 4
+            // --- Filtrado por categoría (sobre lista completa siempre) ---
+            val listaPorCategoria = if (!categoriaSeleccionada.isNullOrEmpty()) {
+                listaMaster.filter { it.categoria == categoriaSeleccionada }
+            } else {
+                listaMaster
+            }
+            Log.d("isntqa_fun", "Cantidad después de filtrar por categoría: ${listaPorCategoria.size}")
+
+            // --- Si no hay lat/lng, devolver solo por categoría ---
+            if (latUser == null || lngUser == null) return listaPorCategoria
+
+            // --- Filtrado por distancia exacta ---
+            val listaFinal = listaPorCategoria.filter { item ->
+                val results = FloatArray(1)
+                Location.distanceBetween(
+                    latUser, lngUser,
+                    item.latitud, item.longitud,
+                    results
+                )
+                results[0].toDouble() <= radioMetros
             }
 
-            val prefijo = hashUser.take(precision)
-
-            listaBase.filter { it.geohasing.startsWith(prefijo) }
+            Log.d("isntqa_fun", "Cantidad después de filtrar por distancia: ${listaFinal.size}")
+            listaFinal
 
         } catch (e: Exception) {
-            Log.e("isntqa_fun", "Error al filtrar por radio interno: ${e.message}")
-            listaBase // si ocurre un error, devolvemos la lista sin filtrar
+            Log.e("isntqa_fun", "❌ Error al filtrar por radio interno: ${e.message}", e)
+            listaMaster
         }
     }
 
 
+
+
+
+
+
+
     fun filtrar_por_radio(
+        lat: Double?,lng: Double?,
         radio_filtrado: Float,
         context: Context,
         cat_select: String,
@@ -371,9 +396,9 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                     listaFiltrable =
                         filtrarPorRadioInterno(
                             radio_filtrado,
-                            context,
-                            hash_user,
-                            listaOriginalCompleta
+
+                            lat,lng,
+                            listaOriginalCompleta,cat_select
                         )
                 }
 

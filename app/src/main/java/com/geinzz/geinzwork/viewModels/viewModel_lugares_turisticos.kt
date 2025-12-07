@@ -301,23 +301,27 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
         subcategoria: String,
         latUser: Double,
         lonUser: Double,
-        radioKm: Float
+        paso: Float // parámetro float
     ) {
-        Log.d("filtrar_por_subcategoria", "📍 Subcategoria: $subcategoria | Radio: ${radioKm}km")
+        Log.d("filtrar_por_subcategoria", "📍 Subcategoria: $subcategoria | Paso: $paso")
         viewModelScope.launch {
             val lista_base = lista_general_completa.value
 
-            val radioFinal = if (radioKm == 0f) 1.0 else radioKm.toDouble()
+            // Convertimos el float a entero y luego multiplicamos por 100 para obtener metros
+            val pasoInt = paso.toInt().coerceAtLeast(1) // mínimo 1 para evitar 0
+            val radioFinal = pasoInt * 100.0
+            Log.d("filtrar_por_subcategoria", "📍 Radio final: ${radioFinal}m")
+
             _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.loading
 
             try {
-                // --- 1️⃣ Filtrar todas las tiendas por radio ---
+                // --- 1️⃣ Filtrar todas las tiendas por radio en metros ---
                 val tiendas_en_radio = lista_base.filter { tienda ->
-                    val distanciaKm = GeoFireUtils.getDistanceBetween(
+                    val distanciaMetros = GeoFireUtils.getDistanceBetween(
                         GeoLocation(latUser, lonUser),
                         GeoLocation(tienda.latitud, tienda.longitud)
-                    ) / 1000.0
-                    distanciaKm <= radioFinal
+                    ) // getDistanceBetween devuelve metros
+                    distanciaMetros <= radioFinal
                 }
 
                 // --- 2️⃣ Obtener subcategorías válidas en este radio ---
@@ -341,7 +345,6 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
                     )
                     _lista_filtrada_turistica.value = listaFiltradaFinal
                 } else {
-                    // Si no hay ninguna tienda de esa subcategoría dentro del radio
                     _state_carga_tiendas_cercanas.value = carga_tienda_cercanos.empty(
                         "No hay tiendas de la categoría '$subcategoria' en este radio"
                     )
