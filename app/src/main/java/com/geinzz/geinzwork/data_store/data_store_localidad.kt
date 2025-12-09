@@ -224,23 +224,22 @@ object data_store_localidad {
             preferences[LATITUD_USER_KEY] = lat
             preferences[LONGITUD_USER_KEY] = long
         }
+
+        Log.d("DataStoreUser", "Guardado -> Lat: $lat | Lon: $long")
     }
 
-    fun obtenerLatLonUsuario(context: Context): Flow<Pair<Double?, Double?>> {
+
+    fun obtenerLatLonUsuario(context: Context): Flow<Pair<Double, Double>> {
         return context.dataStore.data
-            .catch { exception ->
-                if (exception is IOException) {
-                    emit(emptyPreferences())
-                } else {
-                    throw exception
-                }
-            }
             .map { preferences ->
-                val lat = preferences[LATITUD_USER_KEY]
-                val lon = preferences[LONGITUD_USER_KEY]
-                Pair(lat, lon)
+                Pair(
+                    preferences[LATITUD_USER_KEY] ?: 0.0,
+                    preferences[LONGITUD_USER_KEY] ?: 0.0
+                )
             }
     }
+
+
 
 
     fun get_hora_hashin_user(context: Context): Flow<String?> {

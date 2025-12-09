@@ -164,6 +164,8 @@ import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import com.bumptech.glide.Glide
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatRadioFromSlider
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatearDistanciaDouble
 import java.net.URL
 import java.net.URLEncoder
 
@@ -198,7 +200,7 @@ fun bottom_sheet_lugares_turisticos(
     val tick by viewmodel_filtrado.tick.collectAsState()
     val lista_general_completa by viewmodel_turismo._lista_general_completa.collectAsState()
 
-    var nueva_busqueda by remember { mutableFloatStateOf(0f) }
+    var nueva_busqueda by remember { mutableFloatStateOf(10.0f) }
     var buscar_nuevamente by remember { mutableStateOf(false) }
     var radioAnterior by remember { mutableStateOf(1.0) }
     var lista_subacteogorias by remember { mutableStateOf(emptyList<String>()) }
@@ -238,7 +240,7 @@ fun bottom_sheet_lugares_turisticos(
     }
     LaunchedEffect(datos.latitud, datos.longitud) {
         if(datos.latitud!=0.0 && datos.longitud!=0.0){
-            viewmodel_turismo.obtener_tiendas_cercanas(datos.latitud, datos.longitud, 1.0, "barranca")
+            viewmodel_turismo.obtener_tiendas_cercanas(datos.latitud, datos.longitud, 10.0, "barranca")
 
         }
     }
@@ -319,11 +321,12 @@ fun bottom_sheet_lugares_turisticos(
                                 )
                             }, nuevo_rango_km = { rango ->
                                 nueva_busqueda = rango
+
                                 viewmodel_turismo.filtrar_por_subcategoria(
                                     lista_subacteogorias,
                                     subcategoriatienda_select,
                                     datos.latitud,
-                                    datos.longitud, rango
+                                    datos.longitud, nueva_busqueda
                                 )
                                 Log.d("Rangonuevo", nueva_busqueda.toString())
                             }, ver_mapa = { lugares_cercanos ->
@@ -398,7 +401,7 @@ fun card_img_container(
     var mostrar_slider by remember { mutableStateOf(false) }
     var mostar_filtrado_categorias by remember { mutableStateOf(false) }
     var expandedItemId by remember { mutableStateOf<String?>(null) }
-    var nueva_busqueda by remember { mutableStateOf(1.0f) }
+    var nueva_busqueda by remember { mutableStateOf(10.0f) }
     var sub_categoria_selecionada by remember { mutableStateOf("Todos") }
 //    val nueva_busqueda by viewmodel_turismo.estado_categoria_filtrada.collectAsState()
 //    val sub_categoria_selecionada by viewmodel_turismo.estado_radio_filtrada.collectAsState()
@@ -593,7 +596,7 @@ fun card_img_container(
                             fontWeight = FontWeight.Bold
                         )
                     ) {
-                        append("${nueva_busqueda.toInt()} Km")
+                        append("${formatRadioFromSlider(nueva_busqueda)}")
                     }
                     pop()
                 }
@@ -735,6 +738,9 @@ fun card_img_container(
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(horizontal = 10.dp)
                         )
+                        lugares_turisticos_filtrados = emptyList()
+                        viewmodel_turismo.actualizarCategorias(emptyList())
+                        lista_string_filtrado_tiendas = listOf("Todos")
                     }
 
                     is viewModel_lugares_turisticos.carga_tienda_cercanos.error -> {
@@ -752,9 +758,10 @@ fun card_img_container(
                         lugares_turisticos_filtrados = state.lista_lugares
                         viewmodel_turismo.actualizarCategorias(state.lista_categorias)
                         viewmodel_turismo.actualizarListaCompleta(state.lista_completa_lugares)
-                        Log.d("listassssssss", "${state.lista_lugares} ${state.lista_categorias}")
+                        Log.d("listassssssss", "${state.lista_categorias}")
                         val lista_subcat = listOf("Todos") + state.lista_categorias
                         lista_string_filtrado_tiendas = lista_subcat
+
                         Column {
                             spacer_vertical(10.dp)
                             LazyRow(
@@ -1114,7 +1121,7 @@ fun item_cercanos(
                                     id_tienda = item.id_tienda,
                                     img_tienda = item.logo_tienda,
                                     nombre_tienda = item.nombre_tienda,
-                                    kl = "%.2f km".format(distanciaKm),
+                                    kl = distanciaKm,
                                     nombre_lugar = datos.titulo,
                                     color = estado_color,
                                     HorarioDia_box = horarioSeguro,
@@ -1137,7 +1144,7 @@ fun item_cercanos(
                                 mostrar_txt = false,
                             )
                             texto_generico_one_line(
-                                "A: %.2f km".format(distanciaKm),
+                                "A:${formatearDistanciaDouble(distanciaKm)}",
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                             spacer_horizonta(5.dp)

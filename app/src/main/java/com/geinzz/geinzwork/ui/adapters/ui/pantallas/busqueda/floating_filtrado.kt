@@ -127,6 +127,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.cat_sub_seguirar_salud
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatRadioFromSlider
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isGPSEnabled
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
@@ -1629,7 +1630,7 @@ fun FloatingBubble(
                                                         spacer_vertical(17.dp)
 //
                                                         texto_generico_one_line(
-                                                            "Rango aproximado de búsqueda: ${radioActual} km",
+                                                            "Rango aproximado de búsqueda: ${formatRadioFromSlider(radioActual)}",
                                                             MaterialTheme.typography.bodyMedium
                                                         )
                                                         spacer_vertical(17.dp)

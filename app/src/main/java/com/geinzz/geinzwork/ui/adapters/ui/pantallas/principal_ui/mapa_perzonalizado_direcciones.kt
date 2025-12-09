@@ -79,7 +79,6 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -154,7 +153,6 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.abs
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -204,19 +202,23 @@ fun MyGoogle_maps(
         emptyList()
     )
 
-    val lista_tiendas_cecanas_turismo by viewmodel_lugares_turisticos.listaTiendasGuardadas.collectAsState()
+    val lista_tiendas_cecanas_turismo by viewmodel_lugares_turisticos.listaTiendasGuardadas
+        .collectAsState()
+
+    val lista_categiras_filtrado_tiendas_Cercanas  by viewmodel_lugares_turisticos.lista_categoira_filtradas.collectAsState()
+
     val estado by viewmodel_lugares_turisticos.estadoFiltrado.collectAsState()
 
-    LaunchedEffect(estado) {
-        Log.d(
-            "FILTRADO_DEBUG", """
-        Categoría: ${estado.categoriaFiltrada}
-        Radio: ${estado.radioFiltrado}
-        Categorías disponibles: ${estado.listaCategorias.joinToString()}
-        Tiendas totales: ${estado.listaCompleta.size}
-    """.trimIndent()
-        )
-    }
+//    LaunchedEffect(estado) {
+//        Log.d(
+//            "FILTRADO_DEBUG", """
+//        Categoría: ${estado.categoriaFiltrada}
+//        Radio: ${estado.radioFiltrado}
+//        Categorías disponibles: ${estado.listaCategorias.joinToString()}
+//        Tiendas totales: ${estado.listaCompleta.size}
+//    """.trimIndent()
+//        )
+//    }
 
     val datosTienda by viewModel_filtrado_tiendas._datos_tienda.observeAsState(emptyList())
     var seleccionadoId by remember { mutableStateOf<String?>(null) }
@@ -818,6 +820,7 @@ fun MyGoogle_maps(
 
         if (show_botoom_sheet) {
             bottom_sheet_mapa(
+                lista_categiras_filtrado_tiendas_Cercanas,
                 viewmodel_lugares_turisticos,
                 estado,
                 seleccionadoId = seleccionadoId ?: "",

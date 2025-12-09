@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -56,6 +57,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.simplificarCategoria
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
@@ -65,9 +67,12 @@ import com.google.maps.android.compose.CameraPositionState
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_mapa(
+    lista_categiras_filtrado_tiendas_Cercanas: List<String>,
     viewmodelMapa: viewModel_lugares_turisticos,
     estado: TiendasCercanasFiltrada,
     seleccionadoId: String,
@@ -82,18 +87,27 @@ fun bottom_sheet_mapa(
     datos_selecionado_retornar: (dataclass_map) -> Unit
 ) {
 
-    var estadoFiltro by rememberSaveable {
+    var estadoFiltro by remember {
         mutableStateOf(
             TiendasCercanasFiltrada(
                 estado.categoriaFiltrada,
                 estado.radioFiltrado,
-                estado.listaCategorias,
+                lista_categiras_filtrado_tiendas_Cercanas,
                 estado.listaCompleta,
                 estado.lugar_lat,
                 estado.lugar_lng
             )
         )
     }
+    Log.d(
+        "estadolistapasble",
+        """
+    ================== ESTADO FILTRO ==================
+    🗂 Lista categorías   : ${estadoFiltro.listaCategorias.size}
+      ====================================================
+    """.trimIndent()
+    )
+
 
 
     ModalBottomSheet(
@@ -110,6 +124,7 @@ fun bottom_sheet_mapa(
                 when (tipo) {
                     "turismo" -> {
                         listado_items(
+                            lista_categiras_filtrado_tiendas_Cercanas,
                             viewmodelMapa = viewmodelMapa,
                             teindas_cercanas_fitrada = estadoFiltro,
                             tipo = "turismo",
@@ -138,7 +153,8 @@ fun bottom_sheet_mapa(
                                         direccion = id.direccion,
                                         referencia = id.referencia,
                                         contacto_tienda = id.contacto_tienda,
-                                        metodos_pago_tienda = id.metodos_pago_tienda, horario_box = id.horario_box
+                                        metodos_pago_tienda = id.metodos_pago_tienda,
+                                        horario_box = id.horario_box
                                     )
                                 )
                             }, estados_guardado = { categoria, radio ->
@@ -153,6 +169,7 @@ fun bottom_sheet_mapa(
 
                     "tiendas" -> {
                         listado_items(
+                            lista_categiras_filtrado_tiendas_Cercanas,
                             viewmodelMapa = viewmodelMapa,
                             teindas_cercanas_fitrada = TiendasCercanasFiltrada(),
                             tipo = "tiendas",
@@ -164,8 +181,7 @@ fun bottom_sheet_mapa(
                             getLng = { it.longitud },
                             getLogo = { it.logo_tienda },
                             getNombre = { it.nombre_tienda },
-                            getDescripcion = { it.descripcion },
-                            selecionado ={ id ->
+                            getDescripcion = { it.descripcion }, selecionado = { id ->
                                 selecionado_id(id.id_tienda)
                                 datos_selecionado_retornar(
                                     dataclass_map(
@@ -181,11 +197,12 @@ fun bottom_sheet_mapa(
                                         direccion = id.direccion,
                                         referencia = id.referencia,
                                         contacto_tienda = id.contacto_tienda,
-                                        metodos_pago_tienda = id.metodos_pago_tienda, horario_box = id.horario_tienda_box
+                                        metodos_pago_tienda = id.metodos_pago_tienda,
+                                        horario_box = id.horario_tienda_box
                                     )
                                 )
-                            },{_,_->}
-                        )
+                            }
+                        ) { _, _ -> }
                     }
 
                     else -> {}
@@ -203,6 +220,7 @@ fun bottom_sheet_mapa(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> listado_items(
+    lista_categiras_filtrado_tiendas_Cercanas: List<String>,
     viewmodelMapa: viewModel_lugares_turisticos,
     teindas_cercanas_fitrada: TiendasCercanasFiltrada,
     tipo: String,
@@ -230,7 +248,7 @@ fun <T> listado_items(
     }
     LaunchedEffect(sub_categoria_selecionada) {
         viewmodelMapa.filtrar_por_subcategoria(
-            teindas_cercanas_fitrada.listaCategorias,
+            lista_categiras_filtrado_tiendas_Cercanas,
             sub_categoria_selecionada,
             teindas_cercanas_fitrada.lugar_lat, teindas_cercanas_fitrada.lugar_lng,
             nuevo_rango_busqueda
@@ -317,16 +335,20 @@ fun <T> listado_items(
 
                         Column {
                             texto_generico_multilinea(
-                                "Rango aproximado de búsqueda: ${nuevo_rango_busqueda} km",
+                                "Rango aproximado de búsqueda: ${
+                                    constantes_lista_localidades.formatRadioFromSlider(
+                                        nuevo_rango_busqueda
+                                    )
+                                }",
                                 MaterialTheme.typography.bodyMedium
                             )
                             spacer_vertical(10.dp)
 
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                                 val listaConTodos =
-                                    if ("Todos" in teindas_cercanas_fitrada.listaCategorias) teindas_cercanas_fitrada.listaCategorias else listOf(
+                                    if ("Todos" in lista_categiras_filtrado_tiendas_Cercanas) lista_categiras_filtrado_tiendas_Cercanas else listOf(
                                         "Todos"
-                                    ) + teindas_cercanas_fitrada.listaCategorias
+                                    ) + lista_categiras_filtrado_tiendas_Cercanas
                                 items(listaConTodos) { i ->
                                     val selecionado = sub_categoria_selecionada == i
                                     chisp_filtrado_busqueda(
@@ -360,7 +382,7 @@ fun <T> listado_items(
                                 steps = 8,
                                 onValueChangeFinished = {
                                     viewmodelMapa.filtrar_por_subcategoria(
-                                        teindas_cercanas_fitrada.listaCategorias,
+                                        lista_categiras_filtrado_tiendas_Cercanas,
                                         sub_categoria_selecionada,
                                         teindas_cercanas_fitrada.lugar_lat,
                                         teindas_cercanas_fitrada.lugar_lng,
@@ -409,31 +431,49 @@ fun <T> listado_items(
             }
 
         }
-        itemsIndexed(lista, key = { _, item -> getId(item) }) { index, item ->
-            carta_turismo_google_mpa(
-                index,
-                getId(item),
-                getLat(item),
-                getLng(item),
-                getLogo(item),
-                getNombre(item),
-                getDescripcion(item),
-                seleccionado = (seleccionadoId == getId(item))
-            ) { id, lat, log ->
-                val nuevaUbicacion = LatLng(lat, log)
-
-
-                // 🔹 Aquí en vez de mandar solo el id, mandamos todo el item
-                selecionado(item)
-
-                scope.launch {
-                    cameraPositionState.animate(
-                        CameraUpdateFactory.newLatLngZoom(nuevaUbicacion, 16f),
-                        1000
+        if (lista.size != 0) {
+            itemsIndexed(lista, key = { _, item -> getId(item) }) { index, item ->
+                Log.d("tamodasdalista", "${lista.size}")
+                carta_turismo_google_mpa(
+                    index,
+                    getId(item),
+                    getLat(item),
+                    getLng(item),
+                    getLogo(item),
+                    getNombre(item),
+                    getDescripcion(item),
+                    seleccionado = (seleccionadoId == getId(item))
+                ) { id, lat, log ->
+                    val nuevaUbicacion = LatLng(lat, log)
+                    selecionado(item)
+                    scope.launch {
+                        cameraPositionState.animate(
+                            CameraUpdateFactory.newLatLngZoom(nuevaUbicacion, 16f),
+                            1000
+                        )
+                    }
+                }
+            }
+        } else {
+            item(span = StaggeredGridItemSpan.FullLine) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 500.dp), // Ajusta el alto que quieras
+                    contentAlignment = Alignment.Center
+                ) {
+                    texto_generico_one_line(
+                        texto = "No se encontraron resultados en este rango",
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
+
+
+
+
         }
+
     }
 
 }

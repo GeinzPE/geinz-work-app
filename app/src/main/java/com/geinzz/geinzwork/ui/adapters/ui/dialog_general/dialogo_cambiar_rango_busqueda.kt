@@ -55,6 +55,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatRadioFromSlider
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerZonaActual
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
@@ -359,7 +360,7 @@ fun dialogo_cabiar_rango_busqueda(
 
                 spacer_vertical(15.dp)
                 texto_generico_multilinea(
-                    "Rango aproximado de búsqueda: ${radioActual} km",
+                    "Rango aproximado de búsqueda: ${formatRadioFromSlider(radioActual)}",
                     MaterialTheme.typography.bodyMedium
                 )
                 spacer_vertical(10.dp)
@@ -406,3 +407,5 @@ fun dialogo_cabiar_rango_busqueda(
         },
     )
 }
+
+

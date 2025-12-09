@@ -117,7 +117,7 @@ fun login_socios(isConnected: Boolean) {
     val verificar_id by remember { mutableStateOf("") }
     val context = LocalContext.current
     var id_registrado by remember { mutableStateOf("") }
-    val labels = listOf("Vistas", "Guardados", "Clics")
+    val labels = listOf("Vistas", "Guardados", "Clics","Compartidos")
     val labels2 = listOf("Facebook", "Instagram", "TikTok", "Sitio web")
     val labels3 = listOf("Llamada", "Whatsapp", "Rutas")
     val viewmodel: viewmodel_eres_socio = viewModel()
@@ -560,7 +560,8 @@ fun login_socios(isConnected: Boolean) {
                                                 values = listOf(
                                                     datos.total_vista.toFloat(),
                                                     datos.total_guardados.toFloat(),
-                                                    datos.clic.toFloat()
+                                                    datos.clic.toFloat(),
+                                                    datos.compartidos.toFloat()
                                                 )
                                                 values3 = listOf(
                                                     datos.llamada.toFloat(),
@@ -794,9 +795,15 @@ fun login_socios(isConnected: Boolean) {
                                                     datos_grafico(
                                                         enable = datos.clic != 0,
                                                         img_ = R.drawable.click_icon3d,
-                                                        label = "clics en perfil",
+                                                        label = "Clics en perfil",
                                                         cantidad = datos.clic.toString()
-                                                    )
+                                                    ),
+                                                            datos_grafico(
+                                                            enable = datos.compartidos != 0,
+                                                    img_ = R.drawable.compartir_icon_vector,
+                                                    label = "Compartidos",
+                                                    cantidad = datos.compartidos.toString()
+                                                )
                                                 )
                                                 AnimatedVisibility(lsita_datos1.any { it.enable }) {
                                                     Cartas_expandibles(
@@ -826,7 +833,7 @@ fun login_socios(isConnected: Boolean) {
                                                             ) {
                                                                 LazyRow(
                                                                     contentPadding = PaddingValues(
-                                                                        horizontal = 10.dp
+                                                                        horizontal = 15.dp
                                                                     ),
                                                                     horizontalArrangement = Arrangement.spacedBy(
                                                                         10.dp
@@ -873,6 +880,17 @@ fun login_socios(isConnected: Boolean) {
                                                                                             icono_mostar_leyendas_graficos =
                                                                                                 R.drawable.click_icon3d
                                                                                         }
+
+                                                                                        "Compartidos" -> {
+                                                                                            dialog_mostar_leyendas_graficos =
+                                                                                                true
+                                                                                            titulo_leyenda_dialog =
+                                                                                                "Compartidos"
+                                                                                            txt_leyenda =
+                                                                                                "Los compartidos representan cuántos usuarios compartieron directamente el perfil de la tienda o negocio. Haciendo que mas personas te conozcan"
+                                                                                            icono_mostar_leyendas_graficos =
+                                                                                                R.drawable.compartir_icon_vector
+                                                                                        }
                                                                                     }
 
                                                                                 }
@@ -890,6 +908,9 @@ fun login_socios(isConnected: Boolean) {
                                                                                                 ),
                                                                                                 Color(
                                                                                                     0xFF4EFF00
+                                                                                                ),
+                                                                                                Color(
+                                                                                                    0xFF0037FF
                                                                                                 ),
                                                                                             )[index],
                                                                                             shape = CircleShape
@@ -919,7 +940,8 @@ fun login_socios(isConnected: Boolean) {
                                                                         pieColors = listOf(
                                                                             Color(0xFFFF6B6B),
                                                                             Color(0xFF4ECDC4),
-                                                                            Color(0xFF4EFF00)
+                                                                            Color(0xFF4EFF00),
+                                                                            Color(0xFF0037FF)
                                                                         )
                                                                     )
                                                                 )

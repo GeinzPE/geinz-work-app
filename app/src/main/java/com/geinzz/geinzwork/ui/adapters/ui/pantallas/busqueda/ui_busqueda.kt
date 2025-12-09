@@ -302,13 +302,29 @@ fun ui_pantalla_busqueda(
     var mostar_bottom_sheet_ayuda_geinz by remember { mutableStateOf(false) }
     var id_tienda_crear_ruta by remember { mutableStateOf("") }
     var localidad_tienda_crear_ruta by remember { mutableStateOf("") }
+    var latUsuario by remember { mutableStateOf(0.0) }
+    var lonUsuario by remember { mutableStateOf(0.0) }
 
-    val (latUsuario, lonUsuario) =
-        obtenerLatLonUsuario(context).collectAsState(
-            initial = Pair(null, null)
-        ).value
+    LaunchedEffect(cerca_de_ti_enable.value) {
+        if (cerca_de_ti_enable.value) {
 
-    Log.d("UbicacionUsuario", "Lat: $latUsuario, Lon: $lonUsuario")
+            // 🔥 Se activa: empieza a escuchar DataStore
+            obtenerLatLonUsuario(context).collect { (lat, lon) ->
+                latUsuario = lat
+                lonUsuario = lon
+                Log.d("UbicacionUsuario", "Lat: $latUsuario, Lon: $lonUsuario")
+            }
+
+        } else {
+            // ❌ Se desactiva: NO quiero escuchar más
+            latUsuario = 0.0
+            lonUsuario = 0.0
+        }
+    }
+
+
+
+
 
 
 
@@ -347,7 +363,7 @@ fun ui_pantalla_busqueda(
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             Log.d("GPS", "✅ El usuario activó el GPS")
-            obtenerUbicacionEnTiempoReal(estadoGPS, context, { lat, lng ->
+             obtenerUbicacionEnTiempoReal(estadoGPS, context, { lat, lng ->
                 Log.d("lat_log_user", "$lat $lng")
                 hash_user = geohashing(lat, lng)
                 val hora = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
@@ -392,15 +408,15 @@ fun ui_pantalla_busqueda(
                     "FiltroRadioEffect",
                     "Hay categorías o subcategorías seleccionadas, filtrando por radio..."
                 )
-                viewModel.filtrar_por_radio(
-                    latUsuario,lonUsuario,
-                    radioActual,
-                    context,
-                    categoria_filtrad,
-                    subcategira_filtrado,
-                    cerca_de_ti_enable.value,
-                    hash_user
-                )
+//                viewModel.filtrar_por_radio(
+//                    latUsuario, lonUsuario,
+//                    radioActual,
+//                    context,
+//                    categoria_filtrad,
+//                    subcategira_filtrado,
+//                    cerca_de_ti_enable.value,
+//                    hash_user
+//                )
             } else {
                 Log.d(
                     "FiltroRadioEffect",
@@ -531,7 +547,7 @@ fun ui_pantalla_busqueda(
         if (categoriaFinal.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
             Log.d("buscamosen", "entramos_condiocn")
             viewModel.filtrarSubCat(
-                latUsuario,lonUsuario,
+                latUsuario, lonUsuario,
                 radioActual,
                 context,
                 hash_user,
@@ -562,20 +578,46 @@ fun ui_pantalla_busqueda(
     LaunchedEffect(ultima_cordenada_actualziada, cerca_de_ti_enable.value) {
         if (ultima_cordenada_actualziada != null && cerca_de_ti_enable.value) {
             Log.d("cambiamos_hasuser", "📍 Nueva coordenada: $ultima_cordenada_actualziada")
-            viewModel.filtrar_por_radio(
-                latUsuario,lonUsuario,
-                radioActual,
-                context,
-                categoria_filtrad,
-                subcategira_filtrado,
-                cerca_de_ti_enable.value,
-                ultima_cordenada_actualziada
-            )
+//            viewModel.filtrar_por_radio(
+//                latUsuario, lonUsuario,
+//                radioActual,
+//                context,
+//                categoria_filtrad,
+//                subcategira_filtrado,
+//                cerca_de_ti_enable.value,
+//                ultima_cordenada_actualziada
+//            )
         } else {
             Log.d("cambiamos_hasuser", "⚠️ No hay coordenada o cerca_de_ti_enable = false")
 //         viewmodel_floating_filtrado.limpiar_valor_save_cerca_de_ti()
         }
     }
+    LaunchedEffect(
+        latUsuario,
+        lonUsuario,
+        radioActual,
+        categoria_filtrad,
+        subcategira_filtrado,
+        cerca_de_ti_enable.value,
+        hash_user
+    ) {
+        if (cerca_de_ti_enable.value && hash_user != null) {
+
+            Log.d("FiltroRadioEffect", "Ejecutando filtro: $latUsuario, $lonUsuario")
+
+            viewModel.filtrar_por_radio(
+                latUsuario,
+                lonUsuario,
+                radioActual,
+                context,
+                categoria_filtrad,
+                subcategira_filtrado,
+                cerca_de_ti_enable.value,
+                hash_user
+            )
+        }
+    }
+
 
 
     LaunchedEffect(categoria_filtrad) {
@@ -773,15 +815,15 @@ fun ui_pantalla_busqueda(
 //                        viewModelFiltros.obtenerHorarioPorTienda_activa(localidad, id)
                         show_bottom_sheeet = true
                     }, listner_carta_turismo = { id, localidad ->
-                        Log.d("id_tiendasdada","$id $localidad")
+                        Log.d("id_tiendasdada", "$id $localidad")
                         id_lugar_turistico_select = id
                         localdad_llugar_turistico = localidad
                         bottom_sheet_turismo = true
                     },
-                    abrir_gogle_map = { lat, log,id_tienda,localidad ->
+                    abrir_gogle_map = { lat, log, id_tienda, localidad ->
                         dialog_Crear_ruta = true
-                        id_tienda_crear_ruta=id_tienda
-                        localidad_tienda_crear_ruta=localidad
+                        id_tienda_crear_ruta = id_tienda
+                        localidad_tienda_crear_ruta = localidad
                         latitud = lat
                         longitud = log
                     },
@@ -937,7 +979,8 @@ fun ui_pantalla_busqueda(
                 crear_ruta = { crear_ruta ->
                     dialog_Crear_ruta = false
                     if (crear_ruta && verificarUbiActiva(context)) {
-                        constantes_lista_localidades.abrir_google_maps("tienda",id_tienda_crear_ruta,localidad_tienda_crear_ruta,
+                        constantes_lista_localidades.abrir_google_maps(
+                            "tienda", id_tienda_crear_ruta, localidad_tienda_crear_ruta,
                             context, latitud, longitud,
                         ) { dialogo ->
                             validacion_mostrar_dialog_ubi_off = dialogo
@@ -971,7 +1014,8 @@ fun ui_pantalla_busqueda(
         }
 
         if (bottom_sheet_turismo) {
-            bottom_sheet_lugares_turisticos(verificar_intener,
+            bottom_sheet_lugares_turisticos(
+                verificar_intener,
                 viewmodelMap = viewmodelMap,
                 viewmodel_lugares_turisticos = viewmodel_lugares_turisticos,
                 datos = datos_lugares_turisticos,
@@ -999,15 +1043,15 @@ fun ui_pantalla_busqueda(
                 ondimis = { mostrar_dialog_cambiar_radio = !mostrar_dialog_cambiar_radio },
                 ondimis_aceptar = { radio, hasing_user ->
                     Log.d("logemos", "${radio}")
-                    viewModel.filtrar_por_radio(
-                        latUsuario,lonUsuario,
-                        radio,
-                        context,
-                        categoria_filtrad,
-                        subcategira_filtrado,
-                        cerca_de_ti_enable.value,
-                        hasing_user
-                    )
+//                    viewModel.filtrar_por_radio(
+//                        latUsuario, lonUsuario,
+//                        radio,
+//                        context,
+//                        categoria_filtrad,
+//                        subcategira_filtrado,
+//                        cerca_de_ti_enable.value,
+//                        hasing_user
+//                    )
 //                    hash_user=hasing_user
                     radio_cambiado = radio
                 },
@@ -1036,8 +1080,10 @@ fun ui_pantalla_busqueda(
         }
 
         if (mostar_bottom_sheet_ayuda_geinz) {
-            bottom_sheet_ayudanos_a_creccer(verificar_intener,ultimaLocalidad?:"barranca",
-                { mostar_bottom_sheet_ayuda_geinz = false },viewModelFiltros)
+            bottom_sheet_ayudanos_a_creccer(
+                verificar_intener, ultimaLocalidad ?: "barranca",
+                { mostar_bottom_sheet_ayuda_geinz = false }, viewModelFiltros
+            )
         }
         Box(
             modifier = Modifier
@@ -1161,15 +1207,15 @@ fun ui_pantalla_busqueda(
                 color_subcategoria = false
             }, filtrado_cerca_de_ti = { radio, hasing_user ->
                 Log.d("logemo13131232s", "${radio} $hasing_user")
-                viewModel.filtrar_por_radio(
-                    latUsuario,lonUsuario,
-                    radio,
-                    context,
-                    categoria_filtrad,
-                    subcategira_filtrado,
-                    cerca_de_ti_enable.value,
-                    hasing_user
-                )
+//                viewModel.filtrar_por_radio(
+//                    latUsuario, lonUsuario,
+//                    radio,
+//                    context,
+//                    categoria_filtrad,
+//                    subcategira_filtrado,
+//                    cerca_de_ti_enable.value,
+//                    hasing_user
+//                )
                 radio_cambiado = radio
                 hasing_user_user_filtrado = hasing_user
             }, fun_cerca_de_ti_enable = { it ->
@@ -1203,7 +1249,8 @@ fun ui_pantalla_busqueda(
                 mostrar_dialog_cambiar_radio = true
             }, fun_primeraVezCercaDeTi = { it ->
                 primeraVezCercaDeTi = it
-            },iniciar_seccion,crear_cuenta)
+            }, iniciar_seccion, crear_cuenta
+        )
     }
 }
 
@@ -1596,7 +1643,7 @@ fun ramdoBox(
     index: Int,
     listener_carta: (String, String, Color) -> Unit,
     listner_carta_turismo: (String, String) -> Unit,
-    abrir_gogle_map: (Double, Double,String,String) -> Unit,
+    abrir_gogle_map: (Double, Double, String, String) -> Unit,
     iniciar_seccion_normal: () -> Unit,
     crear_cuenta_geinz: () -> Unit,
     aler_dialog_contacto_fun: (lugar: String, nombre: String, img: String, id: String) -> Unit
@@ -1746,15 +1793,25 @@ fun ramdoBox(
                                     i.categoria == "seguridad" || i.categoria == "salud" -> {
                                         // Categoría seguridad o salud
                                         if (coordenadasValidas) {
-                                            abrir_gogle_map(i.latitud, i.longitud,i.id_tienda,i.lugar)
+                                            abrir_gogle_map(
+                                                i.latitud,
+                                                i.longitud,
+                                                i.id_tienda,
+                                                i.lugar
+                                            )
                                         }
                                         // Si no hay coordenadas, no hace nada
                                     }
 
-                                    firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()-> {
+                                    firebaseAuth.currentUser != null || id_respado_user.isNotEmpty() -> {
                                         // Categoría diferente y usuario registrado
                                         if (coordenadasValidas) {
-                                            abrir_gogle_map(i.latitud, i.longitud,i.id_tienda,i.lugar)
+                                            abrir_gogle_map(
+                                                i.latitud,
+                                                i.longitud,
+                                                i.id_tienda,
+                                                i.lugar
+                                            )
                                         }
                                         // Si no hay coordenadas, no hace nada
                                     }

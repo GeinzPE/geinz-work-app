@@ -23,7 +23,8 @@ data class datos_tienda(
     val fecha_termino: String = "",
     val descripcion: String = "",
     val lista_ids_propietarios: List<String> = emptyList(),
-    val saldo_disponible_tienda: Number = 0
+    val saldo_disponible_tienda: Number = 0,
+    val compartidos: Number= 0
 )
 
 data class widget_tienda(

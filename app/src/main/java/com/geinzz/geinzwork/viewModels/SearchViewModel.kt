@@ -226,7 +226,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     /** ---------- FILTRAR POR SUBCATEGORÍA Y CATEGORÍA ---------- */
     fun filtrarSubCat(
-        lat:Double?,lng:Double?,
+        lat:Double,lng:Double,
         radio: Float,
         context: Context,
         hashUser: String?,
@@ -235,7 +235,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         categoria: String?,
         subcategoria: String?
     ) {
-        Log.d("isntqa_fun", "filtrarSubCat")
+        Log.d("isntqa_fun", "$lat $lng")
         Log.d("isntqa_fun1231313", "$cercaDeTiEnable")
 
         filterJob?.cancel()
@@ -322,11 +322,12 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     /** ---------- FILTRAR POR RADIO INTERNO ---------- */
     fun filtrarPorRadioInterno(
         paso: Float,                // cada paso = 100 m
-        latUser: Double?,
-        lngUser: Double?,
+        latUser: Double,
+        lngUser: Double,
         listaMaster: List<Item>,    // lista completa de la app
         categoriaSeleccionada: String? = null
     ): List<Item> {
+        Log.d("lat_stras","$latUser $lngUser")
         return try {
             Log.d("isntqa_fun", "📌 Iniciando filtrarPorRadioInterno $latUser $lngUser")
             Log.d("isntqa_fun", "Paso recibido: $paso")
@@ -374,7 +375,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
 
     fun filtrar_por_radio(
-        lat: Double?,lng: Double?,
+        lat: Double,lng: Double,
         radio_filtrado: Float,
         context: Context,
         cat_select: String,
@@ -382,7 +383,9 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         cerca_de_ti_enable: Boolean,
         hash_user: String?
     ) {
+
         Log.d("isntqa_fun", "filtrar_por_radio")
+        Log.d("isntqa_fun1231312313", "$lat $lng")
 
         viewModelScope.launch {
             try {
@@ -396,7 +399,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                     listaFiltrable =
                         filtrarPorRadioInterno(
                             radio_filtrado,
-
                             lat,lng,
                             listaOriginalCompleta,cat_select
                         )

@@ -84,6 +84,7 @@ class repo_eres_socio {
                             val wsap = obtenerTotal("whatsapp")
                             val llamada = obtenerTotal("llamada")
                             val ruta = obtenerTotal("ruta")
+                            val compartidos = obtenerTotal("compartidos")
 
                             // ✔️ AQUÍ ESTABA EL ERROR → faltaba poner el nombre del último parámetro
                             resultado(
@@ -105,7 +106,7 @@ class repo_eres_socio {
                                     localidad_tienda = localidadTienda,
                                     fecha_ingreso = fecha_ingreso,
                                     fecha_termino = fecha_termino,
-                                    descripcion = descripcion, propietario_id,saldo_tienda
+                                    descripcion = descripcion, propietario_id,saldo_tienda,compartidos
                                 )
                             )
                         }

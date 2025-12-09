@@ -2817,4 +2817,54 @@ object constantes_lista_localidades {
     }
 
 
+    fun formatRadioFromSlider(valorSlider: Float): String {
+        val metros = valorSlider * 100f  // 1.0 → 100m, 10.0 → 1000m
+
+        return if (metros < 1000f) {
+            "${metros.toInt()} m"
+        } else {
+            val km = metros / 1000f
+            if (km % 1f == 0f) {
+                "${km.toInt()} km"
+            } else {
+                "%.1f km".format(km)
+            }
+        }
+    }
+    fun formatRadio(metros: Int): String {
+        return if (metros < 1000) {
+            "${metros} m"
+        } else {
+            val kmEnteros = metros / 1000   // entero
+            "${kmEnteros} km"
+        }
+    }
+
+
+    fun formatDistancia(distancia: Float?): String {
+        if (distancia == null) return "--"
+
+        return if (distancia < 1000f) {
+            "${distancia.toInt()} m"
+        } else {
+            val km = distancia / 1000f
+            if (km % 1f == 0f) "${km.toInt()} km" else "%.1f km".format(km)
+        }
+    }
+
+    fun formatearDistanciaDouble(distanciaKm: Double): String {
+        // Convertir a metros
+        val metros = distanciaKm * 1000
+
+        return if (metros < 1000) {
+            // Menos de 1 km → mostrar en metros sin decimales
+            "${metros.toInt()} m"
+        } else {
+            // 1 km o más → mostrar en km con 1 decimal
+            val km = metros / 1000
+            String.format("%.1f km", km)
+        }
+    }
+
+
 }

@@ -104,7 +104,7 @@ data class tiendas_cecanas_km(
     val id_tienda: String="",
     val img_tienda: String = "",
     val nombre_tienda: String = "",
-    val kl: String = "",
+    val kl: Double = 0.0,
     val nombre_lugar: String = "", val color: Color = Color.Transparent,
     val HorarioDia_box :HorarioDia_box= HorarioDia_box(),
     val tick: Long = 0,

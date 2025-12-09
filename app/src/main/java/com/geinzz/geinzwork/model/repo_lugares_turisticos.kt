@@ -121,7 +121,7 @@ class repo_lugares_turisticos {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+@RequiresApi(Build.VERSION_CODES.O)
     fun obtenerTiendasCercanas(
         lat: Double,
         lon: Double,
@@ -131,18 +131,25 @@ class repo_lugares_turisticos {
     ) {
         val db = FirebaseFirestore.getInstance()
         val center = GeoLocation(lat, lon)
-        val radiusInM = radioKm * 1000
+        val radiusInM = (radioKm * 1000)
         val bounds = GeoFireUtils.getGeoHashQueryBounds(center, radiusInM)
         val tasks = mutableListOf<Task<*>>()
         val tiendas = mutableListOf<lugares_cercanos>()
         val categoriasSet = mutableSetOf<String>()
-        Log.d(
-            "geoquery",
-            "📍 Buscando tiendas cercanas a ($lat, $lon) dentro de $radioKm km [${bounds.size} rangos]"
-        )
+
+        Log.d("geoquery", "-----------------------------------------------")
+        Log.d("geoquery", "📍 BUSCANDO TIENDAS CERCA")
+        Log.d("geoquery", "Lat: $lat  Lon: $lon")
+        Log.d("geoquery", "Radio: $radioKm km ($radiusInM metros)")
+        Log.d("geoquery", "Localidad: $localidad")
+        Log.d("geoquery", "Rangos geohash: ${bounds.size}")
+        Log.d("geoquery", "-----------------------------------------------")
 
         for ((index, b) in bounds.withIndex()) {
-            Log.d("geoquery", "➡️ Rango $index: start=${b.startHash}, end=${b.endHash}")
+
+            Log.d("geoquery", "➡️ RANGO $index")
+            Log.d("geoquery", "   startHash=${b.startHash}")
+            Log.d("geoquery", "   endHash=${b.endHash}")
 
             val q = db.collection("Tiendas")
                 .document(localidad)
@@ -151,89 +158,113 @@ class repo_lugares_turisticos {
                 .startAt(b.startHash)
                 .endAt(b.endHash)
 
-            Log.d(
-                "geoquery",
-                "🧭 Consulta Firestore: /Tiendas/$localidad/$localidad ordenando por geohash"
-            )
+            tasks.add(
+                q.get()
+                    .addOnSuccessListener { snapshot ->
 
-            tasks.add(q.get().addOnSuccessListener { snapshot ->
-                Log.d("geoquery", "📦 ${snapshot.size()} documentos devueltos para rango $index")
+                        Log.d("geoquery", "📦 Documentos devueltos en rango $index: ${snapshot.size()}")
 
-                for (doc in snapshot) {
-                    Log.d(
-                        "geoquery",
-                        "🗂️ Documento: ${doc.id} → geohash=${doc.getString("geohash")}"
-                    )
+                        for (doc in snapshot) {
 
-                    val geohash = doc.getString("geohash") ?: ""
-                    val nombre = doc.getString("nombre_tienda") ?: ""
-                    val idTienda = doc.id
-                    val mapImg = doc.get("img_tienda") as? Map<String, Any> ?: emptyMap()
-                    val logo = mapImg["logo_tienda"] as? String ?: ""
-                    val tag = doc.get("subcategoria") as? List<String> ?: emptyList()
-                    val ubicacion = doc.get("ubicacion") as? Map<String, Any> ?: emptyMap()
-                    val pagado = doc.get("pagado") as? Boolean ?: false
-                    val latitud = ubicacion["latitud"] as? Number ?: 0
-                    val longitud = ubicacion["longitud"] as? Number ?: 0
-                    val direccion = ubicacion["dirección"] as? String?:""
-                    val referencia = ubicacion["referencia"] as? String?:""
-                    val descripcion = doc["descripcion"] as? String?:""
+                            val geohash = doc.getString("geohash") ?: ""
+                            val nombre = doc.getString("nombre_tienda") ?: ""
+                            val idTienda = doc.id
 
-                    val categoria_tienda = doc.getString("categoria_tienda") ?: ""
-                    val horario_dia = doc.get("horario_atencion") as? Map<String, Any> ?: emptyMap()
-                    if (categoria_tienda.isNotEmpty()) {
-                        categoriasSet.add(categoria_tienda) // 🔹 Guardamos la categoría
-                    }
-                    val metodos_contacto =
-                        doc.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
-                    val contacto_obs = metodos_contacto.toMetodoContacto()
-                    val metodo_pago = doc.get("metodos_pago") as? Map<String, Any> ?: emptyMap()
-                    val lcalidad_tienda = doc.get("localidad") as? String ?:""
-                    val metodo_pago_separado = metodo_pago.to_metodo_pago()
-                    val horario_box_mapeo=horario_dia.to_horario_atencion_box_dia()
+                            val ubicacion = doc.get("ubicacion") as? Map<String, Any> ?: emptyMap()
+                            val latitud = ubicacion["latitud"] as? Number ?: 0
+                            val longitud = ubicacion["longitud"] as? Number ?: 0
+                            val pagado = doc.get("pagado") as? Boolean ?: false
 
-                    val distancia = GeoFireUtils.getDistanceBetween(
-                        center,
-                        GeoLocation(latitud.toDouble(), longitud.toDouble())
-                    )
+                            val categoria_tienda = doc.getString("categoria_tienda") ?: ""
 
-                    if (distancia <= radiusInM && pagado) {
-                        Log.d("geoquery", "✅ ${doc.id} dentro del radio (${distancia.toInt()} m)")
-                        // ✅ Filtrar por categoría seleccionada
-                        tiendas.add(
-                            lugares_cercanos(
-                                nombre_tienda = nombre,
-                                logo_tienda = logo,
-                                categoria = categoria_tienda,
-                                lista_subcategoiras = tag,
-                                id_tienda = idTienda,
-                                pagado = pagado,
-                                latitud = latitud.toDouble(),
-                                longitud = longitud.toDouble(),
-                                contacto_tienda = contacto_obs,
-                                has_tienda = geohash,
-                                direccion = direccion, referencia = referencia,
-                                descripcion = descripcion,
-                                metodos_pago_tienda = metodo_pago_separado,horario_box_mapeo,lcalidad_tienda
+                            // 🔥 DISTANCIA REAL
+                            val distancia = GeoFireUtils.getDistanceBetween(
+                                center,
+                                GeoLocation(latitud.toDouble(), longitud.toDouble())
                             )
-                        )
 
-                    } else {
-                        Log.d("geoquery", "❌ ${doc.id} fuera del radio (${distancia.toInt()} m)")
+                            Log.d("geoquery", "-------------------------------")
+                            Log.d("geoquery", "📝 TIENDA: ${doc.id}")
+                            Log.d("geoquery", "Nombre: $nombre")
+                            Log.d("geoquery", "Geohash: $geohash")
+                            Log.d("geoquery", "Lat: $latitud  Lon: $longitud")
+                            Log.d("geoquery", "Distancia: ${distancia.toInt()} m")
+                            Log.d("geoquery", "Pagado: $pagado")
+                            Log.d("geoquery", "Categoría: $categoria_tienda")
+
+                            if (!pagado) {
+                                Log.d("geoquery", "❌ Ignorada (NO PAGADO)")
+                                continue
+                            }
+
+                            if (distancia <= radiusInM) {
+
+                                Log.d("geoquery", "✅ DENTRO DEL RADIO")
+
+                                if (categoria_tienda.isNotEmpty()) {
+                                    categoriasSet.add(categoria_tienda)
+                                    Log.d("geoquery", "   ➕ Categoría añadida: $categoria_tienda")
+                                }
+
+                                // Añadir a la lista (resto de campos completos)
+                                val mapImg = doc.get("img_tienda") as? Map<String, Any> ?: emptyMap()
+                                val logo = mapImg["logo_tienda"] as? String ?: ""
+                                val tag = doc.get("subcategoria") as? List<String> ?: emptyList()
+                                val direccion = ubicacion["dirección"] as? String ?: ""
+                                val referencia = ubicacion["referencia"] as? String ?: ""
+                                val descripcion = doc["descripcion"] as? String ?: ""
+                                val horario_dia = doc.get("horario_atencion") as? Map<String, Any> ?: emptyMap()
+                                val metodos_contacto = doc.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
+                                val metodo_pago = doc.get("metodos_pago") as? Map<String, Any> ?: emptyMap()
+                                val lcalidad_tienda = doc.get("localidad") as? String ?: ""
+
+                                val contacto_obs = metodos_contacto.toMetodoContacto()
+                                val metodo_pago_separado = metodo_pago.to_metodo_pago()
+                                val horario_box_mapeo = horario_dia.to_horario_atencion_box_dia()
+
+                                tiendas.add(
+                                    lugares_cercanos(
+                                        nombre_tienda = nombre,
+                                        logo_tienda = logo,
+                                        categoria = categoria_tienda,
+                                        lista_subcategoiras = tag,
+                                        id_tienda = idTienda,
+                                        pagado = pagado,
+                                        latitud = latitud.toDouble(),
+                                        longitud = longitud.toDouble(),
+                                        contacto_tienda = contacto_obs,
+                                        has_tienda = geohash,
+                                        direccion = direccion,
+                                        referencia = referencia,
+                                        descripcion = descripcion,
+                                        metodos_pago_tienda = metodo_pago_separado,
+                                        horario_box = horario_box_mapeo,
+                                        localidad_tienda = lcalidad_tienda
+                                    )
+                                )
+                            } else {
+                                Log.d("geoquery", "❌ FUERA DEL RADIO")
+                            }
+                        }
                     }
-
-                }
-            }.addOnFailureListener { e ->
-                Log.e("geoquery", "⚠️ Error al obtener documentos: ${e.message}")
-            })
+                    .addOnFailureListener { e ->
+                        Log.e("geoquery", "⚠️ Error en rango $index → ${e.message}")
+                    }
+            )
         }
 
-        Tasks.whenAllComplete(tasks)
-            .addOnSuccessListener {
-                Log.d("geoquery", "🎯 Total tiendas encontradas: ${tiendas.size}")
-                callback(tiendas, categoriasSet.toList())
-            }
+        Tasks.whenAllComplete(tasks).addOnSuccessListener {
+            Log.d("geoquery", "=======================================")
+            Log.d("geoquery", "🎯 PROCESO COMPLETADO")
+            Log.d("geoquery", "Tiendas encontradas DENTRO del radio: ${tiendas.size}")
+            Log.d("geoquery", "Categorías finales: $categoriasSet")
+            Log.d("geoquery", "=======================================")
+
+            callback(tiendas, categoriasSet.toList())
+        }
     }
+
+
 
 
 }

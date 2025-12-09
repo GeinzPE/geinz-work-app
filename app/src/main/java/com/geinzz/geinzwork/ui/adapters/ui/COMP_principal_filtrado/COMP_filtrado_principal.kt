@@ -81,6 +81,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -1257,10 +1258,7 @@ fun carta_turismo_google_mpa(
     val heightOptions = listOf(200.dp, 250.dp)
     val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
     var mostrar_overlay by remember { mutableStateOf(false) }
-//    val overlayAlpha by animateFloatAsState(
-//        targetValue = if (overlayVisible) 0.6f else 0f,
-//        animationSpec = tween(durationMillis = 500)
-//    )
+
     if (seleccionado) {
         mostrar_overlay = false
     } else {
@@ -2201,7 +2199,6 @@ fun baner_widget_tienda_geinz_baner(
         Column(
             modifier = Modifier
                 .weight(1.7f)
-                .fillMaxHeight()
                 .clip(RoundedCornerShape(15.dp))
                 .background(Color(0xFF1A1A1A))
                 .padding(10.dp).animateContentSize(),
@@ -2214,7 +2211,6 @@ fun baner_widget_tienda_geinz_baner(
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.weight(1f)
                 )
-
                 Switch(
                     checked = !switchActivo,
                     onCheckedChange = {
@@ -2243,8 +2239,6 @@ fun baner_widget_tienda_geinz_baner(
                     ),
                 )
             }
-
-
             Box {
                 this@Column.AnimatedVisibility(mostrarDatosCerrado) {
                     Column {
@@ -2452,10 +2446,7 @@ fun baner_widget_tienda_geinz_baner(
                     }
                 }
             }
-
         }
-
-
         spacer_vertical(8.dp)
 
 
@@ -2467,8 +2458,7 @@ fun baner_widget_tienda_geinz_baner(
 // ======================
         Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
+                .weight(1f),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
 
@@ -2476,8 +2466,8 @@ fun baner_widget_tienda_geinz_baner(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.5f) // 40% del alto total
-            ) {
+                    .aspectRatio(1.6f)   // Ajusta a tu gusto: 1.2, 1.4, 1.6, etc.
+            ){
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .memoryCachePolicy(CachePolicy.ENABLED)
@@ -2579,8 +2569,6 @@ fun baner_widget_tienda_geinz_baner(
                 )
             }
         }
-
-
 
     }
     if (mostarr_dialog_saldo) {

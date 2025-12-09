@@ -147,7 +147,10 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.ZoomIconButton
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatDistancia
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isGPSEnabled
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.obtenerUbicacionEnTiempoReal
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 
@@ -216,6 +219,7 @@ fun bottom_sheet_tiendas_filtradas(
     }
     var ultimoProcesado by rememberSaveable { mutableStateOf("") }
     var inicioPerfil by rememberSaveable { mutableStateOf(0L) }
+    Log.d("pasamoceorndeasd", "$latitud,$longitud ")
 
     LaunchedEffect(tiendas_filtradas.id_tienda) {
 
@@ -296,6 +300,52 @@ fun bottom_sheet_tiendas_filtradas(
     }
 
 
+    var distanciaUsuarioTienda by remember { mutableStateOf<Float?>(null) }
+    var gpsJobId by remember { mutableStateOf(0) }   // 🔥 ID para ignorar callbacks viejos
+
+    val gps_enable = isGPSEnabled(context)
+
+    LaunchedEffect(gps_enable, latitud, longitud) {
+
+        // 1. Nueva operación → incrementa ID
+        val currentId = ++gpsJobId
+
+        // 2. Limpia distancia inmediatamente
+        distanciaUsuarioTienda = null
+
+        if (gps_enable) {
+            try {
+                obtenerUbicacionEnTiempoReal(
+                    true,
+                    context,
+                    { lat_user, lng_user ->
+
+                        // 3. IGNORA si este callback pertenece a un cálculo viejo
+                        if (currentId != gpsJobId) return@obtenerUbicacionEnTiempoReal
+
+                        val resultados = FloatArray(1)
+                        Location.distanceBetween(
+                            lat_user,
+                            lng_user,
+                            latitud,
+                            longitud,
+                            resultados
+                        )
+
+                        distanciaUsuarioTienda = resultados[0]
+                    },
+                    {
+                        if (currentId == gpsJobId) {
+                            distanciaUsuarioTienda = null
+                        }
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e("UBICACION_ERROR", "Error al obtener ubicación: ${e.message}")
+            }
+        }
+    }
+
 
 
     if (!visible) return
@@ -347,6 +397,7 @@ fun bottom_sheet_tiendas_filtradas(
                         }
                         item {
                             cabezero_tiendas(
+                                distanciaUsuarioTienda,
                                 tiendas_filtradas.nombre_tienda,tiendas_filtradas.img_perfil,
                                 iconos_cosas_clikeables = iconos_cosas_clikeables,
                                 localidad = tiendas_filtradas.localidad ?: "barranca",
@@ -546,6 +597,7 @@ fun bottom_sheet_tiendas_filtradas(
 
 @Composable
 fun cabezero_tiendas(
+    distanciaUsuarioTienda: Float?,
     nombreTienda:String,logo_tienda_img:String,
     iconos_cosas_clikeables: Boolean,
     localidad: String,
@@ -583,6 +635,8 @@ fun cabezero_tiendas(
     val mostrarDialog_sin_google_maps = rememberSaveable { mutableStateOf(false) }
     var expdir_img by remember { mutableStateOf(false) }
     var mostrarDialogozoom by remember { mutableStateOf(false) }
+
+
 
     if (mostrarDialogozoom) {
         ZoomableGalleryFullScreen(
@@ -650,18 +704,6 @@ fun cabezero_tiendas(
                     )
             ) {
                 CollageGoogleMapsStyle(imagenes = lista_img)
-//                LazyRow(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(vertical = 10.dp),
-//                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-//                    contentPadding = PaddingValues(horizontal = 4.dp)
-//                ) {
-//                    items(lista_img.size) { img ->
-////                        val img_unidad = lista_img[img]
-//
-//                    }
-//                }
             }
         }
 
@@ -676,6 +718,7 @@ fun cabezero_tiendas(
         ) {
             Box(modifier = Modifier.weight(1f)) {
                 perfil_cabezero(
+                    distanciaUsuarioTienda,
                     latitud,longitud,
                     iconos_cosas_clikeables,
                     localidad,
@@ -824,6 +867,7 @@ fun perfil_img_zooom(
 
 @Composable
 fun perfil_cabezero(
+    distanciaUsuarioTienda: Float?,
     lat: Double, lng: Double, // Lat/lng de la tienda
     iconos_cosas_clikeables: Boolean,
     localida: String,
@@ -837,44 +881,13 @@ fun perfil_cabezero(
     val context = LocalContext.current
 
     Log.d("tienda:tienda:tienda:tienda:tienda:","$id_tienda $localida")
-    val horario_tiempo_real by viewModelFiltros.color_estado_tienda.collectAsState()
-    val _color_estado_tienda_Box by viewModelFiltros.color_estado_tienda_box.collectAsState()
     val horarios by viewModelFiltros.horariosTiendas_real.collectAsState()
     viewModelFiltros.repo_filtrado.escucharHorarioDeTiendaUnica(
         idTiendaBuscada = id_tienda,
         localidad = localida
     )
-
     val tick by viewModelFiltros.tick.collectAsState()
-    // Obtener ubicación del usuario (simple ejemplo, usando fusedLocationProviderClient)
-    val fusedLocationClient = remember {
-        LocationServices.getFusedLocationProviderClient(context)
-    }
-
-    var distanciaUsuarioTienda by remember { mutableStateOf<Float?>(null) }
-
-    LaunchedEffect(Unit) {
-        try {
-            fusedLocationClient.lastLocation
-                .addOnSuccessListener { location ->
-                    if (location != null) {
-                        val resultados = FloatArray(1)
-                        Location.distanceBetween(
-                            location.latitude,
-                            location.longitude,
-                            lat,
-                            lng,
-                            resultados
-                        )
-                        distanciaUsuarioTienda = resultados[0] // distancia en metros
-                        Log.d("perfil_cabezero", "Distancia usuario-tienda: ${distanciaUsuarioTienda} m")
-                    }
-                }
-        } catch (e: Exception) {
-            Log.e("perfil_cabezero", "Error obteniendo ubicación: ${e.message}")
-        }
-    }
-
+    val gps_enable=isGPSEnabled(context)
     Column {
         Text(
             text = nombre_tienda.uppercase(),
@@ -885,15 +898,16 @@ fun perfil_cabezero(
         )
         spacer_vertical(5.dp)
 
-        // Mostrar distancia real si está disponible
+     AnimatedVisibility(gps_enable) {
         distanciaUsuarioTienda?.let { distancia ->
             Text(
-                text = "Distancia a la tienda: ${"%.0f".format(distancia)} m",
+                text = "Estas aproximadamente a ${formatDistancia(distancia)}.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
+                color = Color.Gray, modifier = Modifier.padding(bottom = 7.dp)
             )
         }
 
+     }
         retornar_color_estado_tienda_Box(
             id_tienda = id_tienda,
             horario_total = horarios[id_tienda] ?: HorarioDia_box(),
@@ -903,7 +917,7 @@ fun perfil_cabezero(
                 viewModelFiltros.setear_color(color)
             })
         spacer_vertical(5.dp)
-        TextoCopiable(id_tienda)
+//        TextoCopiable(id_tienda)
         text_expandible_wrapp(
             texto = "${categoritienda.capitalizeFirst()}",
             style = MaterialTheme.typography.bodyMedium
@@ -1806,6 +1820,7 @@ fun compartirLugarFirebaseHosttiendas(
     nombre_tienda: String
 ) {
     try {
+        val repo_erese_socio = repo_eres_socio()
         // Construimos el link de la Cloud Function
         val link = "https://geinzworkapp.web.app/share?" +
                 "tipo=tienda" +
@@ -1814,6 +1829,7 @@ fun compartirLugarFirebaseHosttiendas(
                 "&categoria=${URLEncoder.encode(categoria, "UTF-8")}"
 
         val texto = "¡Mira $nombre_tienda en Geinz! 🔥\n$link"
+
 
         // Intent simple de compartir
         val intent = Intent(Intent.ACTION_SEND).apply {
@@ -1827,6 +1843,11 @@ fun compartirLugarFirebaseHosttiendas(
                 .apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
+        )
+        repo_erese_socio.agregar_contador(
+            "compartidos",
+            id_tienda,
+            localidad_tienda
         )
     } catch (e: Exception) {
         e.printStackTrace()

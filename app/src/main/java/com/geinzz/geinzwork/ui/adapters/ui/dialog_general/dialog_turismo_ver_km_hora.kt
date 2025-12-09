@@ -46,6 +46,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_tiempo_restante
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatearDistanciaDouble
 
 @Composable
 fun verificar_hora_abierta_ykm(item: tiendas_cecanas_km, ondimis: () -> Unit) {
@@ -138,7 +139,7 @@ fun verificar_hora_abierta_ykm(item: tiendas_cecanas_km, ondimis: () -> Unit) {
                 val texto = buildAnnotatedString {
                     append("A solo ")
                     withStyle(style = SpanStyle(color =color_txt)) {
-                        append(item.kl)
+                        append(formatearDistanciaDouble(item.kl))
                     }
                     append(" de ${item.nombre_lugar}, encontrarás ${item.nombre_tienda}.")
                 }
