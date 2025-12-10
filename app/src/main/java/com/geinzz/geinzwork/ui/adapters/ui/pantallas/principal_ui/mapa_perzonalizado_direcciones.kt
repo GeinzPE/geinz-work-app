@@ -79,6 +79,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -121,6 +122,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.actualizarUbicacion
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.bitmapDescriptorFromDrawable
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.data_redes_tiendas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isGpsActivo
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isLocationEnabled
@@ -418,7 +420,7 @@ fun MyGoogle_maps(
                 CameraPosition(
                     localidad_default,
                     16f,    // zoom
-                    50f,    // tilt -> inclinación
+                   0f,    // tilt -> inclinación
                     -40f      // bearing -> opcional
                 )
             )
@@ -637,37 +639,52 @@ fun MyGoogle_maps(
 
         }
 
+        var bearingIndex by remember { mutableStateOf(0) }
+
+// 👉 rotación del icono animada según el rumbo actual
+        val iconRotation by animateFloatAsState(
+            targetValue = getBearingForIndex(bearingIndex),
+            label = "iconRotation"
+        )
 
         Icon(
             imageVector = Icons.Default.NearMe,
             contentDescription = "Brújula",
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top=10.dp,end = 16.dp)
+                .padding(top = 10.dp, end = 16.dp)
                 .size(40.dp)
-//                .graphicsLayer {
-//                    rotationZ = rotation
-//                }
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary)
+                .graphicsLayer {
+                    rotationZ = iconRotation   // 👉 ROTACIÓN DEL ICONO
+                }
                 .clickable {
                     scope.launch {
                         val pos = cameraPositionState.position
+
+                        val newBearing = getBearingForIndex(bearingIndex)
+
                         cameraPositionState.animate(
                             CameraUpdateFactory.newCameraPosition(
                                 CameraPosition(
                                     pos.target,
                                     pos.zoom,
                                     pos.tilt,
-                                    0f     // 👉 reset al norte
+                                    newBearing
                                 )
                             ),
                             durationMs = 700
                         )
+
+                        // 👉 siguiente rumbo
+                        bearingIndex = (bearingIndex + 1) % 4
                     }
                 }
                 .padding(8.dp)
         )
+
+
 
         val fabColor by animateColorAsState(
             targetValue = if (seguirUbicacion.value) MaterialTheme.colorScheme.primary else Color(
@@ -1618,7 +1635,7 @@ fun dialogo_lugar_tienda(
                                 .padding(top = 5.dp)
                         ) {
                             Text(
-                                text = dataclass_map.nombre,
+                                text = dataclass_map.nombre.capitalizeFirst(),
                                 fontFamily = baners_geinz_work,
                                 fontSize = 20.sp,
                                 overflow = TextOverflow.Ellipsis,
@@ -1878,4 +1895,9 @@ fun rememberGpsActivo(context: Context): State<Boolean> {
         }
     }
     return gpsActivo
+}
+
+fun getBearingForIndex(index: Int): Float {
+    val bearings = listOf(0f, 180f, 90f, 270f)  // N, S, E, O
+    return bearings[index % bearings.size]
 }

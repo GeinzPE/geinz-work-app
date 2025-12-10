@@ -856,7 +856,9 @@ fun ui_pantalla_busqueda(
         when (state) {
             is SearchViewModel.ListItemsResult.Empty -> {
                 val mensaje = (state as SearchViewModel.ListItemsResult.Empty).mensaje
-                val radioTexto = Regex("""\d+\s*Km""").find(mensaje)?.value ?: ""
+                val radioTexto = Regex("""\d+(\.\d+)?\s*(km|m)""", RegexOption.IGNORE_CASE)
+                    .find(mensaje)
+                    ?.value ?: ""
                 Column(
                     modifier = Modifier
                         .align(Alignment.Center)

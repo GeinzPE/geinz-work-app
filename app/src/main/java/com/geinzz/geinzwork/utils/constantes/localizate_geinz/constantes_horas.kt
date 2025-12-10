@@ -263,6 +263,7 @@ object constantes_horas {
 
 
     fun calcularHorasDiaLegible(horarioDia: HorarioDia_box): String {
+        Log.d("horastrabajo","${horarioDia}")
         if (horarioDia.cerrado || horarioDia.bloques.isEmpty()) return "0h 0m"
 
         val formatter = DateTimeFormatter.ofPattern("HH:mm")
@@ -1138,7 +1139,14 @@ object constantes_horas {
                     try {
                         val data = doc.data
 
-                        val categoria = data["categoria_tienda"] as? String ?: ""
+                        val categoria = (data["categoria_tienda"] as? String)?.lowercase() ?: ""
+
+                        // 🔥 FILTRO: NO procesar grifos ni estaciones
+                        if (categoria == "grifos y estaciones" || categoria == "grifos y estaciones") {
+                            Log.d("NUEVOS_LUGARES", "Saltado (categoría filtrada): $categoria")
+                            continue
+                        }
+
                         val descripcion = data["descripcion"] as? String ?: ""
                         val id_tienda = data["id_tienda"] as? String ?: doc.id
                         val localidad = data["localidad"] as? String ?: ""
@@ -1156,7 +1164,7 @@ object constantes_horas {
                         val imgTiendaMap = data["img_tienda"] as? Map<String, Any> ?: emptyMap()
                         val logoTienda = imgTiendaMap["logo_tienda"] as? String ?: ""
 
-                        // Crear DataClass
+                        // DataClass
                         val tienda = dataclass_novedades_geinz(
                             categoria = categoria,
                             direccion = direccion,
@@ -1166,14 +1174,15 @@ object constantes_horas {
                             nombre_tienda = nombre_tienda,
                             lista_subcateogira = subcategorias,
                             descripcion = descripcion,
-                            localidad_tienda = localidad,fecha=emptyMap()
+                            localidad_tienda = localidad,
+                            fecha = emptyMap()
                         )
 
                         // 🔥 GUARDAR EN nuevos_lugares
                         val ref = db.collection("Tiendas")
                             .document(localidad)
                             .collection("nuevos_lugares")
-                            .document(id_tienda) // Se guarda por ID de tienda (sin duplicados)
+                            .document(id_tienda)
 
                         ref.set(tienda)
                             .addOnSuccessListener {
@@ -1193,6 +1202,7 @@ object constantes_horas {
                 Log.e("MAP_NOVEDADES", "Error al obtener tiendas: ${it.message}")
             }
     }
+
 
 
 }

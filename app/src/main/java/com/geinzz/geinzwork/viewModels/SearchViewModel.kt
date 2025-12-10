@@ -10,6 +10,9 @@ import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.aloglia.AlgoliaHelper
 import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatDistancia
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatDistancia_funcion
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -129,7 +132,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
                             _listaEncontrada.value = listaFiltrada
                             _state.value = if (listaFiltrada.isEmpty()) {
-                                ListItemsResult.Empty("No se encontraron resultados a ${radio.toInt()} Km")
+                                ListItemsResult.Empty("No se encontraron resultados a ${constantes_lista_localidades.formatDistancia(radio)} ")
                             } else {
                                 ListItemsResult.Success(categorias, listaFiltrada)
                             }
@@ -144,7 +147,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
                             _listaEncontrada.value = listaFiltrada
                             _state.value = if (listaFiltrada.isEmpty()) {
-                                ListItemsResult.Empty("No se encontraron resultados a ${radio.toInt()} Km")
+                                ListItemsResult.Empty("No se encontraron resultados a ${constantes_lista_localidades.formatDistancia(radio)}")
                             } else {
                                 ListItemsResult.Success(categorias, listaFiltrada)
                             }
@@ -296,7 +299,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
                 _state.value = if (listaFiltrada.isEmpty()) {
                     if (cercaDeTiEnable) {
-                        ListItemsResult.Empty("No se encontraron resultados a ${radio.toInt()} Km ")
+                        ListItemsResult.Empty("No se encontraron resultados a ${formatDistancia(radio)}")
                     } else {
                         ListItemsResult.Empty("No se encontraron resultados ")
                     }
@@ -417,7 +420,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
                 val categorias = listaFiltrable.map { it.categoria }.distinct()
                 _state.value = if (listaFiltrable.isEmpty()) {
-                    if (cerca_de_ti_enable) ListItemsResult.Empty("No se encontraron resultados en ${radio_filtrado.toInt()} Km")
+                    if (cerca_de_ti_enable) ListItemsResult.Empty("No se encontraron resultados en ${formatDistancia_funcion(radio_filtrado)} ")
                     else ListItemsResult.Empty("No se encontraron resultados")
                 } else ListItemsResult.Success(categorias, listaFiltrable)
 

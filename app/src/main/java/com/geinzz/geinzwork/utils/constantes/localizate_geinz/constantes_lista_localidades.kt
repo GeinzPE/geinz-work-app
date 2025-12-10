@@ -2842,6 +2842,7 @@ object constantes_lista_localidades {
 
 
     fun formatDistancia(distancia: Float?): String {
+        Log.d("tamaños_satrile","$distancia")
         if (distancia == null) return "--"
 
         return if (distancia < 1000f) {
@@ -2851,6 +2852,21 @@ object constantes_lista_localidades {
             if (km % 1f == 0f) "${km.toInt()} km" else "%.1f km".format(km)
         }
     }
+
+    fun formatDistancia_funcion(distancia: Float?): String {
+        if (distancia == null) return "--"
+
+        // 🔥 Convierte tu valor a metros correctamente
+        val distanciaEnMetros = distancia * 100f
+
+        return if (distanciaEnMetros < 1000f) {
+            "${distanciaEnMetros.toInt()} m"
+        } else {
+            val km = distanciaEnMetros / 1000f
+            if (km % 1f == 0f) "${km.toInt()} km" else "%.1f km".format(km)
+        }
+    }
+
 
     fun formatearDistanciaDouble(distanciaKm: Double): String {
         // Convertir a metros

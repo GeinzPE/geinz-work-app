@@ -73,6 +73,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad.ui_salud_se
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.ui_servicio_tramite
 import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5_s
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.pasar_teindas_nuevas
 import com.geinzz.geinzwork.viewModels.viewModel_favoritos
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
@@ -415,7 +416,8 @@ fun nativationWrapper(
                         },
                         abrir_guardar_datos = {
                         //                          enviar_notificacion_lista_dispo(id_user,"notificaion","prueva")
-                     navController.navigate(ui_agregar_lugares)
+//                     navController.navigate(ui_agregar_lugares)
+                            pasar_teindas_nuevas()
 
                         },
                         mostrar_panel_geinz = { navController.navigate(login_scios)},

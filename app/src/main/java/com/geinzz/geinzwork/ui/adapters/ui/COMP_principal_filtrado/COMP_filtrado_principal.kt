@@ -2052,6 +2052,8 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun baner_widget_tienda_geinz_baner(
+    switchActivo: Boolean,
+    motivo_cierre: String,
     context: Context,
     isConnected: Boolean,
     viewmodel: viewmodel_eres_socio,
@@ -2060,13 +2062,15 @@ fun baner_widget_tienda_geinz_baner(
     horas_de_trabajo: String,
     bloques_hoy: List<HorarioBloque>,
     tick: Long,
+    swtch_motivocieere_activo_desactivado:(Boolean)-> Unit,
+    retornar_motivo_cierre_vacio:(String)-> Unit,
     sin_activar_horario: () -> Unit,
     sin_acceso_motivo_cierre: () -> Unit,
     sin_acceso_horario: () -> Unit,
     mostar_panel_geinz: () -> Unit, sin_internet_al_renovar: () -> Unit
 ) {
 
-    Log.d("hoaerirodehoy", item.horario_tiendaMap.sábado.cerrado.toString())
+
     val (dias, color) = obtenerDiasYColor(item.fecha_termino)
     var color_estado by remember { mutableStateOf(Color(0XFF535252)) }
     var txt_estado_teinda by remember { mutableStateOf("") }
@@ -2082,7 +2086,6 @@ fun baner_widget_tienda_geinz_baner(
         )
     }
 
-
     retornar_color_estado_tienda_Box(
         "", horario_hoy, tick, true, { color, txt ->
             color_estado = color
@@ -2090,17 +2093,9 @@ fun baner_widget_tienda_geinz_baner(
         }, false
     )
 
-    var switchActivo by remember(item.dia_hoy, horario_hoy.cerrado) {
-        mutableStateOf(horario_hoy.cerrado)
-    }
-
-
-    var motivo_cierre by remember(item.dia_hoy, horario_hoy.motivo) {
-        mutableStateOf(horario_hoy.motivo)
-    }
     val mostrarSelectorMotivo = switchActivo && motivo_cierre.isEmpty()
     val mostrarDatosCerrado = !switchActivo || motivo_cierre.isNotEmpty()
-    val msotar_datos_cerrads = switchActivo && motivo_cierre.isNotEmpty()
+
     var ya_esta_cerrado by remember { mutableStateOf(false) }
     var motivoSeleccionado by remember { mutableStateOf<String?>(null) }
 
@@ -2136,12 +2131,12 @@ fun baner_widget_tienda_geinz_baner(
                 delay(1000L)
                 tiempoRestante--
             }
-            if (tiempoRestante == 0) switchActivo = false
+            if (tiempoRestante == 0) swtch_motivocieere_activo_desactivado(false)
 
             if (tiempoRestante == 0 && ya_esta_cerrado) {
+                retornar_motivo_cierre_vacio(horario_hoy.motivo)
 
-                motivo_cierre = horario_hoy.motivo
-                switchActivo = true
+                swtch_motivocieere_activo_desactivado(true)
                 ya_esta_cerrado = false
             }
         }
@@ -2159,6 +2154,7 @@ fun baner_widget_tienda_geinz_baner(
             return@LaunchedEffect
         }
     }
+
     val showLeftShadow by remember {
         derivedStateOf {
             scrollState.value > 0
@@ -2215,7 +2211,8 @@ fun baner_widget_tienda_geinz_baner(
                     checked = !switchActivo,
                     onCheckedChange = {
                         if (dias.toInt() != 0) {
-                            switchActivo = !it
+                            swtch_motivocieere_activo_desactivado(!it)
+
                             if (it) {
                                 val bloque = construirBloques(
                                     hAperturaAM.value,
@@ -2261,7 +2258,8 @@ fun baner_widget_tienda_geinz_baner(
                                         indication = null,
                                         interactionSource = remember { MutableInteractionSource() }) {
                                         if (dias.toInt() != 0) {
-                                            motivo_cierre = ""
+                                            retornar_motivo_cierre_vacio("")
+//                                            motivo_cierre = ""
                                             motivo_cierre.isEmpty()
                                             ya_esta_cerrado = true
                                         } else {
@@ -2466,7 +2464,7 @@ fun baner_widget_tienda_geinz_baner(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(1.6f)   // Ajusta a tu gusto: 1.2, 1.4, 1.6, etc.
+                    .aspectRatio(1.7f)   // Ajusta a tu gusto: 1.2, 1.4, 1.6, etc.
             ){
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)

@@ -160,7 +160,9 @@ fun pantalla_principal(
     listner_busqueda: () -> Unit,
     listener_seguridad: (String) -> Unit,
     listner_sevicios_tramites: (String) -> Unit,
-    abrir_guardar_datos: () -> Unit,mostrar_panel_geinz:()-> Unit,mostar_nuevos_lugares_geinz:(String)-> Unit,
+    abrir_guardar_datos: () -> Unit,
+    mostrar_panel_geinz: () -> Unit,
+    mostar_nuevos_lugares_geinz: (String) -> Unit,
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -173,7 +175,16 @@ fun pantalla_principal(
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
     val viewModel_filtado_tiendas: viewModel_filtado_tiendas = viewModel()
     val stateCat by viewModel_cordenadas._state_cat.observeAsState()
+    var datos_lista by remember { mutableStateOf(listOf<dataclass_cat_sub>()) }
     val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
+
+    LaunchedEffect(_categorias_tiendas) {
+        if (_categorias_tiendas.isNotEmpty()) {
+            datos_lista = _categorias_tiendas
+        }
+    }
+
+
     val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(
         emptyList()
     )
@@ -186,7 +197,7 @@ fun pantalla_principal(
     }
 
     val estados_carga_widget by vm_fotos_salud.estado_carga_widget_tienda.collectAsState()
-    var datos_tienda by remember (estados_carga_widget.dia_hoy){ mutableStateOf(widget_tienda()) }
+    var datos_tienda by remember(estados_carga_widget.dia_hoy) { mutableStateOf(widget_tienda()) }
 
     LaunchedEffect(estados_carga_widget) {
 
@@ -253,22 +264,52 @@ fun pantalla_principal(
 
     val tick by viewModel_filtado_tiendas.tick.collectAsState()
 
-    var bloques_hoy by remember(estados_carga_widget.dia_hoy) { mutableStateOf<List<HorarioBloque>>(emptyList()) }
+    val horarioHoy =
+        viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[datos_tienda.id_tienda]
+            ?: HorarioDia_box()
+    var horas_trabajo by remember(horarioHoy) {
+        mutableStateOf(constantes_horas.calcularHorasDiaLegible(horarioHoy))
+    }
+    var bloques_hoy by remember(horarioHoy) {
+        mutableStateOf(
+            constantes_horas.obtenerBloquesDeHoy(
+                datos_tienda.dia_hoy,
+                datos_tienda.horario_tiendaMap
+            )
+        )
+    }
+    var switchActivo by remember(datos_tienda.dia_hoy, horarioHoy.cerrado) {
+        mutableStateOf(horarioHoy.cerrado)
+    }
+    var motivo_cierre by remember(datos_tienda.dia_hoy, horarioHoy.motivo) {
+        mutableStateOf(horarioHoy.motivo)
+    }
     val viewmodel: viewmodel_eres_socio = viewModel()
-    LaunchedEffect(ud_tienda_shader,estados_carga_widget) {
+    LaunchedEffect(ud_tienda_shader, estados_carga_widget) {
         if (ud_tienda_shader != "") {
             mostrar_widget_tienda = true
-            bloques_hoy= constantes_horas.obtenerBloquesDeHoy(datos_tienda.dia_hoy,datos_tienda.horario_tiendaMap)
             viewModel_filtado_tiendas.calcularHorarioParaTienda(
                 ud_tienda_shader,
                 datos_tienda.horario_tiendaMap
             )
         } else {
             mostrar_widget_tienda = false
-
         }
-
     }
+
+    LaunchedEffect(horarioHoy) {
+        if (horarioHoy.bloques.isNotEmpty()) {
+            bloques_hoy = constantes_horas.obtenerBloquesDeHoy(
+                datos_tienda.dia_hoy,
+                datos_tienda.horario_tiendaMap
+            )
+
+            horas_trabajo = constantes_horas.calcularHorasDiaLegible(horarioHoy)
+            Log.d("horastrabajo", horarioHoy.toString())
+        }
+    }
+
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -346,6 +387,9 @@ fun pantalla_principal(
     }
 
 
+
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -386,7 +430,7 @@ fun pantalla_principal(
                 spacer_vertical(10.dp)
                 apartado_explora_cat(
                     stateCat,
-                    _categorias_tiendas,
+                    datos_lista,
                     localidad_defaul,
                     datos_principales_user.nombre,
                     { nombre, localidad ->
@@ -404,16 +448,19 @@ fun pantalla_principal(
                 if (mostrar_widget_tienda) {
                     spacer_vertical(10.dp)
                     baner_widget_tienda_geinz_baner(
+                        switchActivo, motivo_cierre,
                         context = context,
                         isConnected = isConnected,
                         viewmodel = viewmodel,
                         item = datos_tienda,
-                        horario_hoy = viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[datos_tienda.id_tienda]
-                            ?: HorarioDia_box(),
-                        horas_de_trabajo = constantes_horas.calcularHorasDiaLegible( viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[datos_tienda.id_tienda]
-                            ?: HorarioDia_box(),),
+                        horario_hoy = horarioHoy,
+                        horas_de_trabajo = horas_trabajo,
                         bloques_hoy = bloques_hoy,
-                        tick = tick,
+                        tick = tick, swtch_motivocieere_activo_desactivado = { it ->
+                            switchActivo = it
+                        }, retornar_motivo_cierre_vacio = {txt->
+                            motivo_cierre = txt
+                        },
                         sin_activar_horario = {
                             scope.launch {
                                 snackbarHostState.showSnackbar(
@@ -437,7 +484,7 @@ fun pantalla_principal(
                                     duration = SnackbarDuration.Short
                                 )
                             }
-                        }, mostar_panel_geinz = {mostrar_panel_geinz()},
+                        }, mostar_panel_geinz = { mostrar_panel_geinz() },
                         sin_internet_al_renovar = {
                             scope.launch {
                                 snackbarHostState.showSnackbar(
@@ -1035,9 +1082,11 @@ fun nombre_texto_img_perfil(
             }
         }
 
-        Box(modifier = Modifier
-            .size(43.dp)
-            .padding(end = 5.dp)) {
+        Box(
+            modifier = Modifier
+                .size(43.dp)
+                .padding(end = 5.dp)
+        ) {
 
 
             AsyncImage(
