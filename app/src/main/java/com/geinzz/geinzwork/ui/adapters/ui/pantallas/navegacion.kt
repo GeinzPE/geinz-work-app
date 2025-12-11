@@ -417,7 +417,7 @@ fun nativationWrapper(
                         abrir_guardar_datos = {
                         //                          enviar_notificacion_lista_dispo(id_user,"notificaion","prueva")
 //                     navController.navigate(ui_agregar_lugares)
-                            pasar_teindas_nuevas()
+//                            pasar_teindas_nuevas()
 
                         },
                         mostrar_panel_geinz = { navController.navigate(login_scios)},

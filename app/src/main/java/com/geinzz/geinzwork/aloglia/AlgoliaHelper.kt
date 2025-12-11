@@ -477,6 +477,7 @@ class AlgoliaHelper(
 
             val query = Query().apply {
                 if (filtros.isNotBlank()) this.filters = filtros
+                hitsPerPage = 1000
             }
 
             val response = index.search(query)
@@ -513,7 +514,7 @@ class AlgoliaHelper(
     ): Pair<List<Item>, List<String>> {
         Log.d("entrmaos_solo","buscar_en_algolia")
 
-        val filtros = buildList {
+         val filtros = buildList {
             add("""lugar:"$localidad"""")
             if (selecionado) {
                 if (!categoria.isNullOrBlank()) add("""categoria:"$categoria"""")
@@ -522,11 +523,13 @@ class AlgoliaHelper(
         }.joinToString(" AND ")
 
         val query = if (search.isBlank()) {
-            Query().apply { if (filtros.isNotBlank()) this.filters = filtros }
+            Query().apply { if (filtros.isNotBlank()) this.filters = filtros
+                hitsPerPage = 1000}
         } else {
             Query(search).apply {
                 if (filtros.isNotBlank()) this.filters = filtros
                 if (selecionado) restrictSearchableAttributes = listOf(Attribute("nombre"))
+                hitsPerPage = 1000
             }
         }
 
