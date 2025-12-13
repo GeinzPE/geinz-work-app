@@ -901,7 +901,7 @@ fun perfil_cabezero(
      AnimatedVisibility(gps_enable) {
         distanciaUsuarioTienda?.let { distancia ->
             Text(
-                text = "Estas aproximadamente a ${formatDistancia(distancia)}.",
+                text = "Aproximadamente a ${formatDistancia(distancia)}.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray, modifier = Modifier.padding(bottom = 7.dp)
             )
@@ -1505,6 +1505,7 @@ fun item_metodo_contacto(
             Image(
                 painter = painterResource(icono_red),
                 modifier = Modifier
+                    .clip(CircleShape)
                     .size(30.dp)
                     .clickable(
                         indication = null,
@@ -1811,6 +1812,7 @@ fun tienda_cercana() {
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 fun compartirLugarFirebaseHosttiendas(
     categoria: String,
     context: Context,

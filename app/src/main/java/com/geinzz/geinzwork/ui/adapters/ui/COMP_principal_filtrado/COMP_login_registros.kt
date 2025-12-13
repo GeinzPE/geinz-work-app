@@ -374,6 +374,79 @@ fun ExpandDropDown(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ExpandDropDownconvalor_inicial(
+    lista: List<String>,
+    isError: Boolean,
+    texto_error: String,
+    lable: String,
+    valorInicial: String?,              // <- NUEVO
+    selecionado: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    var selected by rememberSaveable {
+        mutableStateOf(valorInicial ?: "")   // <- SI YA VIENE UNA CATEGORÍA, SE PONE AQUÍ
+    }
+
+    // Si el ViewModel cambia, actualizamos el seleccionado
+    LaunchedEffect(valorInicial) {
+        if (!valorInicial.isNullOrEmpty()) {
+            selected = valorInicial
+        }
+    }
+
+    Column {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
+            modifier = Modifier
+                .padding(vertical = 5.dp)
+                .clip(RoundedCornerShape(30))
+        ) {
+
+            TextField(
+                value = selected,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(lable) },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                isError = isError
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                shape = RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
+            ) {
+                lista.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            selected = option
+                            expanded = false
+                            selecionado(option)
+                        }
+                    )
+                }
+            }
+        }
+
+        AnimatedVisibility(isError) {
+            Box(modifier = Modifier.padding(top = 5.dp, start = 5.dp)) {
+                retornar_pleaceholder_label(texto_error, Color.Red)
+            }
+        }
+    }
+}
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

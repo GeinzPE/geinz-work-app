@@ -4,6 +4,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -416,7 +417,8 @@ fun nativationWrapper(
                         },
                         abrir_guardar_datos = {
                         //                          enviar_notificacion_lista_dispo(id_user,"notificaion","prueva")
-//                     navController.navigate(ui_agregar_lugares)
+                     navController.navigate(ui_agregar_lugares)
+//                            Toast.makeText(context, "cliekaste bro", Toast.LENGTH_SHORT).show()
 //                            pasar_teindas_nuevas()
 
                         },

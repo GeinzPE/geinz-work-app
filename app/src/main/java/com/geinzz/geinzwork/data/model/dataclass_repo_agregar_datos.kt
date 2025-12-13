@@ -11,6 +11,7 @@ data class dataclass_repo_agregar_datos(
     val long: Double,
     val numero_telefono: Int
 )
+
 @Parcelize
 data class dataclass_lugares_db(
     var descripcion: String = "",
@@ -21,7 +22,7 @@ data class dataclass_lugares_db(
     val lugar_nombre: String = "",
     var logo_img: String = "",
     val contacto: contacto_lugares_gratis = contacto_lugares_gratis(),
-    val pagado: Boolean=false,
+    val pagado: Boolean = false,
 
     ) : Parcelable
 
@@ -42,3 +43,12 @@ data class direccion_lugar(
     val direccion: String = "",
     val refencia: String = ""
 ) : Parcelable
+
+
+data class datos_cambiar_cat_sub(
+    val nombre_lugar: String,
+    val pertenerce_algolia: Boolean,
+    val esta_nuevo: Boolean,
+    val cat: String,
+    val lista_sub: List<String>
+)

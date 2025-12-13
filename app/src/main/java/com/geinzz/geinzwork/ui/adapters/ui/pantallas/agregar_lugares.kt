@@ -85,6 +85,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDow
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_cambiar_datos_tiendas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.abrirTimePicker
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.fechaActual
@@ -101,6 +102,7 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.ai.ai
@@ -150,7 +152,7 @@ fun datos_teindas() {
     var direccion by rememberSaveable { mutableStateOf("") }
     var latitud by rememberSaveable { mutableStateOf("") }
     var longitud by rememberSaveable { mutableStateOf("") }
-//    var direccion by rememberSaveable { mutableStateOf(direccion) }
+
     var referencia by rememberSaveable { mutableStateOf("") }
     var numero_yape by rememberSaveable { mutableStateOf("") }
     var titular_yape by rememberSaveable { mutableStateOf("") }
@@ -172,6 +174,8 @@ fun datos_teindas() {
     var lista_subcategoria by rememberSaveable { mutableStateOf(listOf<String>()) }
     var lista_categorias by rememberSaveable { mutableStateOf(listOf<String>()) }
     var lista_subcategorias_full by rememberSaveable { mutableStateOf(listOf<List<String>>()) }
+
+    var cambiar_cat_sub by remember { mutableStateOf(false) }
 
 
     scope.launch {
@@ -220,9 +224,9 @@ fun datos_teindas() {
     }
 
     LaunchedEffect(latitud, longitud) {
-        if(latitud.isNotEmpty() && longitud.isNotEmpty()){
-        mostar_geo = latitud.isNotEmpty() && longitud.isNotEmpty()
-            direccion= viewmodel_agregar_datos.obtenerDireccion(lat_,lng_,context) ?:""
+        if (latitud.isNotEmpty() && longitud.isNotEmpty()) {
+            mostar_geo = latitud.isNotEmpty() && longitud.isNotEmpty()
+            direccion = viewmodel_agregar_datos.obtenerDireccion(lat_, lng_, context) ?: ""
 
 
         }
@@ -460,7 +464,7 @@ fun datos_teindas() {
                             Manifest.permission.ACCESS_FINE_LOCATION
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
-                        obtenerLatLogNoComposable(fusedLocationClient) { ubicacion ->
+                        obtenerUbicacionPrecisa(fusedLocationClient) { ubicacion ->
                             if (ubicacion != null) {
                                 latitud = ubicacion.latitude.toString()
                                 lat_ = ubicacion.latitude
@@ -750,110 +754,120 @@ fun datos_teindas() {
 
         item {
             spacer_vertical(5.dp)
-            Button(onClick = {
-                val repo_agregar_datos = repo_agregar_datos(context)
-                val datos_enviar = data_class_tienda_geinz(
-                    categoria_tienda = categoria,
-                    descripcion = txt_descipcion,
-                    geogash = valor_geohashin,
-                    id_tienda = generarIdSeguro(),
-                    localida_tienda = localidad.lowercase(),
-                    modelo_negocio = modelo_negocio,
-                    nombre_tienda = texto_nombre_lugar,
-                    pagado = pagado,
-                    subcategoria = subcategoarias_selet,
-                    ubicacion = ref_ubi(
-                        latitud = lat_,
-                        longitud = lng_,
-                        referencia = referencia,
-                        dirección = direccion,
-                    ),
-                    metodo_pago = modelo_pagos_tienda(
-                        visa_mastercard = modelo_metodo_individual(
-                            numero = "",
-                            qr = "",
-                            nombre = "",
-                            enable = visa2,
+            Row() {
+                Button(onClick = {
+                    val repo_agregar_datos = repo_agregar_datos(context)
+                    val datos_enviar = data_class_tienda_geinz(
+                        categoria_tienda = categoria,
+                        descripcion = txt_descipcion,
+                        geogash = valor_geohashin,
+                        id_tienda = generarIdSeguro(),
+                        localida_tienda = localidad.lowercase(),
+                        modelo_negocio = modelo_negocio,
+                        nombre_tienda = texto_nombre_lugar,
+                        pagado = pagado,
+                        subcategoria = subcategoarias_selet,
+                        ubicacion = ref_ubi(
+                            latitud = lat_,
+                            longitud = lng_,
+                            referencia = referencia,
+                            dirección = direccion,
                         ),
-                        agora = modelo_metodo_individual(
-                            numero = "",
-                            qr = "",
-                            nombre = "",
-                            enable = Agora2,
+                        metodo_pago = modelo_pagos_tienda(
+                            visa_mastercard = modelo_metodo_individual(
+                                numero = "",
+                                qr = "",
+                                nombre = "",
+                                enable = visa2,
+                            ),
+                            agora = modelo_metodo_individual(
+                                numero = "",
+                                qr = "",
+                                nombre = "",
+                                enable = Agora2,
+                            ),
+                            efectivo = modelo_metodo_individual(
+                                numero = "",
+                                qr = "",
+                                nombre = "",
+                                enable = Efectivo2,
+                            ),
+                            plin = modelo_metodo_individual(
+                                numero = numero_plin,
+                                qr = "",
+                                nombre = titular_plin,
+                                enable = yape_select,
+                            ),
+                            yape = modelo_metodo_individual(
+                                numero = numero_yape,
+                                qr = "",
+                                nombre = titular_yape,
+                                enable = plin_select,
+                            ),
                         ),
-                        efectivo = modelo_metodo_individual(
-                            numero = "",
-                            qr = "",
-                            nombre = "",
-                            enable = Efectivo2,
+                        metodo_contacto = metodo_contacto_tienda(
+                            whatsapp = contacto_numero(
+                                estado = ws2,
+                                numero = numero_whatsap
+                            ),
+                            llamada = contacto_numero(
+                                estado = tlf2,
+                                numero = numero_telefono
+                            ),
+                            facebook = contacto_red(
+                                estado = fb2,
+                                nombre = user_fb,
+                                url = ""
+                            ),
+                            instagram = contacto_red(
+                                estado = ig2,
+                                nombre = user_ig,
+                                url = ""
+                            ),
+                            tiktok = contacto_red(
+                                estado = tk2,
+                                nombre = user_tk,
+                                url = ""
+                            ),
+                            sitio_web = contacto_red(
+                                estado = stw2,
+                                nombre = sitio_web,
+                                url = ""
+                            ),
                         ),
-                        plin = modelo_metodo_individual(
-                            numero = numero_plin,
-                            qr = "",
-                            nombre = titular_plin,
-                            enable = yape_select,
+                        fechas = ingreso_date(
+                            hora_ingreso = constantes_horas.horaActual(),
+                            fecha_ingreso = fechaActual(),
+                            fecha_fin = fechaActual()
                         ),
-                        yape = modelo_metodo_individual(
-                            numero = numero_yape,
-                            qr = "",
-                            nombre = titular_yape,
-                            enable = plin_select,
-                        ),
-                    ),
-                    metodo_contacto = metodo_contacto_tienda(
-                        whatsapp = contacto_numero(
-                            estado = ws2,
-                            numero = numero_whatsap
-                        ),
-                        llamada = contacto_numero(
-                            estado = tlf2,
-                            numero = numero_telefono
-                        ),
-                        facebook = contacto_red(
-                            estado = fb2,
-                            nombre = user_fb,
-                            url = ""
-                        ),
-                        instagram = contacto_red(
-                            estado = ig2,
-                            nombre = user_ig,
-                            url = ""
-                        ),
-                        tiktok = contacto_red(
-                            estado = tk2,
-                            nombre = user_tk,
-                            url = ""
-                        ),
-                        sitio_web = contacto_red(
-                            estado = stw2,
-                            nombre = sitio_web,
-                            url = ""
-                        ),
-                    ),
-                    fechas = ingreso_date(
-                        hora_ingreso = constantes_horas.horaActual(),
-                        fecha_ingreso = fechaActual(),
-                        fecha_fin = fechaActual()
-                    ),
-                    timeSlamp = timeStampNumero(),
-                    horario_atencion = HorarioAtencion_box(
-                        lunes = horario_atencion.lunes,
-                        martes = horario_atencion.martes,
-                        miércoles = horario_atencion.miércoles,
-                        jueves = horario_atencion.jueves,
-                        viernes = horario_atencion.viernes,
-                        sábado = horario_atencion.sábado,
-                        domingo = horario_atencion.domingo,
-                    ), lista_img = img_tienda()
-                )
-                repo_agregar_datos.agraegar_datos_db_2(datos_enviar)
-                val gson = GsonBuilder().setPrettyPrinting().create()
-                Log.d("datos_enviamor", gson.toJson(datos_enviar))
+                        timeSlamp = timeStampNumero(),
+                        horario_atencion = HorarioAtencion_box(
+                            lunes = horario_atencion.lunes,
+                            martes = horario_atencion.martes,
+                            miércoles = horario_atencion.miércoles,
+                            jueves = horario_atencion.jueves,
+                            viernes = horario_atencion.viernes,
+                            sábado = horario_atencion.sábado,
+                            domingo = horario_atencion.domingo,
+                        ), lista_img = img_tienda()
+                    )
+                    repo_agregar_datos.agraegar_datos_db_2(datos_enviar)
+                    val gson = GsonBuilder().setPrettyPrinting().create()
+                    Log.d("datos_enviamor", gson.toJson(datos_enviar))
 
 
-            }) { texto_generico_one_line("enviar") }
+                }) { texto_generico_one_line("enviar") }
+
+                Button(onClick = { cambiar_cat_sub = true }) {
+                    texto_generico_one_line("cambiar cat  y sub")
+                }
+            }
         }
-
+    }
+    if (cambiar_cat_sub) {
+        bottom_sheet_cambiar_datos_tiendas {
+            cambiar_cat_sub = false   // Cierra el sheet
+        }
     }
 }
 
@@ -1029,7 +1043,14 @@ fun RowScope.campoHora(
     Box(
         modifier = Modifier
             .weight(1f)
-            .clickable (indication = null,interactionSource = remember { MutableInteractionSource()}){ abrirTimePicker(valor, onHoraSeleccionada) }
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }) {
+                abrirTimePicker(
+                    valor,
+                    onHoraSeleccionada
+                )
+            }
     ) {
         OutlinedTextField(
             value = valor,
@@ -1224,6 +1245,64 @@ fun chips_categorias(
     spacer_vertical(10.dp)
 }
 
+@Composable
+fun chips_categoriasconvalor_inicial(
+    lista: List<String>,
+    valorInicial: List<String>,          // <- NUEVO
+    lista_select: (List<String>) -> Unit
+) {
+    var seleccionados by rememberSaveable {
+        mutableStateOf(valorInicial)      // <- se inicia con los valores del ViewModel
+    }
+
+    // Si el ViewModel cambia, actualizamos la selección
+    LaunchedEffect(valorInicial) {
+        seleccionados = valorInicial
+    }
+
+    spacer_vertical(10.dp)
+
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        items(lista) { item ->
+
+            val isSelected = seleccionados.contains(item)
+
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(
+                        if (isSelected)
+                            Color.White
+                        else
+                            MaterialTheme.colorScheme.primary
+                    )
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        seleccionados =
+                            if (isSelected)
+                                seleccionados - item
+                            else
+                                seleccionados + item
+
+                        lista_select(seleccionados)
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                texto_generico_one_line(
+                    item,
+                    modifier = Modifier.padding(horizontal = 15.dp, vertical = 10.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (isSelected) Color.Black else Color.White
+                )
+            }
+        }
+    }
+
+    spacer_vertical(10.dp)
+}
+
 fun generarPrompt(
     nombre: String,
     categoria: String,
@@ -1237,55 +1316,56 @@ fun generarPrompt(
 
     return when (intentos) {
 
-        // Primer intento — cálido, elegante, breve
+        // Primer intento — cálido, elegante, breve y que enamora
         1 -> """
-            Genera una descripción hermosa elegante cálida breve e inspiradora para el perfil de una tienda llamada "$nombre" dedicada a "$categoria"$extraSub Puedes usar emojis inspiradores como ✨🌟💼⚡📦🏆🌱💡 sin usar emojis románticos como corazones y sin colocar puntos ni saltos de línea El texto debe ser claro motivador y no debe superar seis líneas solo entrega la descripción final sin explicaciones
+            Genera una descripción hermosa elegante cálida convincente e inspiradora para el perfil de una tienda llamada "$nombre" dedicada a "$categoria"$extraSub Crea un texto que enamore al usuario explique claramente lo que ofrece la tienda y transmita confianza Usa emojis inspiradores como ✨🌟💼⚡📦🏆🌱💡 sin usar corazones y sin colocar puntos ni saltos de línea La descripción debe ser breve clara motivadora y no superar seis líneas solo entrega el texto final
         """.trimIndent()
 
-        // Segundo intento — creativo, moderno, inspirador
+        // Segundo intento — moderno, creativo y muy atractivo
         2 -> """
-            Genera una descripción creativa fluida moderna atractiva e inspiradora para la tienda "$nombre" dedicada a "$categoria"$extraSub Puedes incluir emojis motivadores como ✨🌟💡⚡📦 sin corazones y sin usar puntos ni saltos de línea La descripción debe sentirse emocional y no superar seis líneas solo entrega el texto final sin instrucciones adicionales
+            Genera una descripción creativa moderna fluida atractiva e inspiradora para la tienda "$nombre" dedicada a "$categoria"$extraSub Haz que el texto enamore al usuario mostrando lo que hace la tienda de forma clara y cautivadora Puedes incluir emojis motivadores como ✨🌟💡⚡📦 sin corazones y sin usar puntos ni saltos de línea No excedas seis líneas y entrega únicamente la descripción final
         """.trimIndent()
 
-        // Tercer intento — emocional, profesional, memorable
+        // Tercer intento — emocional, profesional y memorable
         3 -> """
-            Genera una descripción emocional profunda cálida memorable e inspiradora para la tienda "$nombre" dedicada a "$categoria"$extraSub Puedes añadir emojis inspiradores como ✨🌟💼💡 sin corazones y sin usar puntos ni saltos de línea Usa un tono cercano motivador y no excedas seis líneas solo entrega el texto final
+            Genera una descripción emocional profunda profesional memorable e inspiradora para la tienda "$nombre" dedicada a "$categoria"$extraSub La descripción debe enamorar al usuario transmitir cercanía explicar lo que ofrece la tienda y destacar su esencia Incluye emojis inspiradores como ✨🌟💼💡 sin corazones y sin usar puntos ni saltos de línea No excedas seis líneas y entrega únicamente el texto final
         """.trimIndent()
 
-        // Cuarto intento+ — poético, artístico, motivador
+        // Cuarto intento o más — artístico y único, que enganche
         else -> """
-            Genera una descripción diferente artística poética motivadora y única para la tienda "$nombre" enfocada en "$categoria"$extraSub Puedes incluir emojis inspiradores como ✨🌟⚡💡🏆 sin usar corazones y sin usar puntos ni saltos de línea El texto debe transmitir autenticidad encanto y no superar seis líneas solo entrega la descripción final
+            Genera una descripción artística poética motivadora única y auténtica para la tienda "$nombre" enfocada en "$categoria"$extraSub El texto debe enamorar al usuario explicar lo que hace la tienda y transmitir encanto y diferenciación Usa emojis inspiradores como ✨🌟⚡💡🏆 sin corazones y sin usar puntos ni saltos de línea No debe superar seis líneas y solo entrega la descripción final
         """.trimIndent()
     }
 }
 
+
 @SuppressLint("MissingPermission")
-fun obtenerLatLogNoComposable(
+fun obtenerUbicacionPrecisa(
     fusedLocationClient: FusedLocationProviderClient,
     onUbicacionObtenida: (LatLng?) -> Unit
 ) {
-    val locationRequest = LocationRequest.Builder(
-        Priority.PRIORITY_HIGH_ACCURACY,
-        1000L
-    ).build()
 
-    val locationCallback = object : LocationCallback() {
-        override fun onLocationResult(locationResult: LocationResult) {
-            fusedLocationClient.removeLocationUpdates(this)
-            val location = locationResult.lastLocation
-            if (location != null) {
-                onUbicacionObtenida(LatLng(location.latitude, location.longitude))
-            } else {
-                onUbicacionObtenida(null)
+    val cancellationToken = CancellationTokenSource()
+
+    fusedLocationClient.getCurrentLocation(
+        Priority.PRIORITY_HIGH_ACCURACY,
+        cancellationToken.token
+    ).addOnSuccessListener { loc ->
+        if (loc != null) {
+            onUbicacionObtenida(LatLng(loc.latitude, loc.longitude))
+        } else {
+            // Si no devuelve nada, intenta 1 medición de respaldo
+            fusedLocationClient.lastLocation.addOnSuccessListener { backup ->
+                if (backup != null) {
+                    onUbicacionObtenida(LatLng(backup.latitude, backup.longitude))
+                } else {
+                    onUbicacionObtenida(null)
+                }
             }
         }
+    }.addOnFailureListener {
+        onUbicacionObtenida(null)
     }
-
-    fusedLocationClient.requestLocationUpdates(
-        locationRequest,
-        locationCallback,
-        Looper.getMainLooper()
-    )
 }
 
 

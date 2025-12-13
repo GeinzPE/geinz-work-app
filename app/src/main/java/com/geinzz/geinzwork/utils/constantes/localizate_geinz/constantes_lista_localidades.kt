@@ -137,7 +137,7 @@ object constantes_lista_localidades {
         "lavanderias y tintorerias",
         "mascotas y animales",
         "mecanica y autoservicios",
-        "minimarkets y bodegas",
+        "supermercado minimarkets y bodegas",
         "moda y estilo",
         "salud y farmacias",
         "servicios de encomienda y envios",
@@ -200,7 +200,7 @@ object constantes_lista_localidades {
             "lavanderias y tintorerias" -> "👕"
             "mascotas y animales" -> "🐾"
             "mecanica y autoservicios" -> "🔧"
-            "minimarkets y bodegas" -> "🛒"
+            "supermercado minimarkets y bodegas" -> "🛒"
             "moda y estilo" -> "\uD83D\uDC55"
             "salud y farmacias" -> "💊"
             "servicios de encomienda y envios" -> "📦"
@@ -1335,12 +1335,11 @@ object constantes_lista_localidades {
             "lavanderias y tintorerias" -> "Lavandería"
             "mascotas y animales" -> "Mascotas"
             "mecanica y autoservicios" -> "Mecánica"
-            "minimarkets y bodegas" -> "Minimarkets"
+            "supermercado minimarkets y bodegas" -> "Supermercados y Tiendas"
             "moda y estilo" -> "Moda"
             "salud y farmacias" -> "Salud"
             "servicios de encomienda y envios" -> "Encomiendas"
             "servicios tecnicos y reparaciones" -> "Servicios técnicos"
-            "supermercados y tiendas grandes" -> "Supermercados"
             "tecnologia y electronica" -> "Tecnología"
             "transporte y terminales" -> "Transporte"
             else -> nombre // fallback: devuelve el mismo si no está en la lista
