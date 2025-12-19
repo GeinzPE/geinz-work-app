@@ -273,7 +273,7 @@ fun fondo_osucro(scale: Float = 1f, lista_colocares: List<Color>) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .blur(40.dp)
+            .blur(10.dp)
             .background(
                 brush = Brush.verticalGradient(
                     colors = lista_colocares,
@@ -290,7 +290,7 @@ fun FondoOscuroAlto(listaColores: List<Color>) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp) // dale más altura para suavizar el corte
+            .height(70.dp) // dale más altura para suavizar el corte
             .background(
                 brush = Brush.verticalGradient(
                     colors = listaColores,
@@ -298,7 +298,6 @@ fun FondoOscuroAlto(listaColores: List<Color>) {
                     endY = Float.POSITIVE_INFINITY
                 )
             )
-            .blur(80.dp) // aumenta el blur después
     )
 }
 

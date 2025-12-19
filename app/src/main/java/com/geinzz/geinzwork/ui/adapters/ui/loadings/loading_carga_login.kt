@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -31,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -78,8 +80,17 @@ fun pantalla_carga_login(inner_pading:Boolean) {
     Scaffold { innerPading ->
         Box(modifier = Modifier.padding(if(inner_pading)innerPading else PaddingValues(0.dp))) {
             fondo_img(iimg_random.img)
-            fondo_osucro(lista_colocares = lista_colores_degradado_top)
-            Box(modifier = Modifier.align(Alignment.BottomStart)) {
+            Box(modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth()) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = lista_colores_degradado_top
+                            )
+                        )
+                )
+
                 Column(modifier = Modifier.padding(10.dp)) {
                     CargandoPalabra()
                     spacer_vertical(6.dp)
@@ -87,6 +98,7 @@ fun pantalla_carga_login(inner_pading:Boolean) {
                     spacer_vertical(10.dp)
                 }
             }
+
             FondoOscuroAlto(lista_colores_degradado_bottom)
             CartaLocalizacion(
                 lugar = iimg_random.nombre_lugar,

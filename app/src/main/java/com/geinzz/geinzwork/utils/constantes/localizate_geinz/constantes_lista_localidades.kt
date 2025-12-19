@@ -96,6 +96,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_metodo_individual
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
+import com.geinzz.geinzwork.data.model.obtener_img_tiendas
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationCallback
@@ -430,15 +431,14 @@ object constantes_lista_localidades {
     }
 
     val lista_img_local = listOf(
-        R.drawable.f1,
-        R.drawable.f2,
-        R.drawable.f4,
+        R.drawable.f38,
+        R.drawable.f15,
+        R.drawable.f24,
         R.drawable.f5,
         R.drawable.f6,
         R.drawable.f7,
         R.drawable.f8
     )
-
 
     val lista_img_localidades_local = listOf(
         R.drawable.f2,
@@ -448,7 +448,7 @@ object constantes_lista_localidades {
         R.drawable.f8,
     )
     val lista_img_localidades_nombre = listOf(
-        dataclass_onboarding(R.drawable.f2, "Barranca ", "Plaza de armas barranca"),
+        dataclass_onboarding(R.drawable.f38, "Barranca ", "Plaza de armas barranca"),
         dataclass_onboarding(R.drawable.f4, "Puerto ", "Playa de puerto supe"),
         dataclass_onboarding(R.drawable.f5, "pativilca ", "Paza de armas de pativilca"),
         dataclass_onboarding(R.drawable.f7, "Supe ", "Casa de las brujas supe"),
@@ -2338,6 +2338,39 @@ object constantes_lista_localidades {
             viernes = mapearDia(this["viernes"] as? Map<String, Any>),
             sabado = mapearDia(this["sábado"] as? Map<String, Any>),
             domingo = mapearDia(this["domingo"] as? Map<String, Any>)
+        )
+    }
+
+    fun Map<String, Any>?.to_img_usert(): obtener_img_tiendas {
+
+        if (this == null) {
+            Log.d("IMG_MAP", "El mapa img_tienda es NULL")
+            return obtener_img_tiendas()
+        }
+
+        // 🔹 logo
+        val logo = this["logo_tienda"] as? String ?: ""
+
+        // 🔹 mapa lista_img
+        val listaImgMap = this["lista_img"] as? Map<*, *> ?: emptyMap<String, Any>()
+
+        val ambientales = (listaImgMap["ambientales"] as? List<*>)
+            ?.filterIsInstance<String>()
+            ?: emptyList()
+
+        val productos = (listaImgMap["servicios_productos"] as? List<*>)
+            ?.filterIsInstance<String>()
+            ?: emptyList()
+
+        val promociones = (listaImgMap["promociones"] as? List<*>)
+            ?.filterIsInstance<String>()
+            ?: emptyList()
+
+        return obtener_img_tiendas(
+            logo_tienda = logo,
+            lista_ambiernte = ambientales,
+            lista_productos = productos,
+            lista_promociones = promociones
         )
     }
 

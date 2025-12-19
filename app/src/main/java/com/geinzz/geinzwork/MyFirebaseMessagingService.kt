@@ -1,136 +1,82 @@
 package com.geinzz.geinzwork
 
-
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
+import android.app.TaskStackBuilder
 import android.content.Intent
-import android.media.RingtoneManager
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
-import com.geinzz.geinzwork.problemas_soporte_politicas.reportes_users
-import com.geinzz.geinzwork.servicios_geinz.serviciosGeinz
-import com.geinzz.geinzwork.vistaTiendas.verServicios
-import com.geinzz.geinzwork.vistaTiendas.vistaProductosGeneralTiendas
-import com.geinzz.geinzwork.vistaTrabajador.promocionesvista
-import com.geinzz.geinzwork.vistaTrabajador.ver_detalles_Promociones
+import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import java.net.URL
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
+
+    override fun onNewToken(token: String) {
+        super.onNewToken(token)
+        Log.d("FCM", "Nuevo token: $token")
+    }
+
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onMessageReceived(message: RemoteMessage) {
-        super.onMessageReceived(message)
-        // Manejo de datos
-        if (message.data.isNotEmpty()) {
-            handleDataMessage(message.data)
-        }
-        message.notification?.let {
-            sendNotification(it, message.data)
-        }
-    }
+        val link = message.data["link"] ?: return
+        val title = message.data["title"] ?: "Geinz"
+        val body = message.data["body"] ?: ""
+        val imageUrl = message.data["image"] ?: ""
 
-    private fun handleDataMessage(data: Map<String, String>) {
-        val storyId = data["story_id"]
-
-    }
-
-    private fun sendNotification(
-        notification: RemoteMessage.Notification,
-        data: Map<String, String>,
-    ) {
-        val title = notification.title ?: "Título por defecto"
-        val body = notification.body ?: "Cuerpo por defecto"
-        val clickAction = data["click_action"]
-        val idAnuncio = data["idProductoClikado"] ?: data["idAnuncio"] ?: data["idServicio"]
-        val idTienda = data["idTienda"]
-        val entrada = data["entrada"]
-
-        val intent = Intent().apply {
-            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-            putExtra("idAnuncio", idAnuncio)
-            putExtra("idTienda", idTienda)
-            putExtra("entrada", entrada)
-
-            Log.d(
-                "notificaicones encontrada",
-                "los valoes obtenidos son $clickAction , $idAnuncio,$idTienda,$entrada"
-            )
-
-            when (clickAction) {
-                "SUBIDA_NOTICIAS" -> {
-                    setClass(this@MyFirebaseMessagingService, ver_detalles_Promociones::class.java)
-                    putExtra("idAnuncio", idAnuncio)
-                    putExtra("idTienda", idTienda)
-                    putExtra("entrada", entrada)
-                }
-
-                "SERVICIOS_TIENDAS" -> {
-                    setClass(this@MyFirebaseMessagingService, verServicios::class.java)
-                    putExtra("idServicio", idAnuncio)
-                    putExtra("idTienda", idTienda)
-                }
-
-                "PROMO_SUGERIDAS" -> {
-                    setClass(this@MyFirebaseMessagingService, promocionesvista::class.java)
-                    putExtra("idProductoClikado", idAnuncio)
-                    putExtra("idTienda", idTienda)
-                }
-
-                "PRODUCTOS_PRINCIPALES" -> {
-                    setClass(this@MyFirebaseMessagingService, vistaProductosGeneralTiendas::class.java)
-                    putExtra("idProductoClikado", idAnuncio)
-                    putExtra("idTienda", idTienda)
-                }
-
-                "REPORTE" -> {
-                    setClass(this@MyFirebaseMessagingService, reportes_users::class.java)
-                }
-
-                "SERVICIOS"->{
-                    setClass(this@MyFirebaseMessagingService,serviciosGeinz::class.java)
-                }
-
-                else -> {
-                    setClass(this@MyFirebaseMessagingService, MainActivity::class.java)
-                }
-            }
+        val intent = Intent(this, MainActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            data = Uri.parse(link)
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
 
+
+        // ⚡ Back stack correcto
         val pendingIntent = PendingIntent.getActivity(
             this,
             0,
             intent,
-            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val channelId = getString(R.string.notificacion_chanel_id_defaul)
-        val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-        val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.logo_geinz_circular) // Reemplaza con tu icono
+        val builder = NotificationCompat.Builder(this, "canal_geinz")
+            .setSmallIcon(R.drawable.notification_ic)
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)
-            .setSound(defaultSoundUri)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
 
-//        val TrackPendingIntent=PendingIntent.getActivity(this,System.currentTimeMillis().toInt(),intent,PendingIntent.FLAG_IMMUTABLE)
-//        val action=NotificationCompat.Action.Builder(R.drawable.logo_geinz_circular,"Ver Ahora",TrackPendingIntent).build()
-//        notificationBuilder.addAction(action)
-
-        val notificationManager =
-            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                getString(R.string.notificacion_chanel_name_defaul),
-                NotificationManager.IMPORTANCE_HIGH
-            )
-            notificationManager.createNotificationChannel(channel)
+        // Imagen en notificación si existe
+        if (imageUrl.isNotEmpty()) {
+            try {
+                val bitmap = BitmapFactory.decodeStream(URL(imageUrl).openConnection().getInputStream())
+                builder.setStyle(NotificationCompat.BigPictureStyle().bigPicture(bitmap))
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
 
-        notificationManager.notify(0, notificationBuilder.build())
+        // Crear canal si no existe
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "canal_geinz",
+                "Geinz Notificaciones",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            channel.description = "Notificaciones generales de Geinz"
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(channel)
+        }
+
+        // ID fijo evita duplicados
+        NotificationManagerCompat.from(this).notify(1000, builder.build())
     }
 }

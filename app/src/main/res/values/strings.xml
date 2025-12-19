@@ -243,8 +243,9 @@
     </string>
 
 
-    <string name="notificacion_chanel_id_defaul">general</string>
-    <string name="notificacion_chanel_name_defaul">Generales</string>
+    <string name="notificacion_chanel_id_defaul">canal_geinz</string>
+    <string name="notificacion_chanel_name_defaul">Geinz Notificaciones</string>
+
 
     <string name="texto_bootom_shet_carritoCompras">"Realiza tus compras de manera rápida y eficiente con Geinz. Completa el formulario y envíalo para que la tienda o negocio procese tu solicitud de compra. Gracias por elegir GEINZ WORK."
     </string>

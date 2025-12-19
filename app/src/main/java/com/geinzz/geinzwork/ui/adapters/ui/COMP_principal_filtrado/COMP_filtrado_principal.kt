@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.ui.platform.LocalConfiguration
-
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -57,7 +56,6 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -85,14 +83,11 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
@@ -102,6 +97,8 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -129,7 +126,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
@@ -139,8 +135,6 @@ import coil3.request.placeholder
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.datos_grafico
 import com.geinzz.geinzwork.data.model.datos_tienda
@@ -171,12 +165,8 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
 import java.net.URLEncoder
 
 
@@ -2460,11 +2450,10 @@ fun baner_widget_tienda_geinz_baner(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
 
-            // Imagen - ocupa 40% del espacio del Column
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(1.7f)   // Ajusta a tu gusto: 1.2, 1.4, 1.6, etc.
+                    .aspectRatio(1.7f)
             ){
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
@@ -2627,7 +2616,12 @@ fun compartir_link_tienda(
 
 
 @Composable
-fun baner_registra_tu_negocio(listener_registra_tu_negocio: () -> Unit) {
+fun baner_registra_tu_negocio(
+    snackbarHostState: SnackbarHostState,
+    scope: CoroutineScope,
+    conexion: Boolean,
+    listener_registra_tu_negocio: () -> Unit
+) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
@@ -2637,6 +2631,7 @@ fun baner_registra_tu_negocio(listener_registra_tu_negocio: () -> Unit) {
             .clickable(
                 indication = null, interactionSource = remember { MutableInteractionSource() }) {
                 listener_registra_tu_negocio()
+
             }) {
         Row(
             modifier = Modifier.matchParentSize() // 🔹 el Row ocupa todo el Box

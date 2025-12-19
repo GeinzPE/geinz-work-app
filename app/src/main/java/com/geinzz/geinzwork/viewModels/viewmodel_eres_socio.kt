@@ -29,6 +29,17 @@ class viewmodel_eres_socio : ViewModel() {
     val state_eres_socio: StateFlow<carga_acces_socio> = _state_eres_socio
 
 
+    private val _imgAmbientales = MutableStateFlow<List<String>>(emptyList())
+    val imgAmbientales: StateFlow<List<String>> = _imgAmbientales
+
+    private val _imgServicios = MutableStateFlow<List<String>>(emptyList())
+    val imgServicios: StateFlow<List<String>> = _imgServicios
+
+    private val _imgPromociones = MutableStateFlow<List<String>>(emptyList())
+    val imgPromociones: StateFlow<List<String>> = _imgPromociones
+
+
+
     private val _state_cerrar = MutableStateFlow<Boolean>(false)
     val state_cerrar: StateFlow<Boolean> = _state_cerrar
 
@@ -93,10 +104,20 @@ class viewmodel_eres_socio : ViewModel() {
 //    }
 
 
-    fun descontar_puntos(localidad_tienda: String, id_tienda: String, puntos_descuento: Int,meses_agregados:String) {
+    fun descontar_puntos(
+        localidad_tienda: String,
+        id_tienda: String,
+        puntos_descuento: Int,
+        meses_agregados: String
+    ) {
         viewModelScope.launch {
             try {
-                instace_repo.restar_puntos(localidad_tienda, id_tienda, puntos_descuento,meses_agregados)
+                instace_repo.restar_puntos(
+                    localidad_tienda,
+                    id_tienda,
+                    puntos_descuento,
+                    meses_agregados
+                )
 
             } catch (e: Exception) {
                 Log.d("Error_canjear", "error al cambiar el cange")
@@ -197,6 +218,20 @@ class viewmodel_eres_socio : ViewModel() {
 
         }
     }
+
+
+    fun carga_img_tipo(tipo: String, idTienda: String) {
+        viewModelScope.launch {
+            instace_repo.obtner_img_stoprage_cambios(tipo, idTienda) { lista ->
+                when (tipo) {
+                    "ambientales" -> _imgAmbientales.value = lista
+                    "servicios_productos" -> _imgServicios.value = lista
+                    "promociones" -> _imgPromociones.value = lista
+                }
+            }
+        }
+    }
+
 
 
     sealed class carga_acces_socio {

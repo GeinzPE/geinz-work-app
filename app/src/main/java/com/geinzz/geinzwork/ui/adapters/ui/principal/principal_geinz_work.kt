@@ -5,6 +5,7 @@ import android.util.Log
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -125,21 +126,30 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.text.TextStyle
 import androidx.core.content.ContextCompat
 import coil3.request.CachePolicy
-import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.nuevos_lugares_agregados
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data.model.widget_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad.guarar_dialogo_notifi
 import com.geinzz.geinzwork.data_store.data_store_localidad.sendNotificacion
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_registra_tu_negocio
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_servicios_basicos_
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_widget_tienda_geinz_baner
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_listener_fv_externo
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_eliminar_favoritos
 
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permiso_primario_notifi
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_ayudanos_a_creccer
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.verificar_version
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.firebaseAuth
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.guarar_token_user
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_carga_img_general
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
@@ -163,6 +173,8 @@ fun pantalla_principal(
     abrir_guardar_datos: () -> Unit,
     mostrar_panel_geinz: () -> Unit,
     mostar_nuevos_lugares_geinz: (String) -> Unit,
+    iniciar_seccion: () -> Unit,
+    crear_cuenta: () -> Unit
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -175,6 +187,31 @@ fun pantalla_principal(
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
     val viewModel_filtado_tiendas: viewModel_filtado_tiendas = viewModel()
     val stateCat by viewModel_cordenadas._state_cat.observeAsState()
+    val nuevas_tiendas_agregadas by viewModel_filtado_tiendas.datos_nuevos_lugares.collectAsState()
+    val ultimaLocalidad by data_store_localidad
+        .obtener_localidad(context)
+        .collectAsState(initial = null)
+
+    val localidad_defaul = ultimaLocalidad ?: "barranca"
+    LaunchedEffect(datos_principales_user.localida) {
+
+        Log.d("LUGARES_NUEVOS", "LaunchedEffect ejecutado")
+
+        if (datos_principales_user.localida.isNotEmpty()) {
+
+            Log.d(
+                "LUGARES_NUEVOS",
+                "Localidad detectada: ${datos_principales_user.localida}"
+            )
+
+            viewModel_filtado_tiendas
+                .obtener_lugaresnuevos(localidad_defaul)
+
+        } else {
+            Log.w("LUGARES_NUEVOS", "Localidad vacía, no se ejecuta la consulta")
+        }
+    }
+
     var datos_lista by remember { mutableStateOf(listOf<dataclass_cat_sub>()) }
     val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
 
@@ -183,7 +220,6 @@ fun pantalla_principal(
             datos_lista = _categorias_tiendas
         }
     }
-
 
     val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(
         emptyList()
@@ -212,9 +248,6 @@ fun pantalla_principal(
     LaunchedEffect(Unit) {
         viewModel_cordenadas.verificar_vesion_actulizacion(context)
     }
-    val ultimaLocalidad by data_store_localidad
-        .obtener_localidad(context)
-        .collectAsState(initial = null)
 
     val listState = rememberLazyListState()
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
@@ -222,7 +255,6 @@ fun pantalla_principal(
         targetValue = targetAlpha,
         animationSpec = tween(durationMillis = 500)
     )
-    val localidad_defaul = ultimaLocalidad ?: "barranca"
     val localidadSeleccionada = rememberSaveable { mutableStateOf("barranca") }
 
     val stickyHeaderIndex = 1
@@ -239,9 +271,28 @@ fun pantalla_principal(
     }
 
     val esAniversarioHoy by vm_fotos_salud.es_aniversario_hoy.collectAsState()
-
+    var mostrar_bottom_sheet_lugares by remember { mutableStateOf(false) }
+    var id_tienda_select by remember { mutableStateOf("") }
+    var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
+    val datosTienda by viewModel_filtado_tiendas._datos_tienda.observeAsState()
     LaunchedEffect(localidad_defaul) {
         vm_fotos_salud.esaniversario_hoy(localidad_defaul)
+    }
+
+    LaunchedEffect(mostrar_bottom_sheet_lugares) {
+        if (mostrar_bottom_sheet_lugares) {
+            viewModel_filtado_tiendas.obtener_campos_tiendas_por_id(
+                localidad_defaul,
+                id_tienda_select
+            )
+        }
+    }
+
+    LaunchedEffect(datosTienda) {
+        if (!datosTienda.isNullOrEmpty()) {
+            dataclass_tienda_seleccionada =
+                datosTienda!!.first()
+        }
     }
 
 
@@ -252,6 +303,9 @@ fun pantalla_principal(
 
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     var id_respado_user by remember { mutableStateOf("") }
+    var favoritoEstado by remember { mutableStateOf(false) }
+    var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
+    var texto_falta_registra by remember { mutableStateOf("") }
 
     LaunchedEffect(uid_respald_user) {
         if (uid_respald_user.isNotEmpty()) {
@@ -284,6 +338,11 @@ fun pantalla_principal(
     var motivo_cierre by remember(datos_tienda.dia_hoy, horarioHoy.motivo) {
         mutableStateOf(horarioHoy.motivo)
     }
+    var mostar_dialog_dejar_seguir by remember { mutableStateOf(false) }
+    var nuevo_Estadp_btn_fv by remember { mutableStateOf(false) }
+    var dejar_seguir_nombre by remember { mutableStateOf("") }
+    var dejar_seguir_id by remember { mutableStateOf("") }
+    var dejar_seguir_localidad by remember { mutableStateOf("") }
     val viewmodel: viewmodel_eres_socio = viewModel()
     LaunchedEffect(ud_tienda_shader, estados_carga_widget) {
         if (ud_tienda_shader != "") {
@@ -296,6 +355,7 @@ fun pantalla_principal(
             mostrar_widget_tienda = false
         }
     }
+
 
     LaunchedEffect(horarioHoy) {
         if (horarioHoy.bloques.isNotEmpty()) {
@@ -458,7 +518,7 @@ fun pantalla_principal(
                         bloques_hoy = bloques_hoy,
                         tick = tick, swtch_motivocieere_activo_desactivado = { it ->
                             switchActivo = it
-                        }, retornar_motivo_cierre_vacio = {txt->
+                        }, retornar_motivo_cierre_vacio = { txt ->
                             motivo_cierre = txt
                         },
                         sin_activar_horario = {
@@ -507,13 +567,53 @@ fun pantalla_principal(
 
             item {
                 spacer_vertical(10.dp)
-                rutas_turismo(
-                    "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/walpaper_geinz%2Fturisticos%2Fcom_1.webp?alt=media&token=389d5e90-e1bb-456d-b9b4-10f0d2189004",
-                    "Ver negocios",
-                    "Nuevos negocios registrados"
 
+                titulo_referenciales_geinz_work(
+                    "Recién agregados",
+                    "Ver todos"
+                ) { mostar_nuevos_lugares_geinz(localidad_defaul) }
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.padding(vertical = 8.dp)
                 ) {
-                    mostar_nuevos_lugares_geinz(localidad_defaul)
+                    items(nuevas_tiendas_agregadas, key = { it.id_tienda }) { items ->
+                        nuevos_lugares_agregados_fun(
+                            id_user = id_respado_user,
+                            localida_user = localidad_defaul,
+                            viewModelFiltros = viewModel_filtado_tiendas,
+                            verificar_interner = isConnected,
+                            item = items,
+                            mostrar_datos = { it_tienda ->
+                                if(isConnected){
+                                if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
+                                    mostrar_bottom_sheet_lugares = true
+                                    id_tienda_select = it_tienda
+                                } else {
+                                    bottom_sheet_iniciar_seccion = true
+                                    texto_falta_registra =
+                                        "Regístrate para ver los detalles completos y las funciones exclusivas"
+                                }
+                                }else{
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "Verifica tu conexión a internet y vuelvelo a intentar",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }                                }
+                            },
+                            dialog_sin_registrao = {
+                                bottom_sheet_iniciar_seccion = true
+                                texto_falta_registra = "Regístrate para agregar a tus favoritos"
+                            }, { localidad, id, nombre, estado ->
+                                if (estado) {
+                                    mostar_dialog_dejar_seguir = true
+                                    dejar_seguir_nombre = nombre
+                                    dejar_seguir_id = id
+                                    dejar_seguir_localidad = localidad
+                                }
+                            }
+                        )
+                    }
                 }
                 spacer_vertical(20.dp)
             }
@@ -555,8 +655,17 @@ fun pantalla_principal(
 
             item {
                 spacer_vertical(10.dp)
-                baner_registra_tu_negocio {
-                    mostar_bottom_sheet_ayuda_geinz = true
+                baner_registra_tu_negocio(snackbarHostState, scope, isConnected) {
+                    if (isConnected) {
+                        mostar_bottom_sheet_ayuda_geinz = true
+                    } else {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = "Verifica tu conexión a internet y vuelvelo a intentar",
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    }
                 }
             }
 
@@ -581,6 +690,47 @@ fun pantalla_principal(
             bottom_sheet_ayudanos_a_creccer(
                 isConnected, ultimaLocalidad ?: "barranca",
                 { mostar_bottom_sheet_ayuda_geinz = false }, viewModel_filtado_tiendas
+            )
+        }
+        if (mostrar_bottom_sheet_lugares) {
+            if (isConnected) {
+                bottom_sheet_tiendas_filtradas(
+                    isConnected,
+                    viewModel_filtado_tiendas,
+                    dataclass_tienda_seleccionada, mostrar_bottom_sheet_lugares
+                ) {
+                    mostrar_bottom_sheet_lugares = false
+                }
+            }
+        }
+        if (mostar_dialog_dejar_seguir) {
+            dialog_eliminar_favoritos(
+                viewModelFiltros = viewModel_filtado_tiendas,
+                dejar_seguir_localidad,
+                id_user = id_respado_user,
+                id_tienda = dejar_seguir_id,
+                nombre_tienda = dejar_seguir_nombre,
+                ondimis = { mostar_dialog_dejar_seguir = false }, aceptado = {
+                    nuevo_Estadp_btn_fv = favoritoEstado
+                })
+        }
+
+        if (bottom_sheet_iniciar_seccion) {
+            bottom_sheet_registrate(
+                ondimis = {
+                    bottom_sheet_iniciar_seccion = false
+                },
+                iniciar_seccion_normal = {
+
+                    iniciar_seccion()
+                    bottom_sheet_iniciar_seccion
+                },
+                crear_cuenta_geinz = {
+
+                    crear_cuenta()
+                    bottom_sheet_iniciar_seccion
+                },
+                texto_bottom_Sheet = texto_falta_registra
             )
         }
         SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
@@ -1187,3 +1337,142 @@ fun carga_progres_categoria(anchoAnimado: Dp, alturaFija: Dp) {
         }
     }
 }
+
+//@Preview(
+//    showBackground = true,
+//    backgroundColor = 0xFFFFFFFF
+//
+//)
+//@Composable
+//fun Preview_nuevos_lugares_agregados() {
+//
+//    nuevos_lugares_agregados(
+//        nombre_tienda = "Ciudad Sagrada de Caral",
+//        img = "https://xxxjay.com/images/2023/02/13/galeriajovencitasdesnuda-0.jpg",
+//        cateogria_tienda = "Turismo",
+//        lista_categorias = listOf(
+//            "Turismo",
+//            "Cultura",
+//            "Historia",
+//            "Arqueología"
+//        )
+//    )
+//
+//}
+@Composable
+fun nuevos_lugares_agregados_fun(
+    id_user: String,
+    localida_user: String,
+    viewModelFiltros: viewModel_filtado_tiendas,
+    verificar_interner: Boolean,
+    item: nuevos_lugares_agregados,
+    mostrar_datos: (String) -> Unit,
+    dialog_sin_registrao: () -> Unit,
+    dialog_estado_fv_btn: (localidad: String, id: String, nombre: String, estado_btn: Boolean) -> Unit
+) {
+
+    // 🔹 Mapa global de favoritos (por id)
+    val mapaFavoritos by viewModelFiltros.favoritos.collectAsState()
+
+    // 🔹 Estado REAL de este item
+    val favoritoLocal = mapaFavoritos[item.id_tienda] ?: false
+
+    // 🔹 Verificar favorito SOLO para este item
+    LaunchedEffect(id_user, item.id_tienda) {
+        if (id_user.isNotEmpty()) {
+            viewModelFiltros.verificar_existe_favoritoMap(
+                id_user,
+                item.id_tienda
+            )
+        }
+    }
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+        modifier = Modifier.width(150.dp)
+    ) {
+
+        Box {
+
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(item.img)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .placeholder(R.drawable.cargando_img_categorias)
+                    .error(R.drawable.cargando_img_categorias)
+                    .build(),
+                contentDescription = "Imagen de la tienda",
+                modifier = Modifier
+                    .height(200.dp)
+                    .width(150.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable { mostrar_datos(item.id_tienda) },
+                contentScale = ContentScale.Crop
+            )
+
+            this@Column.AnimatedVisibility(
+                visible = verificar_interner,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(10.dp)
+            ) {
+
+                btn_listener_fv_externo(
+                    select = favoritoLocal,
+                    listener = { nuevoEstado ->
+
+                        if (nuevoEstado) {
+                            // ❤️ QUIERE GUARDAR
+                            if (id_user.isNotEmpty()) {
+                                viewModelFiltros.guardar_tienda_favorita_por_id(
+                                    localida_user,
+                                    id_user,
+                                    item.id_tienda
+                                )
+                            } else {
+                                // 🚫 NO LOGUEADO
+                                dialog_sin_registrao()
+                            }
+
+                        } else {
+                            // ❌ QUITAR FAVORITO → SOLO CON DIÁLOGO
+                            dialog_estado_fv_btn(
+                                item.localidad_tienda,
+                                item.id_tienda,
+                                item.nombre_tienda,
+                                true
+                            )
+                        }
+                    },
+                    modifier = Modifier,
+                    size_btn = 40.dp,
+                    size_icon = 20.dp
+                )
+            }
+        }
+
+        texto_generico_one_line(
+            item.nombre_tienda.capitalizeFirst(),
+            style = MaterialTheme.typography.titleSmall
+        )
+
+        texto_generico_one_line(
+            item.categoria.capitalizeFirst(),
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(end = 10.dp)
+        )
+
+        spacer_vertical(2.dp)
+
+        tags_subcateogiras(
+            item.lista_categoria,
+            brush_start = Brush.horizontalGradient(colors = shadow_left),
+            brush_end = Brush.horizontalGradient(colors = shadow_right)
+        )
+    }
+}
+
+

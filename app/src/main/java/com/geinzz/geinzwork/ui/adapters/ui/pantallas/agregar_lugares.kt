@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Build
 import android.os.Looper
 import android.util.Log
@@ -194,7 +195,7 @@ fun datos_teindas() {
                 val subcategoriaUnica = subcategoarias_selet.firstOrNull() ?: ""
 
                 val prompt =
-                    generarPrompt(texto_nombre_lugar, categoria, contadorClicks, subcategoriaUnica)
+                    generarPromptOptimizado(texto_nombre_lugar, categoria, contadorClicks, subcategoriaUnica)
 
                 val inicio = System.currentTimeMillis()
 
@@ -464,17 +465,17 @@ fun datos_teindas() {
                             Manifest.permission.ACCESS_FINE_LOCATION
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
-                        obtenerUbicacionPrecisa(fusedLocationClient) { ubicacion ->
-                            if (ubicacion != null) {
-                                latitud = ubicacion.latitude.toString()
-                                lat_ = ubicacion.latitude
-                                lng_ = ubicacion.longitude
-                                longitud = ubicacion.longitude.toString()
-                            } else {
-                                latitud = "No disponible"
-                                longitud = "No disponible"
-                            }
+                        obtenerUbicacionConfiable(fusedLocationClient) { latLng, accuracy ->
+
+                            lat_ = latLng.latitude
+                            lng_ = latLng.longitude
+
+                            latitud = latLng.latitude.toString()
+                            longitud = latLng.longitude.toString()
+
+                            Log.d("GPS", "Precisión: ${accuracy}m")
                         }
+
                     } else {
                         Toast.makeText(
                             context,
@@ -1303,70 +1304,108 @@ fun chips_categoriasconvalor_inicial(
     spacer_vertical(10.dp)
 }
 
-fun generarPrompt(
+fun generarPromptOptimizado(
     nombre: String,
     categoria: String,
     intentos: Int,
     subcategoria: String
 ): String {
 
-    val extraSub = if (subcategoria.isNotBlank()) {
-        """ especializada en "$subcategoria" """
-    } else ""
+    // 1. Reglas universales y estéticas (Menos tokens por llamada)
+    val reglasDeFormato = "Breve, no más de 6 líneas, sin puntos ni saltos de línea. Usa solo emojis inspiradores (✨🌟💡⚡📦🏆) y NUNCA uses corazones."
 
-    return when (intentos) {
-
-        // Primer intento — cálido, elegante, breve y que enamora
-        1 -> """
-            Genera una descripción hermosa elegante cálida convincente e inspiradora para el perfil de una tienda llamada "$nombre" dedicada a "$categoria"$extraSub Crea un texto que enamore al usuario explique claramente lo que ofrece la tienda y transmita confianza Usa emojis inspiradores como ✨🌟💼⚡📦🏆🌱💡 sin usar corazones y sin colocar puntos ni saltos de línea La descripción debe ser breve clara motivadora y no superar seis líneas solo entrega el texto final
-        """.trimIndent()
-
-        // Segundo intento — moderno, creativo y muy atractivo
-        2 -> """
-            Genera una descripción creativa moderna fluida atractiva e inspiradora para la tienda "$nombre" dedicada a "$categoria"$extraSub Haz que el texto enamore al usuario mostrando lo que hace la tienda de forma clara y cautivadora Puedes incluir emojis motivadores como ✨🌟💡⚡📦 sin corazones y sin usar puntos ni saltos de línea No excedas seis líneas y entrega únicamente la descripción final
-        """.trimIndent()
-
-        // Tercer intento — emocional, profesional y memorable
-        3 -> """
-            Genera una descripción emocional profunda profesional memorable e inspiradora para la tienda "$nombre" dedicada a "$categoria"$extraSub La descripción debe enamorar al usuario transmitir cercanía explicar lo que ofrece la tienda y destacar su esencia Incluye emojis inspiradores como ✨🌟💼💡 sin corazones y sin usar puntos ni saltos de línea No excedas seis líneas y entrega únicamente el texto final
-        """.trimIndent()
-
-        // Cuarto intento o más — artístico y único, que enganche
-        else -> """
-            Genera una descripción artística poética motivadora única y auténtica para la tienda "$nombre" enfocada en "$categoria"$extraSub El texto debe enamorar al usuario explicar lo que hace la tienda y transmitir encanto y diferenciación Usa emojis inspiradores como ✨🌟⚡💡🏆 sin corazones y sin usar puntos ni saltos de línea No debe superar seis líneas y solo entrega la descripción final
-        """.trimIndent()
+    // 2. Definición del objeto a describir (Contexto)
+    val contexto = if (subcategoria.isNotBlank()) {
+        "Tienda '$nombre', Categoría '$categoria', Subcategoría '$subcategoria'."
+    } else {
+        "Tienda '$nombre', Categoría '$categoria'."
     }
+
+    // 3. Instrucción de Tono (Lo que varía)
+    val tonoInstruccion = when (intentos) {
+
+        // Primer intento — Elegante, breve y cálido
+        1 -> "Tono: Cálido, elegante, convincente. Debe 'enamorar', transmitir confianza y explicar la oferta."
+
+        // Segundo intento — Moderno, creativo y atractivo
+        2 -> "Tono: Creativo, moderno, fluido, atractivo. Muestra lo que hace la tienda de forma cautivadora."
+
+        // Tercer intento — Emocional, profesional y memorable
+        3 -> "Tono: Emocional, profundo, profesional, memorable. Debe transmitir cercanía y destacar la esencia de la tienda."
+
+        // Cuarto intento o más — Artístico y único
+        else -> "Tono: Artístico, poético, motivador, único y auténtico. Transmite encanto y diferenciación."
+    }
+
+    // 4. El Prompt final es un resumen conciso de los 3 puntos
+    return """
+        Instrucción: Genera una descripción inspiradora.
+        Reglas: $reglasDeFormato
+        Contexto: $contexto
+        Tono: $tonoInstruccion
+        Salida: SOLO el texto final.
+    """.trimIndent()
 }
 
 
 @SuppressLint("MissingPermission")
-fun obtenerUbicacionPrecisa(
+fun obtenerUbicacionConfiable(
     fusedLocationClient: FusedLocationProviderClient,
-    onUbicacionObtenida: (LatLng?) -> Unit
+    onUbicacionObtenida: (LatLng, Float) -> Unit
 ) {
 
-    val cancellationToken = CancellationTokenSource()
+    // 1️⃣ PRIMERO: última ubicación conocida (SIEMPRE)
+    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+        if (location != null) {
+            onUbicacionObtenida(
+                LatLng(location.latitude, location.longitude),
+                location.accuracy
+            )
+        }
+    }
 
-    fusedLocationClient.getCurrentLocation(
+    // 2️⃣ Pedimos ubicación nueva
+    val locationRequest = LocationRequest.Builder(
         Priority.PRIORITY_HIGH_ACCURACY,
-        cancellationToken.token
-    ).addOnSuccessListener { loc ->
-        if (loc != null) {
-            onUbicacionObtenida(LatLng(loc.latitude, loc.longitude))
-        } else {
-            // Si no devuelve nada, intenta 1 medición de respaldo
-            fusedLocationClient.lastLocation.addOnSuccessListener { backup ->
-                if (backup != null) {
-                    onUbicacionObtenida(LatLng(backup.latitude, backup.longitude))
-                } else {
-                    onUbicacionObtenida(null)
+        1500
+    )
+        .setMinUpdateDistanceMeters(0f)
+        .setMaxUpdates(3)
+        .build()
+
+    var mejorLocation: Location? = null
+
+    val callback = object : LocationCallback() {
+        override fun onLocationResult(result: LocationResult) {
+            for (loc in result.locations) {
+                if (mejorLocation == null || loc.accuracy < mejorLocation!!.accuracy) {
+                    mejorLocation = loc
+                }
+            }
+
+            // Si llega algo decente → se envía
+            mejorLocation?.let {
+                onUbicacionObtenida(
+                    LatLng(it.latitude, it.longitude),
+                    it.accuracy
+                )
+
+                // Si es buena, cortamos
+                if (it.accuracy <= 10f) {
+                    fusedLocationClient.removeLocationUpdates(this)
                 }
             }
         }
-    }.addOnFailureListener {
-        onUbicacionObtenida(null)
     }
+
+    fusedLocationClient.requestLocationUpdates(
+        locationRequest,
+        callback,
+        Looper.getMainLooper()
+    )
 }
+
+
 
 
 data class HorasDia(

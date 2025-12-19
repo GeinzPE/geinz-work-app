@@ -6,9 +6,11 @@ import androidx.annotation.RequiresApi
 import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.timeStampNumero
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion_box_dia
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_img_usert
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -44,6 +46,7 @@ class repo_eres_socio {
                 val img_tienda = data["img_tienda"] as? Map<String, Any> ?: emptyMap()
                 val logo = img_tienda["logo_tienda"] as? String ?: ""
 
+
                 val horario_atencion = data["horario_atencion"] as? Map<String, Any> ?: emptyMap()
                 val horarioMap = horario_atencion.to_horario_atencion_box_dia()
 
@@ -55,8 +58,8 @@ class repo_eres_socio {
 
                 val descripcion = data["descripcion"] as? String ?: ""
                 val propietario_id = data["propietario_id"] as? List<String> ?: emptyList()
-                val saldo_tienda=data["puntos_tienda"] as? Number ?:0
-
+                val saldo_tienda = data["puntos_tienda"] as? Number ?: 0
+                val img_generales = img_tienda.to_img_usert()
                 // 🔥 ESCUCHAR ESTADISTICAS EN TIEMPO REAL
                 ref.collection("estadisticas")
                     .addSnapshotListener { statsSnap, statsError ->
@@ -91,7 +94,6 @@ class repo_eres_socio {
                                 datos_tienda(
                                     id_tienda = id_tienda,
                                     nombre = nombre_tienda,
-                                    img_tienda = logo,
                                     horario_tiendaMap = horarioMap,
                                     total_vista = totalVistas,
                                     total_guardados = totalGuardados,
@@ -106,7 +108,10 @@ class repo_eres_socio {
                                     localidad_tienda = localidadTienda,
                                     fecha_ingreso = fecha_ingreso,
                                     fecha_termino = fecha_termino,
-                                    descripcion = descripcion, propietario_id,saldo_tienda,compartidos
+                                    descripcion = descripcion,
+                                    propietario_id,
+                                    saldo_tienda,
+                                    compartidos, img_generales
                                 )
                             )
                         }
@@ -359,6 +364,75 @@ class repo_eres_socio {
         }
     }
 
+    fun obtner_img_stoprage_cambios(
+        tipo: String,
+        idTienda: String,
+        onResult: (List<String>) -> Unit
+    ) {
+        val TAG = "STORAGE_IMGS"
+
+        Log.d(TAG, "📂 Buscando imágenes")
+        Log.d(TAG, "➡️ tienda: $idTienda")
+        Log.d(TAG, "➡️ tipo: $tipo")
+
+        val storage = FirebaseStorage.getInstance()
+        val carpetaRef = storage.reference
+            .child("tiendas/$idTienda/imagenes/$tipo")
+
+        carpetaRef.listAll()
+            .addOnSuccessListener { result ->
+
+                Log.d(TAG, "📸 Archivos encontrados: ${result.items.size}")
+
+                if (result.items.isEmpty()) {
+                    Log.d(TAG, "⚠️ No hay imágenes")
+                    onResult(emptyList())
+                    return@addOnSuccessListener
+                }
+
+                val urls = mutableListOf<String>()
+                var procesadas = 0
+
+                result.items.forEach { fileRef ->
+
+                    Log.d("obtenemos_img", "⬇️ Obteniendo URL de: ${fileRef.name}")
+
+                    fileRef.downloadUrl
+                        .addOnSuccessListener { uri ->
+                            urls.add(uri.toString())
+                            Log.d("obtenemos_img", "✅ URL OK: $uri")
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("obtenemos_img", "❌ Error en ${fileRef.name}", e)
+                        }
+                        .addOnCompleteListener {
+                            procesadas++
+
+                            if (procesadas == result.items.size) {
+
+                                // 🔥 Ordenar por slot_X.webp
+                                val ordenadas = urls.sortedBy {
+                                    Regex("slot_(\\d+)").find(it)
+                                        ?.groupValues
+                                        ?.get(1)
+                                        ?.toInt() ?: 0
+                                }
+
+                                Log.d("obtenemos_img", "📦 URLs finales (${ordenadas.size}):")
+                                ordenadas.forEach {
+                                    Log.d("obtenemos_img", it)
+                                }
+
+                                onResult(ordenadas)
+                            }
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("obtenemos_img", "❌ Error al listar carpeta", e)
+                onResult(emptyList())
+            }
+    }
 
 
 }

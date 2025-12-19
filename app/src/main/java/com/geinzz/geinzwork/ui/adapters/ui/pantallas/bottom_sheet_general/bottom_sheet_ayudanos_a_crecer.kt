@@ -49,6 +49,7 @@ import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
@@ -410,6 +411,7 @@ fun img_baner_informativo(img: String) {
     // 🔹 Pantalla de zoom
     if (mostar_img) {
         ZoomableGalleryFullScreen(
+            compartir_promocion(),
             imagenes = listOf(img),
             startIndex = 0,
             onDismiss = { mostar_img = false }

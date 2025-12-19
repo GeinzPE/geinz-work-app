@@ -11,6 +11,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.TiendaH
 
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.nuevos_lugares_agregados
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener_tiendas_lat_log_id
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
@@ -27,6 +28,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion_box_dia
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_img_usert
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
 import com.google.firebase.firestore.DocumentChange
@@ -50,6 +52,16 @@ import kotlin.text.get
 
 class repo_filtrado_tiendas {
     val db = FirebaseFirestore.getInstance()
+
+    private var listenerTiendas: ListenerRegistration? = null
+
+    private val repoScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    private val _cambiosHorarioTiendas = MutableSharedFlow<TiendaHorarioUpdate>()
+    private val cambio_horario_completo = MutableSharedFlow<HorarioAtencion_box>()
+    val cambiosHorarioTiendas = _cambiosHorarioTiendas.asSharedFlow()
+    val cambiosHorariocompleto_tienda = cambio_horario_completo.asSharedFlow()
+
 
     suspend fun obtener_subcategorias_tiendas(categorias: String): List<filtrado_tiendas_cat_sub> {
         Log.d("obtenos_", categorias.toString())
@@ -251,17 +263,6 @@ class repo_filtrado_tiendas {
     }
 
 
-
-    private var listenerTiendas: ListenerRegistration? = null
-
-    private val repoScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
-    private val _cambiosHorarioTiendas = MutableSharedFlow<TiendaHorarioUpdate>()
-    private val cambio_horario_completo= MutableSharedFlow<HorarioAtencion_box>()
-    val cambiosHorarioTiendas = _cambiosHorarioTiendas.asSharedFlow()
-    val cambiosHorariocompleto_tienda = cambio_horario_completo.asSharedFlow()
-
-
     fun escucharHorariosEnTiempoReal(localidad: String, categoria: String) {
 
 
@@ -310,6 +311,7 @@ class repo_filtrado_tiendas {
                                 )
                             )
                         }
+
                         else -> {}
                     }
                 }
@@ -344,7 +346,8 @@ class repo_filtrado_tiendas {
 
                     val doc = change.document
 
-                    val horarioMap = doc.get("horario_atencion") as? Map<String, Any> ?: return@forEach
+                    val horarioMap =
+                        doc.get("horario_atencion") as? Map<String, Any> ?: return@forEach
                     val horarioBox = horarioMap.to_horario_atencion_box_dia()
 
                     val horarioHoyBox = obtener_estado_horario_tienda_Box(horarioBox)
@@ -371,7 +374,7 @@ class repo_filtrado_tiendas {
     }
 
     fun escucharHorarioCompletoDeTiendaUnica(idTiendaBuscada: String, localidad: String) {
-Log.d("horaisadasgfsfgfasgsg","$idTiendaBuscada $localidad")
+        Log.d("horaisadasgfsfgfasgsg", "$idTiendaBuscada $localidad")
         listenerTiendas = db.collection("Tiendas")
             .document(localidad)
             .collection(localidad)
@@ -388,8 +391,10 @@ Log.d("horaisadasgfsfgfasgsg","$idTiendaBuscada $localidad")
                     return@addSnapshotListener
                 }
 
-                val horarioMap = snapshot.get("horario_atencion") as? Map<String, Any> ?: return@addSnapshotListener
-                val horarioCompleto = horarioMap.to_horario_atencion_box_dia() // función que mapea toda la semana
+                val horarioMap = snapshot.get("horario_atencion") as? Map<String, Any>
+                    ?: return@addSnapshotListener
+                val horarioCompleto =
+                    horarioMap.to_horario_atencion_box_dia() // función que mapea toda la semana
 
                 Log.d("REALTIME-UNICA", "📅 Horario completo recibido: $horarioCompleto")
 
@@ -436,6 +441,7 @@ Log.d("horaisadasgfsfgfasgsg","$idTiendaBuscada $localidad")
 
             val contacto_obs = metodos_contacto.toMetodoContacto()
             Log.d("metodo_contacot", contacto_obs.toString())
+            val img_completas = map_img.to_img_usert()
 
 
             val horarioTienda = HorarioAtencion(
@@ -462,7 +468,9 @@ Log.d("horaisadasgfsfgfasgsg","$idTiendaBuscada $localidad")
                 pagado = data?.get("pagado") as? Boolean ?: false,
                 metodo_contacto_tienda = contacto_obs,
                 horario_atencion = horarioTienda,
-                metodos_pago_tienda = metodo_pago_tienda, horario_tienda_box = horario_atencion_Box,timestamp=data?.get("timeSlamp") as? String ?: ""
+                metodos_pago_tienda = metodo_pago_tienda,
+                horario_tienda_box = horario_atencion_Box,
+                timestamp = data?.get("timeSlamp") as? String ?: "",lista_img_tienda=img_completas
             )
 
             lista_modelo_tienda.add(tiendaModelo)
@@ -790,6 +798,89 @@ Log.d("horaisadasgfsfgfasgsg","$idTiendaBuscada $localidad")
             Log.e("eliminar_cuenta", "Error al eliminar vinculación: ${e.message}")
         }
     }
+
+
+    suspend fun obtener_lugaresnuevos_aleatorios(
+        localidad: String
+    ): List<nuevos_lugares_agregados> {
+
+        val TAG = "LUGARES_NUEVOS_RANDOM"
+
+        val loc = localidad.trim().lowercase()
+
+        Log.d(TAG, "Obteniendo lugares nuevos")
+        Log.d(TAG, "Localidad normalizada: $loc")
+
+        val snapshot = FirebaseFirestore.getInstance()
+            .collection("Tiendas")
+            .document(loc)
+            .collection("nuevos_lugares")
+            .get()
+            .await()
+
+        if (snapshot.isEmpty) {
+            Log.w(TAG, "No hay documentos en nuevos_lugares")
+            return emptyList()
+        }
+
+        Log.d(TAG, "Total documentos obtenidos: ${snapshot.size()}")
+
+        val resultado = snapshot.documents
+            .asSequence()
+            .mapNotNull { doc ->
+                val data = doc.data ?: return@mapNotNull null
+
+                val img = data["logo_img"] as? String
+                if (img.isNullOrBlank()) return@mapNotNull null
+
+                val nombre = data["nombre_tienda"] as? String
+                val horario_tienda =data["horario_atencion"] as? Map<String, Any>
+                val horario_casteado=horario_tienda.to_horario_atencion_box_dia()
+                val ubicaion=data["ubicacion"] as? Map<String, Any>
+                val lat_=ubicaion?.get("latitud")as? Number ?:0
+                val lng=ubicaion?.get("longitud")as? Number ?:0
+                if (nombre.isNullOrBlank()) return@mapNotNull null
+
+                nuevos_lugares_agregados(
+                    id_tienda = data["id_tienda"] as? String ?: doc.id,
+                    localidad_tienda = loc,
+                    img = img,
+                    nombre_tienda = nombre,
+                    categoria = data["categoria"] as? String ?: "",
+                    lista_categoria = data["lista_subcateogira"] as? List<String> ?: emptyList(),
+                    horario_tienda_box = horario_casteado, lat = lat_.toDouble(), lng = lng.toDouble()
+                )
+            }
+            // ❌ evita repetir Inkafarma, Mifarma, etc.
+            .distinctBy { obtenerNombreBase(it.nombre_tienda) }
+            .shuffled()
+            .take(7)
+            .toList()
+
+        Log.d(TAG, "Resultado final: ${resultado.size}")
+
+        return resultado
+    }
+
+
+    fun obtenerNombreBase(nombre: String): String {
+        return nombre
+            .lowercase()
+            .normalizeAccents()
+            .split(" ")
+            .firstOrNull()
+            ?: nombre.lowercase()
+    }
+
+    fun String.normalizeAccents(): String {
+        return java.text.Normalizer
+            .normalize(this, java.text.Normalizer.Form.NFD)
+            .replace(Regex("\\p{InCombiningDiacriticalMarks}+"), "")
+    }
+
+
+
+
 
 
 }

@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.data.model.localizate_geinz
 
 import android.os.Parcelable
+import com.geinzz.geinzwork.data.model.obtener_img_tiendas
 import com.google.firebase.Timestamp
 import kotlinx.android.parcel.Parcelize
 
@@ -55,7 +56,10 @@ data class modelo_tienda(
     val metodos_pago_tienda:modelo_pagos_tienda =modelo_pagos_tienda(),
     val horario_tienda_box:HorarioAtencion_box=HorarioAtencion_box(),
     val timestamp: String ="",
+    val lista_img_tienda: obtener_img_tiendas =obtener_img_tiendas()
 )
+
+
 @Parcelize
 data class modelo_pagos_tienda(
     val visa_mastercard: modelo_metodo_individual = modelo_metodo_individual(),

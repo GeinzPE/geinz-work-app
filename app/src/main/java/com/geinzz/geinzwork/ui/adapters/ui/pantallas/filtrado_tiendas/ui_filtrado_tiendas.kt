@@ -138,6 +138,7 @@ import kotlinx.coroutines.launch
 import kotlin.text.isNotEmpty
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun Pantalla_filtrado_tiendas(
@@ -210,7 +211,7 @@ fun Pantalla_filtrado_tiendas(
     }
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     var id_respado_user by remember { mutableStateOf("") }
-
+//
     var texto_falta_registra by remember { mutableStateOf("") }
 
     LaunchedEffect(uid_respald_user) {
@@ -460,7 +461,7 @@ fun Pantalla_filtrado_tiendas(
                         item_tiendas(
                             horario_box1 = horarioDeEstaTienda,
                             horario_box = tienda.horario_tienda_box,
-                            verificar_intener,
+                            verificar_interner = verificar_intener,
                             localidad_user = localida,
                             id_user = uid_respald_user,
                             viewModelFiltros = viewModelFiltros,
@@ -482,7 +483,7 @@ fun Pantalla_filtrado_tiendas(
                                         "Regístrate para ver los detalles completos y las funciones exclusivas"
 
                                 }
-                            }, {
+                            }, dialog_sin_registrao = {
                                 bottom_sheet_iniciar_seccion = true
                                 texto_falta_registra = "Regístrate para agregar a tus favoritos"
                             })
@@ -1050,12 +1051,11 @@ fun item_tiendas(
                             exit = fadeOut()
                         ) {
                             btn_listener_fv_externo(
-                                favoritoEstado,
-                                Modifier.padding(bottom = 10.dp),
-                                { nuevoEstado ->
+                                select = favoritoEstado,
+                                modifier = Modifier.padding(bottom = 10.dp),
+                                listener = { nuevoEstado ->
                                     nuevo_Estadp_btn_fv = nuevoEstado
                                     if (id_user.isNotEmpty()) {
-
                                         if (nuevoEstado) {
                                             viewModelFiltros.guardar_tienda_favorita_por_id(
                                                 localidad_user,
@@ -1073,8 +1073,8 @@ fun item_tiendas(
                                         dialog_sin_registrao()
                                     }
                                 },
-                                30.dp,
-                                15.dp
+                                size_btn = 30.dp,
+                                size_icon = 15.dp
                             )
                         }
 

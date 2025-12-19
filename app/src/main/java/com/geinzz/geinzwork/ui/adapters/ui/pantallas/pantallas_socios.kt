@@ -2,14 +2,21 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
 import android.content.ClipboardManager
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -25,6 +32,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,26 +44,38 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.OpenInFull
+import androidx.compose.material.icons.filled.Undo
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -73,10 +93,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.datos_grafico
 import com.geinzz.geinzwork.data.model.datos_tienda_fechas
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
@@ -92,6 +114,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_w
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_mostar_leyendas_graficos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialogo_cerrar_seccion_teinda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
@@ -103,13 +126,18 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.DiaHoy
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerDiasYColor
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v2
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import io.github.dautovicharis.charts.PieChart
 import io.github.dautovicharis.charts.model.toChartDataSet
 import io.github.dautovicharis.charts.style.PieChartDefaults
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -117,7 +145,7 @@ fun login_socios(isConnected: Boolean) {
     val verificar_id by remember { mutableStateOf("") }
     val context = LocalContext.current
     var id_registrado by remember { mutableStateOf("") }
-    val labels = listOf("Vistas", "Guardados", "Clics","Compartidos")
+    val labels = listOf("Vistas", "Guardados", "Clics", "Compartidos")
     val labels2 = listOf("Facebook", "Instagram", "TikTok", "Sitio web")
     val labels3 = listOf("Llamada", "Whatsapp", "Rutas")
     val viewmodel: viewmodel_eres_socio = viewModel()
@@ -159,6 +187,29 @@ fun login_socios(isConnected: Boolean) {
     var correo_electronico_cuenta_user by remember { mutableStateOf("") }
 
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+
+    var fotos_ambiente by remember { mutableStateOf(false) }
+    var fotos_producto by remember { mutableStateOf(false) }
+    var fotos_promociones by remember { mutableStateOf(false) }
+
+    var fotosAmbientales  by remember {
+        mutableStateOf<List<String>>(emptyList())
+    }
+    var fotosServicios by remember {
+        mutableStateOf<List<String>>(emptyList())
+    }
+    var fotosPromociones by remember {
+        mutableStateOf<List<String>>(emptyList())
+    }
+
+    var logoOriginal by rememberSaveable { mutableStateOf<String?>(null) }
+    var logoActual by rememberSaveable { mutableStateOf<String?>(null) }
+    var hayCambiosLogo by remember { mutableStateOf(false) }
+    var guardandoLogo by remember { mutableStateOf(false) }
+
+
+    var valor_img_completa by remember { mutableStateOf("") }
+    var mostrarDialogozoom by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         viewmodel.cargarIdSocio(context)
     }
@@ -166,9 +217,15 @@ fun login_socios(isConnected: Boolean) {
     LaunchedEffect(id_tienda, horarioMap) {
         viewModelFiltros.calcularHorarioParaTienda(id_tienda, horarioMap)
     }
+    LaunchedEffect(id_tienda) {
+        if(id_tienda!=""){
+            viewmodel.carga_img_tipo("ambientales",id_tienda)
+            viewmodel.carga_img_tipo("servicios_productos",id_tienda)
+        }
+    }
 
     LaunchedEffect(localidad_seleciondad) {
-        if(localidad_seleciondad!=""){
+        if (localidad_seleciondad != "") {
             set_localidad_tienda_soscio(context, localidad_seleciondad.lowercase())
         }
     }
@@ -178,12 +235,14 @@ fun login_socios(isConnected: Boolean) {
         when {
             existe && !idConfirmado.isNullOrEmpty() -> {
                 mostar_progeres_var_en_btn = true
+
                 delay(2000)
 
                 // Guardar en SharedPreferences / DataStore
                 scope.launch {
                     set_id_socio(context, idConfirmado)
                 }
+
 
                 mostar_progeres_var_en_btn = false
             }
@@ -200,6 +259,16 @@ fun login_socios(isConnected: Boolean) {
             }
         }
     }
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            logoActual = it.toString()   // ✅ preview inmediata
+            hayCambiosLogo = true        // ✅ muestra botones
+        }
+    }
+
+
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
 
@@ -275,38 +344,50 @@ fun login_socios(isConnected: Boolean) {
                                 )
                                 spacer_vertical(10.dp)
                                 Column(modifier = Modifier.fillMaxWidth()) {
-                                texto_generico_one_line("Selecciona tu localidad")
-                                spacer_vertical(12.dp)
-                                LazyRow(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    items(opciones_localida) { localidad ->
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(CircleShape)
-                                                .background(
-                                                    if (localidad_seleciondad == localidad) Color.White
-                                                    else MaterialTheme.colorScheme.primary
+                                    texto_generico_one_line("Selecciona tu localidad")
+                                    spacer_vertical(12.dp)
+                                    LazyRow(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        items(opciones_localida) { localidad ->
+                                            Box(
+                                                modifier = Modifier
+                                                    .clip(CircleShape)
+                                                    .background(
+                                                        if (localidad_seleciondad == localidad) Color.White
+                                                        else MaterialTheme.colorScheme.primary
+                                                    )
+                                                    .clickable {
+                                                        localidad_seleciondad = localidad
+                                                    }
+                                                    .padding(5.dp)
+                                            ) {
+                                                texto_generico_one_line(
+                                                    localidad,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = if (localidad_seleciondad == localidad) Color.Black else Color.White,
+                                                    modifier = Modifier.padding(
+                                                        horizontal = 5.dp,
+                                                        vertical = 4.dp
+                                                    )
                                                 )
-                                                .clickable {
-                                                    localidad_seleciondad = localidad
-                                                }
-                                                .padding(5.dp)
-                                        ) {
-                                            texto_generico_one_line(
-                                                localidad,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = if (localidad_seleciondad == localidad) Color.Black else Color.White,
-                                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 4.dp)
-                                            )
+                                            }
                                         }
                                     }
                                 }
-                                }
                                 spacer_vertical(10.dp)
-                                Box(modifier = Modifier.fillMaxWidth().height(70.dp), contentAlignment = Alignment.Center) {
-                                    this@Column.AnimatedVisibility(!ingresar_correo, enter = fadeIn(), exit = fadeOut()) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(70.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    this@Column.AnimatedVisibility(
+                                        !ingresar_correo,
+                                        enter = fadeIn(),
+                                        exit = fadeOut()
+                                    ) {
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(5.dp)
@@ -358,12 +439,17 @@ fun login_socios(isConnected: Boolean) {
                                         }
                                     }
 
-                                    this@Column.AnimatedVisibility(ingresar_correo, enter = fadeIn(), exit = fadeOut()) {
+                                    this@Column.AnimatedVisibility(
+                                        ingresar_correo,
+                                        enter = fadeIn(),
+                                        exit = fadeOut()
+                                    ) {
                                         MyOutlinedTextField(
                                             value = correo_electronico_cuenta_user,
                                             onValueChange = { correo_electronico_cuenta_user = it },
                                             labelText = "Ingresa tu correo electronico",
-                                            placeholderText = "Ingresa tu correo electronico", keyboardType = KeyboardType.Email
+                                            placeholderText = "Ingresa tu correo electronico",
+                                            keyboardType = KeyboardType.Email
                                         )
 
                                     }
@@ -381,13 +467,10 @@ fun login_socios(isConnected: Boolean) {
 //
 
 
-
-
-
                                 spacer_vertical(5.dp)
                                 Box(modifier = Modifier.fillMaxWidth()) {
                                     Text(
-                                        text = if(!ingresar_correo)"Ingresar con cuenta de usuario (solo vinculados)" else "Ingresar con ID ",
+                                        text = if (!ingresar_correo) "Ingresar con cuenta de usuario (solo vinculados)" else "Ingresar con ID ",
                                         style = MaterialTheme.typography.bodyMedium.copy(
                                             textDecoration = TextDecoration.Underline,
                                             color = Color.White
@@ -397,9 +480,9 @@ fun login_socios(isConnected: Boolean) {
                                             .clickable(
                                                 indication = null,
                                                 interactionSource = remember { MutableInteractionSource() }) {
-                                                ingresar_correo=!ingresar_correo
-                                                correo_electronico_cuenta_user=""
-                                                id_registrado=""
+                                                ingresar_correo = !ingresar_correo
+                                                correo_electronico_cuenta_user = ""
+                                                id_registrado = ""
                                             }
                                     )
                                 }
@@ -449,29 +532,29 @@ fun login_socios(isConnected: Boolean) {
                                                             )
                                                         }
                                                     } else {
-                                                            if (id_registrado.isEmpty()) {
-                                                                scope.launch {
-                                                                    snackbarHostState.showSnackbar(
-                                                                        message = "Ingresa tu id de tienda",
-                                                                        duration = SnackbarDuration.Short
-                                                                    )
-                                                                }
-                                                            }else if(localidad_seleciondad.isEmpty()){
-                                                                scope.launch {
-                                                                    snackbarHostState.showSnackbar(
-                                                                        message = "Selecciona la localidad de la tienda",
-                                                                        duration = SnackbarDuration.Short
-                                                                    )
-                                                                }
-                                                            }else{
-                                                                viewmodel.verificar_existencia_tienda(
-                                                                    uid_respald_user,
-                                                                    ingresar_correo,
-                                                                    correo_electronico_cuenta_user,
-                                                                    id_registrado,
-                                                                    localidad_seleciondad
+                                                        if (id_registrado.isEmpty()) {
+                                                            scope.launch {
+                                                                snackbarHostState.showSnackbar(
+                                                                    message = "Ingresa tu id de tienda",
+                                                                    duration = SnackbarDuration.Short
                                                                 )
                                                             }
+                                                        } else if (localidad_seleciondad.isEmpty()) {
+                                                            scope.launch {
+                                                                snackbarHostState.showSnackbar(
+                                                                    message = "Selecciona la localidad de la tienda",
+                                                                    duration = SnackbarDuration.Short
+                                                                )
+                                                            }
+                                                        } else {
+                                                            viewmodel.verificar_existencia_tienda(
+                                                                uid_respald_user,
+                                                                ingresar_correo,
+                                                                correo_electronico_cuenta_user,
+                                                                id_registrado,
+                                                                localidad_seleciondad
+                                                            )
+                                                        }
 
                                                     }
                                                 }
@@ -507,7 +590,7 @@ fun login_socios(isConnected: Boolean) {
                             }
                             SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
                         }
-                        BtnSoporte("problemas",context,uid_respald_user)
+                        BtnSoporte("problemas", context, uid_respald_user)
                     }
                 }
 
@@ -528,7 +611,10 @@ fun login_socios(isConnected: Boolean) {
                                     when (val state = state_socio.value) {
 
                                         is viewmodel_eres_socio.carga_acces_socio.loading -> {
-                                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                            Box(
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentAlignment = Alignment.Center
+                                            ) {
                                                 CircularProgressIndicator()
                                             }
                                         }
@@ -542,6 +628,16 @@ fun login_socios(isConnected: Boolean) {
                                             localidad_tienda = datos.localidad_tienda
                                             fecha_termino = datos.fecha_termino
                                             listaPropietarios = datos.lista_ids_propietarios
+                                            fotosAmbientales=datos.obtener_img_tiendas.lista_ambiernte
+                                            fotosServicios=datos.obtener_img_tiendas.lista_productos
+                                            fotosPromociones=datos.obtener_img_tiendas.lista_promociones
+                                            LaunchedEffect(datos.id_tienda) {
+                                                logoOriginal = datos.obtener_img_tiendas.logo_tienda
+                                                logoActual = datos.obtener_img_tiendas.logo_tienda
+                                                hayCambiosLogo = false
+                                            }
+
+
 
                                             var values by remember { mutableStateOf(listOf<Float>()) }
 
@@ -576,7 +672,8 @@ fun login_socios(isConnected: Boolean) {
                                                 datos.fecha_ingreso,
                                                 datos.fecha_termino,
                                                 dias.toString(),
-                                                color,datos.saldo_disponible_tienda.toString()?:"0",
+                                                color,
+                                                datos.saldo_disponible_tienda.toString() ?: "0",
                                             )
 
                                             Column(
@@ -648,7 +745,7 @@ fun login_socios(isConnected: Boolean) {
                                                     ) {
                                                         AsyncImage(
                                                             model = ImageRequest.Builder(context)
-                                                                .data(datos.img_tienda)
+                                                                .data(logoActual)
                                                                 .placeholder(R.drawable.cargando_img_categorias)
                                                                 .error(R.drawable.cargando_img_categorias)
                                                                 .build(),
@@ -656,6 +753,54 @@ fun login_socios(isConnected: Boolean) {
                                                             modifier = Modifier.matchParentSize(),
                                                             contentScale = ContentScale.Crop
                                                         )
+                                                        Icon(
+                                                            imageVector = Icons.Default.OpenInFull,
+                                                            contentDescription = "Expandir imagen",
+                                                            tint = Color.White,
+                                                            modifier = Modifier
+                                                                .align(Alignment.TopEnd)
+                                                                .padding(6.dp)
+                                                                .size(30.dp)
+                                                                .zIndex(10f)
+                                                                .background(
+                                                                    Color.Black.copy(alpha = 0.6f),
+                                                                    CircleShape
+                                                                )
+                                                                .clickable {
+                                                                    valor_img_completa=logoActual?:""
+                                                                    mostrarDialogozoom=true
+                                                                }
+                                                                .padding(4.dp)
+                                                        )
+
+                                                        if (mostar_horario__bool) {
+
+                                                            Icon(
+                                                                imageVector =if(hayCambiosLogo) Icons.Default.Undo else Icons.Default.Edit, // o ZoomOutMap
+                                                                contentDescription = "Expandir imagen",
+                                                                tint = Color.White,
+                                                                modifier = Modifier
+                                                                    .align(Alignment.BottomEnd)
+                                                                    .padding(6.dp)
+                                                                    .size(30.dp)
+                                                                    .background(
+                                                                        Color.Black.copy(alpha = 0.6f),
+                                                                        CircleShape
+                                                                    )
+                                                                    .clickable { if(hayCambiosLogo){
+                                                                        logoActual = logoOriginal
+                                                                        hayCambiosLogo = false
+                                                                    }else{
+
+                                                                        launcher.launch("image/*")
+                                                                    }
+                                                                    }
+                                                                    .padding(4.dp)
+                                                            )
+
+
+                                                        }
+
 
                                                         this@Column.AnimatedVisibility(
                                                             !mostar_horario__bool,
@@ -670,6 +815,64 @@ fun login_socios(isConnected: Boolean) {
                                                         }
                                                     }
 
+                                                    this@Column.AnimatedVisibility(
+                                                        visible = hayCambiosLogo,
+                                                        enter = fadeIn(),
+                                                        exit = fadeOut()
+                                                    ) {
+                                                        Row(
+                                                            modifier = Modifier
+                                                                .fillMaxWidth()
+                                                                .padding(top = 10.dp, start = 10.dp, end = 10.dp),
+                                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                                        ) {
+                                                            Button(
+                                                                modifier = Modifier.weight(1f),
+                                                                enabled = !guardandoLogo && logoActual != null && logoActual != logoOriginal,
+                                                                onClick = {
+                                                                    guardandoLogo = true
+
+                                                                    subir_storage_perfil_img(
+                                                                        context = context,
+                                                                        idTienda = id_tienda,
+                                                                        valor = logoActual!!, // 👈 AQUÍ VA LA IMAGEN REAL
+                                                                        onSuccess = { urlFinal ->
+
+                                                                            FirebaseFirestore.getInstance()
+                                                                                .collection("Tiendas")
+                                                                                .document("barranca")
+                                                                                .collection("barranca")
+                                                                                .document(id_tienda)
+                                                                                .update("img_tienda.logo_tienda", urlFinal)
+                                                                                .addOnSuccessListener {
+                                                                                    logoOriginal = urlFinal
+                                                                                    logoActual = urlFinal
+                                                                                    hayCambiosLogo = false
+                                                                                    guardandoLogo = false
+                                                                                }
+                                                                                .addOnFailureListener {
+                                                                                    guardandoLogo = false
+                                                                                }
+                                                                        },
+                                                                        onError = {
+                                                                            guardandoLogo = false
+                                                                        }
+                                                                    )
+                                                                }
+                                                            ) {
+                                                                if (guardandoLogo) {
+                                                                    CircularProgressIndicator(
+                                                                        modifier = Modifier.size(18.dp),
+                                                                        strokeWidth = 2.dp,
+                                                                        color = Color.White
+                                                                    )
+                                                                } else {
+                                                                    texto_generico_one_line("Guardar cambios ")
+                                                                }
+                                                            }
+
+                                                        }
+                                                    }
 
                                                     Text(
                                                         text = datos.nombre.capitalizeFirst(),
@@ -685,15 +888,143 @@ fun login_socios(isConnected: Boolean) {
                                                         label = ""
                                                     ) { estado ->
                                                         if (estado) {
-                                                            texto_generico_multilinea(
-                                                                datos.descripcion,
-                                                                style = MaterialTheme.typography.bodyMedium,
+                                                            Column(
                                                                 modifier = Modifier.padding(
                                                                     start = 10.dp,
                                                                     end = 10.dp,
                                                                     bottom = 20.dp
+                                                                ),
+                                                                verticalArrangement = Arrangement.spacedBy(
+                                                                    7.dp
                                                                 )
-                                                            )
+                                                            ) {
+                                                                texto_generico_multilinea(
+                                                                    datos.descripcion,
+                                                                    style = MaterialTheme.typography.bodyMedium,
+
+                                                                    )
+                                                                spacer_vertical(20.dp)
+                                                                Column(
+                                                                    modifier = Modifier
+                                                                        .clip(RoundedCornerShape(10.dp))
+                                                                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                                                                        .fillMaxWidth(),
+                                                                    horizontalAlignment = Alignment.CenterHorizontally
+                                                                ) {
+                                                                    Box(
+                                                                        modifier = Modifier
+                                                                            .fillMaxWidth()
+                                                                            .height(40.dp)
+                                                                            .clickable {
+                                                                                fotos_ambiente =
+                                                                                    !fotos_ambiente
+                                                                            }
+                                                                            .padding(horizontal = 16.dp), // padding horizontal
+                                                                        contentAlignment = Alignment.Center // centra el texto
+                                                                    ) {
+                                                                        texto_generico_one_line("Fotos de ambiente \uD83C\uDF06")
+                                                                    }
+
+                                                                    AnimatedVisibility(
+                                                                        fotos_ambiente
+                                                                    ) {
+                                                                        Box(
+                                                                            modifier = Modifier
+                                                                                .fillMaxWidth()
+                                                                                .padding(8.dp)
+                                                                        ) {
+                                                                            BoxFotosTipos(
+                                                                                "ambientales",
+                                                                                id_tienda,
+                                                                                fotosAmbientales,
+                                                                            )
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                spacer_vertical(10.dp)
+
+                                                                Column(
+                                                                    modifier = Modifier
+                                                                        .clip(RoundedCornerShape(10.dp))
+                                                                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                                                                        .fillMaxWidth(),
+                                                                    horizontalAlignment = Alignment.CenterHorizontally
+                                                                ) {
+                                                                    Box(
+                                                                        modifier = Modifier
+                                                                            .fillMaxWidth()
+                                                                            .height(40.dp)
+                                                                            .clickable {
+                                                                                fotos_producto =
+                                                                                    !fotos_producto
+                                                                            }
+                                                                            .padding(horizontal = 16.dp), // padding horizontal
+                                                                        contentAlignment = Alignment.Center // centra el texto
+                                                                    ) {
+                                                                        texto_generico_one_line("Fotos de productos o servicios 👣")
+                                                                    }
+
+                                                                    AnimatedVisibility(
+                                                                        fotos_producto
+                                                                    ) {
+                                                                        Box(
+                                                                            modifier = Modifier
+                                                                                .fillMaxWidth()
+                                                                                .padding(8.dp)
+                                                                        ) {
+                                                                            BoxFotosTipos(
+                                                                                "servicios_productos",
+                                                                                id_tienda,
+                                                                                fotosServicios
+                                                                            )
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                spacer_vertical(10.dp)
+
+                                                                Column(
+                                                                    modifier = Modifier
+                                                                        .clip(RoundedCornerShape(10.dp))
+                                                                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                                                                        .fillMaxWidth(),
+                                                                    horizontalAlignment = Alignment.CenterHorizontally
+                                                                ) {
+
+                                                                    Box(
+                                                                        modifier = Modifier
+                                                                            .fillMaxWidth()
+                                                                            .height(40.dp)
+                                                                            .clickable {
+                                                                                fotos_promociones =
+                                                                                    !fotos_promociones
+                                                                            }
+                                                                            .padding(horizontal = 16.dp), // padding horizontal
+                                                                        contentAlignment = Alignment.Center // centra el texto
+                                                                    ) {
+                                                                        texto_generico_one_line("Promociones recientes \u200B\u200B❤\uFE0F\u200D\uD83D\uDD25\u200B")
+                                                                    }
+
+                                                                    AnimatedVisibility(
+                                                                        fotos_promociones
+                                                                    ) {
+                                                                        Box(
+                                                                            modifier = Modifier
+                                                                                .fillMaxWidth()
+                                                                                .padding(8.dp)
+                                                                        ) {
+                                                                            BoxFotosTipos(
+                                                                                "promociones",
+                                                                                id_tienda,
+                                                                                fotosPromociones
+                                                                            )
+                                                                        }
+                                                                    }
+                                                                }
+
+
+                                                            }
                                                         } else {
                                                             text_expandible_wrapp(
                                                                 modifier = Modifier.padding(
@@ -710,6 +1041,9 @@ fun login_socios(isConnected: Boolean) {
                                                     }
 
                                                 }
+
+
+
 
                                                 spacer_vertical(10.dp)
 
@@ -798,12 +1132,12 @@ fun login_socios(isConnected: Boolean) {
                                                         label = "Clics en perfil",
                                                         cantidad = datos.clic.toString()
                                                     ),
-                                                            datos_grafico(
-                                                            enable = datos.compartidos != 0,
-                                                    img_ = R.drawable.compartir_icon_vector,
-                                                    label = "Compartidos",
-                                                    cantidad = datos.compartidos.toString()
-                                                )
+                                                    datos_grafico(
+                                                        enable = datos.compartidos != 0,
+                                                        img_ = R.drawable.compartir_icon_vector,
+                                                        label = "Compartidos",
+                                                        cantidad = datos.compartidos.toString()
+                                                    )
                                                 )
                                                 AnimatedVisibility(lsita_datos1.any { it.enable }) {
                                                     Cartas_expandibles(
@@ -1341,6 +1675,17 @@ fun login_socios(isConnected: Boolean) {
                                         else -> {}
                                     }
                                 }
+
+                                if (mostrarDialogozoom) {
+                                    ZoomableGalleryFullScreen(
+                                        compartir_promocion(),
+                                        imagenes = listOf(valor_img_completa),
+                                        startIndex = 0,
+                                        onDismiss = { mostrarDialogozoom = false }
+                                    )
+
+                                }
+
                                 if (dialog_mostar_leyendas_graficos) {
                                     dialog_mostar_leyendas_graficos(
                                         icono_mostar_leyendas_graficos,
@@ -1352,7 +1697,7 @@ fun login_socios(isConnected: Boolean) {
                             }
                         }
                         SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
-                        BtnSoporte("Soporte",context,uid_respald_user)
+                        BtnSoporte("Soporte", context, uid_respald_user)
                     }
                 }
 
@@ -1371,15 +1716,51 @@ fun login_socios(isConnected: Boolean) {
                         viewmodel.cambiar_estado_Seccion()
                         data_store_localidad.delete_id_socio(context)
                     }
-                    viewModelFiltros.eliminarvincualcion_cuenta_tienda(uid_respald_user,
+                    viewModelFiltros.eliminarvincualcion_cuenta_tienda(
+                        uid_respald_user,
                         idSocio,
                         localidad_tienda_select_
-                            ?: "barranca")
+                            ?: "barranca"
+                    )
                 }
             )
         }
     }
 }
+
+@RequiresApi(Build.VERSION_CODES.R)
+fun subir_storage_perfil_img(
+    context: Context,
+    idTienda: String,
+    valor: String,
+    onSuccess: (String) -> Unit,
+    onError: (Exception) -> Unit = {}
+) {
+
+    // 👉 Si ya es URL remota, no subir
+    if (esUrlRemota(valor)) {
+        onSuccess(valor)
+        return
+    }
+
+    val uri = Uri.parse(valor)
+
+    val storageRef = FirebaseStorage.getInstance()
+        .reference
+        .child("tiendas/$idTienda/logo/logo.webp")
+
+    val bytes = procesarImagenWebPSinRecorte(context, uri)
+
+    storageRef.putBytes(bytes)
+        .continueWithTask { storageRef.downloadUrl }
+        .addOnSuccessListener { downloadUrl ->
+            onSuccess(downloadUrl.toString())
+        }
+        .addOnFailureListener {
+            onError(it)
+        }
+}
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -1485,8 +1866,6 @@ fun BtnSoporte(tipo: String, context: Context, id_user: String) {
 }
 
 
-
-
 @Composable
 fun carga_inicial() {
     Box(
@@ -1499,3 +1878,495 @@ fun carga_inicial() {
         pantalla_carga_login(false)
     }
 }
+
+
+fun esUriLocal(valor: String?): Boolean =
+    valor?.startsWith("content://") == true
+
+fun esUrlRemota(valor: String?): Boolean =
+    valor?.startsWith("http") == true
+
+
+@RequiresApi(Build.VERSION_CODES.R)
+@Composable
+fun BoxFotosTipos(
+    tipo:String,
+    id_tienda: String,
+    urlsDesdeDb: List<String>
+) {
+    val contxt=LocalContext.current
+    val max = 5
+    var mostrarDialogozoom by remember { mutableStateOf(false) }
+    var valor_img_completa by remember { mutableStateOf("") }
+    val eliminadas = remember { mutableStateListOf<Int>() }
+
+    val imagenesOriginales = remember {
+        List(max) { index -> urlsDesdeDb.getOrNull(index) }
+    }
+
+    val imagenes = remember {
+        mutableStateListOf<String?>().apply {
+            addAll(imagenesOriginales)
+            repeat(max - size) { add(null) }
+        }
+    }
+
+    val hayCambios by remember {
+        derivedStateOf {
+            eliminadas.isNotEmpty() ||
+                    imagenes.any { esUriLocal(it) }
+        }
+    }
+
+
+    var indexSeleccionado by remember { mutableStateOf<Int?>(null) }
+
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            indexSeleccionado?.let { index ->
+                imagenes[index] = it.toString()
+                eliminadas.remove(index)
+            }
+        }
+    }
+
+    // --- LazyRow state y shadows en tiempo real ---
+    val listState = rememberLazyListState()
+    var showLeftShadow by remember { mutableStateOf(false) }
+    var showRightShadow by remember { mutableStateOf(false) }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+            .collect { (firstIndex, scrollOffset) ->
+                val visibleItems = listState.layoutInfo.visibleItemsInfo
+                val totalItems = listState.layoutInfo.totalItemsCount
+
+                showLeftShadow = firstIndex > 0 || scrollOffset > 0
+                showRightShadow = visibleItems.lastOrNull()?.index != null &&
+                        visibleItems.lastOrNull()?.index!! < totalItems - 1
+            }
+    }
+
+    val alphaLeft by animateFloatAsState(
+        targetValue = if (showLeftShadow) 1f else 0f,
+        animationSpec = tween(400)
+    )
+    val alphaRight by animateFloatAsState(
+        targetValue = if (showRightShadow) 1f else 0f,
+        animationSpec = tween(400)
+    )
+    var guardando by remember { mutableStateOf(false) }
+
+
+    // ----------------------------------------------
+    Column() {
+    Box(modifier = Modifier
+        .animateContentSize()
+        .height(100.dp)) {
+
+            LazyRow(
+                state = listState,
+                horizontalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                itemsIndexed(imagenes) { index, valor ->
+                    BoxImagen(
+                        valor = valor,
+                        estaEliminada = eliminadas.contains(index),
+                        onClick = {
+                            indexSeleccionado = index
+                            launcher.launch("image/*")
+                        },
+                        onCancelarOEliminar = {
+
+                            // 🔁 SI ESTÁ ELIMINADA → RESTABLECER
+                            if (eliminadas.contains(index)) {
+                                eliminadas.remove(index)
+                                imagenes[index] = imagenesOriginales[index]
+                                return@BoxImagen
+                            }
+
+                            when {
+                                esUriLocal(valor) -> {
+                                    imagenes[index] = imagenesOriginales[index]
+                                }
+
+                                esUrlRemota(valor) -> {
+                                    eliminadas.add(index)
+                                    imagenes[index] = null
+                                }
+                            }
+                        },onExpandir={
+                            mostrarDialogozoom=true
+                            valor_img_completa=valor?:""
+                        }
+
+                    )
+                }
+            }
+        // Sombra izquierda
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(60.dp)
+
+                .align(Alignment.CenterStart)
+                .zIndex(1f)
+                .alpha(alphaLeft)
+                .background(Brush.horizontalGradient(colors = shadow_top_filtrado_v2))
+        )
+
+        // Sombra derecha
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(60.dp)
+                .align(Alignment.CenterEnd)
+                .zIndex(1f)
+                .alpha(alphaRight)
+                .background(Brush.horizontalGradient(colors = shadow_botonm_filtrado_v2))
+        )
+        }
+
+        AnimatedVisibility(
+            visible = hayCambios,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Column {
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .clickable(enabled = !guardando) {
+
+                            guardando = true
+
+                            guardarCambiosImagenes(
+                                tipo= tipo,
+                                context = contxt,
+                                imagenes = imagenes,
+                                eliminadas = eliminadas,
+                                imagenesOriginales = imagenesOriginales,
+                                idTienda = id_tienda,
+                                "barranca"
+                            ) { completo ->
+                                val urlsFinales = completo.filterNotNull()
+                                guardarImagenesEnFirestore(
+                                    localidad = "barranca",
+                                    idTienda = id_tienda,
+                                    tipo = tipo,
+                                    urls = urlsFinales,
+                                    onSuccess = {
+                                        Log.d("agregardo_firebae", "🔥 Firestore actualizado ($tipo)")
+
+                                    },
+                                    onError = {
+                                        Log.e("agregardo_firebae", "❌ Error Firestore", it)
+
+                                    }
+                                )
+                                guardando = false
+                                eliminadas.clear()
+                            }
+                        }
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+
+                        if (guardando) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = Color.White
+                            )
+                        }
+
+                        Text(
+                            text = if (guardando) "Guardando…" else "Guardar cambios",
+                            color = Color.White
+                        )
+                    }
+                }
+            }
+        }
+
+    }
+    if (mostrarDialogozoom) {
+        ZoomableGalleryFullScreen(
+            compartir_promocion(),
+            imagenes = listOf(valor_img_completa),
+            startIndex = 0,
+            onDismiss = { mostrarDialogozoom = false }
+        )
+
+    }
+
+}
+
+
+@Composable
+fun BoxImagen(
+    valor: String?,
+    estaEliminada: Boolean,
+    onClick: () -> Unit,
+    onCancelarOEliminar: () -> Unit,
+    onExpandir: (() -> Unit)? = null // 👈 callback opcional
+) {
+    Box(
+        modifier = Modifier
+            .size(100.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .clickable { onClick() }
+    ) {
+
+        // 🖼️ IMAGEN / PLACEHOLDER
+        when {
+            estaEliminada || valor == null -> {
+                PlaceholderInterno()
+            }
+
+            else -> {
+                SubcomposeAsyncImage(
+                    model = valor,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    loading = { PlaceholderInterno() },
+                    error = { PlaceholderInterno() }
+                )
+            }
+        }
+
+        // ❌ / 🔁 CANCELAR / RESTAURAR
+        if (valor != null || estaEliminada) {
+            Icon(
+                imageVector = if (estaEliminada) Icons.Default.Undo else Icons.Default.Close,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(6.dp)
+                    .size(22.dp)
+                    .background(
+                        Color.Black.copy(alpha = 0.6f),
+                        CircleShape
+                    )
+                    .clickable { onCancelarOEliminar() }
+                    .padding(4.dp)
+            )
+        }
+
+
+        // 🔍 EXPANDIR (solo si tiene URI o URL y NO está eliminada)
+        if (!estaEliminada && valor != null && (esUriLocal(valor) || esUrlRemota(valor))) {
+            Icon(
+                imageVector = Icons.Default.OpenInFull, // o ZoomOutMap
+                contentDescription = "Expandir imagen",
+                tint = Color.White,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(6.dp)
+                    .size(22.dp)
+                    .background(
+                        Color.Black.copy(alpha = 0.6f),
+                        CircleShape
+                    )
+                    .clickable {
+                        onExpandir?.invoke()
+                    }
+                    .padding(4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun PlaceholderInterno() {
+    Image(
+        painter = painterResource(R.drawable.cargando_img_categorias),
+        contentDescription = null,
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop
+    )
+}
+
+
+@RequiresApi(Build.VERSION_CODES.R)
+fun guardarCambiosImagenes(
+    tipo: String,
+    context: Context,
+    imagenes: List<String?>,
+    eliminadas: List<Int>,
+    imagenesOriginales: List<String?>,
+    idTienda: String,
+    localidad: String,
+    onFinish: (List<String>) -> Unit
+) {
+
+    val TAG = "GUARDAR_IMAGENES"
+    val storage = FirebaseStorage.getInstance().reference
+    val firestore = FirebaseFirestore.getInstance()
+
+    val nuevasUrls = imagenesOriginales.toMutableList()
+
+    // 🔢 total de operaciones (subidas + eliminaciones)
+    val totalOperaciones =
+        imagenes.count { esUriLocal(it) } + eliminadas.size
+
+    if (totalOperaciones == 0) {
+        onFinish(nuevasUrls.filterNotNull())
+        return
+    }
+
+    var operacionesCompletadas = 0
+
+    fun checkFinish() {
+        operacionesCompletadas++
+
+        if (operacionesCompletadas == totalOperaciones) {
+
+            val urlsFinales = nuevasUrls.filterNotNull()
+
+            // 🔥 actualizar Firestore UNA SOLA VEZ
+            firestore
+                .collection("Tiendas")
+                .document(localidad)
+                .collection(localidad)
+                .document(idTienda)
+                .update("img_tienda.lista_img.$tipo", urlsFinales)
+                .addOnSuccessListener {
+                    Log.d(TAG, "🔥 Firestore actualizado ($tipo)")
+                    onFinish(urlsFinales)
+                }
+                .addOnFailureListener {
+                    Log.e(TAG, "❌ Error Firestore", it)
+                    onFinish(urlsFinales) // devolvemos igual
+                }
+        }
+    }
+
+    // ===============================
+    // 1️⃣ SUBIR NUEVAS IMÁGENES
+    // ===============================
+    imagenes.forEachIndexed { index, valor ->
+        if (esUriLocal(valor)) {
+
+            val uri = Uri.parse(valor)
+            val bytes = procesarImagenWebPSinRecorte(context, uri)
+
+            val ref = storage
+                .child("tiendas/$idTienda/imagenes/$tipo/slot_$index.webp")
+
+            ref.putBytes(bytes)
+                .continueWithTask { ref.downloadUrl }
+                .addOnSuccessListener { downloadUrl ->
+                    nuevasUrls[index] = downloadUrl.toString()
+                    checkFinish()
+                }
+                .addOnFailureListener {
+                    Log.e(TAG, "❌ Error subiendo slot $index", it)
+                    checkFinish()
+                }
+        }
+    }
+
+    // ===============================
+    // 2️⃣ ELIMINAR IMÁGENES
+    // ===============================
+    eliminadas.forEach { index ->
+
+        val ref = storage
+            .child("tiendas/$idTienda/imagenes/$tipo/slot_$index.webp")
+
+        ref.delete()
+            .addOnSuccessListener {
+                nuevasUrls[index] = null
+                checkFinish()
+            }
+            .addOnFailureListener {
+                Log.e(TAG, "❌ Error eliminando slot $index", it)
+                nuevasUrls[index] = null
+                checkFinish()
+            }
+    }
+}
+
+
+
+
+
+fun guardarImagenesEnFirestore(
+    localidad: String,
+    idTienda: String,
+    tipo: String,
+    urls: List<String>,
+    onSuccess: () -> Unit = {},
+    onError: (Exception) -> Unit = {}
+) {
+    FirebaseFirestore.getInstance()
+        .collection("Tiendas")
+        .document(localidad)
+        .collection(localidad)
+        .document(idTienda)
+        .update("img_tienda.lista_img.$tipo", urls)
+        .addOnSuccessListener { onSuccess() }
+        .addOnFailureListener { e -> onError(e) }
+}
+
+
+
+
+@RequiresApi(Build.VERSION_CODES.R)
+fun procesarImagenWebPSinRecorte(
+    context: Context,
+    uri: Uri,
+    maxSize: Int = 1280, // 🔥 máximo lado
+    quality: Int = 80    // 🔥 alta calidad
+): ByteArray {
+
+    val inputStream = context.contentResolver.openInputStream(uri)
+    val bitmapOriginal = BitmapFactory.decodeStream(inputStream)
+        ?: throw IllegalArgumentException("No se pudo leer la imagen")
+
+    val width = bitmapOriginal.width
+    val height = bitmapOriginal.height
+
+    // 1️⃣ Escalar SOLO si es muy grande
+    val scale = if (width > height) {
+        if (width > maxSize) maxSize.toFloat() / width else 1f
+    } else {
+        if (height > maxSize) maxSize.toFloat() / height else 1f
+    }
+
+    val newWidth = (width * scale).toInt()
+    val newHeight = (height * scale).toInt()
+
+    val bitmapFinal = if (scale < 1f) {
+        Bitmap.createScaledBitmap(bitmapOriginal, newWidth, newHeight, true)
+    } else {
+        bitmapOriginal
+    }
+
+    // 2️⃣ Comprimir WebP
+    val output = ByteArrayOutputStream()
+    bitmapFinal.compress(
+        Bitmap.CompressFormat.WEBP_LOSSY,
+        quality,
+        output
+    )
+
+    return output.toByteArray()
+}
+
+
+
+
+

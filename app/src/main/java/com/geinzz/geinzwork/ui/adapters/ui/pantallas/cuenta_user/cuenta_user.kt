@@ -67,7 +67,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
-val firebaseAuth = FirebaseAuth.getInstance()
+var firebaseAuth = FirebaseAuth.getInstance()
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

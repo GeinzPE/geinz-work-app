@@ -1,0 +1,430 @@
+kotlin version: 2.1.0
+error message: org.jetbrains.kotlin.backend.common.BackendException: Backend Internal error: Exception during IR lowering
+File being compiled: C:/Users/Benjamin/Desktop/geinz_work_original/geinz-work-app/app/src/main/java/com/geinzz/geinzwork/vistaTiendas/carrito_compras.kt
+The root cause java.lang.RuntimeException was thrown at: org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:48)
+	at org.jetbrains.kotlin.backend.common.CodegenUtil.reportBackendException(CodegenUtil.kt:253)
+	at org.jetbrains.kotlin.backend.common.CodegenUtil.reportBackendException$default(CodegenUtil.kt:236)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invokeSequential(performByIrFile.kt:55)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invoke(performByIrFile.kt:42)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invoke(performByIrFile.kt:28)
+	at org.jetbrains.kotlin.backend.common.phaser.NamedCompilerPhase.phaseBody(CompilerPhase.kt:166)
+	at org.jetbrains.kotlin.backend.common.phaser.AbstractNamedCompilerPhase.invoke(CompilerPhase.kt:113)
+	at org.jetbrains.kotlin.backend.common.phaser.CompositePhase.invoke(PhaseBuilders.kt:27)
+	at org.jetbrains.kotlin.backend.common.phaser.CompositePhase.invoke(PhaseBuilders.kt:14)
+	at org.jetbrains.kotlin.backend.common.phaser.NamedCompilerPhase.phaseBody(CompilerPhase.kt:166)
+	at org.jetbrains.kotlin.backend.common.phaser.AbstractNamedCompilerPhase.invoke(CompilerPhase.kt:113)
+	at org.jetbrains.kotlin.backend.common.phaser.CompilerPhaseKt.invokeToplevel(CompilerPhase.kt:62)
+	at org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory.invokeCodegen(JvmIrCodegenFactory.kt:371)
+	at org.jetbrains.kotlin.codegen.CodegenFactory.generateModule(CodegenFactory.kt:47)
+	at org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory.generateModuleInFrontendIRMode(JvmIrCodegenFactory.kt:433)
+	at org.jetbrains.kotlin.cli.jvm.compiler.pipeline.JvmCompilerPipelineKt.generateCodeFromIr(jvmCompilerPipeline.kt:192)
+	at org.jetbrains.kotlin.cli.jvm.compiler.pipeline.JvmCompilerPipelineKt.runBackend(jvmCompilerPipeline.kt:80)
+	at org.jetbrains.kotlin.cli.jvm.compiler.pipeline.JvmCompilerPipelineLightTreeKt.compileModule(jvmCompilerPipelineLightTree.kt:264)
+	at org.jetbrains.kotlin.cli.jvm.compiler.pipeline.JvmCompilerPipelineLightTreeKt.compileSingleModuleUsingFrontendIrAndLightTree(jvmCompilerPipelineLightTree.kt:231)
+	at org.jetbrains.kotlin.cli.jvm.compiler.pipeline.JvmCompilerPipelineLightTreeKt.compileModulesUsingFrontendIrAndLightTree(jvmCompilerPipelineLightTree.kt:86)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecute(K2JVMCompiler.kt:146)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecute(K2JVMCompiler.kt:43)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.execImpl(CLICompiler.kt:102)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.exec(CLICompiler.kt:316)
+	at org.jetbrains.kotlin.daemon.CompileServiceImpl.compile(CompileServiceImpl.kt:1554)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport.serviceCall(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(Unknown Source)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.base/java.lang.Thread.run(Unknown Source)
+Caused by: java.lang.RuntimeException: Exception while generating code for:
+FUN LOCAL_FUNCTION_FOR_LAMBDA name:cancelarBottomShet$lambda$10 visibility:private modality:FINAL <> ($METODPAGO:kotlin.jvm.internal.Ref.ObjectRef<kotlin.String>, this$0:com.geinzz.geinzwork.vistaTiendas.carrito_compras, group:@[FlexibleNullability] android.widget.RadioGroup?, checkedId:kotlin.Int) returnType:kotlin.Unit
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$METODPAGO index:0 type:kotlin.jvm.internal.Ref.ObjectRef<kotlin.String>
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:this$0 index:1 type:com.geinzz.geinzwork.vistaTiendas.carrito_compras
+  VALUE_PARAMETER name:group index:2 type:@[FlexibleNullability] android.widget.RadioGroup?
+  VALUE_PARAMETER name:checkedId index:3 type:kotlin.Int
+  BLOCK_BODY
+    BLOCK type=kotlin.Unit origin=WHEN
+      VAR IR_TEMPORARY_VARIABLE name:tmp0_subject type:kotlin.Int [val]
+        GET_VAR 'checkedId: kotlin.Int declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Int origin=null
+      WHEN type=kotlin.Unit origin=WHEN
+        BRANCH
+          if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+            arg0: GET_VAR 'val tmp0_subject: kotlin.Int [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Int origin=null
+            arg1: GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:Efectivo type:kotlin.Int visibility:public [static] declared in com.geinzz.geinzwork.R.id' type=kotlin.Int superQualifierSymbol=com.geinzz.geinzwork.R.id origin=null
+          then: BLOCK type=kotlin.Unit origin=null
+            SET_FIELD 'FIELD IR_BUILTINS_STUB name:element type:T of kotlin.jvm.internal.Ref.ObjectRef visibility:public declared in kotlin.jvm.internal.Ref.ObjectRef' type=kotlin.Unit origin=EQ
+              receiver: GET_VAR '$METODPAGO: kotlin.jvm.internal.Ref.ObjectRef<kotlin.String> declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.jvm.internal.Ref.ObjectRef<kotlin.String> origin=null
+              value: CONST String type=kotlin.String value="EFECTIVO"
+            CALL 'public final fun <set-isVisible> (value: kotlin.Boolean): kotlin.Unit [inline] declared in androidx.core.view.ViewKt' type=kotlin.Unit origin=EQ
+              $receiver: BLOCK type=android.widget.LinearLayout origin=null
+                VAR IR_TEMPORARY_VARIABLE name:tmp0 type:kotlin.Any? [val]
+                  GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:layoutYape type:@[EnhancedNullability] android.widget.LinearLayout visibility:public [final] declared in com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding' type=@[EnhancedNullability] android.widget.LinearLayout superQualifierSymbol=com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding origin=null
+                    receiver: GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:metodoPagos type:@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding visibility:public [final] declared in com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding' type=@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding superQualifierSymbol=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=null
+                      receiver: BLOCK type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                        WHEN type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                          BRANCH
+                            if: COMPOSITE type=kotlin.Boolean origin=null
+                              VAR IR_TEMPORARY_VARIABLE name:tmp0 type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val]
+                                GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:bindingbottomShet type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? visibility:private' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  receiver: GET_VAR 'this$0: com.geinzz.geinzwork.vistaTiendas.carrito_compras declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.vistaTiendas.carrito_compras origin=null
+                              CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                  arg0: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  arg1: CONST Null type=kotlin.Nothing? value=null
+                            then: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                          BRANCH
+                            if: CONST Boolean type=kotlin.Boolean value=true
+                            then: BLOCK type=kotlin.Unit origin=null
+                              CALL 'public final fun throwUninitializedPropertyAccessException (propertyName: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                                propertyName: CONST String type=kotlin.String value="bindingbottomShet"
+                CALL 'public final fun checkNotNullExpressionValue (value: kotlin.Any?, expression: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                  value: GET_VAR 'val tmp0: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+                  expression: CONST String type=kotlin.String value="layoutYape"
+                GET_VAR 'val tmp0: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+              value: CONST Boolean type=kotlin.Boolean value=false
+            CALL 'public final fun <set-isVisible> (value: kotlin.Boolean): kotlin.Unit [inline] declared in androidx.core.view.ViewKt' type=kotlin.Unit origin=EQ
+              $receiver: BLOCK type=android.widget.TextView origin=null
+                VAR IR_TEMPORARY_VARIABLE name:tmp1 type:kotlin.Any? [val]
+                  GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:pagoEfectivo type:@[EnhancedNullability] android.widget.TextView visibility:public [final] declared in com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding' type=@[EnhancedNullability] android.widget.TextView superQualifierSymbol=com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding origin=null
+                    receiver: GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:metodoPagos type:@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding visibility:public [final] declared in com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding' type=@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding superQualifierSymbol=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=null
+                      receiver: BLOCK type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                        WHEN type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                          BRANCH
+                            if: COMPOSITE type=kotlin.Boolean origin=null
+                              VAR IR_TEMPORARY_VARIABLE name:tmp0 type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val]
+                                GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:bindingbottomShet type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? visibility:private' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  receiver: GET_VAR 'this$0: com.geinzz.geinzwork.vistaTiendas.carrito_compras declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.vistaTiendas.carrito_compras origin=null
+                              CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                  arg0: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  arg1: CONST Null type=kotlin.Nothing? value=null
+                            then: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                          BRANCH
+                            if: CONST Boolean type=kotlin.Boolean value=true
+                            then: BLOCK type=kotlin.Unit origin=null
+                              CALL 'public final fun throwUninitializedPropertyAccessException (propertyName: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                                propertyName: CONST String type=kotlin.String value="bindingbottomShet"
+                CALL 'public final fun checkNotNullExpressionValue (value: kotlin.Any?, expression: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                  value: GET_VAR 'val tmp1: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+                  expression: CONST String type=kotlin.String value="pagoEfectivo"
+                GET_VAR 'val tmp1: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+              value: CONST Boolean type=kotlin.Boolean value=true
+            CALL 'public final fun <set-isVisible> (value: kotlin.Boolean): kotlin.Unit [inline] declared in androidx.core.view.ViewKt' type=kotlin.Unit origin=EQ
+              $receiver: BLOCK type=com.google.android.material.imageview.ShapeableImageView origin=null
+                VAR IR_TEMPORARY_VARIABLE name:tmp2 type:kotlin.Any? [val]
+                  GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:imagenYape type:@[EnhancedNullability] com.google.android.material.imageview.ShapeableImageView visibility:public [final] declared in com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding' type=@[EnhancedNullability] com.google.android.material.imageview.ShapeableImageView superQualifierSymbol=com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding origin=null
+                    receiver: GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:metodoPagos type:@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding visibility:public [final] declared in com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding' type=@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding superQualifierSymbol=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=null
+                      receiver: BLOCK type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                        WHEN type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                          BRANCH
+                            if: COMPOSITE type=kotlin.Boolean origin=null
+                              VAR IR_TEMPORARY_VARIABLE name:tmp0 type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val]
+                                GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:bindingbottomShet type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? visibility:private' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  receiver: GET_VAR 'this$0: com.geinzz.geinzwork.vistaTiendas.carrito_compras declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.vistaTiendas.carrito_compras origin=null
+                              CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                  arg0: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  arg1: CONST Null type=kotlin.Nothing? value=null
+                            then: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                          BRANCH
+                            if: CONST Boolean type=kotlin.Boolean value=true
+                            then: BLOCK type=kotlin.Unit origin=null
+                              CALL 'public final fun throwUninitializedPropertyAccessException (propertyName: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                                propertyName: CONST String type=kotlin.String value="bindingbottomShet"
+                CALL 'public final fun checkNotNullExpressionValue (value: kotlin.Any?, expression: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                  value: GET_VAR 'val tmp2: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+                  expression: CONST String type=kotlin.String value="imagenYape"
+                GET_VAR 'val tmp2: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+              value: CONST Boolean type=kotlin.Boolean value=false
+        BRANCH
+          if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+            arg0: GET_VAR 'val tmp0_subject: kotlin.Int [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Int origin=null
+            arg1: GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:Yape type:kotlin.Int visibility:public [static] declared in com.geinzz.geinzwork.R.id' type=kotlin.Int superQualifierSymbol=com.geinzz.geinzwork.R.id origin=null
+          then: BLOCK type=kotlin.Unit origin=null
+            SET_FIELD 'FIELD IR_BUILTINS_STUB name:element type:T of kotlin.jvm.internal.Ref.ObjectRef visibility:public declared in kotlin.jvm.internal.Ref.ObjectRef' type=kotlin.Unit origin=EQ
+              receiver: GET_VAR '$METODPAGO: kotlin.jvm.internal.Ref.ObjectRef<kotlin.String> declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.jvm.internal.Ref.ObjectRef<kotlin.String> origin=null
+              value: CONST String type=kotlin.String value="YAPE"
+            CALL 'public final fun <set-isVisible> (value: kotlin.Boolean): kotlin.Unit [inline] declared in androidx.core.view.ViewKt' type=kotlin.Unit origin=EQ
+              $receiver: BLOCK type=com.google.android.material.imageview.ShapeableImageView origin=null
+                VAR IR_TEMPORARY_VARIABLE name:tmp3 type:kotlin.Any? [val]
+                  GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:imagenYape type:@[EnhancedNullability] com.google.android.material.imageview.ShapeableImageView visibility:public [final] declared in com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding' type=@[EnhancedNullability] com.google.android.material.imageview.ShapeableImageView superQualifierSymbol=com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding origin=null
+                    receiver: GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:metodoPagos type:@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding visibility:public [final] declared in com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding' type=@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding superQualifierSymbol=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=null
+                      receiver: BLOCK type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                        WHEN type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                          BRANCH
+                            if: COMPOSITE type=kotlin.Boolean origin=null
+                              VAR IR_TEMPORARY_VARIABLE name:tmp0 type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val]
+                                GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:bindingbottomShet type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? visibility:private' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  receiver: GET_VAR 'this$0: com.geinzz.geinzwork.vistaTiendas.carrito_compras declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.vistaTiendas.carrito_compras origin=null
+                              CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                  arg0: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  arg1: CONST Null type=kotlin.Nothing? value=null
+                            then: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                          BRANCH
+                            if: CONST Boolean type=kotlin.Boolean value=true
+                            then: BLOCK type=kotlin.Unit origin=null
+                              CALL 'public final fun throwUninitializedPropertyAccessException (propertyName: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                                propertyName: CONST String type=kotlin.String value="bindingbottomShet"
+                CALL 'public final fun checkNotNullExpressionValue (value: kotlin.Any?, expression: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                  value: GET_VAR 'val tmp3: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+                  expression: CONST String type=kotlin.String value="imagenYape"
+                GET_VAR 'val tmp3: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+              value: CONST Boolean type=kotlin.Boolean value=true
+            CALL 'public final fun <set-isVisible> (value: kotlin.Boolean): kotlin.Unit [inline] declared in androidx.core.view.ViewKt' type=kotlin.Unit origin=EQ
+              $receiver: BLOCK type=android.widget.LinearLayout origin=null
+                VAR IR_TEMPORARY_VARIABLE name:tmp4 type:kotlin.Any? [val]
+                  GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:layoutYape type:@[EnhancedNullability] android.widget.LinearLayout visibility:public [final] declared in com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding' type=@[EnhancedNullability] android.widget.LinearLayout superQualifierSymbol=com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding origin=null
+                    receiver: GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:metodoPagos type:@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding visibility:public [final] declared in com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding' type=@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding superQualifierSymbol=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=null
+                      receiver: BLOCK type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                        WHEN type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                          BRANCH
+                            if: COMPOSITE type=kotlin.Boolean origin=null
+                              VAR IR_TEMPORARY_VARIABLE name:tmp0 type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val]
+                                GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:bindingbottomShet type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? visibility:private' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  receiver: GET_VAR 'this$0: com.geinzz.geinzwork.vistaTiendas.carrito_compras declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.vistaTiendas.carrito_compras origin=null
+                              CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                  arg0: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  arg1: CONST Null type=kotlin.Nothing? value=null
+                            then: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                          BRANCH
+                            if: CONST Boolean type=kotlin.Boolean value=true
+                            then: BLOCK type=kotlin.Unit origin=null
+                              CALL 'public final fun throwUninitializedPropertyAccessException (propertyName: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                                propertyName: CONST String type=kotlin.String value="bindingbottomShet"
+                CALL 'public final fun checkNotNullExpressionValue (value: kotlin.Any?, expression: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                  value: GET_VAR 'val tmp4: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+                  expression: CONST String type=kotlin.String value="layoutYape"
+                GET_VAR 'val tmp4: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+              value: CONST Boolean type=kotlin.Boolean value=true
+            CALL 'public final fun <set-isVisible> (value: kotlin.Boolean): kotlin.Unit [inline] declared in androidx.core.view.ViewKt' type=kotlin.Unit origin=EQ
+              $receiver: BLOCK type=android.widget.TextView origin=null
+                VAR IR_TEMPORARY_VARIABLE name:tmp5 type:kotlin.Any? [val]
+                  GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:pagoEfectivo type:@[EnhancedNullability] android.widget.TextView visibility:public [final] declared in com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding' type=@[EnhancedNullability] android.widget.TextView superQualifierSymbol=com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding origin=null
+                    receiver: GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:metodoPagos type:@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding visibility:public [final] declared in com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding' type=@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding superQualifierSymbol=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=null
+                      receiver: BLOCK type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                        WHEN type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                          BRANCH
+                            if: COMPOSITE type=kotlin.Boolean origin=null
+                              VAR IR_TEMPORARY_VARIABLE name:tmp0 type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val]
+                                GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:bindingbottomShet type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? visibility:private' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  receiver: GET_VAR 'this$0: com.geinzz.geinzwork.vistaTiendas.carrito_compras declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.vistaTiendas.carrito_compras origin=null
+                              CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                  arg0: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  arg1: CONST Null type=kotlin.Nothing? value=null
+                            then: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                          BRANCH
+                            if: CONST Boolean type=kotlin.Boolean value=true
+                            then: BLOCK type=kotlin.Unit origin=null
+                              CALL 'public final fun throwUninitializedPropertyAccessException (propertyName: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                                propertyName: CONST String type=kotlin.String value="bindingbottomShet"
+                CALL 'public final fun checkNotNullExpressionValue (value: kotlin.Any?, expression: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                  value: GET_VAR 'val tmp5: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+                  expression: CONST String type=kotlin.String value="pagoEfectivo"
+                GET_VAR 'val tmp5: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+              value: CONST Boolean type=kotlin.Boolean value=false
+            CALL 'public final fun <set-isVisible> (value: kotlin.Boolean): kotlin.Unit [inline] declared in androidx.core.view.ViewKt' type=kotlin.Unit origin=EQ
+              $receiver: BLOCK type=com.google.android.material.imageview.ShapeableImageView origin=null
+                VAR IR_TEMPORARY_VARIABLE name:tmp6 type:kotlin.Any? [val]
+                  GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:imagenPlin type:@[EnhancedNullability] com.google.android.material.imageview.ShapeableImageView visibility:public [final] declared in com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding' type=@[EnhancedNullability] com.google.android.material.imageview.ShapeableImageView superQualifierSymbol=com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding origin=null
+                    receiver: GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:metodoPagos type:@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding visibility:public [final] declared in com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding' type=@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding superQualifierSymbol=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=null
+                      receiver: BLOCK type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                        WHEN type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                          BRANCH
+                            if: COMPOSITE type=kotlin.Boolean origin=null
+                              VAR IR_TEMPORARY_VARIABLE name:tmp0 type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val]
+                                GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:bindingbottomShet type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? visibility:private' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  receiver: GET_VAR 'this$0: com.geinzz.geinzwork.vistaTiendas.carrito_compras declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.vistaTiendas.carrito_compras origin=null
+                              CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                  arg0: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  arg1: CONST Null type=kotlin.Nothing? value=null
+                            then: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                          BRANCH
+                            if: CONST Boolean type=kotlin.Boolean value=true
+                            then: BLOCK type=kotlin.Unit origin=null
+                              CALL 'public final fun throwUninitializedPropertyAccessException (propertyName: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                                propertyName: CONST String type=kotlin.String value="bindingbottomShet"
+                CALL 'public final fun checkNotNullExpressionValue (value: kotlin.Any?, expression: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                  value: GET_VAR 'val tmp6: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+                  expression: CONST String type=kotlin.String value="imagenPlin"
+                GET_VAR 'val tmp6: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+              value: CONST Boolean type=kotlin.Boolean value=false
+        BRANCH
+          if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+            arg0: GET_VAR 'val tmp0_subject: kotlin.Int [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Int origin=null
+            arg1: GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:Plin type:kotlin.Int visibility:public [static] declared in com.geinzz.geinzwork.R.id' type=kotlin.Int superQualifierSymbol=com.geinzz.geinzwork.R.id origin=null
+          then: BLOCK type=kotlin.Unit origin=null
+            SET_FIELD 'FIELD IR_BUILTINS_STUB name:element type:T of kotlin.jvm.internal.Ref.ObjectRef visibility:public declared in kotlin.jvm.internal.Ref.ObjectRef' type=kotlin.Unit origin=EQ
+              receiver: GET_VAR '$METODPAGO: kotlin.jvm.internal.Ref.ObjectRef<kotlin.String> declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.jvm.internal.Ref.ObjectRef<kotlin.String> origin=null
+              value: CONST String type=kotlin.String value="PLIN"
+            CALL 'public final fun <set-isVisible> (value: kotlin.Boolean): kotlin.Unit [inline] declared in androidx.core.view.ViewKt' type=kotlin.Unit origin=EQ
+              $receiver: BLOCK type=com.google.android.material.imageview.ShapeableImageView origin=null
+                VAR IR_TEMPORARY_VARIABLE name:tmp7 type:kotlin.Any? [val]
+                  GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:imagenYape type:@[EnhancedNullability] com.google.android.material.imageview.ShapeableImageView visibility:public [final] declared in com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding' type=@[EnhancedNullability] com.google.android.material.imageview.ShapeableImageView superQualifierSymbol=com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding origin=null
+                    receiver: GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:metodoPagos type:@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding visibility:public [final] declared in com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding' type=@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding superQualifierSymbol=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=null
+                      receiver: BLOCK type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                        WHEN type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                          BRANCH
+                            if: COMPOSITE type=kotlin.Boolean origin=null
+                              VAR IR_TEMPORARY_VARIABLE name:tmp0 type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val]
+                                GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:bindingbottomShet type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? visibility:private' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  receiver: GET_VAR 'this$0: com.geinzz.geinzwork.vistaTiendas.carrito_compras declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.vistaTiendas.carrito_compras origin=null
+                              CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                  arg0: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  arg1: CONST Null type=kotlin.Nothing? value=null
+                            then: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                          BRANCH
+                            if: CONST Boolean type=kotlin.Boolean value=true
+                            then: BLOCK type=kotlin.Unit origin=null
+                              CALL 'public final fun throwUninitializedPropertyAccessException (propertyName: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                                propertyName: CONST String type=kotlin.String value="bindingbottomShet"
+                CALL 'public final fun checkNotNullExpressionValue (value: kotlin.Any?, expression: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                  value: GET_VAR 'val tmp7: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+                  expression: CONST String type=kotlin.String value="imagenYape"
+                GET_VAR 'val tmp7: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+              value: CONST Boolean type=kotlin.Boolean value=false
+            CALL 'public final fun <set-isVisible> (value: kotlin.Boolean): kotlin.Unit [inline] declared in androidx.core.view.ViewKt' type=kotlin.Unit origin=EQ
+              $receiver: BLOCK type=android.widget.LinearLayout origin=null
+                VAR IR_TEMPORARY_VARIABLE name:tmp8 type:kotlin.Any? [val]
+                  GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:layoutYape type:@[EnhancedNullability] android.widget.LinearLayout visibility:public [final] declared in com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding' type=@[EnhancedNullability] android.widget.LinearLayout superQualifierSymbol=com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding origin=null
+                    receiver: GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:metodoPagos type:@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding visibility:public [final] declared in com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding' type=@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding superQualifierSymbol=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=null
+                      receiver: BLOCK type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                        WHEN type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                          BRANCH
+                            if: COMPOSITE type=kotlin.Boolean origin=null
+                              VAR IR_TEMPORARY_VARIABLE name:tmp0 type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val]
+                                GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:bindingbottomShet type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? visibility:private' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  receiver: GET_VAR 'this$0: com.geinzz.geinzwork.vistaTiendas.carrito_compras declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.vistaTiendas.carrito_compras origin=null
+                              CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                  arg0: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  arg1: CONST Null type=kotlin.Nothing? value=null
+                            then: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                          BRANCH
+                            if: CONST Boolean type=kotlin.Boolean value=true
+                            then: BLOCK type=kotlin.Unit origin=null
+                              CALL 'public final fun throwUninitializedPropertyAccessException (propertyName: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                                propertyName: CONST String type=kotlin.String value="bindingbottomShet"
+                CALL 'public final fun checkNotNullExpressionValue (value: kotlin.Any?, expression: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                  value: GET_VAR 'val tmp8: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+                  expression: CONST String type=kotlin.String value="layoutYape"
+                GET_VAR 'val tmp8: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+              value: CONST Boolean type=kotlin.Boolean value=true
+            CALL 'public final fun <set-isVisible> (value: kotlin.Boolean): kotlin.Unit [inline] declared in androidx.core.view.ViewKt' type=kotlin.Unit origin=EQ
+              $receiver: BLOCK type=com.google.android.material.imageview.ShapeableImageView origin=null
+                VAR IR_TEMPORARY_VARIABLE name:tmp9 type:kotlin.Any? [val]
+                  GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:imagenPlin type:@[EnhancedNullability] com.google.android.material.imageview.ShapeableImageView visibility:public [final] declared in com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding' type=@[EnhancedNullability] com.google.android.material.imageview.ShapeableImageView superQualifierSymbol=com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding origin=null
+                    receiver: GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:metodoPagos type:@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding visibility:public [final] declared in com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding' type=@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding superQualifierSymbol=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=null
+                      receiver: BLOCK type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                        WHEN type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                          BRANCH
+                            if: COMPOSITE type=kotlin.Boolean origin=null
+                              VAR IR_TEMPORARY_VARIABLE name:tmp0 type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val]
+                                GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:bindingbottomShet type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? visibility:private' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  receiver: GET_VAR 'this$0: com.geinzz.geinzwork.vistaTiendas.carrito_compras declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.vistaTiendas.carrito_compras origin=null
+                              CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                  arg0: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  arg1: CONST Null type=kotlin.Nothing? value=null
+                            then: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                          BRANCH
+                            if: CONST Boolean type=kotlin.Boolean value=true
+                            then: BLOCK type=kotlin.Unit origin=null
+                              CALL 'public final fun throwUninitializedPropertyAccessException (propertyName: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                                propertyName: CONST String type=kotlin.String value="bindingbottomShet"
+                CALL 'public final fun checkNotNullExpressionValue (value: kotlin.Any?, expression: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                  value: GET_VAR 'val tmp9: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+                  expression: CONST String type=kotlin.String value="imagenPlin"
+                GET_VAR 'val tmp9: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+              value: CONST Boolean type=kotlin.Boolean value=true
+            CALL 'public final fun <set-isVisible> (value: kotlin.Boolean): kotlin.Unit [inline] declared in androidx.core.view.ViewKt' type=kotlin.Unit origin=EQ
+              $receiver: BLOCK type=android.widget.TextView origin=null
+                VAR IR_TEMPORARY_VARIABLE name:tmp10 type:kotlin.Any? [val]
+                  GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:pagoEfectivo type:@[EnhancedNullability] android.widget.TextView visibility:public [final] declared in com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding' type=@[EnhancedNullability] android.widget.TextView superQualifierSymbol=com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding origin=null
+                    receiver: GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:metodoPagos type:@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding visibility:public [final] declared in com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding' type=@[EnhancedNullability] com.geinzz.geinzwork.databinding.IncludeMetodosPagoBinding superQualifierSymbol=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=null
+                      receiver: BLOCK type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                        WHEN type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding origin=FOLDED_ELVIS
+                          BRANCH
+                            if: COMPOSITE type=kotlin.Boolean origin=null
+                              VAR IR_TEMPORARY_VARIABLE name:tmp0 type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val]
+                                GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:bindingbottomShet type:com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? visibility:private' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  receiver: GET_VAR 'this$0: com.geinzz.geinzwork.vistaTiendas.carrito_compras declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.vistaTiendas.carrito_compras origin=null
+                              CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                  arg0: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                                  arg1: CONST Null type=kotlin.Nothing? value=null
+                            then: GET_VAR 'val tmp0: com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=com.geinzz.geinzwork.databinding.BottomSheetCompraProductosTiendasBinding? origin=null
+                          BRANCH
+                            if: CONST Boolean type=kotlin.Boolean value=true
+                            then: BLOCK type=kotlin.Unit origin=null
+                              CALL 'public final fun throwUninitializedPropertyAccessException (propertyName: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                                propertyName: CONST String type=kotlin.String value="bindingbottomShet"
+                CALL 'public final fun checkNotNullExpressionValue (value: kotlin.Any?, expression: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                  value: GET_VAR 'val tmp10: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+                  expression: CONST String type=kotlin.String value="pagoEfectivo"
+                GET_VAR 'val tmp10: kotlin.Any? [val] declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.Any? origin=null
+              value: CONST Boolean type=kotlin.Boolean value=false
+        BRANCH
+          if: CONST Boolean type=kotlin.Boolean value=true
+          then: BLOCK type=kotlin.Unit origin=null
+            SET_FIELD 'FIELD IR_BUILTINS_STUB name:element type:T of kotlin.jvm.internal.Ref.ObjectRef visibility:public declared in kotlin.jvm.internal.Ref.ObjectRef' type=kotlin.Unit origin=EQ
+              receiver: GET_VAR '$METODPAGO: kotlin.jvm.internal.Ref.ObjectRef<kotlin.String> declared in com.geinzz.geinzwork.vistaTiendas.carrito_compras.cancelarBottomShet$lambda$10' type=kotlin.jvm.internal.Ref.ObjectRef<kotlin.String> origin=null
+              value: CONST String type=kotlin.String value=""
+
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:48)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate$default(FunctionCodegen.kt:41)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generateMethodNode(ClassCodegen.kt:407)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generateMethod(ClassCodegen.kt:424)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generate(ClassCodegen.kt:169)
+	at org.jetbrains.kotlin.backend.jvm.FileCodegen.lower(JvmPhases.kt:39)
+	at org.jetbrains.kotlin.backend.common.phaser.PhaseFactoriesKt.createFilePhase$lambda$4(PhaseFactories.kt:71)
+	at org.jetbrains.kotlin.backend.common.phaser.PhaseBuildersKt$createSimpleNamedCompilerPhase$1.phaseBody(PhaseBuilders.kt:69)
+	at org.jetbrains.kotlin.backend.common.phaser.SimpleNamedCompilerPhase.phaseBody(CompilerPhase.kt:226)
+	at org.jetbrains.kotlin.backend.common.phaser.AbstractNamedCompilerPhase.invoke(CompilerPhase.kt:113)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invokeSequential(performByIrFile.kt:52)
+	... 37 more
+Caused by: java.lang.OutOfMemoryError: GC overhead limit exceeded
+	at org.jetbrains.org.objectweb.asm.tree.MethodNode.visitFieldInsn(MethodNode.java:364)
+	at org.jetbrains.org.objectweb.asm.MethodVisitor.visitFieldInsn(MethodVisitor.java:391)
+	at org.jetbrains.kotlin.codegen.inline.MaxStackFrameSizeAndLocalsCalculator.visitFieldInsn(MaxStackFrameSizeAndLocalsCalculator.kt:114)
+	at org.jetbrains.org.objectweb.asm.commons.InstructionAdapter.getfield(InstructionAdapter.java:1057)
+	at org.jetbrains.org.objectweb.asm.commons.InstructionAdapter.visitFieldInsn(InstructionAdapter.java:500)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitFieldAccess(ExpressionCodegen.kt:848)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitFieldAccess(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.visitors.IrElementVisitor$DefaultImpls.visitGetField(IrElementVisitor.kt:207)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitGetField(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitGetField(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.expressions.IrGetField.accept(IrGetField.kt:19)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitVariable(ExpressionCodegen.kt:735)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitVariable(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.declarations.IrVariable.accept(IrVariable.kt:36)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:524)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:538)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.visitors.IrElementVisitor$DefaultImpls.visitComposite(IrElementVisitor.kt:129)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitComposite(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitComposite(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.expressions.IrComposite.accept(IrComposite.kt:18)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitWhen(ExpressionCodegen.kt:1047)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitWhen(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.expressions.IrWhen.accept(IrWhen.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:524)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:538)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.visitors.IrElementVisitor$DefaultImpls.visitBlock(IrElementVisitor.kt:126)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlock(ExpressionCodegen.kt:409)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlock(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.expressions.IrBlock.accept(IrBlock.kt:18)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitFieldAccess(ExpressionCodegen.kt:820)
+
+

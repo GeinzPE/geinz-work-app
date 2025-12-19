@@ -11,6 +11,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.geinzz.geinzwork.data.model.dataclass_novedades.nuevas_teindas_dias
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
@@ -21,6 +22,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_cat_sub_lista_
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrado_tiendas_cat_sub
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.nuevos_lugares_agregados
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener_tiendas_lat_log_id
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
@@ -64,7 +66,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     private val instancia_repo_lugar_turistico = repo_lugares_turisticos()
 
     private val _instance_lugar_turistico = MutableStateFlow(lugares_turisticos())
-    val  instance_lugar_turistico: StateFlow<lugares_turisticos> = _instance_lugar_turistico
+    val instance_lugar_turistico: StateFlow<lugares_turisticos> = _instance_lugar_turistico
 
 
     private val subcategorias = MutableLiveData<List<filtrado_tiendas_cat_sub>>()
@@ -84,6 +86,10 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
         state_Tiendas_filtradas_por_categoria
     private val datos_tienda = MutableLiveData<List<modelo_tienda>>()
     val _datos_tienda: LiveData<List<modelo_tienda>> get() = datos_tienda
+
+    private val _datos_nuevos_lugares =
+        MutableStateFlow<List<nuevos_lugares_agregados>>(emptyList())
+    val datos_nuevos_lugares: StateFlow<List<nuevos_lugares_agregados>> = _datos_nuevos_lugares
 
 
     private val datos_tiendas_sin_pago =
@@ -483,7 +489,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
             try {
                 _instance_lugar_turistico.value =
                     instancia_repo_lugar_turistico.get_lugar_turistico(localida, id)
-                Log.d("id_tiendasdada123","${_instance_lugar_turistico.value}")
+                Log.d("id_tiendasdada123", "${_instance_lugar_turistico.value}")
             } catch (e: Exception) {
                 _instance_lugar_turistico.value = lugares_turisticos()
             }
@@ -632,6 +638,17 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
 
             } catch (e: Exception) {
                 Log.d("error", "error al guardar faboritos")
+            }
+        }
+    }
+
+    fun obtener_lugaresnuevos(localidad: String) {
+        viewModelScope.launch {
+            try {
+                val nuevas_tienda = repo_filtrado.obtener_lugaresnuevos_aleatorios(localidad)
+                _datos_nuevos_lugares.value = nuevas_tienda
+            } catch (e: Exception) {
+                _datos_nuevos_lugares.value = emptyList()
             }
         }
     }

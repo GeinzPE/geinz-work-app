@@ -36,16 +36,16 @@ data class tiendas_filtradas(
 )
 
 data class item_metodos_pago(
-    val codigo_qr:String="",
-    val numero_String:String="",
-    val icono_metodo_pago: Int=0,
-    val nombre_metodo_pago:String="",
-    val titular: String=""
+    val codigo_qr: String = "",
+    val numero_String: String = "",
+    val icono_metodo_pago: Int = 0,
+    val nombre_metodo_pago: String = "",
+    val titular: String = ""
 )
 
 @Parcelize
 data class tiendas_por_categoria(
-    val localidad_tienda:String,
+    val localidad_tienda: String,
     val nombre_tienda: String = "",
     val direccion: String = "",
     val referencia: String = "",
@@ -84,7 +84,7 @@ data class lugares_cercanos(
     val referencia: String,
     val descripcion: String,
     val metodos_pago_tienda: modelo_pagos_tienda,
-    val horario_box:HorarioAtencion_box,
+    val horario_box: HorarioAtencion_box,
     val localidad_tienda: String
 ) : Parcelable
 
@@ -95,18 +95,18 @@ data class TiendasCercanasFiltrada(
     val radioFiltrado: Double = 0.0,
     val listaCategorias: List<String> = emptyList(),
     val listaCompleta: List<lugares_cercanos> = emptyList(),
-    val lugar_lat: Double =0.0,
-    val lugar_lng: Double=0.0
+    val lugar_lat: Double = 0.0,
+    val lugar_lng: Double = 0.0
 ) : Parcelable
 
 
 data class tiendas_cecanas_km(
-    val id_tienda: String="",
+    val id_tienda: String = "",
     val img_tienda: String = "",
     val nombre_tienda: String = "",
     val kl: Double = 0.0,
     val nombre_lugar: String = "", val color: Color = Color.Transparent,
-    val HorarioDia_box :HorarioDia_box= HorarioDia_box(),
+    val HorarioDia_box: HorarioDia_box = HorarioDia_box(),
     val tick: Long = 0,
 )
 
@@ -119,8 +119,6 @@ data class horario_tienda(
     val dia_prox_apertura: String = "",
     val hora_prox_apertura: String = ""
 ) : Parcelable
-
-
 
 
 @Parcelize
@@ -141,4 +139,17 @@ data class obtener_tiendas_lat_log_id(
     val direccion: String,
     val referencia: String,
     val nombre_tienda: String
+)
+
+
+data class nuevos_lugares_agregados(
+    val id_tienda: String = "",
+    val localidad_tienda: String = "",
+    val img: String = "",
+    val nombre_tienda: String = "",
+    val categoria: String = "",
+    val lista_categoria: List<String> = emptyList(),
+    val horario_tienda_box: HorarioAtencion_box = HorarioAtencion_box(),
+    val lat: Double,
+    val lng: Double
 )

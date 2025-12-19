@@ -28,6 +28,7 @@ import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.item_metodos_pago
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -138,7 +139,7 @@ fun dialog_qr_pago_tienda(item_metodos_pago: item_metodos_pago, ondimis: () -> U
         }
     )
     if(galeriaActiva){
-        ZoomableGalleryFullScreen(listOf(item_metodos_pago.codigo_qr),0, { galeriaActiva = false })
+        ZoomableGalleryFullScreen(compartir_promocion(),"",listOf(item_metodos_pago.codigo_qr),0, { galeriaActiva = false })
     }
 }
 

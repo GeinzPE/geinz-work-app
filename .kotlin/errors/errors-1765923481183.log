@@ -1,0 +1,1096 @@
+kotlin version: 2.1.0
+error message: org.jetbrains.kotlin.backend.common.BackendException: Backend Internal error: Exception during IR lowering
+File being compiled: C:/Users/Benjamin/Desktop/geinz_work_original/geinz-work-app/app/src/main/java/com/geinzz/geinzwork/utils/constantes/localizate_geinz/constantes_horas.kt
+The root cause java.lang.RuntimeException was thrown at: org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:48)
+	at org.jetbrains.kotlin.backend.common.CodegenUtil.reportBackendException(CodegenUtil.kt:253)
+	at org.jetbrains.kotlin.backend.common.CodegenUtil.reportBackendException$default(CodegenUtil.kt:236)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invokeSequential(performByIrFile.kt:55)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invoke(performByIrFile.kt:42)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invoke(performByIrFile.kt:28)
+	at org.jetbrains.kotlin.backend.common.phaser.NamedCompilerPhase.phaseBody(CompilerPhase.kt:166)
+	at org.jetbrains.kotlin.backend.common.phaser.AbstractNamedCompilerPhase.invoke(CompilerPhase.kt:113)
+	at org.jetbrains.kotlin.backend.common.phaser.CompositePhase.invoke(PhaseBuilders.kt:27)
+	at org.jetbrains.kotlin.backend.common.phaser.CompositePhase.invoke(PhaseBuilders.kt:14)
+	at org.jetbrains.kotlin.backend.common.phaser.NamedCompilerPhase.phaseBody(CompilerPhase.kt:166)
+	at org.jetbrains.kotlin.backend.common.phaser.AbstractNamedCompilerPhase.invoke(CompilerPhase.kt:113)
+	at org.jetbrains.kotlin.backend.common.phaser.CompilerPhaseKt.invokeToplevel(CompilerPhase.kt:62)
+	at org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory.invokeCodegen(JvmIrCodegenFactory.kt:371)
+	at org.jetbrains.kotlin.codegen.CodegenFactory.generateModule(CodegenFactory.kt:47)
+	at org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory.generateModuleInFrontendIRMode(JvmIrCodegenFactory.kt:433)
+	at org.jetbrains.kotlin.cli.jvm.compiler.pipeline.JvmCompilerPipelineKt.generateCodeFromIr(jvmCompilerPipeline.kt:192)
+	at org.jetbrains.kotlin.cli.jvm.compiler.pipeline.JvmCompilerPipelineKt.runBackend(jvmCompilerPipeline.kt:80)
+	at org.jetbrains.kotlin.cli.jvm.compiler.pipeline.JvmCompilerPipelineLightTreeKt.compileModule(jvmCompilerPipelineLightTree.kt:264)
+	at org.jetbrains.kotlin.cli.jvm.compiler.pipeline.JvmCompilerPipelineLightTreeKt.compileSingleModuleUsingFrontendIrAndLightTree(jvmCompilerPipelineLightTree.kt:231)
+	at org.jetbrains.kotlin.cli.jvm.compiler.pipeline.JvmCompilerPipelineLightTreeKt.compileModulesUsingFrontendIrAndLightTree(jvmCompilerPipelineLightTree.kt:86)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecute(K2JVMCompiler.kt:146)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecute(K2JVMCompiler.kt:43)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.execImpl(CLICompiler.kt:102)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.exec(CLICompiler.kt:316)
+	at org.jetbrains.kotlin.daemon.CompileServiceImpl.compile(CompileServiceImpl.kt:1554)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport.serviceCall(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(Unknown Source)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.base/java.lang.Thread.run(Unknown Source)
+Caused by: java.lang.RuntimeException: Exception while generating code for:
+FUN name:HorarioSemanal123 visibility:public modality:FINAL <> ($this:com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas, filtrado:kotlin.String?, id_tienda:kotlin.String, tick:kotlin.Long, viewModelFiltros:com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas, isConnected:kotlin.Boolean, horario:com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box, cerrar_tienda:kotlin.Function3<@[ParameterName(name = "nombre_dia")] kotlin.String, @[ParameterName(name = "motivo_cierre")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit>, abrir_tienda:kotlin.Function2<@[ParameterName(name = "nombre_dia")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit>, error_sin_internet:kotlin.Function0<kotlin.Unit>, onclick_expand:kotlin.Function0<kotlin.Unit>, error_campos_incompletos:kotlin.Function0<kotlin.Unit>, error_horas_invalidas:kotlin.Function1<kotlin.String, kotlin.Unit>, color_left:kotlin.collections.List<androidx.compose.ui.graphics.Color>, color_right:kotlin.collections.List<androidx.compose.ui.graphics.Color>, $composer:androidx.compose.runtime.Composer?, $changed:kotlin.Int, $changed1:kotlin.Int, $default:kotlin.Int) returnType:kotlin.Unit
+  annotations:
+    Composable
+    ComposableTarget(applier = "androidx.compose.ui.UiComposable")
+  $this: VALUE_PARAMETER name:<this> type:com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas
+  VALUE_PARAMETER name:filtrado index:0 type:kotlin.String? [assignable]
+  VALUE_PARAMETER name:id_tienda index:1 type:kotlin.String
+  VALUE_PARAMETER name:tick index:2 type:kotlin.Long
+  VALUE_PARAMETER name:viewModelFiltros index:3 type:com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+  VALUE_PARAMETER name:isConnected index:4 type:kotlin.Boolean
+  VALUE_PARAMETER name:horario index:5 type:com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
+  VALUE_PARAMETER name:cerrar_tienda index:6 type:kotlin.Function3<@[ParameterName(name = "nombre_dia")] kotlin.String, @[ParameterName(name = "motivo_cierre")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit>
+  VALUE_PARAMETER name:abrir_tienda index:7 type:kotlin.Function2<@[ParameterName(name = "nombre_dia")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit>
+  VALUE_PARAMETER name:error_sin_internet index:8 type:kotlin.Function0<kotlin.Unit>
+  VALUE_PARAMETER name:onclick_expand index:9 type:kotlin.Function0<kotlin.Unit>
+  VALUE_PARAMETER name:error_campos_incompletos index:10 type:kotlin.Function0<kotlin.Unit>
+  VALUE_PARAMETER name:error_horas_invalidas index:11 type:kotlin.Function1<kotlin.String, kotlin.Unit>
+  VALUE_PARAMETER name:color_left index:12 type:kotlin.collections.List<androidx.compose.ui.graphics.Color>
+  VALUE_PARAMETER name:color_right index:13 type:kotlin.collections.List<androidx.compose.ui.graphics.Color>
+  VALUE_PARAMETER name:$composer index:14 type:androidx.compose.runtime.Composer? [assignable]
+  VALUE_PARAMETER name:$changed index:15 type:kotlin.Int
+  VALUE_PARAMETER name:$changed1 index:16 type:kotlin.Int
+  VALUE_PARAMETER MASK_FOR_DEFAULT_FUNCTION name:$default index:17 type:kotlin.Int
+  BLOCK_BODY
+    BLOCK type=kotlin.Unit origin=null
+      SET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+        CALL 'public abstract fun startRestartGroup (key: kotlin.Int): androidx.compose.runtime.Composer declared in androidx.compose.runtime.Composer' type=androidx.compose.runtime.Composer origin=null
+          $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+          key: CONST Int type=kotlin.Int value=-44472284
+      CALL 'public final fun sourceInformation (composer: androidx.compose.runtime.Composer, sourceInformation: kotlin.String): kotlin.Unit declared in androidx.compose.runtime.ComposerKt' type=kotlin.Unit origin=null
+        composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+        sourceInformation: CONST String type=kotlin.String value="C(HorarioSemanal123)P(7,9,12,13,10,8,1!1,6,11,4,5)376@13546L37,378@13609L23,393@14044L41903:constantes_horas.kt#1litc9"
+    VAR name:$dirty type:kotlin.Int [val]
+      GET_VAR '$changed: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+    VAR name:$dirty1 type:kotlin.Int [val]
+      GET_VAR '$changed1: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+            arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+              $this: GET_VAR '$default: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+              other: CONST Int type=kotlin.Int value=1
+            arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=6
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=6
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public abstract fun changed (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'filtrado: kotlin.String? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.String? origin=null
+                then: CONST Int type=kotlin.Int value=4
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=2
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+            arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+              $this: GET_VAR '$default: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+              other: CONST Int type=kotlin.Int value=2
+            arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=48
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=48
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public abstract fun changed (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'id_tienda: kotlin.String declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.String origin=null
+                then: CONST Int type=kotlin.Int value=32
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=16
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+            arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+              $this: GET_VAR '$default: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+              other: CONST Int type=kotlin.Int value=4
+            arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=384
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=384
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public open fun changed (value: kotlin.Long): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'tick: kotlin.Long declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Long origin=null
+                then: CONST Int type=kotlin.Int value=256
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=128
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+            arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+              $this: GET_VAR '$default: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+              other: CONST Int type=kotlin.Int value=8
+            arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=3072
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=3072
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'viewModelFiltros: com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas origin=null
+                then: CONST Int type=kotlin.Int value=2048
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=1024
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+            arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+              $this: GET_VAR '$default: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+              other: CONST Int type=kotlin.Int value=16
+            arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=24576
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=24576
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public open fun changed (value: kotlin.Boolean): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'isConnected: kotlin.Boolean declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Boolean origin=null
+                then: CONST Int type=kotlin.Int value=16384
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=8192
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+            arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+              $this: GET_VAR '$default: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+              other: CONST Int type=kotlin.Int value=32
+            arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=196608
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=196608
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'horario: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box origin=null
+                then: CONST Int type=kotlin.Int value=131072
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=65536
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+            arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+              $this: GET_VAR '$default: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+              other: CONST Int type=kotlin.Int value=64
+            arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=1572864
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=1572864
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'cerrar_tienda: kotlin.Function3<@[ParameterName(name = "nombre_dia")] kotlin.String, @[ParameterName(name = "motivo_cierre")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function3<@[ParameterName(name = "nombre_dia")] kotlin.String, @[ParameterName(name = "motivo_cierre")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit> origin=null
+                then: CONST Int type=kotlin.Int value=1048576
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=524288
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+            arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+              $this: GET_VAR '$default: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+              other: CONST Int type=kotlin.Int value=128
+            arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=12582912
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=12582912
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'abrir_tienda: kotlin.Function2<@[ParameterName(name = "nombre_dia")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function2<@[ParameterName(name = "nombre_dia")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit> origin=null
+                then: CONST Int type=kotlin.Int value=8388608
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=4194304
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+            arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+              $this: GET_VAR '$default: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+              other: CONST Int type=kotlin.Int value=256
+            arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=100663296
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=100663296
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'error_sin_internet: kotlin.Function0<kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function0<kotlin.Unit> origin=null
+                then: CONST Int type=kotlin.Int value=67108864
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=33554432
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+            arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+              $this: GET_VAR '$default: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+              other: CONST Int type=kotlin.Int value=512
+            arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=805306368
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=805306368
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'onclick_expand: kotlin.Function0<kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function0<kotlin.Unit> origin=null
+                then: CONST Int type=kotlin.Int value=536870912
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=268435456
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+            arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+              $this: GET_VAR '$default: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+              other: CONST Int type=kotlin.Int value=1024
+            arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=6
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed1: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=6
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'error_campos_incompletos: kotlin.Function0<kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function0<kotlin.Unit> origin=null
+                then: CONST Int type=kotlin.Int value=4
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=2
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+            arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+              $this: GET_VAR '$default: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+              other: CONST Int type=kotlin.Int value=2048
+            arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=48
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed1: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=48
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'error_horas_invalidas: kotlin.Function1<kotlin.String, kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function1<kotlin.String, kotlin.Unit> origin=null
+                then: CONST Int type=kotlin.Int value=32
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=16
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+            arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+              $this: GET_VAR '$default: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+              other: CONST Int type=kotlin.Int value=4096
+            arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=384
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed1: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=384
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'color_left: kotlin.collections.List<androidx.compose.ui.graphics.Color> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.collections.List<androidx.compose.ui.graphics.Color> origin=null
+                then: CONST Int type=kotlin.Int value=256
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=128
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+            arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+              $this: GET_VAR '$default: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+              other: CONST Int type=kotlin.Int value=8192
+            arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=3072
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed1: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=3072
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'color_right: kotlin.collections.List<androidx.compose.ui.graphics.Color> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.collections.List<androidx.compose.ui.graphics.Color> origin=null
+                then: CONST Int type=kotlin.Int value=2048
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=1024
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun OROR (arg0: kotlin.Boolean, arg1: kotlin.Boolean): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun OROR (arg0: kotlin.Boolean, arg1: kotlin.Boolean): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+            arg0: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+              $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                  $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+                  other: CONST Int type=kotlin.Int value=306783379
+                arg1: CONST Int type=kotlin.Int value=306783378
+            arg1: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+              $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                  $this: GET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+                  other: CONST Int type=kotlin.Int value=1171
+                arg1: CONST Int type=kotlin.Int value=1170
+          arg1: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+            $this: CALL 'public abstract fun <get-skipping> (): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+              $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+        then: BLOCK type=kotlin.Unit origin=null
+          WHEN type=kotlin.Unit origin=IF
+            BRANCH
+              if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                  arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                    $this: GET_VAR '$default: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+                    other: CONST Int type=kotlin.Int value=1
+                  arg1: CONST Int type=kotlin.Int value=0
+              then: SET_VAR 'filtrado: kotlin.String? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Unit origin=null
+                CONST String type=kotlin.String value="todos"
+          WHEN type=kotlin.Unit origin=IF
+            BRANCH
+              if: CALL 'public final fun isTraceInProgress (): kotlin.Boolean declared in androidx.compose.runtime.ComposerKt' type=kotlin.Boolean origin=null
+              then: CALL 'public final fun traceEventStart (key: kotlin.Int, dirty1: kotlin.Int, dirty2: kotlin.Int, info: kotlin.String): kotlin.Unit declared in androidx.compose.runtime.ComposerKt' type=kotlin.Unit origin=null
+                key: CONST Int type=kotlin.Int value=-44472284
+                dirty1: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+                dirty2: GET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+                info: CONST String type=kotlin.String value="com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123 (constantes_horas.kt:361)"
+          COMPOSITE type=kotlin.Unit origin=null
+            CALL 'public open fun d (p0: @[EnhancedNullability] kotlin.String?, p1: @[EnhancedNullability] kotlin.String): kotlin.Int declared in android.util.Log' type=kotlin.Int origin=null
+              p0: CONST String type=kotlin.String value="datos_teinda_ente"
+              p1: CALL 'public final fun valueOf (value: kotlin.Boolean): kotlin.String declared in java.lang.String' type=kotlin.String origin=null
+                value: CALL 'public final fun <get-cerrado> (): kotlin.Boolean declared in com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques' type=kotlin.Boolean origin=GET_PROPERTY
+                  $this: CALL 'public final fun <get-sábado> (): com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques declared in com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques origin=GET_PROPERTY
+                    $this: GET_VAR 'horario: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box origin=null
+            COMPOSITE type=kotlin.Unit origin=null
+          VAR name:DELAY_REBOTE_UI_MS type:kotlin.Long [val]
+            CONST Long type=kotlin.Long value=1000
+          VAR name:diasConDatos type:kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val]
+            CALL 'public final fun listOf <T> (vararg elements: T of kotlin.collections.CollectionsKt.listOf): kotlin.collections.List<T of kotlin.collections.CollectionsKt.listOf> declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+              <T>: kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>
+              elements: BLOCK type=kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                VAR IR_TEMPORARY_VARIABLE name:tmp0 type:kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val]
+                  CALL 'public final fun arrayOfNulls <T> (size: kotlin.Int): kotlin.Array<T of kotlin.arrayOfNulls?> declared in kotlin' type=kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                    <T>: kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>
+                    size: CONST Int type=kotlin.Int value=7
+                CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                  $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                  index: CONST Int type=kotlin.Int value=0
+                  value: CALL 'public final fun to <A, B> (that: B of kotlin.TuplesKt.to): kotlin.Pair<A of kotlin.TuplesKt.to, B of kotlin.TuplesKt.to> [infix] declared in kotlin.TuplesKt' type=kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques> origin=null
+                    <A>: kotlin.String
+                    <B>: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
+                    $receiver: CONST String type=kotlin.String value="Lunes"
+                    that: CALL 'public final fun <get-lunes> (): com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques declared in com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques origin=GET_PROPERTY
+                      $this: GET_VAR 'horario: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box origin=null
+                CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                  $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                  index: CONST Int type=kotlin.Int value=1
+                  value: CALL 'public final fun to <A, B> (that: B of kotlin.TuplesKt.to): kotlin.Pair<A of kotlin.TuplesKt.to, B of kotlin.TuplesKt.to> [infix] declared in kotlin.TuplesKt' type=kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques> origin=null
+                    <A>: kotlin.String
+                    <B>: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
+                    $receiver: CONST String type=kotlin.String value="Martes"
+                    that: CALL 'public final fun <get-martes> (): com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques declared in com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques origin=GET_PROPERTY
+                      $this: GET_VAR 'horario: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box origin=null
+                CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                  $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                  index: CONST Int type=kotlin.Int value=2
+                  value: CALL 'public final fun to <A, B> (that: B of kotlin.TuplesKt.to): kotlin.Pair<A of kotlin.TuplesKt.to, B of kotlin.TuplesKt.to> [infix] declared in kotlin.TuplesKt' type=kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques> origin=null
+                    <A>: kotlin.String
+                    <B>: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
+                    $receiver: CONST String type=kotlin.String value="Miércoles"
+                    that: CALL 'public final fun <get-miércoles> (): com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques declared in com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques origin=GET_PROPERTY
+                      $this: GET_VAR 'horario: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box origin=null
+                CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                  $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                  index: CONST Int type=kotlin.Int value=3
+                  value: CALL 'public final fun to <A, B> (that: B of kotlin.TuplesKt.to): kotlin.Pair<A of kotlin.TuplesKt.to, B of kotlin.TuplesKt.to> [infix] declared in kotlin.TuplesKt' type=kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques> origin=null
+                    <A>: kotlin.String
+                    <B>: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
+                    $receiver: CONST String type=kotlin.String value="Jueves"
+                    that: CALL 'public final fun <get-jueves> (): com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques declared in com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques origin=GET_PROPERTY
+                      $this: GET_VAR 'horario: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box origin=null
+                CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                  $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                  index: CONST Int type=kotlin.Int value=4
+                  value: CALL 'public final fun to <A, B> (that: B of kotlin.TuplesKt.to): kotlin.Pair<A of kotlin.TuplesKt.to, B of kotlin.TuplesKt.to> [infix] declared in kotlin.TuplesKt' type=kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques> origin=null
+                    <A>: kotlin.String
+                    <B>: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
+                    $receiver: CONST String type=kotlin.String value="Viernes"
+                    that: CALL 'public final fun <get-viernes> (): com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques declared in com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques origin=GET_PROPERTY
+                      $this: GET_VAR 'horario: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box origin=null
+                CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                  $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                  index: CONST Int type=kotlin.Int value=5
+                  value: CALL 'public final fun to <A, B> (that: B of kotlin.TuplesKt.to): kotlin.Pair<A of kotlin.TuplesKt.to, B of kotlin.TuplesKt.to> [infix] declared in kotlin.TuplesKt' type=kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques> origin=null
+                    <A>: kotlin.String
+                    <B>: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
+                    $receiver: CONST String type=kotlin.String value="Sábado"
+                    that: CALL 'public final fun <get-sábado> (): com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques declared in com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques origin=GET_PROPERTY
+                      $this: GET_VAR 'horario: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box origin=null
+                CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                  $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                  index: CONST Int type=kotlin.Int value=6
+                  value: CALL 'public final fun to <A, B> (that: B of kotlin.TuplesKt.to): kotlin.Pair<A of kotlin.TuplesKt.to, B of kotlin.TuplesKt.to> [infix] declared in kotlin.TuplesKt' type=kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques> origin=null
+                    <A>: kotlin.String
+                    <B>: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
+                    $receiver: CONST String type=kotlin.String value="Domingo"
+                    that: CALL 'public final fun <get-domingo> (): com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques declared in com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques origin=GET_PROPERTY
+                      $this: GET_VAR 'horario: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box origin=null
+                GET_VAR 'val tmp0: kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Array<out kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+          VAR name:lista_filtrado type:kotlin.collections.List<kotlin.String> [val]
+            CALL 'public final fun listOf <T> (vararg elements: T of kotlin.collections.CollectionsKt.listOf): kotlin.collections.List<T of kotlin.collections.CollectionsKt.listOf> declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<kotlin.String> origin=null
+              <T>: kotlin.String
+              elements: BLOCK type=kotlin.Array<out kotlin.String> origin=null
+                VAR IR_TEMPORARY_VARIABLE name:tmp0 type:kotlin.Array<out kotlin.String> [val]
+                  CALL 'public final fun arrayOfNulls <T> (size: kotlin.Int): kotlin.Array<T of kotlin.arrayOfNulls?> declared in kotlin' type=kotlin.Array<out kotlin.String> origin=null
+                    <T>: kotlin.String
+                    size: CONST Int type=kotlin.Int value=3
+                CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                  $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Array<out kotlin.String> origin=null
+                  index: CONST Int type=kotlin.Int value=0
+                  value: CONST String type=kotlin.String value="hoy"
+                CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                  $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Array<out kotlin.String> origin=null
+                  index: CONST Int type=kotlin.Int value=1
+                  value: CONST String type=kotlin.String value="dias abiertos"
+                CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                  $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Array<out kotlin.String> origin=null
+                  index: CONST Int type=kotlin.Int value=2
+                  value: CONST String type=kotlin.String value="dias cerrados"
+                GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Array<out kotlin.String> origin=null
+          VAR PROPERTY_DELEGATE name:seleciondao$delegate type:androidx.compose.runtime.MutableState<kotlin.String> [val]
+            BLOCK type=androidx.compose.runtime.MutableState<kotlin.String> origin=null
+              BLOCK type=kotlin.Unit origin=null
+                CALL 'public abstract fun startReplaceGroup (key: kotlin.Int): kotlin.Unit declared in androidx.compose.runtime.Composer' type=kotlin.Unit origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  key: CONST Int type=kotlin.Int value=-754683827
+                CALL 'public final fun sourceInformation (composer: androidx.compose.runtime.Composer, sourceInformation: kotlin.String): kotlin.Unit declared in androidx.compose.runtime.ComposerKt' type=kotlin.Unit origin=null
+                  composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  sourceInformation: CONST String type=kotlin.String value="CC(remember):constantes_horas.kt#9igjgp"
+              VAR IR_TEMPORARY_VARIABLE name:tmp0_group type:androidx.compose.runtime.MutableState<kotlin.String> [val]
+                CALL 'public final fun cache <T> (invalid: kotlin.Boolean, block: @[DisallowComposableCalls] kotlin.Function0<T of androidx.compose.runtime.ComposerKt.cache>): T of androidx.compose.runtime.ComposerKt.cache [inline] declared in androidx.compose.runtime.ComposerKt' type=androidx.compose.runtime.MutableState<kotlin.String> origin=null
+                  <T>: androidx.compose.runtime.MutableState<kotlin.String>
+                  $receiver: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+                  invalid: CONST Boolean type=kotlin.Boolean value=false
+                  block: BLOCK type=kotlin.Function0<androidx.compose.runtime.MutableState<kotlin.String>> origin=LAMBDA
+                    COMPOSITE type=kotlin.Unit origin=null
+                    FUNCTION_REFERENCE 'private final fun HorarioSemanal123$lambda$3 ($filtrado: kotlin.String?): androidx.compose.runtime.MutableState<kotlin.String> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas' type=kotlin.Function0<androidx.compose.runtime.MutableState<kotlin.String>> origin=INLINE_LAMBDA reflectionTarget=null
+                      $filtrado: GET_VAR 'filtrado: kotlin.String? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.String? origin=null
+              CALL 'public abstract fun endReplaceGroup (): kotlin.Unit declared in androidx.compose.runtime.Composer' type=kotlin.Unit origin=null
+                $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+              GET_VAR 'val tmp0_group: androidx.compose.runtime.MutableState<kotlin.String> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.MutableState<kotlin.String> origin=null
+          VAR name:listState type:androidx.compose.foundation.lazy.LazyListState [val]
+            CALL 'public final fun rememberLazyListState (initialFirstVisibleItemIndex: kotlin.Int, initialFirstVisibleItemScrollOffset: kotlin.Int, $composer: androidx.compose.runtime.Composer?, $changed: kotlin.Int, $default: kotlin.Int): androidx.compose.foundation.lazy.LazyListState declared in androidx.compose.foundation.lazy.LazyListStateKt' type=androidx.compose.foundation.lazy.LazyListState origin=null
+              initialFirstVisibleItemIndex: COMPOSITE type=kotlin.Int origin=DEFAULT_VALUE
+                CONST Int type=kotlin.Int value=0
+              initialFirstVisibleItemScrollOffset: COMPOSITE type=kotlin.Int origin=DEFAULT_VALUE
+                CONST Int type=kotlin.Int value=0
+              $composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+              $changed: CONST Int type=kotlin.Int value=0
+              $default: CONST Int type=kotlin.Int value=3
+          VAR name:diasFiltrados type:kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val]
+            BLOCK type=kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=WHEN
+              VAR IR_TEMPORARY_VARIABLE name:tmp0_subject type:kotlin.String [val]
+                CALL 'private final fun HorarioSemanal123$lambda$4 ($seleciondao$delegate: androidx.compose.runtime.MutableState<kotlin.String>): kotlin.String declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas' type=kotlin.String origin=GET_LOCAL_PROPERTY
+                  $seleciondao$delegate: GET_VAR 'val seleciondao$delegate: androidx.compose.runtime.MutableState<kotlin.String> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.MutableState<kotlin.String> origin=null
+              WHEN type=kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=WHEN
+                BRANCH
+                  if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                    arg0: GET_VAR 'val tmp0_subject: kotlin.String [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.String origin=null
+                    arg1: CONST String type=kotlin.String value="hoy"
+                  then: CALL 'public final fun filter <T> (predicate: kotlin.Function1<T of kotlin.collections.CollectionsKt.filter, kotlin.Boolean>): kotlin.collections.List<T of kotlin.collections.CollectionsKt.filter> [inline] declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                    <T>: kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>
+                    $receiver: GET_VAR 'val diasConDatos: kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                    predicate: BLOCK type=kotlin.Function1<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>, kotlin.Boolean> origin=LAMBDA
+                      COMPOSITE type=kotlin.Unit origin=null
+                      FUNCTION_REFERENCE 'private final fun HorarioSemanal123$lambda$6 (it: kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>): kotlin.Boolean declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas' type=kotlin.Function1<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>, kotlin.Boolean> origin=INLINE_LAMBDA reflectionTarget=null
+                BRANCH
+                  if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                    arg0: GET_VAR 'val tmp0_subject: kotlin.String [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.String origin=null
+                    arg1: CONST String type=kotlin.String value="dias abiertos"
+                  then: BLOCK type=kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                    CALL 'public final fun filter <T> (predicate: kotlin.Function1<T of kotlin.collections.CollectionsKt.filter, kotlin.Boolean>): kotlin.collections.List<T of kotlin.collections.CollectionsKt.filter> [inline] declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                      <T>: kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>
+                      $receiver: GET_VAR 'val diasConDatos: kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                      predicate: BLOCK type=kotlin.Function1<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>, kotlin.Boolean> origin=LAMBDA
+                        COMPOSITE type=kotlin.Unit origin=null
+                        FUNCTION_REFERENCE 'private final fun HorarioSemanal123$lambda$7 (it: kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>): kotlin.Boolean declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas' type=kotlin.Function1<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>, kotlin.Boolean> origin=INLINE_LAMBDA reflectionTarget=null
+                BRANCH
+                  if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                    arg0: GET_VAR 'val tmp0_subject: kotlin.String [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.String origin=null
+                    arg1: CONST String type=kotlin.String value="dias cerrados"
+                  then: CALL 'public final fun filter <T> (predicate: kotlin.Function1<T of kotlin.collections.CollectionsKt.filter, kotlin.Boolean>): kotlin.collections.List<T of kotlin.collections.CollectionsKt.filter> [inline] declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                    <T>: kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>
+                    $receiver: GET_VAR 'val diasConDatos: kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                    predicate: BLOCK type=kotlin.Function1<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>, kotlin.Boolean> origin=LAMBDA
+                      COMPOSITE type=kotlin.Unit origin=null
+                      FUNCTION_REFERENCE 'private final fun HorarioSemanal123$lambda$8 (it: kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>): kotlin.Boolean declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas' type=kotlin.Function1<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>, kotlin.Boolean> origin=INLINE_LAMBDA reflectionTarget=null
+                BRANCH
+                  if: CONST Boolean type=kotlin.Boolean value=true
+                  then: GET_VAR 'val diasConDatos: kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+          COMPOSITE type=kotlin.Unit origin=null
+            CALL 'public open fun d (p0: @[EnhancedNullability] kotlin.String?, p1: @[EnhancedNullability] kotlin.String): kotlin.Int declared in android.util.Log' type=kotlin.Int origin=null
+              p0: CONST String type=kotlin.String value="diasFiltrados"
+              p1: CALL 'public final fun valueOf (value: kotlin.Any?): kotlin.String declared in java.lang.String' type=kotlin.String origin=null
+                value: TYPE_OP type=kotlin.Any origin=IMPLICIT_CAST typeOperand=kotlin.Any
+                  GET_VAR 'val diasFiltrados: kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+            COMPOSITE type=kotlin.Unit origin=null
+          CALL 'public final fun Column (modifier: androidx.compose.ui.Modifier?, verticalArrangement: androidx.compose.foundation.layout.Arrangement.Vertical?, horizontalAlignment: androidx.compose.ui.Alignment.Horizontal?, content: @[ExtensionFunctionType] kotlin.Function3<androidx.compose.foundation.layout.ColumnScope, androidx.compose.runtime.Composer, kotlin.Int, kotlin.Unit>, $composer: androidx.compose.runtime.Composer?, $changed: kotlin.Int, $default: kotlin.Int): kotlin.Unit [inline] declared in androidx.compose.foundation.layout.ColumnKt' type=kotlin.Unit origin=null
+            modifier: CALL 'public final fun padding-VpY3zN4 (horizontal: androidx.compose.ui.unit.Dp, vertical: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier declared in androidx.compose.foundation.layout.PaddingKt' type=androidx.compose.ui.Modifier origin=null
+              $receiver: CALL 'public final fun fillMaxWidth$default (fraction: kotlin.Float, $mask0: kotlin.Int, $handler: kotlin.Any?): androidx.compose.ui.Modifier declared in androidx.compose.foundation.layout.SizeKt' type=androidx.compose.ui.Modifier origin=DEFAULT_DISPATCH_CALL
+                $receiver: GET_FIELD 'FIELD FIELD_FOR_OBJECT_INSTANCE name:Companion type:androidx.compose.ui.Modifier.Companion visibility:public [final,static] declared in androidx.compose.ui.Modifier' type=androidx.compose.ui.Modifier.Companion origin=null
+                fraction: COMPOSITE type=kotlin.Float origin=DEFAULT_VALUE
+                  CONST Float type=kotlin.Float value=0.0
+                $mask0: CONST Int type=kotlin.Int value=1
+                $handler: CONST Null type=kotlin.Any? value=null
+              horizontal: CALL 'public final fun <get-dp> (): androidx.compose.ui.unit.Dp [inline] declared in androidx.compose.ui.unit.DpKt' type=androidx.compose.ui.unit.Dp origin=GET_PROPERTY
+                $receiver: CONST Int type=kotlin.Int value=5
+              vertical: CALL 'public final fun <get-dp> (): androidx.compose.ui.unit.Dp [inline] declared in androidx.compose.ui.unit.DpKt' type=androidx.compose.ui.unit.Dp origin=GET_PROPERTY
+                $receiver: CONST Int type=kotlin.Int value=10
+            verticalArrangement: CALL 'public final fun spacedBy-0680j_4 (space: androidx.compose.ui.unit.Dp): androidx.compose.foundation.layout.Arrangement.HorizontalOrVertical declared in androidx.compose.foundation.layout.Arrangement' type=androidx.compose.foundation.layout.Arrangement.HorizontalOrVertical origin=null
+              $this: GET_FIELD 'FIELD FIELD_FOR_OBJECT_INSTANCE name:INSTANCE type:androidx.compose.foundation.layout.Arrangement visibility:public [final,static] declared in androidx.compose.foundation.layout.Arrangement' type=androidx.compose.foundation.layout.Arrangement origin=null
+              space: CALL 'public final fun <get-dp> (): androidx.compose.ui.unit.Dp [inline] declared in androidx.compose.ui.unit.DpKt' type=androidx.compose.ui.unit.Dp origin=GET_PROPERTY
+                $receiver: CONST Int type=kotlin.Int value=12
+            horizontalAlignment: COMPOSITE type=kotlin.Nothing? origin=DEFAULT_VALUE
+              CONST Null type=kotlin.Nothing? value=null
+            content: BLOCK type=@[ExtensionFunctionType] kotlin.Function3<androidx.compose.foundation.layout.ColumnScope, androidx.compose.runtime.Composer, kotlin.Int, kotlin.Unit> origin=LAMBDA
+              COMPOSITE type=kotlin.Unit origin=null
+              FUNCTION_REFERENCE 'private final fun HorarioSemanal123$lambda$63 ($$dirty: kotlin.Int, $listState: androidx.compose.foundation.lazy.LazyListState, $lista_filtrado: kotlin.collections.List<kotlin.String>, $color_left: kotlin.collections.List<androidx.compose.ui.graphics.Color>, $color_right: kotlin.collections.List<androidx.compose.ui.graphics.Color>, $$dirty1: kotlin.Int, $diasFiltrados: kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>>, $onclick_expand: kotlin.Function0<kotlin.Unit>, $viewModelFiltros: com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas, $id_tienda: kotlin.String, $tick: kotlin.Long, $seleciondao$delegate: androidx.compose.runtime.MutableState<kotlin.String>, $DELAY_REBOTE_UI_MS: kotlin.Long, $isConnected: kotlin.Boolean, $cerrar_tienda: kotlin.Function3<@[ParameterName(name = "nombre_dia")] kotlin.String, @[ParameterName(name = "motivo_cierre")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit>, $error_sin_internet: kotlin.Function0<kotlin.Unit>, $error_campos_incompletos: kotlin.Function0<kotlin.Unit>, $error_horas_invalidas: kotlin.Function1<kotlin.String, kotlin.Unit>, $abrir_tienda: kotlin.Function2<@[ParameterName(name = "nombre_dia")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit>, $composer: androidx.compose.runtime.Composer?, $changed: kotlin.Int): kotlin.Unit declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas' type=@[ExtensionFunctionType] kotlin.Function3<androidx.compose.foundation.layout.ColumnScope, androidx.compose.runtime.Composer, kotlin.Int, kotlin.Unit> origin=INLINE_LAMBDA reflectionTarget=null
+                $$dirty: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+                $listState: GET_VAR 'val listState: androidx.compose.foundation.lazy.LazyListState [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.foundation.lazy.LazyListState origin=null
+                $lista_filtrado: GET_VAR 'val lista_filtrado: kotlin.collections.List<kotlin.String> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.collections.List<kotlin.String> origin=null
+                $color_left: GET_VAR 'color_left: kotlin.collections.List<androidx.compose.ui.graphics.Color> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.collections.List<androidx.compose.ui.graphics.Color> origin=null
+                $color_right: GET_VAR 'color_right: kotlin.collections.List<androidx.compose.ui.graphics.Color> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.collections.List<androidx.compose.ui.graphics.Color> origin=null
+                $$dirty1: GET_VAR 'val $dirty1: kotlin.Int [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+                $diasFiltrados: GET_VAR 'val diasFiltrados: kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+                $onclick_expand: GET_VAR 'onclick_expand: kotlin.Function0<kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function0<kotlin.Unit> origin=null
+                $viewModelFiltros: GET_VAR 'viewModelFiltros: com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas origin=null
+                $id_tienda: GET_VAR 'id_tienda: kotlin.String declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.String origin=null
+                $tick: GET_VAR 'tick: kotlin.Long declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Long origin=null
+                $seleciondao$delegate: GET_VAR 'val seleciondao$delegate: androidx.compose.runtime.MutableState<kotlin.String> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.MutableState<kotlin.String> origin=null
+                $DELAY_REBOTE_UI_MS: GET_VAR 'val DELAY_REBOTE_UI_MS: kotlin.Long [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Long origin=null
+                $isConnected: GET_VAR 'isConnected: kotlin.Boolean declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Boolean origin=null
+                $cerrar_tienda: GET_VAR 'cerrar_tienda: kotlin.Function3<@[ParameterName(name = "nombre_dia")] kotlin.String, @[ParameterName(name = "motivo_cierre")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function3<@[ParameterName(name = "nombre_dia")] kotlin.String, @[ParameterName(name = "motivo_cierre")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit> origin=null
+                $error_sin_internet: GET_VAR 'error_sin_internet: kotlin.Function0<kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function0<kotlin.Unit> origin=null
+                $error_campos_incompletos: GET_VAR 'error_campos_incompletos: kotlin.Function0<kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function0<kotlin.Unit> origin=null
+                $error_horas_invalidas: GET_VAR 'error_horas_invalidas: kotlin.Function1<kotlin.String, kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function1<kotlin.String, kotlin.Unit> origin=null
+                $abrir_tienda: GET_VAR 'abrir_tienda: kotlin.Function2<@[ParameterName(name = "nombre_dia")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function2<@[ParameterName(name = "nombre_dia")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit> origin=null
+            $composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+            $changed: CONST Int type=kotlin.Int value=54
+            $default: CONST Int type=kotlin.Int value=4
+          WHEN type=kotlin.Unit origin=IF
+            BRANCH
+              if: CALL 'public final fun isTraceInProgress (): kotlin.Boolean declared in androidx.compose.runtime.ComposerKt' type=kotlin.Boolean origin=null
+              then: CALL 'public final fun traceEventEnd (): kotlin.Unit declared in androidx.compose.runtime.ComposerKt' type=kotlin.Unit origin=null
+      BRANCH
+        if: CONST Boolean type=kotlin.Boolean value=true
+        then: CALL 'public abstract fun skipToGroupEnd (): kotlin.Unit declared in androidx.compose.runtime.Composer' type=kotlin.Unit origin=null
+          $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+    BLOCK type=kotlin.Unit origin=null
+      BLOCK type=kotlin.Unit origin=FOLDED_SAFE_CALL
+        WHEN type=kotlin.Unit origin=FOLDED_SAFE_CALL
+          BRANCH
+            if: COMPOSITE type=kotlin.Boolean origin=null
+              VAR IR_TEMPORARY_VARIABLE name:tmp2_safe_receiver type:androidx.compose.runtime.ScopeUpdateScope? [val]
+                CALL 'public abstract fun endRestartGroup (): androidx.compose.runtime.ScopeUpdateScope? declared in androidx.compose.runtime.Composer' type=androidx.compose.runtime.ScopeUpdateScope? origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.Composer? origin=null
+              CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                  arg0: GET_VAR 'val tmp2_safe_receiver: androidx.compose.runtime.ScopeUpdateScope? [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.ScopeUpdateScope? origin=null
+                  arg1: CONST Null type=kotlin.Nothing? value=null
+            then: CALL 'public abstract fun updateScope (block: kotlin.Function2<androidx.compose.runtime.Composer, kotlin.Int, kotlin.Unit>): kotlin.Unit declared in androidx.compose.runtime.ScopeUpdateScope' type=kotlin.Unit origin=null
+              $this: GET_VAR 'val tmp2_safe_receiver: androidx.compose.runtime.ScopeUpdateScope? [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=androidx.compose.runtime.ScopeUpdateScope? origin=null
+              block: BLOCK type=kotlin.Function2<androidx.compose.runtime.Composer?, kotlin.Int, kotlin.Unit> origin=LAMBDA
+                COMPOSITE type=kotlin.Unit origin=null
+                CALL 'public final fun <jvm-indy> <T> (dynamicCall: T of kotlin.jvm.internal.<jvm-indy>, bootstrapMethodHandle: kotlin.Any, vararg bootstrapMethodArguments: kotlin.Any): T of kotlin.jvm.internal.<jvm-indy> declared in kotlin.jvm.internal' type=kotlin.Function2<androidx.compose.runtime.Composer?, kotlin.Int, kotlin.Unit> origin=null
+                  <T>: kotlin.Function2<androidx.compose.runtime.Composer?, kotlin.Int, kotlin.Unit>
+                  dynamicCall: CALL 'public final fun invoke (p0: com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas, p1: kotlin.String?, p2: kotlin.String, p3: kotlin.Long, p4: com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas, p5: kotlin.Boolean, p6: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box, p7: kotlin.Function3<@[ParameterName(name = "nombre_dia")] kotlin.String, @[ParameterName(name = "motivo_cierre")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit>, p8: kotlin.Function2<@[ParameterName(name = "nombre_dia")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit>, p9: kotlin.Function0<kotlin.Unit>, p10: kotlin.Function0<kotlin.Unit>, p11: kotlin.Function0<kotlin.Unit>, p12: kotlin.Function1<kotlin.String, kotlin.Unit>, p13: kotlin.collections.List<androidx.compose.ui.graphics.Color>, p14: kotlin.collections.List<androidx.compose.ui.graphics.Color>, p15: kotlin.Int, p16: kotlin.Int, p17: kotlin.Int): kotlin.Function2<androidx.compose.runtime.Composer?, kotlin.Int, kotlin.Unit> declared in kotlin.jvm.internal.invokeDynamic' type=kotlin.Function2<androidx.compose.runtime.Composer?, kotlin.Int, kotlin.Unit> origin=null
+                    p0: GET_VAR '<this>: com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas origin=null
+                    p1: GET_VAR 'filtrado: kotlin.String? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.String? origin=null
+                    p2: GET_VAR 'id_tienda: kotlin.String declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.String origin=null
+                    p3: GET_VAR 'tick: kotlin.Long declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Long origin=null
+                    p4: GET_VAR 'viewModelFiltros: com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas origin=null
+                    p5: GET_VAR 'isConnected: kotlin.Boolean declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Boolean origin=null
+                    p6: GET_VAR 'horario: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box origin=null
+                    p7: GET_VAR 'cerrar_tienda: kotlin.Function3<@[ParameterName(name = "nombre_dia")] kotlin.String, @[ParameterName(name = "motivo_cierre")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function3<@[ParameterName(name = "nombre_dia")] kotlin.String, @[ParameterName(name = "motivo_cierre")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit> origin=null
+                    p8: GET_VAR 'abrir_tienda: kotlin.Function2<@[ParameterName(name = "nombre_dia")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function2<@[ParameterName(name = "nombre_dia")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit> origin=null
+                    p9: GET_VAR 'error_sin_internet: kotlin.Function0<kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function0<kotlin.Unit> origin=null
+                    p10: GET_VAR 'onclick_expand: kotlin.Function0<kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function0<kotlin.Unit> origin=null
+                    p11: GET_VAR 'error_campos_incompletos: kotlin.Function0<kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function0<kotlin.Unit> origin=null
+                    p12: GET_VAR 'error_horas_invalidas: kotlin.Function1<kotlin.String, kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Function1<kotlin.String, kotlin.Unit> origin=null
+                    p13: GET_VAR 'color_left: kotlin.collections.List<androidx.compose.ui.graphics.Color> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.collections.List<androidx.compose.ui.graphics.Color> origin=null
+                    p14: GET_VAR 'color_right: kotlin.collections.List<androidx.compose.ui.graphics.Color> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.collections.List<androidx.compose.ui.graphics.Color> origin=null
+                    p15: GET_VAR '$changed: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+                    p16: GET_VAR '$changed1: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+                    p17: GET_VAR '$default: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123' type=kotlin.Int origin=null
+                  bootstrapMethodHandle: CALL 'public final fun <jvm-method-handle> (tag: kotlin.Int, owner: kotlin.String, name: kotlin.String, descriptor: kotlin.String, isInterface: kotlin.Boolean): kotlin.Any declared in kotlin.jvm.internal' type=kotlin.Any origin=null
+                    tag: CONST Int type=kotlin.Int value=6
+                    owner: CONST String type=kotlin.String value="java/lang/invoke/LambdaMetafactory"
+                    name: CONST String type=kotlin.String value="metafactory"
+                    descriptor: CONST String type=kotlin.String value="(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;"
+                    isInterface: CONST Boolean type=kotlin.Boolean value=false
+                  bootstrapMethodArguments: VARARG type=kotlin.Array<kotlin.Any> varargElementType=kotlin.Any
+                    CALL 'public final fun <jvm-original-method-type> (method: kotlin.Any): kotlin.Any declared in kotlin.jvm.internal' type=kotlin.Any origin=null
+                      method: RAW_FUNCTION_REFERENCE 'public abstract fun invoke (p1: P1 of kotlin.Function2, p2: P2 of kotlin.Function2): R of kotlin.Function2 [operator] declared in kotlin.Function2' type=kotlin.Any
+                    RAW_FUNCTION_REFERENCE 'private final fun HorarioSemanal123$lambda$64 ($tmp1_rcvr: com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas, $filtrado: kotlin.String?, $id_tienda: kotlin.String, $tick: kotlin.Long, $viewModelFiltros: com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas, $isConnected: kotlin.Boolean, $horario: com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box, $cerrar_tienda: kotlin.Function3<@[ParameterName(name = "nombre_dia")] kotlin.String, @[ParameterName(name = "motivo_cierre")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit>, $abrir_tienda: kotlin.Function2<@[ParameterName(name = "nombre_dia")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit>, $error_sin_internet: kotlin.Function0<kotlin.Unit>, $onclick_expand: kotlin.Function0<kotlin.Unit>, $error_campos_incompletos: kotlin.Function0<kotlin.Unit>, $error_horas_invalidas: kotlin.Function1<kotlin.String, kotlin.Unit>, $color_left: kotlin.collections.List<androidx.compose.ui.graphics.Color>, $color_right: kotlin.collections.List<androidx.compose.ui.graphics.Color>, $$changed: kotlin.Int, $$changed1: kotlin.Int, $$default: kotlin.Int, $composer: androidx.compose.runtime.Composer?, $force: kotlin.Int): kotlin.Unit? declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas' type=kotlin.Any
+                    CALL 'public final fun <jvm-original-method-type> (method: kotlin.Any): kotlin.Any declared in kotlin.jvm.internal' type=kotlin.Any origin=null
+                      method: RAW_FUNCTION_REFERENCE 'public abstract fun invoke (p1: androidx.compose.runtime.Composer?, p2: kotlin.Int?): kotlin.Unit? [fake_override,operator] declared in kotlin.jvm.internal.invokeDynamic.<fake>' type=kotlin.Any
+          BRANCH
+            if: CONST Boolean type=kotlin.Boolean value=true
+            then: CONST Null type=kotlin.Any? value=null
+
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:48)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate$default(FunctionCodegen.kt:41)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generateMethodNode(ClassCodegen.kt:407)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generateMethod(ClassCodegen.kt:424)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generate(ClassCodegen.kt:169)
+	at org.jetbrains.kotlin.backend.jvm.FileCodegen.lower(JvmPhases.kt:39)
+	at org.jetbrains.kotlin.backend.common.phaser.PhaseFactoriesKt.createFilePhase$lambda$4(PhaseFactories.kt:71)
+	at org.jetbrains.kotlin.backend.common.phaser.PhaseBuildersKt$createSimpleNamedCompilerPhase$1.phaseBody(PhaseBuilders.kt:69)
+	at org.jetbrains.kotlin.backend.common.phaser.SimpleNamedCompilerPhase.phaseBody(CompilerPhase.kt:226)
+	at org.jetbrains.kotlin.backend.common.phaser.AbstractNamedCompilerPhase.invoke(CompilerPhase.kt:113)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invokeSequential(performByIrFile.kt:52)
+	... 37 more
+Caused by: java.lang.RuntimeException: Exception while generating code for:
+FUN INLINE_LAMBDA name:HorarioSemanal123$lambda$63 visibility:private modality:FINAL <> ($receiver:androidx.compose.foundation.layout.ColumnScope, $$dirty:kotlin.Int, $listState:androidx.compose.foundation.lazy.LazyListState, $lista_filtrado:kotlin.collections.List<kotlin.String>, $color_left:kotlin.collections.List<androidx.compose.ui.graphics.Color>, $color_right:kotlin.collections.List<androidx.compose.ui.graphics.Color>, $$dirty1:kotlin.Int, $diasFiltrados:kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>>, $onclick_expand:kotlin.Function0<kotlin.Unit>, $viewModelFiltros:com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas, $id_tienda:kotlin.String, $tick:kotlin.Long, $seleciondao$delegate:androidx.compose.runtime.MutableState<kotlin.String>, $DELAY_REBOTE_UI_MS:kotlin.Long, $isConnected:kotlin.Boolean, $cerrar_tienda:kotlin.Function3<@[ParameterName(name = "nombre_dia")] kotlin.String, @[ParameterName(name = "motivo_cierre")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit>, $error_sin_internet:kotlin.Function0<kotlin.Unit>, $error_campos_incompletos:kotlin.Function0<kotlin.Unit>, $error_horas_invalidas:kotlin.Function1<kotlin.String, kotlin.Unit>, $abrir_tienda:kotlin.Function2<@[ParameterName(name = "nombre_dia")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit>, $composer:androidx.compose.runtime.Composer?, $changed:kotlin.Int) returnType:kotlin.Unit
+  annotations:
+    Composable
+    ComposableTarget(applier = "androidx.compose.ui.UiComposable")
+  $receiver: VALUE_PARAMETER name:$this$Column type:androidx.compose.foundation.layout.ColumnScope
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$$dirty index:0 type:kotlin.Int
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$listState index:1 type:androidx.compose.foundation.lazy.LazyListState
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$lista_filtrado index:2 type:kotlin.collections.List<kotlin.String>
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$color_left index:3 type:kotlin.collections.List<androidx.compose.ui.graphics.Color>
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$color_right index:4 type:kotlin.collections.List<androidx.compose.ui.graphics.Color>
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$$dirty1 index:5 type:kotlin.Int
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$diasFiltrados index:6 type:kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>>
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$onclick_expand index:7 type:kotlin.Function0<kotlin.Unit>
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$viewModelFiltros index:8 type:com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$id_tienda index:9 type:kotlin.String
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$tick index:10 type:kotlin.Long
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$seleciondao$delegate index:11 type:androidx.compose.runtime.MutableState<kotlin.String>
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$DELAY_REBOTE_UI_MS index:12 type:kotlin.Long
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$isConnected index:13 type:kotlin.Boolean
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$cerrar_tienda index:14 type:kotlin.Function3<@[ParameterName(name = "nombre_dia")] kotlin.String, @[ParameterName(name = "motivo_cierre")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit>
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$error_sin_internet index:15 type:kotlin.Function0<kotlin.Unit>
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$error_campos_incompletos index:16 type:kotlin.Function0<kotlin.Unit>
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$error_horas_invalidas index:17 type:kotlin.Function1<kotlin.String, kotlin.Unit>
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$abrir_tienda index:18 type:kotlin.Function2<@[ParameterName(name = "nombre_dia")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit>
+  VALUE_PARAMETER name:$composer index:19 type:androidx.compose.runtime.Composer? [assignable]
+  VALUE_PARAMETER name:$changed index:20 type:kotlin.Int
+  BLOCK_BODY
+    VAR name:$i$a$-Column-constantes_horas$HorarioSemanal123$1 type:kotlin.Int [val]
+      CONST Int type=kotlin.Int value=0
+    BLOCK type=kotlin.Unit origin=null
+      CALL 'public final fun sourceInformationMarkerStart (composer: androidx.compose.runtime.Composer, key: kotlin.Int, sourceInformation: kotlin.String): kotlin.Unit declared in androidx.compose.runtime.ComposerKt' type=kotlin.Unit origin=null
+        composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+        key: CONST Int type=kotlin.Int value=-1464809708
+        sourceInformation: CONST String type=kotlin.String value="C402@14399L39,402@14440L56,399@14265L1556,443@16037L15,444@16084L100,439@15838L412:constantes_horas.kt#1litc9"
+      COMPOSITE type=kotlin.Unit origin=null
+        CALL 'public final fun Column (modifier: androidx.compose.ui.Modifier?, verticalArrangement: androidx.compose.foundation.layout.Arrangement.Vertical?, horizontalAlignment: androidx.compose.ui.Alignment.Horizontal?, content: @[ExtensionFunctionType] kotlin.Function3<androidx.compose.foundation.layout.ColumnScope, androidx.compose.runtime.Composer, kotlin.Int, kotlin.Unit>, $composer: androidx.compose.runtime.Composer?, $changed: kotlin.Int, $default: kotlin.Int): kotlin.Unit [inline] declared in androidx.compose.foundation.layout.ColumnKt' type=kotlin.Unit origin=null
+          modifier: BLOCK type=androidx.compose.ui.Modifier origin=ARGUMENTS_REORDERING_FOR_CALL
+            VAR IR_TEMPORARY_VARIABLE name:tmp0_$receiver type:androidx.compose.ui.Modifier.Companion [val]
+              GET_FIELD 'FIELD FIELD_FOR_OBJECT_INSTANCE name:Companion type:androidx.compose.ui.Modifier.Companion visibility:public [final,static] declared in androidx.compose.ui.Modifier' type=androidx.compose.ui.Modifier.Companion origin=null
+            VAR IR_TEMPORARY_VARIABLE name:tmp1_interactionSource type:androidx.compose.foundation.interaction.MutableInteractionSource [val]
+              BLOCK type=androidx.compose.foundation.interaction.MutableInteractionSource origin=null
+                BLOCK type=kotlin.Unit origin=null
+                  CALL 'public abstract fun startReplaceGroup (key: kotlin.Int): kotlin.Unit declared in androidx.compose.runtime.Composer' type=kotlin.Unit origin=null
+                    $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                    key: CONST Int type=kotlin.Int value=1199636718
+                  CALL 'public final fun sourceInformation (composer: androidx.compose.runtime.Composer, sourceInformation: kotlin.String): kotlin.Unit declared in androidx.compose.runtime.ComposerKt' type=kotlin.Unit origin=null
+                    composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                    sourceInformation: CONST String type=kotlin.String value="CC(remember):constantes_horas.kt#9igjgp"
+                VAR IR_TEMPORARY_VARIABLE name:tmp0_group type:androidx.compose.foundation.interaction.MutableInteractionSource [val]
+                  CALL 'public final fun cache <T> (invalid: kotlin.Boolean, block: @[DisallowComposableCalls] kotlin.Function0<T of androidx.compose.runtime.ComposerKt.cache>): T of androidx.compose.runtime.ComposerKt.cache [inline] declared in androidx.compose.runtime.ComposerKt' type=androidx.compose.foundation.interaction.MutableInteractionSource origin=null
+                    <T>: androidx.compose.foundation.interaction.MutableInteractionSource
+                    $receiver: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                    invalid: CONST Boolean type=kotlin.Boolean value=false
+                    block: BLOCK type=kotlin.Function0<androidx.compose.foundation.interaction.MutableInteractionSource> origin=LAMBDA
+                      COMPOSITE type=kotlin.Unit origin=null
+                      FUNCTION_REFERENCE 'private final fun HorarioSemanal123$lambda$63$lambda$9 (): androidx.compose.foundation.interaction.MutableInteractionSource declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas' type=kotlin.Function0<androidx.compose.foundation.interaction.MutableInteractionSource> origin=INLINE_LAMBDA reflectionTarget=null
+                CALL 'public abstract fun endReplaceGroup (): kotlin.Unit declared in androidx.compose.runtime.Composer' type=kotlin.Unit origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                GET_VAR 'val tmp0_group: androidx.compose.foundation.interaction.MutableInteractionSource [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.foundation.interaction.MutableInteractionSource origin=null
+            CALL 'public final fun clickable-O2vRcR0$default (interactionSource: androidx.compose.foundation.interaction.MutableInteractionSource?, indication: androidx.compose.foundation.Indication?, enabled: kotlin.Boolean, onClickLabel: kotlin.String?, role: androidx.compose.ui.semantics.Role?, onClick: kotlin.Function0<kotlin.Unit>, $mask0: kotlin.Int, $handler: kotlin.Any?): androidx.compose.ui.Modifier declared in androidx.compose.foundation.ClickableKt' type=androidx.compose.ui.Modifier origin=DEFAULT_DISPATCH_CALL
+              $receiver: GET_VAR 'val tmp0_$receiver: androidx.compose.ui.Modifier.Companion [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.ui.Modifier.Companion origin=null
+              interactionSource: GET_VAR 'val tmp1_interactionSource: androidx.compose.foundation.interaction.MutableInteractionSource [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.foundation.interaction.MutableInteractionSource origin=null
+              indication: CONST Null type=kotlin.Nothing? value=null
+              enabled: COMPOSITE type=kotlin.Boolean origin=DEFAULT_VALUE
+                CONST Boolean type=kotlin.Boolean value=false
+              onClickLabel: COMPOSITE type=kotlin.String? origin=DEFAULT_VALUE
+                CONST Null type=kotlin.String? value=null
+              role: COMPOSITE type=androidx.compose.ui.semantics.Role? origin=DEFAULT_VALUE
+                CONST Null type=androidx.compose.ui.semantics.Role? value=null
+              onClick: BLOCK type=kotlin.Function0<kotlin.Unit> origin=null
+                BLOCK type=kotlin.Unit origin=null
+                  CALL 'public abstract fun startReplaceGroup (key: kotlin.Int): kotlin.Unit declared in androidx.compose.runtime.Composer' type=kotlin.Unit origin=null
+                    $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                    key: CONST Int type=kotlin.Int value=1199638047
+                  CALL 'public final fun sourceInformation (composer: androidx.compose.runtime.Composer, sourceInformation: kotlin.String): kotlin.Unit declared in androidx.compose.runtime.ComposerKt' type=kotlin.Unit origin=null
+                    composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                    sourceInformation: CONST String type=kotlin.String value="CC(remember):constantes_horas.kt#9igjgp"
+                VAR IR_TEMPORARY_VARIABLE name:tmp1_group type:kotlin.Function0<kotlin.Unit> [val]
+                  CALL 'public final fun cache <T> (invalid: kotlin.Boolean, block: @[DisallowComposableCalls] kotlin.Function0<T of androidx.compose.runtime.ComposerKt.cache>): T of androidx.compose.runtime.ComposerKt.cache [inline] declared in androidx.compose.runtime.ComposerKt' type=kotlin.Function0<kotlin.Unit> origin=null
+                    <T>: kotlin.Function0<kotlin.Unit>
+                    $receiver: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                    invalid: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                      arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                        $this: GET_VAR '$$dirty: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.Int origin=null
+                        other: CONST Int type=kotlin.Int value=1879048192
+                      arg1: CONST Int type=kotlin.Int value=536870912
+                    block: BLOCK type=kotlin.Function0<kotlin.Function0<kotlin.Unit>> origin=LAMBDA
+                      COMPOSITE type=kotlin.Unit origin=null
+                      FUNCTION_REFERENCE 'private final fun HorarioSemanal123$lambda$63$lambda$11 ($onclick_expand: kotlin.Function0<kotlin.Unit>): kotlin.Function0<kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas' type=kotlin.Function0<kotlin.Function0<kotlin.Unit>> origin=INLINE_LAMBDA reflectionTarget=null
+                        $onclick_expand: GET_VAR '$onclick_expand: kotlin.Function0<kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.Function0<kotlin.Unit> origin=null
+                CALL 'public abstract fun endReplaceGroup (): kotlin.Unit declared in androidx.compose.runtime.Composer' type=kotlin.Unit origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                GET_VAR 'val tmp1_group: kotlin.Function0<kotlin.Unit> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.Function0<kotlin.Unit> origin=null
+              $mask0: CONST Int type=kotlin.Int value=28
+              $handler: CONST Null type=kotlin.Any? value=null
+          verticalArrangement: COMPOSITE type=kotlin.Nothing? origin=DEFAULT_VALUE
+            CONST Null type=kotlin.Nothing? value=null
+          horizontalAlignment: COMPOSITE type=kotlin.Nothing? origin=DEFAULT_VALUE
+            CONST Null type=kotlin.Nothing? value=null
+          content: BLOCK type=@[ExtensionFunctionType] kotlin.Function3<androidx.compose.foundation.layout.ColumnScope, androidx.compose.runtime.Composer, kotlin.Int, kotlin.Unit> origin=LAMBDA
+            COMPOSITE type=kotlin.Unit origin=null
+            FUNCTION_REFERENCE 'private final fun HorarioSemanal123$lambda$63$lambda$15 ($viewModelFiltros: com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas, $id_tienda: kotlin.String, $tick: kotlin.Long, $$dirty: kotlin.Int, $composer: androidx.compose.runtime.Composer?, $changed: kotlin.Int): kotlin.Unit declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas' type=@[ExtensionFunctionType] kotlin.Function3<androidx.compose.foundation.layout.ColumnScope, androidx.compose.runtime.Composer, kotlin.Int, kotlin.Unit> origin=INLINE_LAMBDA reflectionTarget=null
+              $viewModelFiltros: GET_VAR '$viewModelFiltros: com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas origin=null
+              $id_tienda: GET_VAR '$id_tienda: kotlin.String declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.String origin=null
+              $tick: GET_VAR '$tick: kotlin.Long declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.Long origin=null
+              $$dirty: GET_VAR '$$dirty: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.Int origin=null
+          $composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+          $changed: CONST Int type=kotlin.Int value=0
+          $default: CONST Int type=kotlin.Int value=6
+        CALL 'public final fun chips_filtrado (listState: androidx.compose.foundation.lazy.LazyListState, sub_categoria_selecionada: kotlin.String?, lista_subcategorias: kotlin.collections.List<kotlin.String>, expandir_carta: kotlin.Function1<kotlin.Boolean, kotlin.Unit>, selecionado: kotlin.Function1<kotlin.String, kotlin.Unit>, color_left: kotlin.collections.List<androidx.compose.ui.graphics.Color>?, color_right: kotlin.collections.List<androidx.compose.ui.graphics.Color>?, $composer: androidx.compose.runtime.Composer?, $changed: kotlin.Int, $default: kotlin.Int): kotlin.Unit declared in com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.Ui_filtrado_tiendasKt' type=kotlin.Unit origin=null
+          listState: GET_VAR '$listState: androidx.compose.foundation.lazy.LazyListState declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.foundation.lazy.LazyListState origin=null
+          sub_categoria_selecionada: CALL 'private final fun HorarioSemanal123$lambda$4 ($seleciondao$delegate: androidx.compose.runtime.MutableState<kotlin.String>): kotlin.String declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas' type=kotlin.String origin=GET_LOCAL_PROPERTY
+            $seleciondao$delegate: GET_VAR '$seleciondao$delegate: androidx.compose.runtime.MutableState<kotlin.String> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.MutableState<kotlin.String> origin=null
+          lista_subcategorias: GET_VAR '$lista_filtrado: kotlin.collections.List<kotlin.String> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.collections.List<kotlin.String> origin=null
+          expandir_carta: BLOCK type=kotlin.Function1<kotlin.Boolean, kotlin.Unit> origin=null
+            BLOCK type=kotlin.Unit origin=null
+              CALL 'public abstract fun startReplaceGroup (key: kotlin.Int): kotlin.Unit declared in androidx.compose.runtime.Composer' type=kotlin.Unit origin=null
+                $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                key: CONST Int type=kotlin.Int value=1199689110
+              CALL 'public final fun sourceInformation (composer: androidx.compose.runtime.Composer, sourceInformation: kotlin.String): kotlin.Unit declared in androidx.compose.runtime.ComposerKt' type=kotlin.Unit origin=null
+                composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                sourceInformation: CONST String type=kotlin.String value="CC(remember):constantes_horas.kt#9igjgp"
+            VAR IR_TEMPORARY_VARIABLE name:tmp2_group type:kotlin.Function1<kotlin.Boolean, kotlin.Unit> [val]
+              CALL 'public final fun cache <T> (invalid: kotlin.Boolean, block: @[DisallowComposableCalls] kotlin.Function0<T of androidx.compose.runtime.ComposerKt.cache>): T of androidx.compose.runtime.ComposerKt.cache [inline] declared in androidx.compose.runtime.ComposerKt' type=kotlin.Function1<kotlin.Boolean, kotlin.Unit> origin=null
+                <T>: kotlin.Function1<kotlin.Boolean, kotlin.Unit>
+                $receiver: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                invalid: CONST Boolean type=kotlin.Boolean value=false
+                block: BLOCK type=kotlin.Function0<kotlin.Function1<kotlin.Boolean, kotlin.Unit>> origin=LAMBDA
+                  COMPOSITE type=kotlin.Unit origin=null
+                  FUNCTION_REFERENCE 'private final fun HorarioSemanal123$lambda$63$lambda$17 (): kotlin.Function1<kotlin.Boolean, kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas' type=kotlin.Function0<kotlin.Function1<kotlin.Boolean, kotlin.Unit>> origin=INLINE_LAMBDA reflectionTarget=null
+            CALL 'public abstract fun endReplaceGroup (): kotlin.Unit declared in androidx.compose.runtime.Composer' type=kotlin.Unit origin=null
+              $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+            GET_VAR 'val tmp2_group: kotlin.Function1<kotlin.Boolean, kotlin.Unit> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.Function1<kotlin.Boolean, kotlin.Unit> origin=null
+          selecionado: BLOCK type=kotlin.Function1<kotlin.String, kotlin.Unit> origin=null
+            BLOCK type=kotlin.Unit origin=null
+              CALL 'public abstract fun startReplaceGroup (key: kotlin.Int): kotlin.Unit declared in androidx.compose.runtime.Composer' type=kotlin.Unit origin=null
+                $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                key: CONST Int type=kotlin.Int value=1199690699
+              CALL 'public final fun sourceInformation (composer: androidx.compose.runtime.Composer, sourceInformation: kotlin.String): kotlin.Unit declared in androidx.compose.runtime.ComposerKt' type=kotlin.Unit origin=null
+                composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                sourceInformation: CONST String type=kotlin.String value="CC(remember):constantes_horas.kt#9igjgp"
+            VAR IR_TEMPORARY_VARIABLE name:tmp3_group type:kotlin.Function1<kotlin.String, kotlin.Unit> [val]
+              CALL 'public final fun cache <T> (invalid: kotlin.Boolean, block: @[DisallowComposableCalls] kotlin.Function0<T of androidx.compose.runtime.ComposerKt.cache>): T of androidx.compose.runtime.ComposerKt.cache [inline] declared in androidx.compose.runtime.ComposerKt' type=kotlin.Function1<kotlin.String, kotlin.Unit> origin=null
+                <T>: kotlin.Function1<kotlin.String, kotlin.Unit>
+                $receiver: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                invalid: CONST Boolean type=kotlin.Boolean value=false
+                block: BLOCK type=kotlin.Function0<kotlin.Function1<kotlin.String, kotlin.Unit>> origin=LAMBDA
+                  COMPOSITE type=kotlin.Unit origin=null
+                  FUNCTION_REFERENCE 'private final fun HorarioSemanal123$lambda$63$lambda$19 ($seleciondao$delegate: androidx.compose.runtime.MutableState<kotlin.String>): kotlin.Function1<kotlin.String, kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas' type=kotlin.Function0<kotlin.Function1<kotlin.String, kotlin.Unit>> origin=INLINE_LAMBDA reflectionTarget=null
+                    $seleciondao$delegate: GET_VAR '$seleciondao$delegate: androidx.compose.runtime.MutableState<kotlin.String> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.MutableState<kotlin.String> origin=null
+            CALL 'public abstract fun endReplaceGroup (): kotlin.Unit declared in androidx.compose.runtime.Composer' type=kotlin.Unit origin=null
+              $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+            GET_VAR 'val tmp3_group: kotlin.Function1<kotlin.String, kotlin.Unit> [val] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.Function1<kotlin.String, kotlin.Unit> origin=null
+          color_left: GET_VAR '$color_left: kotlin.collections.List<androidx.compose.ui.graphics.Color> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.collections.List<androidx.compose.ui.graphics.Color> origin=null
+          color_right: GET_VAR '$color_right: kotlin.collections.List<androidx.compose.ui.graphics.Color> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.collections.List<androidx.compose.ui.graphics.Color> origin=null
+          $composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+          $changed: CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+              $this: CONST Int type=kotlin.Int value=28032
+              other: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                $this: CONST Int type=kotlin.Int value=458752
+                other: CALL 'public final fun shl (bitCount: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                  $this: GET_VAR '$$dirty1: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.Int origin=null
+                  bitCount: CONST Int type=kotlin.Int value=9
+            other: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+              $this: CONST Int type=kotlin.Int value=3670016
+              other: CALL 'public final fun shl (bitCount: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                $this: GET_VAR '$$dirty1: kotlin.Int declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.Int origin=null
+                bitCount: CONST Int type=kotlin.Int value=9
+          $default: CONST Int type=kotlin.Int value=0
+        BLOCK type=kotlin.Unit origin=null
+          COMPOSITE type=kotlin.Unit origin=null
+            BLOCK type=kotlin.Unit origin=null
+              CALL 'public abstract fun startReplaceGroup (key: kotlin.Int): kotlin.Unit declared in androidx.compose.runtime.Composer' type=kotlin.Unit origin=null
+                $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                key: CONST Int type=kotlin.Int value=1199736466
+              CALL 'public final fun sourceInformation (composer: androidx.compose.runtime.Composer, sourceInformation: kotlin.String): kotlin.Unit declared in androidx.compose.runtime.ComposerKt' type=kotlin.Unit origin=null
+                composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                sourceInformation: CONST String type=kotlin.String value="*455@16535L110,458@16690L44,460@16772L45,462@16870L45,463@16967L45,466@17068L70,467@17171L68,470@17295L69,471@17397L67,481@17806L54,483@17899L60,485@17997L45,487@18099L45,488@18199L45,490@18288L45,492@18386L34,494@18465L152,497@18683L556,497@18634L605,527@19746L36176,517@19258L36664"
+          CALL 'public final fun forEach <T> (action: kotlin.Function1<T of kotlin.collections.CollectionsKt.forEach, kotlin.Unit>): kotlin.Unit [inline] declared in kotlin.collections.CollectionsKt' type=kotlin.Unit origin=null
+            <T>: kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>
+            $receiver: GET_VAR '$diasFiltrados: kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.collections.List<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>> origin=null
+            action: BLOCK type=kotlin.Function1<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>, kotlin.Unit> origin=LAMBDA
+              COMPOSITE type=kotlin.Unit origin=null
+              FUNCTION_REFERENCE 'private final fun HorarioSemanal123$lambda$63$lambda$62 ($$composer: androidx.compose.runtime.Composer?, $DELAY_REBOTE_UI_MS: kotlin.Long, $isConnected: kotlin.Boolean, $cerrar_tienda: kotlin.Function3<@[ParameterName(name = "nombre_dia")] kotlin.String, @[ParameterName(name = "motivo_cierre")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit>, $error_sin_internet: kotlin.Function0<kotlin.Unit>, $error_campos_incompletos: kotlin.Function0<kotlin.Unit>, $error_horas_invalidas: kotlin.Function1<kotlin.String, kotlin.Unit>, $abrir_tienda: kotlin.Function2<@[ParameterName(name = "nombre_dia")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit>, <destruct>: kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>): kotlin.Unit declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas' type=kotlin.Function1<kotlin.Pair<kotlin.String, com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques>, kotlin.Unit> origin=INLINE_LAMBDA reflectionTarget=null
+                $$composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+                $DELAY_REBOTE_UI_MS: GET_VAR '$DELAY_REBOTE_UI_MS: kotlin.Long declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.Long origin=null
+                $isConnected: GET_VAR '$isConnected: kotlin.Boolean declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.Boolean origin=null
+                $cerrar_tienda: GET_VAR '$cerrar_tienda: kotlin.Function3<@[ParameterName(name = "nombre_dia")] kotlin.String, @[ParameterName(name = "motivo_cierre")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.Function3<@[ParameterName(name = "nombre_dia")] kotlin.String, @[ParameterName(name = "motivo_cierre")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit> origin=null
+                $error_sin_internet: GET_VAR '$error_sin_internet: kotlin.Function0<kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.Function0<kotlin.Unit> origin=null
+                $error_campos_incompletos: GET_VAR '$error_campos_incompletos: kotlin.Function0<kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.Function0<kotlin.Unit> origin=null
+                $error_horas_invalidas: GET_VAR '$error_horas_invalidas: kotlin.Function1<kotlin.String, kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.Function1<kotlin.String, kotlin.Unit> origin=null
+                $abrir_tienda: GET_VAR '$abrir_tienda: kotlin.Function2<@[ParameterName(name = "nombre_dia")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit> declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=kotlin.Function2<@[ParameterName(name = "nombre_dia")] kotlin.String, kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>, kotlin.Unit> origin=null
+          COMPOSITE type=kotlin.Unit origin=null
+            CALL 'public abstract fun endReplaceGroup (): kotlin.Unit declared in androidx.compose.runtime.Composer' type=kotlin.Unit origin=null
+              $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+      CALL 'public final fun sourceInformationMarkerEnd (composer: androidx.compose.runtime.Composer): kotlin.Unit declared in androidx.compose.runtime.ComposerKt' type=kotlin.Unit origin=null
+        composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123$lambda$63' type=androidx.compose.runtime.Composer? origin=null
+
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:48)
+	at org.jetbrains.kotlin.backend.jvm.codegen.IrSourceCompilerForInline.generateLambdaBody(IrSourceCompilerForInline.kt:67)
+	at org.jetbrains.kotlin.codegen.inline.ExpressionLambda.generateLambdaBody(LambdaInfo.kt:72)
+	at org.jetbrains.kotlin.backend.jvm.codegen.IrInlineCodegen.genValueAndPut(IrInlineCodegen.kt:100)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall$handleParameter(ExpressionCodegen.kt:561)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:589)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.expressions.IrCall.accept(IrCall.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:524)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:538)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.visitors.IrElementVisitor$DefaultImpls.visitBlock(IrElementVisitor.kt:126)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlock(ExpressionCodegen.kt:409)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlock(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.expressions.IrBlock.accept(IrBlock.kt:18)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitWhen(ExpressionCodegen.kt:1050)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitWhen(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.expressions.IrWhen.accept(IrWhen.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:524)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:529)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.expressions.IrBlockBody.accept(IrBlockBody.kt:20)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.generate(ExpressionCodegen.kt:236)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.doGenerate(FunctionCodegen.kt:124)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:45)
+	... 47 more
+Caused by: java.lang.OutOfMemoryError: GC overhead limit exceeded
+	at org.jetbrains.org.objectweb.asm.tree.MethodNode.visitLineNumber(MethodNode.java:512)
+	at org.jetbrains.org.objectweb.asm.MethodVisitor.visitLineNumber(MethodVisitor.java:761)
+	at org.jetbrains.org.objectweb.asm.MethodVisitor.visitLineNumber(MethodVisitor.java:761)
+	at org.jetbrains.org.objectweb.asm.MethodVisitor.visitLineNumber(MethodVisitor.java:761)
+	at org.jetbrains.org.objectweb.asm.MethodVisitor.visitLineNumber(MethodVisitor.java:761)
+	at org.jetbrains.kotlin.codegen.inline.InlineAdapter.visitLineNumber(InlineAdapter.java:96)
+	at org.jetbrains.kotlin.codegen.inline.MethodInliner$doInline$lambdaInliner$1.visitLineNumber(MethodInliner.kt:172)
+	at org.jetbrains.org.objectweb.asm.tree.LineNumberNode.accept(LineNumberNode.java:67)
+	at org.jetbrains.org.objectweb.asm.tree.InsnList.accept(InsnList.java:144)
+	at org.jetbrains.org.objectweb.asm.tree.MethodNode.accept(MethodNode.java:751)
+	at org.jetbrains.kotlin.codegen.inline.MethodInliner.doInline(MethodInliner.kt:433)
+	at org.jetbrains.kotlin.codegen.inline.MethodInliner.doInline(MethodInliner.kt:98)
+	at org.jetbrains.kotlin.codegen.inline.MethodInliner.doInline(MethodInliner.kt:72)
+	at org.jetbrains.kotlin.codegen.inline.InlineCodegen.inlineCall(InlineCodegen.kt:127)
+	at org.jetbrains.kotlin.codegen.inline.InlineCodegen.performInline(InlineCodegen.kt:52)
+	at org.jetbrains.kotlin.backend.jvm.codegen.IrInlineCodegen.genInlineCall(IrInlineCodegen.kt:163)
+	at org.jetbrains.kotlin.backend.jvm.codegen.IrInlineCallGenerator.genCall(IrInlineCallGenerator.kt:36)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:598)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.expressions.IrCall.accept(IrCall.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitVariable(ExpressionCodegen.kt:735)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitVariable(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.declarations.IrVariable.accept(IrVariable.kt:36)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:524)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:538)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.visitors.IrElementVisitor$DefaultImpls.visitBlock(IrElementVisitor.kt:126)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlock(ExpressionCodegen.kt:409)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlock(ExpressionCodegen.kt:134)
+	at org.jetbrains.kotlin.ir.expressions.IrBlock.accept(IrBlock.kt:18)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitVariable(ExpressionCodegen.kt:735)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitVariable(ExpressionCodegen.kt:134)
+
+

@@ -1,18 +1,26 @@
 package com.geinzz.geinzwork.ui.adapters.ui
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -31,6 +39,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -42,11 +51,18 @@ import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
+import com.geinzz.geinzwork.model.repo_eres_socio
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.compartirLugarFirebaseHosttiendas
 import com.github.panpf.zoomimage.ZoomImage
 import com.github.panpf.zoomimage.compose.rememberZoomState
 import com.github.panpf.zoomimage.compose.zoom.rememberZoomableState
 import com.github.panpf.zoomimage.compose.zoom.zoomable
 import com.google.accompanist.pager.rememberPagerState
+import org.checkerframework.framework.qual.ConditionalPostconditionAnnotation
+import java.net.URLEncoder
 
 @Composable
 fun CollageGoogleMapsStyle(
@@ -74,7 +90,7 @@ fun CollageGoogleMapsStyle(
             items(grupos) { grupo ->
                 GrupoCollageGoogle(
                     aspectRatio = aspectRatio,
-                    with = with,
+                    baseWidth = with,
                     imagenes = grupo,
                     onClickImagen = { url ->
                         indiceInicial = imagenes.indexOf(url)
@@ -84,8 +100,13 @@ fun CollageGoogleMapsStyle(
             }
         }
 
-        if(galeriaActiva){
-            ZoomableGalleryFullScreen(imagenes,indiceInicial, { galeriaActiva = false })
+        if (galeriaActiva) {
+            ZoomableGalleryFullScreen(
+                compartir_promocion(),
+                "",
+                imagenes,
+                indiceInicial,
+                { galeriaActiva = false })
         }
 //        // --- Galería tipo Instagram (fullscreen con animación) ---
 //        AnimatedVisibility(
@@ -102,56 +123,186 @@ fun CollageGoogleMapsStyle(
     }
 }
 
-// ✅ Grupo de 3 imágenes dentro del collage
 @Composable
-fun GrupoCollageGoogle(
-    aspectRatio: Float,
-    with: Dp,
+fun CollageGoogleMapsStyle_sin_scroll(
+    it: compartir_promocion,
+    tag: String,
+    aspectRatio: Float = 1.4f,
+    width: Dp = 280.dp,
     imagenes: List<String>,
-    onClickImagen: (String) -> Unit
+    modifier: Modifier = Modifier
 ) {
+    if (imagenes.isEmpty()) return
+
+    val grupos = imagenes.chunked(3)
+    var galeriaActiva by remember { mutableStateOf(false) }
+    var indiceInicial by remember { mutableStateOf(0) }
+    val gruposConIndice = imagenes
+        .mapIndexed { index, url -> index to url }
+        .chunked(3)
+
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .wrapContentWidth()
+            .wrapContentHeight(),
+        horizontalArrangement = Arrangement.spacedBy(7.dp)
+    ) {
+        gruposConIndice.forEach { grupo ->
+            GrupoCollageGoogle_sin_scrool(
+                tag,
+                aspectRatio = aspectRatio,
+                baseWidth = width,
+                imagenes = grupo,
+                onClickImagen = { indiceReal, tag ->
+                    indiceInicial = indiceReal // ✅ índice correcto
+                    galeriaActiva = true
+                }
+            )
+        }
+    }
+
+
+    if (galeriaActiva) {
+        ZoomableGalleryFullScreen(
+            it,
+            tag,
+            imagenes,
+            indiceInicial
+        ) { galeriaActiva = false }
+    }
+}
+
+
+@Composable
+fun GrupoCollageGoogle_sin_scrool(
+    tag: String,
+    aspectRatio: Float,
+    baseWidth: Dp,
+    imagenes: List<Pair<Int, String>>,
+    onClickImagen: (Int, String) -> Unit
+) {
+    val anchoReal = when (imagenes.size) {
+        1 -> baseWidth * 0.5f
+        2 -> baseWidth * 0.75f
+        else -> baseWidth
+    }
+
     Row(
         modifier = Modifier
-            .width(with)
+            .width(anchoReal)
             .aspectRatio(aspectRatio)
             .clip(RoundedCornerShape(12.dp))
     ) {
+
         ImagenCollage(
-            url = imagenes.getOrNull(0),
+            tag,
+            url = imagenes.getOrNull(0)?.second,
             modifier = Modifier
-                .weight(2f)
+                .weight(if (imagenes.size == 1) 1f else 2f)
                 .fillMaxHeight(),
-            listener_img = { url -> onClickImagen(url) }
+            listener_img = {
+                onClickImagen(imagenes[0].first, tag) // ✅ índice real
+            }
         )
 
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .padding(horizontal = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            ImagenCollage(
-                url = imagenes.getOrNull(1),
+        if (imagenes.size > 1) {
+            Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                listener_img = { url -> onClickImagen(url) }
-            )
-            ImagenCollage(
-                url = imagenes.getOrNull(2),
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                listener_img = { url -> onClickImagen(url) }
-            )
+                    .weight(1.4f)
+                    .fillMaxHeight()
+                    .padding(start = 7.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+
+                ImagenCollage(
+                    tag,
+                    url = imagenes.getOrNull(1)?.second,
+                    modifier = Modifier.weight(1f),
+                    listener_img = {
+                        onClickImagen(imagenes[1].first, tag)
+                    }
+                )
+
+                if (imagenes.size > 2) {
+                    ImagenCollage(
+                        tag,
+                        url = imagenes.getOrNull(2)?.second,
+                        modifier = Modifier.weight(1f),
+                        listener_img = {
+                            onClickImagen(imagenes[2].first, tag)
+                        }
+                    )
+                }
+            }
         }
     }
 }
 
+// ✅ Grupo de 3 imágenes dentro del collage
+@Composable
+fun GrupoCollageGoogle(
+    aspectRatio: Float,
+    baseWidth: Dp,
+    imagenes: List<String>,
+    onClickImagen: (String) -> Unit
+) {
+    val anchoReal = when (imagenes.size) {
+        1 -> baseWidth * 0.5f
+        2 -> baseWidth * 0.75f
+        else -> baseWidth
+    }
+
+    Row(
+        modifier = Modifier
+            .width(anchoReal) // 👈 ancho dinámico
+            .aspectRatio(aspectRatio)
+            .clip(RoundedCornerShape(12.dp))
+    ) {
+
+        ImagenCollage(
+            url = imagenes.getOrNull(0),
+            modifier = Modifier
+                .weight(if (imagenes.size == 1) 1f else 2f)
+                .fillMaxHeight(),
+            listener_img = { url -> onClickImagen(url) }
+        )
+
+        if (imagenes.size > 1) {
+            Column(
+                modifier = Modifier
+                    .weight(1.4f)
+                    .fillMaxHeight()
+                    .padding(start = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                ImagenCollage(
+                    url = imagenes.getOrNull(1),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    listener_img = { url -> onClickImagen(url) }
+                )
+
+                if (imagenes.size > 2) {
+                    ImagenCollage(
+                        url = imagenes.getOrNull(2),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        listener_img = { url -> onClickImagen(url) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+
 // ✅ Imagen individual dentro del collage
 @Composable
 fun ImagenCollage(
+    tag: String = "",
     url: String?,
     modifier: Modifier = Modifier,
     listener_img: (String) -> Unit
@@ -173,6 +324,60 @@ fun ImagenCollage(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
+        if (tag.isNotEmpty()) {
+            when (tag) {
+                "ambiente" -> {
+                    Box(
+                        modifier = Modifier.align(Alignment.TopEnd),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.5f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            texto_generico_one_line("✨")
+                        }
+                    }
+                }
+
+                "productos" -> {
+                    Box(
+                        modifier = Modifier.align(Alignment.TopEnd),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.5f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            texto_generico_one_line("\uD83D\uDCE6")
+                        }
+                    }
+                }
+
+                "promociones" -> {
+                    Box(
+                        modifier = Modifier.align(Alignment.TopEnd),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.5f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            texto_generico_one_line("\uD83D\uDD25")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -226,18 +431,34 @@ fun GaleriaInstagram(
         }
     }
 }
+
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun ZoomableGalleryFullScreen(
+    it: compartir_promocion,
+    tag: String = "",
     imagenes: List<String>,
     startIndex: Int = 0,
     onDismiss: () -> Unit
 ) {
     if (imagenes.isEmpty()) return
+    val context = LocalContext.current
 
-    val pagerState = rememberPagerState(initialPage = startIndex, pageCount = { imagenes.size })
+    // ====================
+    // Accompanist PagerState
+    // ====================
+    val pagerState = com.google.accompanist.pager.rememberPagerState(initialPage = startIndex)
     var allowScroll by remember { mutableStateOf(true) }
-    val zoomableState = rememberZoomableState() // <-- ZoomableState correcto
+    val zoomableState = rememberZoomableState()
+    var indice_cruzado by remember { mutableStateOf(startIndex) }
+
+    // Observamos cambios de página para actualizar indice_cruzado
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }
+            .collect { page ->
+                indice_cruzado = page
+            }
+    }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -249,30 +470,23 @@ fun ZoomableGalleryFullScreen(
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
 
-                // Pager principal
-                HorizontalPager(
+                // ====================
+                // Horizontal Pager Accompanist
+                // ====================
+                com.google.accompanist.pager.HorizontalPager(
                     state = pagerState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clipToBounds(),
+                    count = imagenes.size,
+                    modifier = Modifier.fillMaxSize(),
                     userScrollEnabled = allowScroll
-
                 ) { page ->
                     ZoomImage(
                         painter = rememberAsyncImagePainter(imagenes[page]),
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize()
-                            .zoomable(zoomableState),   // <-- usa zoomable, no zoom
+                            .zoomable(zoomableState),
                         contentScale = ContentScale.Fit
                     )
-//                    ZoomableImagePagerItem(
-//                        imageUrl = imagenes[page],
-//                        onZoomChange = { zoom ->
-//                            // Cuando el zoom vuelve al normal, reactiva scroll horizontal
-//                            allowScroll = zoom <= 1.02f
-//                        }
-//                    )
                 }
 
                 // Botón cerrar
@@ -288,10 +502,154 @@ fun ZoomableGalleryFullScreen(
                         tint = Color.White
                     )
                 }
+
+                // Botón WhatsApp para promociones
+                if (tag.equals("promociones", ignoreCase = true)) {
+                    Row(
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+
+                        btn_compartir(
+                            color = Color(0xFF178A3F),
+                            icono = R.drawable.whatsapp_icon,
+                            txt_icono = "Me interesa",
+                            modifier = Modifier.weight(1f),
+                            clikeable = {
+                                abrir_whattsapp(
+                                    "promocion",
+                                    "",
+                                    "",
+                                    context = context,
+                                    "937659216",
+                                    "Hola, quiero esta oferta que vi en su perfil en Geinz: " +
+                                            "https://geinzworkapp.web.app/share?" +
+                                            "tipo=promo" +
+                                            "&id=${it.id_tienda}" +
+                                            "&localidad=${it.localidad}" +
+                                            "&categoria=${it.categoria}" +
+                                            "&indice=${indice_cruzado}"
+                                )
+                            })
+
+                        btn_compartir(
+                            color = Color(0xFF8700F3),
+                            icono = R.drawable.compartir_icon_unico_blanco,
+                            txt_icono = "Compartir",
+                            modifier = Modifier.weight(1f),
+                            clikeable = {
+                                compartir_hosting_promo(
+                                    it.categoria,
+                                    context,
+                                    it.localidad,
+                                    it.id_tienda,indice_cruzado
+                                )
+
+                            })
+                    }
+                }
+
             }
         }
     }
 }
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun compartir_hosting_promo(
+    categoria: String,
+    context: Context,
+    localidad_tienda: String,
+    id_tienda: String,
+    indice_cruazado:Int
+) {
+    try {
+        val localidad_pasada= when(localidad_tienda){
+            "barranca"->"ba"
+            "paramonga"->"par"
+            "pativilca"->"pat"
+            "supe"->"su"
+            "puerto supe"->"pue"
+            else -> {}
+        }
+        val repo_erese_socio = repo_eres_socio()
+        // Construimos el link de la Cloud Function
+
+        val link =
+            "https://geinzworkapp.web.app/share?" +
+                    "tipo=p" +
+                    "&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
+                    "&localidad=${URLEncoder.encode(localidad_tienda, "UTF-8")}" +
+                    "&categoria=${URLEncoder.encode(categoria, "UTF-8")}" +
+                    "&indice=$indice_cruazado"
+
+
+        val texto = "Encontré algo interesante en este negocio dentro de Geinz 👀🔥 \n$link"
+
+
+        // Intent simple de compartir
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, texto)
+        }
+
+        // Abrimos el chooser para que el usuario seleccione la app
+        context.startActivity(
+            Intent.createChooser(intent, "Compartir con")
+                .apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+        )
+        repo_erese_socio.agregar_contador(
+            "compartidos",
+            id_tienda,
+            localidad_tienda
+        )
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Toast.makeText(context, "Error al compartir el lugar", Toast.LENGTH_SHORT).show()
+    }
+}
+
+
+@Composable
+fun btn_compartir(
+    color: Color,
+    icono: Int,
+    txt_icono: String,
+    modifier: Modifier,
+    clikeable: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .padding(10.dp)
+            .fillMaxWidth()
+            .clip(CircleShape)
+            .background(color)
+            .clickable {
+                clikeable()
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Image(
+                painter = painterResource(icono),
+                contentDescription = "",
+                modifier = Modifier
+                    .size(35.dp)
+                    .padding(vertical = 5.dp)
+            )
+            texto_generico_one_line(
+                txt_icono,
+                modifier = Modifier.padding(vertical = 10.dp),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun GaleriaZoomablePanpf(
@@ -319,7 +677,6 @@ fun GaleriaZoomablePanpf(
         }
     }
 }
-
 
 
 @SuppressLint("UnusedBoxWithConstraintsScope")

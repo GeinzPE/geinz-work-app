@@ -21,7 +21,7 @@ import java.io.IOException
 class NotificacionRS {
     private val FCM_URL = "https://fcm.googleapis.com/v1/projects/geinzworkapp/messages:send"
     private val CLOUD_FUNCTION_URL =
-        "https://us-central1-geinzworkapp.cloudfunctions.net/enviarNotificacion"
+        "https://enviarnotificacion-oixttik5rq-uc.a.run.app"
 
     private val client = OkHttpClient()
     suspend fun sendNotification_con_parametros(
@@ -141,6 +141,66 @@ class NotificacionRS {
             }
         })
     }
+
+    fun enviarNotificacionFCM_LINK(
+        id_user:String,
+        token: String,
+        titulo: String,
+        cuerpo: String,
+        link: String,              // 👈 LINK COMPLETO
+        urlImagen: String? = null,
+        fallo: (Boolean) -> Unit
+    ) {
+
+
+        val jsonBody = """
+{
+  "token": "$token",
+  "title": "$titulo",
+  "body": "$cuerpo",
+  "link": "$link",
+  "image": "${urlImagen ?: ""}"
+}
+""".trimIndent()
+
+
+        Log.d("FCM_ENVIO", "$jsonBody")
+
+        val client = OkHttpClient()
+        val requestBody = jsonBody.toRequestBody("application/json".toMediaType())
+
+        val request = Request.Builder()
+            .url(CLOUD_FUNCTION_URL)
+            .post(requestBody)
+            .addHeader("Content-Type", "application/json")
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("FCM_ENVIO", "Error: ${e.message}")
+                fallo(true)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val bodyStr = response.body?.string() ?: ""
+                Log.d("noti_evadad", "Respuesta: $bodyStr")
+
+                // Detectamos errores por texto
+                if (bodyStr.contains("not a valid FCM registration token", ignoreCase = true)) {
+                    fallo(true)
+                    resultados[id_user] = false
+                } else if (bodyStr.contains("Notificación enviada", ignoreCase = true)) {
+                    resultados[id_user] = true
+                } else {
+                    resultados[id_user] = false
+                }
+
+                Log.d("noti_evadad", "Estado de envío para $id_user: ${resultados[id_user]}")
+            }
+        })
+    }
+
 
     fun eliminar_tokens_usuario(id_user: String, dispositivos: List<String>) {
         val db = FirebaseFirestore.getInstance()

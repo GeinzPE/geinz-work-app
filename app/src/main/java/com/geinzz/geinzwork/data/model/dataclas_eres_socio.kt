@@ -6,7 +6,6 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 data class datos_tienda(
     val id_tienda: String = "",
     val nombre: String = "",
-    val img_tienda: String = "",
     val horario_tiendaMap: HorarioAtencion_box = HorarioAtencion_box(),
     val total_vista: Number = 0,
     val total_guardados: Number = 0,
@@ -24,7 +23,8 @@ data class datos_tienda(
     val descripcion: String = "",
     val lista_ids_propietarios: List<String> = emptyList(),
     val saldo_disponible_tienda: Number = 0,
-    val compartidos: Number= 0
+    val compartidos: Number = 0,
+    val obtener_img_tiendas:obtener_img_tiendas =obtener_img_tiendas()
 )
 
 data class widget_tienda(
@@ -34,8 +34,19 @@ data class widget_tienda(
     val nombre_tienda: String = "",
     val img_tienda: String = "",
     val horario_tiendaMap: HorarioAtencion_box = HorarioAtencion_box(),
-    val fecha_termino: String = "",val localidad_tienda: String ="",val categoira_tienda: String=""
+    val fecha_termino: String = "",
+    val localidad_tienda: String = "",
+    val categoira_tienda: String = ""
 )
+
+
+data class obtener_img_tiendas(
+    val logo_tienda: String = "",
+    val lista_ambiernte: List<String> = emptyList(),
+    val lista_productos: List<String> = emptyList(),
+    val lista_promociones: List<String> = emptyList()
+)
+
 
 data class datos_grafico(
     val enable: Boolean,
