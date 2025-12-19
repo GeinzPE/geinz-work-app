@@ -84,13 +84,54 @@ exports.enviarNotificacion = onRequest(async (req, res) => {
 // ==================== SHARE (Tienda + Turismo) ====================
 exports.share = onRequest(async (req, res) => {
   try {
-    const tipo = req.query.tipo;     // tienda | turismo
+    // ============================
+    //   PARÁMETROS (cortos / largos)
+    // ============================
+    const tipoRaw =
+      req.query.t ||
+      req.query.tipo; // ti | p | tu | tienda | promo | turismo
+
     const id = req.query.id;
-    const localidad = req.query.localidad;
-    const categoria = req.query.categoria;
-    const indice = parseInt(req.query.indice); // nuevo parámetro para promociones
 
+    const localidadRaw =
+      req.query.l ||
+      req.query.localidad;
 
+    const categoria =
+      req.query.c ||
+      req.query.categoria;
+
+    const indice = parseInt(
+      req.query.i ||
+      req.query.indice
+    );
+
+    // ============================
+    //   NORMALIZAR TIPO
+    // ============================
+    let tipo = tipoRaw;
+
+    if (tipoRaw === "ti") tipo = "tienda";
+    else if (tipoRaw === "p") tipo = "promo";
+    else if (tipoRaw === "tu") tipo = "turismo";
+
+    // ============================
+    //   MAPA LOCALIDADES
+    // ============================
+    const MAPA_LOCALIDADES = {
+      ba: "barranca",
+      par: "paramonga",
+      pat: "pativilca",
+      su: "supe",
+      pue: "puerto supe"
+    };
+
+    const localidad =
+      MAPA_LOCALIDADES[localidadRaw] || localidadRaw;
+
+    // ============================
+    //      VALIDACIÓN BÁSICA
+    // ============================
     if (!tipo || !id || !localidad || !categoria) {
       return res
         .status(400)
@@ -99,7 +140,9 @@ exports.share = onRequest(async (req, res) => {
 
     let ref;
 
-    // Selección de ruta Firestore
+    // ============================
+    //   SELECCIÓN FIRESTORE
+    // ============================
     if (tipo === "tienda" || tipo === "promo") {
       ref = admin.firestore()
         .collection("Tiendas")
@@ -109,12 +152,13 @@ exports.share = onRequest(async (req, res) => {
     }
     else if (tipo === "turismo") {
       ref = admin.firestore()
-        .collection("Tiendas") // 👈 turismo está dentro de Tiendas
+        .collection("Tiendas")
         .doc(localidad)
         .collection(categoria)
         .doc(id);
-    }else {
-      return res.status(400).send("Tipo inválido. Usa 'tienda' o 'turismo'");
+    }
+    else {
+      return res.status(400).send("Tipo inválido.");
     }
 
     const snap = await ref.get();
@@ -127,53 +171,61 @@ exports.share = onRequest(async (req, res) => {
     // ============================
     //          TÍTULO
     // ============================
-const titulo =
-  tipo === "tienda" || tipo === "promo"
-    ? capitalizeFirstLetter(data.nombre_tienda || "Tienda en Geinz")
-    : capitalizeFirstLetter(data.nombre || "Lugar turístico en Geinz");
-
+    const titulo =
+      tipo === "tienda" || tipo === "promo"
+        ? capitalizeFirstLetter(data.nombre_tienda || "Tienda en Geinz")
+        : capitalizeFirstLetter(data.nombre || "Lugar turístico en Geinz");
 
     // ============================
     //          IMAGEN
+    // (NO SE TOCA TU ESTRUCTURA)
     // ============================
     let imagen = "https://geinzworkapp.web.app/default.jpg";
 
     if (tipo === "tienda") {
-      // 🔥 FIJO: tu Firestore usa img_tienda.logo_tienda
-      if (data.img_tienda?.logo_tienda) {
+      if (data.img_tienda && data.img_tienda.logo_tienda) {
         imagen = data.img_tienda.logo_tienda;
       }
-    } else if (tipo === "turismo") {
-      if (data.img?.principal) {
+    }
+    else if (tipo === "turismo") {
+      if (data.img && data.img.principal) {
         imagen = data.img.principal;
       }
-    } else if (tipo === "promo") {
-        // 🔥 NUEVO: usamos el índice para seleccionar la promo dentro de img_tienda.lista_img.promociones
-        const promos = data.img_tienda?.lista_img?.promociones;
-        if (promos && Array.isArray(promos) && indice >= 0 && indice < promos.length) {
-          imagen = promos[indice];
-        }
-        // 🔹 fallback al logo de la tienda si no hay promo válida
-        else if (data.img_tienda?.logo_tienda) {
-          imagen = data.img_tienda.logo_tienda;
-        }
-        // 🔹 fallback general
-        else {
-          imagen = "https://geinzworkapp.web.app/default.jpg";
-        }
+    }
+    else if (tipo === "promo") {
+      const promos =
+        data.img_tienda &&
+        data.img_tienda.lista_img &&
+        data.img_tienda.lista_img.promociones;
+
+      if (
+        promos &&
+        Array.isArray(promos) &&
+        indice >= 0 &&
+        indice < promos.length
+      ) {
+        imagen = promos[indice];
       }
+      else if (data.img_tienda && data.img_tienda.logo_tienda) {
+        imagen = data.img_tienda.logo_tienda;
+      }
+    }
 
     // ============================
     //       URL DESTINO WEB
     // ============================
-    let  destino = `https://geinzworkapp.web.app/${tipo}?id=${id}&localidad=${localidad}&categoria=${categoria}`;
-   if (tipo === "promo" && !isNaN(indice)) {
-      destino += `&indice=${indice}`; // pasamos el índice para el front
+    let destino =
+      `https://geinzworkapp.web.app/${tipo}` +
+      `?id=${id}&localidad=${localidad}&categoria=${categoria}`;
+
+    if (tipo === "promo" && !isNaN(indice)) {
+      destino += `&indice=${indice}`;
     }
+
     // ============================
-    //        HTML + META TAG
+    //        HTML + META TAGS
     // ============================
-   const html = `
+    const html = `
       <html>
         <head>
           <meta property="og:title" content="${titulo}" />
@@ -199,6 +251,7 @@ const titulo =
     res.status(500).send("Error interno");
   }
 });
+
 
 function capitalizeFirstLetter(str) {
   if (!str) return "";
