@@ -34,6 +34,8 @@ exports.syncLugarToAlgolia = onDocumentWritten(
   }
 );
 
+
+// ==================== Notificaciones ====================
 // ==================== Notificaciones ====================
 exports.enviarNotificacion = onRequest(async (req, res) => {
   res.set("Access-Control-Allow-Origin", "*");
@@ -43,23 +45,41 @@ exports.enviarNotificacion = onRequest(async (req, res) => {
   }
 
   try {
-    const { token, title, body, image = "", click_action = "", idAnuncio = "", idTienda = "", entrada = "" } = req.body;
+    const {
+      token,
+      title,
+      body,
+      link = "",
+      image = "",
+      idTienda = "",
+      idAnuncio = ""
+    } = req.body;
 
     const mensaje = {
-      notification: { title, body, image },
-      data: { click_action, idAnuncio, idTienda, entrada },
-      token,
-      android: { priority: "high" },
-      apns: { headers: { "apns-priority": "10" } }
+      token: token,
+      data: {
+        title: String(title),
+        body: String(body),
+        link: String(link),
+        image: String(image),       // 🔥 URL de la imagen
+        idTienda: String(idTienda),
+        idAnuncio: String(idAnuncio)
+      },
+      android: {
+        priority: "high"
+      }
     };
 
     const respuesta = await admin.messaging().send(mensaje);
     res.status(200).send("Notificación enviada: " + respuesta);
+
   } catch (error) {
-    logger.error("Error al enviar notificación:", error);
-    res.status(500).send("Error: " + error.message);
+    console.error(error);
+    res.status(500).send(error.message);
   }
 });
+
+
 
 // ==================== SHARE (Tienda + Turismo) ====================
 exports.share = onRequest(async (req, res) => {
@@ -68,6 +88,8 @@ exports.share = onRequest(async (req, res) => {
     const id = req.query.id;
     const localidad = req.query.localidad;
     const categoria = req.query.categoria;
+    const indice = parseInt(req.query.indice); // nuevo parámetro para promociones
+
 
     if (!tipo || !id || !localidad || !categoria) {
       return res
@@ -78,7 +100,7 @@ exports.share = onRequest(async (req, res) => {
     let ref;
 
     // Selección de ruta Firestore
-    if (tipo === "tienda") {
+    if (tipo === "tienda" || tipo === "promo") {
       ref = admin.firestore()
         .collection("Tiendas")
         .doc(localidad)
@@ -91,8 +113,7 @@ exports.share = onRequest(async (req, res) => {
         .doc(localidad)
         .collection(categoria)
         .doc(id);
-    }
-    else {
+    }else {
       return res.status(400).send("Tipo inválido. Usa 'tienda' o 'turismo'");
     }
 
@@ -107,9 +128,10 @@ exports.share = onRequest(async (req, res) => {
     //          TÍTULO
     // ============================
 const titulo =
-  tipo === "tienda"
+  tipo === "tienda" || tipo === "promo"
     ? capitalizeFirstLetter(data.nombre_tienda || "Tienda en Geinz")
     : capitalizeFirstLetter(data.nombre || "Lugar turístico en Geinz");
+
 
     // ============================
     //          IMAGEN
@@ -125,13 +147,29 @@ const titulo =
       if (data.img?.principal) {
         imagen = data.img.principal;
       }
-    }
+    } else if (tipo === "promo") {
+        // 🔥 NUEVO: usamos el índice para seleccionar la promo dentro de img_tienda.lista_img.promociones
+        const promos = data.img_tienda?.lista_img?.promociones;
+        if (promos && Array.isArray(promos) && indice >= 0 && indice < promos.length) {
+          imagen = promos[indice];
+        }
+        // 🔹 fallback al logo de la tienda si no hay promo válida
+        else if (data.img_tienda?.logo_tienda) {
+          imagen = data.img_tienda.logo_tienda;
+        }
+        // 🔹 fallback general
+        else {
+          imagen = "https://geinzworkapp.web.app/default.jpg";
+        }
+      }
 
     // ============================
     //       URL DESTINO WEB
     // ============================
-    const destino = `https://geinzworkapp.web.app/${tipo}?id=${id}&localidad=${localidad}&categoria=${categoria}`;
-
+    let  destino = `https://geinzworkapp.web.app/${tipo}?id=${id}&localidad=${localidad}&categoria=${categoria}`;
+   if (tipo === "promo" && !isNaN(indice)) {
+      destino += `&indice=${indice}`; // pasamos el índice para el front
+    }
     // ============================
     //        HTML + META TAG
     // ============================
