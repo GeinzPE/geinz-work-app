@@ -974,10 +974,10 @@ fun compartir_link_tienda(
 ) {
     // Construimos el link de la Cloud Function
     val link = "https://geinzworkapp.web.app/share?" +
-            "tipo=turismo" +
+            "t=tu" +
             "&id=${URLEncoder.encode(datos.id_lugar_turistico, "UTF-8")}" +
-            "&localidad=${URLEncoder.encode("barranca", "UTF-8")}"+
-            "&categoria=${"lugares_turisticos"}"
+            "&l=${URLEncoder.encode("barranca", "UTF-8")}"+
+            "&c=${"lugares_turisticos"}"
 
     val texto = "¡Mira ${datos.titulo} en Geinz! 🔥\n$link"
 

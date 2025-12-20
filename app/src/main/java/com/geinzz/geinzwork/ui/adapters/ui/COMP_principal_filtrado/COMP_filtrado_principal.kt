@@ -1066,7 +1066,7 @@ fun TextoSubrayado(
         modifier = modifier,
         textDecoration = TextDecoration.Underline,
         color = color_subrallado,
-        style = style,
+        style = style, fontFamily = baners_geinz_work
     )
 }
 
@@ -1200,9 +1200,10 @@ fun texto_encimado(
 @Composable
 fun titulo_referenciales_geinz_work(texto: String, texto_subrallado: String, listener: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        texto_generico_one_line(
-            texto, MaterialTheme.typography.textosTituloGeinzWork, modifier = Modifier.weight(1f)
-        )
+//        texto_generico_one_line(
+//            texto, MaterialTheme.typography.textosTituloGeinzWork, modifier = Modifier.weight(1f)
+//        )
+        Text(texto, fontFamily = baners_geinz_work, color = Color.White, fontSize = 17.sp, modifier = Modifier.weight(1f))
         TextoSubrayado(
             texto = texto_subrallado,
             style = MaterialTheme.typography.bodySmall,
@@ -2597,10 +2598,10 @@ fun compartir_link_tienda(
 ) {
     // Construimos el link de la Cloud Function
     val link = "https://geinzworkapp.web.app/share?" +
-            "tipo=tienda" +
+            "t=ti" +
             "&id=${URLEncoder.encode(id, "UTF-8")}" +
-            "&localidad=${URLEncoder.encode(localidad, "UTF-8")}" +
-            "&categoria=${URLEncoder.encode(categoria, "UTF-8")}"
+            "&l=${URLEncoder.encode(localidad, "UTF-8")}" +
+            "&c=${URLEncoder.encode(categoria, "UTF-8")}"
 
     val texto = "¡Mira $nombre_tienda en Geinz! 🔥\n$link"
 

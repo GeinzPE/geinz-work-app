@@ -936,7 +936,7 @@ fun login_socios(isConnected: Boolean) {
                                                                             BoxFotosTipos(
                                                                                 "ambientales",
                                                                                 id_tienda,
-                                                                                fotosAmbientales,
+                                                                                fotosAmbientales,6
                                                                             )
                                                                         }
                                                                     }
@@ -976,7 +976,7 @@ fun login_socios(isConnected: Boolean) {
                                                                             BoxFotosTipos(
                                                                                 "servicios_productos",
                                                                                 id_tienda,
-                                                                                fotosServicios
+                                                                                fotosServicios,6
                                                                             )
                                                                         }
                                                                     }
@@ -1017,7 +1017,7 @@ fun login_socios(isConnected: Boolean) {
                                                                             BoxFotosTipos(
                                                                                 "promociones",
                                                                                 id_tienda,
-                                                                                fotosPromociones
+                                                                                fotosPromociones,3
                                                                             )
                                                                         }
                                                                     }
@@ -1892,10 +1892,10 @@ fun esUrlRemota(valor: String?): Boolean =
 fun BoxFotosTipos(
     tipo:String,
     id_tienda: String,
-    urlsDesdeDb: List<String>
+    urlsDesdeDb: List<String>,max:Int,
 ) {
     val contxt=LocalContext.current
-    val max = 5
+
     var mostrarDialogozoom by remember { mutableStateOf(false) }
     var valor_img_completa by remember { mutableStateOf("") }
     val eliminadas = remember { mutableStateListOf<Int>() }

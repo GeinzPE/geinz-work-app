@@ -100,29 +100,80 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun manejarDeepLink(uri: Uri) {
-        val tipo = uri.getQueryParameter("tipo") ?: ""
-        val id = uri.getQueryParameter("id") ?: ""
-        val localidad = uri.getQueryParameter("localidad") ?: ""
-        val categoria = uri.getQueryParameter("categoria") ?: ""
 
-        if (tipo.isNotEmpty() && id.isNotEmpty() && localidad.isNotEmpty()) {
-            when (tipo.lowercase()) {
-                "lugar", "turismo" -> {
-                    val ruta = "lugares_turisticos/$localidad/$id"
-                    navController.navigate(ruta) {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = false }
-                    }
-                }
-                "tienda" -> {
-                    val categoriaEncoded = URLEncoder.encode(categoria, "UTF-8").replace("+", "%20")
-                    val ruta = "mostrar_tiendas/$localidad/$id/$categoriaEncoded"
-                    navController.navigate(ruta) {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = false }
+        // 🔹 soporta corto y largo
+        val tipo = uri.getQueryParameter("t")
+            ?: uri.getQueryParameter("tipo")
+            ?: ""
+
+        val id = uri.getQueryParameter("id") ?: ""
+
+        val localidadRaw = uri.getQueryParameter("l")
+            ?: uri.getQueryParameter("localidad")
+            ?: ""
+
+        val categoria = uri.getQueryParameter("c")
+            ?: uri.getQueryParameter("categoria")
+            ?: ""
+
+        val index =uri.getQueryParameter("i")
+
+        if (tipo.isEmpty() || id.isEmpty() || localidadRaw.isEmpty()) return
+
+        // 🔹 NORMALIZAR LOCALIDAD (abreviado → real)
+        val localidad = when (localidadRaw.lowercase()) {
+            "ba" -> "barranca"
+            "par" -> "paramonga"
+            "pat" -> "pativilca"
+            "su" -> "supe"
+            "pue" -> "puerto supe"
+            else -> localidadRaw
+        }
+
+        when (tipo.lowercase()) {
+
+            // 🌍 TURISMO
+            "turismo", "tu" -> {
+                val ruta = "lugares_turisticos/$localidad/$id"
+                navController.navigate(ruta) {
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = false
                     }
                 }
             }
+
+            // 🏪 TIENDA (incluye p por ahora)
+            // 🏪 TIENDA (incluye p por ahora)
+            "tienda", "ti" -> {
+
+                val categoriaLimpia = categoria.replace("+", " ")
+
+                val ruta = "mostrar_tiendas/$localidad/$id/$categoriaLimpia"
+                navController.navigate(ruta) {
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = false
+                    }
+                }
+            }
+
+            "p" -> {
+                deepLinkViewModel.setPromoData(
+                    id = id,
+                    lugar = localidad,
+                    index = index?.toIntOrNull() ?: 0
+                )
+
+//                // 👇 solo navega a pantalla principal si no estás ahí
+//                navController.navigate("pantalla_principal") {
+//                    launchSingleTop = true
+//                    popUpTo(navController.graph.startDestinationId) { inclusive = false }
+//                }
+            }
+
+
         }
     }
+
     private fun crearCanalNotificaciones() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(

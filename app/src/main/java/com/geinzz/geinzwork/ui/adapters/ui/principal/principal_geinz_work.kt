@@ -126,6 +126,8 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.text.TextStyle
 import androidx.core.content.ContextCompat
 import coil3.request.CachePolicy
+import com.geinzz.geinzwork.data.model.dataclass_promos.datos_para_promocieons_activas
+import com.geinzz.geinzwork.data.model.dataclass_promos.promociones_tiendas_negocios
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.nuevos_lugares_agregados
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
@@ -138,6 +140,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.baner_widget_
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_listener_fv_externo
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_eliminar_favoritos
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_promociones_negocios
 
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permiso_primario_notifi
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_ayudanos_a_creccer
@@ -150,6 +153,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.guarar_token_user
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
+import com.geinzz.geinzwork.viewModels.DeepLinkViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_carga_img_general
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
@@ -162,6 +166,7 @@ private lateinit var firebaseAuth: FirebaseAuth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun pantalla_principal(
+    deepLinkVM:DeepLinkViewModel,
     isConnected: Boolean,
     datos_principales_user: datos_principales_user,
     categorias: (localidad: String, nombre_user: String) -> Unit,
@@ -214,6 +219,15 @@ fun pantalla_principal(
 
     var datos_lista by remember { mutableStateOf(listOf<dataclass_cat_sub>()) }
     val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
+
+    val promo by deepLinkVM.promo.collectAsState()
+
+    var mostrarDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(promo) {
+        mostrarDialog = promo != null
+        Log.d("dialogamoistra","$promo")
+    }
 
     LaunchedEffect(_categorias_tiendas) {
         if (_categorias_tiendas.isNotEmpty()) {
@@ -485,7 +499,6 @@ fun pantalla_principal(
                     }, {})
                 spacer_vertical(20.dp)
             }
-
             item {
                 spacer_vertical(10.dp)
                 apartado_explora_cat(
@@ -501,9 +514,6 @@ fun pantalla_principal(
 
                 spacer_vertical(20.dp)
             }
-
-
-
             item {
                 if (mostrar_widget_tienda) {
                     spacer_vertical(10.dp)
@@ -564,14 +574,13 @@ fun pantalla_principal(
                     spacer_vertical(20.dp)
                 }
             }
-
             item {
                 spacer_vertical(10.dp)
-
                 titulo_referenciales_geinz_work(
                     "Recién agregados",
                     "Ver todos"
                 ) { mostar_nuevos_lugares_geinz(localidad_defaul) }
+                spacer_vertical(15.dp)
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier.padding(vertical = 8.dp)
@@ -620,12 +629,11 @@ fun pantalla_principal(
             item {
                 if (mostrar_widget_tienda) {
                     baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul) }
-                    spacer_vertical(10.dp)
+                    spacer_vertical(20.dp)
                 }
             }
-
-
             item {
+
                 rutas_turismo(
                     url_turistico_aleatoria ?: "",
                     "ver lugares",
@@ -634,10 +642,8 @@ fun pantalla_principal(
                 ) {
                     ver_lugares(localidad_defaul)
                 }
-                spacer_vertical(30.dp)
+                spacer_vertical(20.dp)
             }
-
-
             item {
                 spacer_vertical(10.dp)
                 rutas_turismo(
@@ -650,9 +656,6 @@ fun pantalla_principal(
                 }
                 spacer_vertical(20.dp)
             }
-
-
-
             item {
                 spacer_vertical(10.dp)
                 baner_registra_tu_negocio(snackbarHostState, scope, isConnected) {
@@ -667,9 +670,8 @@ fun pantalla_principal(
                         }
                     }
                 }
+                spacer_vertical(30.dp)
             }
-
-
         }
         Box(
             modifier = Modifier
@@ -686,6 +688,24 @@ fun pantalla_principal(
                 )
                 .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
         )
+
+        promo?.let { p ->
+            if (mostrarDialog) {
+                AnimatedVisibility(true, enter = fadeIn(), exit = fadeOut()) {
+                    dialog_promociones_negocios(
+                        id_tienda = p.id_tienda,
+                        localidad = p.lugar,
+                        index = p.index.toInt(),
+                        onDismiss = {
+                            mostrarDialog = false
+                            deepLinkVM.clearPromo()
+                        }
+                    )
+                }
+            }
+        }
+
+
         if (mostar_bottom_sheet_ayuda_geinz) {
             bottom_sheet_ayudanos_a_creccer(
                 isConnected, ultimaLocalidad ?: "barranca",
@@ -758,7 +778,7 @@ fun apartado_explora_cat(
             "Explora ${localidad_defaul.capitalizeFirst()}",
             "Ver todos"
         ) { categorias1(nombre_user, localidad_defaul) }
-        spacer_vertical(10.dp)
+        spacer_vertical(15.dp)
         Crossfade(targetState = stateCat, label = "crossfadeCategorias") { state ->
             when (state) {
                 is viewModel_principal_geinz_work.carga_categorias.Loading -> {
@@ -1404,7 +1424,7 @@ fun nuevos_lugares_agregados_fun(
                     .build(),
                 contentDescription = "Imagen de la tienda",
                 modifier = Modifier
-                    .height(200.dp)
+                    .height(180.dp)
                     .width(150.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .clickable { mostrar_datos(item.id_tienda) },
@@ -1452,6 +1472,24 @@ fun nuevos_lugares_agregados_fun(
                     size_icon = 20.dp
                 )
             }
+//            Box(
+//
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(40.dp) // Ajusta según el tamaño que necesites
+//                    .background(
+//                        brush = Brush.verticalGradient(
+//                            colors = shadow_right,
+//                        )
+//                    )
+//                        .align(Alignment.BottomStart)
+//            ) {
+//                Column(
+//                    modifier = Modifier .padding(bottom = 10.dp , start = 5.dp).align(Alignment.BottomStart)
+//                ) {
+//
+//                }
+//            }
         }
 
         texto_generico_one_line(
@@ -1465,13 +1503,7 @@ fun nuevos_lugares_agregados_fun(
             modifier = Modifier.padding(end = 10.dp)
         )
 
-        spacer_vertical(2.dp)
 
-        tags_subcateogiras(
-            item.lista_categoria,
-            brush_start = Brush.horizontalGradient(colors = shadow_left),
-            brush_end = Brush.horizontalGradient(colors = shadow_right)
-        )
     }
 }
 

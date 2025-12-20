@@ -451,7 +451,14 @@ fun ZoomableGalleryFullScreen(
     var allowScroll by remember { mutableStateOf(true) }
     val zoomableState = rememberZoomableState()
     var indice_cruzado by remember { mutableStateOf(startIndex) }
-
+    val localidad_pasada= when(it.localidad){
+        "barranca"->"ba"
+        "paramonga"->"par"
+        "pativilca"->"pat"
+        "supe"->"su"
+        "puerto supe"->"pue"
+        else -> it.localidad
+    }
     // Observamos cambios de página para actualizar indice_cruzado
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }
@@ -524,11 +531,11 @@ fun ZoomableGalleryFullScreen(
                                     "937659216",
                                     "Hola, quiero esta oferta que vi en su perfil en Geinz: " +
                                             "https://geinzworkapp.web.app/share?" +
-                                            "tipo=promo" +
+                                            "t=p" +
                                             "&id=${it.id_tienda}" +
-                                            "&localidad=${it.localidad}" +
-                                            "&categoria=${it.categoria}" +
-                                            "&indice=${indice_cruzado}"
+                                            "&l=${localidad_pasada}" +
+                                            "&c=${it.categoria}" +
+                                            "&i=${indice_cruzado}"
                                 )
                             })
 
@@ -569,18 +576,19 @@ fun compartir_hosting_promo(
             "pativilca"->"pat"
             "supe"->"su"
             "puerto supe"->"pue"
-            else -> {}
+            else -> localidad_tienda
         }
         val repo_erese_socio = repo_eres_socio()
         // Construimos el link de la Cloud Function
 
         val link =
             "https://geinzworkapp.web.app/share?" +
-                    "tipo=p" +
+                    "t=p" +
                     "&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
-                    "&localidad=${URLEncoder.encode(localidad_tienda, "UTF-8")}" +
-                    "&categoria=${URLEncoder.encode(categoria, "UTF-8")}" +
-                    "&indice=$indice_cruazado"
+                    "&l=$localidad_pasada" +
+                    "&c=${URLEncoder.encode(categoria, "UTF-8")}" +
+                    "&i=$indice_cruazado"
+
 
 
         val texto = "Encontré algo interesante en este negocio dentro de Geinz 👀🔥 \n$link"

@@ -24,7 +24,6 @@ val Typography.textosTituloGeinzWork: TextStyle
     get() = TextStyle(
         fontFamily = textos_titulos_geinz_wokr,
         fontWeight = FontWeight.Bold,
-
         fontSize = 20.sp
     )
 

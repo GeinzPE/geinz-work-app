@@ -1009,7 +1009,7 @@ fun perfil_cabezero(
                 viewModelFiltros.setear_color(color)
             })
         spacer_vertical(5.dp)
-     TextoCopiable(id_tienda)
+//     TextoCopiable(id_tienda)
         text_expandible_wrapp(
             texto = "${categoritienda.capitalizeFirst()}",
             style = MaterialTheme.typography.bodyMedium
@@ -1925,10 +1925,10 @@ fun compartirLugarFirebaseHosttiendas(
         val repo_erese_socio = repo_eres_socio()
         // Construimos el link de la Cloud Function
         val link = "https://geinzworkapp.web.app/share?" +
-                "tipo=tienda" +
+                "t=ti" +
                 "&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
-                "&localidad=${URLEncoder.encode(localidad_tienda, "UTF-8")}" +
-                "&categoria=${URLEncoder.encode(categoria, "UTF-8")}"
+                "&l=${URLEncoder.encode(localidad_tienda, "UTF-8")}" +
+                "&c=${URLEncoder.encode(categoria, "UTF-8")}"
 
         val texto = "¡Mira $nombre_tienda en Geinz! 🔥\n$link"
 
