@@ -94,7 +94,7 @@ var mostrarDialogozoom by remember { mutableStateOf(false) }
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.75f))
-            .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { onDismiss() }
+            .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { onDismiss() }, contentAlignment = Alignment.Center
     ) {
 
         when (estado) {
@@ -137,9 +137,9 @@ var mostrarDialogozoom by remember { mutableStateOf(false) }
                             "&c=${URLEncoder.encode(promo.categoria, "UTF-8")}" +
                             "&i=$index"
 
-                Row(
+                Column (
                     modifier = Modifier
-                        .align(Alignment.Center)
+                        .align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
                         modifier = Modifier
@@ -148,6 +148,7 @@ var mostrarDialogozoom by remember { mutableStateOf(false) }
                             .clip(RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp))
                             .background(Color.Black)
                             .clickable(enabled = false) {}
+                        ,contentAlignment = Alignment.Center
                     ) {
 
                         AsyncImage(
@@ -180,17 +181,18 @@ var mostrarDialogozoom by remember { mutableStateOf(false) }
                             )
                         }
 
-                        LazyRow (
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(bottomEnd = 24.dp, bottomStart = 24.dp))
-                                .height(50.dp)
-                                .background(MaterialTheme.colorScheme.background)
-                                .align(Alignment.BottomEnd),
-                            horizontalArrangement = Arrangement.spacedBy(5.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            item {
+
+
+                    }
+                    LazyRow (
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(bottomEnd = 24.dp, bottomStart = 24.dp))
+                            .height(50.dp)
+                            .background(MaterialTheme.colorScheme.background),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        item {
                             spacer_horizonta(10.dp)
                             AsyncImage(
                                 model = promo.img_logo_tienda,
@@ -201,17 +203,18 @@ var mostrarDialogozoom by remember { mutableStateOf(false) }
                                     .height(30.dp)
                                     .clip(CircleShape)
                             )
-                            }
-                            item {
+                        }
+
+                        item {
                             spacer_horizonta(2.dp)
                             texto_generico_one_line(
                                 promo.nombre_tienda.capitalizeFirst(),
                                 style = MaterialTheme.typography.bodyMedium
                             )
-                                spacer_horizonta(40.dp)
-                            }
+                            spacer_horizonta(40.dp)
+                        }
 
-                            item {
+                        item {
                             Image(painterResource(R.drawable.whatsapp_icon), contentDescription = "whatsapp", modifier = Modifier
                                 .width(30.dp)
                                 .height(30.dp)
@@ -239,9 +242,8 @@ var mostrarDialogozoom by remember { mutableStateOf(false) }
                                 )
                             }
                             spacer_horizonta(10.dp)
-                            }
-
                         }
+
                     }
                 }
             }

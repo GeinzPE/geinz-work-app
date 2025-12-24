@@ -320,55 +320,51 @@ class repo_filtrado_tiendas {
     }
 
 
-    fun escucharHorarioDeTiendaUnica(idTiendaBuscada: String, localidad: String) {
+    fun escucharHorarioDeTiendaUnica(
+        idTiendaBuscada: String,
+        localidad: String
+    ) {
+        if (idTiendaBuscada.isBlank() || localidad.isBlank()) {
+            Log.e("REALTIME-UNICA", "❌ Parámetros inválidos")
+            return
+        }
 
-        Log.d("REALTIME-UNICA", "⏳ Escuchando solo la tienda $idTiendaBuscada")
+        // 🔥 Cancelar listener anterior (MUY IMPORTANTE)
+        listenerTiendas?.remove()
+
+        Log.d("REALTIME-UNICA", "⏳ Escuchando tienda $idTiendaBuscada")
 
         listenerTiendas = db.collection("Tiendas")
             .document(localidad)
             .collection(localidad)
-            .whereEqualTo("id_tienda", idTiendaBuscada)   // 🔥 SOLO esta tienda
-            .addSnapshotListener { snapshot, error ->
+            .document(idTiendaBuscada) // 👈 DOCUMENTO DIRECTO
+            .addSnapshotListener { doc, error ->
 
                 if (error != null) {
                     Log.e("REALTIME-UNICA", "❌ Error: ${error.message}")
                     return@addSnapshotListener
                 }
 
-                if (snapshot == null || snapshot.isEmpty) {
-                    Log.w("REALTIME-UNICA", "⚠ No se encontró la tienda")
+                if (doc == null || !doc.exists()) {
+                    Log.w("REALTIME-UNICA", "⚠ La tienda no existe")
                     return@addSnapshotListener
                 }
 
-                Log.d("REALTIME-UNICA", "📡 Snapshot recibido: ${snapshot.documentChanges.size}")
+                val horarioMap =
+                    doc.get("horario_atencion") as? Map<String, Any> ?: return@addSnapshotListener
 
-                snapshot.documentChanges.forEach { change ->
+                val horarioBox = horarioMap.to_horario_atencion_box_dia()
+                val horarioHoyBox = obtener_estado_horario_tienda_Box(horarioBox)
+                val estaAbierto = estaAbiertoHoy(horarioHoyBox)
 
-                    val doc = change.document
-
-                    val horarioMap =
-                        doc.get("horario_atencion") as? Map<String, Any> ?: return@forEach
-                    val horarioBox = horarioMap.to_horario_atencion_box_dia()
-
-                    val horarioHoyBox = obtener_estado_horario_tienda_Box(horarioBox)
-                    val estaAbierto = estaAbiertoHoy(horarioHoyBox)
-
-                    Log.d(
-                        "REALTIME-UNICA",
-                        "📅 dia_prox=${horarioHoyBox.dia_prox_apertura}, ⏰ hora_prox=${horarioHoyBox.hora_prox_apertura}"
-                    )
-
-                    repoScope.launch {
-
-                        _cambiosHorarioTiendas.emit(
-                            TiendaHorarioUpdate(
-                                idTienda = idTiendaBuscada,
-                                horario = horarioHoyBox,
-                                estaAbierto = estaAbierto
-                            )
+                repoScope.launch {
+                    _cambiosHorarioTiendas.emit(
+                        TiendaHorarioUpdate(
+                            idTienda = idTiendaBuscada,
+                            horario = horarioHoyBox,
+                            estaAbierto = estaAbierto
                         )
-
-                    }
+                    )
                 }
             }
     }

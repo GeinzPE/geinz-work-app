@@ -351,6 +351,13 @@ fun bottom_sheet_tiendas_filtradas(
             }
         }
     }
+var qr_generado_tienda by remember { mutableStateOf("") }
+    LaunchedEffect(tiendas_filtradas.id_tienda, latitud, longitud) {
+        qr_generado_tienda=retornar_id_Tienda_lugar(tiendas_filtradas.id_tienda, latitud, longitud)
+
+    }
+//    val generar_qr_tienda_id = remember(tiendas_filtradas.id_tienda, latitud, longitud) {
+//    }
 
 
 
@@ -544,10 +551,8 @@ fun bottom_sheet_tiendas_filtradas(
                         }
 
                         item {
-                            Expandible_qr_tienda(
+                            Expandible_qr_tienda(qr_generado_tienda,
                                 modifier = Modifier.padding(horizontal = 10.dp),
-                                tiendas_filtradas.id_tienda,
-                                latitud, longitud,
                                 expander_qr_tienda
                             ) { expander_qr_tienda = !expander_qr_tienda }
 
@@ -986,10 +991,16 @@ fun perfil_cabezero(
 
     Log.d("tienda:tienda:tienda:tienda:tienda:", "$id_tienda $localida")
     val horarios by viewModelFiltros.horariosTiendas_real.collectAsState()
-    viewModelFiltros.repo_filtrado.escucharHorarioDeTiendaUnica(
-        idTiendaBuscada = id_tienda,
-        localidad = localida
-    )
+
+    LaunchedEffect(id_tienda, localida) {
+        if (id_tienda.isNotBlank() && localida.isNotBlank()) {
+            viewModelFiltros.repo_filtrado.escucharHorarioDeTiendaUnica(
+                idTiendaBuscada = id_tienda,
+                localidad = localida
+            )
+        }
+    }
+
     val tick by viewModelFiltros.tick.collectAsState()
 //    val gps_enable = isGPSEnabled(context)
     Column {
@@ -1389,16 +1400,15 @@ fun Expandible_Metodo_contacto(
 
 @Composable
 fun Expandible_qr_tienda(
+    generar_qr_tienda_id:String,
     modifier: Modifier = Modifier,
-    id_tienda: String,
-    latitud: Double,
-    longitud: Double,
+
     expandido: Boolean,
     onClickExpand: () -> Unit
 ) {
-    val generar_qr_tienda_id = remember(id_tienda, latitud, longitud) {
-        retornar_id_Tienda_lugar(id_tienda, latitud, longitud)
-    }
+//    val generar_qr_tienda_id = remember(id_tienda, latitud, longitud) {
+//        retornar_id_Tienda_lugar(id_tienda, latitud, longitud)
+//    }
     Cartas_expandibles(modifier = modifier) {
         Column {
             expandibles_wrapp(
@@ -1420,7 +1430,7 @@ fun Expandible_qr_tienda(
             ) {
                 generar_qr_ubi_tinda(
                     generar_qr_tienda_id,
-                    "¡Tu opinión cuenta! Escanea este código con Geinz y deja tu reseña sobre tu experiencia en esta tienda Geinz verificará tu ubicación para confirmar que estuviste aquí y mantener reseñas auténticas.",
+                    "¡Tu opinión cuenta! Escanea este código con Geinz y deja tu reseña sobre tu experiencia Geinz verificará tu ubicación para confirmar que estuviste aquí y mantener reseñas auténticas.",
                 )
             }
         }
