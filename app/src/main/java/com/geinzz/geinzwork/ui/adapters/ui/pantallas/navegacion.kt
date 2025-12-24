@@ -2,6 +2,7 @@
 
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -88,6 +89,7 @@ import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 import com.geinzz.geinzwork.viewModels.viewmodel_usuario_registrado
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import java.net.URLDecoder
 import java.net.URLEncoder
 
 private lateinit var firebaseAuth: FirebaseAuth
@@ -365,6 +367,7 @@ fun nativationWrapper(
                 // Pantalla principal
                 composable("pantalla_principal") {
                     pantalla_principal(
+
                         deepLinkVM,
                         isConnected = isConnected,
                         datos_principales_user = datos_principales_user,
@@ -405,11 +408,11 @@ fun nativationWrapper(
 
                         },
                         abrir_guardar_datos = {
-                            enviar_notificacion_lista_dispo(
-                                id_user,
-                                "Mira ese nuevo negocio en geinz ",
-                                "Eceuntralo a unos pasos cerca de ti "
-                            )
+//                            enviar_notificacion_lista_dispo(
+//                                id_user,
+//                                "Mira ese nuevo negocio en geinz notificacion de prueva ",
+//                                "Encuentralo a unos pasos cerca de ti "
+//                            )
 //                    navController.navigate(ui_agregar_lugares)
                             //                            pasar_teindas_nuevas()
 
@@ -421,7 +424,7 @@ fun nativationWrapper(
                         iniciar_seccion = { navController.navigate("login_principal") },
                         crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
-                        }
+                        },abir_butom_Var={isvisble_buttomvar=true},cerrar_buttom_var={isvisble_buttomvar=false}
                     )
                 }
                 // Login
@@ -699,25 +702,33 @@ fun nativationWrapper(
                 composable(
                     route = "mostrar_tiendas/{localidad}/{idLugar}/{categoria}",
                 ) { backStackEntry ->
-                    val localidad = backStackEntry.arguments?.getString("localidad") ?: ""
-                    val idLugar = backStackEntry.arguments?.getString("idLugar") ?: ""
-                    val categoria = backStackEntry.arguments?.getString("categoria") ?: ""
 
+                    val localidad = Uri.decode(
+                        backStackEntry.arguments?.getString("localidad") ?: ""
+                    )
+
+                    val idLugar = backStackEntry.arguments?.getString("idLugar") ?: ""
+
+
+                    val categoria = URLDecoder.decode(
+                        backStackEntry.arguments?.getString("categoria") ?: "",
+                        "UTF-8"
+                    )
                     Pantalla_filtrado_tiendas(
-                        idLugar,
-                        isConnected,
-                        viewmodelFavoritos,
+                        id_tienda = idLugar,
+                        verificar_intener = isConnected,
+                        viewmodelFavoritos = viewmodelFavoritos,
                         viewModelFiltros = viewModel_filtrado_tiendas,
-                        categoria = categoria,
-                        localida = localidad,
+                        categoria = categoria,           // 👈 YA NORMAL
+                        localida = localidad,             // 👈 YA NORMAL
                         nombre_user = "",
                         navigation_regresar = {
                             viewModel_filtrado_tiendas.limpiarFiltros()
                             navController.popBackStack()
                         },
-                        abrir_mapa = { tipo, localidad ->
+                        abrir_mapa = { tipo, loc ->
                             if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
-                                navController.navigate(map_perzonalizado(tipo, localidad))
+                                navController.navigate(map_perzonalizado(tipo, loc))
                             } else {
                                 bottom_sheet_iniciar_seccion = true
                             }
@@ -730,9 +741,11 @@ fun nativationWrapper(
                         },
                         crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
-                        }, navController
+                        },
+                        navController = navController
                     )
                 }
+
 
 
                 composable(

@@ -1,16 +1,15 @@
 package com.geinzz.geinzwork.viewModels
 
-import android.R
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.runtime.State
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+
 import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
-import com.geinzz.geinzwork.data_store.data_store_localidad.set_id_socio
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.delay
@@ -37,7 +36,6 @@ class viewmodel_eres_socio : ViewModel() {
 
     private val _imgPromociones = MutableStateFlow<List<String>>(emptyList())
     val imgPromociones: StateFlow<List<String>> = _imgPromociones
-
 
 
     private val _state_cerrar = MutableStateFlow<Boolean>(false)
@@ -232,6 +230,134 @@ class viewmodel_eres_socio : ViewModel() {
         }
     }
 
+    fun cambiar_metodos_pago_tienda(
+        tipo: String,
+        id_tienda: String, localidad_tienda: String, metodo_pago: String,
+        valor_cambiado: Boolean
+    ) {
+        viewModelScope.launch {
+            try {
+                when (tipo) {
+                    "pago" -> {
+                        instace_repo.cambiar_pagos_tienda(
+                            id_tienda,
+                            localidad_tienda,
+                            metodo_pago,
+                            valor_cambiado
+                        )
+                    }
+
+                    "contacto" -> {
+                        instace_repo.cambiar_contacto_redes(
+                            id_tienda,
+                            localidad_tienda,
+                            metodo_pago,
+                            valor_cambiado
+                        )
+                    }
+
+                }
+            } catch (e: Exception) {
+                Log.d("datos cambiado", "$e")
+            }
+        }
+    }
+
+    fun cambiar_contacto_redes(
+        id_tienda: String,
+        localidad_tienda: String,
+        metodo_pago: String,
+        titular: String,
+        valor: String
+    ) {
+        viewModelScope.launch {
+            try {
+                instace_repo.cambiar_NT_metodo_contacto(
+                    id_tienda,
+                    localidad_tienda,
+                    metodo_pago,
+                    titular,
+                    valor
+                )
+            } catch (e: Exception) {
+                Log.d("datos cambiado", "$e")
+            }
+        }
+    }
+
+    fun cambiar_nombre_descripcion(
+        localidad_tienda: String,
+        id_tienda: String,
+        tipo: String,
+        cambio: String,
+
+        ) {
+        viewModelScope.launch {
+            try {
+                instace_repo.cambiar_nombre_descripcion(localidad_tienda, id_tienda, tipo, cambio)
+            } catch (e: Exception) {
+                Log.d("datos cambiado", "$e")
+            }
+        }
+    }
+
+    fun guardar_aforo(
+        numero: String,
+        id_tienda: String,
+        localidad_tienda: String,
+    ){
+        viewModelScope.launch {
+            try {
+                instace_repo.guardar_aforo(numero, id_tienda, localidad_tienda)
+            } catch (e: Exception) {
+                Log.d("datos cambiado", "$e")
+            }
+        }
+    }
+
+    fun cambiar_titular_yape_plin(
+        context: Context,
+        uri: Uri,
+        id_tienda: String,
+        localidad_tienda: String,
+        metodo_pago: String,
+        titular: String,
+        numero_cambiado: String
+    ) {
+        viewModelScope.launch {
+            try {
+                instace_repo.cambiar_NT_yape_plin(
+                    context,
+                    id_tienda,
+                    localidad_tienda,
+                    metodo_pago,
+                    titular,
+                    numero_cambiado,
+                    uri
+                )
+            } catch (e: Exception) {
+                Log.d("datos cambiado", "$e")
+            }
+        }
+    }
+
+    fun cambiar_atrubitos(
+        id_tienda: String,
+        localidad_tienda: String, nombre_atributo:String, nombre_estado: Boolean,
+    ) {
+        viewModelScope.launch {
+            try {
+                instace_repo.cambiar_atributos_tiendas(
+                    id_tienda,
+                    localidad_tienda,
+                    nombre_atributo,
+                    nombre_estado,
+                )
+            } catch (e: Exception) {
+                Log.d("datos cambiado", "$e")
+            }
+        }
+    }
 
 
     sealed class carga_acces_socio {

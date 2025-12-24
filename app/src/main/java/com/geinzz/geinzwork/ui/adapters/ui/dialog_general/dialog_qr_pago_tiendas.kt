@@ -1,5 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.dialog_general
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
@@ -36,6 +38,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun dialog_qr_pago_tienda(item_metodos_pago: item_metodos_pago, ondimis: () -> Unit) {
     var mostar_numero_completo by remember { mutableStateOf(false) }

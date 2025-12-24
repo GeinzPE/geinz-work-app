@@ -1,15 +1,23 @@
 package com.geinzz.geinzwork.model
 
+import android.content.Context
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.geinzz.geinzwork.data.model.datos_tienda
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.normalizar
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenWebPSinRecorte
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.timeStampNumero
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoservicios_comodidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion_box_dia
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_img_usert
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
@@ -59,6 +67,14 @@ class repo_eres_socio {
                 val descripcion = data["descripcion"] as? String ?: ""
                 val propietario_id = data["propietario_id"] as? List<String> ?: emptyList()
                 val saldo_tienda = data["puntos_tienda"] as? Number ?: 0
+                val metodo_pago = data?.get("metodos_pago") as? Map<String, Any> ?: emptyMap()
+                val metodos_contacto =
+                    data?.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
+                val metodos_servicios=data?.get("servicios_comodidades")as? List<Map<String, Any>>
+                val aforo_maximo =data?.get("aforo_max") as? Number ?:0
+                val servicios_comodidades=metodos_servicios.toMetodoservicios_comodidades()
+                val contacto_obs = metodos_contacto.toMetodoContacto()
+                val metodo_pago_tienda = metodo_pago.to_metodo_pago()
                 val img_generales = img_tienda.to_img_usert()
                 // 🔥 ESCUCHAR ESTADISTICAS EN TIEMPO REAL
                 ref.collection("estadisticas")
@@ -89,6 +105,11 @@ class repo_eres_socio {
                             val ruta = obtenerTotal("ruta")
                             val compartidos = obtenerTotal("compartidos")
 
+                            val perfil_qr = obtenerTotal("perfil_qr")
+                            val review_c_qr = obtenerTotal("review_c_qr")
+                            val review_qr = obtenerTotal("review_qr")
+                            val crear_ruta_qr = obtenerTotal("crear_ruta_qr")
+
                             // ✔️ AQUÍ ESTABA EL ERROR → faltaba poner el nombre del último parámetro
                             resultado(
                                 datos_tienda(
@@ -105,13 +126,22 @@ class repo_eres_socio {
                                     wsap = wsap,
                                     llamada = llamada,
                                     ruta = ruta,
+                                    perfil_qr = perfil_qr,
+                                    review_c_qr = review_c_qr,
+                                    review_qr = review_qr,
+                                    crear_ruta_qr = crear_ruta_qr,
                                     localidad_tienda = localidadTienda,
                                     fecha_ingreso = fecha_ingreso,
                                     fecha_termino = fecha_termino,
                                     descripcion = descripcion,
-                                    propietario_id,
-                                    saldo_tienda,
-                                    compartidos, img_generales
+                                    lista_ids_propietarios = propietario_id,
+                                    saldo_disponible_tienda = saldo_tienda,
+                                    compartidos = compartidos,
+                                    obtener_img_tiendas = img_generales,
+                                    metodos_pago = metodo_pago_tienda,
+                                    metodo_contacto_tienda = contacto_obs,
+                                    servicios_comodidades = servicios_comodidades,
+                                    aforo = aforo_maximo
                                 )
                             )
                         }
@@ -432,6 +462,252 @@ class repo_eres_socio {
                 Log.e("obtenemos_img", "❌ Error al listar carpeta", e)
                 onResult(emptyList())
             }
+    }
+
+    suspend fun cambiar_pagos_tienda(
+        id_tienda: String,
+        localidad_tienda: String,
+        metodo_pago: String,
+        valor_cambiado: Boolean
+    ) {
+        val ref = db
+            .collection("Tiendas")
+            .document(localidad_tienda)
+            .collection(localidad_tienda)
+            .document(id_tienda)
+
+        ref.update(
+            "metodos_pago.$metodo_pago.enable",
+            valor_cambiado
+        ).await()
+    }
+
+    suspend fun cambiar_contacto_redes(
+        id_tienda: String,
+        localidad_tienda: String,
+        metodo_pago: String,
+        valor_cambiado: Boolean
+    ) {
+        val ref = db
+            .collection("Tiendas")
+            .document(localidad_tienda)
+            .collection(localidad_tienda)
+            .document(id_tienda)
+
+        ref.update(
+            "metodo_contacto.$metodo_pago.estado",
+            valor_cambiado
+        ).await()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    suspend fun cambiar_NT_yape_plin(
+        context: Context,
+        id_tienda: String,
+        localidad_tienda: String,
+        metodo_pago: String,
+        titular: String,
+        numero_cambiado: String,
+        uri: Uri // 👈 NUNCA NULL
+    ) {
+
+        val ref = db
+            .collection("Tiendas")
+            .document(localidad_tienda)
+            .collection(localidad_tienda)
+            .document(id_tienda)
+
+        var qrFinalUrl: String? = null
+
+        when {
+            // 🆕 NUEVA IMAGEN → SUBIR A STORAGE
+            uri.scheme == "content" -> {
+
+                val bytes = procesarImagenWebPSinRecorte(context, uri)
+
+                val storageRef = FirebaseStorage.getInstance()
+                    .reference
+                    .child("tiendas/$id_tienda/pagos/$metodo_pago.webp")
+
+                storageRef.putBytes(bytes).await()
+                qrFinalUrl = storageRef.downloadUrl.await().toString()
+            }
+
+            // ❌ ELIMINADO
+            uri == Uri.EMPTY -> {
+                qrFinalUrl = null
+            }
+
+            // 🔁 YA ES URL (NO SE SUBE)
+            uri.scheme == "http" || uri.scheme == "https" -> {
+                qrFinalUrl = uri.toString()
+            }
+        }
+
+        // ───── MAPA BASE (SIEMPRE) ─────
+        val updates = mutableMapOf<String, Any>(
+            "metodos_pago.$metodo_pago.nombre" to titular,
+            "metodos_pago.$metodo_pago.numero" to numero_cambiado
+        )
+
+        // ───── QR ─────
+        if (qrFinalUrl != null) {
+            // ✅ guardar / reemplazar QR
+            updates["metodos_pago.$metodo_pago.qr"] = qrFinalUrl
+        } else {
+            // ❌ eliminar QR
+            updates["metodos_pago.$metodo_pago.qr"] = FieldValue.delete()
+        }
+
+        ref.update(updates).await()
+    }
+
+    suspend fun cambiar_atributos_tiendas(
+        id_tienda: String,
+        localidad_tienda: String,
+        nombreAtributo: String,
+        nuevoEstado: Boolean
+    ) {
+        val ref = db
+            .collection("Tiendas")
+            .document(localidad_tienda)
+            .collection(localidad_tienda)
+            .document(id_tienda)
+
+        val snapshot = ref.get().await()
+
+        val listaActual = snapshot.get("servicios_comodidades")
+                as? List<Map<String, Any>>
+            ?: emptyList()
+
+        val listaActualizada = mutableListOf<Map<String, Any>>()
+
+        var encontrado = false
+
+        for (item in listaActual) {
+            val key = item.keys.firstOrNull() ?: ""
+
+            if (normalizar(key) == normalizar(nombreAtributo)) {
+                // 🔁 Existe → reemplazar el map
+                listaActualizada.add(
+                    mapOf(nombreAtributo to nuevoEstado)
+                )
+                encontrado = true
+            } else {
+                listaActualizada.add(item)
+            }
+        }
+
+        // ➕ No existía → agregar nuevo map
+        if (!encontrado) {
+            listaActualizada.add(
+                mapOf(nombreAtributo to nuevoEstado)
+            )
+        }
+
+        // 💾 Guardar array completo
+        ref.update("servicios_comodidades", listaActualizada).await()
+    }
+
+
+
+
+
+    suspend fun cambiar_NT_metodo_contacto(
+        id_tienda: String,
+        localidad_tienda: String,
+        metodo_pago: String,
+        titular: String,
+        valor: String
+    ) {
+        val ref = db
+            .collection("Tiendas")
+            .document(localidad_tienda)
+            .collection(localidad_tienda)
+            .document(id_tienda)
+
+        val data = if (metodo_pago.equals("whatsapp", true) ||
+            metodo_pago.equals("llamada", true)) {
+            mapOf(
+                "metodo_contacto.$metodo_pago.numero" to valor
+            )
+        } else {
+            mapOf(
+                "metodo_contacto.$metodo_pago.nombre" to titular,
+                "metodo_contacto.$metodo_pago.url" to valor
+            )
+        }
+
+        ref.update(data).await()
+    }
+
+    suspend fun cambiar_nombre_descripcion(
+        localidad_tienda: String,
+        id_tienda: String,
+        tipo: String, // nombre del campo a cambiar
+        cambio: String // nuevo valor
+    ) {
+        try {
+            val ref = db
+                .collection("Tiendas")
+                .document(localidad_tienda)
+                .collection(localidad_tienda)
+                .document(id_tienda)
+
+            // Actualiza dinámicamente el campo
+            ref.update(tipo, cambio).await()
+
+            println("Campo '$tipo' actualizado correctamente a '$cambio'.")
+        } catch (e: Exception) {
+            println("Error al actualizar el campo: ${e.message}")
+        }
+    }
+
+    suspend fun guardar_aforo(
+        numero: String,
+        id_tienda: String,
+        localidad: String
+    ) {
+        val aforo = numero.toIntOrNull() ?: return
+
+        try {
+            val ref = db
+                .collection("Tiendas")
+                .document(localidad)
+                .collection(localidad)
+                .document(id_tienda)
+
+            ref.set(
+                mapOf("aforo_max" to aforo),
+                SetOptions.merge()
+            ).await()
+
+        } catch (e: Exception) {
+            println("Error al actualizar aforo: ${e.message}")
+        }
+    }
+
+
+
+    suspend fun cambiar(
+        id_tienda: String,
+        localidad_tienda: String,
+        metodo_pago: String, // yape | plin
+        titular: String,
+        numero_cambiado: String
+    ) {
+        val ref = db
+            .collection("Tiendas")
+            .document(localidad_tienda)
+            .collection(localidad_tienda)
+            .document(id_tienda)
+
+        ref.update(
+            mapOf(
+                "metodos_pago.$metodo_pago.nombre" to titular,
+                "metodos_pago.$metodo_pago.numero" to numero_cambiado
+            )
+        ).await()
     }
 
 

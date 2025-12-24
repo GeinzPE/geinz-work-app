@@ -135,6 +135,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas.carga_tiendas
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
 import kotlin.text.isNotEmpty
 
 
@@ -159,7 +160,7 @@ fun Pantalla_filtrado_tiendas(
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val context = LocalContext.current
-
+Log.d("cvateogireaopasda","$categoria")
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
     val estadoTiendaFree by viewModelFiltros._datos_tienda_sin_pago.observeAsState(
         viewModel_filtado_tiendas.carga_tiendas_sin_pago.loading_tiendas_free
@@ -489,8 +490,6 @@ fun Pantalla_filtrado_tiendas(
                             })
                     }
                 }
-
-
                 is carga_tiendas.empty -> {
                     Log.d("entramos", "vacio")
                     val texto =
@@ -506,8 +505,6 @@ fun Pantalla_filtrado_tiendas(
                 }
 
             }
-
-
         }
         if (btn_mostrar_mapa) {
             open_map_perzonlizado(
@@ -643,7 +640,9 @@ fun Pantalla_filtrado_tiendas(
                 }
             }
         }
+        if(!mostrandoCargaGlobal){
         shadow_bottom_pantallas_generales(Modifier.align(Alignment.BottomCenter))
+        }
     }
 
 
@@ -893,10 +892,11 @@ fun item_tiendas(
     var showDialog by remember { mutableStateOf(false) }
 
     val generador_qr = remember(item_tiendas.latitud, item_tiendas.longitud) {
-        generar_qr_cordenadas_tienda.codificarCoordenadas(
-            item_tiendas.latitud, item_tiendas.longitud
+        generar_qr_cordenadas_tienda.codificarCoordenadas_url(
+            item_tiendas.latitud, item_tiendas.longitud,item_tiendas.id_tienda
         )
     }
+
     val targetHeight =
         if (!detalles_tienda && item_tiendas.metodos_pago_tienda != modelo_pagos_tienda()) 90.dp else 110.dp
 
@@ -1026,7 +1026,6 @@ fun item_tiendas(
                         brush_end = Brush.horizontalGradient(colors = end_subcategoria_shadow)
                     )
                     Spacer(modifier = Modifier.height(5.dp))
-//
                     retornar_color_estado_tienda_Box(
                         id_tienda = item_tiendas.id_tienda,
                         horario_total = horario_box1,

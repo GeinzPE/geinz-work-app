@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
@@ -132,6 +133,7 @@ fun CollageGoogleMapsStyle_sin_scroll(
     imagenes: List<String>,
     modifier: Modifier = Modifier
 ) {
+    Log.d("nuietmetuad","${it.numero_tienda}")
     if (imagenes.isEmpty()) return
 
     val grupos = imagenes.chunked(3)
@@ -199,10 +201,10 @@ fun GrupoCollageGoogle_sin_scrool(
             tag,
             url = imagenes.getOrNull(0)?.second,
             modifier = Modifier
-                .weight(if (imagenes.size == 1) 1f else 2f)
-                .fillMaxHeight(),
+                .weight(if (imagenes.size == 1) 1.1f else 2f)
+                .fillMaxSize(),
             listener_img = {
-                onClickImagen(imagenes[0].first, tag) // ✅ índice real
+                onClickImagen(imagenes[0].first, tag)
             }
         )
 
@@ -432,6 +434,7 @@ fun GaleriaInstagram(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun ZoomableGalleryFullScreen(
@@ -528,7 +531,7 @@ fun ZoomableGalleryFullScreen(
                                     "",
                                     "",
                                     context = context,
-                                    "937659216",
+                                    it.numero_tienda,
                                     "Hola, quiero esta oferta que vi en su perfil en Geinz: " +
                                             "https://geinzworkapp.web.app/share?" +
                                             "t=p" +

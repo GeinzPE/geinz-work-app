@@ -54,6 +54,7 @@ data class compartir_promocion(
     val id_tienda: String ="",
     val localidad: String="",
     val categoria: String="",
+    val numero_tienda:String="",
 )
 
 

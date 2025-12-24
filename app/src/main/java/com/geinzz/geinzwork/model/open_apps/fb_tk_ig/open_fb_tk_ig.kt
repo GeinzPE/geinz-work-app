@@ -178,6 +178,7 @@ object open_fb_tk_ig {
             numero: String,
             mensajePredefinido: String = "¡Hola! Vengo de Geinz y me gustaría hacer una consulta. ¿Me pueden atender?"
         ) {
+            Log.d("abrir_whatsapp", "tipo=$tipo, id_tienda=$id_tienda, localidad_tienda=$localidad_tienda, numero=$numero, mensajePredefinido=$mensajePredefinido")
 
             val mensajeCodificado = URLEncoder.encode(mensajePredefinido, "UTF-8")
             val uri = Uri.parse(

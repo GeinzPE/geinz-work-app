@@ -1,5 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -75,6 +77,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_ayudanos_a_creccer(
@@ -260,63 +263,63 @@ fun bottom_sheet_ayudanos_a_creccer(
                             style = MaterialTheme.typography.bodyMedium
                         )
                         spacer_vertical(10.dp)
-                        Text(
-                            text = "¿Quieres ver cómo se vería tu negocio en Geinz?",
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                            ) {
-                                hacer_visible_btn = !hacer_visible_btn
-                                visible_free = false
-                                visible_primiun = false
-                                seleccion = ""
-                            },
-                            textDecoration = TextDecoration.Underline,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                        spacer_vertical(10.dp)
-                        AnimatedVisibility(hacer_visible_btn, modifier = Modifier.fillMaxWidth()) {
-                            LazyRow(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-
-                                item {
-                                    // 🔹 Ficha Premium
-                                    Box(modifier = Modifier.width(300.dp)) {
-                                        FichaOpcion(
-                                            titulo = "Ficha Premium (S/0.34 diario o S/10 mensual)",
-                                            imagen = R.drawable.logo_geinz_blanco,
-                                            seleccionado = seleccion == "premium",
-                                            onClick = {
-                                                seleccion = "premium"
-                                                visible_free = false
-                                                visible_primiun = true
-                                            }
-                                        )
-                                    }
-                                }
-                                item {
-                                    spacer_horizonta(20.dp)
-                                }
-
-                                item {
-                                    // 🔹 Ficha Gratis
-                                    Box(modifier = Modifier.width(300.dp)) {
-                                        FichaOpcion(
-                                            titulo = "Ficha Gratis (sin costo)",
-                                            imagen = R.drawable.logo_geinz_blanco,
-                                            seleccionado = seleccion == "gratis",
-                                            onClick = {
-                                                seleccion = "gratis"
-                                                visible_free = true
-                                                visible_primiun = false
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        }
+//                        Text(
+//                            text = "¿Quieres ver cómo se vería tu negocio en Geinz?",
+//                            color = MaterialTheme.colorScheme.primary,
+//                            modifier = Modifier.clickable(
+//                                interactionSource = remember { MutableInteractionSource() },
+//                                indication = null,
+//                            ) {
+//                                hacer_visible_btn = !hacer_visible_btn
+//                                visible_free = false
+//                                visible_primiun = false
+//                                seleccion = ""
+//                            },
+//                            textDecoration = TextDecoration.Underline,
+//                            style = MaterialTheme.typography.bodyMedium,
+//                        )
+//                        spacer_vertical(10.dp)
+//                        AnimatedVisibility(hacer_visible_btn, modifier = Modifier.fillMaxWidth()) {
+//                            LazyRow(
+//                                modifier = Modifier.fillMaxWidth()
+//                            ) {
+//
+//                                item {
+//                                    // 🔹 Ficha Premium
+//                                    Box(modifier = Modifier.width(300.dp)) {
+//                                        FichaOpcion(
+//                                            titulo = "Ficha Premium (S/0.34 diario o S/10 mensual)",
+//                                            imagen = R.drawable.logo_geinz_blanco,
+//                                            seleccionado = seleccion == "premium",
+//                                            onClick = {
+//                                                seleccion = "premium"
+//                                                visible_free = false
+//                                                visible_primiun = true
+//                                            }
+//                                        )
+//                                    }
+//                                }
+//                                item {
+//                                    spacer_horizonta(20.dp)
+//                                }
+//
+//                                item {
+//                                    // 🔹 Ficha Gratis
+//                                    Box(modifier = Modifier.width(300.dp)) {
+//                                        FichaOpcion(
+//                                            titulo = "Ficha Gratis (sin costo)",
+//                                            imagen = R.drawable.logo_geinz_blanco,
+//                                            seleccionado = seleccion == "gratis",
+//                                            onClick = {
+//                                                seleccion = "gratis"
+//                                                visible_free = true
+//                                                visible_primiun = false
+//                                            }
+//                                        )
+//                                    }
+//                                }
+//                            }
+//                        }
                         Box(
                             modifier = Modifier
                                 .padding(top = 10.dp)

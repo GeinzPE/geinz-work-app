@@ -14,13 +14,11 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.nativationWrapper
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.GeinzWorkTheme
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.viewModels.DeepLinkViewModel
-import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
 import com.geinzz.geinzwork.viewModels.viewModel_usuarios_general
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
@@ -29,27 +27,21 @@ import java.net.URLEncoder
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: com.geinzz.geinzwork.databinding.ActivityMainBinding
     private lateinit var firebaseAuth: FirebaseAuth
-    private lateinit var datos_viewmodel: viewModel_usuarios_general
+    private lateinit var datosViewModel: viewModel_usuarios_general
     private val deepLinkViewModel: DeepLinkViewModel by viewModels()
     private lateinit var navController: androidx.navigation.NavHostController
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
-        binding = com.geinzz.geinzwork.databinding.ActivityMainBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
-        setContentView(binding.root)
+        enableEdgeToEdge()
         crearCanalNotificaciones()
 
-        Log.d("DeepLinkDebug", "onCreate: iniciado")
-
         firebaseAuth = FirebaseAuth.getInstance()
-        datos_viewmodel = ViewModelProvider(this)[viewModel_usuarios_general::class.java]
-        datos_viewmodel.obtener_localida_nombre_user(firebaseAuth.uid.toString())
+        datosViewModel = ViewModelProvider(this)[viewModel_usuarios_general::class.java]
+        datosViewModel.obtener_localida_nombre_user(firebaseAuth.uid.toString())
 
-        Log.d("DeepLinkDebug", "onCreate: procesando intent inicial")
         procesarIntent(intent)
 
         setContent {
@@ -58,69 +50,58 @@ class MainActivity : AppCompatActivity() {
                     navController = rememberNavController()
                     nativationWrapper(navController)
 
-                    LaunchedEffect(navController) {
-                        delay(100)
-                        Log.d("DeepLinkDebug", "LaunchedEffect: observando pendingLinks")
+                    LaunchedEffect(Unit) {
+                        delay(150)
                         deepLinkViewModel.pendingLinks.collectLatest { links ->
-                            Log.d("DeepLinkDebug", "Links recibidos: $links")
                             links.forEach { link ->
-                                Log.d("DeepLinkDebug", "Manejando link: $link")
                                 manejarDeepLink(Uri.parse(link))
                                 deepLinkViewModel.consumeLink(link)
-                                Log.d("DeepLinkDebug", "Link consumido: $link")
                             }
                         }
                     }
                 }
             }
         }
-
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        Log.d("DeepLinkDebug", "onNewIntent: nuevo intent recibido")
         procesarIntent(intent)
     }
 
     private fun procesarIntent(intent: Intent) {
-        val linkFromExtra = intent.getStringExtra("link")
-        val dataUri = intent.data
-
-        val link = linkFromExtra ?: dataUri?.toString()
+        val link = intent.getStringExtra("link") ?: intent.data?.toString()
         if (!link.isNullOrEmpty()) {
-            Log.d("DeepLinkDebug", "Intent contiene link a procesar -> $link")
+            Log.d("DeepLinkDebug", "LINK RECIBIDO -> $link")
             deepLinkViewModel.addLink(link)
-        } else {
-            Log.d("DeepLinkDebug", "Intent no contiene link ni data URI")
         }
     }
 
-
-
+    // ===============================
+    // 🔥 DEEPLINK NIVEL PRODUCCIÓN
+    // ===============================
     private fun manejarDeepLink(uri: Uri) {
 
-        // 🔹 soporta corto y largo
         val tipo = uri.getQueryParameter("t")
             ?: uri.getQueryParameter("tipo")
-            ?: ""
+            ?: return
 
-        val id = uri.getQueryParameter("id") ?: ""
+        val idRaw = uri.getQueryParameter("id") ?: return
 
         val localidadRaw = uri.getQueryParameter("l")
             ?: uri.getQueryParameter("localidad")
-            ?: ""
+            ?: return
 
-        val categoria = uri.getQueryParameter("c")
+        val categoriaRaw = uri.getQueryParameter("c")
             ?: uri.getQueryParameter("categoria")
             ?: ""
 
-        val index =uri.getQueryParameter("i")
+        val index = uri.getQueryParameter("i")?.toIntOrNull() ?: 0
 
-        if (tipo.isEmpty() || id.isEmpty() || localidadRaw.isEmpty()) return
+        // 🔹 normalización crítica
+        val id = idRaw.removePrefix("/")
 
-        // 🔹 NORMALIZAR LOCALIDAD (abreviado → real)
         val localidad = when (localidadRaw.lowercase()) {
             "ba" -> "barranca"
             "par" -> "paramonga"
@@ -130,47 +111,48 @@ class MainActivity : AppCompatActivity() {
             else -> localidadRaw
         }
 
+        val categoria = categoriaRaw.replace("+", " ")
+
+        fun enc(value: String) = URLEncoder.encode(value, "UTF-8")
+
         when (tipo.lowercase()) {
+
+            // 🏪 TIENDA
+            "tienda", "ti" -> {
+                val ruta = "mostrar_tiendas/" +
+                        "${enc(localidad)}/" +
+                        "${enc(id)}/" +
+                        "${enc(categoria)}"
+
+                Log.d("DeepLinkDebug", "NAVEGANDO -> $ruta")
+
+                navController.navigate(ruta) {
+                    launchSingleTop = true
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = false
+                    }
+                }
+            }
 
             // 🌍 TURISMO
             "turismo", "tu" -> {
-                val ruta = "lugares_turisticos/$localidad/$id"
+                val ruta = "lugares_turisticos/${enc(localidad)}/${enc(id)}"
                 navController.navigate(ruta) {
+                    launchSingleTop = true
                     popUpTo(navController.graph.startDestinationId) {
                         inclusive = false
                     }
                 }
             }
 
-            // 🏪 TIENDA (incluye p por ahora)
-            // 🏪 TIENDA (incluye p por ahora)
-            "tienda", "ti" -> {
-
-                val categoriaLimpia = categoria.replace("+", " ")
-
-                val ruta = "mostrar_tiendas/$localidad/$id/$categoriaLimpia"
-                navController.navigate(ruta) {
-                    popUpTo(navController.graph.startDestinationId) {
-                        inclusive = false
-                    }
-                }
-            }
-
+            // 🎁 PROMO
             "p" -> {
                 deepLinkViewModel.setPromoData(
                     id = id,
                     lugar = localidad,
-                    index = index?.toIntOrNull() ?: 0
+                    index = index
                 )
-
-//                // 👇 solo navega a pantalla principal si no estás ahí
-//                navController.navigate("pantalla_principal") {
-//                    launchSingleTop = true
-//                    popUpTo(navController.graph.startDestinationId) { inclusive = false }
-//                }
             }
-
-
         }
     }
 
@@ -181,11 +163,9 @@ class MainActivity : AppCompatActivity() {
                 "Geinz Notificaciones",
                 NotificationManager.IMPORTANCE_HIGH
             )
-            channel.description = "Notificaciones generales de Geinz"
-            val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(channel)
-            Log.d("DeepLinkDebug", "Canal de notificaciones creado")
+            channel.description = "Notificaciones generales"
+            getSystemService(NotificationManager::class.java)
+                .createNotificationChannel(channel)
         }
     }
 }
-

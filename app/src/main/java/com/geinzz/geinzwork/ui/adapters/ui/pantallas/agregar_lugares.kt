@@ -437,7 +437,6 @@ fun datos_teindas() {
                     modifier = Modifier.weight(1f),
                     value = longitud,
                     onValueChange = { it ->
-
                         longitud = it
                     },
                     shape = RoundedCornerShape(20.dp),
@@ -864,6 +863,7 @@ fun datos_teindas() {
                 }
             }
         }
+
     }
     if (cambiar_cat_sub) {
         bottom_sheet_cambiar_datos_tiendas {

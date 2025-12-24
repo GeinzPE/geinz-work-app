@@ -2,9 +2,6 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
 import android.content.ClipboardManager
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -48,7 +45,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.OpenInFull
@@ -57,7 +53,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -93,23 +88,40 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.cambiar_datos_pago_contacto
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.datos_grafico
+import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.data.model.datos_tienda_fechas
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
+import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
+import com.geinzz.geinzwork.data.model.servicio_comodidad
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.data_store.data_store_localidad.set_id_socio
 import com.geinzz.geinzwork.data_store.data_store_localidad.set_localidad_tienda_soscio
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandible_wrap_socio_atrubitos
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandibles_wrapp_socio_contacto_tienda
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandibles_wrapp_socio_geinzz
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandibles_wrapp_socio_geinzz_datos_tienda
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandibles_wrapp_socio_metodos_pago_tienda
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandido_wrap_socio_atributos
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.BoxImagen
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.esUriLocal
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.esUrlRemota
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.guardarCambiosImagenes
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.guardarImagenesEnFirestore
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.subir_foto_perfil_algolia_normal
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.subir_storage_perfil_img
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp_socio_geinzz
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp_socio_geinzz_datos_tienda
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp_socio_geinzz_horario_atencion
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -131,7 +143,6 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
 import io.github.dautovicharis.charts.PieChart
 import io.github.dautovicharis.charts.model.toChartDataSet
 import io.github.dautovicharis.charts.style.PieChartDefaults
@@ -144,10 +155,12 @@ import java.io.ByteArrayOutputStream
 fun login_socios(isConnected: Boolean) {
     val verificar_id by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     var id_registrado by remember { mutableStateOf("") }
     val labels = listOf("Vistas", "Guardados", "Clics", "Compartidos")
     val labels2 = listOf("Facebook", "Instagram", "TikTok", "Sitio web")
     val labels3 = listOf("Llamada", "Whatsapp", "Rutas")
+    val labels4 = listOf("QR review publico", "QR review privado", "QR creacion de ruta","QR vistas de perfil")
     val viewmodel: viewmodel_eres_socio = viewModel()
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
     val state_socio = viewmodel.state_eres_socio.collectAsState()
@@ -155,14 +168,21 @@ fun login_socios(isConnected: Boolean) {
     var mostar_interes by remember { mutableStateOf(false) }
     var mostrar_convesion by remember { mutableStateOf(false) }
     var mostrar_datos_teinda by remember { mutableStateOf(false) }
+    var mostrar_redes_tienda by remember { mutableStateOf(false) }
+    var mostar_socio_atributos by remember { mutableStateOf(false) }
+    var mostar_metodos_pago_tienda by remember { mutableStateOf(false) }
+    var mostar_atributos_negocios by remember { mutableStateOf(false) }
     var mostar_horario_teinda by remember { mutableStateOf(false) }
     var mostrar_trafico_externo by remember { mutableStateOf(false) }
+    var mostrar_qr_externo by remember { mutableStateOf(false) }
     var dialog_mostar_leyendas_graficos by remember { mutableStateOf(false) }
     var titulo_leyenda_dialog by remember { mutableStateOf("") }
     var txt_leyenda by remember { mutableStateOf("") }
     var icono_mostar_leyendas_graficos by remember { mutableStateOf(0) }
     var id_tienda by remember { mutableStateOf("") }
     var listaPropietarios by remember { mutableStateOf(emptyList<String>()) }
+    var metodos_pago by remember { mutableStateOf(modelo_pagos_tienda()) }
+    var metodo_contact by remember { mutableStateOf(metodo_contacto_tienda()) }
 
     val existe_id_vinculado_tienda by remember { mutableStateOf("") }
     var localidad_tienda by remember { mutableStateOf("barranca") }
@@ -186,18 +206,17 @@ fun login_socios(isConnected: Boolean) {
     var ingresar_correo by remember { mutableStateOf(false) }
     var correo_electronico_cuenta_user by remember { mutableStateOf("") }
 
-    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
-    var fotos_ambiente by remember { mutableStateOf(false) }
-    var fotos_producto by remember { mutableStateOf(false) }
-    var fotos_promociones by remember { mutableStateOf(false) }
+    var fotos_ambiente by remember {mutableStateOf(false)}
 
-    var fotosAmbientales  by remember {
-        mutableStateOf<List<String>>(emptyList())
-    }
-    var fotosServicios by remember {
-        mutableStateOf<List<String>>(emptyList())
-    }
+    var fotos_producto by remember {mutableStateOf(false)}
+
+    var fotos_promociones by remember {mutableStateOf(false)}
+
+    var fotosAmbientales by remember { mutableStateOf<List<String>>(emptyList()) }
+
+    var fotosServicios by remember { mutableStateOf<List<String>>(emptyList()) }
+
     var fotosPromociones by remember {
         mutableStateOf<List<String>>(emptyList())
     }
@@ -210,6 +229,10 @@ fun login_socios(isConnected: Boolean) {
 
     var valor_img_completa by remember { mutableStateOf("") }
     var mostrarDialogozoom by remember { mutableStateOf(false) }
+    var lista_servicios_comodidades by remember {
+        mutableStateOf<List<servicio_comodidad>>(emptyList())
+    }
+
     LaunchedEffect(Unit) {
         viewmodel.cargarIdSocio(context)
     }
@@ -218,9 +241,9 @@ fun login_socios(isConnected: Boolean) {
         viewModelFiltros.calcularHorarioParaTienda(id_tienda, horarioMap)
     }
     LaunchedEffect(id_tienda) {
-        if(id_tienda!=""){
-            viewmodel.carga_img_tipo("ambientales",id_tienda)
-            viewmodel.carga_img_tipo("servicios_productos",id_tienda)
+        if (id_tienda != "") {
+            viewmodel.carga_img_tipo("ambientales", id_tienda)
+            viewmodel.carga_img_tipo("servicios_productos", id_tienda)
         }
     }
 
@@ -367,10 +390,7 @@ fun login_socios(isConnected: Boolean) {
                                                     localidad,
                                                     style = MaterialTheme.typography.bodyMedium,
                                                     color = if (localidad_seleciondad == localidad) Color.Black else Color.White,
-                                                    modifier = Modifier.padding(
-                                                        horizontal = 5.dp,
-                                                        vertical = 4.dp
-                                                    )
+                                                    modifier = Modifier.padding ( horizontal = 5.dp, vertical = 4.dp )
                                                 )
                                             }
                                         }
@@ -405,37 +425,9 @@ fun login_socios(isConnected: Boolean) {
                                                 )
                                             }
                                             spacer_horizonta(2.dp)
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(CircleShape)
-                                                    .background(MaterialTheme.colorScheme.primary)
-                                                    .size(45.dp)
-                                                    .clickable() {
-                                                        val clipData = clipboard.primaryClip
-                                                        if (clipData != null && clipData.itemCount > 0) {
-                                                            val text =
-                                                                clipData.getItemAt(0)
-                                                                    .coerceToText(context)
-                                                                    .toString()
-                                                            id_registrado = text
-                                                        } else {
-                                                            Toast
-                                                                .makeText(
-                                                                    context,
-                                                                    "El portapapeles está vacío",
-                                                                    Toast.LENGTH_SHORT
-                                                                )
-                                                                .show()
-                                                        }
-                                                    },
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Image(
-                                                    painter = painterResource(R.drawable.pegar_portapales_webp),
-                                                    contentDescription = "",
-                                                    modifier = Modifier.size(25.dp)
-                                                )
-                                            }
+                                            constantes_expandibles_generales.pegar_porta_papeles (clipboard,context,{ it->
+                                                id_registrado = it
+                                            })
                                         }
                                     }
 
@@ -455,18 +447,6 @@ fun login_socios(isConnected: Boolean) {
                                     }
 
                                 }
-
-//                                ExpandDropDown(
-//                                    opciones_localida,
-//                                    false,
-//                                    "",
-//                                    "Seleciona la localidad de tu negocio"
-//                                ) { localida_selecionada ->
-//                                    localidad_seleciondad = localida_selecionada
-//                                }
-//
-
-
                                 spacer_vertical(5.dp)
                                 Box(modifier = Modifier.fillMaxWidth()) {
                                     Text(
@@ -628,9 +608,16 @@ fun login_socios(isConnected: Boolean) {
                                             localidad_tienda = datos.localidad_tienda
                                             fecha_termino = datos.fecha_termino
                                             listaPropietarios = datos.lista_ids_propietarios
-                                            fotosAmbientales=datos.obtener_img_tiendas.lista_ambiernte
-                                            fotosServicios=datos.obtener_img_tiendas.lista_productos
-                                            fotosPromociones=datos.obtener_img_tiendas.lista_promociones
+                                            fotosAmbientales =
+                                                datos.obtener_img_tiendas.lista_ambiernte
+                                            fotosServicios =
+                                                datos.obtener_img_tiendas.lista_productos
+                                            fotosPromociones =
+                                                datos.obtener_img_tiendas.lista_promociones
+                                            metodos_pago = datos.metodos_pago
+                                            metodo_contact = datos.metodo_contacto_tienda
+                                            lista_servicios_comodidades=datos.servicios_comodidades
+
                                             LaunchedEffect(datos.id_tienda) {
                                                 logoOriginal = datos.obtener_img_tiendas.logo_tienda
                                                 logoActual = datos.obtener_img_tiendas.logo_tienda
@@ -638,12 +625,18 @@ fun login_socios(isConnected: Boolean) {
                                             }
 
 
-
                                             var values by remember { mutableStateOf(listOf<Float>()) }
 
                                             var values2 by remember { mutableStateOf(listOf<Float>()) }
 
                                             var values3 by remember { mutableStateOf(listOf<Float>()) }
+
+                                            var values4 by remember { mutableStateOf(listOf<Float>()) }
+
+                                            var nombre_negocio by remember { mutableStateOf(datos.nombre) }
+                                            var descripcion_negocio by remember { mutableStateOf(datos.descripcion) }
+                                            var nombre_negocio_actual by remember { mutableStateOf(datos.nombre) }
+                                            var descripcion_actual by remember { mutableStateOf(datos.descripcion) }
 
                                             LaunchedEffect(datos) {
                                                 values2 = listOf(
@@ -663,6 +656,13 @@ fun login_socios(isConnected: Boolean) {
                                                     datos.llamada.toFloat(),
                                                     datos.wsap.toFloat(),
                                                     datos.ruta.toFloat()
+                                                )
+
+                                                values4 = listOf(
+                                                    datos.perfil_qr.toFloat(),
+                                                    datos.review_c_qr.toFloat(),
+                                                    datos.review_qr.toFloat(),
+                                                    datos.crear_ruta_qr.toFloat()
                                                 )
                                             }
 
@@ -715,8 +715,6 @@ fun login_socios(isConnected: Boolean) {
                                                 }
 
 
-
-
                                                 spacer_vertical(10.dp)
 
                                                 texto_generico_multilinea(
@@ -753,6 +751,7 @@ fun login_socios(isConnected: Boolean) {
                                                             modifier = Modifier.matchParentSize(),
                                                             contentScale = ContentScale.Crop
                                                         )
+
                                                         Icon(
                                                             imageVector = Icons.Default.OpenInFull,
                                                             contentDescription = "Expandir imagen",
@@ -767,16 +766,16 @@ fun login_socios(isConnected: Boolean) {
                                                                     CircleShape
                                                                 )
                                                                 .clickable {
-                                                                    valor_img_completa=logoActual?:""
-                                                                    mostrarDialogozoom=true
+                                                                    valor_img_completa =
+                                                                        logoActual ?: ""
+                                                                    mostrarDialogozoom = true
                                                                 }
                                                                 .padding(4.dp)
                                                         )
 
                                                         if (mostar_horario__bool) {
-
                                                             Icon(
-                                                                imageVector =if(hayCambiosLogo) Icons.Default.Undo else Icons.Default.Edit, // o ZoomOutMap
+                                                                imageVector = if (hayCambiosLogo) Icons.Default.Undo else Icons.Default.Edit, // o ZoomOutMap
                                                                 contentDescription = "Expandir imagen",
                                                                 tint = Color.White,
                                                                 modifier = Modifier
@@ -787,31 +786,28 @@ fun login_socios(isConnected: Boolean) {
                                                                         Color.Black.copy(alpha = 0.6f),
                                                                         CircleShape
                                                                     )
-                                                                    .clickable { if(hayCambiosLogo){
-                                                                        logoActual = logoOriginal
-                                                                        hayCambiosLogo = false
-                                                                    }else{
+                                                                    .clickable {
+                                                                        if (hayCambiosLogo) {
+                                                                            logoActual =
+                                                                                logoOriginal
+                                                                            hayCambiosLogo = false
+                                                                        } else {
 
-                                                                        launcher.launch("image/*")
-                                                                    }
+                                                                            launcher.launch("image/*")
+                                                                        }
                                                                     }
                                                                     .padding(4.dp)
                                                             )
-
-
                                                         }
-
 
                                                         this@Column.AnimatedVisibility(
                                                             !mostar_horario__bool,
                                                             modifier = Modifier
                                                                 .matchParentSize()
                                                         ) {
-                                                            Box(
-                                                                modifier = Modifier
+                                                            Box(modifier = Modifier
                                                                     .matchParentSize()
-                                                                    .background(Color(0x99000000))
-                                                            )
+                                                                    .background(Color(0x99000000)))
                                                         }
                                                     }
 
@@ -823,36 +819,39 @@ fun login_socios(isConnected: Boolean) {
                                                         Row(
                                                             modifier = Modifier
                                                                 .fillMaxWidth()
-                                                                .padding(top = 10.dp, start = 10.dp, end = 10.dp),
-                                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                                                .padding(
+                                                                    top = 10.dp,
+                                                                    start = 10.dp,
+                                                                    end = 10.dp
+                                                                ),
+                                                            horizontalArrangement = Arrangement.spacedBy(
+                                                                10.dp
+                                                            )
                                                         ) {
                                                             Button(
                                                                 modifier = Modifier.weight(1f),
                                                                 enabled = !guardandoLogo && logoActual != null && logoActual != logoOriginal,
                                                                 onClick = {
                                                                     guardandoLogo = true
-
                                                                     subir_storage_perfil_img(
                                                                         context = context,
                                                                         idTienda = id_tienda,
-                                                                        valor = logoActual!!, // 👈 AQUÍ VA LA IMAGEN REAL
+                                                                        valor = logoActual!!,
                                                                         onSuccess = { urlFinal ->
+                                                                            scope.launch {
+                                                                                val subido = subir_foto_perfil_algolia_normal(
+                                                                                    id_tienda,
+                                                                                    urlFinal
+                                                                                )
 
-                                                                            FirebaseFirestore.getInstance()
-                                                                                .collection("Tiendas")
-                                                                                .document("barranca")
-                                                                                .collection("barranca")
-                                                                                .document(id_tienda)
-                                                                                .update("img_tienda.logo_tienda", urlFinal)
-                                                                                .addOnSuccessListener {
+                                                                                guardandoLogo = false
+
+                                                                                if (subido) {
                                                                                     logoOriginal = urlFinal
                                                                                     logoActual = urlFinal
                                                                                     hayCambiosLogo = false
-                                                                                    guardandoLogo = false
                                                                                 }
-                                                                                .addOnFailureListener {
-                                                                                    guardandoLogo = false
-                                                                                }
+                                                                            }
                                                                         },
                                                                         onError = {
                                                                             guardandoLogo = false
@@ -873,16 +872,80 @@ fun login_socios(isConnected: Boolean) {
 
                                                         }
                                                     }
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .then(
+                                                                if (!mostar_horario__bool) Modifier.height(
+                                                                    30.dp
+                                                                ) else Modifier
+                                                            )
+                                                            .animateContentSize(),
+                                                        contentAlignment = Alignment.CenterStart
+                                                    ) {
+                                                        this@Column.AnimatedVisibility(
+                                                            visible = !mostar_horario__bool,
+                                                            enter = fadeIn(),
+                                                            exit = fadeOut()
+                                                        ) {
+                                                            Text(
+                                                                text = datos.nombre.capitalizeFirst(),
+                                                                fontFamily = baners_geinz_work,
+                                                                fontSize = 20.sp,
+                                                                modifier = Modifier.padding(
+                                                                    start = 10.dp,
+                                                                    end = 7.dp
+                                                                )
+                                                            )
+                                                        }
+                                                        this@Column.AnimatedVisibility(
+                                                            visible = mostar_horario__bool,
+                                                            enter = fadeIn(),
+                                                            exit = fadeOut(), modifier = Modifier.padding(horizontal = 10.dp)
+                                                        ) {
+                                                            Column {
 
-                                                    Text(
-                                                        text = datos.nombre.capitalizeFirst(),
-                                                        fontFamily = baners_geinz_work,
-                                                        fontSize = 20.sp,
-                                                        modifier = Modifier.padding(
-                                                            start = 10.dp,
-                                                            end = 7.dp
-                                                        )
-                                                    )
+                                                                custom_texFiel(
+                                                                    value = nombre_negocio,
+                                                                    onValueChange = { nombre_negocio = it },
+                                                                    labelText = "Nombre del negocio",
+                                                                    placeholderText = "Nombre del negocio"
+                                                                )
+
+                                                                AnimatedVisibility (nombre_negocio !=nombre_negocio_actual) {
+                                                                    Box(
+                                                                        modifier = Modifier
+                                                                            .fillMaxWidth()
+                                                                            .clip(CircleShape)
+                                                                            .background(MaterialTheme.colorScheme.primary)
+                                                                            .padding(vertical = 10.dp)
+                                                                            .clickable(
+                                                                                indication = null,
+                                                                                interactionSource = remember { MutableInteractionSource() }
+                                                                            ) {
+                                                                             viewmodel.cambiar_nombre_descripcion(datos.localidad_tienda,datos.id_tienda,"nombre_tienda",nombre_negocio)
+                                                                                nombre_negocio_actual=nombre_negocio
+                                                                                scope.launch {
+                                                                                    snackbarHostState.showSnackbar(
+                                                                                        message = "Cambios guardados correctamente",
+                                                                                        duration = SnackbarDuration.Short
+                                                                                    )
+                                                                                }
+                                                                            },
+
+                                                                        contentAlignment = Alignment.Center
+                                                                    ) {
+                                                                        texto_generico_one_line(
+                                                                            "Guardar cambios",
+                                                                            style = MaterialTheme.typography.bodyMedium
+                                                                        )
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+
+
                                                     Crossfade(
                                                         targetState = mostar_horario__bool,
                                                         label = ""
@@ -893,16 +956,57 @@ fun login_socios(isConnected: Boolean) {
                                                                     start = 10.dp,
                                                                     end = 10.dp,
                                                                     bottom = 20.dp
+                                                                ).animateContentSize(
+                                                                    animationSpec = tween(
+                                                                        durationMillis = 400,
+                                                                        easing = FastOutSlowInEasing
+                                                                    )
                                                                 ),
+
                                                                 verticalArrangement = Arrangement.spacedBy(
                                                                     7.dp
                                                                 )
                                                             ) {
-                                                                texto_generico_multilinea(
-                                                                    datos.descripcion,
-                                                                    style = MaterialTheme.typography.bodyMedium,
+                                                                Column {
 
+                                                                    custom_texFiel(
+                                                                        rounder = 10,
+                                                                        value = descripcion_negocio,
+                                                                        onValueChange = { descripcion_negocio = it },
+                                                                        labelText = "Descripción del negocio",
+                                                                        placeholderText = "Descripción del negocio"
                                                                     )
+
+                                                                    AnimatedVisibility (descripcion_negocio != descripcion_actual) {
+                                                                        Box(
+                                                                            modifier = Modifier
+                                                                                .fillMaxWidth()
+                                                                                .clip(CircleShape)
+                                                                                .background(MaterialTheme.colorScheme.primary)
+                                                                                .padding(vertical = 10.dp)
+                                                                                .clickable(
+                                                                                    indication = null,
+                                                                                    interactionSource = remember { MutableInteractionSource() }
+                                                                                ) {
+                                                                                    viewmodel.cambiar_nombre_descripcion(datos.localidad_tienda,datos.id_tienda,"descripcion",descripcion_negocio)
+                                                                                    descripcion_actual = descripcion_negocio
+                                                                                    scope.launch {
+                                                                                        snackbarHostState.showSnackbar(
+                                                                                            message = "Cambios guardados correctamente",
+                                                                                            duration = SnackbarDuration.Short
+                                                                                        )
+                                                                                    }
+                                                                                },
+                                                                            contentAlignment = Alignment.Center
+                                                                        ) {
+                                                                            texto_generico_one_line(
+                                                                                "Guardar cambios",
+                                                                                style = MaterialTheme.typography.bodyMedium
+                                                                            )
+                                                                        }
+                                                                    }
+                                                                }
+
                                                                 spacer_vertical(20.dp)
                                                                 Column(
                                                                     modifier = Modifier
@@ -919,8 +1023,8 @@ fun login_socios(isConnected: Boolean) {
                                                                                 fotos_ambiente =
                                                                                     !fotos_ambiente
                                                                             }
-                                                                            .padding(horizontal = 16.dp), // padding horizontal
-                                                                        contentAlignment = Alignment.Center // centra el texto
+                                                                            .padding(horizontal = 16.dp),
+                                                                        contentAlignment = Alignment.Center
                                                                     ) {
                                                                         texto_generico_one_line("Fotos de ambiente \uD83C\uDF06")
                                                                     }
@@ -936,7 +1040,7 @@ fun login_socios(isConnected: Boolean) {
                                                                             BoxFotosTipos(
                                                                                 "ambientales",
                                                                                 id_tienda,
-                                                                                fotosAmbientales,6
+                                                                                fotosAmbientales, 6
                                                                             )
                                                                         }
                                                                     }
@@ -959,8 +1063,8 @@ fun login_socios(isConnected: Boolean) {
                                                                                 fotos_producto =
                                                                                     !fotos_producto
                                                                             }
-                                                                            .padding(horizontal = 16.dp), // padding horizontal
-                                                                        contentAlignment = Alignment.Center // centra el texto
+                                                                            .padding(horizontal = 16.dp),
+                                                                        contentAlignment = Alignment.Center
                                                                     ) {
                                                                         texto_generico_one_line("Fotos de productos o servicios 👣")
                                                                     }
@@ -976,7 +1080,7 @@ fun login_socios(isConnected: Boolean) {
                                                                             BoxFotosTipos(
                                                                                 "servicios_productos",
                                                                                 id_tienda,
-                                                                                fotosServicios,6
+                                                                                fotosServicios, 6
                                                                             )
                                                                         }
                                                                     }
@@ -1000,8 +1104,8 @@ fun login_socios(isConnected: Boolean) {
                                                                                 fotos_promociones =
                                                                                     !fotos_promociones
                                                                             }
-                                                                            .padding(horizontal = 16.dp), // padding horizontal
-                                                                        contentAlignment = Alignment.Center // centra el texto
+                                                                            .padding(horizontal = 16.dp),
+                                                                        contentAlignment = Alignment.Center
                                                                     ) {
                                                                         texto_generico_one_line("Promociones recientes \u200B\u200B❤\uFE0F\u200D\uD83D\uDD25\u200B")
                                                                     }
@@ -1017,15 +1121,19 @@ fun login_socios(isConnected: Boolean) {
                                                                             BoxFotosTipos(
                                                                                 "promociones",
                                                                                 id_tienda,
-                                                                                fotosPromociones,3
+                                                                                fotosPromociones, 3
                                                                             )
                                                                         }
                                                                     }
                                                                 }
-
-
                                                             }
                                                         } else {
+//                                                            custom_texFiel(
+//                                                                value =datos.descripcion,
+//                                                                onValueChange = { /* tu lógica */ },
+//                                                                labelText = "Descripcion del negocio",
+//                                                                placeholderText = "Descripcion del negocio"
+//                                                            )
                                                             text_expandible_wrapp(
                                                                 modifier = Modifier.padding(
                                                                     start = 10.dp,
@@ -1112,6 +1220,125 @@ fun login_socios(isConnected: Boolean) {
                                                         }
                                                     }
                                                 }
+                                                Cartas_expandibles(
+                                                    modifier = Modifier.padding(
+                                                        vertical = 10.dp
+                                                    )
+                                                ) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .animateContentSize() // ← Animación suave
+                                                    ) {
+                                                        expandibles_wrapp_socio_contacto_tienda(
+                                                            viewModelFiltros = viewmodel,
+                                                            context = context,
+                                                            expandido = mostrar_redes_tienda,
+                                                            it = metodo_contact,
+                                                            datos_tienda = cambiar_datos_pago_contacto(
+                                                                id_tienda,
+                                                                datos.localidad_tienda
+                                                            ),
+                                                            onClickExpand = {
+                                                                mostrar_redes_tienda =
+                                                                    !mostrar_redes_tienda
+                                                            },
+                                                            cambios_guardados = {
+                                                                scope.launch {
+                                                                    snackbarHostState.showSnackbar(
+                                                                        message = "Cambios guardados correctamente",
+                                                                        duration = SnackbarDuration.Short
+                                                                    )
+                                                                }
+                                                            })
+                                                    }
+                                                }
+
+                                                Cartas_expandibles(
+                                                    modifier = Modifier.padding(
+                                                        vertical = 10.dp
+                                                    )
+                                                ) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .animateContentSize() // ← Animación suave
+                                                    ) {
+                                                        expandibles_wrapp_socio_metodos_pago_tienda(
+                                                            viewModelFiltros = viewmodel,
+                                                            context = context,
+                                                            expandido = mostar_metodos_pago_tienda,
+                                                            metodos_pago = metodos_pago,
+                                                            datos_tienda = cambiar_datos_pago_contacto(
+                                                                id_tienda,
+                                                                datos.localidad_tienda
+                                                            ), onClickExpand = {
+                                                                mostar_metodos_pago_tienda =
+                                                                    !mostar_metodos_pago_tienda
+                                                            }, guardar_dado_datos = {
+                                                                scope.launch {
+                                                                    snackbarHostState.showSnackbar(
+                                                                        message = "Cambios guardados correctamente",
+                                                                        duration = SnackbarDuration.Short
+                                                                    )
+                                                                }
+                                                            })
+                                                    }
+                                                }
+
+                                                Cartas_expandibles(
+                                                    modifier = Modifier.padding(
+                                                        vertical = 10.dp
+                                                    )
+                                                ) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .animateContentSize() // ← Animación suave
+                                                    ) {
+                                                        expandible_wrap_socio_atrubitos(
+                                                            datos.id_tienda,datos.localidad_tienda,
+                                                            lista_servicios_comodidades,
+                                                            viewModelFiltros = viewmodel,
+                                                            expandido = mostar_atributos_negocios,{
+                                                                mostar_atributos_negocios =
+                                                                    !mostar_atributos_negocios
+                                                            },{
+                                                                scope.launch {
+                                                                    snackbarHostState.showSnackbar(
+                                                                        message = "Cambios guardados correctamente",
+                                                                        duration = SnackbarDuration.Short
+                                                                    )
+                                                                }
+                                                            }
+                                                      )
+                                                    }
+                                                }
+
+                                                Cartas_expandibles(
+                                                    modifier = Modifier.padding(
+                                                        vertical = 10.dp
+                                                    )
+                                                ) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .animateContentSize() // ← Animación suave
+                                                    ) {
+                                                        expandido_wrap_socio_atributos(
+                                                            id_tienda = datos.id_tienda,
+                                                            localida = datos.localidad_tienda,
+                                                            aforo_max = datos.aforo.toString(),
+                                                            viewModelFiltros = viewmodel,
+                                                            expandido = mostar_socio_atributos,
+                                                            onClickExpand = {mostar_socio_atributos=!mostar_socio_atributos},
+                                                            guardar_dado_datos = {
+                                                                scope.launch {
+                                                                    snackbarHostState.showSnackbar(
+                                                                        message = "Cambios guardados correctamente",
+                                                                        duration = SnackbarDuration.Short
+                                                                    )
+                                                                }
+                                                            })
+                                                    }
+                                                }
+
 
                                                 val lsita_datos1 = listOf(
                                                     datos_grafico(
@@ -1611,6 +1838,170 @@ fun login_socios(isConnected: Boolean) {
                                                     }
                                                 }
 
+                                                val lsita_datos4 = listOf(
+                                                    datos_grafico(
+                                                        enable = datos.review_qr != 0,
+                                                        img_ = R.drawable.review_qr,
+                                                        label = "QR review publico",
+                                                        cantidad = datos.review_qr.toString()
+                                                    ),
+                                                    datos_grafico(
+                                                        enable = datos.review_c_qr != 0,
+                                                        img_ = R.drawable.review_c_qr,
+                                                        label = "QR review privado",
+                                                        cantidad = datos.review_c_qr.toString()
+                                                    ),
+                                                    datos_grafico(
+                                                        enable = datos.ruta != 0,
+                                                        img_ = R.drawable.crear_ruta_qr,
+                                                        label = "QR crear ruta",
+                                                        cantidad = datos.ruta.toString()
+                                                    ),
+                                                    datos_grafico(
+                                                        enable = datos.perfil_qr != 0,
+                                                        img_ = R.drawable.perfil_qr,
+                                                        label = "QR vista de perfil",
+                                                        cantidad = datos.perfil_qr.toString()
+                                                    )
+                                                )
+                                                AnimatedVisibility(lsita_datos4.any { it.enable }) {
+                                                    Cartas_expandibles(
+                                                        modifier = Modifier.padding(
+                                                            vertical = 10.dp
+                                                        )
+                                                    ) {
+                                                        Column() {
+                                                            val lsita_datos1filtrada =
+                                                                lsita_datos4.filter { it.enable }
+                                                            expandibles_wrapp_socio_geinzz(
+                                                                lsita_datos1filtrada,
+                                                                "Mide cuántas personas interactúan con tu tienda a través de los códigos QR. Cada QR permite conocer cuántas veces fue escaneado y qué tipo de interacción generó, ayudándote a analizar el alcance y efectividad de cada punto de acceso.",
+                                                                texto_params = "Actividad de códigos QR",
+                                                                expandido = mostrar_qr_externo,
+                                                                onClickExpand = {
+                                                                    mostrar_qr_externo =
+                                                                        !mostrar_qr_externo
+                                                                }
+                                                            )
+                                                        }
+
+                                                        AnimatedVisibility(visible = mostrar_qr_externo) {
+                                                            Column(
+                                                                modifier = Modifier
+                                                                    .fillMaxWidth()
+                                                                    .animateContentSize(),
+                                                                horizontalAlignment = Alignment.CenterHorizontally
+                                                            ) {
+                                                                LazyRow(
+                                                                    contentPadding = PaddingValues(
+                                                                        horizontal = 12.dp
+                                                                    ),
+                                                                    horizontalArrangement = Arrangement.spacedBy(
+                                                                        10.dp
+                                                                    )
+                                                                ) {
+                                                                    itemsIndexed(values4) { index, value ->
+                                                                        if (value.toInt() != 0) {
+                                                                            Row(
+                                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                                horizontalArrangement = Arrangement.Center,
+                                                                                modifier = Modifier.clickable(
+                                                                                    indication = null,
+                                                                                    interactionSource = remember { MutableInteractionSource() }) {
+                                                                                    when (labels4[index]) {
+                                                                                        "QR review privado" -> {
+                                                                                            dialog_mostar_leyendas_graficos = true
+                                                                                            titulo_leyenda_dialog = "QR review privado"
+                                                                                            txt_leyenda =
+                                                                                                "Este valor indica cuántos usuarios escanearon el QR de reseñas que se encuentra dentro de la aplicación, específicamente en el perfil de la tienda. Representa la interacción de usuarios que ya están navegando en la plataforma y deciden dejar o consultar una reseña."
+                                                                                            icono_mostar_leyendas_graficos = R.drawable.review_c_qr
+                                                                                        }
+
+                                                                                        "QR review publico" -> {
+                                                                                            dialog_mostar_leyendas_graficos = true
+                                                                                            titulo_leyenda_dialog = "QR review publico"
+                                                                                            txt_leyenda =
+                                                                                                "Este valor muestra cuántas personas escanearon el QR de reseñas que el negocio tiene de forma física en su local. Cada escaneo representa a un usuario externo que interactúa directamente con el negocio para dejar o ver opiniones."
+                                                                                            icono_mostar_leyendas_graficos = R.drawable.review_qr
+                                                                                        }
+
+                                                                                        "QR creacion de ruta" -> {
+                                                                                            dialog_mostar_leyendas_graficos = true
+                                                                                            titulo_leyenda_dialog = "QR creacion de ruta"
+                                                                                            txt_leyenda =
+                                                                                                "Este valor indica cuántos usuarios escanearon el QR de creación de rutas. Al hacerlo, se abre automáticamente el mapa con la ruta hacia el local, lo que demuestra una clara intención de visitar físicamente el negocio."
+                                                                                            icono_mostar_leyendas_graficos = R.drawable.crear_ruta_qr
+                                                                                        }
+
+                                                                                        "QR vistas de perfil" -> {
+                                                                                            dialog_mostar_leyendas_graficos = true
+                                                                                            titulo_leyenda_dialog = "QR vistas de perfil"
+                                                                                            txt_leyenda =
+                                                                                                "Este valor muestra cuántos usuarios escanearon el QR del perfil del negocio. Al escanearlo, el usuario ingresa directamente al perfil de la tienda dentro de la aplicación para ver su información, servicios y contenido."
+                                                                                            icono_mostar_leyendas_graficos = R.drawable.perfil_qr
+                                                                                        }
+
+
+                                                                                    }
+
+                                                                                }
+                                                                            ) {
+                                                                                Box(
+                                                                                    Modifier
+                                                                                        .size(12.dp)
+                                                                                        .background(
+                                                                                            color = listOf(
+                                                                                                Color(
+                                                                                                    0xFFFADC7B
+                                                                                                ),
+                                                                                                Color(
+                                                                                                    0xFFDE3B41
+                                                                                                ),
+                                                                                                Color(
+                                                                                                    0xFF565656
+                                                                                                ),
+                                                                                                Color(
+                                                                                                    0xFF7FACE8
+                                                                                                        )
+                                                                                            )[index],
+                                                                                            shape = CircleShape
+                                                                                        )
+                                                                                )
+
+                                                                                spacer_horizonta(8.dp)
+
+                                                                                texto_generico_one_line(
+                                                                                    "${labels4[index]}: ${value.toInt()}",
+                                                                                    MaterialTheme.typography.bodyMedium
+                                                                                )
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                                spacer_vertical(10.dp)
+                                                                PieChart(
+                                                                    dataSet = values4.toChartDataSet(
+                                                                        labels = labels4,
+                                                                        title = "",
+                                                                        postfix = ""
+                                                                    ),
+                                                                    style = PieChartDefaults.style(
+                                                                        donutPercentage = 40f,
+                                                                        pieColors = listOf(
+                                                                            Color(0xFFFADC7B),
+                                                                            Color(0xFFDE3B41),
+                                                                            Color(0xFF565656),
+                                                                            Color(0xFF7FACE8)
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                spacer_vertical(10.dp)
+
 
                                                 if (!estaVinculado && isConnected) {
                                                     Column(
@@ -1726,39 +2117,6 @@ fun login_socios(isConnected: Boolean) {
             )
         }
     }
-}
-
-@RequiresApi(Build.VERSION_CODES.R)
-fun subir_storage_perfil_img(
-    context: Context,
-    idTienda: String,
-    valor: String,
-    onSuccess: (String) -> Unit,
-    onError: (Exception) -> Unit = {}
-) {
-
-    // 👉 Si ya es URL remota, no subir
-    if (esUrlRemota(valor)) {
-        onSuccess(valor)
-        return
-    }
-
-    val uri = Uri.parse(valor)
-
-    val storageRef = FirebaseStorage.getInstance()
-        .reference
-        .child("tiendas/$idTienda/logo/logo.webp")
-
-    val bytes = procesarImagenWebPSinRecorte(context, uri)
-
-    storageRef.putBytes(bytes)
-        .continueWithTask { storageRef.downloadUrl }
-        .addOnSuccessListener { downloadUrl ->
-            onSuccess(downloadUrl.toString())
-        }
-        .addOnFailureListener {
-            onError(it)
-        }
 }
 
 
@@ -1880,21 +2238,14 @@ fun carga_inicial() {
 }
 
 
-fun esUriLocal(valor: String?): Boolean =
-    valor?.startsWith("content://") == true
-
-fun esUrlRemota(valor: String?): Boolean =
-    valor?.startsWith("http") == true
-
-
 @RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun BoxFotosTipos(
-    tipo:String,
+    tipo: String,
     id_tienda: String,
-    urlsDesdeDb: List<String>,max:Int,
+    urlsDesdeDb: List<String>, max: Int,
 ) {
-    val contxt=LocalContext.current
+    val contxt = LocalContext.current
 
     var mostrarDialogozoom by remember { mutableStateOf(false) }
     var valor_img_completa by remember { mutableStateOf("") }
@@ -1962,9 +2313,11 @@ fun BoxFotosTipos(
 
     // ----------------------------------------------
     Column() {
-    Box(modifier = Modifier
-        .animateContentSize()
-        .height(100.dp)) {
+        Box(
+            modifier = Modifier
+                .animateContentSize()
+                .height(100.dp)
+        ) {
 
             LazyRow(
                 state = listState,
@@ -1997,36 +2350,36 @@ fun BoxFotosTipos(
                                     imagenes[index] = null
                                 }
                             }
-                        },onExpandir={
-                            mostrarDialogozoom=true
-                            valor_img_completa=valor?:""
+                        }, onExpandir = {
+                            mostrarDialogozoom = true
+                            valor_img_completa = valor ?: ""
                         }
 
                     )
                 }
             }
-        // Sombra izquierda
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(60.dp)
+            // Sombra izquierda
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(60.dp)
 
-                .align(Alignment.CenterStart)
-                .zIndex(1f)
-                .alpha(alphaLeft)
-                .background(Brush.horizontalGradient(colors = shadow_top_filtrado_v2))
-        )
+                    .align(Alignment.CenterStart)
+                    .zIndex(1f)
+                    .alpha(alphaLeft)
+                    .background(Brush.horizontalGradient(colors = shadow_top_filtrado_v2))
+            )
 
-        // Sombra derecha
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(60.dp)
-                .align(Alignment.CenterEnd)
-                .zIndex(1f)
-                .alpha(alphaRight)
-                .background(Brush.horizontalGradient(colors = shadow_botonm_filtrado_v2))
-        )
+            // Sombra derecha
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(60.dp)
+                    .align(Alignment.CenterEnd)
+                    .zIndex(1f)
+                    .alpha(alphaRight)
+                    .background(Brush.horizontalGradient(colors = shadow_botonm_filtrado_v2))
+            )
         }
 
         AnimatedVisibility(
@@ -2047,7 +2400,7 @@ fun BoxFotosTipos(
                             guardando = true
 
                             guardarCambiosImagenes(
-                                tipo= tipo,
+                                tipo = tipo,
                                 context = contxt,
                                 imagenes = imagenes,
                                 eliminadas = eliminadas,
@@ -2062,7 +2415,10 @@ fun BoxFotosTipos(
                                     tipo = tipo,
                                     urls = urlsFinales,
                                     onSuccess = {
-                                        Log.d("agregardo_firebae", "🔥 Firestore actualizado ($tipo)")
+                                        Log.d(
+                                            "agregardo_firebae",
+                                            "🔥 Firestore actualizado ($tipo)"
+                                        )
 
                                     },
                                     onError = {
@@ -2110,263 +2466,3 @@ fun BoxFotosTipos(
     }
 
 }
-
-
-@Composable
-fun BoxImagen(
-    valor: String?,
-    estaEliminada: Boolean,
-    onClick: () -> Unit,
-    onCancelarOEliminar: () -> Unit,
-    onExpandir: (() -> Unit)? = null // 👈 callback opcional
-) {
-    Box(
-        modifier = Modifier
-            .size(100.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .clickable { onClick() }
-    ) {
-
-        // 🖼️ IMAGEN / PLACEHOLDER
-        when {
-            estaEliminada || valor == null -> {
-                PlaceholderInterno()
-            }
-
-            else -> {
-                SubcomposeAsyncImage(
-                    model = valor,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                    loading = { PlaceholderInterno() },
-                    error = { PlaceholderInterno() }
-                )
-            }
-        }
-
-        // ❌ / 🔁 CANCELAR / RESTAURAR
-        if (valor != null || estaEliminada) {
-            Icon(
-                imageVector = if (estaEliminada) Icons.Default.Undo else Icons.Default.Close,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(6.dp)
-                    .size(22.dp)
-                    .background(
-                        Color.Black.copy(alpha = 0.6f),
-                        CircleShape
-                    )
-                    .clickable { onCancelarOEliminar() }
-                    .padding(4.dp)
-            )
-        }
-
-
-        // 🔍 EXPANDIR (solo si tiene URI o URL y NO está eliminada)
-        if (!estaEliminada && valor != null && (esUriLocal(valor) || esUrlRemota(valor))) {
-            Icon(
-                imageVector = Icons.Default.OpenInFull, // o ZoomOutMap
-                contentDescription = "Expandir imagen",
-                tint = Color.White,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(6.dp)
-                    .size(22.dp)
-                    .background(
-                        Color.Black.copy(alpha = 0.6f),
-                        CircleShape
-                    )
-                    .clickable {
-                        onExpandir?.invoke()
-                    }
-                    .padding(4.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun PlaceholderInterno() {
-    Image(
-        painter = painterResource(R.drawable.cargando_img_categorias),
-        contentDescription = null,
-        modifier = Modifier.fillMaxSize(),
-        contentScale = ContentScale.Crop
-    )
-}
-
-
-@RequiresApi(Build.VERSION_CODES.R)
-fun guardarCambiosImagenes(
-    tipo: String,
-    context: Context,
-    imagenes: List<String?>,
-    eliminadas: List<Int>,
-    imagenesOriginales: List<String?>,
-    idTienda: String,
-    localidad: String,
-    onFinish: (List<String>) -> Unit
-) {
-
-    val TAG = "GUARDAR_IMAGENES"
-    val storage = FirebaseStorage.getInstance().reference
-    val firestore = FirebaseFirestore.getInstance()
-
-    val nuevasUrls = imagenesOriginales.toMutableList()
-
-    // 🔢 total de operaciones (subidas + eliminaciones)
-    val totalOperaciones =
-        imagenes.count { esUriLocal(it) } + eliminadas.size
-
-    if (totalOperaciones == 0) {
-        onFinish(nuevasUrls.filterNotNull())
-        return
-    }
-
-    var operacionesCompletadas = 0
-
-    fun checkFinish() {
-        operacionesCompletadas++
-
-        if (operacionesCompletadas == totalOperaciones) {
-
-            val urlsFinales = nuevasUrls.filterNotNull()
-
-            // 🔥 actualizar Firestore UNA SOLA VEZ
-            firestore
-                .collection("Tiendas")
-                .document(localidad)
-                .collection(localidad)
-                .document(idTienda)
-                .update("img_tienda.lista_img.$tipo", urlsFinales)
-                .addOnSuccessListener {
-                    Log.d(TAG, "🔥 Firestore actualizado ($tipo)")
-                    onFinish(urlsFinales)
-                }
-                .addOnFailureListener {
-                    Log.e(TAG, "❌ Error Firestore", it)
-                    onFinish(urlsFinales) // devolvemos igual
-                }
-        }
-    }
-
-    // ===============================
-    // 1️⃣ SUBIR NUEVAS IMÁGENES
-    // ===============================
-    imagenes.forEachIndexed { index, valor ->
-        if (esUriLocal(valor)) {
-
-            val uri = Uri.parse(valor)
-            val bytes = procesarImagenWebPSinRecorte(context, uri)
-
-            val ref = storage
-                .child("tiendas/$idTienda/imagenes/$tipo/slot_$index.webp")
-
-            ref.putBytes(bytes)
-                .continueWithTask { ref.downloadUrl }
-                .addOnSuccessListener { downloadUrl ->
-                    nuevasUrls[index] = downloadUrl.toString()
-                    checkFinish()
-                }
-                .addOnFailureListener {
-                    Log.e(TAG, "❌ Error subiendo slot $index", it)
-                    checkFinish()
-                }
-        }
-    }
-
-    // ===============================
-    // 2️⃣ ELIMINAR IMÁGENES
-    // ===============================
-    eliminadas.forEach { index ->
-
-        val ref = storage
-            .child("tiendas/$idTienda/imagenes/$tipo/slot_$index.webp")
-
-        ref.delete()
-            .addOnSuccessListener {
-                nuevasUrls[index] = null
-                checkFinish()
-            }
-            .addOnFailureListener {
-                Log.e(TAG, "❌ Error eliminando slot $index", it)
-                nuevasUrls[index] = null
-                checkFinish()
-            }
-    }
-}
-
-
-
-
-
-fun guardarImagenesEnFirestore(
-    localidad: String,
-    idTienda: String,
-    tipo: String,
-    urls: List<String>,
-    onSuccess: () -> Unit = {},
-    onError: (Exception) -> Unit = {}
-) {
-    FirebaseFirestore.getInstance()
-        .collection("Tiendas")
-        .document(localidad)
-        .collection(localidad)
-        .document(idTienda)
-        .update("img_tienda.lista_img.$tipo", urls)
-        .addOnSuccessListener { onSuccess() }
-        .addOnFailureListener { e -> onError(e) }
-}
-
-
-
-
-@RequiresApi(Build.VERSION_CODES.R)
-fun procesarImagenWebPSinRecorte(
-    context: Context,
-    uri: Uri,
-    maxSize: Int = 1280, // 🔥 máximo lado
-    quality: Int = 80    // 🔥 alta calidad
-): ByteArray {
-
-    val inputStream = context.contentResolver.openInputStream(uri)
-    val bitmapOriginal = BitmapFactory.decodeStream(inputStream)
-        ?: throw IllegalArgumentException("No se pudo leer la imagen")
-
-    val width = bitmapOriginal.width
-    val height = bitmapOriginal.height
-
-    // 1️⃣ Escalar SOLO si es muy grande
-    val scale = if (width > height) {
-        if (width > maxSize) maxSize.toFloat() / width else 1f
-    } else {
-        if (height > maxSize) maxSize.toFloat() / height else 1f
-    }
-
-    val newWidth = (width * scale).toInt()
-    val newHeight = (height * scale).toInt()
-
-    val bitmapFinal = if (scale < 1f) {
-        Bitmap.createScaledBitmap(bitmapOriginal, newWidth, newHeight, true)
-    } else {
-        bitmapOriginal
-    }
-
-    // 2️⃣ Comprimir WebP
-    val output = ByteArrayOutputStream()
-    bitmapFinal.compress(
-        Bitmap.CompressFormat.WEBP_LOSSY,
-        quality,
-        output
-    )
-
-    return output.toByteArray()
-}
-
-
-
-
-

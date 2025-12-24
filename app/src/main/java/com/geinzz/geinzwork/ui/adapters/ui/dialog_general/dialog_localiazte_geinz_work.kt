@@ -235,8 +235,8 @@ fun dialog_qr_tienda(qr: String, nombre_tienda: String, onDismis: () -> Unit) {
         text = {
             FuenteControladaApp{
             generar_qr_ubi_tinda(
+                qr,
                 "Escanea el QR de la tienda para llegar a $nombre_tienda rápidamente. Recomendamos que actives tu ubicación antes de escanear.",
-                qr
             )
             }
         },

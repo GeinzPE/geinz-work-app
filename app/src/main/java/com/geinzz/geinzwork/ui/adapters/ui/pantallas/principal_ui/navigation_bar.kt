@@ -5,11 +5,14 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,7 +36,10 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,6 +64,9 @@ import com.geinzz.geinzwork.data.model.dataclass_review.datos_review
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.Items_menu
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.nav_item
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_aceptar_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerra_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -65,7 +74,9 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_Sheet_seguro
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_review
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
@@ -74,6 +85,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
+import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_review
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
@@ -84,6 +96,7 @@ import kotlinx.coroutines.launch
 
 private lateinit var firebaseAuth: FirebaseAuth
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("MissingPermission", "SuspiciousIndentation")
 @Composable
 fun bottom_navigation(
@@ -99,13 +112,14 @@ fun bottom_navigation(
         Items_menu.pantalla3,
         Items_menu.pantalla4
     )
-
+    val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
     val viewmodel: viewmodel_review = viewModel()
     var selected_item by remember { mutableIntStateOf(0) }
     var dialog_estas_tienda by remember { mutableStateOf(false) }
     var validacion_tienda_cordenadas by remember { mutableStateOf(false) }
     var bottom_sheet by remember { mutableStateOf(false) }
     var bottom_sheet_review_privado by remember { mutableStateOf(false) }
+    var botoom_sheet_perfil_user by remember { mutableStateOf(false) }
     var id_tienda_review by remember { mutableStateOf(data_class_review("", "")) }
     var id_tienda_params by remember { mutableStateOf("") }
     var localida_tienda by remember { mutableStateOf("") }
@@ -127,10 +141,28 @@ fun bottom_navigation(
 
     var datos_review by remember { mutableStateOf(datos_review()) }
     var esta_o_no_lugar by remember { mutableStateOf(false) }
-
+var Bottom_sheet_registrate by remember { mutableStateOf(false) }
     var mostar_snackvar_reivew by remember { mutableStateOf(false) }
     var scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
+    var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
+    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+
+    LaunchedEffect(botoom_sheet_perfil_user) {
+        if (botoom_sheet_perfil_user) {
+            viewModelFiltros.obtener_campos_tiendas_por_id(
+                localida_tienda,
+                id_tienda_params
+            )
+        }
+    }
+    LaunchedEffect(datosTienda) {
+        if (!datosTienda.isNullOrEmpty()) {
+            dataclass_tienda_seleccionada =
+                datosTienda!!.first()
+        }
+    }
     val startScanner = rememberLauncherForActivityResult(
         contract = ScanContract(),
         onResult = { result ->
@@ -159,6 +191,15 @@ fun bottom_navigation(
                     id_tienda_params=id_tienda
                         localida_tienda=localidad
                     bottom_sheet = true
+                },{id_tienda, localidad ->
+                    if(uid_respald_user.isNotEmpty()){
+                    botoom_sheet_perfil_user=true
+                    id_tienda_params=id_tienda
+                    localida_tienda=localidad
+                    }else{
+                        Bottom_sheet_registrate=true
+                    }
+
                 })
 
         }
@@ -379,42 +420,117 @@ fun bottom_navigation(
         )
     }
 
+
+    if(botoom_sheet_perfil_user){
+        bottom_sheet_tiendas_filtradas(
+            verificar_intener,
+            viewModelFiltros,
+            dataclass_tienda_seleccionada, botoom_sheet_perfil_user
+        ) {
+            botoom_sheet_perfil_user = false
+        }
+    }
+
+    if(Bottom_sheet_registrate){
+        bottom_sheet_registrate(
+            ondimis = {
+                Bottom_sheet_registrate=false
+            },
+            iniciar_seccion_normal = {
+                iniciar_seccion()
+                Bottom_sheet_registrate=false
+            },
+            crear_cuenta_geinz = {
+                crear_cuenta()
+                Bottom_sheet_registrate=false
+            },
+            texto_bottom_Sheet = "Inicia sesión para ver el perfil completo"
+        )
+    }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 private fun handleScanResult(
     context: Context,
     contenidoEscaneado: String?,
     crear_ruta: (lat: Double, long: Double) -> Unit,
     open_review_p: (id_Tienda: String, localidad: String, latitude: Double, longitude: Double) -> Unit,
-    open_review_public: (id_tienda: String, localidad: String) -> Unit
+    open_review_public: (id_tienda: String, localidad: String) -> Unit,
+    open_bottom_sheet_tieda:(id_tienda:String,localidad:String)->Unit
 ) {
+    val repo_erese_socio = repo_eres_socio()
     if (contenidoEscaneado.isNullOrEmpty()) {
         Toast.makeText(context, "Escaneo cancelado", Toast.LENGTH_SHORT).show()
         return
     }
     Log.d("conteinod_escamedo", contenidoEscaneado)
     try {
-        if (contenidoEscaneado.startsWith("Tienda|")) {
-            val base64Coordenadas = contenidoEscaneado.removePrefix("Tienda|")
-            val (lat, lng) = generar_qr_cordenadas_tienda.decodificarCoordenadas(base64Coordenadas)
-            crear_ruta(lat, lng)
-        } else if (contenidoEscaneado.startsWith("Review_C|")) {
-            val partes = contenidoEscaneado.split("|")
-            if (partes.size >= 4) {
-                val idTienda = partes[1]
-                val base64Coordenadas = partes[3]
-                val (lat, lng) = generar_qr_cordenadas_tienda.decodificarCoordenadas(
-                    base64Coordenadas
-                )
-                open_review_p(idTienda, "barranca", lat, lng)
-            } else {
-                Toast.makeText(context, "Formato QR inválido", Toast.LENGTH_SHORT).show()
+        if (contenidoEscaneado.startsWith("https://geinzworkapp.web.app/share")) {
+
+            val uri = Uri.parse(contenidoEscaneado)
+
+            val tipo = uri.getQueryParameter("t") ?: ""
+            val idTienda = uri.getQueryParameter("id") ?: ""
+            val base64Coordenadas = uri.getQueryParameter("cor") ?: ""
+            val localidad = uri.getQueryParameter("loc") ?: ""
+
+            when(tipo){
+                "ru"->{
+                    if (base64Coordenadas.isNotEmpty() && idTienda.isNotEmpty()) {
+                        val (lat, lng) =
+                            generar_qr_cordenadas_tienda.decodificarCoordenadas(base64Coordenadas)
+
+                        crear_ruta(lat, lng)
+
+                        repo_erese_socio.agregar_contador(
+                            "crear_ruta_qr",
+                            idTienda,
+                            "barranca"
+                        )
+
+                        repo_erese_socio.agregar_contador(
+                            "crear_ruta",
+                            idTienda,
+                            "barranca"
+                        )
+                    }
+                }
+                "rewc"->{
+
+                        val (lat, lng) = generar_qr_cordenadas_tienda.decodificarCoordenadas(
+                            base64Coordenadas
+                        )
+                        open_review_p(idTienda, "barranca", lat, lng)
+                        repo_erese_socio.agregar_contador(
+                            "review_c_qr",
+                            idTienda,
+                            "barranca"
+                        )
+                }
+                "rew"->{
+                    open_review_public(idTienda, "barranca")
+                    repo_erese_socio.agregar_contador(
+                        "review_qr",
+                        idTienda,
+                        "barranca"
+                    )
+                }
+                "prf"->{
+                    open_bottom_sheet_tieda(idTienda,localidad)
+                    Log.d("cordanasd","$idTienda y el localidad es $localidad")
+
+                    repo_erese_socio.agregar_contador(
+                        "perfil_qr",
+                        idTienda,
+                        localidad
+                    )
+                }
+                else->{
+                    Log.d("Scanner", "Otro tipo de QR: $contenidoEscaneado")
+                }
             }
 
-        } else if (contenidoEscaneado.startsWith("Review|")) {
-            val base64Coordenadas = contenidoEscaneado.removePrefix("Review|")
-            open_review_public(base64Coordenadas, "barranca")
-        } else {
+        }else{
             Log.d("Scanner", "Otro tipo de QR: $contenidoEscaneado")
         }
     } catch (e: Exception) {

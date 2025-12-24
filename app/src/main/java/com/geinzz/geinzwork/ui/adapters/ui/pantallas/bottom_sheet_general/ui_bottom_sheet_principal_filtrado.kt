@@ -403,6 +403,7 @@ fun bottom_sheet_tiendas_filtradas(
                         }
                         item {
                             cabezero_tiendas(
+                                tiendas_filtradas.metodo_contacto_tienda.whatsapp.numero,
                                 distanciaUsuarioTienda = distanciaUsuarioTienda,
                                 nombreTienda = tiendas_filtradas.nombre_tienda,
                                 logo_tienda_img = tiendas_filtradas.img_perfil,
@@ -637,6 +638,7 @@ fun bottom_sheet_tiendas_filtradas(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun cabezero_tiendas(
+    numero_tienda:String,
     distanciaUsuarioTienda: Float?,
     nombreTienda: String, logo_tienda_img: String,
     iconos_cosas_clikeables: Boolean,
@@ -658,6 +660,7 @@ fun cabezero_tiendas(
     lista_img: obtener_img_tiendas,
     lista_tags: List<String>, guaradar_select: (Boolean) -> Unit, resetear_estado_loo: () -> Unit
 ) {
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
@@ -771,7 +774,7 @@ fun cabezero_tiendas(
                 // 🔹 COLLAGE (ocupa lo que necesite)
                 if (lista_img.lista_promociones.isNotEmpty()) {
                     CollageGoogleMapsStyle_sin_scroll(
-                        compartir_promocion(id_tienda,localidad, URLEncoder.encode(categoritienda, "UTF-8")),
+                        compartir_promocion(id_tienda,localidad, URLEncoder.encode(categoritienda, "UTF-8"),numero_tienda),
                         "promociones",
                         1.1f,
                         imagenes = lista_img.lista_promociones
@@ -914,7 +917,7 @@ fun perfil_img_zooom(
             ) {
                 distanciaUsuarioTienda?.let { distancia ->
                     Text(
-                        text = "Aproximadamente a ${formatDistancia(distancia)}.",
+                        text = "Aproximadamente a ${formatDistancia(distancia)}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White, modifier = Modifier.padding(7.dp)
                     )
@@ -1009,7 +1012,7 @@ fun perfil_cabezero(
                 viewModelFiltros.setear_color(color)
             })
         spacer_vertical(5.dp)
-//     TextoCopiable(id_tienda)
+//        TextoCopiable(id_tienda)
         text_expandible_wrapp(
             texto = "${categoritienda.capitalizeFirst()}",
             style = MaterialTheme.typography.bodyMedium
@@ -1286,9 +1289,10 @@ fun Expandible_Metodo_contacto(
                 ) {
                     if (metodos_contactos.whatsapp.estado) {
                         item_metodo_contacto(
-                            iconos_cosas_clikeables,
-                            R.drawable.whatsapp_icon,
-                            constantes_lista_localidades.ocultarNumero(metodos_contactos.whatsapp.numero)
+                            tipo = "whatsapp",
+                            clikeable_estado = iconos_cosas_clikeables,
+                            icono_red = R.drawable.whatsapp_icon,
+                            texto = metodos_contactos.whatsapp.numero
                         ) {
                             abrir_whattsapp(
                                 "tienda", id_tienda,
@@ -1298,9 +1302,10 @@ fun Expandible_Metodo_contacto(
                     }
                     if (metodos_contactos.llamada.estado) {
                         item_metodo_contacto(
-                            iconos_cosas_clikeables,
-                            R.drawable.llamada_icon,
-                            constantes_lista_localidades.ocultarNumero(metodos_contactos.llamada.numero)
+                            "llamada",
+                            clikeable_estado = iconos_cosas_clikeables,
+                            icono_red = R.drawable.llamada_icon,
+                            texto = metodos_contactos.llamada.numero
                         ) {
                             llamar(
                                 "tienda", id_tienda,
@@ -1312,9 +1317,10 @@ fun Expandible_Metodo_contacto(
                     }
                     if (metodos_contactos.tiktok.estado) {
                         item_metodo_contacto(
-                            iconos_cosas_clikeables,
-                            R.drawable.tik_tok_icon,
-                            metodos_contactos.tiktok.nombre
+                            "tk",
+                            clikeable_estado = iconos_cosas_clikeables,
+                            icono_red = R.drawable.tik_tok_icon,
+                            texto = metodos_contactos.tiktok.nombre
                         ) {
                             openTiktok(
                                 "Tienda",
@@ -1325,9 +1331,10 @@ fun Expandible_Metodo_contacto(
                     }
                     if (metodos_contactos.sitio_web.estado) {
                         item_metodo_contacto(
-                            iconos_cosas_clikeables,
-                            R.drawable.web_icon,
-                            metodos_contactos.sitio_web.nombre
+                            "web",
+                            clikeable_estado = iconos_cosas_clikeables,
+                            icono_red = R.drawable.web_icon,
+                            texto = metodos_contactos.sitio_web.nombre
                         ) {
                             openWebLink(
                                 context, metodos_contactos.sitio_web.url, id_tienda,
@@ -1337,9 +1344,10 @@ fun Expandible_Metodo_contacto(
                     }
                     if (metodos_contactos.instagram.estado) {
                         item_metodo_contacto(
-                            iconos_cosas_clikeables,
-                            R.drawable.instagram_icon,
-                            metodos_contactos.instagram.nombre
+                            "ig",
+                            clikeable_estado = iconos_cosas_clikeables,
+                            icono_red = R.drawable.instagram_icon,
+                            texto = metodos_contactos.instagram.nombre
                         ) {
                             openInstagram(
                                 "Tienda",
@@ -1352,9 +1360,10 @@ fun Expandible_Metodo_contacto(
                     }
                     if (metodos_contactos.facebook.estado) {
                         item_metodo_contacto(
-                            iconos_cosas_clikeables,
-                            R.drawable.facebook_icon,
-                            metodos_contactos.facebook.nombre
+                            "fb",
+                            clikeable_estado = iconos_cosas_clikeables,
+                            icono_red = R.drawable.facebook_icon,
+                            texto = metodos_contactos.facebook.nombre
                         ) {
                             openFacebook(
                                 "Tienda",
@@ -1410,8 +1419,8 @@ fun Expandible_qr_tienda(
                     )
             ) {
                 generar_qr_ubi_tinda(
+                    generar_qr_tienda_id,
                     "¡Tu opinión cuenta! Escanea este código con Geinz y deja tu reseña sobre tu experiencia en esta tienda Geinz verificará tu ubicación para confirmar que estuviste aquí y mantener reseñas auténticas.",
-                    generar_qr_tienda_id
                 )
             }
         }
@@ -1590,6 +1599,7 @@ fun car_metodos_de_pago(img: Int, nombre: String, listener: () -> Unit) {
 
 @Composable
 fun item_metodo_contacto(
+    tipo:String,
     clikeable_estado: Boolean,
     icono_red: Int,
     texto: String,
@@ -1620,7 +1630,9 @@ fun item_metodo_contacto(
             )
             spacer_horizonta(10.dp)
             Text(
-                text = texto,
+                text = if(tipo.equals("whatsapp") || tipo.equals("llamada")){constantes_lista_localidades.ocultarNumero(texto)}else{
+                    texto
+                },
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,

@@ -166,7 +166,7 @@ private lateinit var firebaseAuth: FirebaseAuth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun pantalla_principal(
-    deepLinkVM:DeepLinkViewModel,
+    deepLinkVM: DeepLinkViewModel,
     isConnected: Boolean,
     datos_principales_user: datos_principales_user,
     categorias: (localidad: String, nombre_user: String) -> Unit,
@@ -179,7 +179,7 @@ fun pantalla_principal(
     mostrar_panel_geinz: () -> Unit,
     mostar_nuevos_lugares_geinz: (String) -> Unit,
     iniciar_seccion: () -> Unit,
-    crear_cuenta: () -> Unit
+    crear_cuenta: () -> Unit, abir_butom_Var: () -> Unit, cerrar_buttom_var: () -> Unit
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -224,9 +224,10 @@ fun pantalla_principal(
 
     var mostrarDialog by remember { mutableStateOf(false) }
 
+
     LaunchedEffect(promo) {
         mostrarDialog = promo != null
-        Log.d("dialogamoistra","$promo")
+        Log.d("dialogamoistra", "$promo")
     }
 
     LaunchedEffect(_categorias_tiendas) {
@@ -593,22 +594,23 @@ fun pantalla_principal(
                             verificar_interner = isConnected,
                             item = items,
                             mostrar_datos = { it_tienda ->
-                                if(isConnected){
-                                if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
-                                    mostrar_bottom_sheet_lugares = true
-                                    id_tienda_select = it_tienda
+                                if (isConnected) {
+                                    if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
+                                        mostrar_bottom_sheet_lugares = true
+                                        id_tienda_select = it_tienda
+                                    } else {
+                                        bottom_sheet_iniciar_seccion = true
+                                        texto_falta_registra =
+                                            "Regístrate para ver los detalles completos y las funciones exclusivas"
+                                    }
                                 } else {
-                                    bottom_sheet_iniciar_seccion = true
-                                    texto_falta_registra =
-                                        "Regístrate para ver los detalles completos y las funciones exclusivas"
-                                }
-                                }else{
                                     scope.launch {
                                         snackbarHostState.showSnackbar(
                                             message = "Verifica tu conexión a internet y vuelvelo a intentar",
                                             duration = SnackbarDuration.Short
                                         )
-                                    }                                }
+                                    }
+                                }
                             },
                             dialog_sin_registrao = {
                                 bottom_sheet_iniciar_seccion = true
@@ -690,18 +692,24 @@ fun pantalla_principal(
         )
 
         promo?.let { p ->
-            if (mostrarDialog) {
-                AnimatedVisibility(true, enter = fadeIn(), exit = fadeOut()) {
-                    dialog_promociones_negocios(
-                        id_tienda = p.id_tienda,
-                        localidad = p.lugar,
-                        index = p.index.toInt(),
-                        onDismiss = {
-                            mostrarDialog = false
+            AnimatedVisibility(
+                visible = mostrarDialog,
+                enter = fadeIn(animationSpec = tween(300)),
+                exit = fadeOut(animationSpec = tween(300))
+            ) {
+                cerrar_buttom_var()
+                dialog_promociones_negocios(
+                    isConnected,
+                    id_tienda = p.id_tienda,
+                    localidad = p.lugar,
+                    index = p.index.toInt(),
+                    onDismiss = {
+                        mostrarDialog = false
                             deepLinkVM.clearPromo()
-                        }
-                    )
-                }
+                            abir_butom_Var()
+
+                    }
+                )
             }
         }
 

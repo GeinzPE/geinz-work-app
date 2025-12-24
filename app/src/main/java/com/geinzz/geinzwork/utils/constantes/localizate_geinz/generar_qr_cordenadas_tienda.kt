@@ -3,6 +3,7 @@ package com.geinzz.geinzwork.utils.constantes.localizate_geinz
 
 import android.util.Base64
 import android.util.Log
+import java.net.URLEncoder
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -46,16 +47,25 @@ object generar_qr_cordenadas_tienda {
         return String(plain, Charsets.UTF_8)
     }
 
-    fun codificarCoordenadas(lat: Double, lng: Double): String {
+    fun codificarCoordenadas(lat: Double, lng: Double,id_tienda:String): String {
             Log.d("lat_dog","${lat} ${lng}")
         val coordenadasCodificadas = Base64.encodeToString("$lat,$lng".toByteArray(), Base64.NO_WRAP)
-        return "Tienda|$coordenadasCodificadas"
+        return "Tienda|$coordenadasCodificadas|id|$id_tienda"
+    }
+    fun codificarCoordenadas_url(lat: Double, lng: Double,id_tienda:String): String {
+        Log.d("lat_dog","${lat} ${lng}")
+        val coordenadasCodificadas = Base64.encodeToString("$lat,$lng".toByteArray(), Base64.NO_WRAP)
+        return "https://geinzworkapp.web.app/share?" +
+                "t=ru&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
+                "&cor=${URLEncoder.encode(coordenadasCodificadas, "UTF-8")}"
     }
 
     fun retornar_id_Tienda_lugar(id: String,lat: Double, lng: Double): String{
         val coordenadasCodificadas = Base64.encodeToString("$lat,$lng".toByteArray(), Base64.NO_WRAP)
-
-        return "Review_C|$id|Tienda|$coordenadasCodificadas"
+        return "https://geinzworkapp.web.app/share?" +
+                "t=rewc&id=${URLEncoder.encode(id, "UTF-8")}" +
+                "&cor=${URLEncoder.encode(coordenadasCodificadas, "UTF-8")}"
+//        return "Review_C|$id|Tienda|$coordenadasCodificadas"
     }
 
     fun decodificarCoordenadas(data: String): Pair<Double, Double> {

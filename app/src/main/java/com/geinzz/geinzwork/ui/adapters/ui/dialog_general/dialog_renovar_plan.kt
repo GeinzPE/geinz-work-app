@@ -92,18 +92,18 @@ data class Descuentos(
 val lista_descuentos = listOf(
 
     Descuentos(
-        meses = "14 días",
+        meses = "20 días",
         icono_descuento = null,
         descuento_off = "",
         precio_anterior = "",
         procentaje_ahorro = "",
-        porcentaje_int = 0, meses_agregados = "14 días"
+        porcentaje_int = 0, meses_agregados = "20 días"
     ),
     Descuentos(
         meses = "1 mes",
         icono_descuento = Icons.Filled.LocalFireDepartment,
         descuento_off = "-5%off",
-        precio_anterior = "1500",
+        precio_anterior = "1420",
         procentaje_ahorro = "5%",
         porcentaje_int = 5, "1 mes"
     ),

@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado
 
 
 import android.Manifest
+
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -56,6 +57,8 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -86,6 +89,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
@@ -114,6 +120,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -122,6 +129,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.zIndex
@@ -141,10 +149,13 @@ import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.data.model.datos_tienda_fechas
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
+import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.widget_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_cantidad_slado_geinz
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_renovar_plan
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.eres_socio_geinz
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.item_metodos_de_pago
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
@@ -155,6 +166,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.a
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.construirBloques
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.motivos
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerDiasYColor
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.onSwitchChange
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.end_shadow_bottom_sheet_default
@@ -164,14 +176,18 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.start_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
+import com.google.zxing.EncodeHintType
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
 
 
+
 @Composable
 fun custom_texFiel(
+    rounder: Int = 50,
     value: String,
     onValueChange: (String) -> Unit,
     labelText: String,
@@ -187,7 +203,7 @@ fun custom_texFiel(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(50),
+        shape = RoundedCornerShape(rounder),
         label = { retornar_pleaceholder_label(labelText) },
         placeholder = { retornar_pleaceholder_label(placeholderText) },
         trailingIcon = trailingIcon,
@@ -577,293 +593,7 @@ fun expandibles_wrapp(
 }
 
 
-@Composable
-fun expandibles_wrapp_socio_geinzz(
-    lsita_datos: List<datos_grafico>,
-    txtdescpcion: String,
-    texto_params: String,
-    expandido: Boolean,
-    onClickExpand: () -> Unit
-) {
-    ConstraintLayout(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(horizontal = 10.dp, vertical = 15.dp)
-    ) {
-        val (texto, btn) = createRefs()
-        LazyRow(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(15.dp),
-            modifier = Modifier
-                .constrainAs(texto) {
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
-                }
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }) {
-                    onClickExpand()
-                }) {
 
-            item {
-
-                AnimatedContent(
-                    targetState = expandido, transitionSpec = {
-                        fadeIn() togetherWith fadeOut()
-                    }) { estado ->
-
-                    if (!estado) {
-
-                        // COMO NO ESTÁS EN EL SCOPE DEL LAZYROW
-                        // NO PUEDES USAR items()
-                        // → debes usar Column/Row/FlowRow
-
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(15.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            lsita_datos.forEach { i ->
-                                campos_datos_graficos(i)
-                            }
-                        }
-
-                    } else {
-
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .fillParentMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            texto_generico_one_line(
-                                texto_params, style = MaterialTheme.typography.titleLarge
-                            )
-                            spacer_vertical(10.dp)
-                            texto_generico_multilinea(
-                                txtdescpcion,
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(horizontal = 10.dp)
-                            )
-                        }
-
-                    }
-                }
-            }
-        }
-
-    }
-}
-
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun expandibles_wrapp_socio_geinzz_datos_tienda(
-    viewModelFiltros: viewmodel_eres_socio,
-    context: Context,
-    expandido: Boolean,
-    datos_tienda_fechas: datos_tienda_fechas,
-    onClickExpand: () -> Unit
-) {
-    var por_renovar by remember { mutableStateOf(false) }
-    ConstraintLayout(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(horizontal = 10.dp, vertical = 15.dp)
-    ) {
-
-        val (texto, btn) = createRefs()
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(15.dp),
-            modifier = Modifier.constrainAs(texto) {
-                top.linkTo(parent.top)
-                bottom.linkTo(parent.bottom)
-            }
-
-        ) {
-
-            item {
-
-                AnimatedContent(
-                    targetState = expandido, transitionSpec = {
-                        fadeIn() togetherWith fadeOut()
-                    }) { estado ->
-
-                    if (!estado) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() }) {
-                                    onClickExpand()
-                                }) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(5.dp)
-                            ) {
-                                texto_generico_one_line(
-                                    "Datos,fechas y saldo: ",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                texto_generico_one_line(
-                                    "${datos_tienda_fechas.dias_restantes} días para la renovación del plan.",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = datos_tienda_fechas.color
-                                )
-                            }
-                        }
-
-                    } else {
-
-                        // 🔹 Vista expandida (tu contenido original)
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .fillParentMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable(
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }) {
-                                        onClickExpand()
-                                    }, contentAlignment = Alignment.Center
-                            ) {
-                                texto_generico_one_line(
-                                    "Datos,fechas y saldo",
-                                    style = MaterialTheme.typography.titleLarge
-                                )
-                                spacer_vertical(5.dp)
-                            }
-
-                            spacer_vertical(7.dp)
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier.padding(
-                                    start = 5.dp, bottom = 5.dp, end = 10.dp
-                                )
-                            ) {
-
-                                texto_generico_one_line(
-                                    "ID :${datos_tienda_fechas.id_tienda}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Image(
-                                    painter = painterResource(R.drawable.baseline_content_copy_24),
-                                    contentDescription = "",
-                                    modifier = Modifier
-                                        .size(20.dp)
-                                        .clickable(
-                                            indication = null,
-                                            interactionSource = remember { MutableInteractionSource() }) {
-                                            constantestextos_general.copiarTexto_portapapeles_compouse(
-                                                datos_tienda_fechas.id_tienda, context
-                                            )
-                                        })
-                            }
-
-                            Text(
-                                buildAnnotatedString {
-                                    append("Tipo de plan : ")
-                                    withStyle(style = SpanStyle(color = Color(0xFFFFD700))) {
-                                        append("Premium")
-                                    }
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White,
-                                modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
-                            )
-
-                            texto_generico_one_line(
-                                "fecha de inicio :${datos_tienda_fechas.fecha_ingreso}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
-                            )
-
-                            texto_generico_one_line(
-                                "fecha de finalizacion :${datos_tienda_fechas.fecha_termino}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
-                            )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                                modifier = Modifier.padding(start = 5.dp)
-                            ) {
-                                texto_generico_one_line(
-                                    "Saldo disponible",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-
-                                texto_generico_one_line(
-                                    datos_tienda_fechas.saldo_cuenta_tienda,
-                                )
-
-                                Image(
-                                    painter = painterResource(R.drawable.icon_monedas_3d),
-                                    contentDescription = "saldo",
-                                    modifier = Modifier.size(20.dp)
-                                )
-
-                            }
-
-                            texto_generico_one_line(
-                                "${datos_tienda_fechas.dias_restantes} días para la renovación del plan.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = datos_tienda_fechas.color,
-                                modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
-                            )
-
-
-
-                            if (datos_tienda_fechas.dias_restantes == "0") {
-
-                                Box(
-                                    modifier = Modifier
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary)
-                                        .clickable {
-                                            por_renovar = true
-                                        }
-                                ) {
-                                    texto_generico_one_line(
-                                        "Renovar plan",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier.padding(
-                                            horizontal = 15.dp,
-                                            vertical = 10.dp
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    if (por_renovar) {
-        dialog_renovar_plan(
-            datos_tienda_fechas.saldo_cuenta_tienda?.toLongOrNull() ?: 0L,
-            { por_renovar = !por_renovar },
-            { total_cancelar, meses_agregados ->
-                viewModelFiltros.descontar_puntos(
-                    localidad_tienda = "barranca",
-                    id_tienda = datos_tienda_fechas.id_tienda,
-                    puntos_descuento = total_cancelar.toInt(),
-                    meses_agregados = meses_agregados
-                )
-            })
-    }
-}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -1007,42 +737,7 @@ fun text_expandible_wrapp(
     )
 }
 
-@Composable
-fun generar_qr_ubi_tinda(
-    bottom_text: String, content: String, sizeDp: Int = 200, modifier: Modifier = Modifier
-) {
-    val bitmap = rememberSaveable(content) {
-        val dimension = 512
-        val writer = QRCodeWriter()
-        val bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, dimension, dimension)
-        val bmp = Bitmap.createBitmap(dimension, dimension, Bitmap.Config.ARGB_8888)
-        for (x in 0 until dimension) {
-            for (y in 0 until dimension) {
-                val color =
-                    if (bitMatrix[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE
-                bmp.setPixel(x, y, color)
-            }
-        }
-        bmp
-    }
-    Column(
-        verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            bitmap = bitmap.asImageBitmap(),
-            contentDescription = "QR Code",
-            modifier = modifier
-                .size(sizeDp.dp)
-                .clip(RoundedCornerShape(30f)),
-            contentScale = ContentScale.Fit
 
-        )
-        spacer_vertical(10.dp)
-        texto_generico_multilinea(
-            bottom_text, MaterialTheme.typography.bodyMedium
-        )
-    }
-}
 
 @Composable
 fun btn_clasico_shap_50f(text: String, onClick: () -> Unit) {
@@ -1203,7 +898,13 @@ fun titulo_referenciales_geinz_work(texto: String, texto_subrallado: String, lis
 //        texto_generico_one_line(
 //            texto, MaterialTheme.typography.textosTituloGeinzWork, modifier = Modifier.weight(1f)
 //        )
-        Text(texto, fontFamily = baners_geinz_work, color = Color.White, fontSize = 17.sp, modifier = Modifier.weight(1f))
+        Text(
+            texto,
+            fontFamily = baners_geinz_work,
+            color = Color.White,
+            fontSize = 17.sp,
+            modifier = Modifier.weight(1f)
+        )
         TextoSubrayado(
             texto = texto_subrallado,
             style = MaterialTheme.typography.bodySmall,
@@ -2053,8 +1754,8 @@ fun baner_widget_tienda_geinz_baner(
     horas_de_trabajo: String,
     bloques_hoy: List<HorarioBloque>,
     tick: Long,
-    swtch_motivocieere_activo_desactivado:(Boolean)-> Unit,
-    retornar_motivo_cierre_vacio:(String)-> Unit,
+    swtch_motivocieere_activo_desactivado: (Boolean) -> Unit,
+    retornar_motivo_cierre_vacio: (String) -> Unit,
     sin_activar_horario: () -> Unit,
     sin_acceso_motivo_cierre: () -> Unit,
     sin_acceso_horario: () -> Unit,
@@ -2188,7 +1889,8 @@ fun baner_widget_tienda_geinz_baner(
                 .weight(1.7f)
                 .clip(RoundedCornerShape(15.dp))
                 .background(Color(0xFF1A1A1A))
-                .padding(10.dp).animateContentSize(),
+                .padding(10.dp)
+                .animateContentSize(),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
@@ -2455,7 +2157,7 @@ fun baner_widget_tienda_geinz_baner(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1.7f)
-            ){
+            ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .memoryCachePolicy(CachePolicy.ENABLED)
@@ -2613,7 +2315,6 @@ fun compartir_link_tienda(
 
     context.startActivity(Intent.createChooser(intent, "Compartir con"))
 }
-
 
 
 @Composable

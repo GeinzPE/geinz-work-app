@@ -97,6 +97,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.Horario
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_metodo_individual
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.obtener_img_tiendas
+import com.geinzz.geinzwork.data.model.servicio_comodidad
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationCallback
@@ -2295,6 +2296,20 @@ object constantes_lista_localidades {
             sitio_web = (this?.get("sitio_web") as? Map<String, Any>).toRed()
         )
     }
+
+    fun List<Map<String, Any>>?.toMetodoservicios_comodidades(): List<servicio_comodidad> {
+        return this?.mapNotNull { it.toServicioComodidad() } ?: emptyList()
+    }
+
+    fun Map<String, Any>.toServicioComodidad(): servicio_comodidad {
+        val entry = this.entries.first()
+
+        return servicio_comodidad(
+            nombre = entry.key,
+            estado = entry.value as? Boolean ?: false
+        )
+    }
+
 
     fun Map<String, Any>?.to_metodo_pago(): modelo_pagos_tienda {
         if (this == null) return modelo_pagos_tienda()

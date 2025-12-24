@@ -69,6 +69,15 @@ data class modelo_pagos_tienda(
     val yape: modelo_metodo_individual = modelo_metodo_individual()
 ): Parcelable
 
+
+@Parcelize
+data class modelos_comodidades(
+    val tipo :String,
+    val activo : Boolean
+): Parcelable
+
+
+
 @Parcelize
 data class modelo_metodo_individual(
     val numero: String="",
