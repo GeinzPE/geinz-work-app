@@ -82,41 +82,22 @@ exports.enviarNotificacion = onRequest(async (req, res) => {
 
 
 // ==================== SHARE (Tienda + Turismo) ====================
+// ==================== SHARE (Tienda + Turismo + Otros) ====================
 exports.share = onRequest(async (req, res) => {
   try {
-    // ============================
-    //   PARÁMETROS (cortos / largos)
-    // ============================
-    const tipoRaw =
-      req.query.t ||
-      req.query.tipo; // ti | p | tu | tienda | promo | turismo
 
+    // ============================
+    //        PARÁMETROS
+    // ============================
+    const tipo = req.query.t || req.query.tipo; // SIEMPRE CORTO
     const id = req.query.id;
 
-    const localidadRaw =
-      req.query.l ||
-      req.query.localidad;
-
-    const categoria =
-      req.query.c ||
-      req.query.categoria;
-
-    const indice = parseInt(
-      req.query.i ||
-      req.query.indice
-    );
+    const localidadRaw = req.query.l || req.query.localidad;
+    const categoria = req.query.c || req.query.categoria;
+    const indice = parseInt(req.query.i || req.query.indice);
 
     // ============================
-    //   NORMALIZAR TIPO
-    // ============================
-    let tipo = tipoRaw;
-
-    if (tipoRaw === "ti") tipo = "tienda";
-    else if (tipoRaw === "p") tipo = "promo";
-    else if (tipoRaw === "tu") tipo = "turismo";
-
-    // ============================
-    //   MAPA LOCALIDADES
+    //        MAPA LOCALIDADES
     // ============================
     const MAPA_LOCALIDADES = {
       ba: "barranca",
@@ -126,104 +107,129 @@ exports.share = onRequest(async (req, res) => {
       pue: "puerto supe"
     };
 
-    const localidad =
-      MAPA_LOCALIDADES[localidadRaw] || localidadRaw;
+    const localidad = MAPA_LOCALIDADES[localidadRaw] || localidadRaw;
 
     // ============================
-    //      VALIDACIÓN BÁSICA
+    //        VALIDACIÓN BASE
     // ============================
-    if (!tipo || !id || !localidad || !categoria) {
+    if (!tipo || !id) {
       return res
         .status(400)
-        .send("Faltan parámetros: tipo, id, localidad, categoria.");
+        .send("Faltan parámetros obligatorios: tipo, id.");
     }
 
-    let ref;
+    // ============================
+    //   TIPOS QUE NO USAN LOCALIDAD
+    // ============================
+    const TIPOS_SIN_LOCALIDAD = [
+      "rew",
+      "rewc",
+      "ru",
+      "prf"
+    ];
+
+    if (
+      !TIPOS_SIN_LOCALIDAD.includes(tipo) &&
+      (!localidad || !categoria)
+    ) {
+      return res
+        .status(400)
+        .send("Faltan parámetros: localidad, categoria.");
+    }
+
+    let ref = null;
+    let data = null;
 
     // ============================
-    //   SELECCIÓN FIRESTORE
+    //     SELECCIÓN FIRESTORE
     // ============================
-    if (tipo === "tienda" || tipo === "promo") {
+    if (tipo === "ti" || tipo === "p") {
       ref = admin.firestore()
         .collection("Tiendas")
         .doc(localidad)
         .collection(localidad)
         .doc(id);
     }
-    else if (tipo === "turismo") {
+    else if (tipo === "tu") {
       ref = admin.firestore()
         .collection("Tiendas")
         .doc(localidad)
         .collection(categoria)
         .doc(id);
     }
-    else {
-      return res.status(400).send("Tipo inválido.");
+    // rew | rewc | ru | prf → NO FIRESTORE
+
+    if (ref) {
+      const snap = await ref.get();
+      if (!snap.exists) {
+        return res
+          .status(404)
+          .send("No existe el documento solicitado.");
+      }
+      data = snap.data();
     }
 
-    const snap = await ref.get();
-    if (!snap.exists) {
-      return res.status(404).send("No existe el documento solicitado.");
+    // ============================
+    //            TÍTULO
+    // ============================
+    let titulo = "Geinz";
+
+    if (data) {
+      if (tipo === "ti" || tipo === "p") {
+        titulo = capitalizeFirstLetter(
+          data.nombre_tienda || "Tienda en Geinz"
+        );
+      }
+      else if (tipo === "tu") {
+        titulo = capitalizeFirstLetter(
+          data.nombre || "Lugar en Geinz"
+        );
+      }
     }
 
-    const data = snap.data();
-
     // ============================
-    //          TÍTULO
-    // ============================
-    const titulo =
-      tipo === "tienda" || tipo === "promo"
-        ? capitalizeFirstLetter(data.nombre_tienda || "Tienda en Geinz")
-        : capitalizeFirstLetter(data.nombre || "Lugar turístico en Geinz");
-
-    // ============================
-    //          IMAGEN
-    // (NO SE TOCA TU ESTRUCTURA)
+    //            IMAGEN
     // ============================
     let imagen = "https://geinzworkapp.web.app/default.jpg";
 
-    if (tipo === "tienda") {
-      if (data.img_tienda && data.img_tienda.logo_tienda) {
+    if (data) {
+      if (tipo === "ti" && data.img_tienda?.logo_tienda) {
         imagen = data.img_tienda.logo_tienda;
       }
-    }
-    else if (tipo === "turismo") {
-      if (data.img && data.img.principal) {
+      else if (tipo === "tu" && data.img?.principal) {
         imagen = data.img.principal;
       }
-    }
-    else if (tipo === "promo") {
-      const promos =
-        data.img_tienda &&
-        data.img_tienda.lista_img &&
-        data.img_tienda.lista_img.promociones;
+      else if (tipo === "p") {
+        const promos = data.img_tienda?.lista_img?.promociones;
 
-      if (
-        promos &&
-        Array.isArray(promos) &&
-        indice >= 0 &&
-        indice < promos.length
-      ) {
-        imagen = promos[indice];
-      }
-      else if (data.img_tienda && data.img_tienda.logo_tienda) {
-        imagen = data.img_tienda.logo_tienda;
+        if (
+          promos &&
+          Array.isArray(promos) &&
+          !isNaN(indice) &&
+          indice >= 0 &&
+          indice < promos.length
+        ) {
+          imagen = promos[indice];
+        }
+        else if (data.img_tienda?.logo_tienda) {
+          imagen = data.img_tienda.logo_tienda;
+        }
       }
     }
 
     // ============================
-    //       URL DESTINO WEB
+    //        URL DESTINO
     // ============================
-    let destino =
-      `https://geinzworkapp.web.app/${tipo}` +
-      `?id=${id}&localidad=${localidad}&categoria=${categoria}`;
+    let destino = `https://geinzworkapp.web.app/${tipo}?id=${id}`;
 
-    if (tipo === "promo" && !isNaN(indice)) {
+    if (localidad) destino += `&localidad=${localidad}`;
+    if (categoria) destino += `&categoria=${categoria}`;
+    if (tipo === "p" && !isNaN(indice)) {
       destino += `&indice=${indice}`;
     }
 
     // ============================
-    //        HTML + META TAGS
+    //        HTML + META
     // ============================
     const html = `
       <html>
@@ -251,6 +257,8 @@ exports.share = onRequest(async (req, res) => {
     res.status(500).send("Error interno");
   }
 });
+
+
 
 
 function capitalizeFirstLetter(str) {
