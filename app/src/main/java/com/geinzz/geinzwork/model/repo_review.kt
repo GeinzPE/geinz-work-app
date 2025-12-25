@@ -1,17 +1,27 @@
 package com.geinzz.geinzwork.model
 
+import android.content.Context
+import android.net.Uri
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
 import com.geinzz.geinzwork.data.model.dataclass_review.data_class_resultado_tienda_lugar
 import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
 import com.geinzz.geinzwork.data.model.dataclass_review.datos_review
 import com.geinzz.geinzwork.data.model.dataclass_review.datos_review_existenet
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerProximoDiaAbierto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
+import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.storage.storage
 import kotlinx.coroutines.tasks.await
 import java.util.Calendar
+import java.util.UUID
 
 class repo_review {
     val db = FirebaseFirestore.getInstance()
@@ -61,7 +71,7 @@ class repo_review {
                     id = data_class_review.id_tienda_lugar,
                     nombre = nombre_tienda_lugar,
                     imagen = img_LT,
-                    localidad = data_class_review.localida_lugar,estaAbierto,datos_horario_actual
+                    localidad = data_class_review.localida_lugar, estaAbierto, datos_horario_actual
                 )
             } else {
                 null
@@ -90,12 +100,14 @@ class repo_review {
                 val calificacion = (data?.get("calificacion") as? Number)?.toInt() ?: 0
                 val descripcion = data?.get("descripcion") as? String ?: ""
                 val fechaRealizada = data?.get("fecha_realizada") as? String ?: ""
+                val lista_img_subidas = data?.get("lista_img_url") as? List<String> ?: emptyList()
+
 
                 // Retorna el objeto con los datos
                 datos_review_existenet(
                     calificacion = calificacion,
                     descripcion = descripcion,
-                    fecha_realizada = fechaRealizada
+                    fecha_realizada = fechaRealizada, lista_img_subidas
                 )
             } else {
                 datos_review_existenet()
@@ -107,9 +119,12 @@ class repo_review {
     }
 
 
-
-
-    suspend fun agregar_review(datos_review: datos_review): Boolean {
+    @RequiresApi(Build.VERSION_CODES.R)
+    suspend fun agregar_review(
+        datos_review: datos_review,
+        context: Context,
+        list: List<ImagenReview>
+    ): Boolean {
         return try {
             val ref = db.collection("Tiendas").document(datos_review.localidad_tienda)
                 .collection(datos_review.localidad_tienda).document(datos_review.id_tienda_lugar)
@@ -125,11 +140,139 @@ class repo_review {
                 "hora_realizada" to datos_review.hora,
                 "fecha_realizada" to datos_review.fecha
             )
+            Log.d("envaiomodatos", "$hasmap")
             ref.set(hasmap, SetOptions.merge()).await()
+            agregar_review_storage(
+                context,
+                datos_review.id_tienda_lugar,
+                datos_review.id_usuario,
+                list,
+                datos_review.localidad_tienda
+            )
             true
         } catch (e: Exception) {
             false
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    suspend fun agregar_review_storage(
+        context: Context,
+        id_tienda: String,
+        id_review: String,
+        imagenes: List<ImagenReview>,
+        localidad: String,
+    ) {
+        val storage = Firebase.storage
+        val reviewRef = storage.reference
+            .child("tiendas/$id_tienda/review/$id_review")
+
+        // 1️⃣ URLs antiguas (ANTES de tocar nada)
+        val urlsAntiguas = obtener_urls_antiguas(id_tienda, id_review, localidad)
+
+        // 2️⃣ Mantener imágenes existentes
+        val downloadUrls = imagenes
+            .filter { it.uri == null && it.url != null }
+            .map { it.url!! }
+            .toMutableList()
+
+        // 3️⃣ Subir nuevas imágenes
+        val nuevasImagenes = imagenes.filter { it.uri != null }
+
+        nuevasImagenes.forEach { imagen ->
+            try {
+                val bytes = constantes_subir_img_panel_tienda
+                    .procesarImagenWebPSinRecorte(context, imagen.uri!!)
+
+                val nombreImagen = UUID.randomUUID().toString()
+                val ref = reviewRef.child(nombreImagen)
+
+                ref.putBytes(bytes).await()
+                val downloadUrl = ref.downloadUrl.await()
+
+                downloadUrls.add(downloadUrl.toString())
+
+            } catch (e: Exception) {
+                Log.e("FirebaseStorage", "❌ Error subiendo imagen", e)
+            }
+        }
+
+        // 4️⃣ Detectar imágenes eliminadas
+        val urlsEliminadas = urlsAntiguas - downloadUrls
+
+        // 5️⃣ Eliminar del Storage
+        eliminar_imagenes_storage(urlsEliminadas)
+
+        // 6️⃣ Actualizar Firestore (UNA SOLA VEZ)
+        agregar_img_firestore_review(
+            id_tienda,
+            id_review,
+            localidad,
+            downloadUrls
+        )
+    }
+
+
+
+    suspend fun agregar_img_firestore_review(
+        id_tienda: String,
+        id_review: String,
+        localidad: String,
+        lista: List<String>
+    ) {
+        val firestore = FirebaseFirestore.getInstance()
+            .collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(id_tienda)
+            .collection("review")
+            .document(id_review)
+
+        val hashMap = hashMapOf<String, Any>(
+            "lista_img_url" to lista
+        )
+
+        try {
+
+            firestore.update(hashMap).await()
+
+            println("✅ URLs de imágenes actualizadas correctamente en Firestore")
+        } catch (e: Exception) {
+
+            println("❌ Error al actualizar Firestore: ${e.message}")
+        }
+    }
+
+    suspend fun eliminar_imagenes_storage(urls: List<String>) {
+        val storage = Firebase.storage
+
+        urls.forEach { url ->
+            try {
+                val ref = storage.getReferenceFromUrl(url)
+                ref.delete().await()
+                Log.d("Storage", "🗑 Imagen eliminada: $url")
+            } catch (e: Exception) {
+                Log.e("Storage", "❌ Error eliminando imagen", e)
+            }
+        }
+    }
+
+    suspend fun obtener_urls_antiguas(
+        id_tienda: String,
+        id_review: String,
+        localidad: String
+    ): List<String> {
+        val doc = FirebaseFirestore.getInstance()
+            .collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(id_tienda)
+            .collection("review")
+            .document(id_review)
+            .get()
+            .await()
+
+        return doc.get("lista_img_url") as? List<String> ?: emptyList()
     }
 
 

@@ -80,12 +80,11 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.ui.text)
+
     implementation(libs.play.services.maps)
-    implementation(libs.ui.text)
-    implementation(libs.androidx.animation.core)
+
     implementation(libs.volley)
-    implementation(libs.androidx.compose.foundation.layout)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -152,9 +151,8 @@ dependencies {
     implementation(libs.androidx.animation)
     implementation(libs.accompanist.navigation.animation)
 
-    implementation(libs.androidx.foundation)
 
-
+    implementation(libs.androidx.compose.foundation.layout)
     //navigation componets
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
@@ -181,7 +179,6 @@ dependencies {
     // Motor HTTP Ktor para Android
     implementation("io.ktor:ktor-client-okhttp:2.0.1")
     implementation("com.firebase:geofire-android:3.2.0")
-    implementation("androidx.compose.foundation:foundation:1.9.1")
 
     implementation("com.valentinilk.shimmer:compose-shimmer:1.3.3")
 
@@ -191,6 +188,10 @@ dependencies {
 
 
         implementation("io.github.dautovicharis:charts-android:2.0.1")
+    implementation(libs.androidx.foundation)
+
+
+
 
 
 

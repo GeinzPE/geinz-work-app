@@ -1,10 +1,17 @@
 package com.geinzz.geinzwork.viewModels
 
+import android.content.Context
+import android.net.Uri
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
+
 import com.geinzz.geinzwork.data.model.dataclass_review.data_class_resultado_tienda_lugar
 import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
 import com.geinzz.geinzwork.data.model.dataclass_review.datos_review
@@ -21,7 +28,8 @@ class viewmodel_review : ViewModel() {
     val instacia_repo = repo_review()
 
 
-    private val _datos_tienda_review_flow = MutableStateFlow<datos_tienda_review>(datos_tienda_review.laoding)
+    private val _datos_tienda_review_flow =
+        MutableStateFlow<datos_tienda_review>(datos_tienda_review.laoding)
     val datos_tienda_review_flow: StateFlow<datos_tienda_review> = _datos_tienda_review_flow
 
 
@@ -38,28 +46,33 @@ class viewmodel_review : ViewModel() {
 
 
         viewModelScope.launch {
-            _datos_tienda_review_flow.value=datos_tienda_review.laoding
+            _datos_tienda_review_flow.value = datos_tienda_review.laoding
             delay(2000)
             try {
-                val datos_tienda_review_res= instacia_repo.obtener_datos_tienda(data_class_review)
-                if(datos_tienda_review_res!=null){
-                    _datos_tienda_review_flow.value=datos_tienda_review.succes(datos_tienda_review_res)
-                }else{
-                    _datos_tienda_review_flow.value=datos_tienda_review.error("No se encontraron datos intentalo nuevmaente ")
+                val datos_tienda_review_res = instacia_repo.obtener_datos_tienda(data_class_review)
+                if (datos_tienda_review_res != null) {
+                    _datos_tienda_review_flow.value =
+                        datos_tienda_review.succes(datos_tienda_review_res)
+                } else {
+                    _datos_tienda_review_flow.value =
+                        datos_tienda_review.error("No se encontraron datos intentalo nuevmaente ")
                 }
 //                    datos_TL_review.value = instacia_repo.obtener_datos_tienda(data_class_review)
 
             } catch (e: Exception) {
-                _datos_tienda_review_flow.value=datos_tienda_review.error("No se encontraron datos intentalo nuevmaente ")
+                _datos_tienda_review_flow.value =
+                    datos_tienda_review.error("No se encontraron datos intentalo nuevmaente ")
 //                datos_TL_review.value = data_class_resultado_tienda_lugar()
             }
         }
     }
 
-    fun agregar_review(datos_review: datos_review) {
+    @RequiresApi(Build.VERSION_CODES.R)
+    fun agregar_review(datos_review: datos_review, context: Context,lista_ImagenReview: List<ImagenReview>) {
         viewModelScope.launch {
             try {
-                review_send.value = instacia_repo.agregar_review(datos_review)
+                review_send.value = instacia_repo.agregar_review(datos_review,context,lista_ImagenReview)
+
             } catch (e: Exception) {
                 review_send.value = false
             }
@@ -70,8 +83,8 @@ class viewmodel_review : ViewModel() {
         review_send.value = false
     }
 
-    fun limpiar_estado(){
-        _datos_tienda_review_flow.value=datos_tienda_review.clear
+    fun limpiar_estado() {
+        _datos_tienda_review_flow.value = datos_tienda_review.clear
     }
 
     fun verificar_review_existente(id_user: String, data_class_review: data_class_review) {
@@ -79,6 +92,7 @@ class viewmodel_review : ViewModel() {
             try {
                 Verificar_exist.value =
                     instacia_repo.verificar_review_exsitente(id_user, data_class_review)
+                Log.d("vefiicando_estado","${ Verificar_exist.value}")
             } catch (e: Exception) {
                 Verificar_exist.value = datos_review_existenet()
             }
@@ -89,7 +103,7 @@ class viewmodel_review : ViewModel() {
         data class succes(val item: data_class_resultado_tienda_lugar) : datos_tienda_review()
         object laoding : datos_tienda_review()
         data class error(val txt: String) : datos_tienda_review()
-        object clear: datos_tienda_review()
+        object clear : datos_tienda_review()
     }
 
     sealed class review_carga_review {

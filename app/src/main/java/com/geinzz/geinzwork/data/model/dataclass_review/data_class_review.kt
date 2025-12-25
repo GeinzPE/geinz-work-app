@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.data.model.dataclass_review
 
+import android.net.Uri
 import android.os.Parcelable
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 import kotlinx.android.parcel.Parcelize
@@ -24,11 +25,20 @@ data class datos_review(
     val localidad_tienda: String="",
     val hora:String="",
     val fecha: String="",
+
     )
 
 
 data class datos_review_existenet(
     val calificacion: Number=0,
     val descripcion:String="",
-    val fecha_realizada:String=""
+    val fecha_realizada:String="",
+    val lista_img: List<String> = emptyList()
 )
+
+data class ImagenReview(
+    val uri: Uri? = null,
+    val url: String? = null
+)
+
+

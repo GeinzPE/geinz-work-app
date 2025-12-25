@@ -89,7 +89,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_review
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
-
+import androidx.compose.runtime.key
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.launch
@@ -189,9 +189,10 @@ var Bottom_sheet_registrate by remember { mutableStateOf(false) }
                 open_review_public = { id_tienda, localidad ->
                     id_tienda_review = data_class_review(id_tienda, localidad)
                     id_tienda_params=id_tienda
-                        localida_tienda=localidad
+                    localida_tienda=localidad
                     bottom_sheet = true
-                },{id_tienda, localidad ->
+                },
+                open_bottom_sheet_tieda={id_tienda, localidad ->
                     if(uid_respald_user.isNotEmpty()){
                     botoom_sheet_perfil_user=true
                     id_tienda_params=id_tienda
@@ -317,68 +318,81 @@ var Bottom_sheet_registrate by remember { mutableStateOf(false) }
     }
 
 
-    if (bottom_sheet_review_privado) {
-        bottom_Sheet_seguro(verificar_intener,esta_o_no_lugar,datos_principales_user,viewmodel, id_tienda_review, ondimis = {
-            bottom_sheet_review_privado = !bottom_sheet_review_privado
-        }, clik_envio = { ratingValue, texto, location ->
-
-            if (segun_user_tienda) {
-                rango_estrellas = ratingValue
-                descripcion = texto
-
-                Log.d("ReviewUbicacion", "Entró al addOnSuccessListener...")
-
-                val (distancia, dentro) = if (location != null) {
-                    estaDentroDeTienda(
-                        location.latitude,
-                        location.longitude,
-                        latitude_tienda,
-                        longitude_tienda
-                    )
-                } else {
-                    0f to false
-                }
-
-                estado_presencial_tienda_lugar = dentro
-
-                Log.d(
-                    "ReviewUbicacion",
-                    "Datos para review -> rango: $rango_estrellas, texto: $descripcion, tiendaId: ${id_tienda_review.id_tienda_lugar}, localidad: ${id_tienda_review.localida_lugar}"
-                )
-
-                viewmodel.agregar_review(
-                    crearReview(
-                        ratingValue = rango_estrellas,
-                        texto = descripcion,
-                        presencial = estado_presencial_tienda_lugar,
-                        id_tienda_lugar = id_tienda_review.id_tienda_lugar,
-                        localida_lugar = id_tienda_review.localida_lugar
-                    )
-                )
-                Log.d("ReviewUbicacion", "✅ Review enviada correctamente")
-
-            } else {
-                viewmodel.agregar_review(
-                    crearReview(
-                        ratingValue,
-                        texto,
-                        false,
-                        id_tienda_review.id_tienda_lugar,
-                        id_tienda_review.localida_lugar
-                    )
-                )
-            }
-            scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = "¡Gracias por compartir tu experiencia con nosotros!",
-                    duration = SnackbarDuration.Short
-                )
-            }
-        }, crear_cuenta = {crear_cuenta()}, iniciar_seccion ={iniciar_seccion()})
-    }
+//    if (bottom_sheet_review_privado) {
+//        bottom_Sheet_seguro(
+//            verificar_intener = verificar_intener,
+//            esta_o_no_lugar = esta_o_no_lugar,
+//            datos_principales_user = datos_principales_user,
+//            viewmodel = viewmodel,
+//            data_class_review = id_tienda_review,
+//            ondimis = {
+//                bottom_sheet_review_privado = !bottom_sheet_review_privado
+//            },
+//            clik_envio = { ratingValue, texto, location ->
+//
+//                if (segun_user_tienda) {
+//                    rango_estrellas = ratingValue
+//                    descripcion = texto
+//
+//                    Log.d("ReviewUbicacion", "Entró al addOnSuccessListener...")
+//
+//                    val (distancia, dentro) = if (location != null) {
+//                        estaDentroDeTienda(
+//                            location.latitude,
+//                            location.longitude,
+//                            latitude_tienda,
+//                            longitude_tienda
+//                        )
+//                    } else {
+//                        0f to false
+//                    }
+//
+//                    estado_presencial_tienda_lugar = dentro
+//
+//                    Log.d(
+//                        "ReviewUbicacion",
+//                        "Datos para review -> rango: $rango_estrellas, texto: $descripcion, tiendaId: ${id_tienda_review.id_tienda_lugar}, localidad: ${id_tienda_review.localida_lugar}"
+//                    )
+//
+//                    viewmodel.agregar_review(
+//                        crearReview(
+//                            uid_respald_user,
+//                            ratingValue = rango_estrellas,
+//                            texto = descripcion,
+//                            presencial = estado_presencial_tienda_lugar,
+//                            id_tienda_lugar = id_tienda_review.id_tienda_lugar,
+//                            localida_lugar = id_tienda_review.localida_lugar
+//                        ),context,lista_ImagenReview
+//                    )
+//                    Log.d("ReviewUbicacion", "✅ Review enviada correctamente")
+//
+//                } else {
+//                    viewmodel.agregar_review(
+//                        crearReview(
+//                            uid_respald_user,
+//                            ratingValue,
+//                            texto,
+//                            false,
+//                            id_tienda_review.id_tienda_lugar,
+//                            id_tienda_review.localida_lugar
+//                        ),context,lista_ImagenReview
+//                    )
+//                }
+//                scope.launch {
+//                    snackbarHostState.showSnackbar(
+//                        message = "¡Gracias por compartir tu experiencia con nosotros!",
+//                        duration = SnackbarDuration.Short
+//                    )
+//                }
+//            },
+//            crear_cuenta = {crear_cuenta()},
+//            iniciar_seccion = {iniciar_seccion()})
+//    }
 
 
     if (bottom_sheet) {
+        Log.d("boomthser_estableciod","abierto")
+        key(id_tienda_review.id_tienda_lugar) {
         bottom_sheet_review(
             verificar_intener,
             datos_principales_user = datos_principales_user,
@@ -387,15 +401,16 @@ var Bottom_sheet_registrate by remember { mutableStateOf(false) }
             ondimis = {
                 bottom_sheet = !bottom_sheet
             },
-            clik_envio = { ratingValue, texto ->
+            clik_envio = { ratingValue, texto,lista_ImagenReview ->
                 viewmodel.agregar_review(
                     crearReview(
-                        ratingValue,
-                        texto,
-                        true,
-                        id_tienda_review.id_tienda_lugar,
-                        id_tienda_review.localida_lugar
-                    )
+                        uid_respald_user,
+                        ratingValue = ratingValue,
+                        texto = texto,
+                        presencial = true,
+                        id_tienda_lugar = id_tienda_review.id_tienda_lugar,
+                        localida_lugar = id_tienda_review.localida_lugar
+                    ),context,lista_ImagenReview
                 )
                 scope.launch {
                     snackbarHostState.showSnackbar(
@@ -405,6 +420,7 @@ var Bottom_sheet_registrate by remember { mutableStateOf(false) }
                 }
             }, crear_cuenta = crear_cuenta, iniciar_seccion = iniciar_seccion,{mostar_snackvar_reivew=true}
         )
+        }
     }
 
 
@@ -585,13 +601,14 @@ fun dialog_verificar_si_esta_tienda(onClose: () -> Unit, rpa_si: () -> Unit, rpa
 }
 
 fun crearReview(
+    id_user:String,
     ratingValue: Int,
     texto: String,
     presencial: Boolean,
     id_tienda_lugar: String,
     localida_lugar: String
 ) = datos_review(
-    id_usuario = firebaseAuth.uid.toString(),
+    id_usuario =id_user,
     cantidad_Strar = ratingValue,
     descripcion_review = texto,
     verificado_presencial = presencial,

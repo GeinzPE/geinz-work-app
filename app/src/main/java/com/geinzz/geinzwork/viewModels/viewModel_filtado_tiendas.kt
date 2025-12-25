@@ -641,12 +641,25 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
             }
         }
     }
+    private var ultimaLocalidad: String? = null
+
 
     fun obtener_lugaresnuevos(localidad: String) {
+
+        if (localidad.isEmpty()) return
+
+        // 🔒 si es la misma localidad, NO vuelve a consultar
+        if (ultimaLocalidad == localidad && _datos_nuevos_lugares.value.isNotEmpty()) {
+            return
+        }
+
+        ultimaLocalidad = localidad
+
         viewModelScope.launch {
             try {
-                val nuevas_tienda = repo_filtrado.obtener_lugaresnuevos_aleatorios(localidad)
-                _datos_nuevos_lugares.value = nuevas_tienda
+                val nuevasTiendas =
+                    repo_filtrado.obtener_lugaresnuevos_aleatorios(localidad)
+                _datos_nuevos_lugares.value = nuevasTiendas
             } catch (e: Exception) {
                 _datos_nuevos_lugares.value = emptyList()
             }
