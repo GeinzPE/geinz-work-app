@@ -38,7 +38,8 @@ data class datos_review_existenet(
 
 data class ImagenReview(
     val uri: Uri? = null,
-    val url: String? = null
+    val url: String? = null,
+    val isEditing: Boolean = false
 )
 
 

@@ -189,6 +189,7 @@ dependencies {
 
         implementation("io.github.dautovicharis:charts-android:2.0.1")
     implementation(libs.androidx.foundation)
+//    implementation("com.github.SmartToolFactory:Compose-Cropper:1.2.3")
 
 
 

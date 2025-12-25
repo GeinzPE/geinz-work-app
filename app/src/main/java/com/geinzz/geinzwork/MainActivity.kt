@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork
 
+import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
@@ -9,6 +10,8 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -17,10 +20,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.rememberNavController
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.nativationWrapper
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.GeinzWorkTheme
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_carga_ucrop_img
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.viewModels.DeepLinkViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_usuarios_general
 import com.google.firebase.auth.FirebaseAuth
+import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import java.net.URLEncoder
@@ -31,11 +36,22 @@ class MainActivity : AppCompatActivity() {
     private lateinit var datosViewModel: viewModel_usuarios_general
     private val deepLinkViewModel: DeepLinkViewModel by viewModels()
     private lateinit var navController: androidx.navigation.NavHostController
+    lateinit var cropLauncher: ActivityResultLauncher<Intent>
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        cropLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val resultUri = UCrop.getOutput(result.data!!)
+                    if (resultUri != null) {
+                        onImageCropped(resultUri)
+                    }
+                }
+            }
+
         crearCanalNotificaciones()
 
         firebaseAuth = FirebaseAuth.getInstance()
@@ -64,6 +80,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun onImageCropped(uri: Uri) {
+        // 👉 aquí mandamos la URI a Compose
+        constantes_carga_ucrop_img.croppedUri = uri
+    }
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)

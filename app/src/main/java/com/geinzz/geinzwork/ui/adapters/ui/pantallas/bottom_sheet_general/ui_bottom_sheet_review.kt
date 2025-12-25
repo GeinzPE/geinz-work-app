@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
 import android.annotation.SuppressLint
+import android.content.Context
 
 
 import android.location.Location
@@ -120,10 +121,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntSize
+import com.geinzz.geinzwork.MainActivity
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_carga_ucrop_img
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_carga_ucrop_img.launchCrop
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_review
@@ -182,9 +186,33 @@ fun bottom_sheet_review(
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     var id_respado_user by remember { mutableStateOf("") }
     val maxFotos = 5
+    val croppedUri = constantes_carga_ucrop_img.croppedUri
     val imagenes = remember { mutableStateListOf<ImagenReview>() }
     var mostar_img_zoom by remember { mutableStateOf(false) }
 
+    LaunchedEffect(croppedUri) {
+        croppedUri?.let { uriFinal ->
+
+            // ✅ Buscar cuál imagen se estaba editando
+            // Si quieres reemplazar la que estaba seleccionada
+            val indexEditando = imagenes.indexOfFirst { it.isEditing } // ejemplo de flag
+
+            if (indexEditando != -1) {
+                // reemplazar la imagen editada
+                imagenes[indexEditando] = imagenes[indexEditando].copy(
+                    uri = uriFinal,
+                    url = null,
+                    isEditing = false
+                )
+            } else {
+                // o agregar nueva si es upload directo
+                imagenes.add(ImagenReview(uri = uriFinal, url = null))
+            }
+
+            // Limpiar el cropBus
+            constantes_carga_ucrop_img.croppedUri = null
+        }
+    }
 
     LaunchedEffect(uid_respald_user) {
         if (uid_respald_user.isNotEmpty()) {
@@ -271,6 +299,8 @@ fun bottom_sheet_review(
     var imagenZoomSeleccionada by remember {
         mutableStateOf<String?>(null)
     }
+
+
 
     if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
         ModalBottomSheet(
@@ -565,10 +595,23 @@ fun bottom_sheet_review(
                                             },
                                             onRemove = { uri ->
                                                 imagenes.remove(uri)
-                                            }, mostar_zoom_img = {img->
+                                            }, mostar_zoom_img = { img ->
                                                 val imageModel = img.uri ?: img.url
-                                                mostar_img_zoom=true
-                                                imagenZoomSeleccionada = img.uri?.toString() ?: img.url                                            })
+                                                mostar_img_zoom = true
+                                                imagenZoomSeleccionada =
+                                                    img.uri?.toString() ?: img.url
+                                            },editar_img = { img ->
+                                                when {
+                                                    img.uri != null -> {
+                                                        // 👇 marcar esta imagen como "editando"
+                                                        val index = imagenes.indexOf(img)
+                                                        if (index != -1) {
+                                                            imagenes[index] = imagenes[index].copy(isEditing = true)
+                                                            lanzarCrop(img.uri, context)
+                                                        }
+                                                    }
+                                                }
+                                            })
 
                                     }
                                     item {
@@ -683,6 +726,17 @@ fun bottom_sheet_review(
         }
     }
 
+}
+
+
+fun lanzarCrop(uri: Uri, context: Context) {
+    val activity = context as MainActivity
+
+    launchCrop(
+        context = context,
+        sourceUri = uri,
+        launcher = activity.cropLauncher
+    )
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -1207,6 +1261,7 @@ fun FullStarRating(
         5 -> "Excelente 🤩"
         else -> ""
     }
+
     var rowSize by remember { mutableStateOf(IntSize.Zero) }
     Column(
         modifier = Modifier
@@ -1264,7 +1319,8 @@ fun SelectorFotosReview(
     maxFotos: Int,
     onAddClick: () -> Unit,
     onRemove: (ImagenReview) -> Unit,
-    mostar_zoom_img:(ImagenReview)-> Unit
+    mostar_zoom_img: (ImagenReview) -> Unit,
+    editar_img: (ImagenReview) -> Unit
 ) {
     var remover by remember { mutableStateOf(false) }
 
@@ -1344,23 +1400,26 @@ fun SelectorFotosReview(
                                 mostar_zoom_img(img)
                             }
                     )
-
-                    // ✏ EDITAR
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(6.dp)
-                            .size(25.dp)
-                            .background(
-                                Color.Black.copy(alpha = 0.5f),
-                                CircleShape
-                            )
-                            .padding(6.dp)
-                            .clickable { }
-                    )
+                    if (img.uri != null) {
+                        // ✏ EDITAR
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(6.dp)
+                                .size(25.dp)
+                                .background(
+                                    Color.Black.copy(alpha = 0.5f),
+                                    CircleShape
+                                )
+                                .padding(6.dp)
+                                .clickable {
+                                    editar_img(img)
+                                }
+                        )
+                    }
                 }
             }
         }
