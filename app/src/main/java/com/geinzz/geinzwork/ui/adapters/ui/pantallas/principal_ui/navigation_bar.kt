@@ -318,76 +318,79 @@ var Bottom_sheet_registrate by remember { mutableStateOf(false) }
     }
 
 
-//    if (bottom_sheet_review_privado) {
-//        bottom_Sheet_seguro(
-//            verificar_intener = verificar_intener,
-//            esta_o_no_lugar = esta_o_no_lugar,
-//            datos_principales_user = datos_principales_user,
-//            viewmodel = viewmodel,
-//            data_class_review = id_tienda_review,
-//            ondimis = {
-//                bottom_sheet_review_privado = !bottom_sheet_review_privado
-//            },
-//            clik_envio = { ratingValue, texto, location ->
-//
-//                if (segun_user_tienda) {
-//                    rango_estrellas = ratingValue
-//                    descripcion = texto
-//
-//                    Log.d("ReviewUbicacion", "Entró al addOnSuccessListener...")
-//
-//                    val (distancia, dentro) = if (location != null) {
-//                        estaDentroDeTienda(
-//                            location.latitude,
-//                            location.longitude,
-//                            latitude_tienda,
-//                            longitude_tienda
-//                        )
-//                    } else {
-//                        0f to false
-//                    }
-//
-//                    estado_presencial_tienda_lugar = dentro
-//
-//                    Log.d(
-//                        "ReviewUbicacion",
-//                        "Datos para review -> rango: $rango_estrellas, texto: $descripcion, tiendaId: ${id_tienda_review.id_tienda_lugar}, localidad: ${id_tienda_review.localida_lugar}"
-//                    )
-//
-//                    viewmodel.agregar_review(
-//                        crearReview(
-//                            uid_respald_user,
-//                            ratingValue = rango_estrellas,
-//                            texto = descripcion,
-//                            presencial = estado_presencial_tienda_lugar,
-//                            id_tienda_lugar = id_tienda_review.id_tienda_lugar,
-//                            localida_lugar = id_tienda_review.localida_lugar
-//                        ),context,lista_ImagenReview
-//                    )
-//                    Log.d("ReviewUbicacion", "✅ Review enviada correctamente")
-//
-//                } else {
-//                    viewmodel.agregar_review(
-//                        crearReview(
-//                            uid_respald_user,
-//                            ratingValue,
-//                            texto,
-//                            false,
-//                            id_tienda_review.id_tienda_lugar,
-//                            id_tienda_review.localida_lugar
-//                        ),context,lista_ImagenReview
-//                    )
-//                }
-//                scope.launch {
-//                    snackbarHostState.showSnackbar(
-//                        message = "¡Gracias por compartir tu experiencia con nosotros!",
-//                        duration = SnackbarDuration.Short
-//                    )
-//                }
-//            },
-//            crear_cuenta = {crear_cuenta()},
-//            iniciar_seccion = {iniciar_seccion()})
-//    }
+    if (bottom_sheet_review_privado) {
+        key(id_tienda_review.id_tienda_lugar) {
+
+            bottom_Sheet_seguro(
+                verificar_intener = verificar_intener,
+                esta_o_no_lugar = esta_o_no_lugar,
+                datos_principales_user = datos_principales_user,
+                viewmodel = viewmodel,
+                data_class_review = id_tienda_review,
+                ondimis = {
+                    bottom_sheet_review_privado = !bottom_sheet_review_privado
+                },
+                clik_envio = { ratingValue, texto, location, lista_ImagenReview ->
+
+                    if (segun_user_tienda) {
+                        rango_estrellas = ratingValue
+                        descripcion = texto
+
+                        Log.d("ReviewUbicacion", "Entró al addOnSuccessListener...")
+
+                        val (distancia, dentro) = if (location != null) {
+                            estaDentroDeTienda(
+                                location.latitude,
+                                location.longitude,
+                                latitude_tienda,
+                                longitude_tienda
+                            )
+                        } else {
+                            0f to false
+                        }
+
+                        estado_presencial_tienda_lugar = dentro
+
+                        Log.d(
+                            "ReviewUbicacion",
+                            "Datos para review -> rango: $rango_estrellas, texto: $descripcion, tiendaId: ${id_tienda_review.id_tienda_lugar}, localidad: ${id_tienda_review.localida_lugar}"
+                        )
+
+                        viewmodel.agregar_review(
+                            crearReview(
+                                uid_respald_user,
+                                ratingValue = rango_estrellas,
+                                texto = descripcion,
+                                presencial = estado_presencial_tienda_lugar,
+                                id_tienda_lugar = id_tienda_review.id_tienda_lugar,
+                                localida_lugar = id_tienda_review.localida_lugar
+                            ), context, lista_ImagenReview
+                        )
+                        Log.d("ReviewUbicacion", "✅ Review enviada correctamente")
+
+                    } else {
+                        viewmodel.agregar_review(
+                            crearReview(
+                                uid_respald_user,
+                                ratingValue,
+                                texto,
+                                false,
+                                id_tienda_review.id_tienda_lugar,
+                                id_tienda_review.localida_lugar
+                            ), context, lista_ImagenReview
+                        )
+                    }
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "¡Gracias por compartir tu experiencia con nosotros!",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                },
+                crear_cuenta = { crear_cuenta() },
+                iniciar_seccion = { iniciar_seccion() })
+        }
+    }
 
 
     if (bottom_sheet) {

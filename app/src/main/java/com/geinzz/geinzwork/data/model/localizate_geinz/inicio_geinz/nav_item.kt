@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -16,7 +17,7 @@ sealed class Items_menu(
 ){
     object pantalla1: Items_menu("Inicio",Icons.Default.Home,"pantalla_principal")
     object pantalla2: Items_menu("Buscar",Icons.Default.Search,"buscar")
-    object pantalla3: Items_menu("Favoritos",Icons.Default.Star,"favoritos")
+    object pantalla3: Items_menu("Favoritos",Icons.Default.Favorite,"favoritos")
     object pantalla4: Items_menu("Cuenta",Icons.Default.Person,"login_principal")
 
 }

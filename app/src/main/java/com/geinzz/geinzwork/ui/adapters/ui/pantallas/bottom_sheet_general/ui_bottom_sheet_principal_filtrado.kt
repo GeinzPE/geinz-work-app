@@ -82,6 +82,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -128,6 +129,7 @@ import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoExpandibleEnLinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.expandibles_wrapp
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.generarQrBitmapAltaCalidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.generar_qr_ubi_tinda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
@@ -356,6 +358,17 @@ var qr_generado_tienda by remember { mutableStateOf("") }
         qr_generado_tienda=retornar_id_Tienda_lugar(tiendas_filtradas.id_tienda, latitud, longitud)
 
     }
+    var qrBitmap by rememberSaveable { mutableStateOf<Bitmap?>(null) }
+
+    LaunchedEffect(qr_generado_tienda) {
+        if (qr_generado_tienda.isBlank()) return@LaunchedEffect
+        if (qrBitmap != null) return@LaunchedEffect
+
+        qrBitmap = withContext(Dispatchers.Default) {
+            generarQrBitmapAltaCalidad(context, qr_generado_tienda)
+        }
+    }
+
 //    val generar_qr_tienda_id = remember(tiendas_filtradas.id_tienda, latitud, longitud) {
 //    }
 
@@ -551,9 +564,11 @@ var qr_generado_tienda by remember { mutableStateOf("") }
                         }
 
                         item {
-                            Expandible_qr_tienda(qr_generado_tienda,
+                            Expandible_qr_tienda(
+                                qrBitmap,
+                                generar_qr_tienda_id = qr_generado_tienda,
                                 modifier = Modifier.padding(horizontal = 10.dp),
-                                expander_qr_tienda
+                                expandido = expander_qr_tienda
                             ) { expander_qr_tienda = !expander_qr_tienda }
 
                             spacer_vertical(10.dp)
@@ -1400,42 +1415,72 @@ fun Expandible_Metodo_contacto(
 
 @Composable
 fun Expandible_qr_tienda(
-    generar_qr_tienda_id:String,
+    qrBitmap: Bitmap?,
+    generar_qr_tienda_id: String,
     modifier: Modifier = Modifier,
-
     expandido: Boolean,
     onClickExpand: () -> Unit
 ) {
-//    val generar_qr_tienda_id = remember(id_tienda, latitud, longitud) {
-//        retornar_id_Tienda_lugar(id_tienda, latitud, longitud)
+    val context = LocalContext.current
+
+//    // 🔥 ESTADO FUERA DEL AnimatedVisibility
+//    var qrBitmap by rememberSaveable { mutableStateOf<Bitmap?>(null) }
+//
+//    // 🔥 Se genera UNA sola vez cuando el ID es válido
+//    LaunchedEffect(generar_qr_tienda_id) {
+//        if (generar_qr_tienda_id.isBlank()) return@LaunchedEffect
+//        if (qrBitmap != null) return@LaunchedEffect
+//
+//        qrBitmap = withContext(Dispatchers.Default) {
+//            generarQrBitmapAltaCalidad(context, generar_qr_tienda_id)
+//        }
 //    }
+
     Cartas_expandibles(modifier = modifier) {
         Column {
             expandibles_wrapp(
-                texto_params = "Cuentanos tu experiencia",
+                texto_params = "Cuéntanos tu experiencia",
                 iconRes = null,
                 iconVector = Icons.Filled.Star,
                 expandido = expandido,
                 onClickExpand = onClickExpand
             )
         }
+
+        // 👇 AnimatedVisibility SOLO controla UI
         AnimatedVisibility(visible = expandido) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        horizontal = 12.dp,
-                        vertical = 8.dp
-                    )
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                generar_qr_ubi_tinda(
-                    generar_qr_tienda_id,
-                    "¡Tu opinión cuenta! Escanea este código con Geinz y deja tu reseña sobre tu experiencia Geinz verificará tu ubicación para confirmar que estuviste aquí y mantener reseñas auténticas.",
+
+                qrBitmap?.let {
+                    Image(
+                        bitmap = it.asImageBitmap(),
+                        contentDescription = "QR",
+                        modifier = Modifier
+                            .size(220.dp)
+                            .clip(RoundedCornerShape(28.dp)),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                texto_generico_multilinea(
+                    "¡Tu opinión cuenta! Escanea este código con Geinz y deja tu reseña sobre tu experiencia. Geinz verificará tu ubicación para confirmar que estuviste aquí y mantener reseñas auténticas.",
+                    MaterialTheme.typography.bodyMedium,
+                    Color = androidx.compose.ui.graphics.Color.White
                 )
             }
         }
     }
 }
+
+
+
 
 @Composable
 fun item_metodos_de_pago(

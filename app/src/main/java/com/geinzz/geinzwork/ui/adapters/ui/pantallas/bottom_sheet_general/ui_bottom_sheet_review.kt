@@ -269,7 +269,6 @@ fun bottom_sheet_review(
                 )
             )
         }
-
     }
 
     LaunchedEffect(five_estrellas) {
@@ -299,6 +298,7 @@ fun bottom_sheet_review(
     var imagenZoomSeleccionada by remember {
         mutableStateOf<String?>(null)
     }
+
 
 
 
@@ -600,18 +600,20 @@ fun bottom_sheet_review(
                                                 mostar_img_zoom = true
                                                 imagenZoomSeleccionada =
                                                     img.uri?.toString() ?: img.url
-                                            },editar_img = { img ->
+                                            }, editar_img = { img ->
                                                 when {
                                                     img.uri != null -> {
                                                         // 👇 marcar esta imagen como "editando"
                                                         val index = imagenes.indexOf(img)
                                                         if (index != -1) {
-                                                            imagenes[index] = imagenes[index].copy(isEditing = true)
+                                                            imagenes[index] =
+                                                                imagenes[index].copy(isEditing = true)
                                                             lanzarCrop(img.uri, context)
                                                         }
                                                     }
                                                 }
-                                            })
+                                            }
+                                        )
 
                                     }
                                     item {
@@ -750,7 +752,7 @@ fun bottom_Sheet_seguro(
     viewmodel: viewmodel_review,
     data_class_review: data_class_review,
     ondimis: () -> Unit,
-    clik_envio: (Int, String, Location?) -> Unit,
+    clik_envio: (Int, String, Location?, lista: List<ImagenReview>) -> Unit,
     crear_cuenta: () -> Unit,
     iniciar_seccion: () -> Unit
 ) {
@@ -781,10 +783,39 @@ fun bottom_Sheet_seguro(
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     val tick by viewModelFiltros.tick.collectAsState()
     var color by remember { mutableStateOf(Color.Gray) }
+    val maxFotos = 5
     val scope = rememberCoroutineScope()
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     var id_respado_user by remember { mutableStateOf("") }
+    val croppedUri = constantes_carga_ucrop_img.croppedUri
+    val imagenes = remember { mutableStateListOf<ImagenReview>() }
+    var mostar_img_zoom by remember { mutableStateOf(false) }
+    var imagenZoomSeleccionada by remember {
+        mutableStateOf<String?>(null)
+    }
+    LaunchedEffect(croppedUri) {
+        croppedUri?.let { uriFinal ->
 
+            // ✅ Buscar cuál imagen se estaba editando
+            // Si quieres reemplazar la que estaba seleccionada
+            val indexEditando = imagenes.indexOfFirst { it.isEditing } // ejemplo de flag
+
+            if (indexEditando != -1) {
+                // reemplazar la imagen editada
+                imagenes[indexEditando] = imagenes[indexEditando].copy(
+                    uri = uriFinal,
+                    url = null,
+                    isEditing = false
+                )
+            } else {
+                // o agregar nueva si es upload directo
+                imagenes.add(ImagenReview(uri = uriFinal, url = null))
+            }
+
+            // Limpiar el cropBus
+            constantes_carga_ucrop_img.croppedUri = null
+        }
+    }
     LaunchedEffect(uid_respald_user) {
         if (uid_respald_user.isNotEmpty()) {
             id_respado_user = uid_respald_user
@@ -837,9 +868,27 @@ fun bottom_Sheet_seguro(
         texto = _verificar_review_exsit.value?.descripcion ?: ""
         ratingValue = (_verificar_review_exsit.value?.calificacion ?: 1) as Int
         fecha_registrada = _verificar_review_exsit.value?.fecha_realizada ?: ""
-
+        _verificar_review_exsit.value?.lista_img?.forEach { url ->
+            imagenes.add(
+                ImagenReview(
+                    url = url,
+                    uri = null
+                )
+            )
+        }
     }
-
+    val picker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(5)
+    ) { uris ->
+        // Solo agregamos hasta el máximo permitido
+        val nuevasImagenes = uris.take(maxFotos - imagenes.size).map { uri ->
+            ImagenReview(
+                uri = uri,
+                url = null
+            )
+        }
+        imagenes.addAll(nuevasImagenes)
+    }
     LaunchedEffect(five_estrellas) {
         if (five_estrellas) {
             showAnimation = true
@@ -880,13 +929,11 @@ fun bottom_Sheet_seguro(
                                     modifier = Modifier.fillMaxSize(),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    FuenteControladaApp {
                                         Text(
                                             text = mensaje,
                                             color = Color.Gray,
                                             style = MaterialTheme.typography.bodyMedium
                                         )
-                                    }
                                 }
                             }
 
@@ -1153,6 +1200,36 @@ fun bottom_Sheet_seguro(
                                                 }
                                             }
                                         )
+                                        spacer_vertical(10.dp)
+                                        SelectorFotosReview(
+                                            imagenes = imagenes,
+                                            maxFotos = maxFotos,
+                                            onAddClick = {
+                                                picker.launch(
+                                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                                )
+                                            },
+                                            onRemove = { uri ->
+                                                imagenes.remove(uri)
+                                            }, mostar_zoom_img = { img ->
+                                                val imageModel = img.uri ?: img.url
+                                                mostar_img_zoom = true
+                                                imagenZoomSeleccionada =
+                                                    img.uri?.toString() ?: img.url
+                                            }, editar_img = { img ->
+                                                when {
+                                                    img.uri != null -> {
+                                                        // 👇 marcar esta imagen como "editando"
+                                                        val index = imagenes.indexOf(img)
+                                                        if (index != -1) {
+                                                            imagenes[index] =
+                                                                imagenes[index].copy(isEditing = true)
+                                                            lanzarCrop(img.uri, context)
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        )
                                     }
 
                                     spacer_vertical(15.dp)
@@ -1180,8 +1257,12 @@ fun bottom_Sheet_seguro(
                                                     }
                                                 } else {
                                                     ondimis()
-
-                                                    clik_envio(ratingValue, texto, ubicacionPrevia)
+                                                    clik_envio(
+                                                        ratingValue,
+                                                        texto,
+                                                        ubicacionPrevia,
+                                                        imagenes
+                                                    )
                                                     viewmodel.limpiar_estado()
                                                 }
                                             }, contentAlignment = Alignment.Center
@@ -1236,7 +1317,16 @@ fun bottom_Sheet_seguro(
             show_bottom_sheeet = false
         }
     }
-
+    if (mostar_img_zoom) {
+        imagenZoomSeleccionada?.let { imagenString ->
+            ZoomableGalleryFullScreen(
+                compartir_promocion(),
+                imagenes = listOf(imagenString), // 👈 List<String>
+                startIndex = 0,
+                onDismiss = { mostar_img_zoom = false }
+            )
+        }
+    }
 }
 
 @Composable
@@ -1323,7 +1413,7 @@ fun SelectorFotosReview(
     editar_img: (ImagenReview) -> Unit
 ) {
     var remover by remember { mutableStateOf(false) }
-
+    val scope = rememberCoroutineScope()
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -1377,7 +1467,10 @@ fun SelectorFotosReview(
                             .padding(6.dp)
                             .clickable {
                                 visibleState.targetState = false
-                                onRemove(img)
+                                scope.launch {
+                                    delay(200)
+                                    onRemove(img)
+                                }
 
                             }
                     )
