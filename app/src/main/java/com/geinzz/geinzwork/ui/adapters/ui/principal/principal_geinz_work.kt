@@ -699,16 +699,16 @@ fun pantalla_principal(
             ) {
                 cerrar_buttom_var()
                 dialog_promociones_negocios(
-                    isConnected,
+                    verificar_intener = isConnected,
                     id_tienda = p.id_tienda,
                     localidad = p.lugar,
                     index = p.index.toInt(),
                     onDismiss = {
                         mostrarDialog = false
-                            deepLinkVM.clearPromo()
-                            abir_butom_Var()
+                        deepLinkVM.clearPromo()
+                        abir_butom_Var()
 
-                    }
+                    }, crear_cuenta = { crear_cuenta()}, iniciar_seccion = {iniciar_seccion()}
                 )
             }
         }

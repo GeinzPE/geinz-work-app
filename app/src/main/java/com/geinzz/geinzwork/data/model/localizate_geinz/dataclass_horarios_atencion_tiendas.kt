@@ -56,8 +56,19 @@ data class modelo_tienda(
     val metodos_pago_tienda:modelo_pagos_tienda =modelo_pagos_tienda(),
     val horario_tienda_box:HorarioAtencion_box=HorarioAtencion_box(),
     val timestamp: String ="",
-    val lista_img_tienda: obtener_img_tiendas =obtener_img_tiendas()
+    val lista_img_tienda: obtener_img_tiendas =obtener_img_tiendas(),
+    val comodidades: List<ServicioComodidadUI> =emptyList(),
+    val aforo: Number=0,
 )
+
+data class ServicioComodidadUI(
+    val nombre: String,
+    val activo: Boolean,
+    val icono: Int
+)
+
+
+
 
 
 @Parcelize

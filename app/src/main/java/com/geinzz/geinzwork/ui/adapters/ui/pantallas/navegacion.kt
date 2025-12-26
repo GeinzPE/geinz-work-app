@@ -78,6 +78,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5_s
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.pasar_teindas_nuevas
 import com.geinzz.geinzwork.viewModels.DeepLinkViewModel
+import com.geinzz.geinzwork.viewModels.UiActionViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_favoritos
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_localizate_geinz
@@ -98,6 +99,7 @@ private lateinit var firebaseAuth: FirebaseAuth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun nativationWrapper(
+    uiActionVM: UiActionViewModel,
     navegacion: NavHostController,
     connectivityViewModel: ConnectivityViewModel = viewModel()
 ) {
@@ -349,6 +351,7 @@ fun nativationWrapper(
                     )
                 ) {
                     bottom_navigation(
+                        uiActionVM,
                         isConnected,
                         datos_principales_user = datos_principales_user,
                         navController = navController,

@@ -130,7 +130,6 @@ data class HorarioDia_box(
     val hora_prox_apertura: String = ""
 ) : Parcelable
 
-//
 
 data class obtener_tiendas_lat_log_id(
     val lat: Double,
@@ -152,4 +151,11 @@ data class nuevos_lugares_agregados(
     val horario_tienda_box: HorarioAtencion_box = HorarioAtencion_box(),
     val lat: Double,
     val lng: Double
+)
+
+data class crear_qr_rutas(
+    val id_teinda: String="",
+    val lat: Double=0.0,
+    val lng: Double=0.0,
+    val nombre_tienda: String=""
 )

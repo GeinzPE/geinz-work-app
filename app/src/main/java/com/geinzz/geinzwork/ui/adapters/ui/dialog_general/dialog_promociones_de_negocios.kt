@@ -52,12 +52,14 @@ import coil3.compose.AsyncImage
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_aceptar_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerra_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
@@ -73,20 +75,23 @@ fun dialog_promociones_negocios(
     id_tienda: String,
     localidad: String,
     index: Int,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,crear_cuenta:()-> Unit,iniciar_seccion:()-> Unit
 ) {
     val viewModel: viewmodel_datos_promociones = viewModel()
     val estado by viewModel.estadoPromocion.collectAsState()
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
     val datosTienda by viewmodel_filtrado._datos_tienda.observeAsState()
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
-var mostrarDialogozoom by remember { mutableStateOf(false) }
+    var mostrarDialogozoom by remember { mutableStateOf(false) }
     var valor_img_completa by remember { mutableStateOf("") }
     val context= LocalContext.current
     LaunchedEffect(id_tienda, localidad, index) {
         viewModel.obtener_datos_promociones(id_tienda, localidad, index)
     }
+    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+
     var mostrar_bottom_datos by remember { mutableStateOf(false) }
+    var mostar_dialog_registrate by remember { mutableStateOf(false) }
 
 
     // 🔹 OVERLAY OSCURO
@@ -185,7 +190,7 @@ var mostrarDialogozoom by remember { mutableStateOf(false) }
 
                     }
                     LazyRow (
-                        modifier = Modifier
+                        modifier = Modifier    .fillMaxWidth(0.9f)
                             .clip(RoundedCornerShape(bottomEnd = 24.dp, bottomStart = 24.dp))
                             .height(50.dp)
                             .background(MaterialTheme.colorScheme.background),
@@ -232,7 +237,12 @@ var mostrarDialogozoom by remember { mutableStateOf(false) }
                             Box(modifier = Modifier
                                 .clip(CircleShape)
                                 .background(Color.White).clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){
+                                    if(uid_respald_user.isNotEmpty()){
                                     mostrar_bottom_datos=true
+
+                                    }else{
+                                        mostar_dialog_registrate=true
+                                    }
                                 }) {
                                 texto_generico_one_line(
                                     "Ver Perfil",
@@ -277,6 +287,7 @@ var mostrarDialogozoom by remember { mutableStateOf(false) }
     }
 
     if (mostrar_bottom_datos) {
+
         bottom_sheet_tiendas_filtradas(
             verificar_intener,
             viewmodel_filtrado,
@@ -287,4 +298,12 @@ var mostrarDialogozoom by remember { mutableStateOf(false) }
         }
     }
 
+    if(mostar_dialog_registrate){
+        bottom_sheet_registrate(
+            ondimis = { mostar_dialog_registrate = false },
+            iniciar_seccion_normal = { iniciar_seccion() },
+            crear_cuenta_geinz = { crear_cuenta() },
+            texto_bottom_Sheet = "¡Regístrate para ver todos los detalles y disfrutar la experiencia completa!"
+        )
+    }
 }

@@ -649,7 +649,7 @@ fun ui_pantalla_busqueda(
     LaunchedEffect(datosTienda) {
         if (!datosTienda.isNullOrEmpty()) {
             dataclass_tienda_seleccionada = datosTienda!!.first()
-            viewModelFiltros.cast_horario_atencion_horario_tienda(datosTienda!!.first().horario_atencion)
+//            viewModelFiltros.cast_horario_atencion_horario_tienda(datosTienda!!.first().horario_atencion)
         }
     }
     LaunchedEffect(cat_sub_seleciondo) {

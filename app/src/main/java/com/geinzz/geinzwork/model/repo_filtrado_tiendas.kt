@@ -1,11 +1,13 @@
 package com.geinzz.geinzwork.model
 
 import android.util.Log
+import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
+import com.geinzz.geinzwork.data.model.localizate_geinz.ServicioComodidadUI
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.TiendaHorarioUpdate
 
@@ -61,6 +63,8 @@ class repo_filtrado_tiendas {
     private val cambio_horario_completo = MutableSharedFlow<HorarioAtencion_box>()
     val cambiosHorarioTiendas = _cambiosHorarioTiendas.asSharedFlow()
     val cambiosHorariocompleto_tienda = cambio_horario_completo.asSharedFlow()
+    private var listenerHorarioCompleto: ListenerRegistration? = null
+
 
 
     suspend fun obtener_subcategorias_tiendas(categorias: String): List<filtrado_tiendas_cat_sub> {
@@ -369,30 +373,38 @@ class repo_filtrado_tiendas {
             }
     }
 
-    fun escucharHorarioCompletoDeTiendaUnica(idTiendaBuscada: String, localidad: String) {
-        Log.d("horaisadasgfsfgfasgsg", "$idTiendaBuscada $localidad")
-        listenerTiendas = db.collection("Tiendas")
+    fun escucharHorarioCompletoDeTiendaUnica(
+        idTiendaBuscada: String,
+        localidad: String
+    ) {
+        listenerHorarioCompleto?.remove()
+
+        Log.d("REALTIME-UNICA123", "⏳ Escuchando $idTiendaBuscada")
+
+        listenerHorarioCompleto = db.collection("Tiendas")
             .document(localidad)
             .collection(localidad)
             .document(idTiendaBuscada)
             .addSnapshotListener { snapshot, error ->
 
+                Log.d("REALTIME-UNICA123", "🔥 CALLBACK DISPARADO")
+
                 if (error != null) {
-                    Log.e("REALTIME-UNICA", "❌ Error: ${error.message}")
+                    Log.e("REALTIME-UNICA123", "❌ Error", error)
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null || !snapshot.exists()) {
-                    Log.w("REALTIME-UNICA", "⚠ Documento no encontrado")
+                    Log.w("REALTIME-UNICA123", "⚠ Documento no existe")
                     return@addSnapshotListener
                 }
 
                 val horarioMap = snapshot.get("horario_atencion") as? Map<String, Any>
                     ?: return@addSnapshotListener
-                val horarioCompleto =
-                    horarioMap.to_horario_atencion_box_dia() // función que mapea toda la semana
 
-                Log.d("REALTIME-UNICA", "📅 Horario completo recibido: $horarioCompleto")
+                val horarioCompleto = horarioMap.to_horario_atencion_box_dia()
+
+                Log.d("REALTIME-UNICA123", "📅 EMITIENDO $horarioCompleto")
 
                 repoScope.launch {
                     cambio_horario_completo.emit(horarioCompleto)
@@ -420,6 +432,22 @@ class repo_filtrado_tiendas {
             val horarioMap = data?.get("horario_atencion") as? Map<String, Any> ?: emptyMap()
             val metodos_contacto = data?.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
             val metodo_pago = data?.get("metodos_pago") as? Map<String, Any> ?: emptyMap()
+            val aforo=data?.get("aforo_max") as? Number?:0
+            val comodidadesRaw =
+                data?.get("servicios_comodidades") as? List<Map<String, Boolean>>
+                    ?: emptyList()
+            val listaComodidades = comodidadesRaw.mapNotNull { map ->
+                val entry = map.entries.firstOrNull() ?: return@mapNotNull null
+
+                val nombre = entry.key
+                val activo = entry.value
+
+                ServicioComodidadUI(
+                    nombre = nombre,
+                    activo = activo,
+                    icono = obtenerIconoComodidad(nombre)
+                )
+            }
             val metodo_pago_tienda = metodo_pago.to_metodo_pago()
             val horario_atencion_Box = horarioMap.to_horario_atencion_box_dia()
             Log.d("viendo_contacto", metodos_contacto.toString())
@@ -466,13 +494,31 @@ class repo_filtrado_tiendas {
                 horario_atencion = horarioTienda,
                 metodos_pago_tienda = metodo_pago_tienda,
                 horario_tienda_box = horario_atencion_Box,
-                timestamp = data?.get("timeSlamp") as? String ?: "",lista_img_tienda=img_completas
+                timestamp = data?.get("timeSlamp") as? String ?: "",lista_img_tienda=img_completas,comodidades=listaComodidades,aforo=aforo
             )
 
             lista_modelo_tienda.add(tiendaModelo)
         }
 
         return lista_modelo_tienda
+    }
+
+    fun obtenerIconoComodidad(nombre: String): Int {
+        return when (nombre.lowercase()) {
+            "wifi" -> R.drawable.icon_wifi
+            "zona expandida" -> R.drawable.icon_zona_expandida
+            "servicios higenicos"-> R.drawable.icon_servicios_higenicos
+            "servicios igenicos" -> R.drawable.icon_servicios_higenicos
+            "camaras de seguridad" -> R.drawable.icon_seguridad
+            "sala de espera" -> R.drawable.icon_sala_de_espera
+            "sala de juegos" -> R.drawable.icon_sala_para_ninos
+            "mesa para niños" -> R.drawable.icon_mesa_para_ninos
+            "estacionamiento" -> R.drawable.icon_estacionamiento
+            "enchufe" -> R.drawable.icon_enchufa
+            "aire acondicionado" -> R.drawable.icon_aire_acondicionado
+            "ingreso con mascotas", -> R.drawable.icon_ingreso_animales
+            else -> R.drawable.logo_geinz_500x500
+        }
     }
 
 

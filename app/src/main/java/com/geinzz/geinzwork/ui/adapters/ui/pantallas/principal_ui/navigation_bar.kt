@@ -90,6 +90,8 @@ import com.geinzz.geinzwork.viewModels.viewmodel_review
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.runtime.key
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.UiAction
+import com.geinzz.geinzwork.viewModels.UiActionViewModel
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.launch
@@ -100,10 +102,12 @@ private lateinit var firebaseAuth: FirebaseAuth
 @SuppressLint("MissingPermission", "SuspiciousIndentation")
 @Composable
 fun bottom_navigation(
+    uiActionVM: UiActionViewModel,
     verificar_intener: Boolean,
     datos_principales_user: datos_principales_user,
     navController: NavController,  crear_cuenta:()-> Unit,iniciar_seccion:()-> Unit
 ) {
+    val repo_erese_socio = repo_eres_socio()
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val items = listOf(
@@ -141,13 +145,119 @@ fun bottom_navigation(
 
     var datos_review by remember { mutableStateOf(datos_review()) }
     var esta_o_no_lugar by remember { mutableStateOf(false) }
-var Bottom_sheet_registrate by remember { mutableStateOf(false) }
+    var Bottom_sheet_registrate by remember { mutableStateOf(false) }
     var mostar_snackvar_reivew by remember { mutableStateOf(false) }
     var scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+    LaunchedEffect(uiActionVM) {
+        Log.d("UiAction", "🚀 LaunchedEffect iniciado, escuchando acciones")
+
+        uiActionVM.actions.collect { action ->
+
+            Log.d("UiAction", "📩 Acción recibida: $action")
+
+            when (action) {
+
+                is UiAction.AbrirPerfil -> {
+                    if(uid_respald_user.isNotEmpty()){
+
+                    Log.d(
+                        "UiAction",
+                        "🏪 AbrirPerfil -> idTienda=${action.idTienda}, localidad=${action.localidad}"
+                    )
+                    id_tienda_params = action.idTienda
+                    localida_tienda = action.localidad
+
+                    repo_erese_socio.agregar_contador(
+                        "perfil_qr",
+                        id_tienda_params,
+                        localida_tienda
+                    )
+                    botoom_sheet_perfil_user = true
+                    }else{
+                        Bottom_sheet_registrate=true
+                    }
+                }
+
+                is UiAction.ReviewPublica -> {
+                    if(uid_respald_user.isNotEmpty()){
+
+                    Log.d(
+                        "UiAction",
+                        "⭐ ReviewPublica -> idTienda=${action.idTienda}, localidad=${action.localidad}"
+                    )
+                        id_tienda_review =
+                            data_class_review(action.idTienda, action.localidad)
+                    repo_erese_socio.agregar_contador(
+                        "review_qr",
+                        action.idTienda,
+                        "barranca"
+                    )
+
+                    bottom_sheet = true
+                    }else{
+                        Bottom_sheet_registrate=true
+                    }
+                }
+
+                is UiAction.ReviewPrivada -> {
+                    if(uid_respald_user.isNotEmpty()){
+
+                    Log.d(
+                        "UiAction",
+                        "🔒 ReviewPrivada -> idTienda=${action.idTienda}, localidad=${action.localidad}, lat=${action.lat}, lng=${action.lng}"
+                    )
+                    latitude_tienda = action.lat
+                    longitude_tienda = action.lng
+                    id_tienda_review =
+                        data_class_review(action.idTienda, action.localidad)
+                        repo_erese_socio.agregar_contador(
+                            "review_c_qr",
+                            action.idTienda,
+                            "barranca"
+                        )
+                    dialog_estas_tienda = true
+                                      }else{
+                        Bottom_sheet_registrate=true
+                    }
+                }
+
+                is UiAction.Ruta -> {
+                    if(uid_respald_user.isNotEmpty()){
+                    Log.d(
+                        "UiAction",
+                        "🗺️ Ruta -> lat=${action.lat}, lng=${action.lng}"
+                    )
+                        repo_erese_socio.agregar_contador(
+                            "crear_ruta_qr",
+                            action.id_tienda,
+                            "barranca"
+                        )
+                    constantes_lista_localidades.abrir_google_maps(
+                        "tienda",
+                        action.id_tienda,
+                        "barranca",
+                        context,
+                        action.lat,
+                        action.lng
+                    ) {
+                        Log.d("UiAction", "⚠️ Google Maps pidió activar ubicación")
+                    }
+
+
+
+                    }else{
+                        Bottom_sheet_registrate=true
+                    }
+
+                }
+            }
+        }
+    }
+
 
     LaunchedEffect(botoom_sheet_perfil_user) {
         if (botoom_sheet_perfil_user) {
@@ -179,18 +289,30 @@ var Bottom_sheet_registrate by remember { mutableStateOf(false) }
                     }
                 },
                 open_review_p = { id_tienda, localidad, latitude, longitude ->
+                    if(uid_respald_user.isNotEmpty()){
+                    Log.d("reviewpubli"," privado$id_tienda $localidad")
                     dialog_estas_tienda = true
                     latitude_tienda = latitude
                     longitude_tienda = longitude
                     id_tienda_review = data_class_review(id_tienda, localidad)
 
+                    }else{
+                        Bottom_sheet_registrate=true
+                    }
+
 
                 },
                 open_review_public = { id_tienda, localidad ->
+                    if(uid_respald_user.isNotEmpty()){
+
+                    Log.d("reviewpubli"," public $id_tienda $localidad")
                     id_tienda_review = data_class_review(id_tienda, localidad)
                     id_tienda_params=id_tienda
                     localida_tienda=localidad
                     bottom_sheet = true
+                    }else{
+                        Bottom_sheet_registrate=true
+                    }
                 },
                 open_bottom_sheet_tieda={id_tienda, localidad ->
                     if(uid_respald_user.isNotEmpty()){
@@ -463,13 +585,13 @@ var Bottom_sheet_registrate by remember { mutableStateOf(false) }
                 crear_cuenta()
                 Bottom_sheet_registrate=false
             },
-            texto_bottom_Sheet = "Inicia sesión para ver el perfil completo"
+            texto_bottom_Sheet = "Inicia sesión en Geinz"
         )
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-private fun handleScanResult(
+fun handleScanResult(
     context: Context,
     contenidoEscaneado: String?,
     crear_ruta: (lat: Double, long: Double) -> Unit,

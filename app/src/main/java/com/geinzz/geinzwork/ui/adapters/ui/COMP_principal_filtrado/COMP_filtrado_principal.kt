@@ -546,7 +546,7 @@ fun expandibles_wrapp(
                     Icon(
                         painter = painterResource(id = iconRes),
                         contentDescription = "",
-                        tint = MaterialTheme.colorScheme.onBackground
+                        tint = MaterialTheme.colorScheme.onBackground,
                     )
                 }
 

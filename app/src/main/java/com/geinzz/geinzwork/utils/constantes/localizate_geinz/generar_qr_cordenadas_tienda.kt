@@ -69,6 +69,7 @@ object generar_qr_cordenadas_tienda {
     }
 
     fun decodificarCoordenadas(data: String): Pair<Double, Double> {
+        Log.d("datoasagragados",data)
         val decoded = String(Base64.decode(data, Base64.DEFAULT))
         val partes = decoded.split(",")
         return Pair(partes[0].toDouble(), partes[1].toDouble())

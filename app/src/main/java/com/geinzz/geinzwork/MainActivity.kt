@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
@@ -18,11 +19,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.rememberNavController
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.UiAction
+import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.nativationWrapper
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.handleScanResult
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.GeinzWorkTheme
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_carga_ucrop_img
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.geinzz.geinzwork.viewModels.DeepLinkViewModel
+import com.geinzz.geinzwork.viewModels.UiActionViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_usuarios_general
 import com.google.firebase.auth.FirebaseAuth
 import com.yalantis.ucrop.UCrop
@@ -37,7 +44,7 @@ class MainActivity : AppCompatActivity() {
     private val deepLinkViewModel: DeepLinkViewModel by viewModels()
     private lateinit var navController: androidx.navigation.NavHostController
     lateinit var cropLauncher: ActivityResultLauncher<Intent>
-
+    private val uiActionVM: UiActionViewModel by viewModels()
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +71,7 @@ class MainActivity : AppCompatActivity() {
             FuenteControladaApp {
                 GeinzWorkTheme {
                     navController = rememberNavController()
-                    nativationWrapper(navController)
+                    nativationWrapper(uiActionVM,navController)
 
                     LaunchedEffect(Unit) {
                         delay(150)
@@ -84,6 +91,7 @@ class MainActivity : AppCompatActivity() {
         // 👉 aquí mandamos la URI a Compose
         constantes_carga_ucrop_img.croppedUri = uri
     }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -98,24 +106,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ===============================
-    // 🔥 DEEPLINK NIVEL PRODUCCIÓN
-    // ===============================
     private fun manejarDeepLink(uri: Uri) {
+        Log.d("navegacion_rq", uri.toString())
 
         val tipo = uri.getQueryParameter("t")
             ?: uri.getQueryParameter("tipo")
-            ?: return
+            ?: ""
 
-        val idRaw = uri.getQueryParameter("id") ?: return
+        val idRaw = uri.getQueryParameter("id") ?: ""
 
         val localidadRaw = uri.getQueryParameter("l")
-            ?: uri.getQueryParameter("localidad")
-            ?: return
+            ?: uri.getQueryParameter("localidad") ?: uri.getQueryParameter("loc")
+            ?: ""
 
         val categoriaRaw = uri.getQueryParameter("c")
             ?: uri.getQueryParameter("categoria")
             ?: ""
+
+        val cordenadaRaw = uri.getQueryParameter("cor") ?:""
+
 
         val index = uri.getQueryParameter("i")?.toIntOrNull() ?: 0
 
@@ -171,6 +180,36 @@ class MainActivity : AppCompatActivity() {
                     id = id,
                     lugar = localidad,
                     index = index
+                )
+            }
+
+
+            "prf" -> {
+                uiActionVM.emitir(
+                    UiAction.AbrirPerfil(idRaw, localidadRaw)
+                )
+            }
+
+            "rew" -> {
+                uiActionVM.emitir(
+                    UiAction.ReviewPublica(idRaw, "barranca")
+                )
+
+            }
+
+            "ru" -> {
+                val (lat, lng) =
+                    generar_qr_cordenadas_tienda.decodificarCoordenadas(cordenadaRaw!!)
+                uiActionVM.emitir(
+                    UiAction.Ruta(idRaw,lat, lng)
+                )
+            }
+
+            "rewc" -> {
+                val (lat, lng) =
+                    generar_qr_cordenadas_tienda.decodificarCoordenadas(cordenadaRaw!!)
+                uiActionVM.emitir(
+                    UiAction.ReviewPrivada(idRaw, "barranca", lat, lng)
                 )
             }
         }

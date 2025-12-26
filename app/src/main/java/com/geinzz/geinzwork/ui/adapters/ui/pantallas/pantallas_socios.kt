@@ -659,10 +659,10 @@ fun login_socios(isConnected: Boolean) {
                                                 )
 
                                                 values4 = listOf(
-                                                    datos.perfil_qr.toFloat(),
-                                                    datos.review_c_qr.toFloat(),
                                                     datos.review_qr.toFloat(),
-                                                    datos.crear_ruta_qr.toFloat()
+                                                    datos.review_c_qr.toFloat(),
+                                                    datos.crear_ruta_qr.toFloat(),
+                                                    datos.perfil_qr.toFloat(),
                                                 )
                                             }
 
@@ -1855,7 +1855,7 @@ fun login_socios(isConnected: Boolean) {
                                                         enable = datos.ruta != 0,
                                                         img_ = R.drawable.crear_ruta_qr,
                                                         label = "QR crear ruta",
-                                                        cantidad = datos.ruta.toString()
+                                                        cantidad = datos.crear_ruta_qr.toString()
                                                     ),
                                                     datos_grafico(
                                                         enable = datos.perfil_qr != 0,

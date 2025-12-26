@@ -16,9 +16,35 @@ sealed class Items_menu(
     val ruta: String
 ){
     object pantalla1: Items_menu("Inicio",Icons.Default.Home,"pantalla_principal")
-    object pantalla2: Items_menu("Buscar",Icons.Default.Search,"buscar")
+    object pantalla2: Items_menu("Buscar",Icons.Filled.Search,"buscar")
     object pantalla3: Items_menu("Favoritos",Icons.Default.Favorite,"favoritos")
     object pantalla4: Items_menu("Cuenta",Icons.Default.Person,"login_principal")
 
 }
+
+sealed class UiAction {
+    data class AbrirPerfil(
+        val idTienda: String,
+        val localidad: String
+    ) : UiAction()
+
+    data class ReviewPublica(
+        val idTienda: String,
+        val localidad: String
+    ) : UiAction()
+
+    data class ReviewPrivada(
+        val idTienda: String,
+        val localidad: String,
+        val lat: Double,
+        val lng: Double
+    ) : UiAction()
+
+    data class Ruta(
+        val id_tienda:String,
+        val lat: Double,
+        val lng: Double
+    ) : UiAction()
+}
+
 

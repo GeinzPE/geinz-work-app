@@ -93,6 +93,7 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.crear_qr_rutas
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 //import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.selec_class_estados_carga
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
@@ -197,6 +198,9 @@ Log.d("cvateogireaopasda","$categoria")
         .collectAsState(initial = null)
     var texto_error_empity by remember { mutableStateOf("") }
     var lista_base_seguridad by remember { mutableStateOf(emptyList<tiendas_por_categoria>()) }
+    var datos_mostar_datos by remember { mutableStateOf(crear_qr_rutas()) }
+    var showDialog_qr by remember { mutableStateOf(false) }
+var generador_qr by remember { mutableStateOf("") }
     val lista_datos_tiendas by viewModelFiltros._datos__tiendas.observeAsState(emptyList())
     var mostrandoCarga_free by remember { mutableStateOf(false) }
     var yaInicializado by remember { mutableStateOf(false) }
@@ -377,7 +381,13 @@ Log.d("cvateogireaopasda","$categoria")
         }
     }
 
-
+    LaunchedEffect(showDialog_qr) {
+        if(showDialog_qr){
+            generador_qr = generar_qr_cordenadas_tienda.codificarCoordenadas_url(
+            datos_mostar_datos.lat, datos_mostar_datos.lng,datos_mostar_datos.id_teinda
+        )
+        }
+    }
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val bubbleSizePx = with(density) { 60.dp.toPx() }
@@ -460,6 +470,7 @@ Log.d("cvateogireaopasda","$categoria")
                         val horarioDeEstaTienda = horarios[tienda.id_tienda] ?: HorarioDia_box()
 
                         item_tiendas(
+                            generador_qr=generador_qr,
                             horario_box1 = horarioDeEstaTienda,
                             horario_box = tienda.horario_tienda_box,
                             verificar_interner = verificar_intener,
@@ -487,7 +498,11 @@ Log.d("cvateogireaopasda","$categoria")
                             }, dialog_sin_registrao = {
                                 bottom_sheet_iniciar_seccion = true
                                 texto_falta_registra = "Regístrate para agregar a tus favoritos"
-                            })
+                            },mostrar_diaog_crear_ruta={mostra,id_tienda,lat,ln,nomre_tienda->
+                                showDialog_qr=mostra
+                                datos_mostar_datos= crear_qr_rutas(id_tienda,lat,ln,nomre_tienda)
+                            }
+                        )
                     }
                 }
                 is carga_tiendas.empty -> {
@@ -643,6 +658,13 @@ Log.d("cvateogireaopasda","$categoria")
         if(!mostrandoCargaGlobal){
         shadow_bottom_pantallas_generales(Modifier.align(Alignment.BottomCenter))
         }
+    }
+    if(showDialog_qr){
+        dialog_qr_tienda(
+            qr = generador_qr,
+            nombre_tienda = datos_mostar_datos.nombre_tienda,
+            onDismis = { showDialog_qr = false }
+        )
     }
 
 
@@ -859,6 +881,7 @@ fun Text_fiel_filtrado(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun item_tiendas(
+    generador_qr:String,
     horario_box1: HorarioDia_box,
     horario_box: HorarioAtencion_box,
     verificar_interner: Boolean,
@@ -868,7 +891,8 @@ fun item_tiendas(
     item_tiendas: tiendas_por_categoria,
     abierto_cerrado: Boolean,
     listener_botom_sheet: (id_tienda: String, showBottomSheet: Boolean, estado_color: Color, Boolean) -> Unit,
-    dialog_sin_registrao: () -> Unit
+    dialog_sin_registrao: () -> Unit,
+    mostrar_diaog_crear_ruta:(Boolean, String, Double, Double,String)->Unit
 ) {
     // --- Estado local instantáneo ---
     var favoritoEstado by remember { mutableStateOf(false) }
@@ -889,13 +913,13 @@ fun item_tiendas(
     var detalles_tienda by remember { mutableStateOf(false) }
     var estadoColor by remember { mutableStateOf(Color.Red) }
 
-    var showDialog by remember { mutableStateOf(false) }
+//    var showDialog by remember { mutableStateOf(false) }
 
-    val generador_qr = remember(item_tiendas.latitud, item_tiendas.longitud) {
-        generar_qr_cordenadas_tienda.codificarCoordenadas_url(
-            item_tiendas.latitud, item_tiendas.longitud,item_tiendas.id_tienda
-        )
-    }
+//    val generador_qr = remember(item_tiendas.latitud, item_tiendas.longitud) {
+//        generar_qr_cordenadas_tienda.codificarCoordenadas_url(
+//            item_tiendas.latitud, item_tiendas.longitud,item_tiendas.id_tienda
+//        )
+//    }
 
     val targetHeight =
         if (!detalles_tienda && item_tiendas.metodos_pago_tienda != modelo_pagos_tienda()) 90.dp else 110.dp
@@ -932,7 +956,7 @@ fun item_tiendas(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = {
-                        showDialog = true
+                        mostrar_diaog_crear_ruta(true,item_tiendas.id_tienda,item_tiendas.latitud,item_tiendas.longitud,item_tiendas.nombre_tienda)
                     },
                     onTap = {
                         listener_botom_sheet(
@@ -1101,13 +1125,13 @@ fun item_tiendas(
         }
     }
 
-    if (showDialog) {
-        dialog_qr_tienda(
-            qr = generador_qr,
-            nombre_tienda = item_tiendas.nombre_tienda,
-            onDismis = { showDialog = false }
-        )
-    }
+//    if (showDialog) {
+//        dialog_qr_tienda(
+//            qr = generador_qr,
+//            nombre_tienda = item_tiendas.nombre_tienda,
+//            onDismis = { showDialog = false }
+//        )
+//    }
     if (estado_fv_btn) {
         dialog_eliminar_favoritos(
             viewModelFiltros = viewModelFiltros,

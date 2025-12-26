@@ -47,6 +47,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,12 +60,15 @@ import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -111,6 +115,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
+import com.geinzz.geinzwork.data.model.localizate_geinz.ServicioComodidadUI
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.item_metodos_pago
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
@@ -200,6 +205,7 @@ fun bottom_sheet_tiendas_filtradas(
     var expander_caracterisiticas by rememberSaveable { mutableStateOf(false) }
     var expander_contacto by rememberSaveable { mutableStateOf(false) }
     var expander_horario by rememberSaveable { mutableStateOf(false) }
+    var expander_comidades_aforo by remember { mutableStateOf(false) }
     var expander_qr_tienda by rememberSaveable { mutableStateOf(false) }
     var expander_metodos_pagos by rememberSaveable { mutableStateOf(false) }
     val direccion = tiendas_filtradas.ubicacion["dirección"]?.toString() ?: ""
@@ -207,7 +213,9 @@ fun bottom_sheet_tiendas_filtradas(
     val longitud = (tiendas_filtradas.ubicacion["longitud"] as? Number)?.toDouble() ?: 0.0
     val latitud = (tiendas_filtradas.ubicacion["latitud"] as? Number)?.toDouble() ?: 0.0
 
-    val horarios by viewModelFiltros.horariosTiendas_real_completo.collectAsState()
+    val horarios by viewModelFiltros
+        .horariosTiendas_real_completo
+        .collectAsState(initial = HorarioAtencion_box())
 
     val color_Estado_flow by viewModelFiltros.color_estado_tienda_flow.collectAsState()
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
@@ -237,7 +245,7 @@ fun bottom_sheet_tiendas_filtradas(
         )
         val nuevoId = tiendas_filtradas.id_tienda
 
-        viewModelFiltros.cast_horario_atencion_horario_tienda(tiendas_filtradas.horario_atencion)
+//        viewModelFiltros.cast_horario_atencion_horario_tienda(tiendas_filtradas.horario_atencion)
         viewModelFiltros.cast_horario_atencion_horario_tienda_box(tiendas_filtradas.horario_tienda_box)
         viewModelFiltros.verificar_existe_favorito(id_user, nuevoId)
 
@@ -493,6 +501,18 @@ var qr_generado_tienda by remember { mutableStateOf("") }
                             spacer_vertical(10.dp)
                         }
                         item {
+                            if(tiendas_filtradas.comodidades.isNotEmpty()){
+                            expandible_comidades_aforo(
+                                tiendas_filtradas.nombre_tienda,
+                                tiendas_filtradas.comodidades,
+                                tiendas_filtradas.aforo,
+                                modifier = Modifier.padding(horizontal = 10.dp),
+                                expandido = expander_comidades_aforo,
+                            ) { expander_comidades_aforo = !expander_comidades_aforo }
+                            spacer_vertical(10.dp)
+                            }
+                        }
+                        item {
                             Expandible_descripcion_tienda(
                                 modifier = Modifier.padding(horizontal = 10.dp),
                                 tiendas_filtradas.descripcion,
@@ -523,12 +543,12 @@ var qr_generado_tienda by remember { mutableStateOf("") }
                         item {
                             Expandible_horario_atencion(
                                 modifier = Modifier.padding(horizontal = 10.dp),
-                                horarios,
-                                color_Estado_flow,
-                                tiendas_filtradas.localidad,
-                                tiendas_filtradas.id_tienda,
-                                expander_horario,
-                                viewModelFiltros
+                                horario_atencion = horarios,
+                                estadoColor = color_Estado_flow,
+                                localidad_tienda = tiendas_filtradas.localidad,
+                                id_tienda = tiendas_filtradas.id_tienda,
+                                expandido = expander_horario,
+                                viewModelFiltros = viewModelFiltros
                             ) { expander_horario = !expander_horario }
                             spacer_vertical(10.dp)
                         }
@@ -1738,6 +1758,7 @@ fun Expandible_horario_atencion(
     viewModelFiltros: viewModel_filtado_tiendas,
     onClickExpand: () -> Unit
 ) {
+    Log.d("horario_atencion","$horario_atencion")
 //    val horarioTienda by viewModelFiltros.horarioTienda.observeAsState(null)
 //    val horarioRecordado = remember(horarioTienda) { horarioTienda }
 
@@ -1777,6 +1798,134 @@ fun Expandible_horario_atencion(
         }
     }
 }
+
+@Composable
+fun expandible_comidades_aforo(
+    nombre_luga: String,
+    listaComodidades: List<ServicioComodidadUI>,
+    aforo: Number,
+    modifier: Modifier = Modifier,
+    expandido: Boolean,
+    onClickExpand: () -> Unit
+) {
+    Cartas_expandibles(modifier = modifier) {
+        Column {
+            expandibles_wrapp(
+                "Comodidades y aforo",
+                iconRes = null,
+                  Icons.Filled.Wifi,
+                expandido,
+                onClickExpand
+            )
+
+            AnimatedVisibility(visible = expandido) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateContentSize()
+                ) {
+
+                    texto_generico_multilinea(
+                        "Mira las comodidades de $nombre_luga para ti",
+                        style = MaterialTheme.typography.bodyMedium,
+                        Modifier.padding(horizontal = 10.dp)
+                    )
+
+                    spacer_vertical(15.dp)
+
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(
+                            listaComodidades.filter { it.activo }
+                        ) { comodidad ->
+                            campos_atributos(
+                                tipo = comodidad.nombre,
+                                icono = comodidad.icono
+                            )
+                        }
+                    }
+                    spacer_vertical(20.dp)
+
+                    AforoCard(aforo.toInt())
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AforoCard(
+    capacidadMax: Int,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier= Modifier.padding(10.dp)) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color(0xFF1976D2), RoundedCornerShape(8.dp)) // azul con bordes redondeados
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Título
+        Text(
+            text = "AFORO",
+            style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Subtítulo
+        Text(
+            text = "CAPACIDAD MÁXIMA",
+            style = MaterialTheme.typography.bodyMedium.copy(color = Color.White)
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Valor
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(6.dp))
+                .background(Color.White)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            Text(
+                text = "$capacidadMax personas",
+                style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black)
+            )
+        }
+    }
+    }
+}
+
+
+
+@Composable
+fun campos_atributos(
+    tipo: String,
+    icono: Int,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = painterResource(id = icono),
+            contentDescription = tipo,
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+        )
+
+        texto_generico_one_line(
+            tipo.capitalizeFirst(),
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
 
 @Composable
 fun MostrarHorarioTienda(

@@ -40,8 +40,10 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.o
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarSiEstaAbiertoHoy
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -139,8 +141,9 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
 
 
     private val _horariosTiendas_real_compelto =
-        MutableStateFlow<HorarioAtencion_box>(HorarioAtencion_box())
-    val horariosTiendas_real_completo = _horariosTiendas_real_compelto.asStateFlow()
+        MutableSharedFlow<HorarioAtencion_box>(replay = 1)
+    val horariosTiendas_real_completo =
+        _horariosTiendas_real_compelto.asSharedFlow()
 
     init {
 
@@ -170,10 +173,11 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
 
         viewModelScope.launch {
             repo_filtrado.cambiosHorariocompleto_tienda.collect { update ->
-                _horariosTiendas_real_compelto.value = update
-
+                Log.d("VM-HORARIO-COMPLETO", "🔥 EMITIENDO $update")
+                _horariosTiendas_real_compelto.emit(update)
             }
         }
+
     }
 
 
@@ -497,17 +501,17 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     }
 
 
-    fun cast_horario_atencion_horario_tienda(horarioAtencion: HorarioAtencion) {
-        Log.d("cast_horario_atencion_horario_tienda", horarioAtencion.toString())
-        viewModelScope.launch {
-            try {
-                _color_estado_tienda.value =
-                    repo_filtrado.obtener_estado_horario_tienda(horarioAtencion)
-            } catch (e: Exception) {
-                _color_estado_tienda.value = horario_tienda()
-            }
-        }
-    }
+//    fun cast_horario_atencion_horario_tienda(horarioAtencion: HorarioAtencion) {
+//        Log.d("cast_horario_atencion_horario_tienda", horarioAtencion.toString())
+//        viewModelScope.launch {
+//            try {
+//                _color_estado_tienda.value =
+//                    repo_filtrado.obtener_estado_horario_tienda(horarioAtencion)
+//            } catch (e: Exception) {
+//                _color_estado_tienda.value = horario_tienda()
+//            }
+//        }
+//    }
 
     fun cast_horario_atencion_horario_tienda_box(horarioAtencion: HorarioAtencion_box) {
         Log.d("cast_horario_atencion_horario_tienda", horarioAtencion.toString())
