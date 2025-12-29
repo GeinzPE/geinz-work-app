@@ -143,6 +143,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.CollageGoogleMapsStyle
 import com.geinzz.geinzwork.ui.adapters.ui.CollageGoogleMapsStyle_sin_scroll
+import com.geinzz.geinzwork.ui.adapters.ui.CollageGoogleMapsStyle_sin_scroll_promociones
 import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_administrar_perfil
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_eliminar_favoritos
@@ -813,8 +814,8 @@ fun cabezero_tiendas(
 
                 // 🔹 COLLAGE (ocupa lo que necesite)
                 if (lista_img.lista_promociones.isNotEmpty()) {
-                    CollageGoogleMapsStyle_sin_scroll(
-                        compartir_promocion(id_tienda,localidad, URLEncoder.encode(categoritienda, "UTF-8"),numero_tienda),
+                    CollageGoogleMapsStyle_sin_scroll_promociones(
+                        compartir_promocion(nombre_tienda,id_tienda,localidad, URLEncoder.encode(categoritienda, "UTF-8"),numero_tienda),
                         "promociones",
                         1.1f,
                         imagenes = lista_img.lista_promociones
@@ -1611,9 +1612,11 @@ fun item_metodos_de_pago(
 
     }
     if (mostrar_dialog_pagos) {
-        dialog_qr_pago_tienda(
-            metodoPagoSeleccionado,
-            { mostrar_dialog_pagos = !mostrar_dialog_pagos })
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            dialog_qr_pago_tienda(
+                metodoPagoSeleccionado,
+                { mostrar_dialog_pagos = !mostrar_dialog_pagos })
+        }
     }
 }
 

@@ -702,7 +702,7 @@ fun pantalla_principal(
                     verificar_intener = isConnected,
                     id_tienda = p.id_tienda,
                     localidad = p.lugar,
-                    index = p.index.toInt(),
+                    index = p.index,
                     onDismiss = {
                         mostrarDialog = false
                         deepLinkVM.clearPromo()

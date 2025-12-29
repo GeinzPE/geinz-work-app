@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -46,6 +47,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -67,11 +69,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.BoxImagen
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.esUriLocal
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.esUrlRemota
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.guardarCambiosImagenes
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.guardarImagenesEnFirestore
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.guardarImagenesEnFirestore_promociones
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
@@ -84,6 +89,7 @@ import io.github.dautovicharis.charts.PieChart
 import io.github.dautovicharis.charts.model.toChartDataSet
 import io.github.dautovicharis.charts.style.PieChartDefaults
 import kotlinx.coroutines.launch
+import kotlin.collections.getOrNull
 
 object constantes_pantalla_socios {
     @RequiresApi(Build.VERSION_CODES.O)
@@ -364,7 +370,6 @@ object constantes_pantalla_socios {
                             .clickable(enabled = !guardando) {
 
                                 guardando = true
-
                                 guardarCambiosImagenes(
                                     tipo = tipo,
                                     context = contxt,
@@ -373,7 +378,7 @@ object constantes_pantalla_socios {
                                     imagenesOriginales = imagenesOriginales,
                                     idTienda = id_tienda,
                                     "barranca"
-                                ) { completo ->
+                                ) { completo->
                                     val urlsFinales = completo.filterNotNull()
                                     guardarImagenesEnFirestore(
                                         localidad = "barranca",
@@ -392,6 +397,8 @@ object constantes_pantalla_socios {
 
                                         }
                                     )
+
+
                                     guardando = false
                                     eliminadas.clear()
                                 }
@@ -431,6 +438,139 @@ object constantes_pantalla_socios {
 
         }
 
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    @Composable
+    fun BoxTipo_promociones(
+        tipo: String,
+        id_tienda: String,
+        urlsDesdeDb: Map<String, String>,
+        max: Int
+    ) {
+        val context = LocalContext.current
+
+        var mostrarDialogozoom by remember { mutableStateOf(false) }
+        var valor_img_completa by remember { mutableStateOf<Pair<String, String?>?>(null) }
+        val eliminadas = remember { mutableStateListOf<String>() } // IDs eliminadas
+
+        // Generamos map completo con max slots
+        val imagenes = remember {
+            mutableStateMapOf<String, String?>().apply {
+                for (i in 0 until max) {
+                    val keyExistente = urlsDesdeDb.keys.elementAtOrNull(i)
+                    val id = keyExistente ?: generarIdImagen() // 🔹 generar ID único si no hay
+                    put(id, urlsDesdeDb[keyExistente]) // si no hay URL queda null
+                }
+            }
+        }
+
+        val hayCambios by remember {
+            derivedStateOf {
+                eliminadas.isNotEmpty() || imagenes.any { esUriLocal(it.value) }
+            }
+        }
+
+        var idSeleccionado by remember { mutableStateOf<String?>(null) }
+
+        val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let {
+                idSeleccionado?.let { id ->
+                    imagenes[id] = it.toString()
+                    eliminadas.remove(id)
+                }
+            }
+        }
+
+        val listState = rememberLazyListState()
+        var guardando by remember { mutableStateOf(false) }
+
+        Column {
+            Box(modifier = Modifier.animateContentSize().height(100.dp)) {
+                LazyRow(
+                    state = listState,
+                    horizontalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    items(imagenes.toList()) { (id, url) ->
+                        BoxImagen(
+                            valor = url,
+                            estaEliminada = eliminadas.contains(id),
+                            onClick = {
+                                idSeleccionado = id
+                                launcher.launch("image/*")
+                            },
+                            onCancelarOEliminar = {
+                                if (eliminadas.contains(id)) {
+                                    eliminadas.remove(id)
+                                    imagenes[id] = urlsDesdeDb[id]
+                                    return@BoxImagen
+                                }
+                                when {
+                                    esUriLocal(url) -> {
+                                        imagenes[id] = urlsDesdeDb[id]
+                                    }
+                                    esUrlRemota(url) -> {
+                                        eliminadas.add(id)
+                                        imagenes[id] = null
+                                    }
+                                }
+                            },
+                            onExpandir = {
+                                mostrarDialogozoom = true
+                                valor_img_completa = id to url
+                            }
+                        )
+                    }
+                }
+            }
+spacer_vertical(10.dp)
+            AnimatedVisibility(visible = hayCambios) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .clickable(enabled = !guardando) {
+                            guardando = true
+
+                            // Guardamos cambios con Map<ID, URL?>
+                            constantes_subir_img_panel_tienda.guardandoCambiosPromociones(
+                                tipo = tipo,
+                                context = context,
+                                imagenes = imagenes.toMap(),
+                                eliminadas = eliminadas.toList(),
+                                idTienda = id_tienda,
+                                localidad = "barranca"
+                            ) { mapFinal, _ ->
+                                eliminadas.clear()
+                                // Guardamos en Firestore
+                                guardarImagenesEnFirestore_promociones(
+                                    localidad = "barranca",
+                                    idTienda = id_tienda,
+                                    tipo = "promociones",
+                                    fotos = mapFinal
+                                )
+                                guardando = false
+                            }
+                        }
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = if (guardando) "Guardando…" else "Guardar cambios",
+                        color = Color.White
+                    )
+                }
+            }
+        }
+
+        if (mostrarDialogozoom && valor_img_completa != null) {
+            ZoomableGalleryFullScreen(
+                compartir_promocion(),
+                imagenes = listOf(valor_img_completa!!.second ?: ""), // URL
+                startIndex = 0,
+                onDismiss = { mostrarDialogozoom = false }
+            )
+        }
     }
 
 

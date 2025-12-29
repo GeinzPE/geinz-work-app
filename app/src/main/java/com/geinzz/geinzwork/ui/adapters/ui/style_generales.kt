@@ -73,6 +73,7 @@ import com.google.accompanist.pager.rememberPagerState
 import org.checkerframework.framework.qual.ConditionalPostconditionAnnotation
 import java.net.URLEncoder
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CollageGoogleMapsStyle(
     aspectRatio: Float = 1.4f,
@@ -132,24 +133,81 @@ fun CollageGoogleMapsStyle(
     }
 }
 
+
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CollageGoogleMapsStyle_sin_scroll(
     it: compartir_promocion,
     tag: String,
     aspectRatio: Float = 1.4f,
     width: Dp = 280.dp,
-    imagenes: List<String>,
+    imagenes: List<String>, // solo URLs antes
     modifier: Modifier = Modifier
 ) {
-    Log.d("nuietmetuad","${it.numero_tienda}")
     if (imagenes.isEmpty()) return
 
-    val grupos = imagenes.chunked(3)
     var galeriaActiva by remember { mutableStateOf(false) }
     var indiceInicial by remember { mutableStateOf(0) }
-    val gruposConIndice = imagenes
-        .mapIndexed { index, url -> index to url }
-        .chunked(3)
+
+    // Dividimos las imágenes en grupos de 3 para el collage
+    val gruposConIndice = imagenes.chunked(3)
+
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .wrapContentWidth()
+            .wrapContentHeight(),
+        horizontalArrangement = Arrangement.spacedBy(7.dp)
+    ) {
+        gruposConIndice.forEachIndexed { grupoIndex, grupo ->
+            GrupoCollageGoogle_sin_scrool(
+                tag = tag,
+                aspectRatio = aspectRatio,
+                baseWidth = width,
+                imagenes = grupo,
+                onClickImagen = { indiceEnGrupo, _ ->
+                    // Calculamos el índice global
+                    indiceInicial = (grupoIndex * 3) + indiceEnGrupo
+                    galeriaActiva = true
+                }
+            )
+        }
+    }
+
+    // Galería zoomable fullscreen
+    if (galeriaActiva) {
+        ZoomableGalleryFullScreen(
+            it = it,
+            tag = tag,
+            imagenes = imagenes,
+            startIndex = indiceInicial
+        ) {
+            galeriaActiva = false
+        }
+    }
+}
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun CollageGoogleMapsStyle_sin_scroll_promociones(
+    it: compartir_promocion,
+    tag: String,
+    aspectRatio: Float = 1.4f,
+    width: Dp = 280.dp,
+    imagenes: Map<String, String>, // ID -> URL
+    modifier: Modifier = Modifier
+){
+    Log.d("datoscometaeir","$imagenes")
+    val listaImagenes = imagenes.map { it.key to it.value } // List<Pair<ID, URL>>
+
+    if (listaImagenes.isEmpty()) return
+
+    var galeriaActiva by remember { mutableStateOf(false) }
+    var idPromocionSeleccionada by remember { mutableStateOf(listaImagenes.first().first) }
+
+// Dividimos en grupos de 3
+    val gruposConIndice = listaImagenes.chunked(3)
 
     Row(
         modifier = modifier
@@ -159,29 +217,36 @@ fun CollageGoogleMapsStyle_sin_scroll(
         horizontalArrangement = Arrangement.spacedBy(7.dp)
     ) {
         gruposConIndice.forEach { grupo ->
-            GrupoCollageGoogle_sin_scrool(
-                tag,
+            GrupoCollageGoogle_sin_scrool_promociones(
+                tag = tag,
                 aspectRatio = aspectRatio,
                 baseWidth = width,
                 imagenes = grupo,
-                onClickImagen = { indiceReal, tag ->
-                    indiceInicial = indiceReal // ✅ índice correcto
+                onClickImagen = { idPromocion, _ ->
+                    idPromocionSeleccionada = idPromocion
                     galeriaActiva = true
                 }
             )
         }
     }
 
-
     if (galeriaActiva) {
-        ZoomableGalleryFullScreen(
-            it,
-            tag,
-            imagenes,
-            indiceInicial
-        ) { galeriaActiva = false }
+        val startIndex = listaImagenes.indexOfFirst { it.first == idPromocionSeleccionada }
+            .coerceAtLeast(0)
+
+        ZoomableGalleryFullScreen_para_promociones(
+            id_promocion = idPromocionSeleccionada,
+            it = it,
+            tag = tag,
+            imagenes = listaImagenes,
+            startIndex = startIndex
+        ) {
+            galeriaActiva = false
+        }
     }
 }
+
+
 
 
 @Composable
@@ -189,8 +254,74 @@ fun GrupoCollageGoogle_sin_scrool(
     tag: String,
     aspectRatio: Float,
     baseWidth: Dp,
-    imagenes: List<Pair<Int, String>>,
+    imagenes: List<String>, // <-- original solo URLs
     onClickImagen: (Int, String) -> Unit
+) {
+    val anchoReal = when (imagenes.size) {
+        1 -> baseWidth * 0.5f
+        2 -> baseWidth * 0.75f
+        else -> baseWidth
+    }
+
+    Row(
+        modifier = Modifier
+            .width(anchoReal)
+            .aspectRatio(aspectRatio)
+            .clip(RoundedCornerShape(12.dp))
+    ) {
+
+        ImagenCollage(
+            tag,
+            url = imagenes.getOrNull(0),
+            modifier = Modifier
+                .weight(if (imagenes.size == 1) 1.1f else 2f)
+                .fillMaxSize(),
+            listener_img = {
+                onClickImagen(0, tag)
+            }
+        )
+
+        if (imagenes.size > 1) {
+            Column(
+                modifier = Modifier
+                    .weight(1.4f)
+                    .fillMaxHeight()
+                    .padding(start = 7.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+
+                ImagenCollage(
+                    tag,
+                    url = imagenes.getOrNull(1),
+                    modifier = Modifier.weight(1f),
+                    listener_img = {
+                        onClickImagen(1, tag)
+                    }
+                )
+
+                if (imagenes.size > 2) {
+                    ImagenCollage(
+                        tag,
+                        url = imagenes.getOrNull(2),
+                        modifier = Modifier.weight(1f),
+                        listener_img = {
+                            onClickImagen(2, tag)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun GrupoCollageGoogle_sin_scrool_promociones(
+    tag: String,
+    aspectRatio: Float,
+    baseWidth: Dp,
+    imagenes: List<Pair<String, String>>, // <-- ahora es ID -> URL
+    onClickImagen: (String, String) -> Unit // ID y tag
 ) {
     val anchoReal = when (imagenes.size) {
         1 -> baseWidth * 0.5f
@@ -212,7 +343,7 @@ fun GrupoCollageGoogle_sin_scrool(
                 .weight(if (imagenes.size == 1) 1.1f else 2f)
                 .fillMaxSize(),
             listener_img = {
-                onClickImagen(imagenes[0].first, tag)
+                onClickImagen(imagenes[0].first, tag) // pasamos el ID
             }
         )
 
@@ -248,6 +379,7 @@ fun GrupoCollageGoogle_sin_scrool(
         }
     }
 }
+
 
 // ✅ Grupo de 3 imágenes dentro del collage
 @Composable
@@ -557,10 +689,11 @@ fun ZoomableGalleryFullScreen(
                             modifier = Modifier.weight(1f),
                             clikeable = {
                                 compartir_hosting_promo(
+                                    it.nombre_tienda,
                                     it.categoria,
                                     context,
                                     it.localidad,
-                                    it.id_tienda,indice_cruzado
+                                    it.id_tienda,indice_cruzado.toString()
                                 )
 
                             })
@@ -571,6 +704,148 @@ fun ZoomableGalleryFullScreen(
         }
     }
 }
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+@SuppressLint("UnusedBoxWithConstraintsScope")
+@Composable
+fun ZoomableGalleryFullScreen_para_promociones(
+    id_promocion: String,
+    it: compartir_promocion,
+    tag: String = "",
+    imagenes: List<Pair<String, String>>, // Pair<url, idPromocion>
+    startIndex: Int = 0,
+    onDismiss: () -> Unit
+) {
+    if (imagenes.isEmpty()) return
+
+    val context = LocalContext.current
+
+    // ====================
+    // Accompanist PagerState
+    // ====================
+    val pagerState = com.google.accompanist.pager.rememberPagerState(initialPage = startIndex)
+    var allowScroll by remember { mutableStateOf(true) }
+    val zoomableState = rememberZoomableState()
+
+    // ID de la promoción actual
+    var indice_cruzado by remember { mutableStateOf(id_promocion) }
+
+    val localidad_pasada = when(it.localidad.lowercase()) {
+        "barranca" -> "ba"
+        "paramonga" -> "par"
+        "pativilca" -> "pat"
+        "supe" -> "su"
+        "puerto supe" -> "pue"
+        else -> it.localidad
+    }
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }
+            .collect { page ->
+                indice_cruzado = imagenes.getOrNull(page)?.first ?: id_promocion
+            }
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = Color.Black
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+
+                // ====================
+                // Horizontal Pager Accompanist
+                // ====================
+                com.google.accompanist.pager.HorizontalPager(
+                    state = pagerState,
+                    count = imagenes.size,
+                    modifier = Modifier.fillMaxSize(),
+                    userScrollEnabled = allowScroll
+                ) { page ->
+                    val (idPromocion, url) = imagenes[page]
+                    ZoomImage(
+                        painter = rememberAsyncImagePainter(url),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .zoomable(zoomableState),
+                        contentScale = ContentScale.Fit
+                    )
+
+                }
+
+                // Botón cerrar
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar",
+                        tint = Color.White
+                    )
+                }
+
+                // Botones WhatsApp y Compartir
+                if (tag.equals("promociones", ignoreCase = true)) {
+                    Row(
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+
+                        btn_compartir(
+                            color = Color(0xFF178A3F),
+                            icono = R.drawable.whatsapp_icon,
+                            txt_icono = "Me interesa",
+                            modifier = Modifier.weight(1f),
+                            clikeable = {
+                                abrir_whattsapp(
+                                    "promocion",
+                                    "",
+                                    "",
+                                    context = context,
+                                    it.numero_tienda,
+                                    "Hola, quiero esta oferta que vi en su perfil en Geinz: " +
+                                            "https://geinzworkapp.web.app/share?" +
+                                            "t=p" +
+                                            "&id=${it.id_tienda}" +
+                                            "&l=${localidad_pasada}" +
+                                            "&c=${it.categoria}" +
+                                            "&i=${indice_cruzado}"
+                                )
+                            }
+                        )
+
+                        btn_compartir(
+                            color = Color(0xFF8700F3),
+                            icono = R.drawable.compartir_icon_unico_blanco,
+                            txt_icono = "Compartir",
+                            modifier = Modifier.weight(1f),
+                            clikeable = {
+                                compartir_hosting_promo(
+                                    it.nombre_tienda,
+                                    it.categoria,
+                                    context,
+                                    it.localidad,
+                                    it.id_tienda,
+                                    indice_cruzado
+                                )
+                            }
+                        )
+                    }
+                }
+
+            }
+        }
+    }
+}
+
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
@@ -665,11 +940,12 @@ fun ZoomableGalleryFullScreen_promociones(
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun compartir_hosting_promo(
+    nombre_tienda:String,
     categoria: String,
     context: Context,
     localidad_tienda: String,
     id_tienda: String,
-    indice_cruazado:Int
+    indice_cruazado:String
 ) {
     try {
         val localidad_pasada= when(localidad_tienda){
@@ -693,7 +969,7 @@ fun compartir_hosting_promo(
 
 
 
-        val texto = "Encontré algo interesante en este negocio dentro de Geinz 👀🔥 \n$link"
+        val texto = "Mira lo que encontre en $nombre_tienda 👀🔥 \n$link"
 
 
         // Intent simple de compartir

@@ -2377,9 +2377,13 @@ object constantes_lista_localidades {
             ?.filterIsInstance<String>()
             ?: emptyList()
 
-        val promociones = (listaImgMap["promociones"] as? List<*>)
-            ?.filterIsInstance<String>()
-            ?: emptyList()
+        val promociones = (listaImgMap["promociones"] as? Map<*, *>)
+            ?.mapNotNull { entry ->
+                val key = entry.key as? String
+                val value = entry.value as? String
+                if (key != null && value != null) key to value else null
+            }?.toMap() ?: emptyMap()
+
 
         return obtener_img_tiendas(
             logo_tienda = logo,

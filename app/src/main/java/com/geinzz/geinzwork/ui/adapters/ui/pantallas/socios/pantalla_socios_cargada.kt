@@ -1,7 +1,9 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios
 
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -98,11 +100,13 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.D
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerDiasYColor
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.BoxFotosTipos
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.BoxTipo_promociones
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.estadisticas_aplicables
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrado:(String)-> Unit) {
     val viewmodel: viewmodel_eres_socio = viewModel()
@@ -123,7 +127,7 @@ fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrad
     var fotos_producto by remember { mutableStateOf(false) }
     var fotos_promociones by remember { mutableStateOf(false) }
     var fotosPromociones by remember {
-        mutableStateOf<List<String>>(emptyList())
+        mutableStateOf<Map<String, String>>(emptyMap())
     }
 
     var metodos_pago by remember { mutableStateOf(modelo_pagos_tienda()) }
@@ -711,12 +715,14 @@ fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrad
                                                         8.dp
                                                     )
                                             ) {
-                                                BoxFotosTipos(
-                                                    "ambientales",
-                                                    id_tienda,
-                                                    fotosAmbientales,
-                                                    6
-                                                )
+                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                                    BoxFotosTipos(
+                                                        "ambientales",
+                                                        id_tienda,
+                                                        fotosAmbientales,
+                                                        6
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -764,12 +770,14 @@ fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrad
                                                         8.dp
                                                     )
                                             ) {
-                                                BoxFotosTipos(
-                                                    "servicios_productos",
-                                                    id_tienda,
-                                                    fotosServicios,
-                                                    6
-                                                )
+                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                                    BoxFotosTipos(
+                                                        "servicios_productos",
+                                                        id_tienda,
+                                                        fotosServicios,
+                                                        6
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -818,7 +826,7 @@ fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrad
                                                         8.dp
                                                     )
                                             ) {
-                                                BoxFotosTipos(
+                                                BoxTipo_promociones(
                                                     "promociones",
                                                     id_tienda,
                                                     fotosPromociones,

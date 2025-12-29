@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,11 +33,14 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import com.geinzz.geinzwork.R
 import com.google.android.gms.tasks.Tasks
+import com.google.firebase.firestore.FieldValue
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
+import java.util.UUID
 
 object constantes_subir_img_panel_tienda {
     fun esUriLocal(valor: String?): Boolean =
@@ -143,11 +147,13 @@ object constantes_subir_img_panel_tienda {
         onFinish: (List<String>) -> Unit
     ) {
 
+
         val TAG = "GUARDAR_IMAGENES"
         val storage = FirebaseStorage.getInstance().reference
         val firestore = FirebaseFirestore.getInstance()
 
         val nuevasUrls = imagenesOriginales.toMutableList()
+        val idImagenes = mutableMapOf<Int, String>() // mapa índice -> idImagen para promociones
 
         // 🔢 total de operaciones (subidas + eliminaciones)
         val totalOperaciones =
@@ -160,6 +166,7 @@ object constantes_subir_img_panel_tienda {
 
         var operacionesCompletadas = 0
 
+
         fun checkFinish() {
             operacionesCompletadas++
 
@@ -168,20 +175,22 @@ object constantes_subir_img_panel_tienda {
                 val urlsFinales = nuevasUrls.filterNotNull()
 
                 // 🔥 actualizar Firestore UNA SOLA VEZ
-                firestore
-                    .collection("Tiendas")
-                    .document(localidad)
-                    .collection(localidad)
-                    .document(idTienda)
-                    .update("img_tienda.lista_img.$tipo", urlsFinales)
-                    .addOnSuccessListener {
-                        Log.d(TAG, "🔥 Firestore actualizado ($tipo)")
-                        onFinish(urlsFinales)
-                    }
-                    .addOnFailureListener {
-                        Log.e(TAG, "❌ Error Firestore", it)
-                        onFinish(urlsFinales) // devolvemos igual
-                    }
+
+                    firestore
+                        .collection("Tiendas")
+                        .document(localidad)
+                        .collection(localidad)
+                        .document(idTienda)
+                        .update("img_tienda.lista_img.$tipo", urlsFinales)
+                        .addOnSuccessListener {
+                            Log.d(TAG, "🔥 Firestore actualizado ($tipo)")
+                            onFinish(urlsFinales)
+                        }
+                        .addOnFailureListener {
+                            Log.e(TAG, "❌ Error Firestore", it)
+                            onFinish(urlsFinales) // devolvemos igual
+                        }
+
             }
         }
 
@@ -193,10 +202,7 @@ object constantes_subir_img_panel_tienda {
 
                 val uri = Uri.parse(valor)
                 val bytes = procesarImagenWebPSinRecorte(context, uri)
-
-                val ref = storage
-                    .child("tiendas/$idTienda/imagenes/$tipo/slot_$index.webp")
-
+                val ref = storage.child("tiendas/$idTienda/imagenes/$tipo/slot_$index.webp")
                 ref.putBytes(bytes)
                     .continueWithTask { ref.downloadUrl }
                     .addOnSuccessListener { downloadUrl ->
@@ -214,10 +220,7 @@ object constantes_subir_img_panel_tienda {
         // 2️⃣ ELIMINAR IMÁGENES
         // ===============================
         eliminadas.forEach { index ->
-
-            val ref = storage
-                .child("tiendas/$idTienda/imagenes/$tipo/slot_$index.webp")
-
+            val ref = storage.child("tiendas/$idTienda/imagenes/$tipo/slot_$index.webp")
             ref.delete()
                 .addOnSuccessListener {
                     nuevasUrls[index] = null
@@ -230,6 +233,108 @@ object constantes_subir_img_panel_tienda {
                 }
         }
     }
+
+
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    fun guardandoCambiosPromociones(
+        tipo: String,
+        context: Context,
+        imagenes: Map<String, String?>, // Map<ID, URL o URI local>
+        eliminadas: List<String>,       // IDs eliminadas
+        idTienda: String,
+        localidad: String,
+        onFinish: (Map<String, String>, tipo: String) -> Unit
+    ) {
+
+        val TAG = "GUARDAR_IMAGENES"
+        val storage = FirebaseStorage.getInstance().reference
+        val firestore = FirebaseFirestore.getInstance()
+
+        val nuevasUrls = imagenes.toMutableMap() // mantiene todos los IDs existentes
+
+        val totalOperaciones = imagenes.count { esUriLocal(it.value) } + eliminadas.size
+        if (totalOperaciones == 0) {
+            onFinish(nuevasUrls.filterValues { it != null }.mapValues { it.value!! }, tipo)
+            return
+        }
+
+        var operacionesCompletadas = 0
+        fun checkFinish() {
+            operacionesCompletadas++
+            if (operacionesCompletadas == totalOperaciones) {
+                val urlsFinales = nuevasUrls.filterValues { it != null }.mapValues { it.value!! }
+
+                firestore.collection("Tiendas")
+                    .document(localidad)
+                    .collection(localidad)
+                    .document(idTienda)
+                    .set(
+                        mapOf("img_tienda" to mapOf("lista_img" to mapOf(tipo to urlsFinales))),
+                        SetOptions.merge()
+                    )
+                    .addOnSuccessListener { onFinish(urlsFinales, tipo) }
+                    .addOnFailureListener {
+                        Log.e(TAG, "❌ Error Firestore", it)
+                        onFinish(urlsFinales, tipo)
+                    }
+            }
+        }
+
+        // ===============================
+        // 1️⃣ SUBIR SOLO IMÁGENES CAMBIADAS CON ID DINÁMICO
+        // ===============================
+        imagenes.forEach { (id, valor) ->
+            if (esUriLocal(valor)) { // solo sube si es URI local
+                val uri = Uri.parse(valor)
+                val bytes = procesarImagenWebPSinRecorte(context, uri)
+
+                val idImagen = if (id.isEmpty()) generarIdImagen() else id // 🔹 ID único dinámico
+                val ref = storage.child("tiendas/$idTienda/imagenes/$tipo/$idImagen.webp")
+
+                ref.putBytes(bytes)
+                    .continueWithTask { ref.downloadUrl }
+                    .addOnSuccessListener { downloadUrl ->
+                        nuevasUrls.remove(id) // eliminamos ID temporal si existía
+                        nuevasUrls[idImagen] = downloadUrl.toString() // reemplaza o agrega
+                        checkFinish()
+                    }
+                    .addOnFailureListener {
+                        Log.e(TAG, "❌ Error subiendo $idImagen", it)
+                        checkFinish()
+                    }
+            }
+        }
+
+        // ===============================
+        // 2️⃣ ELIMINAR IMÁGENES
+        // ===============================
+        eliminadas.forEach { id ->
+            val ref = storage.child("tiendas/$idTienda/imagenes/$tipo/$id.webp")
+            ref.delete()
+                .addOnSuccessListener {
+                    nuevasUrls.remove(id)
+                    checkFinish()
+
+                    // 🔹 Eliminamos solo el ID del map en Firestore
+                    val docRef = firestore.collection("Tiendas")
+                        .document(localidad)
+                        .collection(localidad)
+                        .document(idTienda)
+                    val path = "img_tienda.lista_img.$tipo.$id"
+                    docRef.update(path, FieldValue.delete())
+                }
+                .addOnFailureListener {
+                    Log.e(TAG, "❌ Error eliminando $id", it)
+                    nuevasUrls.remove(id)
+                    checkFinish()
+                }
+        }
+    }
+
+
+
+
     fun guardarImagenesEnFirestore(
         localidad: String,
         idTienda: String,
@@ -247,6 +352,46 @@ object constantes_subir_img_panel_tienda {
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { e -> onError(e) }
     }
+
+
+    fun guardarImagenesEnFirestore_promociones(
+        localidad: String,
+        idTienda: String,
+        tipo: String,
+        fotos: Map<String, String>, // ID -> URL
+        onSuccess: () -> Unit = {},
+        onError: (Exception) -> Unit = {}
+    ) {
+        val TAG = "FirestorePromociones"
+
+        if (tipo.isEmpty()) return // evita path inválido
+
+        Log.d(TAG, "🚀 Guardando imágenes en Firestore")
+        Log.d(TAG, "Localidad: $localidad, Tienda: $idTienda, Tipo: $tipo")
+        Log.d(TAG, "Fotos a guardar: $fotos")
+
+        val firestore = FirebaseFirestore.getInstance()
+
+        firestore.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(idTienda)
+            .set(
+                mapOf("img_tienda" to mapOf("lista_img" to mapOf(tipo to fotos))),
+                SetOptions.merge()
+            )
+            .addOnSuccessListener {
+                Log.d(TAG, "✅ Firestore actualizado correctamente")
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "❌ Error guardando en Firestore", e)
+                onError(e)
+            }
+    }
+
+
+
 
     @RequiresApi(Build.VERSION_CODES.R)
     fun subir_storage_perfil_img(
@@ -351,6 +496,13 @@ object constantes_subir_img_panel_tienda {
             false
         }
     }
+
+    fun generarIdImagen(): String {
+        val min = 1_000_000    // el número más pequeño de 7 dígitos
+        val max = 9_999_999    // el número más grande de 7 dígitos
+        return (min..max).random().toString()
+    }
+
 
 
 }

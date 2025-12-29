@@ -55,7 +55,7 @@ data class obtener_img_tiendas(
     val logo_tienda: String = "",
     val lista_ambiernte: List<String> = emptyList(),
     val lista_productos: List<String> = emptyList(),
-    val lista_promociones: List<String> = emptyList()
+    val lista_promociones: Map<String, String> = emptyMap()
 )
 
 

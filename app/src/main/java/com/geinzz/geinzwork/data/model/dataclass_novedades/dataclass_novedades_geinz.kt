@@ -51,6 +51,7 @@ data class nuevas_teindas_dias(
 )
 
 data class compartir_promocion(
+    val nombre_tienda: String="",
     val id_tienda: String ="",
     val localidad: String="",
     val categoria: String="",

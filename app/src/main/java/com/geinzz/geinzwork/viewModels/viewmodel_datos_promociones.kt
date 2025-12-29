@@ -21,7 +21,7 @@ class viewmodel_datos_promociones : ViewModel() {
     fun obtener_datos_promociones(
         id_tienda: String,
         localidad: String,
-        index: Int
+        index: String
     ) {
         viewModelScope.launch {
             _estadoPromocion.value = EstadoPromocion.Cargando

@@ -89,7 +89,7 @@ exports.share = onRequest(async (req, res) => {
     const id = req.query.id;
     const localidadRaw = req.query.l || req.query.localidad;
     const categoria = req.query.c || req.query.categoria;
-    const indice = parseInt(req.query.i || req.query.indice);
+    const indice = req.query.i || req.query.indice;
     const cl = req.query.cl;
 
     const coll_completa = cl === "pro" ? "promos_ofertas" : "promo";
@@ -189,14 +189,12 @@ exports.share = onRequest(async (req, res) => {
         imagen = data.img.principal;
       } else if (tipo === "p") {
         const promos = data.img_tienda?.lista_img?.promociones;
-        if (
-          promos &&
-          Array.isArray(promos) &&
-          !isNaN(indice) &&
-          indice >= 0 &&
-          indice < promos.length
-        ) {
-          imagen = promos[indice];
+        const idImagen = req.query.i || req.query.indice; // string
+        if (promos && idImagen) {
+          imagen = promos[idImagen]; // obtiene la URL correcta
+          if (!imagen && data.img_tienda?.logo_tienda) {
+            imagen = data.img_tienda.logo_tienda; // fallback
+          }
         } else if (data.img_tienda?.logo_tienda) {
           imagen = data.img_tienda.logo_tienda;
         }
@@ -219,7 +217,7 @@ exports.share = onRequest(async (req, res) => {
 
     if (localidad) destino += `&localidad=${localidad}`;
     if (categoria) destino += `&categoria=${categoria}`;
-    if (tipo === "p" && !isNaN(indice)) {
+    if (tipo === "p" && indice) {
       destino += `&indice=${indice}`;
     }
 

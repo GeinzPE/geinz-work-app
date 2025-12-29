@@ -74,7 +74,7 @@ fun dialog_promociones_negocios(
     verificar_intener: Boolean,
     id_tienda: String,
     localidad: String,
-    index: Int,
+    index: String,
     onDismiss: () -> Unit,crear_cuenta:()-> Unit,iniciar_seccion:()-> Unit
 ) {
     val viewModel: viewmodel_datos_promociones = viewModel()
@@ -191,41 +191,48 @@ fun dialog_promociones_negocios(
 
 
                     }
-                    LazyRow (
-                        modifier = Modifier    .fillMaxWidth(0.9f)
+                    Row(
+                        modifier =  Modifier
+                            .fillMaxWidth(0.9f)
                             .clip(RoundedCornerShape(bottomEnd = 24.dp, bottomStart = 24.dp))
-                            .height(50.dp)
+                            .height(50.dp).padding(bottom = 5.dp)
                             .background(MaterialTheme.colorScheme.background),
-                        horizontalArrangement = Arrangement.spacedBy(5.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        item {
-                            spacer_horizonta(10.dp)
-                            AsyncImage(
-                                model = promo.img_logo_tienda,
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .width(30.dp)
-                                    .height(30.dp)
-                                    .clip(CircleShape)
-                            )
-                        }
-
-                        item {
-                            spacer_horizonta(2.dp)
-                            texto_generico_one_line(
-                                promo.nombre_tienda.capitalizeFirst(),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            spacer_horizonta(40.dp)
-                        }
-
-                        item {
-                            Image(painterResource(R.drawable.whatsapp_icon), contentDescription = "whatsapp", modifier = Modifier
+                        // 🔹 Logo tienda
+                        spacer_horizonta(10.dp)
+                        AsyncImage(
+                            model = promo.img_logo_tienda,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
                                 .width(30.dp)
                                 .height(30.dp)
-                                .clip(CircleShape).clickable{
+                                .clip(CircleShape)
+
+                        )
+
+                        // 🔹 Nombre tienda
+                        texto_generico_one_line(
+                            promo.nombre_tienda.capitalizeFirst(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(start = 5.dp)
+                        )
+
+                        Spacer(modifier = Modifier.weight(1f)) // 🔹 Empuja los botones a la derecha
+
+                        // 🔹 Botón WhatsApp
+                        Image(
+                            painterResource(R.drawable.whatsapp_icon),
+                            contentDescription = "whatsapp",
+                            modifier = Modifier
+                                .width(30.dp)
+                                .height(30.dp)
+                                .clip(CircleShape)
+                                .clickable (
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ){
                                     abrir_whattsapp(
                                         tipo = "tienda",
                                         id_tienda = promo.id_tienda,
@@ -234,29 +241,37 @@ fun dialog_promociones_negocios(
                                         numero = promo.numero_contacto_teinda,
                                         mensajePredefinido = "¡Hola! Vi su promoción en Geinz y me interesa. ¿Podría darme más información, por favor? \n $link"
                                     )
-                                })
-                            spacer_horizonta(10.dp)
-                            Box(modifier = Modifier
-                                .clip(CircleShape)
-                                .background(Color.White).clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){
-                                    if(uid_respald_user.isNotEmpty()){
-                                    mostrar_bottom_datos=true
+                                }
+                        )
 
-                                    }else{
-                                        mostar_dialog_registrate=true
+                        // 🔹 Botón Ver Perfil
+                        spacer_horizonta(5.dp)
+                        Box(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ) {
+                                    if (uid_respald_user.isNotEmpty()) {
+                                        mostrar_bottom_datos = true
+                                    } else {
+                                        mostar_dialog_registrate = true
                                     }
-                                }) {
-                                texto_generico_one_line(
-                                    "Ver Perfil",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.Black,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
-                                )
-                            }
-                            spacer_horizonta(10.dp)
+                                }
+                        ) {
+                            texto_generico_one_line(
+                                "Ver Perfil",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Black,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                            )
                         }
 
+                        Spacer(modifier = Modifier.width(10.dp)) // margen derecho
                     }
+
                 }
                 }
             }
