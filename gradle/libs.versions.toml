@@ -67,7 +67,9 @@ uiTextVersion = "1.9.0"
 animationCore = "1.9.0"
 volley = "1.2.1"
 foundationLayout = "1.9.3"
+coreI18n = "1.0.0"
 [libraries]
+coil-core = { module = "io.coil-kt.coil3:coil", version.ref = "coilCompose" }
 accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
 accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators", version.ref = "accompanistPagerIndicators" }
 accompanist-pager = { module = "com.google.accompanist:accompanist-pager", version.ref = "accompanistPager" }
@@ -141,6 +143,7 @@ ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiTe
 androidx-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animationCore" }
 volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
+androidx-core-i18n = { group = "androidx.core", name = "core-i18n", version.ref = "coreI18n" }
 
 
 [plugins]

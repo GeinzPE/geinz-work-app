@@ -503,13 +503,13 @@ fun pantalla_principal(
             item {
                 spacer_vertical(10.dp)
                 apartado_explora_cat(
-                    stateCat,
-                    datos_lista,
-                    localidad_defaul,
-                    datos_principales_user.nombre,
-                    { nombre, localidad ->
+                    stateCat = stateCat,
+                    categorias_tienda = datos_lista,
+                    localidad_selecionada = localidad_defaul,
+                    nombre_user = datos_principales_user.nombre,
+                    categorias1 = { nombre, localidad ->
                         categorias(localidad, nombre)
-                    }, { categoria, localidad, nombre ->
+                    }, clikear_cartas = { categoria, localidad, nombre ->
                         clikear_cartas(categoria, localidad, nombre)
                     })
 
@@ -570,18 +570,18 @@ fun pantalla_principal(
             }
             item {
                 if (!mostrar_widget_tienda) {
-                    spacer_vertical(10.dp)
+                    spacer_vertical(20.dp)
                     baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul) }
                     spacer_vertical(20.dp)
                 }
             }
             item {
-                spacer_vertical(10.dp)
+                spacer_vertical(20.dp)
                 titulo_referenciales_geinz_work(
                     "Recién agregados",
                     "Ver todos"
                 ) { mostar_nuevos_lugares_geinz(localidad_defaul) }
-                spacer_vertical(15.dp)
+                spacer_vertical(10.dp)
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier.padding(vertical = 8.dp)
@@ -952,6 +952,7 @@ fun cartas_filtrado(
                 }
             }
         }
+
     }
 }
 

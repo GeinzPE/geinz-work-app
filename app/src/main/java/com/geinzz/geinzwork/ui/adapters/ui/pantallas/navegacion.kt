@@ -5,7 +5,6 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 import android.net.Uri
 import android.os.Build
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -49,12 +48,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.geinzz.geinzwork.Network_internet.ConnectivityViewModel
 import com.geinzz.geinzwork.NotificacionRS
 import com.geinzz.geinzwork.data.model.FavoritosFactory
-import com.geinzz.geinzwork.data.model.dataclass_promos.datos_para_promocieons_activas
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -72,11 +69,12 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.HandleBackPres
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.PantallaExplorarTiendas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.bottom_navigation
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.pantalla_mapa_perzonalizado
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.promociones_Cercanas.ui_promos_cerca_de_ti
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad.ui_salud_seguirdad
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.ui_servicio_tramite
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.login_socios
 import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5_s
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.pasar_teindas_nuevas
 import com.geinzz.geinzwork.viewModels.DeepLinkViewModel
 import com.geinzz.geinzwork.viewModels.UiActionViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_favoritos
@@ -370,8 +368,7 @@ fun nativationWrapper(
                 // Pantalla principal
                 composable("pantalla_principal") {
                     pantalla_principal(
-
-                        deepLinkVM,
+                        deepLinkVM = deepLinkVM,
                         isConnected = isConnected,
                         datos_principales_user = datos_principales_user,
                         categorias = { localidad, nombre ->
@@ -407,16 +404,17 @@ fun nativationWrapper(
                             navController.navigate(ui_salud_seguridad(localida))
                         },
                         listner_sevicios_tramites = { localidad ->
-                            navController.navigate(ui_servicios_tramites(localidad))
+//                            navController.navigate(ui_servicios_tramites(localidad))
+                            navController.navigate(promociones_y_ofertas(localidad))
 
                         },
                         abrir_guardar_datos = {
-//                            enviar_notificacion_lista_dispo(
-//                                id_user,
-//                                "Mira ese nuevo negocio en geinz notificacion de prueva ",
-//                                "Encuentralo a unos pasos cerca de ti "
-//                            )
-//                    navController.navigate(ui_agregar_lugares)
+                        //                            enviar_notificacion_lista_dispo(
+                        //                                id_user,
+                        //                                "Mira ese nuevo negocio en geinz notificacion de prueva ",
+                        //                                "Encuentralo a unos pasos cerca de ti "
+                        //                            )
+                        //                    navController.navigate(ui_agregar_lugares)
                             //                            pasar_teindas_nuevas()
 
                         },
@@ -427,7 +425,7 @@ fun nativationWrapper(
                         iniciar_seccion = { navController.navigate("login_principal") },
                         crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
-                        },abir_butom_Var={isvisble_buttomvar=true},cerrar_buttom_var={isvisble_buttomvar=false}
+                        }, abir_butom_Var = {isvisble_buttomvar=true}, cerrar_buttom_var = {isvisble_buttomvar=false}
                     )
                 }
                 // Login
@@ -506,16 +504,14 @@ fun nativationWrapper(
                 composable<mostrar_tiendas> { navback ->
                     val datos_user = navback.toRoute<mostrar_tiendas>()
                     PantallaExplorarTiendas(
-                        datos_user.localidad,
-                        datos_user.nombre_user,
-                        viewModel_localizate_geinz,
+                        localidadUser = datos_user.localidad,
+                        nombreUser = datos_user.nombre_user,
+                        viewModel = viewModel_localizate_geinz,
                         clik_img = { categoria, localidada, nombre_user ->
                             if (categoria.equals("turismo")) {
                                 navController.navigate(lugares_turisticos(localidada))
                                 return@PantallaExplorarTiendas
                             } else {
-                                Log.d("clikeamos_img", "$categoria")
-
                                 navController.navigate(
                                     screen_filtrado(
                                         categoria,
@@ -556,6 +552,11 @@ fun nativationWrapper(
                         })
                 }
 
+                composable<promociones_y_ofertas> {navback ->
+                    val datos = navback.toRoute<promociones_y_ofertas>()
+                    ui_promos_cerca_de_ti(datos.localidad,isConnected)
+                }
+
                 composable<map_perzonalizado> { navback ->
                     val direcciones = navback.toRoute<map_perzonalizado>()
                     pantalla_mapa_perzonalizado(
@@ -571,12 +572,10 @@ fun nativationWrapper(
 
                 composable<screen_filtrado> { navBackStackEntry ->
                     val categoria_localidad = navBackStackEntry.toRoute<screen_filtrado>()
-
-
                     Pantalla_filtrado_tiendas(
-                        "",
-                        isConnected,
-                        viewmodelFavoritos,
+                        id_tienda = "",
+                        verificar_intener = isConnected,
+                        viewmodelFavoritos = viewmodelFavoritos,
                         viewModelFiltros = viewModel_filtrado_tiendas,
                         categoria = categoria_localidad.categoria,
                         localida = categoria_localidad.localidad,
@@ -600,7 +599,7 @@ fun nativationWrapper(
                         },
                         crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
-                        }, navController
+                        }, navController = navController
                     )
                 }
 
@@ -636,72 +635,7 @@ fun nativationWrapper(
                     val servicio = navback.toRoute<ui_servicios_tramites>()
                     ui_servicio_tramite(isConnected, servicio.localidad)
                 }
-//                composable(route = "pantalla_principal/{localidad}/{idLugar}/{categoria}/{index}") { backStackEntry ->
-//                    val localidad = backStackEntry.arguments?.getString("localidad") ?: ""
-//                    val idLugar = backStackEntry.arguments?.getString("idLugar") ?: ""
-//                    val categoria = backStackEntry.arguments?.getString("categoria") ?: ""
-//                    val index = backStackEntry.arguments?.getString("index") ?: ""
-//                    pantalla_principal(
-//                        isConnected = isConnected,
-//                        datos_principales_user = datos_principales_user,
-//                        categorias = { localidad, nombre ->
-//                            navController.navigate(
-//                                mostrar_tiendas(
-//                                    nombre,
-//                                    localidad
-//                                )
-//                            )
-//                        },
-//                        clikear_cartas = { categoria, localidad, nombre_user ->
-//                            Log.d("categoriass", "$categoria $nombre_user $localidad")
-//                            if (categoria.equals("turismo")) {
-//                                navController.navigate(lugares_turisticos(localidad))
-//                            } else {
-//                                navController.navigate(
-//                                    screen_filtrado(
-//                                        categoria,
-//                                        localidad,
-//                                        nombre_user,
-//                                    )
-//                                )
-//                            }
-//
-//                        },
-//                        ver_lugares = { localidad ->
-//                            navController.navigate(lugares_turisticos(localidad))
-//                        },
-//                        listner_busqueda = {
-//                            navController.navigate("buscar")
-//                        },
-//                        listener_seguridad = { localida ->
-//                            navController.navigate(ui_salud_seguridad(localida))
-//                        },
-//                        listner_sevicios_tramites = { localidad ->
-//                            navController.navigate(ui_servicios_tramites(localidad))
-//
-//                        },
-//                        abrir_guardar_datos = {
-//                            enviar_notificacion_lista_dispo(
-//                                id_user,
-//                                "Mira ese nuevo negocio en geinz ",
-//                                "Eceuntralo a unos pasos cerca de ti "
-//                            )
-////                    navController.navigate(ui_agregar_lugares)
-//                            //                            pasar_teindas_nuevas()
-//
-//                        },
-//                        mostrar_panel_geinz = { navController.navigate(login_scios) },
-//                        mostar_nuevos_lugares_geinz = { localidad ->
-//                            navController.navigate(nuevos_negocios_geinz(localidad))
-//                        },
-//                        iniciar_seccion = { navController.navigate("login_principal") },
-//                        crear_cuenta = {
-//                            navController.navigate(crear_cuenta_geinz("crear"))
-//                        },
-//                        datos_para_promocieons_activas(idLugar,localidad,index),true
-//                    )
-//
-//                }
+
                 composable(
                     route = "mostrar_tiendas/{localidad}/{idLugar}/{categoria}",
                 ) { backStackEntry ->

@@ -109,11 +109,11 @@ import kotlin.text.contains
 fun PantallaExplorarTiendas(
     localidadUser: String,
     nombreUser: String,
-    viewModel:viewModel_localizate_geinz,
+    viewModel: viewModel_localizate_geinz,
     clik_img: (categoria: String, localidad: String, nombre_user: String) -> Unit
 ) {
     val viewModel: viewModel_localizate_geinz = viewModel()
-    Log.d("viewmode",viewModel.toString())
+    Log.d("viewmode", viewModel.toString())
     val lista = remember { mutableStateListOf<encontradas_por_categoria>() }
     var texto_filtrado by rememberSaveable { mutableStateOf("") }
     val composision by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.cargando_categorias))
@@ -202,23 +202,31 @@ fun PantallaExplorarTiendas(
                         }
                     }
 
-                    itemsIndexed(listaParaMostrar, key = { _, item -> item.categoria?:""}) { index, item ->
+                    itemsIndexed(
+                        listaParaMostrar,
+                        key = { _, item -> item.categoria ?: "" }) { index, item ->
                         cartas_categorias(
-                            nombreUser,
-                            item,
-                            index,
-                            localidadSeleccionada.value,
-                            {categoria,localidad, nombre ->
-                                clik_img(categoria,localidad,nombre)
+                            nombre_user = nombreUser,
+                            item = item,
+                            index = index,
+                            Localidad_selecionada = localidadSeleccionada.value,
+                            clik_img = { categoria, localidad, nombre ->
+                                clik_img(categoria, localidad, nombre)
                             },
                         )
+                    }
+                    item(span = StaggeredGridItemSpan.FullLine) {
+                        spacer_vertical(20.dp)
                     }
                 }
 
             }
         }
 
-        ShadowBottomPantallas(listState, modifier = Modifier.align(Alignment.BottomCenter))
+        if (!cargando.value) {
+            ShadowBottomPantallas(listState, modifier = Modifier.align(Alignment.BottomCenter))
+        }
+
         AnimatedVisibility(
             mostrar_fab, enter = fadeIn(), exit = fadeOut(), modifier = Modifier
                 .align(
@@ -242,6 +250,7 @@ fun PantallaExplorarTiendas(
 
 
 }
+
 @Composable
 fun carga_inicial() {
     Box(
@@ -451,7 +460,7 @@ fun cartas_categorias(
     val boxHeight = if (index % 2 == 0) heightOptions[0] else heightOptions[1]
     val gradient = remember {
         Brush.verticalGradient(
-            colors  = listOf(
+            colors = listOf(
                 Color.Transparent,
                 Color.Black.copy(alpha = 0.55f),
                 Color.Black.copy(alpha = 1f)
@@ -481,9 +490,11 @@ fun cartas_categorias(
                         .build(),
                     contentDescription = "Imagen",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxWidth() .clickable {
-                        clik_img(item.categoria, Localidad_selecionada, nombre_user)
-                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            clik_img(item.categoria, Localidad_selecionada, nombre_user)
+                        },
                     loading = {
                         Image(
                             painter = painterResource(R.drawable.cargando_img_categorias),
@@ -498,7 +509,8 @@ fun cartas_categorias(
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize() // 👈 ocupa todo el contenedor
-                        )                    }
+                        )
+                    }
                 )
                 Box(
                     modifier = Modifier

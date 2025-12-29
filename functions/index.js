@@ -4,6 +4,7 @@ const logger = require("firebase-functions/logger");
 
 const admin = require("firebase-admin");
 const algoliasearch = require("algoliasearch");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 
 admin.initializeApp();
 
@@ -16,7 +17,7 @@ const index = client.initIndex("lugares");
 exports.syncLugarToAlgolia = onDocumentWritten(
   {
     document: "lugares/{lugarId}",
-    region: "us-central1"
+    region: "us-central1",
   },
   async (event) => {
     const lugarId = event.params.lugarId;
@@ -33,7 +34,6 @@ exports.syncLugarToAlgolia = onDocumentWritten(
     logger.info(`Documento ${lugarId} agregado/actualizado en Algolia`);
   }
 );
-
 
 // ==================== Notificaciones ====================
 // ==================== Notificaciones ====================
@@ -52,7 +52,7 @@ exports.enviarNotificacion = onRequest(async (req, res) => {
       link = "",
       image = "",
       idTienda = "",
-      idAnuncio = ""
+      idAnuncio = "",
     } = req.body;
 
     const mensaje = {
@@ -61,41 +61,38 @@ exports.enviarNotificacion = onRequest(async (req, res) => {
         title: String(title),
         body: String(body),
         link: String(link),
-        image: String(image),       // 🔥 URL de la imagen
+        image: String(image),
         idTienda: String(idTienda),
-        idAnuncio: String(idAnuncio)
+        idAnuncio: String(idAnuncio),
       },
       android: {
-        priority: "high"
-      }
+        priority: "high",
+      },
     };
 
     const respuesta = await admin.messaging().send(mensaje);
     res.status(200).send("Notificación enviada: " + respuesta);
-
   } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
   }
 });
 
-
-
 // ==================== SHARE (Tienda + Turismo) ====================
 // ==================== SHARE (Tienda + Turismo + Otros) ====================
 exports.share = onRequest(async (req, res) => {
   try {
-
     // ============================
     //        PARÁMETROS
     // ============================
     const tipo = req.query.t || req.query.tipo; // SIEMPRE CORTO
     const id = req.query.id;
-
     const localidadRaw = req.query.l || req.query.localidad;
     const categoria = req.query.c || req.query.categoria;
     const indice = parseInt(req.query.i || req.query.indice);
+    const cl = req.query.cl;
 
+    const coll_completa = cl === "pro" ? "promos_ofertas" : "promo";
     // ============================
     //        MAPA LOCALIDADES
     // ============================
@@ -104,7 +101,7 @@ exports.share = onRequest(async (req, res) => {
       par: "paramonga",
       pat: "pativilca",
       su: "supe",
-      pue: "puerto supe"
+      pue: "puerto supe",
     };
 
     const localidad = MAPA_LOCALIDADES[localidadRaw] || localidadRaw;
@@ -113,28 +110,16 @@ exports.share = onRequest(async (req, res) => {
     //        VALIDACIÓN BASE
     // ============================
     if (!tipo || !id) {
-      return res
-        .status(400)
-        .send("Faltan parámetros obligatorios: tipo, id.");
+      return res.status(400).send("Faltan parámetros obligatorios: tipo, id.");
     }
 
     // ============================
     //   TIPOS QUE NO USAN LOCALIDAD
     // ============================
-    const TIPOS_SIN_LOCALIDAD = [
-      "rew",
-      "rewc",
-      "ru",
-      "prf"
-    ];
+    const TIPOS_SIN_LOCALIDAD = ["rew", "rewc", "ru", "prf", "prof"];
 
-    if (
-      !TIPOS_SIN_LOCALIDAD.includes(tipo) &&
-      (!localidad || !categoria)
-    ) {
-      return res
-        .status(400)
-        .send("Faltan parámetros: localidad, categoria.");
+    if (!TIPOS_SIN_LOCALIDAD.includes(tipo) && (!localidad || !categoria)) {
+      return res.status(400).send("Faltan parámetros: localidad, categoria.");
     }
 
     let ref = null;
@@ -144,17 +129,25 @@ exports.share = onRequest(async (req, res) => {
     //     SELECCIÓN FIRESTORE
     // ============================
     if (tipo === "ti" || tipo === "p") {
-      ref = admin.firestore()
+      ref = admin
+        .firestore()
         .collection("Tiendas")
         .doc(localidad)
         .collection(localidad)
         .doc(id);
-    }
-    else if (tipo === "tu") {
-      ref = admin.firestore()
+    } else if (tipo === "tu") {
+      ref = admin
+        .firestore()
         .collection("Tiendas")
         .doc(localidad)
         .collection(categoria)
+        .doc(id);
+    } else if (tipo === "prof") {
+      ref = admin
+        .firestore()
+        .collection("Tiendas")
+        .doc(localidad)
+        .collection(coll_completa)
         .doc(id);
     }
     // rew | rewc | ru | prf → NO FIRESTORE
@@ -162,9 +155,7 @@ exports.share = onRequest(async (req, res) => {
     if (ref) {
       const snap = await ref.get();
       if (!snap.exists) {
-        return res
-          .status(404)
-          .send("No existe el documento solicitado.");
+        return res.status(404).send("No existe el documento solicitado.");
       }
       data = snap.data();
     }
@@ -176,13 +167,12 @@ exports.share = onRequest(async (req, res) => {
 
     if (data) {
       if (tipo === "ti" || tipo === "p") {
+        titulo = capitalizeFirstLetter(data.nombre_tienda || "Tienda en Geinz");
+      } else if (tipo === "tu") {
+        titulo = capitalizeFirstLetter(data.nombre || "Lugar en Geinz");
+      } else if (tipo === "prof") {
         titulo = capitalizeFirstLetter(
-          data.nombre_tienda || "Tienda en Geinz"
-        );
-      }
-      else if (tipo === "tu") {
-        titulo = capitalizeFirstLetter(
-          data.nombre || "Lugar en Geinz"
+          data?.informacion?.titulo || "Mira esta promo en Geinz"
         );
       }
     }
@@ -195,13 +185,10 @@ exports.share = onRequest(async (req, res) => {
     if (data) {
       if (tipo === "ti" && data.img_tienda?.logo_tienda) {
         imagen = data.img_tienda.logo_tienda;
-      }
-      else if (tipo === "tu" && data.img?.principal) {
+      } else if (tipo === "tu" && data.img?.principal) {
         imagen = data.img.principal;
-      }
-      else if (tipo === "p") {
+      } else if (tipo === "p") {
         const promos = data.img_tienda?.lista_img?.promociones;
-
         if (
           promos &&
           Array.isArray(promos) &&
@@ -210,9 +197,17 @@ exports.share = onRequest(async (req, res) => {
           indice < promos.length
         ) {
           imagen = promos[indice];
-        }
-        else if (data.img_tienda?.logo_tienda) {
+        } else if (data.img_tienda?.logo_tienda) {
           imagen = data.img_tienda.logo_tienda;
+        }
+      } else if (tipo === "prof") {
+        const promos = data.img_container?.lista_img || [];
+        if (promos.length > 0) {
+          imagen = promos[0]; // toma siempre la primera imagen si existe
+        } else if (data.img_container?.logo_img) {
+          imagen = data.img_container.logo_img;
+        } else {
+          imagen = "https://geinzworkapp.web.app/default.jpg";
         }
       }
     }
@@ -251,18 +246,65 @@ exports.share = onRequest(async (req, res) => {
 
     res.set("Content-Type", "text/html");
     res.status(200).send(html);
-
   } catch (e) {
     console.error("ERROR SHARE:", e);
     res.status(500).send("Error interno");
   }
 });
 
-
-
-
 function capitalizeFirstLetter(str) {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+exports.desactivarPromocionesExpiradas = onSchedule(
+  {
+    schedule: "every 24 hours",
+    timeZone: "America/Lima",
+    region: "us-central1",
+  },
+  async () => {
+    const db = admin.firestore();
+    const hoy = new Date();
+
+    console.log("🔄 Revisando promociones expiradas...");
+
+    const snapshot = await db
+      .collection("Tiendas")
+      .doc("barranca") // luego puedes hacerlo dinámico
+      .collection("promos_ofertas")
+      .where("fechas.activo", "==", true)
+      .get();
+
+    if (snapshot.empty) {
+      console.log("No hay promociones activas");
+      return;
+    }
+
+    const batch = db.batch();
+    let contador = 0;
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      const fechaFinStr = data?.fechas?.fin; // "dd/MM/yyyy"
+
+      if (!fechaFinStr) return;
+
+      const [dia, mes, anio] = fechaFinStr.split("/").map(Number);
+      const fechaFinDate = new Date(anio, mes - 1, dia);
+
+      if (fechaFinDate < hoy) {
+        batch.update(doc.ref, {
+          "fechas.activo": false,
+        });
+        contador++;
+      }
+    });
+
+    if (contador > 0) {
+      await batch.commit();
+    }
+
+    console.log(`✅ Promociones desactivadas: ${contador}`);
+  }
+);

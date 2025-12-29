@@ -340,7 +340,7 @@ fun bottom_navigation(
                 }
 
                 Geinz_bottom_var(
-                    navItem = nav_item(item.titulo, item.icono),
+                    navItem = nav_item(item.titulo, item.icono_seleccionado,item.icono_deseleccionado),
                     selecionado = currentRoute == item.ruta
                 ) {
                     if (currentRoute != item.ruta) {
@@ -770,7 +770,13 @@ fun RowScope.Geinz_bottom_var(navItem: nav_item, selecionado: Boolean, clikeado:
     NavigationBarItem(
         selected = selecionado,
         onClick = { clikeado() },
-        icon = { Icon(imageVector = navItem.icon, contentDescription = "") },
+        icon = {
+            Image(
+                painterResource(if (selecionado) navItem.icono_seleccionado else navItem.icono_seleccionado),
+                contentDescription = "",
+                modifier = Modifier.size(21.dp)
+            )
+        },
         label = {
             texto_generico_one_line(
                 navItem.nombre_item,

@@ -70,6 +70,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -504,14 +505,14 @@ fun titulos_genericos_one_line(
 }
 
 @Composable
-fun Cartas_expandibles(
-    modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit
+fun Cartas_expandibles(color: Color =MaterialTheme.colorScheme.surface,
+                       modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = color
         )
     ) {
         Column(
@@ -595,99 +596,7 @@ fun expandibles_wrapp(
 
 
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun expandibles_wrapp_socio_geinzz_horario_atencion(
-    tick: Long,
-    viewModelFiltros: viewModel_filtado_tiendas,
-    dia: String,
-    isConnected: Boolean,
-    viewmodel: viewmodel_eres_socio,
-    expandido: Boolean,
-    datos: datos_tienda,
-    onClickExpand: () -> Unit,
-    sin_conexion: () -> Unit,
-    campos_vacios_o_incompletos: () -> Unit,
-    error_hoario: (String) -> Unit
-) {
 
-
-    ConstraintLayout(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(horizontal = 10.dp, vertical = 15.dp)
-    ) {
-
-        val (texto, btn) = createRefs()
-
-        Column(
-            modifier = Modifier.constrainAs(texto) {
-                top.linkTo(parent.top)
-                bottom.linkTo(parent.bottom)
-            }
-
-        ) {
-
-            AnimatedContent(
-                targetState = expandido, transitionSpec = {
-                    fadeIn() togetherWith fadeOut()
-                }) { estado ->
-
-                if (!estado) {
-                    Row(
-                        modifier = Modifier.clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }) { onClickExpand() },
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        texto_generico_one_line(
-                            "Horario de hoy $dia :  ", style = MaterialTheme.typography.bodyMedium
-                        )
-                        retornar_color_estado_tienda_Box(
-                            "",
-                            viewModelFiltros.horariosTiendas.collectAsState().value[datos.id_tienda]
-                                ?: HorarioDia_box(),
-                            tick,
-                            true,
-                            { color, txt -> })
-                    }
-
-                } else {
-                    HorarioSemanal123(
-                        "todos",
-                        id_tienda = datos.id_tienda,
-                        tick = tick,
-                        viewModelFiltros = viewModelFiltros,
-                        isConnected = isConnected,
-                        horario = datos.horario_tiendaMap,
-                        cerrar_tienda = { nombre_dia, motivo_cierre, lista ->
-                            viewmodel.cambiar_cerrado(
-                                datos.id_tienda, nombre_dia, motivo_cierre, lista
-                            )
-                        },
-                        abrir_tienda = { dia, lista_horarios ->
-                            viewmodel.cambiar_abierto(
-                                datos.id_tienda, dia, lista_horarios
-                            )
-                        },
-                        error_sin_internet = {
-                            sin_conexion()
-                        },
-                        onclick_expand = { onClickExpand() },
-                        error_campos_incompletos = { campos_vacios_o_incompletos() },
-                        { valor ->
-                            error_hoario(valor)
-                        },
-                        shadow_top_filtrado_v1,
-                        shadow_botonm_filtrado_v1
-                    )
-                }
-            }
-
-        }
-    }
-}
 
 
 @Composable
@@ -737,6 +646,40 @@ fun text_expandible_wrapp(
     )
 }
 
+@Composable
+fun TextoExpandibleSuave(
+    texto: String,
+    modifier: Modifier = Modifier,
+    style: TextStyle = MaterialTheme.typography.bodyMedium,
+    maxLines: Int = 2
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var canExpand by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = modifier
+
+    ) {
+
+        Text(
+            text = texto,
+            style = style,
+            maxLines = if (expanded) Int.MAX_VALUE else maxLines,
+            overflow = TextOverflow.Ellipsis,
+            onTextLayout = { layout ->
+                // 🔒 solo lo calculamos una vez
+                if (!expanded) {
+                    canExpand = layout.hasVisualOverflow
+                }
+            },  modifier = Modifier
+                .padding(top = 6.dp)
+                .clickable { expanded = !expanded },
+        )
+
+    }
+}
+
+
 
 
 @Composable
@@ -761,7 +704,7 @@ fun TextoSubrayado(
         modifier = modifier,
         textDecoration = TextDecoration.Underline,
         color = color_subrallado,
-        style = style, fontFamily = baners_geinz_work
+        style = style
     )
 }
 

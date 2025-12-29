@@ -80,5 +80,11 @@ data class servicio_comodidad(
     val estado: Boolean
 )
 
+data class InfoLeyenda(
+    val titulo: String,
+    val descripcion: String,
+    val icono: Int
+)
+
 
 data class cambiar_datos_pago_contacto(val id_tienda:String,val localida:String)

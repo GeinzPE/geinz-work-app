@@ -35,14 +35,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
@@ -55,8 +58,13 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.repo_eres_socio
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoExpandibleSuave
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.compartirLugarFirebaseHosttiendas
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.github.panpf.zoomimage.ZoomImage
 import com.github.panpf.zoomimage.compose.rememberZoomState
 import com.github.panpf.zoomimage.compose.zoom.rememberZoomableState
@@ -563,6 +571,97 @@ fun ZoomableGalleryFullScreen(
         }
     }
 }
+
+@SuppressLint("UnusedBoxWithConstraintsScope")
+@Composable
+fun ZoomableGalleryFullScreen_promociones(
+   titulo:String,txt:String,
+    imagenes: List<String>,
+    startIndex: Int = 0,
+    onDismiss: () -> Unit
+) {
+    if (imagenes.isEmpty()) return
+    val context = LocalContext.current
+
+    val pagerState = com.google.accompanist.pager.rememberPagerState(initialPage = startIndex)
+    var allowScroll by remember { mutableStateOf(true) }
+    val zoomableState = rememberZoomableState()
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = Color.Black
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                com.google.accompanist.pager.HorizontalPager(
+                    state = pagerState,
+                    count = imagenes.size,
+                    modifier = Modifier.fillMaxSize(),
+                    userScrollEnabled = allowScroll
+                ) { page ->
+                    ZoomImage(
+                        painter = rememberAsyncImagePainter(imagenes[page]),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .zoomable(zoomableState),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+                // Botón cerrar
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar",
+                        tint = Color.White
+                    )
+                }
+
+                Box(modifier = Modifier.align(Alignment.BottomCenter)){
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Black.copy(alpha = 0.01f),
+                                        Color.Black.copy(alpha = 0.25f),
+                                        Color.Black.copy(alpha = 0.40f),
+                                        Color.Black.copy(alpha = 0.65f), // arriba suave
+                                        Color.Black.copy(alpha = 0.85f),  // abajo oscuro
+                                         Color.Black.copy(alpha = 1f)
+                                    )
+                                )
+                            )
+                    )
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Text(
+                            text = titulo.capitalizeFirst(),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        spacer_vertical(5.dp)
+                        TextoExpandibleSuave(texto =txt ,style = MaterialTheme.typography.bodySmall, maxLines = 2)
+
+                    }
+
+                }
+
+            }
+        }
+    }
+}
+
+
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun compartir_hosting_promo(

@@ -141,11 +141,13 @@ fun dialog_promociones_negocios(
                             "&l=$localidad_pasada" +
                             "&c=${URLEncoder.encode(promo.categoria, "UTF-8")}" +
                             "&i=$index"
+                FuenteControladaApp{
 
                 Column (
                     modifier = Modifier
                         .align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(0.9f)
@@ -256,22 +258,30 @@ fun dialog_promociones_negocios(
 
                     }
                 }
+                }
             }
 
             is EstadoPromocion.Vacio -> {
+                FuenteControladaApp{
                 Text(
+
                     "No hay promoción",
                     modifier = Modifier.align(Alignment.Center),
                     color = Color.White
                 )
+                }
             }
 
             is EstadoPromocion.Error -> {
+                FuenteControladaApp{
+
                 Text(
+
                     "Error al cargar",
                     modifier = Modifier.align(Alignment.Center),
                     color = Color.White
                 )
+                }
             }
 
         }

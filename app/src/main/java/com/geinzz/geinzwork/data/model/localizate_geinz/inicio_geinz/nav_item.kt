@@ -7,18 +7,20 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.geinzz.geinzwork.R
 
-data class nav_item(val nombre_item: String, val icon: ImageVector)
+data class nav_item(val nombre_item: String,  val icono_seleccionado: Int,  val icono_deseleccionado:Int)
 
 sealed class Items_menu(
     val titulo: String,
-    val icono:ImageVector,
+    val icono_seleccionado: Int,
+    val icono_deseleccionado:Int,
     val ruta: String
 ){
-    object pantalla1: Items_menu("Inicio",Icons.Default.Home,"pantalla_principal")
-    object pantalla2: Items_menu("Buscar",Icons.Filled.Search,"buscar")
-    object pantalla3: Items_menu("Favoritos",Icons.Default.Favorite,"favoritos")
-    object pantalla4: Items_menu("Cuenta",Icons.Default.Person,"login_principal")
+    object pantalla1: Items_menu("Inicio",R.drawable.home_seleccionado,R.drawable.home_deseleccionado,"pantalla_principal")
+    object pantalla2: Items_menu("Buscar",R.drawable.busqueda_seleccionada,R.drawable.busqueda_deseleccionada,"buscar")
+    object pantalla3: Items_menu("Favoritos",R.drawable.favorito_selecionado,R.drawable.favorito_deseleccionado,"favoritos")
+    object pantalla4: Items_menu("Cuenta",R.drawable.usuario_selecionado,R.drawable.usuario_deseleccionado,"login_principal")
 
 }
 

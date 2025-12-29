@@ -21,8 +21,8 @@ android {
         applicationId = "com.geinzz.geinzwork"
         minSdk = 24
         targetSdk = 35
-        versionCode = 52
-        versionName = "1.38.1"
+        versionCode = 53
+        versionName = "1.39.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -84,6 +84,7 @@ dependencies {
     implementation(libs.play.services.maps)
 
     implementation(libs.volley)
+    implementation(libs.androidx.core.i18n)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -137,6 +138,7 @@ dependencies {
 
     //coil
     implementation(libs.coil.compose)
+    implementation(libs.coil.core)
     implementation(libs.coil3.coil.network.okhttp)
     // Coil 3.x para Compose
 //    implementation("io.coil-kt:coil-compose:3.3.0")

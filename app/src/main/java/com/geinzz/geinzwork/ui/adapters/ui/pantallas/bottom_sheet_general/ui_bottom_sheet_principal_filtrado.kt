@@ -366,7 +366,7 @@ var qr_generado_tienda by remember { mutableStateOf("") }
         qr_generado_tienda=retornar_id_Tienda_lugar(tiendas_filtradas.id_tienda, latitud, longitud)
 
     }
-    var qrBitmap by rememberSaveable { mutableStateOf<Bitmap?>(null) }
+    var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
     LaunchedEffect(qr_generado_tienda) {
         if (qr_generado_tienda.isBlank()) return@LaunchedEffect
@@ -1058,7 +1058,7 @@ fun perfil_cabezero(
                 viewModelFiltros.setear_color(color)
             })
         spacer_vertical(5.dp)
-//        TextoCopiable(id_tienda)
+    TextoCopiable(id_tienda)
         text_expandible_wrapp(
             texto = "${categoritienda.capitalizeFirst()}",
             style = MaterialTheme.typography.bodyMedium

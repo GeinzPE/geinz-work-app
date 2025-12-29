@@ -77,10 +77,18 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
+import com.geinzz.geinzwork.data.model.datos_tienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.servicio_comodidad
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
+import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 
 
 object constantes_expandibles_generales {
@@ -1989,6 +1997,99 @@ object constantes_expandibles_generales {
                 contentDescription = "",
                 modifier = Modifier.size(25.dp)
             )
+        }
+    }
+    @RequiresApi(Build.VERSION_CODES.O)
+    @Composable
+    fun expandibles_wrapp_socio_geinzz_horario_atencion(
+        tick: Long,
+        viewModelFiltros: viewModel_filtado_tiendas,
+        dia: String,
+        isConnected: Boolean,
+        viewmodel: viewmodel_eres_socio,
+        expandido: Boolean,
+        datos: datos_tienda,
+        onClickExpand: () -> Unit,
+        sin_conexion: () -> Unit,
+        campos_vacios_o_incompletos: () -> Unit,
+        error_hoario: (String) -> Unit
+    ) {
+
+
+        ConstraintLayout(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(horizontal = 10.dp, vertical = 15.dp)
+        ) {
+
+            val (texto, btn) = createRefs()
+
+            Column(
+                modifier = Modifier.constrainAs(texto) {
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                }
+
+            ) {
+
+                AnimatedContent(
+                    targetState = expandido, transitionSpec = {
+                        fadeIn() togetherWith fadeOut()
+                    }) { estado ->
+
+                    if (!estado) {
+                        Row(
+                            modifier = Modifier.clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }) { onClickExpand() },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            texto_generico_one_line(
+                                "Horario de hoy $dia :  ", style = MaterialTheme.typography.bodyMedium
+                            )
+                            retornar_color_estado_tienda_Box(
+                                "",
+                                viewModelFiltros.horariosTiendas.collectAsState().value[datos.id_tienda]
+                                    ?: HorarioDia_box(),
+                                tick,
+                                true,
+                                { color, txt -> })
+                        }
+
+                    } else {
+                        HorarioSemanal123(
+                            "todos",
+                            id_tienda = datos.id_tienda,
+                            tick = tick,
+                            viewModelFiltros = viewModelFiltros,
+                            isConnected = isConnected,
+                            horario = datos.horario_tiendaMap,
+                            cerrar_tienda = { nombre_dia, motivo_cierre, lista ->
+                                viewmodel.cambiar_cerrado(
+                                    datos.id_tienda, nombre_dia, motivo_cierre, lista
+                                )
+                            },
+                            abrir_tienda = { dia, lista_horarios ->
+                                viewmodel.cambiar_abierto(
+                                    datos.id_tienda, dia, lista_horarios
+                                )
+                            },
+                            error_sin_internet = {
+                                sin_conexion()
+                            },
+                            onclick_expand = { onClickExpand() },
+                            error_campos_incompletos = { campos_vacios_o_incompletos() },
+                            { valor ->
+                                error_hoario(valor)
+                            },
+                            shadow_top_filtrado_v1,
+                            shadow_botonm_filtrado_v1
+                        )
+                    }
+                }
+
+            }
         }
     }
 }

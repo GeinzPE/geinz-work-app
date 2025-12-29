@@ -161,7 +161,6 @@ fun Pantalla_filtrado_tiendas(
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val context = LocalContext.current
-Log.d("cvateogireaopasda","$categoria")
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
     val estadoTiendaFree by viewModelFiltros._datos_tienda_sin_pago.observeAsState(
         viewModel_filtado_tiendas.carga_tiendas_sin_pago.loading_tiendas_free
@@ -405,15 +404,15 @@ var generador_qr by remember { mutableStateOf("") }
             stickyHeader() {
                 ColumnContenedorComun {
                     chips_filtrado(
-                        listState,
-                        subCategoriaSeleccionada,
-                        lista_subcategorias,
-                        { expandir ->
-//                            visible_texfiel = expandir
+                        listState = listState,
+                        sub_categoria_selecionada = subCategoriaSeleccionada,
+                        lista_subcategorias = lista_subcategorias,
+                        expandir_carta = { expandir ->
+                        //                            visible_texfiel = expandir
                         },
-                        { categoria_selecionada ->
+                        selecionado = { categoria_selecionada ->
                             categoria_seleccionda = categoria_selecionada
-//                            subCategoriaSeleccionada = categoria_seleccionda
+                        //                            subCategoriaSeleccionada = categoria_seleccionda
                             viewModelFiltros.actualizarsubcategoria_filtrado(categoria_seleccionda)
                         })
                     Text_fiel_filtrado(existe, visibleTextField, texto_filtrado) {
@@ -505,12 +504,12 @@ var generador_qr by remember { mutableStateOf("") }
                         )
                     }
                 }
+
                 is carga_tiendas.empty -> {
                     Log.d("entramos", "vacio")
                     val texto =
                         (state_filtrado_tiendas as carga_tiendas.empty).texto
                     scope.launch {
-                        delay(4000)
                         mostrandoCargaGlobal = false
                     }
 
