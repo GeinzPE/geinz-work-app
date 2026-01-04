@@ -75,6 +75,7 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_compartir.compartir_pantalla_completa
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -204,11 +205,31 @@ fun ui_salud_seguirdad(
             modifier = Modifier.padding(10.dp)
         ) {
             item {
+                Row(horizontalArrangement = Arrangement.Center , verticalAlignment = Alignment.CenterVertically) {
                 texto_generico_multilinea(
                     "Salud y Seguridad Pública",
                     style = MaterialTheme.typography.banerGeinzWork,
-                    modifier = Modifier.padding(end = 20.dp)
+                    modifier = Modifier.padding(end = 10.dp).weight(1f)
                 )
+
+                    Box(
+                        modifier = Modifier,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .size(35.dp)
+                                .clip(CircleShape)
+                                .background(Color.Gray.copy(alpha = 0.5f)).clickable{
+                                    compartir_pantalla_completa("nemg","Encuentra los números de emergencia de forma rápida y segura cuando más lo necesites.",context)
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(painterResource(R.drawable.comparir_icon), modifier = Modifier.size(16.dp), contentDescription = null)
+                        }
+                    }
+
+                }
                 spacer_vertical(5.dp)
                 texto_generico_multilinea(
                     "Tu bienestar es primero, localiza hospitales, comisarías, bomberos y servicios de ayuda cuando los necesites.",

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -76,6 +77,7 @@ import com.geinzz.geinzwork.data.model.dataclass_lugares_db
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_compartir.compartir_pantalla_completa
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -96,6 +98,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite
 import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite.carga_servicios
+import com.google.firebase.database.core.Context
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -600,7 +603,26 @@ fun carta_servicio_tramites(
 
 @Composable
 fun cabezero_servicios_tramites(localiad: String) {
-    Text(text = "servicios esenciales y tramites", fontFamily = baners_geinz_work, fontSize = 30.sp)
+    val context=LocalContext.current
+    Row(horizontalArrangement = Arrangement.Center , verticalAlignment = Alignment.CenterVertically){
+    Text(text = "servicios esenciales y tramites", fontFamily = baners_geinz_work, fontSize = 30.sp, modifier = Modifier.weight(1f))
+        Box(
+            modifier = Modifier,
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .size(35.dp)
+                    .clip(CircleShape)
+                    .background(Color.Gray.copy(alpha = 0.5f)).clickable{
+                        compartir_pantalla_completa("seyt","Explora los lugares disponibles en Geinz para tus servicios y trámites.",context)
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Image(painterResource(R.drawable.comparir_icon), modifier = Modifier.size(16.dp), contentDescription = null)
+            }
+        }
+    }
     spacer_vertical(5.dp)
     texto_generico_multilinea(
         "Accede al instante a todos los servicios y trámites esenciales de $localiad. Información verificada.",

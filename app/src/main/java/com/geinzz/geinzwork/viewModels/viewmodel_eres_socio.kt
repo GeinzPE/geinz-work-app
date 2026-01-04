@@ -7,10 +7,15 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geinzz.geinzwork.data.model.agregar_promociones
+import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
+import com.geinzz.geinzwork.data.model.datos_publicaciones_realizadas
 
 import com.geinzz.geinzwork.data.model.datos_tienda
+import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.model.repo_eres_socio
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.notificacionesFCM.enviar_notificacion_lista_dispo
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +32,12 @@ class viewmodel_eres_socio : ViewModel() {
     private val _state_eres_socio = MutableStateFlow<carga_acces_socio>(carga_acces_socio.idle)
     val state_eres_socio: StateFlow<carga_acces_socio> = _state_eres_socio
 
+    private val _seguidores_obtenidos = MutableStateFlow<List<String>>(emptyList())
+    val seguidores_obtenidos: StateFlow<List<String>> = _seguidores_obtenidos
+
+
+    private val _lista_publicaciones=MutableStateFlow<List<datos_publicaciones_realizadas>> (emptyList())
+    val lista_publicaciones: StateFlow<List<datos_publicaciones_realizadas>> = _lista_publicaciones
 
     private val _imgAmbientales = MutableStateFlow<List<String>>(emptyList())
     val imgAmbientales: StateFlow<List<String>> = _imgAmbientales
@@ -56,6 +67,26 @@ class viewmodel_eres_socio : ViewModel() {
 
     private val _cargandoIdSocio = MutableStateFlow(true)
     val cargandoIdSocio = _cargandoIdSocio.asStateFlow()
+
+    private val _subidaPromoState =
+        MutableStateFlow<SubidaPromoState>(SubidaPromoState.Idle)
+
+    val subidaPromoState = _subidaPromoState.asStateFlow()
+
+
+    private val _estado_envio_notificaciones = MutableStateFlow("")
+    val estado_envio_notificaciones = _estado_envio_notificaciones.asStateFlow()
+
+    private val _estado_envio_recientes =MutableStateFlow(false)
+    val estado_envio_recientes=_estado_envio_recientes.asStateFlow()
+
+
+
+    fun cambiar_Estado_reciente(estado: Boolean){
+        _estado_envio_recientes.value=estado
+    }
+
+
 
     fun cargarIdSocio(context: Context) {
         _cargandoIdSocio.value = true
@@ -290,8 +321,7 @@ class viewmodel_eres_socio : ViewModel() {
         id_tienda: String,
         tipo: String,
         cambio: String,
-
-        ) {
+    ) {
         viewModelScope.launch {
             try {
                 instace_repo.cambiar_nombre_descripcion(localidad_tienda, id_tienda, tipo, cambio)
@@ -305,7 +335,7 @@ class viewmodel_eres_socio : ViewModel() {
         numero: String,
         id_tienda: String,
         localidad_tienda: String,
-    ){
+    ) {
         viewModelScope.launch {
             try {
                 instace_repo.guardar_aforo(numero, id_tienda, localidad_tienda)
@@ -315,6 +345,7 @@ class viewmodel_eres_socio : ViewModel() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     fun cambiar_titular_yape_plin(
         context: Context,
         uri: Uri,
@@ -341,9 +372,52 @@ class viewmodel_eres_socio : ViewModel() {
         }
     }
 
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    fun subir_img_firestore_promociones(
+        img_tienda: String,
+        localidad: String,
+        context: Context,
+        imagenes: List<ImagenReview>,
+        idSocio: String,
+        idPromo: String
+    ) {
+        viewModelScope.launch {
+            _subidaPromoState.value = SubidaPromoState.Loading
+
+            try {
+                // 1️⃣ Subir imágenes
+                val urls = instace_repo.subirImagenesAFirebase(
+                    context = context,
+                    imagenes = imagenes,
+                    idSocio = idSocio,
+                    idPromo = idPromo
+                )
+
+                // 2️⃣ Guardar URLs en Firestore
+                instace_repo.guardarImagenesEnFirestore_promociones(
+                    idSocio,
+                    img_tienda,
+                    localidad = localidad,
+                    idPromo = idPromo,
+                    urls = urls
+                )
+
+                // ✅ TODO OK
+                _subidaPromoState.value = SubidaPromoState.Success
+
+            } catch (e: Exception) {
+                Log.e("error_agregado", "Error al subir imágenes", e)
+                _subidaPromoState.value =
+                    SubidaPromoState.Error("Error al subir la promoción")
+            }
+        }
+    }
+
+
     fun cambiar_atrubitos(
         id_tienda: String,
-        localidad_tienda: String, nombre_atributo:String, nombre_estado: Boolean,
+        localidad_tienda: String, nombre_atributo: String, nombre_estado: Boolean,
     ) {
         viewModelScope.launch {
             try {
@@ -360,11 +434,93 @@ class viewmodel_eres_socio : ViewModel() {
     }
 
 
+    fun crear_promociones(
+        i: agregar_promociones,
+        localidad: String
+    ) {
+        viewModelScope.launch {
+            try {
+                val resultado = instace_repo.crear_promocion(i, localidad)
+                if(resultado.isSuccess){
+                _estado_envio_recientes.value=true
+                }
+            } catch (e: Exception) {
+                Log.d("error", "error al crear la publicacion")
+            }
+        }
+    }
+
+    fun enviar_notificacion(usuarios: List<String>, i: obj_contador_notificaciones) {
+        viewModelScope.launch {
+            try {
+                val estado_notificacion =
+                    instace_repo.verificar_envio_notificaciones(i.localida, i.id_tienda)
+                if (estado_notificacion) {
+                    instace_repo.agregarContadorNotificacion(usuarios, i)
+                    _estado_envio_notificaciones.value = "Notificaciones enviadas correctamente"
+                    _estado_envio_recientes.value=true
+                } else {
+                    _estado_envio_notificaciones.value =
+                        "superaste el maximo de notificaciones semanales"
+                }
+            } catch (e: Exception) {
+                _estado_envio_notificaciones.value =
+                    "error al enviar las notificaciones"
+                Log.d("error_envio_noti", "error al enviar las notificaciones")
+            }
+        }
+    }
+
+    fun obtener_lista_seguidores(localidad: String, id_tienda: String) {
+        viewModelScope.launch {
+            try {
+                _seguidores_obtenidos.value =
+                    instace_repo.obtenerSeguidoresTienda(localidad, id_tienda)
+            } catch (e: Exception) {
+                Log.d("error_envio_noti", "error al obtener los seguidores")
+            }
+        }
+    }
+
+    fun obtner_publicaciones_subidas(id_tienda: String, localidad: String){
+        viewModelScope.launch {
+            try {
+
+               val listaPublicaicones =instace_repo.obtener_publicaciones_tiendas(localidad,id_tienda)
+                if(listaPublicaicones.isNotEmpty()){
+                    _lista_publicaciones.value=listaPublicaicones
+                }else{
+                    _lista_publicaciones.value=emptyList()
+                }
+            }catch (e: Exception){
+                Log.d("error_publicaiones","error al obtener las pblicaicoens")
+            }
+        }
+    }
+
+
+
     sealed class carga_acces_socio {
         object idle : carga_acces_socio()
         data class succes(val datos: datos_tienda) : carga_acces_socio()
         data class error(val txt: String) : carga_acces_socio()
         object loading : carga_acces_socio()
     }
+
+    sealed class SubidaPromoState {
+        object Idle : SubidaPromoState()
+        object Loading : SubidaPromoState()
+        object Success : SubidaPromoState()
+        data class Error(val msg: String) : SubidaPromoState()
+    }
+
+
+    sealed class EstadoEnvioNotificacion {
+        object Loading : EstadoEnvioNotificacion()
+        data class enviado(val enviadotxt: String) : EstadoEnvioNotificacion()
+        object LimiteAlcanzado : EstadoEnvioNotificacion()
+        data class Error(val mensaje: String) : EstadoEnvioNotificacion()
+    }
+
 
 }

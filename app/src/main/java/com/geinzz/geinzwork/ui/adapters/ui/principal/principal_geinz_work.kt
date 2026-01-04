@@ -703,12 +703,14 @@ fun pantalla_principal(
                     id_tienda = p.id_tienda,
                     localidad = p.lugar,
                     index = p.index,
+                    p.id_promo,
                     onDismiss = {
                         mostrarDialog = false
                         deepLinkVM.clearPromo()
                         abir_butom_Var()
 
-                    }, crear_cuenta = { crear_cuenta()}, iniciar_seccion = {iniciar_seccion()}
+                    }, crear_cuenta = { crear_cuenta()},
+                    iniciar_seccion = {iniciar_seccion()}
                 )
             }
         }

@@ -2,6 +2,8 @@ package com.geinzz.geinzwork.ui.adapters.ui.dialog_general
 
 
 import android.os.Build
+import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -45,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -75,8 +78,12 @@ fun dialog_promociones_negocios(
     id_tienda: String,
     localidad: String,
     index: String,
-    onDismiss: () -> Unit,crear_cuenta:()-> Unit,iniciar_seccion:()-> Unit
+    id_promo:String,
+    onDismiss: () -> Unit, crear_cuenta: () -> Unit, iniciar_seccion: () -> Unit
 ) {
+    val context = LocalContext.current
+
+
     val viewModel: viewmodel_datos_promociones = viewModel()
     val estado by viewModel.estadoPromocion.collectAsState()
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
@@ -84,9 +91,14 @@ fun dialog_promociones_negocios(
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     var mostrarDialogozoom by remember { mutableStateOf(false) }
     var valor_img_completa by remember { mutableStateOf("") }
-    val context= LocalContext.current
-    LaunchedEffect(id_tienda, localidad, index) {
+
+    LaunchedEffect(id_tienda, localidad, index,id_promo) {
+        if(index.isNotEmpty()){
         viewModel.obtener_datos_promociones(id_tienda, localidad, index)
+        }else if(id_promo.isNotEmpty()){
+            viewModel.obtener_datos_promocion_notificacion(id_tienda, localidad, id_promo)
+
+        }
     }
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
 
@@ -99,12 +111,16 @@ fun dialog_promociones_negocios(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.75f))
-            .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { onDismiss() }, contentAlignment = Alignment.Center
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }) { onDismiss() },
+        contentAlignment = Alignment.Center
     ) {
 
         when (estado) {
 
             is EstadoPromocion.Cargando -> {
+                Log.d("erorr_promocion", "cargando")
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
                     color = Color.White
@@ -112,6 +128,7 @@ fun dialog_promociones_negocios(
             }
 
             is EstadoPromocion.Exito -> {
+                Log.d("erorr_promocion", "exito")
                 val promo = (estado as EstadoPromocion.Exito).data
                 LaunchedEffect(mostrar_bottom_datos) {
                     if (mostrar_bottom_datos) {
@@ -125,12 +142,12 @@ fun dialog_promociones_negocios(
                         dataclass_tienda_seleccionada = datosTienda!!.first()
                     }
                 }
-                val localidad_pasada= when(promo.localidad){
-                    "barranca"->"ba"
-                    "paramonga"->"par"
-                    "pativilca"->"pat"
-                    "supe"->"su"
-                    "puerto supe"->"pue"
+                val localidad_pasada = when (promo.localidad) {
+                    "barranca" -> "ba"
+                    "paramonga" -> "par"
+                    "pativilca" -> "pat"
+                    "supe" -> "su"
+                    "puerto supe" -> "pue"
                     else -> promo.localidad
                 }
 
@@ -141,161 +158,176 @@ fun dialog_promociones_negocios(
                             "&l=$localidad_pasada" +
                             "&c=${URLEncoder.encode(promo.categoria, "UTF-8")}" +
                             "&i=$index"
-                FuenteControladaApp{
+                FuenteControladaApp {
 
-                Column (
-                    modifier = Modifier
-                        .align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    Box(
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .fillMaxHeight(0.65f)
-                            .clip(RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp))
-                            .background(Color.Black)
-                            .clickable(enabled = false) {}
-                        ,contentAlignment = Alignment.Center
+                            .align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
 
-                        AsyncImage(
-                            model = promo.url_img,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                                .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){
-                                    mostrarDialogozoom=true
-                                    valor_img_completa=promo.url_img
-                                }
-                        )
-
-                        // ❌ BOTÓN CERRAR
-                        IconButton(
-                            onClick = { onDismiss() },
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(10.dp)
-                                .background(
-                                    Color.Black.copy(alpha = 0.5f),
-                                    CircleShape
-                                )
-                                .size(30.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Cerrar",
-                                tint = Color.White, modifier = Modifier.padding(5.dp)
-                            )
-                        }
-
-
-
-                    }
-                    Row(
-                        modifier =  Modifier
-                            .fillMaxWidth(0.9f)
-                            .clip(RoundedCornerShape(bottomEnd = 24.dp, bottomStart = 24.dp))
-                            .height(50.dp).padding(bottom = 5.dp)
-                            .background(MaterialTheme.colorScheme.background),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // 🔹 Logo tienda
-                        spacer_horizonta(10.dp)
-                        AsyncImage(
-                            model = promo.img_logo_tienda,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .width(30.dp)
-                                .height(30.dp)
-                                .clip(CircleShape)
-
-                        )
-
-                        // 🔹 Nombre tienda
-                        texto_generico_one_line(
-                            promo.nombre_tienda.capitalizeFirst(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 5.dp)
-                        )
-
-                        Spacer(modifier = Modifier.weight(1f)) // 🔹 Empuja los botones a la derecha
-
-                        // 🔹 Botón WhatsApp
-                        Image(
-                            painterResource(R.drawable.whatsapp_icon),
-                            contentDescription = "whatsapp",
-                            modifier = Modifier
-                                .width(30.dp)
-                                .height(30.dp)
-                                .clip(CircleShape)
-                                .clickable (
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() }
-                                ){
-                                    abrir_whattsapp(
-                                        tipo = "tienda",
-                                        id_tienda = promo.id_tienda,
-                                        localidad_tienda = promo.localidad,
-                                        context = context,
-                                        numero = promo.numero_contacto_teinda,
-                                        mensajePredefinido = "¡Hola! Vi su promoción en Geinz y me interesa. ¿Podría darme más información, por favor? \n $link"
-                                    )
-                                }
-                        )
-
-                        // 🔹 Botón Ver Perfil
-                        spacer_horizonta(5.dp)
                         Box(
                             modifier = Modifier
-                                .clip(CircleShape)
-                                .background(Color.White)
-                                .clickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() }
-                                ) {
-                                    if (uid_respald_user.isNotEmpty()) {
-                                        mostrar_bottom_datos = true
-                                    } else {
-                                        mostar_dialog_registrate = true
-                                    }
-                                }
+                                .fillMaxWidth(0.9f)
+                                .fillMaxHeight(0.65f)
+                                .clip(RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp))
+                                .background(Color.Black)
+                                .clickable(enabled = false) {}, contentAlignment = Alignment.Center
                         ) {
-                            texto_generico_one_line(
-                                "Ver Perfil",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.Black,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+
+                            AsyncImage(
+                                model = promo.url_img,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() }) {
+                                        mostrarDialogozoom = true
+                                        valor_img_completa = promo.url_img
+                                    }
                             )
+
+                            // ❌ BOTÓN CERRAR
+                            IconButton(
+                                onClick = { onDismiss() },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(10.dp)
+                                    .background(
+                                        Color.Black.copy(alpha = 0.5f),
+                                        CircleShape
+                                    )
+                                    .size(30.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Cerrar",
+                                    tint = Color.White, modifier = Modifier.padding(5.dp)
+                                )
+                            }
+
+
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(0.9f)
+                                .clip(RoundedCornerShape(bottomEnd = 24.dp, bottomStart = 24.dp))
+                                .height(50.dp)
+                                .padding(bottom = 5.dp)
+                                .background(MaterialTheme.colorScheme.background),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // 🔹 Logo tienda
+                            spacer_horizonta(10.dp)
+                            AsyncImage(
+                                model = promo.img_logo_tienda,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .width(33.dp)
+                                    .height(33.dp)
+                                    .clip(CircleShape)
+
+                            )
+
+                            // 🔹 Nombre tienda
+                            texto_generico_one_line(
+                                promo.nombre_tienda.capitalizeFirst(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 5.dp)
+                            )
+
+                            Spacer(modifier = Modifier.weight(1f)) // 🔹 Empuja los botones a la derecha
+
+                            // 🔹 Botón WhatsApp
+                            Image(
+                                painterResource(R.drawable.whatsapp_icon),
+                                contentDescription = "whatsapp",
+                                modifier = Modifier
+                                    .width(30.dp)
+                                    .height(30.dp)
+                                    .clip(CircleShape)
+                                    .clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) {
+                                        abrir_whattsapp(
+                                            tipo = "tienda",
+                                            id_tienda = promo.id_tienda,
+                                            localidad_tienda = promo.localidad,
+                                            context = context,
+                                            numero = promo.numero_contacto_teinda,
+                                            mensajePredefinido = "¡Hola! Vi su promoción en Geinz y me interesa. ¿Podría darme más información, por favor? \n $link"
+                                        )
+                                    }
+                            )
+
+                            // 🔹 Botón Ver Perfil
+                            spacer_horizonta(5.dp)
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(Color.White)
+                                    .clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) {
+                                        if (uid_respald_user.isNotEmpty()) {
+                                            mostrar_bottom_datos = true
+                                        } else {
+                                            mostar_dialog_registrate = true
+                                        }
+                                    }
+                            ) {
+                                texto_generico_one_line(
+                                    "Ver Perfil",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.Black,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(10.dp)) // margen derecho
                         }
 
-                        Spacer(modifier = Modifier.width(10.dp)) // margen derecho
                     }
-
-                }
                 }
             }
 
             is EstadoPromocion.Vacio -> {
-                FuenteControladaApp{
-                Text(
+                Log.d("erorr_promocion", "vacio")
+                FuenteControladaApp {
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            "Esta promoción ya no se encuentra disponible",
+                            modifier = Modifier.padding(30.dp), textAlign = TextAlign.Center,
+                            color = Color.White
+                        )
+                        Image(
+                            painter = painterResource(R.drawable.tristeemojiicon),
+                            modifier = Modifier.size(40.dp),
+                            contentDescription = null
+                        )
+                    }
 
-                    "No hay promoción",
-                    modifier = Modifier.align(Alignment.Center),
-                    color = Color.White
-                )
                 }
             }
 
             is EstadoPromocion.Error -> {
-                FuenteControladaApp{
+                Log.d("erorr_promocion", "error")
+                FuenteControladaApp {
+                    Text(
 
-                Text(
-
-                    "Error al cargar",
-                    modifier = Modifier.align(Alignment.Center),
-                    color = Color.White
-                )
+                        "Error al cargar",
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color.White
+                    )
                 }
             }
 
@@ -323,7 +355,7 @@ fun dialog_promociones_negocios(
         }
     }
 
-    if(mostar_dialog_registrate){
+    if (mostar_dialog_registrate) {
         bottom_sheet_registrate(
             ondimis = { mostar_dialog_registrate = false },
             iniciar_seccion_normal = { iniciar_seccion() },
@@ -331,4 +363,6 @@ fun dialog_promociones_negocios(
             texto_bottom_Sheet = "¡Regístrate para ver todos los detalles y disfrutar la experiencia completa!"
         )
     }
+
+
 }

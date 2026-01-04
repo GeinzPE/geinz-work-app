@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.viewModels
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.lifecycle.ViewModel
@@ -37,6 +38,16 @@ class viewmodel_promos_cercanas : ViewModel() {
     val estadoPromos: StateFlow<estado_carga_promociones> =
         _estadoPromos.asStateFlow()
 
+
+    fun agregar_estadisticas_publicacion(tipo: String,id_promo: String,localidad: String){
+        viewModelScope.launch {
+            try {
+                repo.agregar_contador_estadisticas_publicacion(tipo,id_promo,localidad)
+            }catch (e: Exception){
+                Log.d("error", "$e")
+            }
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun obtener_promociones(localidad: String) {
@@ -102,6 +113,24 @@ class viewmodel_promos_cercanas : ViewModel() {
                 estado_carga_promociones.succes(listaFiltrada.value)
             }
     }
+
+    fun filtrar_promociones_por_id(id: String) {
+        val base = listaCompleta.value
+
+        listaFiltrada.value = base.filter { obj ->
+            obj.dataclass_promociones_cerca_de_ti
+                .informacion_publcacion
+                .id_tienda == id
+        }
+
+        _estadoPromos.value =
+            if (listaFiltrada.value.isEmpty()) {
+                estado_carga_promociones.empty("Esta tienda no tiene promociones activas")
+            } else {
+                estado_carga_promociones.succes(listaFiltrada.value)
+            }
+    }
+
 
 
 

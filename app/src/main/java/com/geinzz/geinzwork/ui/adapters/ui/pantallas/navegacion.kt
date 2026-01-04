@@ -205,58 +205,60 @@ fun nativationWrapper(
         else -> false
     }
 
-    fun enviar_notificacion_lista_dispo(id_user: String, titulo: String, txt: String) {
-        val notificacion = NotificacionRS()
-        FirebaseFirestore.getInstance()
-            .collection("Trabajadores_Usuarios_Drivers")
-            .document("users")
-            .collection("tokens")
-            .document(id_user)
-            .get()
-            .addOnSuccessListener { res ->
-
-                if (!res.exists()) {
-                    Log.d("TOKENS", "❌ No existe documento para este usuario")
-                    return@addOnSuccessListener
-                }
-
-                val mapaTokens = (res.data?.get("tokens") as? Map<String, String>) ?: emptyMap()
-                val tokensInvalidos = mutableListOf<String>()
-
-                mapaTokens.forEach { (dispositivo, token) ->
-                    Log.d("TOKENS", "📨 Enviando a $dispositivo → $token")
-                    val link =
-                        "https://geinzworkapp.web.app/share?" +
-                                "t=ti" +
-                                "&id=1KEciyNnTwkrELdFU7F4" +
-                                "&l=barranca" +
-                                "&c=${URLEncoder.encode("salud y farmacias", "UTF-8")}"
-                    notificacion.enviarNotificacionFCM_LINK(
-                        id_user,
-                        token = token,
-                        titulo = titulo,
-                        cuerpo = txt,
-                        link = link,
-                        urlImagen = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2Fmifarma.webp?alt=media&token=e5276f0d-0de3-49a6-ac1a-afdee7a7a529"
-                    ) { fallo ->
-                        Log.d("fallo_dado_enteroa", "$fallo")
-                        if (fallo) {
-                            tokensInvalidos.add(dispositivo)
-                            if (tokensInvalidos.isNotEmpty()) {
-                                notificacion.eliminar_tokens_usuario(id_user, tokensInvalidos)
-                            }
-                        }
-                    }
-                }
-
-                // Después de enviar a todos, eliminamos los tokens inválidos
-
-
-            }
-            .addOnFailureListener { e ->
-                Log.e("TOKENS", "🔥 Error al obtener tokens", e)
-            }
-    }
+//    fun enviar_notificacion_lista_dispo(id_user: String, titulo: String, txt: String) {
+//        val notificacion = NotificacionRS()
+//        FirebaseFirestore.getInstance()
+//            .collection("Trabajadores_Usuarios_Drivers")
+//            .document("users")
+//            .collection("tokens")
+//            .document(id_user)
+//            .get()
+//            .addOnSuccessListener { res ->
+//
+//                if (!res.exists()) {
+//                    Log.d("TOKENS", "❌ No existe documento para este usuario")
+//                    return@addOnSuccessListener
+//                }
+//
+//                val mapaTokens = (res.data?.get("tokens") as? Map<String, String>) ?: emptyMap()
+//                val tokensInvalidos = mutableListOf<String>()
+//
+//                mapaTokens.forEach { (dispositivo, token) ->
+//                    Log.d("TOKENS", "📨 Enviando a $dispositivo → $token")
+//                    val link =
+//                        "https://geinzworkapp.web.app/share?" +
+//                                "t=ti" +
+//                                "&id=1KEciyNnTwkrELdFU7F4" +
+//                                "&l=barranca" +
+//                                "&c=${URLEncoder.encode("salud y farmacias", "UTF-8")}"
+////                    notificacion.enviarNotificacionFCM_LINK(
+////                        id_user= id_user,
+////                        token = token,
+////                        titulo = titulo,
+////                        cuerpo = txt,
+////                        link = link,
+////                        tipoNotificacion="premium",
+////                        urlLogo = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2Fmifarma.webp?alt=media&token=e5276f0d-0de3-49a6-ac1a-afdee7a7a529",
+////                        urlImagen = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/walpaper_geinz%2Fturisticos%2Fimg11.webp?alt=media&token=1151dd65-8a6b-497d-a452-a8d948859422"
+////                    ) {token, fallo ->
+////                        Log.d("fallo_dado_enteroa", "$fallo")
+////                        if (fallo) {
+////                            tokensInvalidos.add(dispositivo)
+////                            if (tokensInvalidos.isNotEmpty()) {
+////                                notificacion.eliminar_tokens_usuario(id_user, tokensInvalidos)
+////                            }
+////                        }
+////                    }
+//                }
+//
+//                // Después de enviar a todos, eliminamos los tokens inválidos
+//
+//
+//            }
+//            .addOnFailureListener { e ->
+//                Log.e("TOKENS", "🔥 Error al obtener tokens", e)
+//            }
+//    }
 
 
 
@@ -409,12 +411,12 @@ fun nativationWrapper(
 
                         },
                         abrir_guardar_datos = {
-                        //                            enviar_notificacion_lista_dispo(
-                        //                                id_user,
-                        //                                "Mira ese nuevo negocio en geinz notificacion de prueva ",
-                        //                                "Encuentralo a unos pasos cerca de ti "
-                        //                            )
-                        //                    navController.navigate(ui_agregar_lugares)
+//                                                    enviar_notificacion_lista_dispo(
+//                                                        id_user,
+//                                                        "Mira ese nuevo negocio en geinz notificacion de prueva ",
+//                                                        "Encuentralo a unos pasos cerca de ti "
+//                                                    )
+                                           navController.navigate(ui_agregar_lugares)
                             //                            pasar_teindas_nuevas()
 
                         },
@@ -683,6 +685,47 @@ fun nativationWrapper(
                     )
                 }
 
+                composable("lugares_turisticos") {
+                    pantalla_lugares_turisticos(
+                        "",
+                        isConnected,
+                        viewmodelMapa,
+                        "barranca",
+                        viewModelLugares,
+                        abrir_mapa = { tipo ->
+                            navController.navigate(map_perzonalizado(tipo, "barranca"))
+                        },
+                        crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
+                        navigation_regresar = { navController.popBackStack() },
+                        iniciar_seccion = { navController.navigate("login_principal") }
+                    )
+                }
+
+                composable("salud_y_seguridad") {
+                    ui_salud_seguirdad(
+                        viewmode_segurirdad_Salud,
+                        localida = "barranca",
+                        abrir_mapa = { latitud, longitud ->
+                            navController.navigate(map_perzonalizado("seguridad", ""))
+
+                        })
+                }
+
+
+                composable("nuevos_negocios") {
+                    nuevos_negocios(
+                        verificar_inter = isConnected,
+                        localida_select = "barranca",
+                        crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
+                        iniciar_normal = { navController.navigate("login_principal") })
+                }
+                composable("servicios_y_tramites") {
+                    ui_servicio_tramite(isConnected, "barranca")
+                }
+
+                composable("promocionar") {
+                    login_socios(isConnected,"envio")
+                }
 
 
                 composable(

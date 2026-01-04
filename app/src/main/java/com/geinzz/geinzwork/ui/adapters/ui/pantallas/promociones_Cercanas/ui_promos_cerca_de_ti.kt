@@ -6,8 +6,13 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,25 +46,33 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.imageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
+import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.tiendas_con_mas_de_una_promo
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
@@ -79,11 +92,13 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_promos_cercanas
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.net.URLEncoder
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ui_promos_cerca_de_ti(localidad: String,verificar_intener: Boolean,) {
+fun ui_promos_cerca_de_ti(localidad: String, verificar_intener: Boolean) {
     val context = LocalContext.current
     val viewModel: viewmodel_promos_cercanas = viewModel()
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
@@ -102,6 +117,7 @@ fun ui_promos_cerca_de_ti(localidad: String,verificar_intener: Boolean,) {
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     val categorias by viewModel._categoriasDisponibles.collectAsState()
+    var tiendaSeleccionada by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(localidad) {
         viewModel.obtener_promociones("barranca")
@@ -109,7 +125,7 @@ fun ui_promos_cerca_de_ti(localidad: String,verificar_intener: Boolean,) {
     LaunchedEffect(show_bottom_sheeet) {
         if (show_bottom_sheeet) {
             viewModelFiltros.obtener_campos_tiendas_por_id(
-              localidad,
+                localidad,
                 id_tienda_select
             )
         }
@@ -173,6 +189,9 @@ fun ui_promos_cerca_de_ti(localidad: String,verificar_intener: Boolean,) {
 
                 val promos =
                     (estado as viewmodel_promos_cercanas.estado_carga_promociones.succes).items
+                val tiendasConMasDeUnaPromo: List<tiendas_con_mas_de_una_promo> = promos
+                    .flatMap { it.lista_tiendas_con_mas_promo } // sacamos todas las listas de cada promo
+                    .distinctBy { it.id } // eliminamos duplicados por id
 
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -193,7 +212,7 @@ fun ui_promos_cerca_de_ti(localidad: String,verificar_intener: Boolean,) {
                         }
                     }
                     val subcategorias = listOf("Todos") + promos
-                        .flatMap {categorias}
+                        .flatMap { categorias }
                         .distinct()
                     item {
                         LazyRow(
@@ -207,7 +226,10 @@ fun ui_promos_cerca_de_ti(localidad: String,verificar_intener: Boolean,) {
                                     filtrado = subcategoria.capitalizeFirst(),
                                     btn_visible = false,
                                     clik_card = {
-                                        subCategoriaSeleccionada=subcategoria
+                                        subCategoriaSeleccionada = subcategoria
+                                        if (subcategoria != "Todos") {
+                                            tiendaSeleccionada = null
+                                        }
                                     },
                                     onClick_delete = {}
                                 )
@@ -215,10 +237,32 @@ fun ui_promos_cerca_de_ti(localidad: String,verificar_intener: Boolean,) {
                         }
                     }
 
-                    items(promos) { item ->
+                    item {
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(15.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp)
+                        ) {
+                            items(tiendasConMasDeUnaPromo) { tienda ->
+                                estilo_ig_header(
+                                    i = tienda,
+                                    seleccionada = tienda.id == tiendaSeleccionada,
+                                    img_clikeada = { id ->
+                                        tiendaSeleccionada = id
+                                        subCategoriaSeleccionada = "Todos"
+                                        viewModel.filtrar_promociones_por_id(id)
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    items(
+                        items = promos,
+                        key = { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
+                    ) { item ->
                         carta_promocion_geinz(
                             i = item.dataclass_promociones_cerca_de_ti,
-                            img_clikeble = { listaimg, select ->
+                            img_clikeble = { id_promo, listaimg, select ->
                                 mostrar_zoom_img = true
                                 lista_img = listaimg
                                 index_galeria_img = select
@@ -226,28 +270,49 @@ fun ui_promos_cerca_de_ti(localidad: String,verificar_intener: Boolean,) {
                                     item.dataclass_promociones_cerca_de_ti.informacion_publcacion.titulo
                                 descripcion =
                                     item.dataclass_promociones_cerca_de_ti.informacion_publcacion.descripcion
-                            }, share_promo = { id ->
-                                compartir_hosting_promo(context = context, localidad, id)
-                            }, whatsap_promo = { id ->
+                                viewModel.agregar_estadisticas_publicacion(
+                                    "vistas",
+                                    id_promo,
+                                    localidad
+                                )
+                            },
+                            share_promo = { id_tienda,id,categoria ->
+                                compartir_hosting_promo(id_tienda,context, localidad, id,categoria)
+                                viewModel.agregar_estadisticas_publicacion(
+                                    "compartidos",
+                                    id,
+                                    localidad
+                                )
+                            },
+                            whatsap_promo = { id ->
                                 abrir_whattsapp(
                                     "promocion",
                                     "",
                                     "",
-                                    context = context,
-                                    item.dataclass_promociones_cerca_de_ti.informacion_publcacion.numero,
-                                    "Hola, quiero esta oferta que vi en su perfil en Geinz: " +
+                                    context,
+                                    item.dataclass_promociones_cerca_de_ti
+                                        .informacion_publcacion.numero,
+                                    "Hola, quiero esta oferta que vi Geinz: " +
                                             "https://geinzworkapp.web.app/share?" +
-                                            "t=prof" +
-                                            "&cl=pro" +
+                                            "t=prof&cl=pro" +
                                             "&id=${URLEncoder.encode(id, "UTF-8")}" +
                                             "&l=$localidad"
                                 )
-                            }, mostrar_perfil = { id->
-                                Log.d("id_teinda",id)
+                                viewModel.agregar_estadisticas_publicacion(
+                                    "whatsapp",
+                                    id,
+                                    localidad
+                                )
+
+                            },
+                            mostrar_perfil = { id ->
                                 show_bottom_sheeet = true
-                                id_tienda_select=id
-                            })
+                                id_tienda_select = id
+                            }
+                        )
+
                     }
+
                 }
                 if (mostrar_zoom_img) {
                     ZoomableGalleryFullScreen_promociones(
@@ -276,9 +341,9 @@ fun ui_promos_cerca_de_ti(localidad: String,verificar_intener: Boolean,) {
 @Composable
 fun carta_promocion_geinz(
     i: dataclass_promociones_cerca_de_ti,
-    img_clikeble: (lista: List<String>, Int) -> Unit,
-    share_promo: (String) -> Unit,
-    whatsap_promo: (String) -> Unit,mostrar_perfil:(String)-> Unit
+    img_clikeble: (id: String, lista: List<String>, Int) -> Unit,
+    share_promo: (String,String,String) -> Unit,
+    whatsap_promo: (String) -> Unit, mostrar_perfil: (String) -> Unit
 ) {
     val diasRestantes = i.dias_restantes.toInt()
     val backgroundColor = when {
@@ -293,13 +358,15 @@ fun carta_promocion_geinz(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
+
         ) {
             GaleriaHorizontalInstagram(
                 imagenes = i.img.lista_img,
-                modifier = Modifier.fillMaxSize()
-            ) { select ->
-                img_clikeble(i.img.lista_img, select)
-            }
+                modifier = Modifier.fillMaxSize(), img_clikeble_valor = { select ->
+                    img_clikeble(i.informacion_publcacion.id_promocion, i.img.lista_img, select)
+                }, long_listatener = {
+                    Log.d("LONG_PRESS", "Long press en la galería")
+                })
         }
 
         Row(
@@ -317,30 +384,22 @@ fun carta_promocion_geinz(
                 contentDescription = null,
                 modifier = Modifier
                     .size(45.dp)
-                    .clip(CircleShape).clickable(indication = null, interactionSource = remember { MutableInteractionSource()}){
+                    .clip(CircleShape)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }) {
                         mostrar_perfil(i.informacion_publcacion.id_tienda)
                     },
                 contentScale = ContentScale.Crop
             )
 
-            Spacer(Modifier.width(10.dp))
+            spacer_vertical(5.dp)
             Column() {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = i.informacion_publcacion.nombre_tienda.capitalizeFirst(),
+                    style = MaterialTheme.typography.bodyMedium
+                )
 
-                    Text(
-                        text = i.informacion_publcacion.nombre_tienda.capitalizeFirst(),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    spacer_horizonta(5.dp)
-
-                    Text(
-                        text = "( ${i.dias_restantes} ${if (i.dias_restantes.toInt() == 1) "día" else "días"} restantes )",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
-                        color = backgroundColor
-                    )
-
-                }
                 spacer_vertical(5.dp)
                 if (i.informacion_publcacion.titulo.isNotEmpty()) {
                     Text(
@@ -348,36 +407,45 @@ fun carta_promocion_geinz(
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
-
-
+                spacer_vertical(5.dp)
+                Text(
+                    text = "${i.dias_restantes} ${if (i.dias_restantes.toInt() == 1) "día" else "días"} restantes ",
+                    fontSize = 12.sp,
+                    color = backgroundColor
+                )
             }
 
             Spacer(Modifier.weight(1f))
+            if (i.informacion_publcacion.compartir) {
+                Icon(
+                    painterResource(R.drawable.comparir_icon),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(25.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }) {
+                            share_promo(i.informacion_publcacion.id_tienda,i.informacion_publcacion.id_promocion,i.informacion_publcacion.categoria)
 
-            Icon(
-                painterResource(R.drawable.comparir_icon),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(25.dp)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }) {
-                        share_promo(i.informacion_publcacion.id_promocion)
-                    }
-            )
+                        }
+                )
+            }
 
             Spacer(Modifier.width(10.dp))
+            if (i.informacion_publcacion.contactar) {
+                Icon(
+                    painterResource(R.drawable.whatsapp_icon),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clickable {
+                            whatsap_promo(i.informacion_publcacion.id_promocion)
+                        },
+                    tint = Color.Unspecified
+                )
+            }
 
-            Icon(
-                painterResource(R.drawable.whatsapp_icon),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(30.dp)
-                    .clickable {
-                        whatsap_promo(i.informacion_publcacion.id_promocion)
-                    },
-                tint = Color.Unspecified
-            )
+
         }
     }
 }
@@ -386,7 +454,8 @@ fun carta_promocion_geinz(
 fun GaleriaHorizontalInstagram(
     imagenes: List<String>,
     modifier: Modifier = Modifier,
-    img_clikeble_valor: (Int) -> Unit
+    img_clikeble_valor: (Int) -> Unit,
+    long_listatener: () -> Int
 ) {
     val pagerState = rememberPagerState { imagenes.size }
 
@@ -411,8 +480,17 @@ fun GaleriaHorizontalInstagram(
                         interactionSource = remember { MutableInteractionSource() }
                     ) {
                         img_clikeble_valor(page)
+                    }
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onLongPress = {
+                                long_listatener()
+                            }
+                        )
                     },
-                contentScale = ContentScale.Crop // 🔥 CLAVE
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.cargando_img_categorias),
+                error = painterResource(R.drawable.cargando_img_categorias)
             )
         }
 
@@ -440,9 +518,11 @@ fun GaleriaHorizontalInstagram(
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun compartir_hosting_promo(
+    id_tienda: String,
     context: Context,
     localidad_tienda: String,
     idpromo: String,
+    categoria: String,
 ) {
     try {
         val localidad_pasada = when (localidad_tienda) {
@@ -458,10 +538,12 @@ fun compartir_hosting_promo(
 
         val link =
             "https://geinzworkapp.web.app/share?" +
-                    "t=prof" +
-                    "&cl=pro" +
-                    "&id=${URLEncoder.encode(idpromo, "UTF-8")}" +
-                    "&l=$localidad_pasada"
+                    "t=prn" +
+                    "&id=$id_tienda" +
+                    "&l=$localidad_pasada" +
+                    "&c=${
+                        URLEncoder.encode(categoria, "UTF-8")
+                    }" + "&pi=$idpromo"
 
 
         val texto = "Mia esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25 \n$link"
@@ -489,6 +571,78 @@ fun compartir_hosting_promo(
         Toast.makeText(context, "Error al compartir el lugar", Toast.LENGTH_SHORT).show()
     }
 }
+
+@Composable
+fun estilo_ig_header(
+    i: tiendas_con_mas_de_una_promo,
+    seleccionada: Boolean,
+    img_clikeada: (String) -> Unit
+) {
+    // Animaciones suaves
+    val alphaAnim by animateFloatAsState(
+        targetValue = if (seleccionada) 1f else 0f,
+        animationSpec = tween(300),
+        label = ""
+    )
+
+    val scaleAnim by animateFloatAsState(
+        targetValue = if (seleccionada) 1.12f else 1f,
+        animationSpec = tween(300),
+        label = ""
+    )
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(80.dp)
+    ) {
+
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(76.dp)
+        ) {
+
+            // 🔹 Ring IG morado
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .scale(scaleAnim)
+                    .alpha(alphaAnim)
+                    .border(
+                        width = 3.dp,
+                        color = Color(0xFF7B2CBF),
+                        shape = CircleShape
+                    )
+            )
+
+            // 🔹 Imagen
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(i.logo_img)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(70.dp)
+                    .clip(CircleShape)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        img_clikeada(i.id)
+                    }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        texto_generico_one_line(
+            i.nombre_tienda,
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
+}
+
 
 
 

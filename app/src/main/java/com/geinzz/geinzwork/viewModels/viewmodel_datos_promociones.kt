@@ -34,7 +34,36 @@ class viewmodel_datos_promociones : ViewModel() {
                 )
 
                 _estadoPromocion.value =
-                    if (promo != null) {
+                    if (promo.url_img.isNotEmpty()) {
+                        EstadoPromocion.Exito(promo)
+                    } else {
+                        EstadoPromocion.Vacio
+                    }
+
+            } catch (e: Exception) {
+                _estadoPromocion.value =
+                    EstadoPromocion.Error(
+                        e.message ?: "Error desconocido"
+                    )
+            }
+        }
+    }
+
+    fun obtener_datos_promocion_notificacion(
+        id_tienda: String, localidad: String, id_promo:String
+    ){
+        viewModelScope.launch {
+            _estadoPromocion.value = EstadoPromocion.Cargando
+
+            try {
+                val promo = repo.obtner_datos_promocion_notificacion(
+                    id_tienda = id_tienda,
+                    localidad = localidad,
+                    id_promo = id_promo
+                )
+
+                _estadoPromocion.value =
+                    if (promo.url_img.isNotEmpty()) {
                         EstadoPromocion.Exito(promo)
                     } else {
                         EstadoPromocion.Vacio

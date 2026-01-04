@@ -137,6 +137,7 @@ fun CollageGoogleMapsStyle(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CollageGoogleMapsStyle_sin_scroll(
+    categoria: String,
     it: compartir_promocion,
     tag: String,
     aspectRatio: Float = 1.4f,
@@ -161,6 +162,7 @@ fun CollageGoogleMapsStyle_sin_scroll(
     ) {
         gruposConIndice.forEachIndexed { grupoIndex, grupo ->
             GrupoCollageGoogle_sin_scrool(
+                categoria,
                 tag = tag,
                 aspectRatio = aspectRatio,
                 baseWidth = width,
@@ -251,6 +253,7 @@ fun CollageGoogleMapsStyle_sin_scroll_promociones(
 
 @Composable
 fun GrupoCollageGoogle_sin_scrool(
+    categoria:String,
     tag: String,
     aspectRatio: Float,
     baseWidth: Dp,
@@ -271,6 +274,7 @@ fun GrupoCollageGoogle_sin_scrool(
     ) {
 
         ImagenCollage(
+            categoria,
             tag,
             url = imagenes.getOrNull(0),
             modifier = Modifier
@@ -291,6 +295,7 @@ fun GrupoCollageGoogle_sin_scrool(
             ) {
 
                 ImagenCollage(
+                    categoria,
                     tag,
                     url = imagenes.getOrNull(1),
                     modifier = Modifier.weight(1f),
@@ -301,6 +306,7 @@ fun GrupoCollageGoogle_sin_scrool(
 
                 if (imagenes.size > 2) {
                     ImagenCollage(
+                        categoria,
                         tag,
                         url = imagenes.getOrNull(2),
                         modifier = Modifier.weight(1f),
@@ -337,7 +343,7 @@ fun GrupoCollageGoogle_sin_scrool_promociones(
     ) {
 
         ImagenCollage(
-            tag,
+            tag = tag,
             url = imagenes.getOrNull(0)?.second,
             modifier = Modifier
                 .weight(if (imagenes.size == 1) 1.1f else 2f)
@@ -357,7 +363,7 @@ fun GrupoCollageGoogle_sin_scrool_promociones(
             ) {
 
                 ImagenCollage(
-                    tag,
+                    tag=  tag,
                     url = imagenes.getOrNull(1)?.second,
                     modifier = Modifier.weight(1f),
                     listener_img = {
@@ -367,7 +373,7 @@ fun GrupoCollageGoogle_sin_scrool_promociones(
 
                 if (imagenes.size > 2) {
                     ImagenCollage(
-                        tag,
+                        tag= tag,
                         url = imagenes.getOrNull(2)?.second,
                         modifier = Modifier.weight(1f),
                         listener_img = {
@@ -444,6 +450,7 @@ fun GrupoCollageGoogle(
 // ✅ Imagen individual dentro del collage
 @Composable
 fun ImagenCollage(
+    tipo:String="",
     tag: String = "",
     url: String?,
     modifier: Modifier = Modifier,
@@ -470,12 +477,12 @@ fun ImagenCollage(
             when (tag) {
                 "ambiente" -> {
                     Box(
-                        modifier = Modifier.align(Alignment.TopEnd),
+                        modifier = Modifier.align(Alignment.BottomEnd),
                     ) {
                         Box(
                             modifier = Modifier
                                 .padding(8.dp)
-                                .size(40.dp)
+                                .size(35.dp)
                                 .clip(CircleShape)
                                 .background(Color.Black.copy(alpha = 0.5f)),
                             contentAlignment = Alignment.Center
@@ -487,29 +494,29 @@ fun ImagenCollage(
 
                 "productos" -> {
                     Box(
-                        modifier = Modifier.align(Alignment.TopEnd),
+                        modifier = Modifier.align(Alignment.BottomEnd),
                     ) {
                         Box(
                             modifier = Modifier
                                 .padding(8.dp)
-                                .size(40.dp)
+                                .size(35.dp)
                                 .clip(CircleShape)
                                 .background(Color.Black.copy(alpha = 0.5f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            texto_generico_one_line("\uD83D\uDCE6")
+                            texto_generico_one_line(emojiPorCategoria(tipo))
                         }
                     }
                 }
 
                 "promociones" -> {
                     Box(
-                        modifier = Modifier.align(Alignment.TopEnd),
+                        modifier = Modifier.align(Alignment.BottomEnd),
                     ) {
                         Box(
                             modifier = Modifier
                                 .padding(8.dp)
-                                .size(40.dp)
+                                .size(35.dp)
                                 .clip(CircleShape)
                                 .background(Color.Black.copy(alpha = 0.5f)),
                             contentAlignment = Alignment.Center
@@ -522,7 +529,36 @@ fun ImagenCollage(
         }
     }
 }
+fun emojiPorCategoria(categoria: String): String {
+    return when (categoria.lowercase()) {
 
+        "bancos y servicios financieros" -> "🏦"
+        "belleza" -> "💄"
+        "comida y restaurantes" -> "🍽️"
+        "deporte y bienestar" -> "🏋️‍♂️"
+        "educacion y librerias" -> "📚"
+        "entretenimiento y recreacion" -> "🎮"
+        "grifos y estaciones" -> "⛽"
+        "hogar" -> "🏠"
+        "hogar y ferreteria" -> "🛠️"
+        "hospedaje y entretenimiento nocturno" -> "🏨"
+        "imagen y publicidad" -> "📸"
+        "jardineria y plantas" -> "🌱"
+        "lavanderias y tintorerias" -> "🧺"
+        "mascotas y animales" -> "🐾"
+        "mecanica y autoservicios" -> "🚗"
+        "moda y estilo" -> "👗"
+        "salud y farmacias" -> "💊"
+        "servicios de encomienda y envios" -> "📦"
+        "servicios tecnicos y reparaciones" -> "🔧"
+        "supermercado minimarkets y bodegas" -> "🛒"
+        "tecnologia y electronica" -> "💻"
+        "transporte y terminales" -> "🚌"
+        "turismo" -> "🗿"
+
+        else -> "🏷️" // emoji por defecto
+    }
+}
 // ✅ Galería fullscreen tipo Instagram
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -900,7 +936,7 @@ fun ZoomableGalleryFullScreen_promociones(
                     )
                 }
 
-                Box(modifier = Modifier.align(Alignment.BottomCenter)){
+                Box(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()){
                     Box(
                         modifier = Modifier
                             .matchParentSize()

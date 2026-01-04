@@ -86,6 +86,19 @@ object mostrarFechaDialog_horaDialog {
         val fechaActual = Date()
         return formato.format(fechaActual)
     }
+
+    fun obtenerFechaConDias(fechaBase: String, dias: Int): String {
+        val formato = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val date = formato.parse(fechaBase) ?: return ""
+
+        val calendar = Calendar.getInstance()
+        calendar.time = date
+        calendar.add(Calendar.DAY_OF_YEAR, dias)
+
+        return formato.format(calendar.time)
+    }
+
+
     fun obtenerHoraActual(): String {
         val formato = SimpleDateFormat("HH:mm", Locale.getDefault())
         val horaActual = Date()

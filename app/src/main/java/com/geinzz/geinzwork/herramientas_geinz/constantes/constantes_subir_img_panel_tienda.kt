@@ -504,5 +504,13 @@ object constantes_subir_img_panel_tienda {
     }
 
 
+    fun generarIdImagen_nueve(): String {
+        val min = 100_000_000    // número más pequeño de 9 dígitos
+        val max = 999_999_999    // el número más grande de 7 dígitos
+        return (min..max).random().toString()
+    }
+
+
+
 
 }

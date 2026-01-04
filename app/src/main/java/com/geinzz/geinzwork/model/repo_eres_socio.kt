@@ -5,23 +5,38 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.identity.util.UUID
+import com.geinzz.geinzwork.data.model.agregar_promociones
+import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
+import com.geinzz.geinzwork.data.model.datos_publicaciones_realizadas
 import com.geinzz.geinzwork.data.model.datos_tienda
+import com.geinzz.geinzwork.data.model.fechas_promociones
+import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.normalizar
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenWebPSinRecorte
+import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaConDias
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.timeStampNumero
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoservicios_comodidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion_box_dia
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_img_usert
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_ubicacion_container
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.notificacionesFCM.enviar_notificacion_lista_dispo
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
+import kotlin.collections.component1
+import kotlin.collections.component2
 
 @RequiresApi(Build.VERSION_CODES.O)
 
@@ -52,8 +67,6 @@ class repo_eres_socio {
 
                 val nombre_tienda = data["nombre_tienda"] as? String ?: ""
                 val img_tienda = data["img_tienda"] as? Map<String, Any> ?: emptyMap()
-                val logo = img_tienda["logo_tienda"] as? String ?: ""
-
 
                 val horario_atencion = data["horario_atencion"] as? Map<String, Any> ?: emptyMap()
                 val horarioMap = horario_atencion.to_horario_atencion_box_dia()
@@ -70,12 +83,21 @@ class repo_eres_socio {
                 val metodo_pago = data?.get("metodos_pago") as? Map<String, Any> ?: emptyMap()
                 val metodos_contacto =
                     data?.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
-                val metodos_servicios=data?.get("servicios_comodidades")as? List<Map<String, Any>>
-                val aforo_maximo =data?.get("aforo_max") as? Number ?:0
-                val servicios_comodidades=metodos_servicios.toMetodoservicios_comodidades()
+                val metodos_servicios =
+                    data?.get("servicios_comodidades") as? List<Map<String, Any>>
+                val aforo_maximo = data?.get("aforo_max") as? Number ?: 0
+                val categoria_teinda = data?.get("categoria_tienda") as? String ?: ""
+                val subcategoria = data?.get("subcategoria") as? List<String> ?: emptyList()
+
+                val servicios_comodidades = metodos_servicios.toMetodoservicios_comodidades()
                 val contacto_obs = metodos_contacto.toMetodoContacto()
                 val metodo_pago_tienda = metodo_pago.to_metodo_pago()
                 val img_generales = img_tienda.to_img_usert()
+
+                val ubicacion = data?.get("ubicacion") as? Map<String, Any>
+                val ubi_container = ubicacion.to_ubicacion_container()
+
+
                 // 🔥 ESCUCHAR ESTADISTICAS EN TIEMPO REAL
                 ref.collection("estadisticas")
                     .addSnapshotListener { statsSnap, statsError ->
@@ -141,7 +163,10 @@ class repo_eres_socio {
                                     metodos_pago = metodo_pago_tienda,
                                     metodo_contacto_tienda = contacto_obs,
                                     servicios_comodidades = servicios_comodidades,
-                                    aforo = aforo_maximo
+                                    aforo = aforo_maximo,
+                                    categoira_tienda = categoria_teinda,
+                                    subcategorias_tienda = subcategoria,
+                                    ubicacion = ubi_container
                                 )
                             )
                         }
@@ -221,6 +246,7 @@ class repo_eres_socio {
                 db.set(mapOf("total" to 1))
             }
     }
+
 
     fun restar_contador(tipo: String, localida_tienda: String, id_tienda: String) {
         val db = FirebaseFirestore.getInstance()
@@ -562,6 +588,74 @@ class repo_eres_socio {
         ref.update(updates).await()
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
+    suspend fun subirImagenesAFirebase(
+        context: Context,
+        imagenes: List<ImagenReview>,
+        idSocio: String,
+        idPromo: String
+    ): List<String> {
+
+        val storageRef = FirebaseStorage.getInstance().reference
+        val urls = mutableListOf<String>()
+
+        imagenes.forEachIndexed { index, img ->
+
+            val uri = img.uri ?: return@forEachIndexed
+
+            // 🔥 procesas la imagen en WebP / alta calidad
+            val bytes = procesarImagenWebPSinRecorte(context, uri)
+
+            // 📛 img1.webp, img2.webp, img3.webp...
+            val nombreImg = "img${index + 1}.webp"
+
+            val ref = storageRef.child(
+                "tiendas/$idSocio/imagenes/promociones_geinz/$idPromo/$nombreImg"
+            )
+
+            // ⬆️ Subir bytes
+            ref.putBytes(bytes).await()
+
+            // 🔗 URL pública
+            val downloadUrl = ref.downloadUrl.await()
+            urls.add(downloadUrl.toString())
+        }
+
+        return urls
+    }
+
+
+    suspend fun guardarImagenesEnFirestore_promociones(
+        id_tienda: String,
+        logo_tienda: String,
+        localidad: String,
+        idPromo: String,
+        urls: List<String>
+    ) {
+        val db = FirebaseFirestore.getInstance()
+
+        val ref = db
+            .collection("Tiendas")
+            .document(localidad)
+            .collection("promos_ofertas")
+            .document(idPromo)
+        val ref2 = db.collection("Tiendas").document(localidad).collection(localidad)
+            .document(id_tienda).collection("promociones_geinz")
+            .document(idPromo)
+
+
+        val imgContainer = mapOf(
+            "lista_img" to urls,
+            "logo_img" to logo_tienda
+        )
+
+        val data = mapOf(
+            "img_container" to imgContainer
+        )
+        ref2.set(data, SetOptions.merge()).await()
+        ref.set(data, SetOptions.merge()).await()
+    }
+
     suspend fun cambiar_atributos_tiendas(
         id_tienda: String,
         localidad_tienda: String,
@@ -610,9 +704,6 @@ class repo_eres_socio {
     }
 
 
-
-
-
     suspend fun cambiar_NT_metodo_contacto(
         id_tienda: String,
         localidad_tienda: String,
@@ -627,7 +718,8 @@ class repo_eres_socio {
             .document(id_tienda)
 
         val data = if (metodo_pago.equals("whatsapp", true) ||
-            metodo_pago.equals("llamada", true)) {
+            metodo_pago.equals("llamada", true)
+        ) {
             mapOf(
                 "metodo_contacto.$metodo_pago.numero" to valor
             )
@@ -688,7 +780,6 @@ class repo_eres_socio {
     }
 
 
-
     suspend fun cambiar(
         id_tienda: String,
         localidad_tienda: String,
@@ -709,6 +800,274 @@ class repo_eres_socio {
             )
         ).await()
     }
+
+    suspend fun crear_promocion(
+        i: agregar_promociones,
+        localidad: String
+    ): Result<Unit> {
+        return try {
+            val ref = db.collection("Tiendas")
+                .document(localidad)
+                .collection("promos_ofertas")
+                .document(i.informacion.id_promocion)
+
+            val ref2 = db.collection("Tiendas").document(localidad).collection(localidad)
+                .document(i.informacion.id_tienda).collection("promociones_geinz")
+                .document(i.informacion.id_promocion)
+
+            val hasmap = hashMapOf<String, Any>(
+                "fechas" to i.fechas
+            )
+
+            val hashMap = hashMapOf<String, Any>(
+                "exclusivo" to i.exclusivo,
+                "fechas" to i.fechas,
+                "img_container" to i.img_container,
+                "informacion" to i.informacion,
+                "ubicacion" to i.ubicacion
+            )
+
+            ref.set(hashMap, SetOptions.merge()).await()
+            ref2.set(hashMap, SetOptions.merge()).await()
+
+            Result.success(Unit) // ✅ TERMINÓ BIEN
+        } catch (e: Exception) {
+            Result.failure(e)    // ❌ FALLÓ
+        }
+    }
+
+    suspend fun agregarContadorNotificacion(
+        usuarios: List<String>,
+        i: obj_contador_notificaciones
+    ) {
+        try {
+            enviar_notificacion_lista_dispo(
+                i.idnotificacion,
+                i.id_tienda, i.localida, i.categoria,
+                tipo_notificacion_params = i.tipo_notificacion,
+                id_users = usuarios,
+                titulo = i.parametros_notificacion.titulo_notificacion,
+                txt = i.parametros_notificacion.texto_notificacion,
+                logo_tienda = i.parametros_notificacion.logo_notificacion,
+                tipo_notificacion = i.parametros_notificacion.tipo_notificacion,
+                url_img = i.parametros_notificacion.img_notifiacion,
+                prioridad = i.parametros_notificacion.priorida_notificacion
+            )
+//            Log.d("NOTI", "Enviados: ${resultado.enviadosCorrectos}")
+//            Log.d("NOTI", "Fallidos: ${resultado.enviadosFallidos}")
+            actualizarEstadoNotificaciones(i)
+            val ref = db.collection("Tiendas")
+                .document(i.localida)
+                .collection(i.localida)
+                .document(i.id_tienda)
+                .collection("notificaciones_enviadas")
+                .document(i.idnotificacion)
+
+
+            // Transformamos los objetos anidados en Map para Firebase
+            val paramsMap = hashMapOf(
+                "id_tienda" to i.id_tienda,
+                "localidad" to i.localida,
+                "titulo_notificacion" to i.parametros_notificacion.titulo_notificacion,
+                "texto_notificacion" to i.parametros_notificacion.texto_notificacion,
+                "logo_notificacion" to i.parametros_notificacion.logo_notificacion,
+                "img_notificacion" to i.parametros_notificacion.img_notifiacion,
+                "nombre_tienda" to i.nombre_tienda,
+                "numero_contacto" to i.numero_contacto_tienda,
+                "categoria_tienda" to i.categoira_tienda
+            )
+
+            val params_notificacion =hashMapOf(
+                "id_noti" to i.idnotificacion,
+                "id_publicacion_anuncio" to i.parametros_notificacion.id_publicacion_anuncio,
+                "priorida_notificacion" to i.parametros_notificacion.priorida_notificacion,
+                "tipo_notificacion" to i.parametros_notificacion.tipo_notificacion,
+                "tipo_clikeable" to i.tipo_notificacion,
+                "notificacion_nueva" to i.parametros_notificacion.notificacion_publicidad,
+                "total_gastado" to i.precio_envio,
+                )
+
+            val suspendidoMap = hashMapOf(
+                "suspendido" to i.suspendido.suspendido,
+                "descripcion_suspencion" to i.suspendido.descrpcion_suspencion
+            )
+
+            val hashMap = hashMapOf<String, Any>(
+                "fecha_envio" to i.fecha_enviada,
+                "params_noti" to paramsMap,
+                "observacion" to suspendidoMap,
+                "params_notificacion" to params_notificacion
+            )
+
+            // Usando await() para que sea verdaderamente suspend
+            ref.set(hashMap).await()
+            Log.d("FIREBASE_NOTI", "✅ Notificación guardada correctamente")
+
+        } catch (e: Exception) {
+            Log.e("FIREBASE_NOTI", "❌ Error al guardar notificación", e)
+        }
+    }
+
+    suspend fun obtenerSeguidoresTienda(localidad: String, idTienda: String): List<String> {
+        val db = FirebaseFirestore.getInstance()
+
+        return try {
+            val ref = db.collection("Tiendas")
+                .document(localidad)
+                .collection(localidad)
+                .document(idTienda)
+                .collection("seguidores")
+
+            val snapshot = ref.get().await()
+
+
+            snapshot.documents.map { it.id }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+
+    suspend fun actualizarEstadoNotificaciones(i: obj_contador_notificaciones) {
+        val estadoRef = db.collection("Tiendas")
+            .document(i.localida)
+            .collection(i.localida)
+            .document(i.id_tienda)
+            .collection("estado_notificaciones")
+            .document("estado")
+
+        val snapshot = estadoRef.get().await()
+
+        if (!snapshot.exists()) {
+            // 👉 Primera notificación
+            val estado = hashMapOf(
+                "fecha_inicio" to i.fecha_enviada,
+                "fecha_fin" to obtenerFechaConDias(i.fecha_enviada, 7),
+                "contador" to 1,
+                "maximo" to 3,
+                "promocion_nueva" to true   // 👈 CLAVE
+            )
+            estadoRef.set(estado).await()
+
+        } else {
+            // 👉 Ya existe → incrementar y marcar nuevo
+            estadoRef.update(
+                mapOf(
+                    "contador" to FieldValue.increment(1),
+                    "promocion_nueva" to true   // 👈 CLAVE
+                )
+            ).await()
+        }
+    }
+
+    suspend fun verificar_envio_notificaciones(
+        localidad: String, id_tienda: String
+    ): Boolean {
+
+        val estadoRef = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(id_tienda)
+            .collection("estado_notificaciones")
+            .document("estado")
+
+        val snapshot = estadoRef.get().await()
+
+
+        if (!snapshot.exists()) return true
+
+        val contador = snapshot.getLong("contador") ?: 0
+        val maximo = snapshot.getLong("maximo") ?: 0
+
+        return contador < maximo
+    }
+
+    suspend fun obtener_lista_tokens(id_user: String): List<Pair<String, String>> {
+        val listaTokens = mutableListOf<Pair<String, String>>()
+
+        val snapshot = db.collection("Trabajadores_Usuarios_Drivers")
+            .document("users")
+            .collection("tokens")
+            .document(id_user)
+            .get()
+            .await()
+
+        if (!snapshot.exists()) {
+            Log.d("TOKENS", "❌ No existe documento para este usuario")
+            return emptyList()
+        }
+
+        val mapaTokens =
+            (snapshot.data?.get("tokens") as? Map<String, String>) ?: emptyMap()
+
+        // dispositivo = nombre, token = token FCM
+        mapaTokens.forEach { (dispositivo, token) ->
+            listaTokens.add(dispositivo to token)
+        }
+
+        return listaTokens
+    }
+
+    suspend fun obtener_publicaciones_tiendas(
+        localidad: String,
+        id_tienda: String
+    ): List<datos_publicaciones_realizadas> {
+
+        val resultado = mutableListOf<datos_publicaciones_realizadas>()
+
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val hoy = dateFormat.parse(dateFormat.format(Date())) ?: Date()
+
+        val snapshot = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(id_tienda)
+            .collection("promociones_geinz")
+            .get()
+            .await()
+
+        for (doc in snapshot.documents) {
+
+            val informacion = doc.get("informacion") as? Map<*, *> ?: continue
+            val fechas = doc.get("fechas") as? Map<*, *> ?: continue
+            val imgContainer = doc.get("img_container") as? Map<*, *>
+
+            val titulo = informacion["titulo"] as? String ?: ""
+            val descripcion = informacion["descripcion"] as? String ?: ""
+            val id = informacion["id_promocion"] as? String ?: doc.id
+
+            val inicioStr = fechas["inicio"] as? String
+            val finStr = fechas["fin"] as? String
+
+            val inicio = inicioStr?.let { dateFormat.parse(it) }
+            val fin = finStr?.let { dateFormat.parse(it) }
+
+            val activo = if (inicio != null && fin != null) {
+                !hoy.before(inicio) && !hoy.after(fin)
+            } else {
+                false
+            }
+
+            val listaImg = imgContainer?.get("lista_img") as? List<*>
+            val img = listaImg?.getOrNull(0) as? String ?: ""
+            resultado.add(
+                datos_publicaciones_realizadas(
+                    titulo = titulo,
+                    descripcion = descripcion,
+                    activo = activo,
+                    fecha_publicado = inicioStr ?: "",
+                    id = id,
+                    img = img
+                )
+            )
+        }
+
+        return resultado
+    }
+
+
 
 
 }

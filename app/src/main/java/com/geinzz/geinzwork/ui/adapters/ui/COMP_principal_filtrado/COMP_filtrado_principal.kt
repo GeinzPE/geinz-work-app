@@ -1524,6 +1524,7 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
                         overflow = TextOverflow.Ellipsis
                     )
 
+
                     spacer_vertical(10.dp)
 
                     texto_generico_multilinea(

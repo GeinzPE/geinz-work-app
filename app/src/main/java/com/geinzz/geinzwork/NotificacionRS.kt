@@ -5,6 +5,7 @@ import android.util.Log
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
@@ -17,6 +18,7 @@ import okhttp3.Request
 import okhttp3.Response
 import org.json.JSONException
 import java.io.IOException
+import kotlin.coroutines.resume
 
 class NotificacionRS {
     private val FCM_URL = "https://fcm.googleapis.com/v1/projects/geinzworkapp/messages:send"
@@ -93,7 +95,7 @@ class NotificacionRS {
         titulo: String,
         cuerpo: String,
         urlImagen: String? = null,
-        fallo:(Boolean)-> Unit
+        fallo: (Boolean) -> Unit
     ) {
         val jsonBody = """
         {
@@ -142,29 +144,97 @@ class NotificacionRS {
         })
     }
 
-    fun enviarNotificacionFCM_LINK(
-        id_user:String,
+//    fun enviarNotificacionFCM_LINK(
+//        id_user: String,
+//        token: String,
+//        titulo: String,
+//        cuerpo: String,
+//        link: String,
+//        tipoNotificacion: String,
+//        urlLogo: String? = null,
+//        urlImagen: String? = null,
+//        prioridad: String = "high",
+//        resultado: (token: String, exito: Boolean) -> Unit
+//    ) {
+//
+//        val jsonBody = """
+//    {
+//      "token": "$token",
+//      "title": "$titulo",
+//      "body": "$cuerpo",
+//      "link": "$link",
+//      "tipo_notificacion": "$tipoNotificacion",
+//      "logo": "${urlLogo ?: ""}",
+//      "image": "${urlImagen ?: ""}",
+//      "prioridad": "$prioridad"
+//    }
+//    """.trimIndent()
+//
+//        val client = OkHttpClient()
+//        val requestBody = jsonBody.toRequestBody("application/json".toMediaType())
+//
+//        val request = Request.Builder()
+//            .url(CLOUD_FUNCTION_URL)
+//            .post(requestBody)
+//            .addHeader("Content-Type", "application/json")
+//            .build()
+//
+//        client.newCall(request).enqueue(object : Callback {
+//
+//            override fun onFailure(call: Call, e: IOException) {
+//                Log.e("FCM_ENVIO", "Error con token $token: ${e.message}")
+//                resultado(token, false)
+//            }
+//
+//            override fun onResponse(call: Call, response: Response) {
+//                val bodyStr = response.body?.string() ?: ""
+//
+//                val exito = bodyStr.contains("Notificación enviada", true)
+//                val tokenInvalido =
+//                    bodyStr.contains("not a valid FCM registration token", true)
+//
+//                when {
+//                    exito -> {
+//                        Log.d("FCM_ENVIO", "✅ Enviado a token: $token")
+//                        resultado(token, true)
+//                    }
+//                    tokenInvalido -> {
+//                        Log.d("FCM_ENVIO", "❌ Token inválido: $token")
+//                        resultado(token, false)
+//                    }
+//                    else -> {
+//                        Log.d("FCM_ENVIO", "⚠️ Error desconocido con token: $token")
+//                        resultado(token, false)
+//                    }
+//                }
+//            }
+//        })
+//    }
+
+    suspend fun enviarNotificacionFCM_LINK_SUSPEND(
+        id_user: String,
         token: String,
         titulo: String,
         cuerpo: String,
-        link: String,              // 👈 LINK COMPLETO
+        link: String,
+        tipoNotificacion: String,
+        urlLogo: String? = null,
         urlImagen: String? = null,
-        fallo: (Boolean) -> Unit
-    ) {
-
+        prioridad: String = "high"
+    ): Boolean = suspendCancellableCoroutine { cont ->
 
         val jsonBody = """
-{
-  "token": "$token",
-  "title": "$titulo",
-  "body": "$cuerpo",
-  "link": "$link",
-  "image": "${urlImagen ?: ""}"
-}
-""".trimIndent()
-
-
-        Log.d("FCM_ENVIO", "$jsonBody")
+    {
+      "token": "$token",
+      "title": "$titulo",
+      "body": "$cuerpo",
+      "link": "$link",
+      "tipo_notificacion": "$tipoNotificacion",
+      "logo": "${urlLogo ?: ""}",
+      "image": "${urlImagen ?: ""}",
+      "prioridad": "$prioridad"
+    }
+    """.trimIndent()
 
         val client = OkHttpClient()
         val requestBody = jsonBody.toRequestBody("application/json".toMediaType())
@@ -178,28 +248,24 @@ class NotificacionRS {
         client.newCall(request).enqueue(object : Callback {
 
             override fun onFailure(call: Call, e: IOException) {
-                Log.e("FCM_ENVIO", "Error: ${e.message}")
-                fallo(true)
+                if (cont.isActive) cont.resume(false)
             }
 
             override fun onResponse(call: Call, response: Response) {
                 val bodyStr = response.body?.string() ?: ""
-                Log.d("noti_evadad", "Respuesta: $bodyStr")
 
-                // Detectamos errores por texto
-                if (bodyStr.contains("not a valid FCM registration token", ignoreCase = true)) {
-                    fallo(true)
-                    resultados[id_user] = false
-                } else if (bodyStr.contains("Notificación enviada", ignoreCase = true)) {
-                    resultados[id_user] = true
-                } else {
-                    resultados[id_user] = false
+                val exito = bodyStr.contains("Notificación enviada", true)
+                val tokenInvalido =
+                    bodyStr.contains("not a valid FCM registration token", true)
+
+                if (cont.isActive) {
+                    cont.resume(exito && !tokenInvalido)
                 }
-
-                Log.d("noti_evadad", "Estado de envío para $id_user: ${resultados[id_user]}")
             }
         })
     }
+
+
 
 
     fun eliminar_tokens_usuario(id_user: String, dispositivos: List<String>) {
@@ -210,7 +276,8 @@ class NotificacionRS {
             .document(id_user)
 
         db.get().addOnSuccessListener { res ->
-            val mapaTokens = (res.data?.get("tokens") as? Map<String, String>)?.toMutableMap() ?: mutableMapOf()
+            val mapaTokens =
+                (res.data?.get("tokens") as? Map<String, String>)?.toMutableMap() ?: mutableMapOf()
 
             var cambios = false
             dispositivos.forEach { disp ->
@@ -223,8 +290,18 @@ class NotificacionRS {
 
             if (cambios) {
                 db.update("tokens", mapaTokens)
-                    .addOnSuccessListener { Log.d("noti_evadad", "Tokens eliminados correctamente") }
-                    .addOnFailureListener { e -> Log.e("noti_evadad", "Error eliminando tokens: ${e.message}") }
+                    .addOnSuccessListener {
+                        Log.d(
+                            "noti_evadad",
+                            "Tokens eliminados correctamente"
+                        )
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(
+                            "noti_evadad",
+                            "Error eliminando tokens: ${e.message}"
+                        )
+                    }
             }
         }.addOnFailureListener { e ->
             Log.e("noti_evadad", "Error obteniendo tokens: ${e.message}")

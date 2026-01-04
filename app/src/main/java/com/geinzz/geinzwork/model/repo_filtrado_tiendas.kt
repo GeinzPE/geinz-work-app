@@ -686,7 +686,6 @@ class repo_filtrado_tiendas {
             "longitud" to item.lng,
             "img_tienda_lugar" to item.img_tienda,
             "localidad_lugar_tienda" to item.localida_tienda
-
         )
 
         try {

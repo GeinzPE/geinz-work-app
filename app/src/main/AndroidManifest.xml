@@ -426,6 +426,10 @@
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"> <!--- clave -->
+            <intent-filter>
+                <action android:name="OPEN_LINK"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
 
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />

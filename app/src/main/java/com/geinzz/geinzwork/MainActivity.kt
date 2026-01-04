@@ -128,6 +128,8 @@ class MainActivity : AppCompatActivity() {
 
         val index = uri.getQueryParameter("i")?.toIntOrNull() ?: 0
 
+        val id_promocion = uri.getQueryParameter("pi")?:""
+
         // 🔹 normalización crítica
         val id = idRaw.removePrefix("/")
 
@@ -139,6 +141,16 @@ class MainActivity : AppCompatActivity() {
             "pue" -> "puerto supe"
             else -> localidadRaw
         }
+
+        val pantallas_screen: String? = when (id.lowercase()) {
+            "nvng" -> "nuevos_negocios"
+            "seyt" -> "servicios_y_tramites"
+            "lgtr" -> "lugares_turisticos"
+            "nemg" -> "salud_y_seguridad"
+            "ads"->"promocionar"
+            else -> null
+        }
+
 
         val categoria = categoriaRaw.replace("+", " ")
 
@@ -183,6 +195,15 @@ class MainActivity : AppCompatActivity() {
                 )
             }
 
+            "prn"->{
+                deepLinkViewModel.setPromo_notificacion(
+                    id_tienda = id,
+                    lugar = localidad,
+                    id_promo = id_promocion,
+                )
+            }
+
+
 
             "prf" -> {
                 uiActionVM.emitir(
@@ -211,6 +232,17 @@ class MainActivity : AppCompatActivity() {
                 uiActionVM.emitir(
                     UiAction.ReviewPrivada(idRaw, "barranca", lat, lng)
                 )
+            }
+
+            "scr" -> {
+                pantallas_screen?.let { route ->
+                    navController.navigate(route) {
+                        launchSingleTop = true
+                        popUpTo(navController.graph.startDestinationId) {
+                            inclusive = false
+                        }
+                    }
+                }
             }
         }
     }

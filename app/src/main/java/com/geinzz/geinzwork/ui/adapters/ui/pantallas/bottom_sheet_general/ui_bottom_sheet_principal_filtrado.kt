@@ -596,32 +596,32 @@ var qr_generado_tienda by remember { mutableStateOf("") }
                         }
 
                         item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 10.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White)
-                                    .height(40.dp)
-                                    .clickable {
-                                        mostar_dialog_verificar_perfil = true
-                                    }, contentAlignment = Alignment.Center
-                            ) {
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(5.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Image(
-                                        painter = painterResource(R.drawable.icono_varificado_geinz),
-                                        contentDescription = "",
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    texto_generico_one_line(
-                                        "Verificar y Administrar Perfil",
-                                        MaterialTheme.typography.bodyMedium, color = Color.Black
-                                    )
-                                }
-                            }
+//                            Box(
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .padding(horizontal = 10.dp)
+//                                    .clip(CircleShape)
+//                                    .background(Color.White)
+//                                    .height(40.dp)
+//                                    .clickable {
+//                                        mostar_dialog_verificar_perfil = true
+//                                    }, contentAlignment = Alignment.Center
+//                            ) {
+//                                Row(
+//                                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+//                                    verticalAlignment = Alignment.CenterVertically
+//                                ) {
+//                                    Image(
+//                                        painter = painterResource(R.drawable.icono_varificado_geinz),
+//                                        contentDescription = "",
+//                                        modifier = Modifier.size(20.dp)
+//                                    )
+//                                    texto_generico_one_line(
+//                                        "Verificar y Administrar Perfil",
+//                                        MaterialTheme.typography.bodyMedium, color = Color.Black
+//                                    )
+//                                }
+//                            }
                         }
 
                         item {
@@ -793,6 +793,7 @@ fun cabezero_tiendas(
                 // 🔹 COLLAGE (ocupa lo que necesite)
                 if (lista_img.lista_ambiernte.isNotEmpty()) {
                     CollageGoogleMapsStyle_sin_scroll(
+                        categoritienda,
                         compartir_promocion(),
                         "ambiente",
                         1.1f,
@@ -804,6 +805,7 @@ fun cabezero_tiendas(
                        // 🔹 COLLAGE (ocupa lo que necesite)
                 if (lista_img.lista_productos.isNotEmpty()) {
                     CollageGoogleMapsStyle_sin_scroll(
+                        categoritienda,
                         compartir_promocion(),
                         "productos",
                         1.1f,
@@ -1059,7 +1061,7 @@ fun perfil_cabezero(
                 viewModelFiltros.setear_color(color)
             })
         spacer_vertical(5.dp)
-    TextoCopiable(id_tienda)
+//    TextoCopiable(id_tienda)
         text_expandible_wrapp(
             texto = "${categoritienda.capitalizeFirst()}",
             style = MaterialTheme.typography.bodyMedium
@@ -1829,7 +1831,7 @@ fun expandible_comidades_aforo(
                 ) {
 
                     texto_generico_multilinea(
-                        "Mira las comodidades de $nombre_luga para ti",
+                        "Comodidades que $nombre_luga para ti",
                         style = MaterialTheme.typography.bodyMedium,
                         Modifier.padding(horizontal = 10.dp)
                     )
@@ -1849,7 +1851,7 @@ fun expandible_comidades_aforo(
                             )
                         }
                     }
-                    spacer_vertical(20.dp)
+                    spacer_vertical(15.dp)
 
                     AforoCard(aforo.toInt())
                 }
@@ -1911,20 +1913,20 @@ fun campos_atributos(
     icono: Int,
 ) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(9.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             painter = painterResource(id = icono),
             contentDescription = tipo,
             modifier = Modifier
-                .size(40.dp)
+                .size(30.dp)
                 .clip(CircleShape)
         )
 
         texto_generico_one_line(
             tipo.capitalizeFirst(),
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodySmall
         )
     }
 }

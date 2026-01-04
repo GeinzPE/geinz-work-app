@@ -9,6 +9,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -54,7 +56,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -268,9 +272,14 @@ fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrad
     LaunchedEffect(id_tienda, horarioMap) {
         viewModelFiltros.calcularHorarioParaTienda(id_tienda, horarioMap)
     }
-
-    Box() {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+    val listState = rememberLazyListState()
+    val targetAlpha = if (listState.canScrollForward) 1f else 0f
+    val alphaAnim by animateFloatAsState(
+        targetValue = targetAlpha,
+        animationSpec = tween(durationMillis = 500)
+    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(state = listState,modifier = Modifier.fillMaxSize()) {
             item {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -1638,6 +1647,7 @@ fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrad
                                 )
                             }
                         }
+                        spacer_vertical(20.dp)
 
                     }
                 }
@@ -1682,6 +1692,21 @@ fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrad
             )
         }
         SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .align(Alignment.BottomCenter)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black
+                        )
+                    )
+                )
+                .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+        )
     }
 
 

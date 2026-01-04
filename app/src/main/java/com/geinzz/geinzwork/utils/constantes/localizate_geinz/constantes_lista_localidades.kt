@@ -98,6 +98,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_metodo_individual
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.obtener_img_tiendas
 import com.geinzz.geinzwork.data.model.servicio_comodidad
+import com.geinzz.geinzwork.data.model.ubicacaion_container
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationCallback
@@ -2310,6 +2311,21 @@ object constantes_lista_localidades {
         )
     }
 
+    fun Map<String, Any>?.to_ubicacion_container(): ubicacaion_container {
+        if (this == null) return ubicacaion_container()
+
+        return ubicacaion_container(
+            direccion = this["dirección"] as? String
+                ?: this["direccion"] as? String
+                ?: "",
+
+            lat = (this["latitud"] as? Number)?.toDouble() ?: 0.0,
+
+            long = (this["longitud"] as? Number)?.toDouble() ?: 0.0,
+
+            referencia = this["referencia"] as? String ?: ""
+        )
+    }
 
     fun Map<String, Any>?.to_metodo_pago(): modelo_pagos_tienda {
         if (this == null) return modelo_pagos_tienda()

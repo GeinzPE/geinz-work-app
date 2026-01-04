@@ -1061,14 +1061,14 @@ object constantes_expandibles_generales {
                                         guardar_dado_datos()
                                     })
                                 campos_atributos(
-                                    "ingleso con mascotas",
+                                    "ingreso con mascotas",
                                     R.drawable.icon_ingreso_animales,
-                                    estaActivo(servicios_comodidades, "ingleso con mascotas"),
+                                    estaActivo(servicios_comodidades, "ingreso con mascotas"),
                                     { it ->
                                         viewModelFiltros.cambiar_atrubitos(
                                             id_tienda,
                                             localidad,
-                                            "ingleso con mascotas",
+                                            "ingreso con mascotas",
                                             it
                                         )
                                         guardar_dado_datos()

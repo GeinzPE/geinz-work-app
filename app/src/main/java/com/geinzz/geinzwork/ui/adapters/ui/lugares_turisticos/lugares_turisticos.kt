@@ -9,16 +9,19 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -27,6 +30,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -48,6 +52,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,6 +63,7 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_compartir.compartir_pantalla_completa
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.tags_subcateogiras
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -224,17 +230,36 @@ val datos_lugar_brca= viewmodelMapa.obtener_datos_lugares_turisticos(
 //                        style = MaterialTheme.typography.banerGeinzWork,
 //                        modifier = Modifier.padding(end = 20.dp)
 //                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center){
                     Text(
                         text = "Lugares en ${localidad_selecionada.capitalizeFirst()}",
                         fontFamily = baners_geinz_work,
-                        fontSize = 30.sp
+                        fontSize = 30.sp, modifier = Modifier.weight(1f)
                     )
-
+                        Box(
+                            modifier = Modifier,
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .size(35.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.Gray.copy(alpha = 0.5f)).clickable{
+                                        compartir_pantalla_completa("lgtr","Conoce los lugares mas atractivos de $localidad_selecionada",context)
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(painterResource(R.drawable.comparir_icon), modifier = Modifier.size(16.dp), contentDescription = null)
+                            }
+                        }
+                    }
                     spacer_vertical(10.dp)
+
                     texto_generico_multilinea(
                         "Explora los lugares más emblemáticos y atractivos de $localidad_selecionada. Conoce su historia, horarios, recomendaciones y cómo llegar para disfrutar al máximo tu visita.",
                         MaterialTheme.typography.bodyMedium
                     )
+
                     spacer_vertical(13.dp)
                     Box(
                         modifier = Modifier

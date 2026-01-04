@@ -1,9 +1,18 @@
 package com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti
 
+import android.R
+
 data class obj_completo(
-    val dataclass_promociones_cerca_de_ti:dataclass_promociones_cerca_de_ti,
+    val dataclass_promociones_cerca_de_ti: dataclass_promociones_cerca_de_ti,
     val lista_filtrado: List<String>,
-    )
+    val lista_tiendas_con_mas_promo: List<tiendas_con_mas_de_una_promo>
+)
+
+data class tiendas_con_mas_de_una_promo(
+    val id: String,
+    val logo_img: String,
+    val nombre_tienda: String
+)
 
 data class dataclass_promociones_cerca_de_ti(
     val informacion_publcacion: informacion_publcacion,
@@ -24,7 +33,9 @@ data class informacion_publcacion(
     val nombre_tienda: String,
     val id_promocion: String,
     val id_tienda: String,
-    val categoria:String,
+    val categoria: String,
+    val compartir: Boolean,
+    val contactar: Boolean,
 )
 
 data class ubicacion(

@@ -21,8 +21,8 @@ android {
         applicationId = "com.geinzz.geinzwork"
         minSdk = 24
         targetSdk = 35
-        versionCode = 53
-        versionName = "1.39.1"
+        versionCode = 54
+        versionName = "1.40.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -53,11 +53,23 @@ android {
         compose = true
 
     }
-    packagingOptions {
-        exclude("META-INF/DEPENDENCIES")
-        exclude("META-INF/LICENSE")
-        exclude("META-INF/NOTICE")
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/LICENSE.md",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/NOTICE.md",
+                "META-INF/versions/**",
+                "META-INF/OSGI-INF/**",
+                "META-INF/MANIFEST.MF"
+            )
+        }
     }
+
 }
 
 dependencies {
@@ -85,6 +97,8 @@ dependencies {
 
     implementation(libs.volley)
     implementation(libs.androidx.core.i18n)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.identity.jvm)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

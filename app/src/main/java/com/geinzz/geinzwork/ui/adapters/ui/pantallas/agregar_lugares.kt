@@ -95,6 +95,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.g
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.timeStampNumero
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.lista_localidad
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.notificacionesFCM.enviar_notificacion_lista_dispo
 import com.geinzz.geinzwork.viewModels.viewmodel_agregar_datos
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -176,6 +177,14 @@ fun datos_teindas() {
     var lista_categorias by rememberSaveable { mutableStateOf(listOf<String>()) }
     var lista_subcategorias_full by rememberSaveable { mutableStateOf(listOf<List<String>>()) }
 
+
+    var lista_notificaion_select =
+        listOf("turistico", "nuevos_negocios", "numeros_salud_seguridad", "tramites")
+    var tipo_notificacion_select by remember { mutableStateOf("") }
+    var texto by remember { mutableStateOf("") }
+    var titulo by remember { mutableStateOf("") }
+    var imagen by remember { mutableStateOf("") }
+
     var cambiar_cat_sub by remember { mutableStateOf(false) }
 
 
@@ -195,7 +204,12 @@ fun datos_teindas() {
                 val subcategoriaUnica = subcategoarias_selet.firstOrNull() ?: ""
 
                 val prompt =
-                    generarPromptOptimizado(texto_nombre_lugar, categoria, contadorClicks, subcategoriaUnica)
+                    generarPromptOptimizado(
+                        texto_nombre_lugar,
+                        categoria,
+                        contadorClicks,
+                        subcategoriaUnica
+                    )
 
                 val inicio = System.currentTimeMillis()
 
@@ -861,6 +875,125 @@ fun datos_teindas() {
                 Button(onClick = { cambiar_cat_sub = true }) {
                     texto_generico_one_line("cambiar cat  y sub")
                 }
+
+
+            }
+
+            ExpandDropDown(
+                lista_notificaion_select,
+                false,
+                "selecciona el tipo de notificacion",
+                "selecciona el tipo de notificacion"
+            ) { tipo ->
+                tipo_notificacion_select = tipo
+            }
+
+            Button(onClick = {
+
+                val titulo = when (tipo_notificacion_select) {
+                    "turistico" -> {
+                        "\uD83D\uDDFA\uFE0F \uD83C\uDF04 Descubre nuevos lugares turísticos en Geinz \uD83C\uDF05"
+                    }
+
+                    "nuevos_negocios" -> {
+                        "\uD83D\uDE80 Nuevos lugares llegaron a Geinz ❤\uFE0F"
+                    }
+
+                    "numeros_salud_seguridad" -> {
+                        "🚨 Ante cualquier emergencia, comunícate con salud y seguridad 🚑 ❤\uFE0F"
+                    }
+
+                    "tramites" -> {
+                        "🧾 Encuentra lugares de servicios y comunidad "
+                    }
+
+                    else -> {
+                        "📍 Nuevos lugares disponibles en Geinz"
+                    }
+                }
+
+                val texto = when (tipo_notificacion_select) {
+                    "turistico" -> {
+                        "Explora destinos, atractivos y espacios únicos que se acaban de sumar. Encuentra tu próxima visita aquí 👀"
+                    }
+
+                    "nuevos_negocios" -> {
+                        "Conoce los nuevos negocios que se unieron a Geinz y apoya a los emprendedores de tu zona 🏪✨"
+                    }
+
+                    "numeros_salud_seguridad" -> {
+                        "Ten a la mano los contactos de emergencia, salud y seguridad cuando más los necesites ⛑️"
+                    }
+
+                    "tramites" -> {
+                        "Ubica fácilmente dónde realizar trámites, servicios y gestiones cerca de ti 🏢"
+                    }
+
+                    else -> {
+                        "Descubre nuevos lugares y servicios disponibles en Geinz 📍"
+                    }
+                }
+
+
+                val imagen_url = when (tipo_notificacion_select) {
+                    "turistico" -> {
+                        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fturistico_horizontal.webp?alt=media&token=aef7f5b9-a7e3-48bd-b419-8b0799d8a29b"
+                    }
+
+                    "nuevos_negocios" -> {
+                        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fsocios_horizontal.webp?alt=media&token=1e5e44be-5d56-4b0a-89f8-7f44e2532db1"
+                    }
+
+                    "numeros_salud_seguridad" -> {
+                        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fseguridad_horizontal.webp?alt=media&token=3d8c1853-6ad9-44ba-a0c7-092c2a1d8e49"
+                    }
+
+                    "tramites" -> {
+                        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fservicios_tramites_horizontal.webp?alt=media&token=7a203c44-405b-4527-842a-3cd87194fed8"
+                    }
+
+                    else -> {
+                        "Descubre nuevos lugares y servicios disponibles en Geinz 📍"
+                    }
+                }
+
+                val tipo_categoria_screen = when (tipo_notificacion_select) {
+                    "turistico" -> {
+                        "lgtr"
+                    }
+
+                    "nuevos_negocios" -> {
+                        "nvng"
+                    }
+
+                    "numeros_salud_seguridad" -> {
+                        "nemg"
+                    }
+
+                    "tramites" -> {
+                        "seyt"
+                    }
+
+                    else -> {
+                        "Descubre nuevos lugares y servicios disponibles en Geinz 📍"
+                    }
+                }
+                scope.launch {
+                    enviar_notificacion_lista_dispo(
+                        "",
+                        "", "", tipo_categoria_screen,
+                        tipo_notificacion_params = "screen",
+                        id_users = listOf("SEky161hPTf7SyjvfxNlkLRNd7f2"),
+                        titulo = titulo,
+                        txt = texto,
+                        logo_tienda = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+                        tipo_notificacion = "Primiun",
+                        url_img = imagen_url,
+                        prioridad = "high"
+                    )
+                }
+            }) {
+                texto_generico_one_line("notificar a usuarios sobre apartados")
             }
         }
 
@@ -1312,7 +1445,8 @@ fun generarPromptOptimizado(
 ): String {
 
     // 1. Reglas universales y estéticas (Menos tokens por llamada)
-    val reglasDeFormato = "Breve, no más de 6 líneas, sin puntos ni saltos de línea. Usa solo emojis inspiradores (✨🌟💡⚡📦🏆) y NUNCA uses corazones."
+    val reglasDeFormato =
+        "Breve, no más de 6 líneas, sin puntos ni saltos de línea. Usa solo emojis inspiradores (✨🌟💡⚡📦🏆) y NUNCA uses corazones."
 
     // 2. Definición del objeto a describir (Contexto)
     val contexto = if (subcategoria.isNotBlank()) {
@@ -1404,8 +1538,6 @@ fun obtenerUbicacionConfiable(
         Looper.getMainLooper()
     )
 }
-
-
 
 
 data class HorasDia(

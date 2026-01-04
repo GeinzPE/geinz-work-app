@@ -1,5 +1,8 @@
 const { onRequest } = require("firebase-functions/v2/https");
-const { onDocumentWritten } = require("firebase-functions/v2/firestore");
+const {
+  onDocumentCreated,
+  onDocumentWritten,
+} = require("firebase-functions/v2/firestore");
 const logger = require("firebase-functions/logger");
 
 const admin = require("firebase-admin");
@@ -37,6 +40,7 @@ exports.syncLugarToAlgolia = onDocumentWritten(
 
 // ==================== Notificaciones ====================
 // ==================== Notificaciones ====================
+
 exports.enviarNotificacion = onRequest(async (req, res) => {
   res.set("Access-Control-Allow-Origin", "*");
 
@@ -50,10 +54,26 @@ exports.enviarNotificacion = onRequest(async (req, res) => {
       title,
       body,
       link = "",
-      image = "",
+      logo = "", // 👈 NUEVO (opcional)
+      image = "", // 👈 YA EXISTE
       idTienda = "",
       idAnuncio = "",
+      tipo_notificacion = "logo", // logo | imagen | premium,
+      prioridad = "high",
     } = req.body;
+
+    // 🔹 Validación mínima del tipo
+    const tiposPermitidos = ["logo", "imagen", "premium"];
+    if (!tiposPermitidos.includes(tipo_notificacion)) {
+      return res.status(400).send("Tipo de notificación inválido");
+    }
+
+    const prioridadesPermitidas = ["high", "normal", "low"];
+    const prioridadFinal = prioridadesPermitidas.includes(
+      prioridad.toLowerCase()
+    )
+      ? prioridad.toLowerCase()
+      : "high";
 
     const mensaje = {
       token: token,
@@ -61,12 +81,14 @@ exports.enviarNotificacion = onRequest(async (req, res) => {
         title: String(title),
         body: String(body),
         link: String(link),
+        logo: String(logo), // 👈 SE ENVÍA
         image: String(image),
         idTienda: String(idTienda),
         idAnuncio: String(idAnuncio),
+        tipo_notificacion: String(tipo_notificacion),
       },
       android: {
-        priority: "high",
+        priority: prioridadFinal,
       },
     };
 
@@ -92,6 +114,13 @@ exports.share = onRequest(async (req, res) => {
     const indice = req.query.i || req.query.indice;
     const cl = req.query.cl;
 
+    const mapa_id = {
+      nvng: "nuevos_negocios",
+      seyt: "servicios_y_tramites",
+      lgtr: "lugares_turisticos",
+      nemg: "numeros_servicios_publicos",
+    };
+
     const coll_completa = cl === "pro" ? "promos_ofertas" : "promo";
     // ============================
     //        MAPA LOCALIDADES
@@ -105,6 +134,7 @@ exports.share = onRequest(async (req, res) => {
     };
 
     const localidad = MAPA_LOCALIDADES[localidadRaw] || localidadRaw;
+    const mapa_ids_scren = mapa_id[id] || id;
 
     // ============================
     //        VALIDACIÓN BASE
@@ -116,7 +146,7 @@ exports.share = onRequest(async (req, res) => {
     // ============================
     //   TIPOS QUE NO USAN LOCALIDAD
     // ============================
-    const TIPOS_SIN_LOCALIDAD = ["rew", "rewc", "ru", "prf", "prof"];
+    const TIPOS_SIN_LOCALIDAD = ["rew", "rewc", "ru", "prf", "prof", "scr"];
 
     if (!TIPOS_SIN_LOCALIDAD.includes(tipo) && (!localidad || !categoria)) {
       return res.status(400).send("Faltan parámetros: localidad, categoria.");
@@ -149,6 +179,8 @@ exports.share = onRequest(async (req, res) => {
         .doc(localidad)
         .collection(coll_completa)
         .doc(id);
+    } else if (tipo === "scr") {
+      ref = admin.firestore().collection("share_screen").doc(mapa_ids_scren);
     }
     // rew | rewc | ru | prf → NO FIRESTORE
 
@@ -174,6 +206,8 @@ exports.share = onRequest(async (req, res) => {
         titulo = capitalizeFirstLetter(
           data?.informacion?.titulo || "Mira esta promo en Geinz"
         );
+      } else if (tipo === "scr") {
+        titulo = capitalizeFirstLetter(data.titulo || "Geinz");
       }
     }
 
@@ -204,6 +238,12 @@ exports.share = onRequest(async (req, res) => {
           imagen = promos[0]; // toma siempre la primera imagen si existe
         } else if (data.img_container?.logo_img) {
           imagen = data.img_container.logo_img;
+        } else {
+          imagen = "https://geinzworkapp.web.app/default.jpg";
+        }
+      } else if (tipo === "scr") {
+        if (data.img) {
+          imagen = data.img;
         } else {
           imagen = "https://geinzworkapp.web.app/default.jpg";
         }
@@ -257,25 +297,28 @@ function capitalizeFirstLetter(str) {
 
 exports.desactivarPromocionesExpiradas = onSchedule(
   {
-    schedule: "every 24 hours",
+    schedule: "0 0 * * *",
     timeZone: "America/Lima",
     region: "us-central1",
   },
   async () => {
     const db = admin.firestore();
-    const hoy = new Date();
 
     console.log("🔄 Revisando promociones expiradas...");
 
+    // 🕛 HOY sin hora (00:00) en America/Lima
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
     const snapshot = await db
       .collection("Tiendas")
-      .doc("barranca") // luego puedes hacerlo dinámico
+      .doc("barranca") // luego lo puedes hacer dinámico
       .collection("promos_ofertas")
       .where("fechas.activo", "==", true)
       .get();
 
     if (snapshot.empty) {
-      console.log("No hay promociones activas");
+      console.log("ℹ️ No hay promociones activas");
       return;
     }
 
@@ -289,8 +332,12 @@ exports.desactivarPromocionesExpiradas = onSchedule(
       if (!fechaFinStr) return;
 
       const [dia, mes, anio] = fechaFinStr.split("/").map(Number);
-      const fechaFinDate = new Date(anio, mes - 1, dia);
 
+      // 📅 Fecha fin sin hora
+      const fechaFinDate = new Date(anio, mes - 1, dia);
+      fechaFinDate.setHours(0, 0, 0, 0);
+
+      // ❌ Si la promo ya venció
       if (fechaFinDate < hoy) {
         batch.update(doc.ref, {
           "fechas.activo": false,
@@ -306,3 +353,178 @@ exports.desactivarPromocionesExpiradas = onSchedule(
     console.log(`✅ Promociones desactivadas: ${contador}`);
   }
 );
+
+exports.verificarMinimoSeguidores = onDocumentCreated(
+  "Tiendas/{localidad}/{localidad}/{idTienda}/seguidores/{idUsuario}",
+  async (event) => {
+    try {
+      // 🔹 Obtenemos parámetros del trigger
+      const { localidad, idTienda } = event.params;
+
+      // 🔹 Referencia a la tienda
+      const tiendaRef = admin
+        .firestore()
+        .collection("Tiendas")
+        .doc(localidad)
+        .collection(localidad)
+        .doc(idTienda);
+
+      const tiendaDoc = await tiendaRef.get();
+      if (!tiendaDoc.exists) return null;
+
+      const tiendaData = tiendaDoc.data();
+      const yaDesbloqueado = tiendaData?.notificacionDesbloqueoEnviada || false;
+      const nombre_tienda = tiendaData?.nombre_tienda || "🥳🥳"; // Valor por defecto
+
+      const propietarios = tiendaData?.propietario_id || [];
+      if (propietarios.length === 0) return null;
+
+      // 🔹 Contamos los seguidores
+      const totalSeguidores = (await tiendaRef.collection("seguidores").get())
+        .size;
+      console.log(
+        `Tienda ${idTienda} ahora tiene ${totalSeguidores} seguidores`
+      );
+
+      if (totalSeguidores < 10) return null;
+
+      console.log(`Propietarios a notificar: ${propietarios}`);
+
+      // 🔹 Recorremos todos los propietarios
+      for (const propietarioId of propietarios) {
+        const tokenDoc = await admin
+          .firestore()
+          .collection("Trabajadores_Usuarios_Drivers")
+          .doc("users")
+          .collection("tokens")
+          .doc(propietarioId)
+          .get();
+
+        if (!tokenDoc.exists) {
+          console.log(
+            `No existe doc de tokens para propietario ${propietarioId}`
+          );
+          continue;
+        }
+
+        const tokensMap = tokenDoc?.data()?.tokens || {};
+        const tokens = Object.values(tokensMap);
+
+        if (tokens.length === 0) {
+          console.log(
+            `No hay tokens dentro del map para propietario ${propietarioId}`
+          );
+          continue;
+        }
+
+        console.log(
+          `Enviando notificación a ${tokens.length} token(s) de propietario ${propietarioId}`
+        );
+
+        // 🔹 Enviamos la notificación a cada token usando la función reutilizable
+        for (const token of tokens) {
+          await enviarNotificacionFCM_tienda({
+            token,
+            title: `🎉¡Felicidades ${nombre_tienda}! 🥳`,
+            body: `¡Ya tienes tus primeros ${totalSeguidores} seguidores 👨🏻‍👩🏻‍👦‍👦! Ahora has desbloqueado la opción de enviar notificaciones sobre tus promociones y ofertas a tus seguidores. 📢`,
+            idTienda,
+            idAnuncio: "", // opcional si tu función tiene parámetro idAnuncio=""
+            tipo_notificacion: "logo",
+            prioridad: "high",
+          });
+        }
+      }
+
+      // 🔹 Marcamos que ya se envió la notificación
+      await tiendaRef.update({ notificacionDesbloqueoEnviada: true });
+      console.log("Marcado notificacionDesbloqueoEnviada: true");
+
+      return null;
+    } catch (error) {
+      console.error("ERROR verificarMinimoSeguidores:", error);
+      return null;
+    }
+  }
+);
+async function enviarNotificacionFCM_tienda({
+  token,
+  title,
+  body,
+  link = "https://geinzworkapp.web.app/share?t=scr&id=ads",
+  logo = "",
+  image = "",
+  idTienda,
+  idAnuncio = "", // ✅ agregar
+  tipo_notificacion,
+  prioridad = "high",
+}) {
+  try {
+const mensaje = {
+  token: token,
+  data: {
+    title: String(title),
+    body: String(body),
+    link: String(link),
+    logo: String(logo),
+    image: String(image),
+    idTienda: String(idTienda),
+    idAnuncio: String(idAnuncio),
+    tipo_notificacion: String(tipo_notificacion),
+  },
+  android: { priority: prioridad }
+};
+
+    const respuesta = await admin.messaging().send(mensaje);
+    console.log("Notificación enviada al token:", token);
+    return respuesta;
+  } catch (error) {
+    console.error("ERROR enviarNotificacionFCM:", error);
+    if (error.code === "messaging/registration-token-not-registered") {
+      console.log("Token inválido, debería eliminarlo de Firestore:", token);
+    }
+  }
+}
+
+/*
+
+exports.enviarNotificacion = onRequest(async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+
+  if (req.method !== "POST") {
+    return res.status(405).send("Método no permitido"); 
+  }
+
+  try {
+    const {
+      token,
+      title,
+      body,
+      link = "",
+      image = "",
+      idTienda = "",
+      idAnuncio = "",
+    } = req.body;
+
+    const mensaje = {
+      token: token,
+      data: {
+        title: String(title),
+        body: String(body),
+        link: String(link),
+        image: String(image),
+        idTienda: String(idTienda),
+        idAnuncio: String(idAnuncio),
+      },
+      android: {
+        priority: "high",
+      },
+    };
+
+    const respuesta = await admin.messaging().send(mensaje);
+    res.status(200).send("Notificación enviada: " + respuesta);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
+});
+*/

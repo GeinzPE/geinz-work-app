@@ -1,7 +1,9 @@
 package com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado
 
 import android.icu.util.Calendar
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -34,6 +36,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
@@ -57,6 +60,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown_select_params
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.joelkanyi.jcomposecountrycodepicker.annotation.RestrictedApi
 import com.joelkanyi.jcomposecountrycodepicker.component.CountrySelectionDialog
@@ -65,8 +69,15 @@ import com.joelkanyi.jcomposecountrycodepicker.component.rememberKomposeCountryC
 import com.joelkanyi.jcomposecountrycodepicker.data.FlagSize
 
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 @Composable
 fun MyOutlinedTextField(
@@ -312,6 +323,69 @@ fun SeleccionarPais(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ExpandDropDown_select_params(
+    seleccionado: String = "",
+    lista: List<String>,
+    isError: Boolean,
+    textoError: String,
+    label: String,
+    onSeleccionado: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    // ✅ Observa cambios externos
+    var selected by remember(seleccionado) { mutableStateOf(seleccionado) }
+
+    Column {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
+            modifier = Modifier
+                .padding(vertical = 5.dp)
+                .clip(RoundedCornerShape(30))
+        ) {
+            TextField(
+                value = selected,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(label) },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                isError = isError,
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                shape = RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
+            ) {
+                lista.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            selected = option
+                            expanded = false
+                            onSeleccionado(option)
+                        }
+                    )
+                }
+            }
+        }
+
+        AnimatedVisibility(isError) {
+            Box(modifier = Modifier.padding(top = 5.dp, start = 5.dp)) {
+                retornar_pleaceholder_label(textoError, Color.Red)
+            }
+        }
+    }
+}
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -499,6 +573,88 @@ fun DatePickerExample(
         }
     }
 }
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DatePickerExample_promociones(
+    showDialog: Boolean,
+    onDismiss: () -> Unit,
+    onDateSelected: (LocalDate) -> Unit
+) {
+
+    // 📅 HOY a 00:00 UTC
+    val hoyUtcMillis = remember {
+        LocalDate.now()
+            .atStartOfDay(ZoneOffset.UTC)
+            .toInstant()
+            .toEpochMilli()
+    }
+
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = hoyUtcMillis,
+        initialDisplayedMonthMillis = hoyUtcMillis,
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                // 🔒 bloquear fechas pasadas
+                return utcTimeMillis >= hoyUtcMillis
+            }
+        }
+    )
+    val colors = DatePickerDefaults.colors(
+        containerColor = MaterialTheme.colorScheme.surface,
+        titleContentColor = MaterialTheme.colorScheme.onBackground,
+        weekdayContentColor = MaterialTheme.colorScheme.onBackground,
+        headlineContentColor = MaterialTheme.colorScheme.onBackground,
+        navigationContentColor = MaterialTheme.colorScheme.onBackground,
+        todayContentColor = Color.Red,
+        selectedDayContentColor = Color.White,
+        dayInSelectionRangeContentColor = Color.White,
+        selectedDayContainerColor = Color(0xFF6200EE),
+        selectedYearContentColor = MaterialTheme.colorScheme.onBackground
+    )
+
+    if (showDialog) {
+        DatePickerDialog(
+            colors = colors,
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val fecha = Instant
+                                .ofEpochMilli(millis)
+                                .atZone(ZoneOffset.UTC)
+                                .toLocalDate()
+
+                            onDateSelected(fecha)
+                            onDismiss()
+                        }
+                    }
+                ) {
+                    texto_generico_one_line("Confirmar")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState, colors = colors)
+        }
+    }
+}
+
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun calcularDiasEntreFechas(fechaInicio: String, fechaFin: String): Int {
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+    val inicio = LocalDate.parse(fechaInicio, formatter)
+    val fin = LocalDate.parse(fechaFin, formatter)
+
+    return ChronoUnit.DAYS.between(inicio, fin).toInt()
+}
+
+
 
 
 @Composable

@@ -68,6 +68,8 @@ animationCore = "1.9.0"
 volley = "1.2.1"
 foundationLayout = "1.9.3"
 coreI18n = "1.0.0"
+material3 = "1.4.0"
+identityJvm = "202411.1"
 [libraries]
 coil-core = { module = "io.coil-kt.coil3:coil", version.ref = "coilCompose" }
 accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
@@ -144,6 +146,8 @@ androidx-animation-core = { group = "androidx.compose.animation", name = "animat
 volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
 androidx-core-i18n = { group = "androidx.core", name = "core-i18n", version.ref = "coreI18n" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+identity-jvm = { group = "com.android.identity", name = "identity-jvm", version.ref = "identityJvm" }
 
 
 [plugins]

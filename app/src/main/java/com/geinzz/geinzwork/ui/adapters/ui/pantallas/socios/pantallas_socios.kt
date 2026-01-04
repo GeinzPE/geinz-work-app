@@ -14,7 +14,9 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.with
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -116,53 +118,47 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Scaffold
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.BoxFotosTipos
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.BtnSoporte
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.carga_inicial
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.estadisticas_aplicables
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.with
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.Image
+import androidx.compose.material.Badge
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import com.geinzz.geinzwork.data.model.items_pantallas_promociones
+
+
+@OptIn(ExperimentalAnimationApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun login_socios(isConnected: Boolean) {
+fun login_socios(isConnected: Boolean, tipo_: String = "") {
     val context = LocalContext.current
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     var id_registrado by remember { mutableStateOf("") }
-    val labels = listOf("Vistas", "Guardados", "Clics", "Compartidos")
-    val labels2 = listOf("Facebook", "Instagram", "TikTok", "Sitio web")
-    val labels3 = listOf("Llamada", "Whatsapp", "Rutas")
-    val labels4 = listOf(
-        "QR review publico",
-        "QR review privado",
-        "QR creacion de ruta",
-        "QR vistas de perfil"
-    )
     val viewmodel: viewmodel_eres_socio = viewModel()
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
     val state_socio = viewmodel.state_eres_socio.collectAsState()
-    val _tick by viewModelFiltros.tick.collectAsState()
-    var mostar_interes by remember { mutableStateOf(false) }
-    var mostrar_convesion by remember { mutableStateOf(false) }
-    var mostrar_datos_teinda by remember { mutableStateOf(false) }
-    var mostrar_redes_tienda by remember { mutableStateOf(false) }
-    var mostar_socio_atributos by remember { mutableStateOf(false) }
-    var mostar_metodos_pago_tienda by remember { mutableStateOf(false) }
-    var mostar_atributos_negocios by remember { mutableStateOf(false) }
-    var mostar_horario_teinda by remember { mutableStateOf(false) }
-    var mostrar_trafico_externo by remember { mutableStateOf(false) }
-    var mostrar_qr_externo by remember { mutableStateOf(false) }
-    var dialog_mostar_leyendas_graficos by remember { mutableStateOf(false) }
-    var titulo_leyenda_dialog by remember { mutableStateOf("") }
-    var txt_leyenda by remember { mutableStateOf("") }
-    var icono_mostar_leyendas_graficos by remember { mutableStateOf(0) }
-    var id_tienda by remember { mutableStateOf("") }
-    var listaPropietarios by remember { mutableStateOf(emptyList<String>()) }
-    var metodos_pago by remember { mutableStateOf(modelo_pagos_tienda()) }
-    var metodo_contact by remember { mutableStateOf(metodo_contacto_tienda()) }
-    var fecha_termino by remember { mutableStateOf("") }
-    var horarioMap by remember { mutableStateOf(HorarioAtencion_box()) }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    var mostar_horario__bool by remember { mutableStateOf(false) }
     val verificarSeccion by viewmodel.verificarSeccion.collectAsState()
     var mostar_progeres_var_en_btn by remember { mutableStateOf(false) }
     val cargando by viewmodel.cargandoIdSocio.collectAsState()
@@ -170,51 +166,24 @@ fun login_socios(isConnected: Boolean) {
     var cerrar_Seccion_cuenta_tienda by remember { mutableStateOf(false) }
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     var localidad_seleciondad by remember { mutableStateOf("") }
-    val localidad_tienda_select_ by data_store_localidad.get_localidad_tienda_socio(context).collectAsState(initial = "")
-    val estaVinculado = listaPropietarios.contains(uid_respald_user)
+    val localidad_tienda_select_ by data_store_localidad.get_localidad_tienda_socio(context)
+        .collectAsState(initial = "")
     var ingresar_correo by remember { mutableStateOf(false) }
     var correo_electronico_cuenta_user by remember { mutableStateOf("") }
+    var item_pantalla_promociones by remember { mutableStateOf(items_pantallas_promociones()) }
+    var pantallaSeleccionada by remember { mutableStateOf("Inicio") }
 
+    val mostarr_bundel_recientes by viewmodel.estado_envio_recientes.collectAsState()
 
-    var fotos_ambiente by remember { mutableStateOf(false) }
+    var mostrar_bundle_desbloqueo by remember { mutableStateOf(false) }
 
-    var fotos_producto by remember { mutableStateOf(false) }
-
-    var fotos_promociones by remember { mutableStateOf(false) }
-
-    var fotosAmbientales by remember { mutableStateOf<List<String>>(emptyList()) }
-
-    var fotosServicios by remember { mutableStateOf<List<String>>(emptyList()) }
-
-    var fotosPromociones by remember {
-        mutableStateOf<List<String>>(emptyList())
+    LaunchedEffect(tipo_) {
+        if (tipo_.isNotEmpty()) {
+            mostrar_bundle_desbloqueo = true
+        }
     }
-
-    var logoOriginal by rememberSaveable { mutableStateOf<String?>(null) }
-    var logoActual by rememberSaveable { mutableStateOf<String?>(null) }
-    var hayCambiosLogo by remember { mutableStateOf(false) }
-    var guardandoLogo by remember { mutableStateOf(false) }
-
-
-    var valor_img_completa by remember { mutableStateOf("") }
-    var mostrarDialogozoom by remember { mutableStateOf(false) }
-    var lista_servicios_comodidades by remember {
-        mutableStateOf<List<servicio_comodidad>>(emptyList())
-    }
-    var expandido by remember { mutableStateOf(false) }
-
     LaunchedEffect(Unit) {
         viewmodel.cargarIdSocio(context)
-    }
-
-    LaunchedEffect(id_tienda, horarioMap) {
-        viewModelFiltros.calcularHorarioParaTienda(id_tienda, horarioMap)
-    }
-    LaunchedEffect(id_tienda) {
-        if (id_tienda != "") {
-            viewmodel.carga_img_tipo("ambientales", id_tienda)
-            viewmodel.carga_img_tipo("servicios_productos", id_tienda)
-        }
     }
 
     LaunchedEffect(localidad_seleciondad) {
@@ -250,15 +219,6 @@ fun login_socios(isConnected: Boolean) {
                     duration = SnackbarDuration.Short
                 )
             }
-        }
-    }
-
-    val launcher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri ->
-        uri?.let {
-            logoActual = it.toString()   // ✅ preview inmediata
-            hayCambiosLogo = true        // ✅ muestra botones
         }
     }
 
@@ -550,18 +510,12 @@ fun login_socios(isConnected: Boolean) {
                 }
 
                 "contenido" -> {
-                    val pagerState = rememberPagerState { 2 }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 10.dp)
-                    ) {
-                        Box(
-                            Modifier,
-                            contentAlignment = Alignment.Center
-                        ) {
-                            when (val state = state_socio.value) {
 
+
+                    // Memoriza cada pantalla para que no se reconstruya completa al volver
+                    val pantallaGeinz = remember(state_socio.value) {
+                        @Composable {
+                            when (val state = state_socio.value) {
                                 is viewmodel_eres_socio.carga_acces_socio.loading -> {
                                     Box(
                                         modifier = Modifier.fillMaxSize(),
@@ -571,1527 +525,251 @@ fun login_socios(isConnected: Boolean) {
                                     }
                                 }
 
-                                is viewmodel_eres_socio.carga_acces_socio.error -> {}
+                                is viewmodel_eres_socio.carga_acces_socio.error -> {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("Error al cargar", color = Color.Red)
+                                    }
+                                }
 
                                 is viewmodel_eres_socio.carga_acces_socio.succes -> {
-                                    pantalla_carga_socios(state.datos,isConnected,{valor->
-                                        id_registrado=valor
-                                    })
-//                                    val datos = state.datos
-//                                    id_tienda = datos.id_tienda
-//                                    fecha_termino = datos.fecha_termino
-//                                    fotosAmbientales =
-//                                        datos.obtener_img_tiendas.lista_ambiernte
-//                                    fotosServicios =
-//                                        datos.obtener_img_tiendas.lista_productos
-//                                    fotosPromociones =
-//                                        datos.obtener_img_tiendas.lista_promociones
-//                                    metodos_pago = datos.metodos_pago
-//                                    metodo_contact = datos.metodo_contacto_tienda
-//                                    lista_servicios_comodidades =
-//                                        datos.servicios_comodidades
-//
-//                                    LaunchedEffect(datos.id_tienda) {
-//                                        logoOriginal = datos.obtener_img_tiendas.logo_tienda
-//                                        logoActual = datos.obtener_img_tiendas.logo_tienda
-//                                        hayCambiosLogo = false
-//                                    }
-//
-//                                    var values by remember { mutableStateOf(listOf<Float>()) }
-//
-//                                    var values2 by remember { mutableStateOf(listOf<Float>()) }
-//
-//                                    var values3 by remember { mutableStateOf(listOf<Float>()) }
-//
-//                                    var values4 by remember { mutableStateOf(listOf<Float>()) }
-//
-//                                    var nombre_negocio by remember { mutableStateOf(datos.nombre) }
-//                                    var descripcion_negocio by remember {
-//                                        mutableStateOf(
-//                                            datos.descripcion
-//                                        )
-//                                    }
-//                                    var nombre_negocio_actual by remember {
-//                                        mutableStateOf(
-//                                            datos.nombre
-//                                        )
-//                                    }
-//                                    var descripcion_actual by remember {
-//                                        mutableStateOf(
-//                                            datos.descripcion
-//                                        )
-//                                    }
-//
-//                                    LaunchedEffect(datos) {
-//                                        values2 = listOf(
-//                                            datos.fb.toFloat(),
-//                                            datos.ig.toFloat(),
-//                                            datos.tk.toFloat(),
-//                                            datos.stweb.toFloat()
-//                                        )
-//
-//                                        values = listOf(
-//                                            datos.total_vista.toFloat(),
-//                                            datos.total_guardados.toFloat(),
-//                                            datos.clic.toFloat(),
-//                                            datos.compartidos.toFloat()
-//                                        )
-//                                        values3 = listOf(
-//                                            datos.llamada.toFloat(),
-//                                            datos.wsap.toFloat(),
-//                                            datos.ruta.toFloat()
-//                                        )
-//
-//                                        values4 = listOf(
-//                                            datos.review_qr.toFloat(),
-//                                            datos.review_c_qr.toFloat(),
-//                                            datos.crear_ruta_qr.toFloat(),
-//                                            datos.perfil_qr.toFloat(),
-//                                        )
-//                                    }
-//
-//                                    val (dias, color) = obtenerDiasYColor(fecha_termino)
-//                                    val datos_fechas = datos_tienda_fechas(
-//                                        datos.id_tienda,
-//                                        datos.fecha_ingreso,
-//                                        datos.fecha_termino,
-//                                        dias.toString(),
-//                                        color,
-//                                        datos.saldo_disponible_tienda.toString() ?: "0",
-//                                    )
-//
-//                                    HorizontalPager(
-//                                        state = pagerState, modifier = Modifier
-//                                            .fillMaxSize()
-//                                    ) { page ->
-//                                        when (page) {
-//                                            0 -> {
-//                                                LazyColumn(modifier = Modifier.fillMaxSize()) {
-//                                                    item {
-//                                                        Column(
-//                                                            horizontalAlignment = Alignment.CenterHorizontally,
-//                                                            verticalArrangement = Arrangement.Center,
-//                                                            modifier = Modifier.padding(top = 20.dp)
-//                                                        ) {
-//                                                            Row(
-//                                                                modifier = Modifier
-//                                                                    .fillMaxWidth()
-//                                                                    .padding(
-//                                                                        horizontal = 16.dp,
-//                                                                        vertical = 10.dp
-//                                                                    ),
-//                                                                verticalAlignment = Alignment.CenterVertically
-//                                                            ) {
-//                                                                // Título centrado
-//                                                                Box(
-//                                                                    modifier = Modifier
-//                                                                        .weight(1f), // Ocupa todo el espacio disponible
-//                                                                    contentAlignment = Alignment.Center
-//                                                                ) {
-//                                                                    texto_generico_one_line(
-//                                                                        "Bienvenido a GEINZ PANEL",
-//                                                                        style = MaterialTheme.typography.titleLarge,
-//                                                                        color = Color.White
-//                                                                    )
-//                                                                }
-//
-//                                                                // Ícono de logout alineado a la derecha
-//                                                                Icon(
-//                                                                    imageVector = Icons.Default.ExitToApp,
-//                                                                    contentDescription = "Cerrar sesión",
-//                                                                    tint = Color.White,
-//                                                                    modifier = Modifier.clickable {
-//                                                                        cerrar_Seccion_cuenta_tienda =
-//                                                                            true
-//                                                                    }
-//                                                                )
-//                                                            }
-//
-//
-//                                                            spacer_vertical(10.dp)
-//
-//                                                            texto_generico_multilinea(
-//                                                                "Hola, aquí puedes ver la información principal de ${datos.nombre}.  Accede a las estadísticas de vistas, guardados y clics, y actualiza el horario de tu tienda de forma rápida y sencilla.",
-//                                                                style = MaterialTheme.typography.bodyMedium
-//                                                            )
-//
-//                                                            spacer_vertical(10.dp)
-//
-//                                                            Column(
-//                                                                Modifier
-//                                                                    .clip(RoundedCornerShape(10.dp))
-//                                                                    .background(MaterialTheme.colorScheme.surface)
-//                                                                    .animateContentSize(),
-//                                                                verticalArrangement = Arrangement.spacedBy(
-//                                                                    10.dp
-//                                                                )
-//                                                            ) {
-//                                                                Box(
-//                                                                    modifier = Modifier
-//                                                                        .fillMaxSize()
-//                                                                        .height(170.dp)
-//                                                                        .clip(RoundedCornerShape(10.dp))
-//                                                                        .clickable {
-//                                                                            mostar_horario__bool =
-//                                                                                !mostar_horario__bool
-//                                                                        }
-//                                                                ) {
-//                                                                    AsyncImage(
-//                                                                        model = ImageRequest.Builder(
-//                                                                            context
-//                                                                        )
-//                                                                            .data(logoActual)
-//                                                                            .placeholder(R.drawable.cargando_img_categorias)
-//                                                                            .error(R.drawable.cargando_img_categorias)
-//                                                                            .build(),
-//                                                                        contentDescription = null,
-//                                                                        modifier = Modifier.matchParentSize(),
-//                                                                        contentScale = ContentScale.Crop
-//                                                                    )
-//
-//                                                                    Icon(
-//                                                                        imageVector = Icons.Default.OpenInFull,
-//                                                                        contentDescription = "Expandir imagen",
-//                                                                        tint = Color.White,
-//                                                                        modifier = Modifier
-//                                                                            .align(Alignment.TopEnd)
-//                                                                            .padding(6.dp)
-//                                                                            .size(30.dp)
-//                                                                            .zIndex(10f)
-//                                                                            .background(
-//                                                                                Color.Black.copy(
-//                                                                                    alpha = 0.6f
-//                                                                                ),
-//                                                                                CircleShape
-//                                                                            )
-//                                                                            .clickable {
-//                                                                                valor_img_completa =
-//                                                                                    logoActual ?: ""
-//                                                                                mostrarDialogozoom =
-//                                                                                    true
-//                                                                            }
-//                                                                            .padding(4.dp)
-//                                                                    )
-//
-//                                                                    if (mostar_horario__bool) {
-//                                                                        Icon(
-//                                                                            imageVector = if (hayCambiosLogo) Icons.Default.Undo else Icons.Default.Edit, // o ZoomOutMap
-//                                                                            contentDescription = "Expandir imagen",
-//                                                                            tint = Color.White,
-//                                                                            modifier = Modifier
-//                                                                                .align(Alignment.BottomEnd)
-//                                                                                .padding(6.dp)
-//                                                                                .size(30.dp)
-//                                                                                .background(
-//                                                                                    Color.Black.copy(
-//                                                                                        alpha = 0.6f
-//                                                                                    ),
-//                                                                                    CircleShape
-//                                                                                )
-//                                                                                .clickable {
-//                                                                                    if (hayCambiosLogo) {
-//                                                                                        logoActual =
-//                                                                                            logoOriginal
-//                                                                                        hayCambiosLogo =
-//                                                                                            false
-//                                                                                    } else {
-//
-//                                                                                        launcher.launch(
-//                                                                                            "image/*"
-//                                                                                        )
-//                                                                                    }
-//                                                                                }
-//                                                                                .padding(4.dp)
-//                                                                        )
-//                                                                    }
-//
-//                                                                    this@Column.AnimatedVisibility(
-//                                                                        !mostar_horario__bool,
-//                                                                        modifier = Modifier
-//                                                                            .matchParentSize()
-//                                                                    ) {
-//                                                                        Box(
-//                                                                            modifier = Modifier
-//                                                                                .matchParentSize()
-//                                                                                .background(
-//                                                                                    Color(
-//                                                                                        0x99000000
-//                                                                                    )
-//                                                                                )
-//                                                                        )
-//                                                                    }
-//                                                                }
-//
-//                                                                this@Column.AnimatedVisibility(
-//                                                                    visible = hayCambiosLogo,
-//                                                                    enter = fadeIn(),
-//                                                                    exit = fadeOut()
-//                                                                ) {
-//                                                                    Row(
-//                                                                        modifier = Modifier
-//                                                                            .fillMaxWidth()
-//                                                                            .padding(
-//                                                                                top = 10.dp,
-//                                                                                start = 10.dp,
-//                                                                                end = 10.dp
-//                                                                            ),
-//                                                                        horizontalArrangement = Arrangement.spacedBy(
-//                                                                            10.dp
-//                                                                        )
-//                                                                    ) {
-//                                                                        Button(
-//                                                                            modifier = Modifier.weight(
-//                                                                                1f
-//                                                                            ),
-//                                                                            enabled = !guardandoLogo && logoActual != null && logoActual != logoOriginal,
-//                                                                            onClick = {
-//                                                                                guardandoLogo = true
-//                                                                                subir_storage_perfil_img(
-//                                                                                    context = context,
-//                                                                                    idTienda = id_tienda,
-//                                                                                    valor = logoActual!!,
-//                                                                                    onSuccess = { urlFinal ->
-//                                                                                        scope.launch {
-//                                                                                            val subido =
-//                                                                                                subir_foto_perfil_algolia_normal(
-//                                                                                                    id_tienda,
-//                                                                                                    urlFinal
-//                                                                                                )
-//
-//                                                                                            guardandoLogo =
-//                                                                                                false
-//
-//                                                                                            if (subido) {
-//                                                                                                logoOriginal =
-//                                                                                                    urlFinal
-//                                                                                                logoActual =
-//                                                                                                    urlFinal
-//                                                                                                hayCambiosLogo =
-//                                                                                                    false
-//                                                                                            }
-//                                                                                        }
-//                                                                                    },
-//                                                                                    onError = {
-//                                                                                        guardandoLogo =
-//                                                                                            false
-//                                                                                    }
-//                                                                                )
-//                                                                            }
-//                                                                        ) {
-//                                                                            if (guardandoLogo) {
-//                                                                                CircularProgressIndicator(
-//                                                                                    modifier = Modifier.size(
-//                                                                                        18.dp
-//                                                                                    ),
-//                                                                                    strokeWidth = 2.dp,
-//                                                                                    color = Color.White
-//                                                                                )
-//                                                                            } else {
-//                                                                                texto_generico_one_line(
-//                                                                                    "Guardar cambios "
-//                                                                                )
-//                                                                            }
-//                                                                        }
-//
-//                                                                    }
-//                                                                }
-//                                                                Box(
-//                                                                    modifier = Modifier
-//                                                                        .fillMaxWidth()
-//                                                                        .then(
-//                                                                            if (!mostar_horario__bool) Modifier.height(
-//                                                                                30.dp
-//                                                                            ) else Modifier
-//                                                                        )
-//                                                                        .animateContentSize(),
-//                                                                    contentAlignment = Alignment.CenterStart
-//                                                                ) {
-//                                                                    this@Column.AnimatedVisibility(
-//                                                                        visible = !mostar_horario__bool,
-//                                                                        enter = fadeIn(),
-//                                                                        exit = fadeOut()
-//                                                                    ) {
-//                                                                        Text(
-//                                                                            text = datos.nombre.capitalizeFirst(),
-//                                                                            fontFamily = baners_geinz_work,
-//                                                                            fontSize = 20.sp,
-//                                                                            modifier = Modifier.padding(
-//                                                                                start = 10.dp,
-//                                                                                end = 7.dp
-//                                                                            )
-//                                                                        )
-//                                                                    }
-//                                                                    this@Column.AnimatedVisibility(
-//                                                                        visible = mostar_horario__bool,
-//                                                                        enter = fadeIn(),
-//                                                                        exit = fadeOut(),
-//                                                                        modifier = Modifier.padding(
-//                                                                            horizontal = 10.dp
-//                                                                        )
-//                                                                    ) {
-//                                                                        Column {
-//
-//                                                                            custom_texFiel(
-//                                                                                value = nombre_negocio,
-//                                                                                onValueChange = {
-//                                                                                    nombre_negocio =
-//                                                                                        it
-//                                                                                },
-//                                                                                labelText = "Nombre del negocio",
-//                                                                                placeholderText = "Nombre del negocio"
-//                                                                            )
-//
-//                                                                            AnimatedVisibility(
-//                                                                                nombre_negocio != nombre_negocio_actual
-//                                                                            ) {
-//                                                                                Box(
-//                                                                                    modifier = Modifier
-//                                                                                        .fillMaxWidth()
-//                                                                                        .clip(
-//                                                                                            CircleShape
-//                                                                                        )
-//                                                                                        .background(
-//                                                                                            MaterialTheme.colorScheme.primary
-//                                                                                        )
-//                                                                                        .padding(
-//                                                                                            vertical = 10.dp
-//                                                                                        )
-//                                                                                        .clickable(
-//                                                                                            indication = null,
-//                                                                                            interactionSource = remember { MutableInteractionSource() }
-//                                                                                        ) {
-//                                                                                            viewmodel.cambiar_nombre_descripcion(
-//                                                                                                datos.localidad_tienda,
-//                                                                                                datos.id_tienda,
-//                                                                                                "nombre_tienda",
-//                                                                                                nombre_negocio
-//                                                                                            )
-//                                                                                            nombre_negocio_actual =
-//                                                                                                nombre_negocio
-//                                                                                            scope.launch {
-//                                                                                                snackbarHostState.showSnackbar(
-//                                                                                                    message = "Cambios guardados correctamente",
-//                                                                                                    duration = SnackbarDuration.Short
-//                                                                                                )
-//                                                                                            }
-//                                                                                        },
-//
-//                                                                                    contentAlignment = Alignment.Center
-//                                                                                ) {
-//                                                                                    texto_generico_one_line(
-//                                                                                        "Guardar cambios",
-//                                                                                        style = MaterialTheme.typography.bodyMedium
-//                                                                                    )
-//                                                                                }
-//                                                                            }
-//                                                                        }
-//                                                                    }
-//                                                                }
-//
-//
-//                                                                Crossfade(
-//                                                                    targetState = mostar_horario__bool,
-//                                                                    label = ""
-//                                                                ) { estado ->
-//                                                                    if (estado) {
-//                                                                        Column(
-//                                                                            modifier = Modifier
-//                                                                                .padding(
-//                                                                                    start = 10.dp,
-//                                                                                    end = 10.dp,
-//                                                                                    bottom = 20.dp
-//                                                                                )
-//                                                                                .animateContentSize(
-//                                                                                    animationSpec = tween(
-//                                                                                        durationMillis = 400,
-//                                                                                        easing = FastOutSlowInEasing
-//                                                                                    )
-//                                                                                ),
-//
-//                                                                            verticalArrangement = Arrangement.spacedBy(
-//                                                                                7.dp
-//                                                                            )
-//                                                                        ) {
-//                                                                            Column {
-//
-//                                                                                custom_texFiel(
-//                                                                                    rounder = 10,
-//                                                                                    value = descripcion_negocio,
-//                                                                                    onValueChange = {
-//                                                                                        descripcion_negocio =
-//                                                                                            it
-//                                                                                    },
-//                                                                                    labelText = "Descripción del negocio",
-//                                                                                    placeholderText = "Descripción del negocio"
-//                                                                                )
-//
-//                                                                                AnimatedVisibility(
-//                                                                                    descripcion_negocio != descripcion_actual
-//                                                                                ) {
-//                                                                                    Box(
-//                                                                                        modifier = Modifier
-//                                                                                            .fillMaxWidth()
-//                                                                                            .clip(
-//                                                                                                CircleShape
-//                                                                                            )
-//                                                                                            .background(
-//                                                                                                MaterialTheme.colorScheme.primary
-//                                                                                            )
-//                                                                                            .padding(
-//                                                                                                vertical = 10.dp
-//                                                                                            )
-//                                                                                            .clickable(
-//                                                                                                indication = null,
-//                                                                                                interactionSource = remember { MutableInteractionSource() }
-//                                                                                            ) {
-//                                                                                                viewmodel.cambiar_nombre_descripcion(
-//                                                                                                    datos.localidad_tienda,
-//                                                                                                    datos.id_tienda,
-//                                                                                                    "descripcion",
-//                                                                                                    descripcion_negocio
-//                                                                                                )
-//                                                                                                descripcion_actual =
-//                                                                                                    descripcion_negocio
-//                                                                                                scope.launch {
-//                                                                                                    snackbarHostState.showSnackbar(
-//                                                                                                        message = "Cambios guardados correctamente",
-//                                                                                                        duration = SnackbarDuration.Short
-//                                                                                                    )
-//                                                                                                }
-//                                                                                            },
-//                                                                                        contentAlignment = Alignment.Center
-//                                                                                    ) {
-//                                                                                        texto_generico_one_line(
-//                                                                                            "Guardar cambios",
-//                                                                                            style = MaterialTheme.typography.bodyMedium
-//                                                                                        )
-//                                                                                    }
-//                                                                                }
-//                                                                            }
-//
-//                                                                            spacer_vertical(20.dp)
-//                                                                            Column(
-//                                                                                modifier = Modifier
-//                                                                                    .clip(
-//                                                                                        RoundedCornerShape(
-//                                                                                            10.dp
-//                                                                                        )
-//                                                                                    )
-//                                                                                    .background(
-//                                                                                        MaterialTheme.colorScheme.surfaceVariant
-//                                                                                    )
-//                                                                                    .fillMaxWidth(),
-//                                                                                horizontalAlignment = Alignment.CenterHorizontally
-//                                                                            ) {
-//                                                                                Box(
-//                                                                                    modifier = Modifier
-//                                                                                        .fillMaxWidth()
-//                                                                                        .height(40.dp)
-//                                                                                        .clickable {
-//                                                                                            fotos_ambiente =
-//                                                                                                !fotos_ambiente
-//                                                                                        }
-//                                                                                        .padding(
-//                                                                                            horizontal = 16.dp
-//                                                                                        ),
-//                                                                                    contentAlignment = Alignment.Center
-//                                                                                ) {
-//                                                                                    texto_generico_one_line(
-//                                                                                        "Fotos de ambiente \uD83C\uDF06"
-//                                                                                    )
-//                                                                                }
-//
-//                                                                                AnimatedVisibility(
-//                                                                                    fotos_ambiente
-//                                                                                ) {
-//                                                                                    Box(
-//                                                                                        modifier = Modifier
-//                                                                                            .fillMaxWidth()
-//                                                                                            .padding(
-//                                                                                                8.dp
-//                                                                                            )
-//                                                                                    ) {
-//                                                                                        BoxFotosTipos(
-//                                                                                            "ambientales",
-//                                                                                            id_tienda,
-//                                                                                            fotosAmbientales,
-//                                                                                            6
-//                                                                                        )
-//                                                                                    }
-//                                                                                }
-//                                                                            }
-//
-//                                                                            spacer_vertical(10.dp)
-//
-//                                                                            Column(
-//                                                                                modifier = Modifier
-//                                                                                    .clip(
-//                                                                                        RoundedCornerShape(
-//                                                                                            10.dp
-//                                                                                        )
-//                                                                                    )
-//                                                                                    .background(
-//                                                                                        MaterialTheme.colorScheme.surfaceVariant
-//                                                                                    )
-//                                                                                    .fillMaxWidth(),
-//                                                                                horizontalAlignment = Alignment.CenterHorizontally
-//                                                                            ) {
-//                                                                                Box(
-//                                                                                    modifier = Modifier
-//                                                                                        .fillMaxWidth()
-//                                                                                        .height(40.dp)
-//                                                                                        .clickable {
-//                                                                                            fotos_producto =
-//                                                                                                !fotos_producto
-//                                                                                        }
-//                                                                                        .padding(
-//                                                                                            horizontal = 16.dp
-//                                                                                        ),
-//                                                                                    contentAlignment = Alignment.Center
-//                                                                                ) {
-//                                                                                    texto_generico_one_line(
-//                                                                                        "Fotos de productos o servicios 👣"
-//                                                                                    )
-//                                                                                }
-//
-//                                                                                AnimatedVisibility(
-//                                                                                    fotos_producto
-//                                                                                ) {
-//                                                                                    Box(
-//                                                                                        modifier = Modifier
-//                                                                                            .fillMaxWidth()
-//                                                                                            .padding(
-//                                                                                                8.dp
-//                                                                                            )
-//                                                                                    ) {
-//                                                                                        BoxFotosTipos(
-//                                                                                            "servicios_productos",
-//                                                                                            id_tienda,
-//                                                                                            fotosServicios,
-//                                                                                            6
-//                                                                                        )
-//                                                                                    }
-//                                                                                }
-//                                                                            }
-//
-//                                                                            spacer_vertical(10.dp)
-//
-//                                                                            Column(
-//                                                                                modifier = Modifier
-//                                                                                    .clip(
-//                                                                                        RoundedCornerShape(
-//                                                                                            10.dp
-//                                                                                        )
-//                                                                                    )
-//                                                                                    .background(
-//                                                                                        MaterialTheme.colorScheme.surfaceVariant
-//                                                                                    )
-//                                                                                    .fillMaxWidth(),
-//                                                                                horizontalAlignment = Alignment.CenterHorizontally
-//                                                                            ) {
-//
-//                                                                                Box(
-//                                                                                    modifier = Modifier
-//                                                                                        .fillMaxWidth()
-//                                                                                        .height(40.dp)
-//                                                                                        .clickable {
-//                                                                                            fotos_promociones =
-//                                                                                                !fotos_promociones
-//                                                                                        }
-//                                                                                        .padding(
-//                                                                                            horizontal = 16.dp
-//                                                                                        ),
-//                                                                                    contentAlignment = Alignment.Center
-//                                                                                ) {
-//                                                                                    texto_generico_one_line(
-//                                                                                        "Promociones recientes \u200B\u200B❤\uFE0F\u200D\uD83D\uDD25\u200B"
-//                                                                                    )
-//                                                                                }
-//
-//                                                                                AnimatedVisibility(
-//                                                                                    fotos_promociones
-//                                                                                ) {
-//                                                                                    Box(
-//                                                                                        modifier = Modifier
-//                                                                                            .fillMaxWidth()
-//                                                                                            .padding(
-//                                                                                                8.dp
-//                                                                                            )
-//                                                                                    ) {
-//                                                                                        BoxFotosTipos(
-//                                                                                            "promociones",
-//                                                                                            id_tienda,
-//                                                                                            fotosPromociones,
-//                                                                                            3
-//                                                                                        )
-//                                                                                    }
-//                                                                                }
-//                                                                            }
-//                                                                        }
-//                                                                    } else {
-//                                                                        text_expandible_wrapp(
-//                                                                            modifier = Modifier.padding(
-//                                                                                start = 10.dp,
-//                                                                                end = 10.dp,
-//                                                                                bottom = 20.dp
-//                                                                            ),
-//                                                                            texto = datos.descripcion,
-//                                                                            style = MaterialTheme.typography.bodyMedium,
-//                                                                            maxlines = 3
-//
-//                                                                        )
-//                                                                    }
-//                                                                }
-//
-//                                                            }
-//
-//
-//
-//
-//                                                            spacer_vertical(10.dp)
-//
-//
-//                                                            Cartas_expandibles(
-//                                                                modifier = Modifier.padding(
-//                                                                    vertical = 10.dp
-//                                                                )
-//                                                            ) {
-//                                                                Box(
-//                                                                    modifier = Modifier
-//                                                                        .animateContentSize() // ← Animación suave
-//                                                                ) {
-//                                                                    expandibles_wrapp_socio_geinzz_horario_atencion(
-//                                                                        tick = _tick,
-//                                                                        viewModelFiltros = viewModelFiltros,
-//                                                                        dia = DiaHoy(),
-//                                                                        isConnected = isConnected,
-//                                                                        viewmodel = viewmodel,
-//                                                                        expandido = mostar_horario_teinda,
-//                                                                        datos = datos,
-//                                                                        onClickExpand = {
-//                                                                            mostar_horario_teinda =
-//                                                                                !mostar_horario_teinda
-//                                                                        }, sin_conexion = {
-//                                                                            scope.launch {
-//                                                                                snackbarHostState.showSnackbar(
-//                                                                                    message = "No puedes realizar cambios sin conexion a internet",
-//                                                                                    duration = SnackbarDuration.Short
-//                                                                                )
-//                                                                            }
-//                                                                        }, {
-//                                                                            scope.launch {
-//                                                                                snackbarHostState.showSnackbar(
-//                                                                                    message = "Por favor, completa todos los campos antes de actualizar el horario.",
-//                                                                                    duration = SnackbarDuration.Short
-//                                                                                )
-//                                                                            }
-//                                                                        }, { msje ->
-//                                                                            scope.launch {
-//                                                                                snackbarHostState.showSnackbar(
-//                                                                                    message = msje,
-//                                                                                    duration = SnackbarDuration.Short
-//                                                                                )
-//                                                                            }
-//                                                                        })
-//                                                                }
-//                                                            }
-//
-//                                                            Cartas_expandibles(
-//                                                                modifier = Modifier.padding(
-//                                                                    vertical = 10.dp
-//                                                                )
-//                                                            ) {
-//                                                                Box(
-//                                                                    modifier = Modifier
-//                                                                        .animateContentSize() // ← Animación suave
-//                                                                ) {
-//                                                                    expandibles_wrapp_socio_geinzz_datos_tienda(
-//                                                                        viewModelFiltros = viewmodel,
-//                                                                        context = context,
-//                                                                        expandido = mostrar_datos_teinda,
-//                                                                        datos_tienda_fechas = datos_fechas
-//                                                                    ) {
-//                                                                        mostrar_datos_teinda =
-//                                                                            !mostrar_datos_teinda
-//                                                                    }
-//                                                                }
-//                                                            }
-//                                                            Cartas_expandibles(
-//                                                                modifier = Modifier.padding(
-//                                                                    vertical = 10.dp
-//                                                                )
-//                                                            ) {
-//                                                                Box(
-//                                                                    modifier = Modifier
-//                                                                        .animateContentSize() // ← Animación suave
-//                                                                ) {
-//                                                                    expandibles_wrapp_socio_contacto_tienda(
-//                                                                        viewModelFiltros = viewmodel,
-//                                                                        context = context,
-//                                                                        expandido = mostrar_redes_tienda,
-//                                                                        it = metodo_contact,
-//                                                                        datos_tienda = cambiar_datos_pago_contacto(
-//                                                                            id_tienda,
-//                                                                            datos.localidad_tienda
-//                                                                        ),
-//                                                                        onClickExpand = {
-//                                                                            mostrar_redes_tienda =
-//                                                                                !mostrar_redes_tienda
-//                                                                        },
-//                                                                        cambios_guardados = {
-//                                                                            scope.launch {
-//                                                                                snackbarHostState.showSnackbar(
-//                                                                                    message = "Cambios guardados correctamente",
-//                                                                                    duration = SnackbarDuration.Short
-//                                                                                )
-//                                                                            }
-//                                                                        })
-//                                                                }
-//                                                            }
-//
-//                                                            Cartas_expandibles(
-//                                                                modifier = Modifier.padding(
-//                                                                    vertical = 10.dp
-//                                                                )
-//                                                            ) {
-//                                                                Box(
-//                                                                    modifier = Modifier
-//                                                                        .animateContentSize() // ← Animación suave
-//                                                                ) {
-//                                                                    expandibles_wrapp_socio_metodos_pago_tienda(
-//                                                                        viewModelFiltros = viewmodel,
-//                                                                        context = context,
-//                                                                        expandido = mostar_metodos_pago_tienda,
-//                                                                        metodos_pago = metodos_pago,
-//                                                                        datos_tienda = cambiar_datos_pago_contacto(
-//                                                                            id_tienda,
-//                                                                            datos.localidad_tienda
-//                                                                        ), onClickExpand = {
-//                                                                            mostar_metodos_pago_tienda =
-//                                                                                !mostar_metodos_pago_tienda
-//                                                                        }, guardar_dado_datos = {
-//                                                                            scope.launch {
-//                                                                                snackbarHostState.showSnackbar(
-//                                                                                    message = "Cambios guardados correctamente",
-//                                                                                    duration = SnackbarDuration.Short
-//                                                                                )
-//                                                                            }
-//                                                                        })
-//                                                                }
-//                                                            }
-//
-//                                                            Cartas_expandibles(
-//                                                                modifier = Modifier.padding(
-//                                                                    vertical = 10.dp
-//                                                                )
-//                                                            ) {
-//                                                                Box(
-//                                                                    modifier = Modifier
-//                                                                        .animateContentSize() // ← Animación suave
-//                                                                ) {
-//                                                                    expandible_wrap_socio_atrubitos(
-//                                                                        datos.id_tienda,
-//                                                                        datos.localidad_tienda,
-//                                                                        lista_servicios_comodidades,
-//                                                                        viewModelFiltros = viewmodel,
-//                                                                        expandido = mostar_atributos_negocios,
-//                                                                        {
-//                                                                            mostar_atributos_negocios =
-//                                                                                !mostar_atributos_negocios
-//                                                                        },
-//                                                                        {
-//                                                                            scope.launch {
-//                                                                                snackbarHostState.showSnackbar(
-//                                                                                    message = "Cambios guardados correctamente",
-//                                                                                    duration = SnackbarDuration.Short
-//                                                                                )
-//                                                                            }
-//                                                                        }
-//                                                                    )
-//                                                                }
-//                                                            }
-//
-//                                                            Cartas_expandibles(
-//                                                                modifier = Modifier.padding(
-//                                                                    vertical = 10.dp
-//                                                                )
-//                                                            ) {
-//                                                                Box(
-//                                                                    modifier = Modifier
-//                                                                        .animateContentSize() // ← Animación suave
-//                                                                ) {
-//                                                                    expandido_wrap_socio_atributos(
-//                                                                        id_tienda = datos.id_tienda,
-//                                                                        localida = datos.localidad_tienda,
-//                                                                        aforo_max = datos.aforo.toString(),
-//                                                                        viewModelFiltros = viewmodel,
-//                                                                        expandido = mostar_socio_atributos,
-//                                                                        onClickExpand = {
-//                                                                            mostar_socio_atributos =
-//                                                                                !mostar_socio_atributos
-//                                                                        },
-//                                                                        guardar_dado_datos = {
-//                                                                            scope.launch {
-//                                                                                snackbarHostState.showSnackbar(
-//                                                                                    message = "Cambios guardados correctamente",
-//                                                                                    duration = SnackbarDuration.Short
-//                                                                                )
-//                                                                            }
-//                                                                        })
-//                                                                }
-//                                                            }
-//                                                            spacer_vertical(10.dp)
-//                                                            AnimatedContent(
-//                                                                targetState = expandido,
-//                                                                transitionSpec = { fadeIn() togetherWith fadeOut() },
-//                                                                modifier = Modifier
-//                                                                    .clip(
-//                                                                        RoundedCornerShape(10.dp)
-//                                                                    )
-//                                                                    .background(
-//                                                                        MaterialTheme.colorScheme.surfaceVariant
-//                                                                    )
-//                                                            ) { estado ->
-//                                                                if (!estado) {
-//                                                                    Box(
-//                                                                        modifier = Modifier
-//                                                                            .fillMaxWidth()
-//                                                                            .clickable(
-//                                                                                indication = null,
-//                                                                                interactionSource = remember { MutableInteractionSource() }
-//                                                                            ) {
-//                                                                                expandido =
-//                                                                                    !expandido
-//                                                                            }
-//                                                                    ) {
-//                                                                        Box(
-//                                                                            modifier = Modifier.fillMaxWidth(),
-//                                                                            contentAlignment = Alignment.Center
-//                                                                        ) {
-//                                                                            texto_generico_one_line(
-//                                                                                "Estadisticas completas \uD83D\uDCC8",
-//                                                                                style = MaterialTheme.typography.bodyMedium,
-//                                                                                modifier = Modifier.padding(
-//                                                                                    vertical = 10.dp
-//                                                                                ),
-//                                                                            )
-//                                                                        }
-//                                                                    }
-//
-//                                                                } else {
-//                                                                    Column() {
-//
-//                                                                        Box(
-//                                                                            modifier = Modifier.fillMaxWidth(),
-//                                                                            contentAlignment = Alignment.Center
-//                                                                        ) {
-//                                                                            texto_generico_one_line(
-//                                                                                "Estadisticas completas \uD83D\uDCC8",
-//                                                                                style = MaterialTheme.typography.titleLarge,
-//                                                                                modifier = Modifier
-//                                                                                    .padding(
-//                                                                                        vertical = 10.dp
-//                                                                                    )
-//                                                                                    .clickable(
-//                                                                                        indication = null,
-//                                                                                        interactionSource = remember { MutableInteractionSource() }) {
-//                                                                                        expandido =
-//                                                                                            !expandido
-//                                                                                    },
-//                                                                            )
-//
-//                                                                        }
-//                                                                        texto_generico_multilinea(
-//                                                                            "Analiza las estadísticas de tu perfil, mejora tus promociones y conecta mejor con tus clientes.",
-//                                                                            style = MaterialTheme.typography.bodyMedium,
-//                                                                            modifier = Modifier.padding(
-//                                                                                vertical = 5.dp,
-//                                                                                horizontal = 10.dp
-//                                                                            )
-//                                                                        )
-//
-//                                                                        val lsita_datos1 = listOf(
-//                                                                            datos_grafico(
-//                                                                                enable = datos.total_vista != 0,
-//                                                                                img_ = R.drawable.vizualizacion_icon_3d,
-//                                                                                label = "Vistas de perfil",
-//                                                                                cantidad = datos.total_vista.toString()
-//                                                                            ),
-//                                                                            datos_grafico(
-//                                                                                enable = datos.total_guardados != 0,
-//                                                                                img_ = R.drawable.corazon_gracias,
-//                                                                                label = "Guardados de perfil",
-//                                                                                cantidad = datos.total_guardados.toString()
-//                                                                            ),
-//                                                                            datos_grafico(
-//                                                                                enable = datos.clic != 0,
-//                                                                                img_ = R.drawable.click_icon3d,
-//                                                                                label = "Clics en perfil",
-//                                                                                cantidad = datos.clic.toString()
-//                                                                            ),
-//                                                                            datos_grafico(
-//                                                                                enable = datos.compartidos != 0,
-//                                                                                img_ = R.drawable.compartir_icon_vector,
-//                                                                                label = "Compartidos",
-//                                                                                cantidad = datos.compartidos.toString()
-//                                                                            )
-//                                                                        )
-//                                                                        AnimatedVisibility(
-//                                                                            lsita_datos1.any { it.enable }) {
-//                                                                            Cartas_expandibles(
-//
-//                                                                                modifier = Modifier.padding(
-//                                                                                    vertical = 10.dp,
-//                                                                                    horizontal = 5.dp
-//                                                                                )
-//                                                                            ) {
-//                                                                                Column() {
-//                                                                                    val lsita_datos1filtrada =
-//                                                                                        lsita_datos1.filter { it.enable }
-//                                                                                    expandibles_wrapp_socio_geinzz(
-//                                                                                        lsita_datos1filtrada,
-//                                                                                        "El interés real muestra cuántas personas se detienen a ver tu perfil por más de 6 segundos. Esta métrica refleja la atención genuina que tu negocio genera dentro de la plataforma",
-//                                                                                        texto_params = "Interés real",
-//                                                                                        expandido = mostar_interes,
-//                                                                                        onClickExpand = {
-//                                                                                            mostar_interes =
-//                                                                                                !mostar_interes
-//                                                                                        }
-//                                                                                    )
-//                                                                                }
-//                                                                                val lista_colores1 =
-//                                                                                    listOf(
-//                                                                                        Color(
-//                                                                                            0xFFFF6B6B
-//                                                                                        ),
-//                                                                                        Color(
-//                                                                                            0xFF4ECDC4
-//                                                                                        ),
-//                                                                                        Color(
-//                                                                                            0xFF4EFF00
-//                                                                                        ),
-//                                                                                        Color(
-//                                                                                            0xFF0037FF
-//                                                                                        ),
-//                                                                                    )
-//                                                                                estadisticas_aplicables(
-//                                                                                    mostrar_qr_externo = mostar_interes,
-//                                                                                    List_float = values,
-//                                                                                    ListString = labels,
-//                                                                                    colores_lista = lista_colores1,
-//                                                                                    contenido_clikeado = { select ->
-//                                                                                        when (select) {
-//                                                                                            "Vistas" -> {
-//                                                                                                dialog_mostar_leyendas_graficos =
-//                                                                                                    true
-//                                                                                                titulo_leyenda_dialog =
-//                                                                                                    "Vistas"
-//                                                                                                txt_leyenda =
-//                                                                                                    "Las vistas se registran cuando un usuario permanece viendo tu perfil durante más de 6 segundos. Representan el interés real que genera tu negocio."
-//                                                                                                icono_mostar_leyendas_graficos =
-//                                                                                                    R.drawable.vizualizacion_icon_3d
-//                                                                                            }
-//
-//                                                                                            "Guardados" -> {
-//                                                                                                dialog_mostar_leyendas_graficos =
-//                                                                                                    true
-//                                                                                                titulo_leyenda_dialog =
-//                                                                                                    "Guardados"
-//                                                                                                txt_leyenda =
-//                                                                                                    "Los guardados indican cuántos usuarios añadieron a ${datos.nombre} a su lista de favoritos. Es una métrica que refleja cuánta gente quiere volver a encontrar tu tienda rápidamente."
-//                                                                                                icono_mostar_leyendas_graficos =
-//                                                                                                    R.drawable.corazon_gracias
-//                                                                                            }
-//
-//                                                                                            "Clics" -> {
-//                                                                                                dialog_mostar_leyendas_graficos =
-//                                                                                                    true
-//                                                                                                titulo_leyenda_dialog =
-//                                                                                                    "clics"
-//                                                                                                txt_leyenda =
-//                                                                                                    "Los clics representan cuántos usuarios tocaron tu negocio y abrieron directamente el perfil de la tienda o negocio. Miden la intención inmediata de conocer más sobre ti."
-//                                                                                                icono_mostar_leyendas_graficos =
-//                                                                                                    R.drawable.click_icon3d
-//                                                                                            }
-//
-//                                                                                            "Compartidos" -> {
-//                                                                                                dialog_mostar_leyendas_graficos =
-//                                                                                                    true
-//                                                                                                titulo_leyenda_dialog =
-//                                                                                                    "Compartidos"
-//                                                                                                txt_leyenda =
-//                                                                                                    "Los compartidos representan cuántos usuarios compartieron directamente el perfil de la tienda o negocio. Haciendo que mas personas te conozcan"
-//                                                                                                icono_mostar_leyendas_graficos =
-//                                                                                                    R.drawable.compartir_icon_vector
-//                                                                                            }
-//                                                                                        }
-//                                                                                    })
-//
-//                                                                            }
-//                                                                        }
-//
-//                                                                        val lsita_datos2 = listOf(
-//                                                                            datos_grafico(
-//                                                                                enable = datos.fb != 0,
-//                                                                                img_ = R.drawable.facebook_icon,
-//                                                                                label = "Facebook",
-//                                                                                cantidad = datos.fb.toString()
-//                                                                            ), datos_grafico(
-//                                                                                enable = datos.ig != 0,
-//                                                                                img_ = R.drawable.instagram_icon,
-//                                                                                label = "Instagram",
-//                                                                                cantidad = datos.ig.toString()
-//                                                                            ), datos_grafico(
-//                                                                                enable = datos.tk != 0,
-//                                                                                img_ = R.drawable.tik_tok_icon,
-//                                                                                label = "Tik tok",
-//                                                                                cantidad = datos.tk.toString()
-//                                                                            ), datos_grafico(
-//                                                                                enable = datos.stweb != 0,
-//                                                                                R.drawable.web_icon,
-//                                                                                "Sitio web",
-//                                                                                datos.stweb.toString()
-//                                                                            )
-//                                                                        )
-//                                                                        AnimatedVisibility(
-//                                                                            lsita_datos2.any { it.enable }) {
-//                                                                            Cartas_expandibles(
-//
-//                                                                                modifier = Modifier.padding(
-//                                                                                    vertical = 10.dp,
-//                                                                                    horizontal = 5.dp
-//                                                                                )
-//                                                                            ) {
-//                                                                                Column() {
-//                                                                                    val lsita_datos1filtrada =
-//                                                                                        lsita_datos2.filter { it.enable }
-//                                                                                    expandibles_wrapp_socio_geinzz(
-//                                                                                        lsita_datos1filtrada,
-//                                                                                        "Este indicador muestra cuántas personas hicieron clic en tus perfiles de redes sociales o en tu sitio web después de ver tu página. Refleja el nivel de intención que tiene el usuario de saber más sobre tu negocio y avanzar hacia un contacto directo",
-//                                                                                        texto_params = "Convesion",
-//                                                                                        expandido = mostrar_convesion,
-//                                                                                        onClickExpand = {
-//                                                                                            mostrar_convesion =
-//                                                                                                !mostrar_convesion
-//                                                                                        }
-//                                                                                    )
-//                                                                                }
-//                                                                                val lista_colores2 =
-//                                                                                    listOf(
-//                                                                                        Color(
-//                                                                                            0xFF1877F2
-//                                                                                        ),
-//                                                                                        Color(
-//                                                                                            0xFFE1306C
-//                                                                                        ),
-//                                                                                        Color(
-//                                                                                            0xFF69C9D0
-//                                                                                        ),
-//                                                                                        Color(
-//                                                                                            0xFF6366F1
-//                                                                                        ),
-//                                                                                    )
-//                                                                                estadisticas_aplicables(
-//                                                                                    mostrar_qr_externo = mostrar_convesion,
-//                                                                                    List_float = values2,
-//                                                                                    ListString = labels2,
-//                                                                                    colores_lista = lista_colores2,
-//                                                                                    contenido_clikeado = { select ->
-//                                                                                        when (select) {
-//                                                                                            "Facebook" -> {
-//                                                                                                dialog_mostar_leyendas_graficos =
-//                                                                                                    true
-//                                                                                                titulo_leyenda_dialog =
-//                                                                                                    "Facebook"
-//                                                                                                txt_leyenda =
-//                                                                                                    "Este valor representa cuántos usuarios hicieron clic en el botón de Facebook y fueron redirigidos al perfil oficial de la tienda. Es una métrica clave para medir el interés directo y la intención de conocer más sobre tu negocio."
-//                                                                                                icono_mostar_leyendas_graficos =
-//                                                                                                    R.drawable.facebook_icon
-//                                                                                            }
-//
-//                                                                                            "Instagram" -> {
-//                                                                                                dialog_mostar_leyendas_graficos =
-//                                                                                                    true
-//                                                                                                titulo_leyenda_dialog =
-//                                                                                                    "Instagram"
-//                                                                                                txt_leyenda =
-//                                                                                                    "Aquí se muestra la cantidad de usuarios que tocaron el botón de Instagram y visitaron el perfil de la tienda. Estos clics indican una intención clara de explorar tu contenido, productos y publicaciones recientes."
-//                                                                                                icono_mostar_leyendas_graficos =
-//                                                                                                    R.drawable.instagram_icon
-//                                                                                            }
-//
-//                                                                                            "TikTok" -> {
-//                                                                                                dialog_mostar_leyendas_graficos =
-//                                                                                                    true
-//                                                                                                titulo_leyenda_dialog =
-//                                                                                                    "TikTok"
-//                                                                                                txt_leyenda =
-//                                                                                                    "Este número refleja cuántas personas hicieron clic en el botón de TikTok para ver directamente el contenido de la tienda. Es una medida de la atracción y curiosidad que genera tu negocio en esta plataforma."
-//                                                                                                icono_mostar_leyendas_graficos =
-//                                                                                                    R.drawable.tik_tok_icon
-//                                                                                            }
-//
-//                                                                                            "Sitio web" -> {
-//                                                                                                dialog_mostar_leyendas_graficos =
-//                                                                                                    true
-//                                                                                                titulo_leyenda_dialog =
-//                                                                                                    "Sitio web"
-//                                                                                                txt_leyenda =
-//                                                                                                    "Indica cuántos usuarios ingresaron a tu página web desde la app. Cada clic muestra el interés por obtener más información, ver tu catálogo completo o contactar directamente con tu negocio."
-//                                                                                                icono_mostar_leyendas_graficos =
-//                                                                                                    R.drawable.web_icon
-//                                                                                            }
-//                                                                                        }
-//                                                                                    }
-//                                                                                )
-//                                                                            }
-//                                                                        }
-//
-//                                                                        val lsita_datos3 = listOf(
-//                                                                            datos_grafico(
-//                                                                                enable = datos.llamada != 0,
-//                                                                                img_ = R.drawable.llamada_icon,
-//                                                                                label = "Llamada",
-//                                                                                cantidad = datos.llamada.toString()
-//                                                                            ),
-//                                                                            datos_grafico(
-//                                                                                enable = datos.wsap != 0,
-//                                                                                img_ = R.drawable.whatsapp_icon,
-//                                                                                label = "Whatsapp",
-//                                                                                cantidad = datos.wsap.toString()
-//                                                                            ),
-//                                                                            datos_grafico(
-//                                                                                enable = datos.ruta != 0,
-//                                                                                img_ = R.drawable.icon_3d_ruta,
-//                                                                                label = "Rutas",
-//                                                                                cantidad = datos.ruta.toString()
-//                                                                            )
-//                                                                        )
-//                                                                        AnimatedVisibility(
-//                                                                            lsita_datos3.any { it.enable }) {
-//                                                                            Cartas_expandibles(
-//
-//                                                                                modifier = Modifier.padding(
-//                                                                                    vertical = 10.dp,
-//                                                                                    horizontal = 5.dp
-//                                                                                )
-//                                                                            ) {
-//                                                                                Column() {
-//                                                                                    val lsita_datos1filtrada =
-//                                                                                        lsita_datos3.filter { it.enable }
-//                                                                                    expandibles_wrapp_socio_geinzz(
-//                                                                                        lsita_datos1filtrada,
-//                                                                                        "Mide cuántas personas usaron accesos externos como WhatsApp, llamadas o enlaces directos para comunicarse contigo fuera de la plataforma.",
-//                                                                                        texto_params = "Tráfico externo",
-//                                                                                        expandido = mostrar_trafico_externo,
-//                                                                                        onClickExpand = {
-//                                                                                            mostrar_trafico_externo =
-//                                                                                                !mostrar_trafico_externo
-//                                                                                        }
-//                                                                                    )
-//                                                                                }
-//                                                                                val lista_colores3 =
-//                                                                                    listOf(
-//                                                                                        Color(
-//                                                                                            0xFF18C5A4
-//                                                                                        ),
-//                                                                                        Color(
-//                                                                                            0xFF25D366
-//                                                                                        ),
-//                                                                                        Color(
-//                                                                                            0xFF6A0DAD
-//                                                                                        )
-//                                                                                    )
-//                                                                                estadisticas_aplicables(
-//                                                                                    mostrar_qr_externo = mostrar_trafico_externo,
-//                                                                                    List_float = values3,
-//                                                                                    ListString = labels3,
-//                                                                                    colores_lista = lista_colores3,
-//                                                                                    contenido_clikeado = { select ->
-//                                                                                        when (select) {
-//                                                                                            "Llamada" -> {
-//                                                                                                dialog_mostar_leyendas_graficos =
-//                                                                                                    true
-//                                                                                                titulo_leyenda_dialog =
-//                                                                                                    "Llamada"
-//                                                                                                txt_leyenda =
-//                                                                                                    "Este valor muestra cuántos usuarios tocaron el botón de llamada para comunicarse directamente con la tienda. Cada clic representa una intención clara de consultar precios, disponibilidad o realizar una compra inmediata."
-//                                                                                                icono_mostar_leyendas_graficos =
-//                                                                                                    R.drawable.llamada_icon
-//                                                                                            }
-//
-//                                                                                            "Whatsapp" -> {
-//                                                                                                dialog_mostar_leyendas_graficos =
-//                                                                                                    true
-//                                                                                                titulo_leyenda_dialog =
-//                                                                                                    "WhatsApp"
-//                                                                                                txt_leyenda =
-//                                                                                                    "Indica cuántas personas hicieron clic en el botón de WhatsApp para chatear con la tienda. Es una métrica muy importante, ya que refleja la intención directa de solicitar información, hacer pedidos o coordinar una reserva."
-//                                                                                                icono_mostar_leyendas_graficos =
-//                                                                                                    R.drawable.whatsapp_icon
-//                                                                                            }
-//
-//                                                                                            "Rutas" -> {
-//                                                                                                dialog_mostar_leyendas_graficos =
-//                                                                                                    true
-//                                                                                                titulo_leyenda_dialog =
-//                                                                                                    "Cómo llegar"
-//                                                                                                txt_leyenda =
-//                                                                                                    "Este número muestra cuántos usuarios presionaron el botón de rutas para abrir el mapa y obtener indicaciones hacia la tienda. Cada clic demuestra un alto interés en visitar físicamente el negocio."
-//                                                                                                icono_mostar_leyendas_graficos =
-//                                                                                                    R.drawable.icon_3d_ruta
-//                                                                                            }
-//                                                                                        }
-//                                                                                    }
-//                                                                                )
-//                                                                            }
-//                                                                        }
-//
-//                                                                        val lsita_datos4 = listOf(
-//                                                                            datos_grafico(
-//                                                                                enable = datos.review_qr != 0,
-//                                                                                img_ = R.drawable.review_qr,
-//                                                                                label = "QR review publico",
-//                                                                                cantidad = datos.review_qr.toString()
-//                                                                            ),
-//                                                                            datos_grafico(
-//                                                                                enable = datos.review_c_qr != 0,
-//                                                                                img_ = R.drawable.review_c_qr,
-//                                                                                label = "QR review privado",
-//                                                                                cantidad = datos.review_c_qr.toString()
-//                                                                            ),
-//                                                                            datos_grafico(
-//                                                                                enable = datos.ruta != 0,
-//                                                                                img_ = R.drawable.crear_ruta_qr,
-//                                                                                label = "QR crear ruta",
-//                                                                                cantidad = datos.crear_ruta_qr.toString()
-//                                                                            ),
-//                                                                            datos_grafico(
-//                                                                                enable = datos.perfil_qr != 0,
-//                                                                                img_ = R.drawable.perfil_qr,
-//                                                                                label = "QR vista de perfil",
-//                                                                                cantidad = datos.perfil_qr.toString()
-//                                                                            )
-//                                                                        )
-//                                                                        AnimatedVisibility(
-//                                                                            lsita_datos4.any { it.enable }) {
-//                                                                            Cartas_expandibles(
-//                                                                                modifier = Modifier.padding(
-//                                                                                    vertical = 10.dp,
-//                                                                                    horizontal = 5.dp
-//                                                                                )
-//                                                                            ) {
-//                                                                                Column() {
-//                                                                                    val lsita_datos1filtrada =
-//                                                                                        lsita_datos4.filter { it.enable }
-//                                                                                    expandibles_wrapp_socio_geinzz(
-//                                                                                        lsita_datos1filtrada,
-//                                                                                        "Mide cuántas personas interactúan con tu tienda a través de los códigos QR. Cada QR permite conocer cuántas veces fue escaneado y qué tipo de interacción generó, ayudándote a analizar el alcance y efectividad de cada punto de acceso.",
-//                                                                                        texto_params = "Actividad de códigos QR",
-//                                                                                        expandido = mostrar_qr_externo,
-//                                                                                        onClickExpand = {
-//                                                                                            mostrar_qr_externo =
-//                                                                                                !mostrar_qr_externo
-//                                                                                        }
-//                                                                                    )
-//                                                                                }
-//                                                                                val lista_colores4 =
-//                                                                                    listOf(
-//                                                                                        Color(
-//                                                                                            0xFFFADC7B
-//                                                                                        ),
-//                                                                                        Color(
-//                                                                                            0xFFDE3B41
-//                                                                                        ),
-//                                                                                        Color(
-//                                                                                            0xFF565656
-//                                                                                        ),
-//                                                                                        Color(
-//                                                                                            0xFF7FACE8
-//                                                                                        )
-//                                                                                    )
-//                                                                                estadisticas_aplicables(
-//                                                                                    mostrar_qr_externo = mostrar_qr_externo,
-//                                                                                    List_float = values4,
-//                                                                                    ListString = labels4,
-//                                                                                    colores_lista = lista_colores4,
-//                                                                                    contenido_clikeado = { select ->
-//                                                                                        when (select) {
-//                                                                                            "QR review privado" -> {
-//                                                                                                dialog_mostar_leyendas_graficos =
-//                                                                                                    true
-//                                                                                                titulo_leyenda_dialog =
-//                                                                                                    "QR review privado"
-//                                                                                                txt_leyenda =
-//                                                                                                    "Este valor indica cuántos usuarios escanearon el QR de reseñas que se encuentra dentro de la aplicación, específicamente en el perfil de la tienda. Representa la interacción de usuarios que ya están navegando en la plataforma y deciden dejar o consultar una reseña."
-//                                                                                                icono_mostar_leyendas_graficos =
-//                                                                                                    R.drawable.review_c_qr
-//                                                                                            }
-//
-//                                                                                            "QR review publico" -> {
-//                                                                                                dialog_mostar_leyendas_graficos =
-//                                                                                                    true
-//                                                                                                titulo_leyenda_dialog =
-//                                                                                                    "QR review publico"
-//                                                                                                txt_leyenda =
-//                                                                                                    "Este valor muestra cuántas personas escanearon el QR de reseñas que el negocio tiene de forma física en su local. Cada escaneo representa a un usuario externo que interactúa directamente con el negocio para dejar o ver opiniones."
-//                                                                                                icono_mostar_leyendas_graficos =
-//                                                                                                    R.drawable.review_qr
-//                                                                                            }
-//
-//                                                                                            "QR creacion de ruta" -> {
-//                                                                                                dialog_mostar_leyendas_graficos =
-//                                                                                                    true
-//                                                                                                titulo_leyenda_dialog =
-//                                                                                                    "QR creacion de ruta"
-//                                                                                                txt_leyenda =
-//                                                                                                    "Este valor indica cuántos usuarios escanearon el QR de creación de rutas. Al hacerlo, se abre automáticamente el mapa con la ruta hacia el local, lo que demuestra una clara intención de visitar físicamente el negocio."
-//                                                                                                icono_mostar_leyendas_graficos =
-//                                                                                                    R.drawable.crear_ruta_qr
-//                                                                                            }
-//
-//                                                                                            "QR vistas de perfil" -> {
-//                                                                                                dialog_mostar_leyendas_graficos =
-//                                                                                                    true
-//                                                                                                titulo_leyenda_dialog =
-//                                                                                                    "QR vistas de perfil"
-//                                                                                                txt_leyenda =
-//                                                                                                    "Este valor muestra cuántos usuarios escanearon el QR del perfil del negocio. Al escanearlo, el usuario ingresa directamente al perfil de la tienda dentro de la aplicación para ver su información, servicios y contenido."
-//                                                                                                icono_mostar_leyendas_graficos =
-//                                                                                                    R.drawable.perfil_qr
-//                                                                                            }
-//                                                                                        }
-//                                                                                    }
-//                                                                                )
-//
-//
-//                                                                            }
-//                                                                        }
-//
-//                                                                        spacer_vertical(10.dp)
-//                                                                    }
-//                                                                }
-//                                                            }
-//
-//                                                            if (!estaVinculado && isConnected) {
-//                                                                spacer_vertical(20.dp)
-//                                                                Column(
-//                                                                    horizontalAlignment = Alignment.CenterHorizontally,
-//                                                                    verticalArrangement = Arrangement.spacedBy(
-//                                                                        5.dp
-//                                                                    ),
-//                                                                    modifier = Modifier
-//                                                                        .clip(RoundedCornerShape(20.dp))
-//                                                                        .background(
-//                                                                            MaterialTheme.colorScheme.surface
-//                                                                        )
-//                                                                        .padding(10.dp)
-//                                                                ) {
-//                                                                    texto_generico_one_line(
-//                                                                        "Vincula tu cuenta",
-//                                                                        style = MaterialTheme.typography.titleLarge
-//                                                                    )
-//                                                                    texto_generico_multilinea(
-//                                                                        "Vincula tu tienda con tu cuenta Geinz y gestiona todo desde tus dispositivos. Cada tienda puede asociar hasta 3 dispositivos por cuenta.",
-//                                                                        style = MaterialTheme.typography.bodyMedium
-//                                                                    )
-//                                                                    spacer_vertical(5.dp)
-//                                                                    Box(
-//                                                                        modifier = Modifier
-//                                                                            .fillMaxWidth()
-//                                                                            .clip(CircleShape)
-//                                                                            .background(
-//                                                                                MaterialTheme.colorScheme.primary
-//                                                                            )
-//                                                                            .clickable() {
-//                                                                                viewModelFiltros.vincular_cuenta(
-//                                                                                    uid_respald_user,
-//                                                                                    idSocio,
-//                                                                                    localidad_tienda_select_
-//                                                                                        ?: "barranca"
-//                                                                                )
-//                                                                                scope.launch {
-//                                                                                    snackbarHostState.showSnackbar(
-//                                                                                        message = "Cuenta vinculada correctamente",
-//                                                                                        duration = SnackbarDuration.Short
-//                                                                                    )
-//                                                                                }
-//
-//                                                                            },
-//                                                                        contentAlignment = Alignment.Center
-//                                                                    ) {
-//                                                                        texto_generico_one_line(
-//                                                                            "Vincular cuenta ahora",
-//                                                                            style = MaterialTheme.typography.bodyMedium,
-//                                                                            modifier = Modifier.padding(
-//                                                                                horizontal = 10.dp,
-//                                                                                vertical = 10.dp
-//                                                                            )
-//                                                                        )
-//                                                                    }
-//                                                                }
-//
-//                                                            }
-//                                                        }
-//
-//                                                    }
-//                                                }
-//
-//                                            }
-//
-//                                            1 -> {
-//                                                LazyColumn(
-//                                                    modifier = Modifier
-//                                                        .fillMaxSize()
-//                                                        .padding(10.dp)
-//                                                ) {
-//                                                    item {
-//                                                        texto_generico_one_line(
-//                                                            "Publicita con Geinz",
-//                                                            style = MaterialTheme.typography.titleLarge,
-//                                                            color = Color.White
-//                                                        )
-//                                                        spacer_vertical(10.dp)
-//                                                        texto_generico_multilinea(
-//                                                            "Promociona tus ofertas y promociones en Geinz de forma fácil y efectiva. Llega a más usuarios, aumenta la visibilidad de tu negocio y destaca tus mejores oportunidades en un solo lugar.",
-//                                                            style = MaterialTheme.typography.bodyMedium
-//                                                        )
-//
-//                                                    }
-//                                                }
-//                                            }
-//                                        }
-//
-//
-//                                    }
 
+                                    LaunchedEffect(state.datos) {
+                                        item_pantalla_promociones = items_pantallas_promociones(
+                                            state.datos.categoira_tienda,
+                                            state.datos.nombre,
+                                            state.datos.localidad_tienda,
+                                            state.datos.obtener_img_tiendas.logo_tienda,
+                                            state.datos.metodo_contacto_tienda.whatsapp.numero,
+                                            state.datos.subcategorias_tienda,
+                                            state.datos.ubicacion,
+                                            state.datos.saldo_disponible_tienda,
+                                            state.datos.id_tienda
+                                        )
+                                    }
 
+                                    pantalla_carga_socios(state.datos, isConnected) { valor ->
+                                        id_registrado = valor
+                                    }
                                 }
 
                                 else -> {}
                             }
                         }
-//
-//                        if (mostrarDialogozoom) {
-//                            ZoomableGalleryFullScreen(
-//                                compartir_promocion(),
-//                                imagenes = listOf(valor_img_completa),
-//                                startIndex = 0,
-//                                onDismiss = { mostrarDialogozoom = false }
-//                            )
-//                        }
-//
-//                        if (dialog_mostar_leyendas_graficos) {
-//                            dialog_mostar_leyendas_graficos(
-//                                icono_mostar_leyendas_graficos,
-//                                titulo_leyenda_dialog,
-//                                txt_leyenda,
-//                                { dialog_mostar_leyendas_graficos = false })
-//                        }
-//
-//                        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
-                        BtnSoporte("Soporte", context, uid_respald_user)
                     }
+                    Scaffold(
+                        bottomBar = {
+                            BottomNavigation(
+                                backgroundColor = Color.Black,
+                                elevation = 8.dp
+                            ) {
+                                BottomNavigation(
+                                    backgroundColor = Color.Black,
+                                    elevation = 8.dp
+                                ) {
+                                    BottomNavigationItem(
+                                        icon = {
+                                            Image(
+                                                painter = painterResource(R.drawable.home_seleccionado),
+                                                contentDescription = null,
+                                                colorFilter = if (pantallaSeleccionada == "Inicio")
+                                                    ColorFilter.tint(Color.White) else ColorFilter.tint(
+                                                    Color.Gray
+                                                ),
+                                                modifier = Modifier
+                                                    .size(25.dp)
+                                                    .padding(bottom = 4.dp)
+                                            )
+                                        },
+                                        label = {
+                                            Text(
+                                                text = "Inicio",
+                                                fontFamily = FontFamily.Default,
+                                                color = if (pantallaSeleccionada == "Inicio") Color.White else Color.Gray,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis// fuerza que sea normal, no bold
+                                            )
+                                        },
+                                        selected = pantallaSeleccionada == "Inicio",
+                                        onClick = { pantallaSeleccionada = "Inicio" },
+                                        alwaysShowLabel = true,
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+                                    BottomNavigationItem(
+                                        icon = {
+                                            if (mostrar_bundle_desbloqueo) {
+                                                BadgedBox(
+                                                    badge = {
+                                                            Text(
+                                                                text = "🔥",
+                                                                fontSize = 17.sp
+                                                            )
+
+                                                    }
+
+                                                ) {
+                                                    Image(
+                                                        painter = painterResource(R.drawable.promocionar),
+                                                        contentDescription = null,
+                                                        colorFilter = if (pantallaSeleccionada == "Promocionar") ColorFilter.tint(
+                                                            Color.White
+                                                        ) else ColorFilter.tint(Color.Gray),
+                                                        modifier = Modifier.size(27.dp)
+                                                    )
+                                                }
+
+                                            } else {
+                                                Image(
+                                                    painter = painterResource(R.drawable.promocionar),
+                                                    contentDescription = null,
+                                                    colorFilter = if (pantallaSeleccionada == "Promocionar") ColorFilter.tint(
+                                                        Color.White
+                                                    ) else ColorFilter.tint(Color.Gray),
+                                                    modifier = Modifier.size(27.dp)
+                                                )
+                                            }
+
+
+                                        },
+                                        label = {
+                                            Text(
+                                                text = "Promocionar",
+                                                fontFamily = FontFamily.Default,
+                                                color = if (pantallaSeleccionada == "Promocionar") Color.White else Color.Gray,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis // fuerza que sea normal, no bold
+                                            )
+                                        },
+                                        selected = pantallaSeleccionada == "Promocionar",
+                                        onClick = { pantallaSeleccionada = "Promocionar"
+                                            mostrar_bundle_desbloqueo=false},
+                                        alwaysShowLabel = true,
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+                                    BottomNavigationItem(
+                                        icon = {
+                                            if (mostarr_bundel_recientes) {
+                                                BadgedBox(
+                                                    badge = {
+                                                        Badge(
+                                                            backgroundColor = Color.Red,
+                                                        ) {
+                                                            Text(text = "1", fontSize = 12.sp)
+                                                        }
+                                                    }
+                                                ) {
+                                                    Image(
+                                                        painter = painterResource(R.drawable.historial),
+                                                        contentDescription = null,
+                                                        colorFilter = if (pantallaSeleccionada == "Publicaciones") ColorFilter.tint(
+                                                            Color.White
+                                                        ) else ColorFilter.tint(Color.Gray),
+                                                        modifier = Modifier.size(30.dp)
+                                                    )
+                                                }
+                                            } else {
+                                                Image(
+                                                    painter = painterResource(R.drawable.historial),
+                                                    contentDescription = null,
+                                                    colorFilter = if (pantallaSeleccionada == "Publicaciones") ColorFilter.tint(
+                                                        Color.White
+                                                    ) else ColorFilter.tint(Color.Gray),
+                                                    modifier = Modifier.size(30.dp)
+                                                )
+                                            }
+
+                                        },
+                                        label = {
+                                            Text(
+                                                text = "Recientes",
+                                                fontFamily = FontFamily.Default,
+                                                color = if (pantallaSeleccionada == "Publicaciones") Color.White else Color.Gray,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        },
+                                        selected = pantallaSeleccionada == "Publicaciones",
+                                        onClick = {
+                                            pantallaSeleccionada = "Publicaciones"
+                                            viewmodel.cambiar_Estado_reciente(false)
+                                        },
+                                        alwaysShowLabel = true,
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+
+                                    BottomNavigationItem(
+                                        icon = {
+                                            Image(
+                                                painter = painterResource(R.drawable.icon_monedas_3d),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(30.dp)
+                                            )
+                                        },
+                                        label = {
+                                            Text(
+                                                text = "Recargas",
+                                                fontFamily = FontFamily.Default,
+                                                color = if (pantallaSeleccionada == "Recargas") Color.White else Color.Gray,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        },
+                                        selected = pantallaSeleccionada == "Recargas",
+                                        onClick = { pantallaSeleccionada = "Recargas" },
+                                        alwaysShowLabel = true,
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+                                }
+                            }
+                        }
+                    ) { paddingValues ->
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(
+                                    bottom = paddingValues.calculateBottomPadding() // solo bottom
+                                )
+                                .padding(horizontal = 10.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+
+                            Crossfade(targetState = pantallaSeleccionada) { target ->
+                                when (target) {
+                                    "Inicio" -> {
+                                        pantallaGeinz()
+                                    }
+
+                                    "Promocionar" -> {
+                                        pantalla_promocionar(
+                                            viewmodel,
+                                            item_pantalla_promociones
+                                        )
+                                    }
+
+                                    "Publicaciones" -> {
+                                        pantalla_aun_no_disponible()
+//                                        pantallaSoporte()
+                                    }
+
+                                    "Recargas" -> {
+                                        pantalla_aun_no_disponible()
+//                                        pantallaSoporte()
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                 }
 
             }
