@@ -12,6 +12,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -263,6 +264,7 @@ fun ui_promos_cerca_de_ti(localidad: String, verificar_intener: Boolean) {
                         carta_promocion_geinz(
                             i = item.dataclass_promociones_cerca_de_ti,
                             img_clikeble = { id_promo, listaimg, select ->
+                                Log.d("mostramosooom", "$id_promo ${listaimg.size} $select")
                                 mostrar_zoom_img = true
                                 lista_img = listaimg
                                 index_galeria_img = select
@@ -316,7 +318,7 @@ fun ui_promos_cerca_de_ti(localidad: String, verificar_intener: Boolean) {
                 }
                 if (mostrar_zoom_img) {
                     ZoomableGalleryFullScreen_promociones(
-                        titulo_poromo, descripcion,
+                        titulo = titulo_poromo, txt = descripcion,
                         imagenes = lista_img,
                         startIndex = index_galeria_img,
                         onDismiss = { mostrar_zoom_img = false }
@@ -475,19 +477,15 @@ fun GaleriaHorizontalInstagram(
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        img_clikeble_valor(page)
-                    }
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onLongPress = {
-                                long_listatener()
-                            }
-                        )
-                    },
+                    .combinedClickable(
+                        indication = null, // opcional (sin ripple)
+                        interactionSource = remember { MutableInteractionSource() },
+                        onClick = {
+                            img_clikeble_valor(page)
+                        },
+                        onLongClick = {
+                            long_listatener()
+                        }),
                 contentScale = ContentScale.Crop,
                 placeholder = painterResource(R.drawable.cargando_img_categorias),
                 error = painterResource(R.drawable.cargando_img_categorias)
@@ -546,7 +544,7 @@ fun compartir_hosting_promo(
                     }" + "&pi=$idpromo"
 
 
-        val texto = "Mia esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25 \n$link"
+        val texto = "Mira esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25 \n$link"
 
         // Intent simple de compartir
         val intent = Intent(Intent.ACTION_SEND).apply {

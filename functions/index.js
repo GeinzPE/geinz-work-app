@@ -112,7 +112,7 @@ exports.share = onRequest(async (req, res) => {
     const localidadRaw = req.query.l || req.query.localidad;
     const categoria = req.query.c || req.query.categoria;
     const indice = req.query.i || req.query.indice;
-    const cl = req.query.cl;
+    const id_promo_compartida = req.query.pi;
 
     const mapa_id = {
       nvng: "nuevos_negocios",
@@ -121,7 +121,7 @@ exports.share = onRequest(async (req, res) => {
       nemg: "numeros_servicios_publicos",
     };
 
-    const coll_completa = cl === "pro" ? "promos_ofertas" : "promo";
+    const coll_completa = tipo === "prn" ? "promos_ofertas" : "promo";
     // ============================
     //        MAPA LOCALIDADES
     // ============================
@@ -146,7 +146,7 @@ exports.share = onRequest(async (req, res) => {
     // ============================
     //   TIPOS QUE NO USAN LOCALIDAD
     // ============================
-    const TIPOS_SIN_LOCALIDAD = ["rew", "rewc", "ru", "prf", "prof", "scr"];
+    const TIPOS_SIN_LOCALIDAD = ["rew", "rewc", "ru", "prf", "prn", "scr"];
 
     if (!TIPOS_SIN_LOCALIDAD.includes(tipo) && (!localidad || !categoria)) {
       return res.status(400).send("Faltan parámetros: localidad, categoria.");
@@ -172,13 +172,13 @@ exports.share = onRequest(async (req, res) => {
         .doc(localidad)
         .collection(categoria)
         .doc(id);
-    } else if (tipo === "prof") {
+    } else if (tipo === "prn") {
       ref = admin
         .firestore()
         .collection("Tiendas")
         .doc(localidad)
         .collection(coll_completa)
-        .doc(id);
+        .doc(id_promo_compartida);
     } else if (tipo === "scr") {
       ref = admin.firestore().collection("share_screen").doc(mapa_ids_scren);
     }
@@ -202,7 +202,7 @@ exports.share = onRequest(async (req, res) => {
         titulo = capitalizeFirstLetter(data.nombre_tienda || "Tienda en Geinz");
       } else if (tipo === "tu") {
         titulo = capitalizeFirstLetter(data.nombre || "Lugar en Geinz");
-      } else if (tipo === "prof") {
+      } else if (tipo === "prn") {
         titulo = capitalizeFirstLetter(
           data?.informacion?.titulo || "Mira esta promo en Geinz"
         );
@@ -232,7 +232,7 @@ exports.share = onRequest(async (req, res) => {
         } else if (data.img_tienda?.logo_tienda) {
           imagen = data.img_tienda.logo_tienda;
         }
-      } else if (tipo === "prof") {
+      } else if (tipo === "prn") {
         const promos = data.img_container?.lista_img || [];
         if (promos.length > 0) {
           imagen = promos[0]; // toma siempre la primera imagen si existe
@@ -484,6 +484,7 @@ const mensaje = {
     }
   }
 }
+
 
 /*
 

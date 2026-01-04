@@ -1299,7 +1299,7 @@ D: texto
 
 fun acortarDescripcionNotificacion(
     textoLargo: String,
-    maxCaracteres: Int = 90
+    maxCaracteres: Int = 50
 ): String {
     val limpio = textoLargo
         .replace("\n", " ")

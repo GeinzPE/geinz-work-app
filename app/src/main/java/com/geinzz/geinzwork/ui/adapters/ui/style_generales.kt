@@ -43,6 +43,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -922,19 +923,46 @@ fun ZoomableGalleryFullScreen_promociones(
                         contentScale = ContentScale.Fit
                     )
                 }
-                // Botón cerrar
-                IconButton(
-                    onClick = onDismiss,
+                Row(
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp)
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Cerrar",
-                        tint = Color.White
+
+                    // Espacio izquierdo (equilibra la X)
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
                     )
+
+                    // Texto centrado REAL
+                    if (imagenes.size > 1) {
+                        Text(
+                            text = "${pagerState.currentPage + 1} de ${imagenes.size}",
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    // Botón cerrar (X)
+                    IconButton(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .weight(1f)
+                            .wrapContentWidth(Alignment.End)
+                            .padding(end = 16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Cerrar",
+                            tint = Color.White
+                        )
+                    }
                 }
+
 
                 Box(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()){
                     Box(

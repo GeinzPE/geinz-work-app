@@ -673,7 +673,7 @@ fun TextoExpandibleSuave(
                 }
             },  modifier = Modifier
                 .padding(top = 6.dp)
-                .clickable { expanded = !expanded },
+                .clickable (indication = null, interactionSource = remember { MutableInteractionSource() }){ expanded = !expanded },
         )
 
     }

@@ -423,6 +423,7 @@ class viewmodel_eres_socio : ViewModel() {
 
                 // ✅ TODO OK
                 _subidaPromoState.value = SubidaPromoState.Success
+                _estado_envio_recientes.value = true
 
             } catch (e: Exception) {
                 Log.e("error_agregado", "Error al subir imágenes", e)
@@ -460,7 +461,7 @@ class viewmodel_eres_socio : ViewModel() {
             try {
                 val resultado = instace_repo.crear_promocion(i, localidad)
                 if (resultado.isSuccess) {
-                    _estado_envio_recientes.value = true
+
                 }
             } catch (e: Exception) {
                 Log.d("error", "error al crear la publicacion")
