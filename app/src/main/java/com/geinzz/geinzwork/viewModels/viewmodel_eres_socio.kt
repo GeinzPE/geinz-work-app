@@ -36,7 +36,8 @@ class viewmodel_eres_socio : ViewModel() {
     val seguidores_obtenidos: StateFlow<List<String>> = _seguidores_obtenidos
 
 
-    private val _lista_publicaciones=MutableStateFlow<List<datos_publicaciones_realizadas>> (emptyList())
+    private val _lista_publicaciones =
+        MutableStateFlow<List<datos_publicaciones_realizadas>>(emptyList())
     val lista_publicaciones: StateFlow<List<datos_publicaciones_realizadas>> = _lista_publicaciones
 
     private val _imgAmbientales = MutableStateFlow<List<String>>(emptyList())
@@ -77,15 +78,16 @@ class viewmodel_eres_socio : ViewModel() {
     private val _estado_envio_notificaciones = MutableStateFlow("")
     val estado_envio_notificaciones = _estado_envio_notificaciones.asStateFlow()
 
-    private val _estado_envio_recientes =MutableStateFlow(false)
-    val estado_envio_recientes=_estado_envio_recientes.asStateFlow()
+    private val _estado_envio_recientes = MutableStateFlow(false)
+    val estado_envio_recientes = _estado_envio_recientes.asStateFlow()
 
 
+    private val _esta_vinculado =MutableStateFlow(false)
+    val esta_vinculado=_esta_vinculado.asStateFlow()
 
-    fun cambiar_Estado_reciente(estado: Boolean){
-        _estado_envio_recientes.value=estado
+    fun cambiar_Estado_reciente(estado: Boolean) {
+        _estado_envio_recientes.value = estado
     }
-
 
 
     fun cargarIdSocio(context: Context) {
@@ -176,6 +178,22 @@ class viewmodel_eres_socio : ViewModel() {
                 _verificar_seccion_tienda.value = Triple(false, "Error al verificar tu id", null)
             }
         }
+    }
+
+
+    fun verificar_cuenta_vinculada(id_user: String, id_tienda: String, localidad: String) {
+        viewModelScope.launch {
+            try {
+               instace_repo.verificarVinculadoRealtime(id_user, id_tienda, localidad,{vinculado->
+                Log.d("valor_resultad","$vinculado  $id_user $id_tienda  $localidad")
+                _esta_vinculado.value=vinculado
+               })
+            } catch (e: Exception) {
+                _esta_vinculado.value=false
+                Log.d("error_iniciar", "error al realizar los cambios")
+            }
+        }
+
     }
 
     fun cambiar_estado_Seccion() {
@@ -441,8 +459,8 @@ class viewmodel_eres_socio : ViewModel() {
         viewModelScope.launch {
             try {
                 val resultado = instace_repo.crear_promocion(i, localidad)
-                if(resultado.isSuccess){
-                _estado_envio_recientes.value=true
+                if (resultado.isSuccess) {
+                    _estado_envio_recientes.value = true
                 }
             } catch (e: Exception) {
                 Log.d("error", "error al crear la publicacion")
@@ -458,7 +476,7 @@ class viewmodel_eres_socio : ViewModel() {
                 if (estado_notificacion) {
                     instace_repo.agregarContadorNotificacion(usuarios, i)
                     _estado_envio_notificaciones.value = "Notificaciones enviadas correctamente"
-                    _estado_envio_recientes.value=true
+                    _estado_envio_recientes.value = true
                 } else {
                     _estado_envio_notificaciones.value =
                         "superaste el maximo de notificaciones semanales"
@@ -482,22 +500,22 @@ class viewmodel_eres_socio : ViewModel() {
         }
     }
 
-    fun obtner_publicaciones_subidas(id_tienda: String, localidad: String){
+    fun obtner_publicaciones_subidas(id_tienda: String, localidad: String) {
         viewModelScope.launch {
             try {
 
-               val listaPublicaicones =instace_repo.obtener_publicaciones_tiendas(localidad,id_tienda)
-                if(listaPublicaicones.isNotEmpty()){
-                    _lista_publicaciones.value=listaPublicaicones
-                }else{
-                    _lista_publicaciones.value=emptyList()
+                val listaPublicaicones =
+                    instace_repo.obtener_publicaciones_tiendas(localidad, id_tienda)
+                if (listaPublicaicones.isNotEmpty()) {
+                    _lista_publicaciones.value = listaPublicaicones
+                } else {
+                    _lista_publicaciones.value = emptyList()
                 }
-            }catch (e: Exception){
-                Log.d("error_publicaiones","error al obtener las pblicaicoens")
+            } catch (e: Exception) {
+                Log.d("error_publicaiones", "error al obtener las pblicaicoens")
             }
         }
     }
-
 
 
     sealed class carga_acces_socio {

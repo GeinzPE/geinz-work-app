@@ -106,8 +106,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun manejarDeepLink(uri: Uri) {
         Log.d("navegacion_rq", uri.toString())
+        val repo_eres_socio=repo_eres_socio()
 
         val tipo = uri.getQueryParameter("t")
             ?: uri.getQueryParameter("tipo")
@@ -175,6 +177,23 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            "to"->{
+                val ruta = "mostrar_tiendas/" +
+                        "${enc(localidad)}/" +
+                        "${enc(id)}/" +
+                        "${enc(categoria)}"
+
+                Log.d("DeepLinkDebug", "cddddNAVEGANDO -> $ruta")
+                repo_eres_socio.agregar_contador_estadistica_noti("abierto",id,localidad,id_promocion)
+
+                navController.navigate(ruta) {
+                    launchSingleTop = true
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = false
+                    }
+                }
+            }
+
             // 🌍 TURISMO
             "turismo", "tu" -> {
                 val ruta = "lugares_turisticos/${enc(localidad)}/${enc(id)}"
@@ -201,6 +220,8 @@ class MainActivity : AppCompatActivity() {
                     lugar = localidad,
                     id_promo = id_promocion,
                 )
+//                repo_eres_socio.agregar_contador_estadistica_noti("abierto",id,localidad,id_promocion)
+
             }
 
 

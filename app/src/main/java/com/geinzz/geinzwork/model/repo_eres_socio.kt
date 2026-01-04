@@ -247,6 +247,28 @@ class repo_eres_socio {
             }
     }
 
+    fun agregar_contador_estadistica_noti(
+        tipo: String,
+        id_tienda: String,
+        localida_tienda: String,
+        id_notificacion: String
+    ) {
+        Log.d("agregar", "$tipo $localida_tienda $id_tienda")
+        val db = FirebaseFirestore.getInstance()
+            .collection("Tiendas").document(localida_tienda)
+            .collection(localida_tienda).document(id_tienda)
+            .collection("notificaciones_enviadas").document(id_notificacion)
+            .collection("estadisticas").document(tipo)
+
+        db.update("total", FieldValue.increment(1))
+            .addOnSuccessListener {
+                Log.d("CONTADOR", "Contador actualizado correctamente")
+            }
+            .addOnFailureListener { e ->
+                db.set(mapOf("total" to 1))
+            }
+    }
+
 
     fun restar_contador(tipo: String, localida_tienda: String, id_tienda: String) {
         val db = FirebaseFirestore.getInstance()
@@ -355,6 +377,38 @@ class repo_eres_socio {
 
         validarCupos(id_tienda)
     }
+
+
+    fun verificarVinculadoRealtime(
+        idUser: String,
+        idTienda: String,
+        localidad: String,
+        onResult: (Boolean) -> Unit
+    ) {
+        val docRef = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(idTienda)
+
+        // Listener en tiempo real
+        docRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                // Hubo un error en la escucha
+                onResult(false)
+                return@addSnapshotListener
+            }
+
+            if (snapshot != null && snapshot.exists()) {
+                val data = snapshot.data
+                val listaPropietarios = data?.get("propietario_id") as? List<*>
+                val estaVinculado = listaPropietarios?.any { it.toString() == idUser } ?: false
+                onResult(estaVinculado)
+            } else {
+                onResult(false)
+            }
+        }
+    }
+
 
     fun restar_puntos(
         localidad_tienda: String,
@@ -877,7 +931,7 @@ class repo_eres_socio {
                 "categoria_tienda" to i.categoira_tienda
             )
 
-            val params_notificacion =hashMapOf(
+            val params_notificacion = hashMapOf(
                 "id_noti" to i.idnotificacion,
                 "id_publicacion_anuncio" to i.parametros_notificacion.id_publicacion_anuncio,
                 "priorida_notificacion" to i.parametros_notificacion.priorida_notificacion,
@@ -885,7 +939,7 @@ class repo_eres_socio {
                 "tipo_clikeable" to i.tipo_notificacion,
                 "notificacion_nueva" to i.parametros_notificacion.notificacion_publicidad,
                 "total_gastado" to i.precio_envio,
-                )
+            )
 
             val suspendidoMap = hashMapOf(
                 "suspendido" to i.suspendido.suspendido,
@@ -1066,8 +1120,6 @@ class repo_eres_socio {
 
         return resultado
     }
-
-
 
 
 }

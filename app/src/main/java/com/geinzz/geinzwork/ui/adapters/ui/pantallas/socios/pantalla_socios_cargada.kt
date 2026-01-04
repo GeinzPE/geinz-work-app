@@ -108,11 +108,13 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantall
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.estadisticas_aplicables
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrado:(String)-> Unit) {
+    val firebaseAuth= FirebaseAuth.getInstance()
     val viewmodel: viewmodel_eres_socio = viewModel()
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
     val labels = listOf("Vistas", "Guardados", "Clics", "Compartidos")
@@ -147,6 +149,15 @@ fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrad
     var hayCambiosLogo by remember { mutableStateOf(false) }
     var id_tienda by remember { mutableStateOf("") }
     val _tick by viewModelFiltros.tick.collectAsState()
+    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+    val esta_vincualdo by viewmodel.esta_vinculado.collectAsState()
+
+    LaunchedEffect(uid_respald_user) {
+        if(uid_respald_user.isNotEmpty()){
+            viewmodel.verificar_cuenta_vinculada(uid_respald_user,datos.id_tienda,datos.localidad_tienda)
+        }
+    }
+
     val datos = datos
     id_tienda = datos.id_tienda
     fecha_termino = datos.fecha_termino
@@ -232,7 +243,6 @@ fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrad
             hayCambiosLogo = true        // ✅ muestra botones
         }
     }
-    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     var listaPropietarios by remember { mutableStateOf(emptyList<String>()) }
     val localidad_tienda_select_ by data_store_localidad.get_localidad_tienda_socio(context).collectAsState(initial = "")
     var horarioMap by remember { mutableStateOf(HorarioAtencion_box()) }
@@ -1590,7 +1600,7 @@ fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrad
                         }
                     }
 
-                    if (!estaVinculado && isConnected) {
+                    if (!esta_vincualdo && isConnected) {
                         spacer_vertical(20.dp)
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -1647,9 +1657,9 @@ fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrad
                                 )
                             }
                         }
-                        spacer_vertical(20.dp)
 
                     }
+                    spacer_vertical(30.dp)
                 }
 
             }
