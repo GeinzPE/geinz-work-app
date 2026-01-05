@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.agregar_promociones
 import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
 import com.geinzz.geinzwork.data.model.datos_publicaciones_realizadas
+import com.geinzz.geinzwork.data.model.datos_recarga
 
 import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
@@ -39,6 +40,12 @@ class viewmodel_eres_socio : ViewModel() {
     private val _lista_publicaciones =
         MutableStateFlow<List<datos_publicaciones_realizadas>>(emptyList())
     val lista_publicaciones: StateFlow<List<datos_publicaciones_realizadas>> = _lista_publicaciones
+
+    private val _estadoPaquetes =
+        MutableStateFlow<CargaPaquetesPago>(CargaPaquetesPago.Loading)
+
+    val estadoPaquetes: StateFlow<CargaPaquetesPago> = _estadoPaquetes
+
 
     private val _imgAmbientales = MutableStateFlow<List<String>>(emptyList())
     val imgAmbientales: StateFlow<List<String>> = _imgAmbientales
@@ -82,8 +89,8 @@ class viewmodel_eres_socio : ViewModel() {
     val estado_envio_recientes = _estado_envio_recientes.asStateFlow()
 
 
-    private val _esta_vinculado =MutableStateFlow(false)
-    val esta_vinculado=_esta_vinculado.asStateFlow()
+    private val _esta_vinculado = MutableStateFlow(false)
+    val esta_vinculado = _esta_vinculado.asStateFlow()
 
     fun cambiar_Estado_reciente(estado: Boolean) {
         _estado_envio_recientes.value = estado
@@ -184,12 +191,16 @@ class viewmodel_eres_socio : ViewModel() {
     fun verificar_cuenta_vinculada(id_user: String, id_tienda: String, localidad: String) {
         viewModelScope.launch {
             try {
-               instace_repo.verificarVinculadoRealtime(id_user, id_tienda, localidad,{vinculado->
-                Log.d("valor_resultad","$vinculado  $id_user $id_tienda  $localidad")
-                _esta_vinculado.value=vinculado
-               })
+                instace_repo.verificarVinculadoRealtime(
+                    id_user,
+                    id_tienda,
+                    localidad,
+                    { vinculado ->
+                        Log.d("valor_resultad", "$vinculado  $id_user $id_tienda  $localidad")
+                        _esta_vinculado.value = vinculado
+                    })
             } catch (e: Exception) {
-                _esta_vinculado.value=false
+                _esta_vinculado.value = false
                 Log.d("error_iniciar", "error al realizar los cambios")
             }
         }
@@ -516,6 +527,28 @@ class viewmodel_eres_socio : ViewModel() {
                 Log.d("error_publicaiones", "error al obtener las pblicaicoens")
             }
         }
+    }
+
+
+    fun obtener_precios_paquetes() {
+        viewModelScope.launch {
+            _estadoPaquetes.value = CargaPaquetesPago.Loading
+            try {
+                val lista = instace_repo.obtenerPaquetesBasicos()
+                _estadoPaquetes.value = CargaPaquetesPago.Success(lista)
+            } catch (e: Exception) {
+                _estadoPaquetes.value =
+                    CargaPaquetesPago.Error(e.message ?: "Error al obtener los planes123")
+            }
+        }
+    }
+
+
+
+    sealed class CargaPaquetesPago {
+        object Loading : CargaPaquetesPago()
+        data class Success(val datos: List<datos_recarga>) : CargaPaquetesPago()
+        data class Error(val txt: String ) : CargaPaquetesPago()
     }
 
 

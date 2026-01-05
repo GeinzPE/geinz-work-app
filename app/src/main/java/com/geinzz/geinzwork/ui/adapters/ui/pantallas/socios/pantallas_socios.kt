@@ -75,14 +75,7 @@ import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.data.model.cambiar_datos_pago_contacto
-import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
-import com.geinzz.geinzwork.data.model.datos_grafico
-import com.geinzz.geinzwork.data.model.datos_tienda_fechas
-import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
-import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
-import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
-import com.geinzz.geinzwork.data.model.servicio_comodidad
+
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.data_store.data_store_localidad.set_id_socio
 import com.geinzz.geinzwork.data_store.data_store_localidad.set_localidad_tienda_soscio
@@ -176,6 +169,8 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
     val mostarr_bundel_recientes by viewmodel.estado_envio_recientes.collectAsState()
 
     var mostrar_bundle_desbloqueo by remember { mutableStateOf(false) }
+
+    var nombre_tienda by remember { mutableStateOf("") }
 
     LaunchedEffect(tipo_) {
         if (tipo_.isNotEmpty()) {
@@ -549,6 +544,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                             state.datos.id_tienda
                                         )
                                     }
+                                    nombre_tienda= state.datos.nombre
 
                                     pantalla_carga_socios(state.datos, isConnected) { valor ->
                                         id_registrado = valor
@@ -762,7 +758,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                     }
 
                                     "Recargas" -> {
-                                        pantalla_aun_no_disponible()
+                                        pantala_recarga(viewmodel,nombre_tienda)
 //                                        pantallaSoporte()
                                     }
                                 }

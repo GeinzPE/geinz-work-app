@@ -10,9 +10,11 @@ import com.android.identity.util.UUID
 import com.geinzz.geinzwork.data.model.agregar_promociones
 import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
 import com.geinzz.geinzwork.data.model.datos_publicaciones_realizadas
+import com.geinzz.geinzwork.data.model.datos_recarga
 import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.data.model.fechas_promociones
 import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
+import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.normalizar
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenWebPSinRecorte
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaConDias
@@ -43,6 +45,9 @@ import kotlin.collections.component2
 class repo_eres_socio {
     private val db = FirebaseFirestore.getInstance()
 
+    private val db_sec: FirebaseFirestore by lazy {
+        FirebaseSecundario.getFirestore()
+    }
     fun escuchar_datos_tienda(
         localidad_tienda: String,
         id_tienda: String,
@@ -1120,6 +1125,63 @@ class repo_eres_socio {
 
         return resultado
     }
+
+    suspend fun obtenerPaquetesBasicos(): List<datos_recarga> {
+        // 1️⃣ Obtener snapshot de Firestore
+        val snapshot = db_sec
+            .collection("precios_planes_geinz")
+            .get()
+            .await()
+
+        val lista = mutableListOf<datos_recarga>()
+
+        // 2️⃣ Recorrer documentos y parsear
+        for (doc in snapshot) {
+            val data = doc.data
+
+            val accesos = data["accesos"] as? List<String> ?: emptyList()
+            val descripcion = data["descripcion"] as? String ?: ""
+            val nombre = data["nombre"] as? String ?: ""
+
+            val monedas = (data["monedas"] as? Number)?.toString() ?: "0"
+            val monedas_agregadas = (data["monedas_agregadas"] as? Number)?.toString() ?: "0"
+            val monedas_inicial = (data["monedas_inicial"] as? Number)?.toString() ?: "0"
+            val precio_soles = (data["precio_soles"] as? Number)?.toString() ?: "0"
+
+            lista.add(
+                datos_recarga(
+                    accesos = accesos,
+                    descripcion = descripcion,
+                    monedas = monedas,
+                    monedas_agregadas = monedas_agregadas,
+                    monedas_inicial,
+                    nombre_plan = nombre,
+                    precio_soles = precio_soles,
+                )
+            )
+        }
+
+        // 3️⃣ Ordenar la lista según nombre_plan
+        val listaOrdenada = lista.sortedBy {
+            when (it.nombre_plan.uppercase()) {
+                "PAQUETE BASICO" -> 1
+                "PAQUETE AVANZADO \uD83D\uDD25" -> 2
+                "PAQUETE PREMIUM \uD83D\uDC8E" -> 3
+                "PAQUETE BUSINESS \uD83D\uDC51" -> 4
+                else -> 99
+            }
+        }
+
+        // 4️⃣ Log para debug
+        listaOrdenada.forEach { plan ->
+            Log.d("ListaPlanes", "${plan.nombre_plan} - ${plan.monedas} monedas - S/${plan.precio_soles}")
+        }
+
+        // 5️⃣ Retornar lista ordenada
+        return listaOrdenada
+    }
+
+
 
 
 }

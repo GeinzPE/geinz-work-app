@@ -29,7 +29,6 @@ fun pantalla_aun_no_disponible() {
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
             )
-
         }
     }
 }

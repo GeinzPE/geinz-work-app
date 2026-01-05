@@ -169,3 +169,13 @@ data class datos_publicaciones_realizadas(
     val id: String,
     val img: String
 )
+
+data class datos_recarga(
+    val accesos: List<String>,
+    val descripcion: String,
+    val monedas: String,
+    val monedas_agregadas: String,
+    val monedas_inicial:String,
+    val nombre_plan: String,
+    val precio_soles: String
+)
