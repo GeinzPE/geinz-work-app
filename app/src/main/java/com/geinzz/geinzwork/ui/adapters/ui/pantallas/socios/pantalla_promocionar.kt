@@ -9,7 +9,9 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -97,72 +99,70 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.generarPromptOptimizado
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.opciones_localida
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_carga_ucrop_img
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
-import com.google.firebase.Firebase
-import com.google.firebase.ai.ai
-import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
-import java.util.Date
-import java.util.Locale
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material3.RadioButton
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Alignment
-
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.input.KeyboardType
 import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
+import com.geinzz.geinzwork.data.model.EstadoNotificacion
+import com.geinzz.geinzwork.data.model.OpcionPromocionIA
+import com.geinzz.geinzwork.data.model.ResultadoValidacion
+import com.geinzz.geinzwork.data.model.datos_fecha_hora_tipo
 import com.geinzz.geinzwork.data.model.datos_publicaciones_realizadas
+import com.geinzz.geinzwork.data.model.fechas_horas_promociones
+import com.geinzz.geinzwork.data.model.historial_descuento
+import com.geinzz.geinzwork.data.model.nombre_precio_notificaciones
 import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
 import com.geinzz.geinzwork.data.model.obj_parametros_notificacion
 import com.geinzz.geinzwork.data.model.obj_suspend_notificacion
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen_nueve
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown_precio_nombre_notificaciones
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown_select_params
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
+import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
+import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraFin
+import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerTimestampFecha
+import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerTimestampHoraFin
+import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerTimestampHoraInicio
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.notificacionesFCM.enviar_notificacion_lista_dispo
+import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_promocionar
+import com.geinzz.geinzwork.viewModels.viewmodel_recargas
 import com.google.firebase.auth.FirebaseAuth
-
-
-data class NotificacionIA(
-    val titulo: String,
-    val descripcion: String
-)
-
-data class OpcionPromocionIA(
-    val titulo: String,
-    val descripcion: String
-)
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun pantalla_promocionar(
+    viewmodel_pantalla_promocionar: viewmodel_pantallas_promocionar,
     viewmodel_socios: viewmodel_eres_socio,
     i: items_pantallas_promociones
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val imagenes = remember { mutableStateListOf<ImagenReview>() }
+    val viewmodel_recargas: viewmodel_recargas = viewModel()
     val maxFotos = 5
     val maxFotos_notifi = 1
     var nombre_publicacion by rememberSaveable { mutableStateOf("") }
@@ -171,22 +171,45 @@ fun pantalla_promocionar(
     var descripcion_publicacion_original by rememberSaveable { mutableStateOf("") }
     var titulo_notificacion by rememberSaveable { mutableStateOf("") }
     var descripcion_notificacion by rememberSaveable { mutableStateOf("") }
-    var id_publicacion_selecionada by rememberSaveable { mutableStateOf("")}
+    var id_publicacion_selecionada by rememberSaveable { mutableStateOf("") }
     var mostar_img_zoom by remember { mutableStateOf(false) }
     var imagenZoomSeleccionada by remember { mutableStateOf<String?>(null) }
     var contacto_directo by rememberSaveable { mutableStateOf(false) }
     var compartir by rememberSaveable { mutableStateOf(false) }
-    var ubicacion by rememberSaveable { mutableStateOf(false) }
-    var exclusivo by rememberSaveable { mutableStateOf(false) }
+//    var ubicacion by rememberSaveable { mutableStateOf(false) }
+//    var exclusivo by rememberSaveable { mutableStateOf(false) }
     var numero_publicaicon by rememberSaveable { mutableStateOf(i.numero_contacto_tienda) }
+    var hora_escrita by remember { mutableStateOf("1") }
+    var total_monedas_por_hora by rememberSaveable { mutableStateOf("") }
     var errorfecha by rememberSaveable { mutableStateOf(false) }
     var fecha_inicio by rememberSaveable { mutableStateOf("") }
     var fecha_fin by rememberSaveable { mutableStateOf("") }
     var diasEntre by remember { mutableStateOf<Int?>(null) }
     var dias_restantes_pr by remember { mutableStateOf(0) }
-    val prioridad = listOf("high", "normal", "low")
-    val tipo_notificacion = listOf("Basico", "Avanzado", "Primiun")
-    val tipo_notificacion_params = listOf("informativas", "promociones y ofertas")
+    val formato_notificacion_nombre_precio = listOf(
+        nombre_precio_notificaciones("Basico", 5),
+        nombre_precio_notificaciones("Avanzado", 15),
+        nombre_precio_notificaciones("Primiun", 25)
+    )
+    val lista_tipo_promocion =
+        listOf(nombre_precio_notificaciones("horas", 3), nombre_precio_notificaciones("dias", 30))
+    var seleccion by remember { mutableStateOf(lista_tipo_promocion[0]) }
+
+    val tipo_notificacion_precio_nombre = listOf(
+        nombre_precio_notificaciones("informativas", 5),
+        nombre_precio_notificaciones("promociones y ofertas", 10),
+    )
+
+    val prioridad_notificacion_precio_nombre = listOf(
+        nombre_precio_notificaciones("high", 20),
+        nombre_precio_notificaciones("normal", 10),
+        nombre_precio_notificaciones("low", 5)
+    )
+
+    var precio_formato by remember { mutableStateOf(0) }
+    var precio_tipo_notificacion by remember { mutableStateOf(0) }
+    var precio_prioridad_notificacion by remember { mutableStateOf(0) }
+
     var prioridad_selec by remember { mutableStateOf("") }
     var tipo_notificacion_seleccionada by remember { mutableStateOf("") }
     var tipo_notificacion_params_seleccionada by remember { mutableStateOf("") }
@@ -201,21 +224,57 @@ fun pantalla_promocionar(
 
     val cantidad_seguidores by viewmodel_socios.seguidores_obtenidos.collectAsState()
 
-    val state_envio_notificaciones by viewmodel_socios.estado_envio_notificaciones.collectAsState()
-    var resultado_validacion_notificacion by remember {
-        mutableStateOf(
-            ResultadoValidacion(
-                estado = EstadoNotificacion.PERMITIDA,
-                mensaje = ""
-            )
-        )
-    }
+    val state_envio_notificaciones by viewmodel_pantalla_promocionar.estado_envio_notificaciones.collectAsState()
+    val state_validacion_notificacion by viewmodel_pantalla_promocionar.estadoValidacion.collectAsState()
     val croppedUri = constantes_carga_ucrop_img.croppedUri
 
     val publicaicones_realizadas by viewmodel_socios.lista_publicaciones.collectAsState()
     var mostrar_btn_mejorar_IA by rememberSaveable { mutableStateOf(false) }
 
+    val estado_textos_notificaciones_generadas by viewmodel_pantalla_promocionar.estado_promociones_ia.collectAsState()
+    val estado_textos_notificacion_corta_generada by viewmodel_pantalla_promocionar.estado_notificaion_con_ia_corta.collectAsState()
 
+    var monedas_costo_publicidad by remember { mutableStateOf("") }
+
+    val state by viewmodel_socios.subidaPromoState.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    var error_mostrado_numero_contacto by remember { mutableStateOf(false) }
+    var error_horas_escritas by remember { mutableStateOf(false) }
+
+    var error_titulo_publicacion by remember { mutableStateOf(false) }
+    LaunchedEffect(titulo_notificacion, descripcion_notificacion) {
+        if ((titulo_notificacion + descripcion_notificacion).length < 5) return@LaunchedEffect
+
+        delay(1000)
+        viewmodel_pantalla_promocionar
+            .validarTexto(titulo_notificacion, descripcion_notificacion)
+    }
+
+    LaunchedEffect(hora_escrita) {
+        if (hora_escrita.isNotEmpty()) {
+            if (hora_escrita.toInt() != 0) {
+                monedas_costo_publicidad = cobroMonedas("horas", hora_escrita.toInt()).toString()
+            }
+        }
+    }
+
+    LaunchedEffect(estado_textos_notificaciones_generadas) {
+        if (estado_textos_notificaciones_generadas is viewmodel_pantallas_promocionar.EstadoIA.Success) {
+            listaOpcionesIA =
+                (estado_textos_notificaciones_generadas as viewmodel_pantallas_promocionar.EstadoIA.Success).lista
+        }
+    }
+
+    LaunchedEffect(estado_textos_notificacion_corta_generada) {
+        if (estado_textos_notificacion_corta_generada is viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Success) {
+            titulo_notificacion =
+                (estado_textos_notificacion_corta_generada as viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Success).txt_descripcion.titulo
+            descripcion_notificacion =
+                (estado_textos_notificacion_corta_generada as viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Success).txt_descripcion.descripcion
+
+        }
+    }
     LaunchedEffect(state_envio_notificaciones) {
         if (state_envio_notificaciones.isNotEmpty()) {
             Toast.makeText(context, state_envio_notificaciones, Toast.LENGTH_SHORT).show()
@@ -248,8 +307,7 @@ fun pantalla_promocionar(
             constantes_carga_ucrop_img.croppedUri = null
         }
     }
-    val state by viewmodel_socios.subidaPromoState.collectAsState()
-    val scope = rememberCoroutineScope()
+
 
     LaunchedEffect(state) {
         when (state) {
@@ -261,7 +319,26 @@ fun pantalla_promocionar(
                         Toast.LENGTH_SHORT
                     )
                     .show()
-
+                viewmodel_pantalla_promocionar.cambiar_Estado_reciente(true)
+                val historial = historial_descuento(
+                    "descuento",
+                    fecha = obtenerFechaActual(),
+                    hora = obtenerHoraActual(),
+                    id_recarga = viewmodel_recargas.generarIdRecarga(),
+                    localidad_tienda = i.localidad_tienda,
+                    id_tienda = i.id_tienda,
+                    nombre_tienda = i.nombre_tienda,
+                    monto_descuento = monedas_costo_publicidad,
+                    tipo = if(seleccion.tipo.equals("horas"))"Publicidad por ${hora_escrita} horas"  else "Publicidad por ${dias_restantes_pr} dias ",
+                    precio_soles = viewmodel_recargas.calcular_precio_soles(monedas_costo_publicidad)
+                        .toString()
+                )
+                viewmodel_recargas.restar_puntos_recarga(
+                    historial,
+                    monedas_costo_publicidad,
+                    i.id_tienda,
+                    i.localidad_tienda
+                )
 
             }
 
@@ -282,12 +359,16 @@ fun pantalla_promocionar(
 
 
     LaunchedEffect(fecha_inicio, fecha_fin) {
+        Log.d("sdiagbofsahng", "$fecha_inicio $fecha_fin")
         if (fecha_inicio.isNotEmpty() && fecha_fin.isNotEmpty()) {
             diasEntre = calcularDiasEntreFechas(fecha_inicio, fecha_fin)
         } else {
             diasEntre = null
         }
     }
+
+    val MIN_TITULO = 5
+    val MAX_TITULO = 80
 
     val picker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(5)
@@ -302,34 +383,69 @@ fun pantalla_promocionar(
         imagenes.addAll(nuevasImagenes)
     }
     val id_socio by data_store_localidad.get_id_socio(context).collectAsState(initial = "")
-    Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+    val listState = rememberLazyListState()
+    val targetAlpha = if (listState.canScrollForward) 1f else 0f
+    val alphaAnim by animateFloatAsState(
+        targetValue = targetAlpha,
+        animationSpec = tween(durationMillis = 500)
+    )
+    var precio_por_notificacion_general by remember { mutableStateOf(0) }
+    val botonHabilitado by derivedStateOf {
+        val horas = hora_escrita.toLongOrNull() ?: 0L // si está vacío o inválido, lo considera 0
+        nombre_publicacion.isNotEmpty() &&
+                descripcion_publicacion.isNotEmpty() &&
+                ((seleccion.tipo == "horas" && horas > 0L) ||
+                        (seleccion.tipo == "dias" && fecha_fin.isNotEmpty()))
+    }
+
+
+
+    LaunchedEffect(precio_tipo_notificacion, precio_formato, precio_prioridad_notificacion) {
+        precio_por_notificacion_general = viewmodel_pantalla_promocionar.calcularCostoNotificacion(
+            cantidad_seguidores.size,
+            precio_tipo_notificacion,
+            precio_formato,
+            precio_prioridad_notificacion
+        )
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 4.dp, vertical = 10.dp)
+    ) {
+        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
             item {
-                texto_generico_one_line(
-                    "Crea ofertas y promociones",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.White
+                Text(
+                    fontFamily = baners_geinz_work,
+                    text = "Bienvenido a GEINZ ADS",
+                    color = Color.White, fontSize = 25.sp
                 )
-            }
-            item {
+                spacer_vertical(10.dp)
                 texto_generico_multilinea(
                     "Diseña promociones de forma fácil y rápida para tus clientes, o notifica a tus seguidores sobre ofertas exclusivas pensadas solo para ellos.",
                     style = MaterialTheme.typography.bodyMedium
                 )
+                spacer_vertical(10.dp)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     texto_generico_one_line("saldo ${i.saldo}")
                     Image(
                         painter = painterResource(R.drawable.icon_monedas_3d),
                         contentDescription = null,
-                        modifier = Modifier.size(35.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
+                spacer_vertical(10.dp)
             }
 
             item {
+                texto_generico_multilinea(
+                    "Agrega hasta 5 imágenes para destacar tu promoción.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                spacer_vertical(5.dp)
                 SelectorFotos(
                     imagenes = imagenes,
                     maxFotos = maxFotos,
@@ -364,14 +480,24 @@ fun pantalla_promocionar(
             item {
                 MyOutlinedTextField(
                     value = nombre_publicacion,
-                    onValueChange = {
-                        nombre_publicacion = it
-                        version_nombre_publicacion_original = it
+                    onValueChange = { input ->
+
+                        if (input.length <= MAX_TITULO) {
+                            nombre_publicacion = input
+                            version_nombre_publicacion_original = input
+                        }
+
+                        error_titulo_publicacion =
+                            nombre_publicacion.isNotEmpty() &&
+                                    nombre_publicacion.length < MIN_TITULO
                     },
-                    labelText = "Titulo de la publicaion",
-                    placeholderText = "Titulo de la publicaion"
+                    labelText = "Título de la publicación",
+                    placeholderText = "Título de la publicación",
+                    isError = error_titulo_publicacion,
+                    texto_error = "El título debe tener al menos $MIN_TITULO caracteres"
                 )
             }
+
             item {
                 OutlinedTextField(
                     value = descripcion_publicacion,
@@ -381,37 +507,71 @@ fun pantalla_promocionar(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
-                    label = { retornar_pleaceholder_label("descripcion de publicacion") },
-                    placeholder = { retornar_pleaceholder_label("descripcion de publicacion") },
-                    textStyle = MaterialTheme.typography.bodyMedium,
+                    label = { retornar_pleaceholder_label("descripción de publicación") },
+                    placeholder = { retornar_pleaceholder_label("descripción de publicación") },
                     singleLine = false,
                     maxLines = 10,
                     minLines = 7,
-                    isError = false,
-                    supportingText = {
-
-                    }
                 )
+
+
             }
+
             item {
                 if (nombre_publicacion.isNotEmpty() && descripcion_publicacion.isNotEmpty()) {
-                    Button(onClick = {
-                        scope.launch {
-                            val listaOpciones = generarPromocionesConIA(
-                                nombre_publicacion,
-                                descripcion_publicacion,
-                                i.nombre_tienda,
-                                i.localidad_tienda,
-                                dias_restantes_pr
-                            )
-                            listaOpcionesIA = listaOpciones
+
+                    val cargando =
+                        estado_textos_notificaciones_generadas is viewmodel_pantallas_promocionar.EstadoIA.Loading
+
+                    Button(
+                        onClick = {
+                            if (!cargando) {
+                                viewmodel_pantalla_promocionar.mejorar_texto_con_promo_IA(
+                                    localidad_tienda = i.localidad_tienda,
+                                    id_tienda = i.id_tienda,
+                                    nombre_tienda = i.nombre_tienda,
+                                    tituloUsuario = nombre_publicacion,
+                                    descripcionUsuario = descripcion_publicacion,
+                                    nombreTienda = i.nombre_tienda,
+                                    localidad = i.localidad_tienda,
+                                    diasRestantes = dias_restantes_pr
+                                )
+                            }
+                        },
+                        enabled = !cargando
+                    ) {
+                        if (cargando) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp,
+                                    color = Color.White
+                                )
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                texto_generico_one_line("Generando contenido…")
+                            }
+                        } else {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                texto_generico_one_line("Mejorar con IA")
+                                spacer_horizonta(5.dp)
+                                Icon(
+                                    imageVector = Icons.Default.AutoAwesome,
+                                    contentDescription = "Mejorar con IA",
+                                    tint = Color.White
+                                )
+
+                            }
                         }
-                    }) {
-                        texto_generico_one_line("mejorar texto con IA")
                     }
                 }
-
             }
+
             item {
                 SelectorOpcionesPromocionIA(
                     OpcionPromocionIA(
@@ -436,121 +596,213 @@ fun pantalla_promocionar(
                 if (contacto_directo) {
                     MyOutlinedTextField(
                         value = numero_publicaicon,
-                        onValueChange = { numero_publicaicon = it },
-                        labelText = "Numero de contacto",
-                        placeholderText = "Numero de contacto"
+                        onValueChange = { input ->
+
+
+                            if (input.length <= 9 && input.all { it.isDigit() }) {
+                                numero_publicaicon = input
+                            }
+
+                            error_mostrado_numero_contacto =
+                                numero_publicaicon.isNotEmpty() && numero_publicaicon.length != 9
+                        },
+                        texto_error = "El número debe tener 9 dígitos",
+                        isError = error_mostrado_numero_contacto,
+                        labelText = "Número de contacto",
+                        placeholderText = "Número de contacto",
+                        keyboardType = KeyboardType.Number
                     )
+
+
                 }
                 txt_publicaciones(compartir, { it -> compartir = it }, "compartir")
-                txt_publicaciones(ubicacion, { it -> ubicacion = it }, "ubicacion")
-                txt_publicaciones(exclusivo, { it -> exclusivo = it }, "exclusivo")
+//                txt_publicaciones(ubicacion, { it -> ubicacion = it }, "ubicacion")
+//                txt_publicaciones(exclusivo, { it -> exclusivo = it }, "exclusivo")
             }
 
             item {
-                texto_generico_one_line("indica caundo quieres finalizar tu promocion")
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                texto_generico_one_line("Selecciona el plazo de tu publicacion")
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        DateButton(
-                            "Inicio",
-                            errorfecha,
-                            "El campo es obligatorio",
-                            { fecha_obtenida ->
-                                fecha_inicio = fecha_obtenida
-                            })
-                    }
-
-                    Box(modifier = Modifier.weight(1f)) {
-                        DateButton("Fin", errorfecha, "El campo es obligatorio", { fecha_obtenida ->
-                            fecha_fin = fecha_obtenida
-
-                        })
-                    }
-                }
-                diasEntre?.let { dias ->
-                    val texto = if (dias == 0) {
-                        "el minimo de dias es 1"
-                    } else {
-                        "Duración: $dias días"
-                    }
-                    val color =
-                        if (dias == 0) {
-                            Color.Red
-                        } else {
-                            Color.Gray
+                    items(lista_tipo_promocion) { item ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = item == seleccion,
+                                onClick = {
+                                    seleccion = item
+                                    monedas_costo_publicidad = ""
+                                    dias_restantes_pr = 0
+                                    hora_escrita = "0"
+                                    fecha_inicio = ""
+                                    fecha_fin = ""
+                                }
+                            )
+                            Text(text = "${item.tipo}")
                         }
-                    Text(
-                        text = texto,
-                        fontSize = 14.sp,
-                        color = color
-                    )
-                    dias_restantes_pr = dias
-
+                    }
                 }
-                if (dias_restantes_pr != 0) {
+                if (seleccion.tipo.equals("horas")) {
+                    texto_generico_one_line("indica las horas que este tu publicacion activa")
+                    Row() {
+                        texto_generico_one_line("costo por hora 3 monedas")
+                    }
+                    texto_generico_one_line("fecha de inicio ${obtenerFechaActual()}")
+                    texto_generico_one_line("fecha de fin ${obtenerFechaActual()}")
+                    MyOutlinedTextField(
+                        value = hora_escrita,
+                        onValueChange = { input ->
+                            // Limitar input a solo números
+                            var sanitizedInput = input.filter { it.isDigit() }
+
+                            // Limitar máximo 3 caracteres
+                            if (sanitizedInput.length > 3) {
+                                sanitizedInput = sanitizedInput.take(3)
+                            }
+
+                            hora_escrita = sanitizedInput
+
+                            // Convertir a Int seguro
+                            val numero = sanitizedInput.toIntOrNull() ?: 0
+                            error_horas_escritas = numero <= 0
+                        },
+                        texto_error = "El 0 no está permitido",
+                        isError = error_horas_escritas,
+                        labelText = "Ingresa las horas de tu publicación",
+                        placeholderText = "Ingresa las horas de tu publicación",
+                        keyboardType = KeyboardType.Number
+                    )
+
+
+                    if (hora_escrita.isNotEmpty()) {
+                        texto_generico_multilinea("Total de monedas por $hora_escrita h =$monedas_costo_publicidad")
+                    }
+
+
+                } else if (seleccion.tipo.equals("dias")) {
+                    texto_generico_one_line("indica los dias")
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
-                        texto_generico_one_line(cobroMonedas(dias_restantes_pr).toString())
-                        Image(
-                            painter = painterResource(R.drawable.icon_monedas_3d),
-                            contentDescription = null,
-                            modifier = Modifier.size(35.dp)
+                        Box(modifier = Modifier.weight(1f)) {
+                            DateButton(
+                                titulo = "Inicio",
+                                error_fecha = errorfecha,
+                                campo_error = "El campo es obligatorio",
+                                selectedDate = fecha_inicio,
+                                fecha = { fecha_obtenida ->
+                                    fecha_inicio = obtenerFechaActual()
+                                })
+                        }
+
+                        Box(modifier = Modifier.weight(1f)) {
+                            DateButton(
+                                titulo = "Fin",
+                                error_fecha = errorfecha,
+                                campo_error = "El campo es obligatorio", selectedDate = fecha_fin,
+                                fecha = { fecha_obtenida ->
+                                    fecha_fin = fecha_obtenida
+
+                                })
+                        }
+                    }
+                    diasEntre?.let { dias ->
+                        val texto = if (dias == 0) {
+                            "el minimo de dias es 1"
+                        } else {
+                            "Duración: $dias días"
+                        }
+                        val color =
+                            if (dias == 0) {
+                                Color.Red
+                            } else {
+                                Color.Gray
+                            }
+                        Text(
+                            text = texto,
+                            fontSize = 14.sp,
+                            color = color
                         )
+                        dias_restantes_pr = dias
+
+                    }
+                    if (dias_restantes_pr != 0) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            monedas_costo_publicidad =
+                                cobroMonedas("dias", dias_restantes_pr).toString()
+                            texto_generico_one_line(monedas_costo_publicidad)
+                            Image(
+                                painter = painterResource(R.drawable.icon_monedas_3d),
+                                contentDescription = null,
+                                modifier = Modifier.size(35.dp)
+                            )
+                        }
                     }
                 }
-
 
             }
 
             item {
-                val ubicontainer = if (ubicacion) {
-                    i.ubicacion
-                } else {
-                    ubicacaion_container()
-                }
                 val numero_campo = if (contacto_directo) {
                     i.numero_contacto_tienda
                 } else {
                     ""
                 }
-                val datos_publicacion = agregar_promociones(
-                    exclusivo = exclusivo,
-                    fechas = fechas_promociones(
-                        inicio = fecha_inicio,
-                        fin = fecha_fin,
-                        activo = true
-                    ),
-                    img_container = img_contaier(),
-                    informacion = informacion_container(
-                        categoria = i.categoira_tienda,
-                        descripcion = descripcion_publicacion,
-                        id_promocion = generarIdFirebase(),
-                        id_tienda = id_socio,
-                        nombre_tienda = i.nombre_tienda,
-                        titulo = nombre_publicacion,
-                        numero = numero_campo,
-                        compartir = compartir,
-                        contactar = contacto_directo
-                    ),
-                    ubicacion = ubicontainer
-                )
-                if (nombre_publicacion.isNotEmpty() && descripcion_publicacion.isNotEmpty()) {
+
+                if (botonHabilitado) {
                     Button(onClick = {
+                        val datos_publicacion = agregar_promociones(
+                            formato_fecha_hora = seleccion.tipo,
+                            exclusivo = false,
+                            img_container = img_contaier(),
+                            informacion = informacion_container(
+                                categoria = i.categoira_tienda,
+                                descripcion = descripcion_publicacion,
+                                id_promocion = generarIdFirebase(),
+                                id_tienda = id_socio,
+                                nombre_tienda = i.nombre_tienda,
+                                titulo = nombre_publicacion,
+                                numero = numero_campo,
+                                compartir = compartir,
+                                contactar = contacto_directo
+                            ),
+                            ubicacion = ubicacaion_container(),
+                            datos_hora_fecha = datos_fecha_hora_tipo(
+                                horas = fechas_horas_promociones(
+                                    hora_inicio =  if(seleccion.tipo=="horas")obtenerHoraActual() else "",
+                                    hora_fin =  if(seleccion.tipo=="horas")obtenerHoraFin(hora_escrita.toInt()) else "",
+                                    activo = if(seleccion.tipo=="horas") true else false,
+                                    timestamp_inicio = if(seleccion.tipo=="horas")obtenerTimestampHoraInicio() else 0L,
+                                    timestamp_fin = if(seleccion.tipo=="horas")obtenerTimestampHoraFin(hora_escrita.toInt())else 0L
+                                ),
+                                dias = fechas_promociones(
+                                    fecha_inicio = if(seleccion.tipo=="dias")fecha_inicio else "",
+                                    fecha_fin = if(seleccion.tipo=="dias")fecha_fin  else "",
+                                    activo =if(seleccion.tipo=="dias") true else false,
+                                    timestamp_inicio =if(seleccion.tipo=="dias") obtenerTimestampFecha(fecha_inicio) else 0L,
+                                    timestamp_fin =if(seleccion.tipo=="dias") obtenerTimestampFecha(fecha_fin)  else 0L
+                                )
+                            ),
+                        )
                         viewmodel_socios.crear_promociones(
                             datos_publicacion,
                             localidad = i.localidad_tienda
                         )
                         viewmodel_socios.subir_img_firestore_promociones(
-                            i.img_tienda,
-                            i.localidad_tienda,
-                            context,
-                            imagenes,
-                            id_socio,
-                            datos_publicacion.informacion.id_promocion
+                            img_tienda = i.img_tienda,
+                            localidad = i.localidad_tienda,
+                            context = context,
+                            imagenes = imagenes,
+                            idSocio = id_socio,
+                            idPromo = datos_publicacion.informacion.id_promocion
                         )
 
                     }) {
@@ -569,21 +821,30 @@ fun pantalla_promocionar(
             }
 
 
-            if (cantidad_seguidores.size == 10) {
-
+            if (cantidad_seguidores.size >= 10) {
                 item {
                     texto_generico_one_line("Notifica tus publicaciones subidas")
 
                     if (publicaicones_realizadas.isNotEmpty()) {
                         LazyRow() {
                             items(publicaicones_realizadas) { i ->
-                                item_publicaiones_realizadas(i) { titutlo, descripcion,id ->
-                                    titulo_notificacion = titutlo
+                                Log.d("pulbiaicaones", publicaicones_realizadas.size.toString())
+                                item_publicaiones_realizadas(i) { titulo, descripcion, id ->
+                                    titulo_notificacion = titulo
                                     descripcion_notificacion = descripcion
-                                    tipo_notificacion_params_seleccionada = "promociones y ofertas"
+
+                                    val tipo = "promociones y ofertas"
+                                    val precio = tipo_notificacion_precio_nombre
+                                        .firstOrNull { it.tipo == tipo }
+                                        ?.precio ?: 0
+
+                                    tipo_notificacion_params_seleccionada = tipo
+                                    precio_tipo_notificacion = precio
+
                                     mostrar_btn_mejorar_IA = true
-                                    id_publicacion_selecionada =id
+                                    id_publicacion_selecionada = id
                                 }
+
                             }
                         }
 
@@ -595,11 +856,6 @@ fun pantalla_promocionar(
                         value = titulo_notificacion,
                         onValueChange = {
                             titulo_notificacion = it
-                            resultado_validacion_notificacion = ResultadoValidacion(
-                                estado = EstadoNotificacion.PERMITIDA,
-                                mensaje = "",
-                                palabraDetectada = null
-                            )
                         },
                         labelText = "Titulo de notificacion",
                         placeholderText = "Titulo de notificacion"
@@ -609,11 +865,7 @@ fun pantalla_promocionar(
                         value = descripcion_notificacion,
                         onValueChange = {
                             descripcion_notificacion = it
-                            resultado_validacion_notificacion = ResultadoValidacion(
-                                estado = EstadoNotificacion.PERMITIDA,
-                                mensaje = "",
-                                palabraDetectada = null
-                            )
+
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(20.dp),
@@ -664,50 +916,88 @@ fun pantalla_promocionar(
                         )
                     }
 
-                    ExpandDropDown(
-                        prioridad,
+                    ExpandDropDown_precio_nombre_notificaciones(
+                        prioridad_notificacion_precio_nombre,
                         false,
                         "selecciona tu prioridad",
                         "selecciona tu prioridad"
-                    ) { prioridad ->
+                    ) { prioridad, precio ->
                         prioridad_selec = prioridad
+                        precio_prioridad_notificacion = precio
+
                     }
 
 
-                    ExpandDropDown(
-                        tipo_notificacion,
+                    ExpandDropDown_precio_nombre_notificaciones(
+                        formato_notificacion_nombre_precio,
                         false,
-                        "selecciona tu plan de notificacion",
-                        "selecciona tu plan de notificacion"
-                    ) { plan ->
+                        "selecciona tu formato de notificacion",
+                        "selecciona tu formato de notificacion"
+                    ) { plan, precio ->
                         tipo_notificacion_seleccionada = plan
+                        precio_formato = precio
                     }
 
                     ExpandDropDown_select_params(
                         tipo_notificacion_params_seleccionada,
-                        tipo_notificacion_params,
+                        tipo_notificacion_precio_nombre,
                         false,
                         "selecciona tu tipo de notificacion",
                         "selecciona tu tipo de notificacion"
-                    ) { tipo ->
+                    ) { tipo, precio ->
+                        Log.d("precioestableico", "$precio")
                         tipo_notificacion_params_seleccionada = tipo
+                        precio_tipo_notificacion = precio
                     }
+                    texto_generico_one_line("precio por notificaicon $precio_por_notificacion_general")
 
                     if (mostrar_btn_mejorar_IA) {
-                        Button(onClick = {
-                            crear_notificacion_conIA_corta(
-                                scope,
-                                titulo_notificacion,
-                                acortarDescripcionNotificacion(descripcion_notificacion)
-                            ) { NotificacionIA ->
-                                titulo_notificacion=NotificacionIA.titulo
-                                descripcion_notificacion=NotificacionIA.descripcion
+                        val cargando =
+                            estado_textos_notificacion_corta_generada is viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Loading
+
+                        Button(
+                            onClick = {
+                                if (!cargando) {
+                                    viewmodel_pantalla_promocionar.mejorar_mejorar_notificacion_con_IA_corta(
+                                        localidad_tienda = i.localidad_tienda,
+                                        id_tienda = i.id_tienda,
+                                        nombre_tienda = i.nombre_tienda,
+                                        titulo_publicacion = titulo_notificacion,
+                                        descripcion = descripcion_notificacion
+                                    )
+                                }
+                            },
+                            enabled = !cargando
+                        ) {
+                            if (cargando) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(18.dp),
+                                        strokeWidth = 2.dp,
+                                        color = Color.White
+                                    )
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    texto_generico_one_line("Generando contenido…")
+                                }
+                            } else {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    texto_generico_one_line("Mejorar con IA")
+                                    spacer_horizonta(5.dp)
+                                    Icon(
+                                        imageVector = Icons.Default.AutoAwesome,
+                                        contentDescription = "Mejorar con IA",
+                                        tint = Color.White
+                                    )
+
+                                }
                             }
-
-                        }) {
-                            texto_generico_one_line("mejorar contenido  con IA")
                         }
-
                     }
 
                     if (tipo_notificacion_seleccionada.isNotEmpty()) {
@@ -733,122 +1023,90 @@ fun pantalla_promocionar(
                             texto_generico_multilinea(texto)
                         }
                     }
-                    if (tipo_notificacion_seleccionada.isNotEmpty() &&
-                        titulo_notificacion.isNotEmpty() &&
-                        descripcion_notificacion.isNotEmpty()
-                    ) {
 
-                        Button(onClick = {
-                            // Validar de nuevo sin resetear el estado inmediatamente
-                            resultado_validacion_notificacion =
-                                validarNotificacion(titulo_notificacion, descripcion_notificacion)
-                        }) {
-                            texto_generico_one_line("Realizar validación de notificación")
-                        }
+                    when (state_validacion_notificacion) {
+                        is viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Idle -> {}
+                        is viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Permitida -> {
 
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        when (resultado_validacion_notificacion.estado) {
-
-                            EstadoNotificacion.PERMITIDA -> {
-                                Button(onClick = {
-                                    scope.launch {
-                                        enviar_notificacion_lista_dispo(
-                                            "",
-                                            id_tienda = "",
-                                            localidad = "",
-                                            categora_tienda = "",
-                                            "",
-                                            id_users = listOf(id_user),
-                                            titulo = titulo_notificacion,
-                                            txt = descripcion_notificacion,
-                                            logo_tienda = i.img_tienda,
-                                            tipo_notificacion = tipo_notificacion_seleccionada,
-                                            url_img = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/walpaper_geinz%2Fturisticos%2Fimg11.webp?alt=media&token=1151dd65-8a6b-497d-a452-a8d948859422",
-                                            prioridad = prioridad_selec
-                                        )
-                                    }
-                                }) {
-                                    texto_generico_one_line("Ver vista previa de notificación")
-                                }
-
-                                Button(onClick = {
-                                    val id_creado_tipo = if(id_publicacion_selecionada.isNotEmpty()) generarIdImagen_nueve() else      generarIdImagen()
-
-
-                                    val obj = obj_contador_notificaciones(
-                                        id_tienda = id_socio,
-                                        localida = i.localidad_tienda,
-                                        categoria = i.categoira_tienda,
-                                        idnotificacion = id_creado_tipo,
-                                        fecha_enviada = obtenerFechaActual(),
-                                        precio_envio = 50,
-                                        parametros_notificacion = obj_parametros_notificacion(
-                                            titulo_notificacion = titulo_notificacion,
-                                            texto_notificacion = descripcion_notificacion,
-                                            logo_notificacion = i.img_tienda,
-                                            img_notifiacion = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/walpaper_geinz%2Fturisticos%2Fimg11.webp?alt=media&token=1151dd65-8a6b-497d-a452-a8d948859422",
-                                            priorida_notificacion = prioridad_selec,
-                                            tipo_notificacion = tipo_notificacion_seleccionada,
-                                            notificacion_publicidad = id_publicacion_selecionada.isEmpty(),
-                                            id_publicacion_anuncio = id_publicacion_selecionada
-                                        ),
-                                        suspendido = obj_suspend_notificacion(),
-                                        tipo_notificacion = tipo_notificacion_params_seleccionada,i.nombre_tienda,i.numero_contacto_tienda,i.categoira_tienda
+                            Button(onClick = {
+                                scope.launch {
+                                    enviar_notificacion_lista_dispo(
+                                        "",
+                                        id_tienda = "",
+                                        localidad = "",
+                                        categora_tienda = "",
+                                        "",
+                                        id_users = listOf(id_user),
+                                        titulo = titulo_notificacion,
+                                        txt = descripcion_notificacion,
+                                        logo_tienda = i.img_tienda,
+                                        tipo_notificacion = tipo_notificacion_seleccionada,
+                                        url_img = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/walpaper_geinz%2Fturisticos%2Fimg11.webp?alt=media&token=1151dd65-8a6b-497d-a452-a8d948859422",
+                                        prioridad = prioridad_selec
                                     )
-                                    viewmodel_socios.enviar_notificacion(cantidad_seguidores, obj)
-
-                                }) {
-                                    texto_generico_one_line("notificar a tus seguidores 50 monedas")
                                 }
+                            }) {
+                                texto_generico_one_line("Ver vista previa de notificación")
                             }
 
+                            Button(onClick = {
+                                val id_creado_tipo =
+                                    if (id_publicacion_selecionada.isNotEmpty()) generarIdImagen_nueve() else generarIdImagen()
 
-                            EstadoNotificacion.ADVERTENCIA -> {
-                                Toast.makeText(
-                                    context,
-                                    "Advertencia: cambia la palabra \"${resultado_validacion_notificacion.palabraDetectada}\"",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                // NO resetees aquí
-                            }
-
-                            EstadoNotificacion.BLOQUEADA -> {
-                                Toast.makeText(
-                                    context,
-                                    "Tu notificación será bloqueada. Cambia la palabra \"${resultado_validacion_notificacion.palabraDetectada}\"",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                // NO resetees aquí
+                                val obj = obj_contador_notificaciones(
+                                    id_tienda = id_socio,
+                                    localida = i.localidad_tienda,
+                                    categoria = i.categoira_tienda,
+                                    idnotificacion = id_creado_tipo,
+                                    fecha_enviada = obtenerFechaActual(),
+                                    precio_envio = 50,
+                                    parametros_notificacion = obj_parametros_notificacion(
+                                        titulo_notificacion = titulo_notificacion,
+                                        texto_notificacion = descripcion_notificacion,
+                                        logo_notificacion = i.img_tienda,
+                                        img_notifiacion = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/walpaper_geinz%2Fturisticos%2Fimg11.webp?alt=media&token=1151dd65-8a6b-497d-a452-a8d948859422",
+                                        priorida_notificacion = prioridad_selec,
+                                        tipo_notificacion = tipo_notificacion_seleccionada,
+                                        notificacion_publicidad = id_publicacion_selecionada.isEmpty(),
+                                        id_publicacion_anuncio = id_publicacion_selecionada
+                                    ),
+                                    suspendido = obj_suspend_notificacion(),
+                                    tipo_notificacion = tipo_notificacion_params_seleccionada,
+                                    i.nombre_tienda,
+                                    i.numero_contacto_tienda,
+                                    i.categoira_tienda
+                                )
+                                viewmodel_pantalla_promocionar.enviar_notificacion(
+                                    i.localidad_tienda,
+                                    i.nombre_tienda,
+                                    i.id_tienda,
+                                    precio_por_notificacion_general.toString(),
+                                    cantidad_seguidores,
+                                    obj
+                                )
+                            }) {
+                                texto_generico_one_line("notificar a tus ${cantidad_seguidores.size}seguidores")
                             }
                         }
-                    }
 
-                    if (nombre_publicacion.isNotEmpty() && descripcion_publicacion.isNotEmpty()) {
-                        Button(onClick = {
-                            crear_notificacion_conIA(
-                                scope,
-                                tituloPublicacion = nombre_publicacion,
-                                descCorta = acortarDescripcionNotificacion(descripcion_publicacion),
-                                nombreTienda = i.nombre_tienda,
-                                localidad = "barranca", dias_restantes_pr
-                            ) { es ->
-                                titulo_notificacion = es.titulo
-                                descripcion_notificacion = es.descripcion
-                            }
-
-
-                        }) {
-                            texto_generico_one_line("generar Contenido con IA")
+                        is viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Bloqueada -> {
+                            Text(
+                                text = (state_validacion_notificacion as viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Bloqueada).mensaje,
+                                color = Color.Red
+                            )
                         }
-                    }
 
+                    }
 
                 }
             } else {
                 item {
                     texto_generico_one_line("te falta cumplir los requisitos para notificar a tus seguidores")
                 }
+            }
+
+            item {
+                spacer_vertical(30.dp)
             }
 
 
@@ -878,7 +1136,23 @@ fun pantalla_promocionar(
                 CircularProgressIndicator()
             }
         }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .align(Alignment.BottomCenter)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black
+                        )
+                    )
+                )
+                .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+        )
     }
+
 
 }
 
@@ -1051,37 +1325,34 @@ fun DateButton(
     titulo: String,
     error_fecha: Boolean,
     campo_error: String,
-    fecha: (String) -> Unit
+    selectedDate: String,       // Valor desde afuera
+    fecha: (String) -> Unit     // Callback para actualizar
 ) {
     var showDialog by rememberSaveable { mutableStateOf(false) }
-    var selectedDate by rememberSaveable { mutableStateOf("") }
-
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
-    // 📌 Si es "Inicio", fijar fecha de hoy automáticamente
-    LaunchedEffect(titulo) {
-        if (titulo.lowercase() == "inicio") {
+    // 📌 Si es "Inicio" y no hay fecha, fijar hoy automáticamente
+    LaunchedEffect(titulo, selectedDate) {
+        if (titulo.lowercase() == "inicio" && selectedDate.isEmpty()) {
             val hoy = LocalDate.now()
-            selectedDate = hoy.format(formatter)
-            fecha(selectedDate)
+            fecha(hoy.format(formatter))
         }
     }
 
-    // 📅 DatePicker solo se usa cuando NO es inicio
+    // 📅 DatePicker solo se usa cuando NO es "Inicio"
     if (titulo.lowercase() != "inicio") {
         DatePickerExample_promociones(
             showDialog = showDialog,
             onDismiss = { showDialog = false },
             onDateSelected = { fechaSeleccionada ->
-                selectedDate = fechaSeleccionada.format(formatter)
-                fecha(selectedDate)
+                fecha(fechaSeleccionada.format(formatter)) // Actualiza desde afuera
             }
         )
     }
 
     Column {
         OutlinedTextField(
-            value = selectedDate,
+            value = selectedDate, // Solo usamos el parámetro
             onValueChange = {},
             modifier = Modifier
                 .padding(top = 5.dp)
@@ -1090,8 +1361,6 @@ fun DateButton(
             singleLine = true,
             readOnly = true,
             enabled = true,
-
-            // ⛔ Bloquea el icono si es "Inicio"
             leadingIcon = {
                 IconButton(
                     onClick = {
@@ -1104,14 +1373,11 @@ fun DateButton(
                     Icon(
                         Icons.Default.DateRange,
                         contentDescription = "Seleccionar fecha",
-                        tint = if (titulo.lowercase() == "inicio")
-                            Color.Gray
-                        else
-                            MaterialTheme.colorScheme.primary
+                        tint = if (titulo.lowercase() == "inicio") Color.Gray
+                        else MaterialTheme.colorScheme.primary
                     )
                 }
             },
-
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = MaterialTheme.colorScheme.onBackground,
                 unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
@@ -1132,171 +1398,6 @@ fun DateButton(
 }
 
 
-fun crear_notificacion_conIA_corta(
-    scope: CoroutineScope,
-    tituloPublicacion: String,
-    descCorta: String,
-    onResultado: (NotificacionIA) -> Unit
-) {
-    scope.launch {
-
-        val model = Firebase.ai(
-            backend = GenerativeBackend.googleAI()
-        ).generativeModel("gemini-2.5-flash")
-
-        try {
-            val prompt = generarPromptNotificacionselecionada(
-                tituloPublicacion,
-                descCorta,
-            )
-
-            val inicio = System.currentTimeMillis()
-            val result = model.generateContent(prompt)
-            val textoGenerado = result.text ?: ""
-            val fin = System.currentTimeMillis()
-
-            Log.d("Gemini", "Tiempo: ${fin - inicio} ms")
-            Log.d("Gemini", "Resultado:\n$textoGenerado")
-
-            // 🔥 PARSEAR RESPUESTA
-            val notificacion = parsearRespuestaGemini(textoGenerado)
-
-            // 🔁 RETORNAR RESULTADO
-            onResultado(notificacion)
-
-        } catch (e: Exception) {
-            Log.e("Gemini", "Error IA: ${e.message}")
-        }
-    }
-}
-
-fun crear_notificacion_conIA(
-    scope: CoroutineScope,
-    tituloPublicacion: String,
-    descCorta: String,
-    nombreTienda: String,
-    localidad: String,
-    diasRestantes: Int,
-    onResultado: (NotificacionIA) -> Unit
-) {
-    scope.launch {
-
-        val model = Firebase.ai(
-            backend = GenerativeBackend.googleAI()
-        ).generativeModel("gemini-2.5-flash")
-
-        try {
-            val prompt = generarPromptNotificacionOptimizado(
-                tituloPublicacion,
-                descCorta,
-                nombreTienda,
-                localidad,
-                diasRestantes
-            )
-
-            val inicio = System.currentTimeMillis()
-            val result = model.generateContent(prompt)
-            val textoGenerado = result.text ?: ""
-            val fin = System.currentTimeMillis()
-
-            Log.d("Gemini", "Tiempo: ${fin - inicio} ms")
-            Log.d("Gemini", "Resultado:\n$textoGenerado")
-
-            // 🔥 PARSEAR RESPUESTA
-            val notificacion = parsearRespuestaGemini(textoGenerado)
-
-            // 🔁 RETORNAR RESULTADO
-            onResultado(notificacion)
-
-        } catch (e: Exception) {
-            Log.e("Gemini", "Error IA: ${e.message}")
-        }
-    }
-}
-
-
-fun parsearRespuestaGemini(texto: String): NotificacionIA {
-    var titulo = ""
-    var descripcion = ""
-
-    texto.lines().forEach { linea ->
-        when {
-            linea.startsWith("T:") ->
-                titulo = linea.removePrefix("T:").trim()
-
-            linea.startsWith("D:") ->
-                descripcion = linea.removePrefix("D:").trim()
-        }
-    }
-
-    return NotificacionIA(
-        titulo = titulo,
-        descripcion = descripcion
-    )
-}
-
-fun generarPromptNotificacionOptimizado(
-    tituloPublicacion: String,
-    descCorta: String, // ≤60 chars
-    nombreTienda: String,
-    localidad: String,
-    diasRestantes: Int
-): String {
-
-    return """
-Genera un título (≤40) y una descripción (≤90) para notificación.
-No inventes datos. Español neutro.
-Usa MÁXIMO 1 emoji SOLO en el título. Sin emojis en la descripción.
-Texto claro, directo y comercial. Incluye CTA breve.
-
-Datos:
-t:$tituloPublicacion
-d:$descCorta
-n:$nombreTienda
-l:$localidad
-r:$diasRestantes
-
-Urgencia:
-r=1 -> "Último día"
-r<=3 -> "Últimos días"
-r>3 -> "Por tiempo limitado"
-
-Salida EXACTA:
-T: texto
-D: texto
-""".trimIndent()
-}
-
-fun generarPromptNotificacionselecionada(
-    tituloPublicacion: String,
-    descCorta: String, // ≤60 chars
-
-
-): String {
-
-    return """
-Genera un título (≤40) y una descripción (≤90) para notificación.
-No inventes datos. Español neutro.
-Usa MÁXIMO 1 emoji SOLO en el título. Sin emojis en la descripción.
-Texto claro, directo y comercial. Incluye CTA breve.
-
-Datos:
-t:$tituloPublicacion
-d:$descCorta
-
-
-Urgencia:
-r=1 -> "Último día"
-r<=3 -> "Últimos días"
-r>3 -> "Por tiempo limitado"
-
-Salida EXACTA:
-T: texto
-D: texto
-""".trimIndent()
-}
-
-
 fun acortarDescripcionNotificacion(
     textoLargo: String,
     maxCaracteres: Int = 50
@@ -1314,115 +1415,38 @@ fun acortarDescripcionNotificacion(
 }
 
 
-suspend fun generarPromocionesConIA(
-    tituloUsuario: String,
-    descripcionUsuario: String,
-    nombreTienda: String,
-    localidad: String,
-    diasRestantes: Int
-): List<OpcionPromocionIA> {
-
-    return try {
-        val model = Firebase.ai(
-            backend = GenerativeBackend.googleAI()
-        ).generativeModel("gemini-2.5-flash")
-
-        val prompt = generarPromptPromocionProduccion(
-            tituloUsuario = tituloUsuario,
-            descripcionUsuario = descripcionUsuario,
-            nombreTienda = nombreTienda,
-            localidad = localidad,
-            diasRestantes = diasRestantes
-        )
-
-        val result = model.generateContent(prompt)
-        val texto = result.text ?: return emptyList()
-
-        parsearOpcionesIA(texto)
-
-    } catch (e: Exception) {
-        Log.e("IA", "Error IA promociones: ${e.message}")
-        emptyList()
-    }
-}
-
-fun generarPromptPromocionProduccion(
-    tituloUsuario: String,
-    descripcionUsuario: String,
-    nombreTienda: String,
-    localidad: String,
-    diasRestantes: Int
-): String {
-
-    return """
-Mejora el título y la descripción de una promoción usando SOLO la información dada.
-No inventes datos ni precios.
-Genera EXACTAMENTE 3 opciones distintas.
-
-Reglas:
-- Título ≤60 caracteres
-- Descripción 50–70 palabras
-- Español claro y comercial
-- Sin emojis
-- Texto profesional y directo
-
-Datos reales:
-titulo:$tituloUsuario
-descripcion:$descripcionUsuario
-tienda:$nombreTienda
-localidad:$localidad
-duracion:$diasRestantes dias
-
-Salida EXACTA:
-Opcion 1:
-T:
-D:
-
-Opcion 2:
-T:
-D:
-
-Opcion 3:
-T:
-D:
-""".trimIndent()
-}
-
-
-fun parsearOpcionesIA(texto: String): List<OpcionPromocionIA> {
-
-    val opciones = mutableListOf<OpcionPromocionIA>()
-
-    val bloques = texto.split("Opcion")
-        .map { it.trim() }
-        .filter { it.startsWith("1") || it.startsWith("2") || it.startsWith("3") }
-
-    for (bloque in bloques) {
-
-        val titulo = Regex("T:\\s*(.*)")
-            .find(bloque)
-            ?.groupValues
-            ?.get(1)
-            ?.trim()
-            ?: continue
-
-        val descripcion = Regex("D:\\s*([\\s\\S]*)")
-            .find(bloque)
-            ?.groupValues
-            ?.get(1)
-            ?.trim()
-            ?: continue
-
-        opciones.add(
-            OpcionPromocionIA(
-                titulo = titulo,
-                descripcion = descripcion
-            )
-        )
-    }
-
-    return opciones
-}
+//suspend fun generarPromocionesConIA(
+//    tituloUsuario: String,
+//    descripcionUsuario: String,
+//    nombreTienda: String,
+//    localidad: String,
+//    diasRestantes: Int
+//): List<OpcionPromocionIA> {
+//
+//    return try {
+//        val model = Firebase.ai(
+//            backend = GenerativeBackend.googleAI()
+//        ).generativeModel("gemini-2.5-flash")
+//
+//        val prompt = generarPromptPromocionProduccion(
+//            tituloUsuario = tituloUsuario,
+//            descripcionUsuario = descripcionUsuario,
+//            nombreTienda = nombreTienda,
+//            localidad = localidad,
+//            diasRestantes = diasRestantes
+//        )
+//
+//        val result = model.generateContent(prompt)
+//        val texto = result.text ?: return emptyList()
+//
+//        parsearOpcionesIA(texto)
+//
+//    } catch (e: Exception) {
+//        Log.e("IA", "Error IA promociones: ${e.message}")
+//        emptyList()
+//    }
+//}
+//
 
 
 @Composable
@@ -1442,7 +1466,7 @@ fun SelectorOpcionesPromocionIA(
     }
 
     LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         itemsIndexed(listaFinal) { index, opcion ->
 
@@ -1504,117 +1528,20 @@ fun SelectorOpcionesPromocionIA(
 }
 
 
-fun cobroMonedas(dias: Int): Int {
-    val monedasPorDia = 30
-    return dias * monedasPorDia
-}
-
-enum class EstadoNotificacion {
-    PERMITIDA,
-    ADVERTENCIA,
-    BLOQUEADA
-}
-
-data class ResultadoValidacion(
-    val estado: EstadoNotificacion,
-    val mensaje: String,
-    val palabraDetectada: String? = null
-)
-
-fun normalizarTexto(texto: String): String {
-    return texto.lowercase()
-        .replace("@", "a")
-        .replace("3", "e")
-        .replace("4", "a")
-        .replace("1", "i")
-        .replace("!", "i")
-        .replace("\\$", "s")
-        .replace("0", "o")
-        .replace("[^a-z ]".toRegex(), "") // eliminar cualquier otro carácter especial
-}
-
-val palabrasBloqueadas = listOf(
-    "sexo",
-    "porno",
-    "escort",
-    "droga",
-    "arma",
-    "casino",
-    "apuesta",
-    "elecciones",
-    "política",
-    "voten por",
-    "alcalde",
-    "presidente",
-    "viva",
-    "inbox",
-    "privado",
-    "dm",
-    "háblame por whatsapp",
-    "whatsapp al",
-    "escríbeme al",
-    "manda dm",
-    "contacto directo",
-    "huevón",
-    "huevona",
-    "cojudo",
-    "cojuda",
-    "pendejo",
-    "pendeja",
-    "mierda",
-    "concha",
-    "conchesumadre",
-    "culiao",
-    "culiada",
-    "imbécil",
-    "idiota",
-    "estúpido",
-    "estúpida",
-    "malparido",
-    "malparida",
-    "carajo",
-    "puta",
-    "puto",
-    "puta madre",
-    "coño",
-    "concha e tu madre",
-    "hijo de puta",
-    "marico",
-    "marica",
-    "mierda",
-    "maldito",
-    "cabrón",
-    "cabróna",
-    "pendejo",
-    "pendeja"
-)
-
-fun validarNotificacion(titulo: String, descripcion: String): ResultadoValidacion {
-    val textoNormalizado = normalizarTexto("$titulo $descripcion")
-
-    palabrasBloqueadas.forEach { palabra ->
-        val palabraNormalizada = normalizarTexto(palabra)
-        if (textoNormalizado.contains(palabraNormalizada)) {
-            return ResultadoValidacion(
-                estado = EstadoNotificacion.BLOQUEADA,
-                mensaje = "La palabra \"${palabra}\" no está permitida en notificaciones.",
-                palabraDetectada = palabra
-            )
-        }
+fun cobroMonedas(tipo: String, dias_horas: Int): Int {
+    Log.d("hrgdfjbvsdfigbisd", "$tipo $dias_horas")
+    return when (tipo.lowercase()) {
+        "dias" -> dias_horas * 30
+        "horas" -> dias_horas * 3
+        else -> throw IllegalArgumentException("Tipo inválido: $tipo")
     }
-
-    return ResultadoValidacion(
-        estado = EstadoNotificacion.PERMITIDA,
-        mensaje = "Notificación válida.",
-        palabraDetectada = null
-    )
-
 }
+
 
 @Composable
 fun item_publicaiones_realizadas(
     i: datos_publicaciones_realizadas,
-    clikeado: (String, String,String) -> Unit
+    clikeado: (String, String, String) -> Unit
 ) {
     Column() {
         AsyncImage(
@@ -1626,7 +1553,7 @@ fun item_publicaiones_realizadas(
             modifier = Modifier
                 .height(150.dp)
                 .width(150.dp)
-                .clickable { clikeado(i.titulo, i.descripcion,i.id) },
+                .clickable { clikeado(i.titulo, i.descripcion, i.id) },
             contentScale = ContentScale.Crop
         )
 

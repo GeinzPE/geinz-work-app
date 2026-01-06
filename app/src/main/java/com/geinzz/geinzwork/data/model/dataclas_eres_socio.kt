@@ -5,6 +5,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.google.firebase.Timestamp
 
 data class datos_tienda(
     val id_tienda: String = "",
@@ -85,13 +86,33 @@ data class servicio_comodidad(
 
 data class agregar_promociones(
     val exclusivo: Boolean,
-    val fechas: fechas_promociones,
     val img_container: img_contaier,
     val informacion: informacion_container,
-    val ubicacion: ubicacaion_container
+    val ubicacion: ubicacaion_container,
+    val datos_hora_fecha: datos_fecha_hora_tipo,
+    val formato_fecha_hora: String,
 )
 
-data class fechas_promociones(val inicio: String, val fin: String, val activo: Boolean)
+data class datos_fecha_hora_tipo(
+    val horas: fechas_horas_promociones,
+    val dias: fechas_promociones
+)
+
+data class fechas_horas_promociones(
+    val hora_inicio: String="",
+    val hora_fin: String="",
+    val activo: Boolean= false,
+    val timestamp_inicio: Long= 0L ,
+    val timestamp_fin: Long= 0L
+)
+
+data class fechas_promociones(
+    val fecha_inicio: String="",
+    val fecha_fin: String ="",
+    val activo: Boolean= false,
+    val timestamp_inicio: Long= 0L ,
+    val timestamp_fin: Long= 0L
+)
 
 data class img_contaier(val lista_img: List<String> = emptyList(), val logo_img: String = "")
 
@@ -175,7 +196,66 @@ data class datos_recarga(
     val descripcion: String,
     val monedas: String,
     val monedas_agregadas: String,
-    val monedas_inicial:String,
+    val monedas_inicial: String,
     val nombre_plan: String,
     val precio_soles: String
 )
+
+data class historial_recargas(
+    val tipo_transaccion: String,
+    val fecha: String, val hora: String,
+    val id_recarga: String,
+    val localidad_tienda: String,
+    val id_tienda: String,
+    val nombre_tienda: String,
+    val tipo: String,
+    val monto: String,
+    val precio_soles: String,
+    val yape: Boolean,
+    val plin: Boolean,
+)
+
+data class historial_descuento(
+    val tipo_transaccion: String,
+    val fecha: String,
+    val hora: String,
+    val id_recarga: String,
+    val localidad_tienda: String,
+    val id_tienda: String,
+    val nombre_tienda: String,
+    val monto_descuento: String,
+    val tipo: String,
+    val precio_soles: String,
+)
+
+
+data class recargar_monedas_tienda(
+    val id_tienda: String,
+    val localidad_tienda: String,
+    val cantidad: String
+)
+
+data class NotificacionIA(
+    val titulo: String,
+    val descripcion: String
+)
+
+data class OpcionPromocionIA(
+    val titulo: String,
+    val descripcion: String
+)
+
+data class nombre_precio_notificaciones(val tipo: String, val precio: Int)
+
+enum class EstadoNotificacion {
+    PERMITIDA,
+    ADVERTENCIA,
+    BLOQUEADA
+}
+
+data class ResultadoValidacion(
+    val estado: EstadoNotificacion,
+    val mensaje: String,
+    val palabraDetectada: String? = null
+)
+

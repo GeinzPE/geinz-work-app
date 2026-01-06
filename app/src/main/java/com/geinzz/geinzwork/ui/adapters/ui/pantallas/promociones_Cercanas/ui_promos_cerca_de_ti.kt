@@ -60,6 +60,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -347,14 +348,23 @@ fun carta_promocion_geinz(
     share_promo: (String,String,String) -> Unit,
     whatsap_promo: (String) -> Unit, mostrar_perfil: (String) -> Unit
 ) {
-    val diasRestantes = i.dias_restantes.toInt()
-    val backgroundColor = when {
-        diasRestantes > 5 -> Color(0xFF15BB1A) // Verde
-        diasRestantes in 2..5 -> Color(0xFFFF9900) // Naranja
-        diasRestantes == 1 -> Color(0xFFEC1707) // Rojo
-        else -> Color.Gray // Por si es 0 o negativo
-    }
+    val (valorRestante, tipo) = parseDiasHorasRestantes(i.dias_restantes)
 
+    val backgroundColor = when {
+        tipo == "dias" -> when {
+            valorRestante > 5 -> Color(0xFF15BB1A) // Verde
+            valorRestante in 2..5 -> Color(0xFFFF9900) // Naranja
+            valorRestante == 1 -> Color(0xFFEC1707) // Rojo
+            else -> Color.Gray
+        }
+        tipo == "horas" -> when {
+            valorRestante > 12 -> Color(0xFF15BB1A)
+            valorRestante in 6..12 -> Color(0xFFFF9900)
+            valorRestante in 1..5 -> Color(0xFFEC1707)
+            else -> Color.Gray
+        }
+        else -> Color.Gray
+    }
     Column(modifier = Modifier.padding(bottom = 20.dp)) {
         Box(
             modifier = Modifier
@@ -373,10 +383,12 @@ fun carta_promocion_geinz(
 
         Row(
             modifier = Modifier
-                .padding(start = 4.dp, end = 10.dp, top = 8.dp, bottom = 8.dp),
+                .padding(start = 4.dp, end = 10.dp, top = 8.dp, bottom = 8.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
+            // Logo de la tienda
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(i.img.logo_img)
@@ -389,69 +401,97 @@ fun carta_promocion_geinz(
                     .clip(CircleShape)
                     .clickable(
                         indication = null,
-                        interactionSource = remember { MutableInteractionSource() }) {
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
                         mostrar_perfil(i.informacion_publcacion.id_tienda)
                     },
                 contentScale = ContentScale.Crop
             )
 
-            spacer_vertical(5.dp)
-            Column() {
+            Spacer(modifier = Modifier.width(8.dp))
+
+
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = i.informacion_publcacion.nombre_tienda.capitalizeFirst(),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
-                spacer_vertical(5.dp)
+                Spacer(modifier = Modifier.height(2.dp))
+
                 if (i.informacion_publcacion.titulo.isNotEmpty()) {
                     Text(
                         text = i.informacion_publcacion.titulo.capitalizeFirst(),
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
-                spacer_vertical(5.dp)
+
+                Spacer(modifier = Modifier.height(2.dp))
+
                 Text(
-                    text = "${i.dias_restantes} ${if (i.dias_restantes.toInt() == 1) "día" else "días"} restantes ",
+                    text = "${i.dias_restantes}",
                     fontSize = 12.sp,
                     color = backgroundColor
                 )
             }
 
-            Spacer(Modifier.weight(1f))
-            if (i.informacion_publcacion.compartir) {
-                Icon(
-                    painterResource(R.drawable.comparir_icon),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(25.dp)
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }) {
-                            share_promo(i.informacion_publcacion.id_tienda,i.informacion_publcacion.id_promocion,i.informacion_publcacion.categoria)
+            spacer_horizonta(10.dp)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (i.informacion_publcacion.compartir) {
+                    Icon(
+                        painterResource(R.drawable.comparir_icon),
+                        contentDescription = "Compartir",
+                        modifier = Modifier
+                            .size(25.dp)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                share_promo(
+                                    i.informacion_publcacion.id_tienda,
+                                    i.informacion_publcacion.id_promocion,
+                                    i.informacion_publcacion.categoria
+                                )
+                            }
+                    )
+                }
 
-                        }
-                )
+                if (i.informacion_publcacion.contactar) {
+                    Icon(
+                        painterResource(R.drawable.whatsapp_icon),
+                        contentDescription = "WhatsApp",
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clickable {
+                                whatsap_promo(i.informacion_publcacion.id_promocion)
+                            },
+                        tint = Color.Unspecified
+                    )
+                }
             }
-
-            Spacer(Modifier.width(10.dp))
-            if (i.informacion_publcacion.contactar) {
-                Icon(
-                    painterResource(R.drawable.whatsapp_icon),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clickable {
-                            whatsap_promo(i.informacion_publcacion.id_promocion)
-                        },
-                    tint = Color.Unspecified
-                )
-            }
-
-
         }
+
     }
 }
-
+fun parseDiasHorasRestantes(diasRestantesStr: String): Pair<Int, String> {
+    // Ejemplos de strings que podrías tener: "3 días restantes" o "5 horas restantes"
+    val regex = """(\d+)\s*(día|días|hora|horas)""".toRegex()
+    val match = regex.find(diasRestantesStr)
+    return if (match != null) {
+        val valor = match.groupValues[1].toIntOrNull() ?: 0
+        val tipo = if (match.groupValues[2].startsWith("día")) "dias" else "horas"
+        valor to tipo
+    } else {
+        0 to "dias"
+    }
+}
 @Composable
 fun GaleriaHorizontalInstagram(
     imagenes: List<String>,

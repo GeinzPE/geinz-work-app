@@ -874,13 +874,10 @@ class repo_eres_socio {
                 .document(i.informacion.id_tienda).collection("promociones_geinz")
                 .document(i.informacion.id_promocion)
 
-            val hasmap = hashMapOf<String, Any>(
-                "fechas" to i.fechas
-            )
 
             val hashMap = hashMapOf<String, Any>(
-                "exclusivo" to i.exclusivo,
-                "fechas" to i.fechas,
+                "tipo_hora_dias" to i.formato_fecha_hora,
+                "datos_hora_fecha" to i.datos_hora_fecha,
                 "img_container" to i.img_container,
                 "informacion" to i.informacion,
                 "ubicacion" to i.ubicacion
@@ -1077,7 +1074,7 @@ class repo_eres_socio {
         val resultado = mutableListOf<datos_publicaciones_realizadas>()
 
         val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        val hoy = dateFormat.parse(dateFormat.format(Date())) ?: Date()
+        val hoy = Date()
 
         val snapshot = db.collection("Tiendas")
             .document(localidad)
@@ -1087,30 +1084,33 @@ class repo_eres_socio {
             .get()
             .await()
 
+        Log.d("PUB_TEST", "Total docs: ${snapshot.size()}")
+
         for (doc in snapshot.documents) {
 
-            val informacion = doc.get("informacion") as? Map<*, *> ?: continue
-            val fechas = doc.get("fechas") as? Map<*, *> ?: continue
-            val imgContainer = doc.get("img_container") as? Map<*, *>
+            Log.d("PUB_TEST", "DOC ${doc.id} => ${doc.data}")
 
-            val titulo = informacion["titulo"] as? String ?: ""
-            val descripcion = informacion["descripcion"] as? String ?: ""
-            val id = informacion["id_promocion"] as? String ?: doc.id
+            val informacion = doc.get("informacion") as? Map<String, Any>
+            val fechas = doc.get("fechas") as? Map<String, Any>
+            val imgContainer = doc.get("img_container") as? Map<String, Any>
 
-            val inicioStr = fechas["inicio"] as? String
-            val finStr = fechas["fin"] as? String
+            val titulo = informacion?.get("titulo") as? String ?: ""
+            val descripcion = informacion?.get("descripcion") as? String ?: ""
+            val id = informacion?.get("id_promocion") as? String ?: doc.id
 
-            val inicio = inicioStr?.let { dateFormat.parse(it) }
-            val fin = finStr?.let { dateFormat.parse(it) }
+            val inicioStr = fechas?.get("inicio") as? String
+            val finStr = fechas?.get("fin") as? String
+
+            val inicio = inicioStr?.let { runCatching { dateFormat.parse(it) }.getOrNull() }
+            val fin = finStr?.let { runCatching { dateFormat.parse(it) }.getOrNull() }
 
             val activo = if (inicio != null && fin != null) {
                 !hoy.before(inicio) && !hoy.after(fin)
-            } else {
-                false
-            }
+            } else false
 
             val listaImg = imgContainer?.get("lista_img") as? List<*>
-            val img = listaImg?.getOrNull(0) as? String ?: ""
+            val img = listaImg?.firstOrNull() as? String ?: ""
+
             resultado.add(
                 datos_publicaciones_realizadas(
                     titulo = titulo,
@@ -1125,6 +1125,7 @@ class repo_eres_socio {
 
         return resultado
     }
+
 
     suspend fun obtenerPaquetesBasicos(): List<datos_recarga> {
         // 1️⃣ Obtener snapshot de Firestore

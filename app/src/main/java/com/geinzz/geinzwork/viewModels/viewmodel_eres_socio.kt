@@ -82,19 +82,19 @@ class viewmodel_eres_socio : ViewModel() {
     val subidaPromoState = _subidaPromoState.asStateFlow()
 
 
-    private val _estado_envio_notificaciones = MutableStateFlow("")
-    val estado_envio_notificaciones = _estado_envio_notificaciones.asStateFlow()
+//    private val _estado_envio_notificaciones = MutableStateFlow("")
+//    val estado_envio_notificaciones = _estado_envio_notificaciones.asStateFlow()
 
-    private val _estado_envio_recientes = MutableStateFlow(false)
-    val estado_envio_recientes = _estado_envio_recientes.asStateFlow()
-
+//    private val _estado_envio_recientes = MutableStateFlow(false)
+//    val estado_envio_recientes = _estado_envio_recientes.asStateFlow()
+//
 
     private val _esta_vinculado = MutableStateFlow(false)
     val esta_vinculado = _esta_vinculado.asStateFlow()
 
-    fun cambiar_Estado_reciente(estado: Boolean) {
-        _estado_envio_recientes.value = estado
-    }
+//    fun cambiar_Estado_reciente(estado: Boolean) {
+//        _estado_envio_recientes.value = estado
+//    }
 
 
     fun cargarIdSocio(context: Context) {
@@ -162,6 +162,7 @@ class viewmodel_eres_socio : ViewModel() {
             }
         }
     }
+
 
     fun verificar_existencia_tienda(
         id_user: String,
@@ -434,7 +435,7 @@ class viewmodel_eres_socio : ViewModel() {
 
                 // ✅ TODO OK
                 _subidaPromoState.value = SubidaPromoState.Success
-                _estado_envio_recientes.value = true
+
 
             } catch (e: Exception) {
                 Log.e("error_agregado", "Error al subir imágenes", e)
@@ -471,35 +472,13 @@ class viewmodel_eres_socio : ViewModel() {
         viewModelScope.launch {
             try {
                 val resultado = instace_repo.crear_promocion(i, localidad)
-                if (resultado.isSuccess) {
 
-                }
             } catch (e: Exception) {
                 Log.d("error", "error al crear la publicacion")
             }
         }
     }
 
-    fun enviar_notificacion(usuarios: List<String>, i: obj_contador_notificaciones) {
-        viewModelScope.launch {
-            try {
-                val estado_notificacion =
-                    instace_repo.verificar_envio_notificaciones(i.localida, i.id_tienda)
-                if (estado_notificacion) {
-                    instace_repo.agregarContadorNotificacion(usuarios, i)
-                    _estado_envio_notificaciones.value = "Notificaciones enviadas correctamente"
-                    _estado_envio_recientes.value = true
-                } else {
-                    _estado_envio_notificaciones.value =
-                        "superaste el maximo de notificaciones semanales"
-                }
-            } catch (e: Exception) {
-                _estado_envio_notificaciones.value =
-                    "error al enviar las notificaciones"
-                Log.d("error_envio_noti", "error al enviar las notificaciones")
-            }
-        }
-    }
 
     fun obtener_lista_seguidores(localidad: String, id_tienda: String) {
         viewModelScope.launch {
@@ -515,7 +494,6 @@ class viewmodel_eres_socio : ViewModel() {
     fun obtner_publicaciones_subidas(id_tienda: String, localidad: String) {
         viewModelScope.launch {
             try {
-
                 val listaPublicaicones =
                     instace_repo.obtener_publicaciones_tiendas(localidad, id_tienda)
                 if (listaPublicaicones.isNotEmpty()) {
@@ -544,11 +522,10 @@ class viewmodel_eres_socio : ViewModel() {
     }
 
 
-
     sealed class CargaPaquetesPago {
         object Loading : CargaPaquetesPago()
         data class Success(val datos: List<datos_recarga>) : CargaPaquetesPago()
-        data class Error(val txt: String ) : CargaPaquetesPago()
+        data class Error(val txt: String) : CargaPaquetesPago()
     }
 
 

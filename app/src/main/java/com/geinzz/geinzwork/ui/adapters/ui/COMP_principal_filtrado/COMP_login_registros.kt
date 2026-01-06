@@ -60,6 +60,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.geinzz.geinzwork.data.model.nombre_precio_notificaciones
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown_select_params
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.joelkanyi.jcomposecountrycodepicker.annotation.RestrictedApi
@@ -327,11 +328,11 @@ fun SeleccionarPais(
 @Composable
 fun ExpandDropDown_select_params(
     seleccionado: String = "",
-    lista: List<String>,
+    lista: List<nombre_precio_notificaciones>,
     isError: Boolean,
     textoError: String,
     label: String,
-    onSeleccionado: (String) -> Unit
+    onSeleccionado: (String, Int) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -367,11 +368,11 @@ fun ExpandDropDown_select_params(
             ) {
                 lista.forEach { option ->
                     DropdownMenuItem(
-                        text = { Text(option) },
+                        text = { Text(option.tipo) },
                         onClick = {
-                            selected = option
+                            selected = option.tipo
                             expanded = false
-                            onSeleccionado(option)
+                            onSeleccionado(option.tipo,option.precio)
                         }
                     )
                 }
@@ -434,6 +435,67 @@ fun ExpandDropDown(
                             selected = option
                             expanded = false
                             selecionado(option)
+                        }
+                    )
+                }
+            }
+
+        }
+        AnimatedVisibility(isError) {
+            Box(modifier = Modifier.padding(top = 5.dp, start = 5.dp)) {
+                retornar_pleaceholder_label(texto_error, Color.Red)
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ExpandDropDown_precio_nombre_notificaciones(
+    lista: List<nombre_precio_notificaciones>,
+    isError: Boolean,
+    texto_error: String,
+    lable: String,
+    selecionado: (String, Int) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var selected by rememberSaveable { mutableStateOf("") }
+
+    Column {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
+            modifier = Modifier
+                .padding(vertical = 5.dp)
+                .clip(RoundedCornerShape(30))
+        ) {
+            TextField(
+                value = selected,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(lable) },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                isError = isError,
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                shape = RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
+            ) {
+                lista.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option.tipo) },
+                        onClick = {
+                            selected = option.tipo
+                            expanded = false
+                            selecionado(option.tipo,option.precio)
                         }
                     )
                 }

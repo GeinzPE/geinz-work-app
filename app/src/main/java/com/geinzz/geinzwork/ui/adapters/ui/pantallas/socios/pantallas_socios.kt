@@ -138,6 +138,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import com.geinzz.geinzwork.data.model.items_pantallas_promociones
+import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_promocionar
 
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -165,12 +166,14 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
     var correo_electronico_cuenta_user by remember { mutableStateOf("") }
     var item_pantalla_promociones by remember { mutableStateOf(items_pantallas_promociones()) }
     var pantallaSeleccionada by remember { mutableStateOf("Inicio") }
-
-    val mostarr_bundel_recientes by viewmodel.estado_envio_recientes.collectAsState()
+    val viewmodel_pantalla_promocionar: viewmodel_pantallas_promocionar = viewModel()
+    val mostarr_bundel_recientes by viewmodel_pantalla_promocionar.estado_envio_recientes.collectAsState()
 
     var mostrar_bundle_desbloqueo by remember { mutableStateOf(false) }
 
     var nombre_tienda by remember { mutableStateOf("") }
+    var localidad_tienda by remember { mutableStateOf("") }
+    var id_tienda by remember { mutableStateOf("") }
 
     LaunchedEffect(tipo_) {
         if (tipo_.isNotEmpty()) {
@@ -545,6 +548,8 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                         )
                                     }
                                     nombre_tienda= state.datos.nombre
+                                    localidad_tienda=state.datos.localidad_tienda
+                                    id_tienda=state.datos.id_tienda
 
                                     pantalla_carga_socios(state.datos, isConnected) { valor ->
                                         id_registrado = valor
@@ -595,6 +600,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                         alwaysShowLabel = true,
                                         modifier = Modifier.padding(top = 4.dp)
                                     )
+
                                     BottomNavigationItem(
                                         icon = {
                                             if (mostrar_bundle_desbloqueo) {
@@ -695,7 +701,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                         selected = pantallaSeleccionada == "Publicaciones",
                                         onClick = {
                                             pantallaSeleccionada = "Publicaciones"
-                                            viewmodel.cambiar_Estado_reciente(false)
+                                            viewmodel_pantalla_promocionar.cambiar_Estado_reciente(false)
                                         },
                                         alwaysShowLabel = true,
                                         modifier = Modifier.padding(top = 4.dp)
@@ -725,6 +731,9 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                         alwaysShowLabel = true,
                                         modifier = Modifier.padding(top = 4.dp)
                                     )
+
+
+
                                 }
                             }
                         }
@@ -747,6 +756,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
 
                                     "Promocionar" -> {
                                         pantalla_promocionar(
+                                            viewmodel_pantalla_promocionar,
                                             viewmodel,
                                             item_pantalla_promociones
                                         )
@@ -758,7 +768,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                     }
 
                                     "Recargas" -> {
-                                        pantala_recarga(viewmodel,nombre_tienda)
+                                        pantala_recarga(viewmodel,nombre_tienda,localidad_tienda,id_tienda)
 //                                        pantallaSoporte()
                                     }
                                 }

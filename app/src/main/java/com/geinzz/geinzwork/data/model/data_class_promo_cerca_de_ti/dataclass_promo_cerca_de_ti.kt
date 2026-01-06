@@ -18,7 +18,7 @@ data class dataclass_promociones_cerca_de_ti(
     val informacion_publcacion: informacion_publcacion,
     val img: img_content,
     val exclussivo: Boolean,
-    val dias_restantes: Int,
+    val dias_restantes: String,
 )
 
 data class img_content(

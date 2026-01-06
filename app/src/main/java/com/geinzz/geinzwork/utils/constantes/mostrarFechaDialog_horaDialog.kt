@@ -11,6 +11,10 @@ import androidx.appcompat.app.AppCompatActivity
 import com.geinzz.geinzwork.utils.constantes.hora.timePiker24hours
 import com.geinzz.geinzwork.utils.constantes.hora.datePickterFracment
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Calendar
@@ -103,6 +107,40 @@ object mostrarFechaDialog_horaDialog {
         val formato = SimpleDateFormat("HH:mm", Locale.getDefault())
         val horaActual = Date()
         return formato.format(horaActual)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun obtenerHoraFin(horas: Int): String {
+        val horaActual = LocalTime.now()          // Hora actual
+        val horaFin = horaActual.plusHours(horas.toLong()) // Sumar horas
+        val formatter = DateTimeFormatter.ofPattern("HH:mm")
+        return horaFin.format(formatter)          // Devolver solo hora y minutos
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun obtenerTimestampHoraFin(horas: Int): Long {
+        val ahora = LocalDateTime.now() // Fecha + hora local
+        val fin = ahora.plusHours(horas.toLong())
+        // Ajustar a tu zona horaria local
+        val zoned = fin.atZone(ZoneId.systemDefault())
+        return zoned.toInstant().toEpochMilli()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun obtenerTimestampHoraInicio(): Long {
+        val ahora = LocalDateTime.now()
+        val zoned = ahora.atZone(ZoneId.systemDefault())
+        return zoned.toInstant().toEpochMilli()
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun obtenerTimestampFecha(fecha: String): Long {
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        val localDate = LocalDate.parse(fecha, formatter)
+        return localDate.atStartOfDay()
+            .toInstant(ZoneOffset.UTC)
+            .toEpochMilli()
     }
 
 
