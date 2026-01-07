@@ -8,18 +8,25 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,6 +34,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -50,12 +58,16 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.compartir_contacto_pulicaciones
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.repo_eres_socio
@@ -65,11 +77,16 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.compartirLugarFirebaseHosttiendas
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.promociones_Cercanas.parseDiasHorasRestantes
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.viewModels.viewmodel_promos_cercanas
 import com.github.panpf.zoomimage.ZoomImage
+import com.github.panpf.zoomimage.compose.ZoomState
 import com.github.panpf.zoomimage.compose.rememberZoomState
+
 import com.github.panpf.zoomimage.compose.zoom.rememberZoomableState
 import com.github.panpf.zoomimage.compose.zoom.zoomable
+import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
 import org.checkerframework.framework.qual.ConditionalPostconditionAnnotation
 import java.net.URLEncoder
@@ -200,8 +217,8 @@ fun CollageGoogleMapsStyle_sin_scroll_promociones(
     width: Dp = 280.dp,
     imagenes: Map<String, String>, // ID -> URL
     modifier: Modifier = Modifier
-){
-    Log.d("datoscometaeir","$imagenes")
+) {
+    Log.d("datoscometaeir", "$imagenes")
     val listaImagenes = imagenes.map { it.key to it.value } // List<Pair<ID, URL>>
 
     if (listaImagenes.isEmpty()) return
@@ -250,11 +267,9 @@ fun CollageGoogleMapsStyle_sin_scroll_promociones(
 }
 
 
-
-
 @Composable
 fun GrupoCollageGoogle_sin_scrool(
-    categoria:String,
+    categoria: String,
     tag: String,
     aspectRatio: Float,
     baseWidth: Dp,
@@ -364,7 +379,7 @@ fun GrupoCollageGoogle_sin_scrool_promociones(
             ) {
 
                 ImagenCollage(
-                    tag=  tag,
+                    tag = tag,
                     url = imagenes.getOrNull(1)?.second,
                     modifier = Modifier.weight(1f),
                     listener_img = {
@@ -374,7 +389,7 @@ fun GrupoCollageGoogle_sin_scrool_promociones(
 
                 if (imagenes.size > 2) {
                     ImagenCollage(
-                        tag= tag,
+                        tag = tag,
                         url = imagenes.getOrNull(2)?.second,
                         modifier = Modifier.weight(1f),
                         listener_img = {
@@ -451,7 +466,7 @@ fun GrupoCollageGoogle(
 // ✅ Imagen individual dentro del collage
 @Composable
 fun ImagenCollage(
-    tipo:String="",
+    tipo: String = "",
     tag: String = "",
     url: String?,
     modifier: Modifier = Modifier,
@@ -530,6 +545,7 @@ fun ImagenCollage(
         }
     }
 }
+
 fun emojiPorCategoria(categoria: String): String {
     return when (categoria.lowercase()) {
 
@@ -560,6 +576,7 @@ fun emojiPorCategoria(categoria: String): String {
         else -> "🏷️" // emoji por defecto
     }
 }
+
 // ✅ Galería fullscreen tipo Instagram
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -631,12 +648,12 @@ fun ZoomableGalleryFullScreen(
     var allowScroll by remember { mutableStateOf(true) }
     val zoomableState = rememberZoomableState()
     var indice_cruzado by remember { mutableStateOf(startIndex) }
-    val localidad_pasada= when(it.localidad){
-        "barranca"->"ba"
-        "paramonga"->"par"
-        "pativilca"->"pat"
-        "supe"->"su"
-        "puerto supe"->"pue"
+    val localidad_pasada = when (it.localidad) {
+        "barranca" -> "ba"
+        "paramonga" -> "par"
+        "pativilca" -> "pat"
+        "supe" -> "su"
+        "puerto supe" -> "pue"
         else -> it.localidad
     }
     // Observamos cambios de página para actualizar indice_cruzado
@@ -730,7 +747,7 @@ fun ZoomableGalleryFullScreen(
                                     it.categoria,
                                     context,
                                     it.localidad,
-                                    it.id_tienda,indice_cruzado.toString()
+                                    it.id_tienda, indice_cruzado.toString()
                                 )
 
                             })
@@ -768,7 +785,7 @@ fun ZoomableGalleryFullScreen_para_promociones(
     // ID de la promoción actual
     var indice_cruzado by remember { mutableStateOf(id_promocion) }
 
-    val localidad_pasada = when(it.localidad.lowercase()) {
+    val localidad_pasada = when (it.localidad.lowercase()) {
         "barranca" -> "ba"
         "paramonga" -> "par"
         "pativilca" -> "pat"
@@ -883,46 +900,187 @@ fun ZoomableGalleryFullScreen_para_promociones(
     }
 }
 
+//@RequiresApi(Build.VERSION_CODES.O)
+//@OptIn(ExperimentalFoundationApi::class)
+//@Composable
+//fun ZoomableGalleryFullScreenVerticalPager(
+//    viewModel: viewmodel_promos_cercanas,
+//    localidad_general: String,
+//    promoSeleccionada: dataclass_promociones_cerca_de_ti,
+//    onDismiss: () -> Unit
+//) {
+//    val listaPromos by viewModel.promosCargadas.collectAsState()
+//    val threshold = 2
+//
+//    // Feed completo sin duplicados
+//    var feedVisible by remember { mutableStateOf<List<dataclass_promociones_cerca_de_ti>>(emptyList()) }
+//
+//    // Función para agregar nuevas promos sin duplicados
+//    fun agregarNuevasPromos(nuevas: List<dataclass_promociones_cerca_de_ti>) {
+//        val existentesIds = feedVisible.map { it.informacion_publcacion.id_promocion }.toSet()
+//        val filtradas = nuevas.filter { it.informacion_publcacion.id_promocion !in existentesIds }
+//        if (filtradas.isNotEmpty()) {
+//            feedVisible = feedVisible + filtradas
+//            Log.d("ZoomGallery", "Agregando ${filtradas.size} promos nuevas: ${filtradas.map { it.informacion_publcacion.id_promocion }}")
+//        }
+//    }
+//
+//    // Cargar bloques iniciales
+//    LaunchedEffect(Unit) {
+//        viewModel.cargarSiguienteBloque(localidad_general)
+//    }
+//
+//    // Cada vez que listaPromos cambia, agregamos nuevas promos
+//    LaunchedEffect(listaPromos) {
+//        agregarNuevasPromos(listaPromos)
+//    }
+//
+//    // Inicializar PagerState después de tener feedVisible
+//    val startIndex = feedVisible.indexOfFirst { it.informacion_publcacion.id_promocion == promoSeleccionada.informacion_publcacion.id_promocion }
+//        .takeIf { it >= 0 } ?: 0
+//    val pagerState = rememberPagerState(initialPage = startIndex)
+//
+//    // Scroll infinito
+//    LaunchedEffect(pagerState.currentPage, listaPromos.size) {
+//        if (pagerState.currentPage >= feedVisible.size - threshold) {
+//            agregarNuevasPromos(listaPromos)
+//            if (pagerState.currentPage >= listaPromos.size - threshold) {
+//                Log.d("ZoomGallery", "Solicitando siguiente bloque desde pager...")
+//                viewModel.cargarSiguienteBloque(localidad_general)
+//            }
+//        }
+//    }
+//
+//    // UI
+//    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+//        Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
+//            VerticalPager(
+//                state = pagerState,
+//                pageCount = feedVisible.size,
+//                modifier = Modifier.fillMaxSize()
+//            ) { index ->
+//                val promo = feedVisible[index]
+//                Log.d("ZoomGallery", "Mostrando promo index=$index id=${promo.informacion_publcacion.id_promocion}")
+//
+//                ZoomableGalleryFullScreen_promociones(
+//                    dias_restantes = promo.dias_restantes,
+//                    logo_tienda = promo.img.logo_img,
+//                    nombre_tienda = promo.informacion_publcacion.nombre_tienda,
+//                    titulo = promo.informacion_publcacion.titulo,
+//                    txt = promo.informacion_publcacion.descripcion,
+//                    imagenes = promo.img.lista_img,
+//                    startIndex = 0,
+//                    onDismiss = onDismiss
+//                )
+//            }
+//        }
+//    }
+//}
+
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun ZoomableGalleryFullScreen_promociones(
-   titulo:String,txt:String,
+    i: compartir_contacto_pulicaciones,
+    titulo: String, txt: String,
     imagenes: List<String>,
     startIndex: Int = 0,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    clikc_compartir: (id:String,categoria:String,localidad:String,id_tienda:String) -> Unit,
+    click_contacto_directo: (id:String,numero:String,localidad:String,id_tienda:String) -> Unit,
+    abrir_prefil:(String)-> Unit,
 ) {
+    val (valorRestante, tipo) = parseDiasHorasRestantes(i.dias_restantes)
+    val backgroundColor = when {
+        tipo == "dias" -> when {
+            valorRestante > 5 -> Color(0xFF15BB1A) // Verde
+            valorRestante in 2..5 -> Color(0xFFFF9900) // Naranja
+            valorRestante == 1 -> Color(0xFFEC1707) // Rojo
+            else -> Color.Gray
+        }
+
+        tipo == "horas" -> when {
+            valorRestante > 12 -> Color(0xFF15BB1A)
+            valorRestante in 6..12 -> Color(0xFFFF9900)
+            valorRestante in 1..5 -> Color(0xFFEC1707)
+            else -> Color.Gray
+        }
+
+        else -> Color.Gray
+    }
+    val color_bottom = listOf(
+        Color.Transparent,
+        Color.Black.copy(alpha = 0.01f),
+        Color.Black.copy(alpha = 0.25f),
+        Color.Black.copy(alpha = 0.40f),
+        Color.Black.copy(alpha = 0.65f), // arriba suave
+        Color.Black.copy(alpha = 0.85f),  // abajo oscuro
+        Color.Black.copy(alpha = 1f)
+    )
+    val color_top = listOf(
+        Color.Black.copy(alpha = 1f),
+        Color.Black.copy(alpha = 0.85f),
+        Color.Black.copy(alpha = 0.65f),
+        Color.Black.copy(alpha = 0.40f),
+        Color.Black.copy(alpha = 0.25f),
+        Color.Black.copy(alpha = 0.01f),
+        Color.Transparent,
+    )
     if (imagenes.isEmpty()) return
     val context = LocalContext.current
 
     val pagerState = com.google.accompanist.pager.rememberPagerState(initialPage = startIndex)
     var allowScroll by remember { mutableStateOf(true) }
-    val zoomableState = rememberZoomableState()
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Surface(
+    Box(modifier = Modifier.fillMaxSize()) {
+        com.google.accompanist.pager.HorizontalPager(
+            state = pagerState,
+            count = imagenes.size,
             modifier = Modifier.fillMaxSize(),
-            color = Color.Black
-        ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                com.google.accompanist.pager.HorizontalPager(
-                    state = pagerState,
-                    count = imagenes.size,
-                    modifier = Modifier.fillMaxSize(),
-                    userScrollEnabled = allowScroll
-                ) { page ->
-                    ZoomImage(
-                        painter = rememberAsyncImagePainter(imagenes[page]),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .zoomable(zoomableState),
-                        contentScale = ContentScale.Fit
-                    )
+            userScrollEnabled = allowScroll
+        ) { page ->
+
+            val zoomState = rememberZoomState()
+            val painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(imagenes[page])
+                    .placeholder(R.drawable.cargando_img_categorias)
+                    .error(R.drawable.cargando_img_categorias)
+                    .build()
+            )
+
+            val state = painter.state
+            ZoomImage(
+                painter = painter,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                zoomState = zoomState,
+                contentScale = ContentScale.Fit
+            )
+
+            // 🟡 Loader encima mientras carga
+            if (state is AsyncImagePainter.State.Loading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color.White)
                 }
+            }
+        }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = color_top
+                        )
+                    )
+                    .height(100.dp)
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -963,61 +1121,205 @@ fun ZoomableGalleryFullScreen_promociones(
                     }
                 }
 
+            }
 
-                Box(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()){
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.Black.copy(alpha = 0.01f),
-                                        Color.Black.copy(alpha = 0.25f),
-                                        Color.Black.copy(alpha = 0.40f),
-                                        Color.Black.copy(alpha = 0.65f), // arriba suave
-                                        Color.Black.copy(alpha = 0.85f),  // abajo oscuro
-                                         Color.Black.copy(alpha = 1f)
-                                    )
-                                )
-                            )
-                    )
-                    Column(modifier = Modifier.padding(10.dp)) {
-                        Text(
-                            text = titulo.capitalizeFirst(),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
+
+
+
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+        ) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = color_bottom
                         )
-                        spacer_vertical(5.dp)
-                        TextoExpandibleSuave(texto =txt ,style = MaterialTheme.typography.bodySmall, maxLines = 2)
+                    )
+            )
 
+            Column(modifier = Modifier.padding(10.dp)) {
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(7.dp)
+                ) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(
+                            context
+                        )
+                            .data(i.logo_img)
+                            .placeholder(R.drawable.cargando_img_categorias)
+                            .error(R.drawable.cargando_img_categorias)
+                            .build(),
+                        modifier = Modifier
+                            .size(45.dp)
+                            .clip(CircleShape)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }) {
+                                abrir_prefil(i.iod_tienda)
+                            },
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop
+                    )
+                    Text(
+                        text = i.nombre_tienda.capitalizeFirst(),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                spacer_vertical(10.dp)
+                Text(
+                    text = titulo.capitalizeFirst(),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                spacer_vertical(5.dp)
+                TextoExpandibleSuave(
+                    texto = txt,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 2
+                )
+                spacer_vertical(5.dp)
+                if (imagenes.size > 1) {
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        PegasooPagerIndicator(
+                            pageCount = imagenes.size,
+                            currentPage = pagerState.currentPage,
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = 8.dp)
+                        )
                     }
-
                 }
 
+                spacer_vertical(5.dp)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${i.dias_restantes}",
+                        fontSize = 12.sp,
+                        color = backgroundColor
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    BotonCompartirReddit(
+                        icon = R.drawable.icono_whatsapp_blanco_tasns,
+                        descripcion = "contactados",
+                        contador = "2.5k", onClick = { click_contacto_directo(i.id_promocion,i.numero_contacto,i.localidad_tineda,i.iod_tienda) })
+                    BotonCompartirReddit(
+                        icon = R.drawable.comparir_icon,
+                        descripcion = "compartidos",
+                        contador = "4.5k",
+                        onClick = { clikc_compartir(i.id_promocion,i.categoria,i.localidad_tineda,i.iod_tienda) })
+                }
             }
+        }
+        }
+
+
+
+}
+
+
+@Composable
+fun BotonCompartirReddit(
+    icon: Int,
+    descripcion: String,
+    contador: String = "4.4k",
+    onClick: () -> Unit = {}
+) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .border(
+                width = 1.dp,
+                color = Color.Gray.copy(alpha = 0.4f),
+                shape = RoundedCornerShape(50)
+            )
+            .clickable { onClick() }
+            .background(Color.Black)
+            .padding(horizontal = 10.dp, vertical = 9.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Image(
+            painter = painterResource(icon),
+            contentDescription = descripcion,
+            modifier = Modifier.size(16.dp)
+        )
+
+        Text(
+            text = contador,
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.White
+        )
+    }
+}
+
+
+@Composable
+fun PegasooPagerIndicator(
+    pageCount: Int,
+    currentPage: Int,
+    modifier: Modifier = Modifier,
+    activeColor: Color = Color.White,
+    inactiveColor: Color = Color.White.copy(alpha = 0.35f)
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        repeat(pageCount) { index ->
+            val isSelected = index == currentPage
+
+            val width by animateDpAsState(
+                targetValue = if (isSelected) 18.dp else 6.dp,
+                animationSpec = tween(durationMillis = 250),
+                label = ""
+            )
+
+            val color by animateColorAsState(
+                targetValue = if (isSelected) activeColor else inactiveColor,
+                animationSpec = tween(durationMillis = 250),
+                label = ""
+            )
+
+            Box(
+                modifier = Modifier
+                    .height(6.dp)
+                    .width(width)
+                    .clip(RoundedCornerShape(50))
+                    .background(color)
+            )
         }
     }
 }
 
 
-
-
 @RequiresApi(Build.VERSION_CODES.O)
 fun compartir_hosting_promo(
-    nombre_tienda:String,
+    nombre_tienda: String,
     categoria: String,
     context: Context,
     localidad_tienda: String,
     id_tienda: String,
-    indice_cruazado:String
+    indice_cruazado: String
 ) {
     try {
-        val localidad_pasada= when(localidad_tienda){
-            "barranca"->"ba"
-            "paramonga"->"par"
-            "pativilca"->"pat"
-            "supe"->"su"
-            "puerto supe"->"pue"
+        val localidad_pasada = when (localidad_tienda) {
+            "barranca" -> "ba"
+            "paramonga" -> "par"
+            "pativilca" -> "pat"
+            "supe" -> "su"
+            "puerto supe" -> "pue"
             else -> localidad_tienda
         }
         val repo_erese_socio = repo_eres_socio()
@@ -1030,7 +1332,6 @@ fun compartir_hosting_promo(
                     "&l=$localidad_pasada" +
                     "&c=${URLEncoder.encode(categoria, "UTF-8")}" +
                     "&i=$indice_cruazado"
-
 
 
         val texto = "Mira lo que encontre en $nombre_tienda 👀🔥 \n$link"

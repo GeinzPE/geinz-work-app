@@ -98,6 +98,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_mostar_leyendas_graficos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialogo_cerrar_seccion_teinda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_historial_pago
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.DiaHoy
@@ -113,8 +114,12 @@ import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrado:(String)-> Unit) {
-    val firebaseAuth= FirebaseAuth.getInstance()
+fun pantalla_carga_socios(
+    datos: datos_tienda,
+    isConnected: Boolean,
+    id_registrado: (String) -> Unit
+) {
+    val firebaseAuth = FirebaseAuth.getInstance()
     val viewmodel: viewmodel_eres_socio = viewModel()
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
     val labels = listOf("Vistas", "Guardados", "Clics", "Compartidos")
@@ -153,8 +158,12 @@ fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrad
     val esta_vincualdo by viewmodel.esta_vinculado.collectAsState()
 
     LaunchedEffect(uid_respald_user) {
-        if(uid_respald_user.isNotEmpty()){
-            viewmodel.verificar_cuenta_vinculada(uid_respald_user,datos.id_tienda,datos.localidad_tienda)
+        if (uid_respald_user.isNotEmpty()) {
+            viewmodel.verificar_cuenta_vinculada(
+                uid_respald_user,
+                datos.id_tienda,
+                datos.localidad_tienda
+            )
         }
     }
 
@@ -244,13 +253,16 @@ fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrad
         }
     }
     var listaPropietarios by remember { mutableStateOf(emptyList<String>()) }
-    val localidad_tienda_select_ by data_store_localidad.get_localidad_tienda_socio(context).collectAsState(initial = "")
+    val localidad_tienda_select_ by data_store_localidad.get_localidad_tienda_socio(context)
+        .collectAsState(initial = "")
     var horarioMap by remember { mutableStateOf(HorarioAtencion_box()) }
     horarioMap = datos.horario_tiendaMap
     val estaVinculado = listaPropietarios.contains(uid_respald_user)
     val idSocio by viewmodel.idSocio.collectAsState()
     val scope = rememberCoroutineScope()
     var guardandoLogo by remember { mutableStateOf(false) }
+
+    var mostra_bottom_sheet_historial by remember { mutableStateOf(false) }
 
     LaunchedEffect(datos) {
         values2 = listOf(
@@ -289,7 +301,7 @@ fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrad
         animationSpec = tween(durationMillis = 500)
     )
     Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(state = listState,modifier = Modifier.fillMaxSize()) {
+        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
             item {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -1599,6 +1611,33 @@ fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrad
                             }
                         }
                     }
+                    spacer_vertical(20.dp)
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                mostra_bottom_sheet_historial = true
+                            }
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            texto_generico_one_line(
+                                "Historial de recarga y compra",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(
+                                    vertical = 10.dp
+                                ),
+                            )
+                        }
+                    }
 
                     if (!esta_vincualdo && isConnected) {
                         spacer_vertical(20.dp)
@@ -1663,6 +1702,16 @@ fun pantalla_carga_socios(datos: datos_tienda, isConnected: Boolean,id_registrad
                 }
 
             }
+        }
+
+
+        if (mostra_bottom_sheet_historial) {
+            bottom_sheet_historial_pago(
+                datos.id_tienda,
+                datos.nombre,
+                datos.localidad_tienda,
+                datos.saldo_disponible_tienda.toString(),
+                { mostra_bottom_sheet_historial = false })
         }
 
         if (mostrarDialogozoom) {

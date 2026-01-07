@@ -74,11 +74,13 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.tiendas_con_mas_de_una_promo
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.repo_eres_socio
+import com.geinzz.geinzwork.ui.adapters.ZoomableGalleryFullScreenVerticalPager
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -111,6 +113,8 @@ fun ui_promos_cerca_de_ti(localidad: String, verificar_intener: Boolean) {
     var lista_img by remember {
         mutableStateOf<List<String>>(emptyList())
     }
+
+
     var index_galeria_img by remember { mutableStateOf(0) }
     var titulo_poromo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
@@ -120,6 +124,16 @@ fun ui_promos_cerca_de_ti(localidad: String, verificar_intener: Boolean) {
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     val categorias by viewModel._categoriasDisponibles.collectAsState()
     var tiendaSeleccionada by remember { mutableStateOf<String?>(null) }
+    var nombre_tienda by remember { mutableStateOf("") }
+    var img_tienda by remember { mutableStateOf("") }
+    var dias_restantes by remember { mutableStateOf("") }
+
+    var promoSeleccionada by remember { mutableStateOf<obj_completo?>(null) }
+
+    var promoSeleccionada_unica by remember { mutableStateOf<dataclass_promociones_cerca_de_ti?>(null) }
+
+    var indexImagenSeleccionada by remember { mutableStateOf(0) }
+
 
     LaunchedEffect(localidad) {
         viewModel.obtener_promociones("barranca")
@@ -262,17 +276,28 @@ fun ui_promos_cerca_de_ti(localidad: String, verificar_intener: Boolean) {
                         items = promos,
                         key = { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
                     ) { item ->
+
+                        val index = promos.indexOfFirst { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion ==
+                                item.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
+
+
                         carta_promocion_geinz(
                             i = item.dataclass_promociones_cerca_de_ti,
                             img_clikeble = { id_promo, listaimg, select ->
                                 Log.d("mostramosooom", "$id_promo ${listaimg.size} $select")
+                                promoSeleccionada = item
+                                // ✅ Usar el index calculado
+                                promoSeleccionada_unica=item.dataclass_promociones_cerca_de_ti
+                                indexImagenSeleccionada = select
                                 mostrar_zoom_img = true
                                 lista_img = listaimg
                                 index_galeria_img = select
-                                titulo_poromo =
-                                    item.dataclass_promociones_cerca_de_ti.informacion_publcacion.titulo
-                                descripcion =
-                                    item.dataclass_promociones_cerca_de_ti.informacion_publcacion.descripcion
+                                titulo_poromo = item.dataclass_promociones_cerca_de_ti.informacion_publcacion.titulo
+                                descripcion = item.dataclass_promociones_cerca_de_ti.informacion_publcacion.descripcion
+                                nombre_tienda = item.dataclass_promociones_cerca_de_ti.informacion_publcacion.nombre_tienda
+                                img_tienda = item.dataclass_promociones_cerca_de_ti.img.logo_img
+                                dias_restantes = item.dataclass_promociones_cerca_de_ti.dias_restantes
+
                                 viewModel.agregar_estadisticas_publicacion(
                                     "vistas",
                                     id_promo,
@@ -317,13 +342,15 @@ fun ui_promos_cerca_de_ti(localidad: String, verificar_intener: Boolean) {
                     }
 
                 }
-                if (mostrar_zoom_img) {
-                    ZoomableGalleryFullScreen_promociones(
-                        titulo = titulo_poromo, txt = descripcion,
-                        imagenes = lista_img,
-                        startIndex = index_galeria_img,
-                        onDismiss = { mostrar_zoom_img = false }
+                if (mostrar_zoom_img && promoSeleccionada != null) {
+                    ZoomableGalleryFullScreenVerticalPager(
+                        viewModel = viewModel,
+                        localidad_general = localidad,
+                        promoSeleccionada = promoSeleccionada_unica!!,
+                        index_galeria_img,
+                        onDismiss = { mostrar_zoom_img = false; promoSeleccionada = null }
                     )
+
                 }
 
                 if (show_bottom_sheeet) {

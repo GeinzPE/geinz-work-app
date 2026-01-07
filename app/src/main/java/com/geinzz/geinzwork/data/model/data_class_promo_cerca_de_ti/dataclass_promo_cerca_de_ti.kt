@@ -19,6 +19,12 @@ data class dataclass_promociones_cerca_de_ti(
     val img: img_content,
     val exclussivo: Boolean,
     val dias_restantes: String,
+    val estadisticas: estadisticas_publiccaciones
+)
+
+data class estadisticas_publiccaciones(
+    val total_clicks_whatsapp: Number=0,
+    val total_total_compartidos: Number=0
 )
 
 data class img_content(
@@ -45,3 +51,9 @@ data class ubicacion(
     val ref: String
 )
 
+
+data class compartir_contacto_pulicaciones(
+    val id_promocion: String,
+    val iod_tienda: String, val localidad_tineda: String, val categoria: String,
+    val numero_contacto: String ,val dias_restantes: String,val logo_img: String,val nombre_tienda: String
+)

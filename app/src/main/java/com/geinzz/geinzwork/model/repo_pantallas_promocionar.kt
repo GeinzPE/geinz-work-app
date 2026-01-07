@@ -181,6 +181,9 @@ class repo_pantallas_promocionar {
         )
     }
 
+
+
+
     fun generarPromptNotificacionOptimizado(
         tituloPublicacion: String,
         descCorta: String, // ≤60 chars

@@ -1,11 +1,15 @@
 package com.geinzz.geinzwork.model
 
 import com.geinzz.geinzwork.data.model.historial_descuento
+import com.geinzz.geinzwork.data.model.historial_financiero
 import com.geinzz.geinzwork.data.model.historial_recargas
 import com.geinzz.geinzwork.data.model.recargar_monedas_tienda
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 class repo_recargas {
@@ -40,9 +44,12 @@ class repo_recargas {
                 ),
                 "datos_recarga" to mapOf(
                     "tipo_paquete" to i.tipo,
-                    "monto_aumentado" to i.monto,
-                    "precio_soles" to i.precio_soles
+                    "monto_aumentado" to i.monto.toInt(),
+                    "precio_soles" to i.precio_soles,
+                    "estado" to i.estado,
+                    "monto_anterior" to i.monto_posterior
                 ), "timestamp" to FieldValue.serverTimestamp()
+
             )
 
             ref.set(hashMap, SetOptions.merge()).await()
@@ -52,8 +59,37 @@ class repo_recargas {
             false
         }
     }
+    fun obtner_saldo_reactivo(
+        id_tienda: String,
+        localidad: String
+    ): Flow<Int> = callbackFlow {
 
-    suspend fun guardar_historial_descuento(i: historial_descuento): Boolean{
+        val listener = db
+            .collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(id_tienda)
+            .addSnapshotListener { snapshot, error ->
+
+                if (error != null) {
+                    trySend(0)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    val puntos = snapshot.get("puntos_tienda") as? Number
+                    trySend(puntos?.toInt() ?: 0)
+                } else {
+                    trySend(0)
+                }
+            }
+
+        awaitClose {
+            listener.remove()
+        }
+    }
+
+    suspend fun guardar_historial_descuento(i: historial_descuento): Boolean {
         return try {
             val ref = db.collection("Tiendas")
                 .document(i.localidad_tienda)
@@ -76,8 +112,10 @@ class repo_recargas {
                 ),
                 "datos_recarga" to mapOf(
                     "tipo_paquete" to i.tipo,
-                    "monto_descontado" to i.monto_descuento,
-                    "precio_soles" to i.precio_soles
+                    "monto_descontado" to i.monto_descuento.toInt(),
+                    "precio_soles" to i.precio_soles,
+                    "estado" to i.estado,
+                    "monto_restante" to i.monto_restante
                 ),
                 "timestamp" to FieldValue.serverTimestamp()
             )
@@ -111,7 +149,11 @@ class repo_recargas {
         }
     }
 
-    suspend fun descontar_puntos_uso(monto_descontar:String,id_tienda:String,localidad:String): Boolean{
+    suspend fun descontar_puntos_uso(
+        monto_descontar: String,
+        id_tienda: String,
+        localidad: String
+    ): Boolean {
         return try {
             val ref = db.collection("Tiendas")
                 .document(localidad)
@@ -129,4 +171,50 @@ class repo_recargas {
             false
         }
     }
+
+
+    suspend fun obtner_historial(
+        id_tienda: String,
+        localidad: String
+    ): List<historial_financiero> {
+
+        return try {
+            val snapshot = db
+                .collection("Tiendas")
+                .document(localidad)
+                .collection(localidad)
+                .document(id_tienda)
+                .collection("historial_financiero")
+                .get()
+                .await()
+
+            snapshot.documents.mapNotNull { doc ->
+
+                val data = doc.data ?: return@mapNotNull null
+
+                val datosRecarga = data["datos_recarga"] as? Map<*, *>
+                val datosTienda = data["datos_tienda"] as? Map<*, *>
+                val horaFecha = data["hora_fecha"] as? Map<*, *>
+                val id_trascacion =data["id_transaccion"] as? String?:""
+                val tipo_transacion=data["tipo_transacción"] as? String ?: ""
+
+                historial_financiero(
+                    id_transaccion =id_trascacion,
+                    monedas = datosRecarga?.get(if(tipo_transacion.equals("descuento"))"monto_descontado" else "monto_aumentado") as? Number?:0,
+                    hora = horaFecha?.get("hora") as? String ?: "",
+                    fecha = horaFecha?.get("fecha") as? String ?: "",
+                    nombre_tienda = datosTienda?.get("nombre_tienda") as? String ?: "",
+                    precio_soles = datosRecarga?.get("precio_soles") as? String ?: "",
+                    tipo_realziado = tipo_transacion,
+                    tipo_transaccion = datosRecarga?.get("tipo_paquete") as? String ?: "",
+                    estodo = datosRecarga?.get("estado") as? String?:"",
+                    monto_restante=datosRecarga?.get(if(tipo_transacion.equals("descuento"))"monto_restante" else "monto_anterior") as? Number?:0,
+                )
+            }
+
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
 }

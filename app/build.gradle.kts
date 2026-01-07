@@ -198,7 +198,7 @@ dependencies {
 
     implementation("com.valentinilk.shimmer:compose-shimmer:1.3.3")
 
-    implementation("io.github.panpf.zoomimage:zoomimage-compose:1.1.0")
+    implementation("io.github.panpf.zoomimage:zoomimage-compose:1.4.0")
 
     implementation("com.google.code.gson:gson:2.10.1")
 

@@ -18,6 +18,65 @@ class viewmodel_promos_cercanas : ViewModel() {
 
     private val repo = repo_promos_cercanas()
 
+
+    private val _promosCargadas =
+        MutableStateFlow<List<dataclass_promociones_cerca_de_ti>>(emptyList())
+    val promosCargadas: StateFlow<List<dataclass_promociones_cerca_de_ti>> = _promosCargadas
+
+    private var paginaActual = 0
+    private val bloque = 5
+    private var cargando = false
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun cargarSiguienteBloque(localidad: String) {
+        if (cargando) return
+        cargando = true
+
+        viewModelScope.launch {
+            try {
+                val todasLasPromos = repo.obtener_promos(localidad)
+                Log.d("ViewModelPromos", "Total promos obtenidas de DB: ${todasLasPromos.size}")
+
+                // 🔹 eliminar duplicados globalmente por id_promocion
+                val todasFiltradas = todasLasPromos
+                    .map { it.dataclass_promociones_cerca_de_ti }
+                    .distinctBy { it.informacion_publcacion.id_promocion }
+
+                Log.d("ViewModelPromos", "Promos únicas tras distinctBy: ${todasFiltradas.size} -> IDs: ${todasFiltradas.map { it.informacion_publcacion.id_promocion }}")
+
+                // 🔹 Filtrar las promos que ya se cargaron
+                val existentesIds = _promosCargadas.value.map { it.informacion_publcacion.id_promocion }.toSet()
+                val nuevasDisponibles = todasFiltradas.filter { it.informacion_publcacion.id_promocion !in existentesIds }
+                    .shuffled() // 🔹 orden aleatorio real cada vez
+
+                Log.d("ViewModelPromos", "Promos disponibles tras filtrar existentes: ${nuevasDisponibles.map { it.informacion_publcacion.id_promocion }}")
+
+                // 🔹 Tomar solo hasta "bloque" elementos
+                val nuevasFiltradas = nuevasDisponibles.take(bloque)
+
+                if (nuevasFiltradas.isNotEmpty()) {
+                    _promosCargadas.value = _promosCargadas.value + nuevasFiltradas
+                    Log.d("ViewModelPromos", "Total promos cargadas en StateFlow: ${_promosCargadas.value.size} -> IDs: ${_promosCargadas.value.map { it.informacion_publcacion.id_promocion }}")
+                } else {
+                    Log.d("ViewModelPromos", "No hay más promos nuevas para cargar.")
+                }
+
+            } catch (e: Exception) {
+                Log.e("ViewModelPromos", "Error cargando bloque: ${e.message}")
+            } finally {
+                cargando = false
+            }
+        }
+    }
+
+
+    fun resetPromos() {
+        _promosCargadas.value = emptyList()
+        paginaActual = 0
+    }
+
+
     private val _estadoPromos =
         MutableStateFlow<estado_carga_promociones>(
             estado_carga_promociones.loading
@@ -39,11 +98,11 @@ class viewmodel_promos_cercanas : ViewModel() {
         _estadoPromos.asStateFlow()
 
 
-    fun agregar_estadisticas_publicacion(tipo: String,id_promo: String,localidad: String){
+    fun agregar_estadisticas_publicacion(tipo: String, id_promo: String, localidad: String) {
         viewModelScope.launch {
             try {
-                repo.agregar_contador_estadisticas_publicacion(tipo,id_promo,localidad)
-            }catch (e: Exception){
+                repo.agregar_contador_estadisticas_publicacion(tipo, id_promo, localidad)
+            } catch (e: Exception) {
                 Log.d("error", "$e")
             }
         }
@@ -130,8 +189,6 @@ class viewmodel_promos_cercanas : ViewModel() {
                 estado_carga_promociones.succes(listaFiltrada.value)
             }
     }
-
-
 
 
     sealed class estado_carga_promociones {

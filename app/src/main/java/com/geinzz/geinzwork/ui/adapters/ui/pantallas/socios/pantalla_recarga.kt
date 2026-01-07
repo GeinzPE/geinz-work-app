@@ -72,7 +72,8 @@ fun pantala_recarga(
     viewmodel_paramo: viewmodel_eres_socio,
     nombre_tienda: String,
     localida_tienda: String,
-    id_tienda: String
+    id_tienda: String,
+    monedas_user: Int
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -132,7 +133,9 @@ fun pantala_recarga(
                                 monto = monedas,
                                 precio_soles = montosoles,
                                 yape = true,
-                                plin = false
+                                plin = false,
+                                estado = "Aceptado",
+                                monto_posterior = monedas_user
                             )
                             viewmodel_recarga_insta.recargar_puntos(
                                 i = datos_recarga,

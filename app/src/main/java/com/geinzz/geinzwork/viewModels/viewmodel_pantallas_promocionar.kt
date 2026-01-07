@@ -5,10 +5,9 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.geinzz.geinzwork.data.model.EstadoNotificacion
 import com.geinzz.geinzwork.data.model.NotificacionIA
 import com.geinzz.geinzwork.data.model.OpcionPromocionIA
-import com.geinzz.geinzwork.data.model.ResultadoValidacion
+
 import com.geinzz.geinzwork.data.model.historial_descuento
 import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
 import com.geinzz.geinzwork.model.repo_eres_socio
@@ -80,8 +79,9 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     )
     val insta_repo = repo_pantallas_promocionar()
     val viewmodel_recargas = viewmodel_recargas()
+
     @RequiresApi(Build.VERSION_CODES.O)
-    val insta_repo_eres_socio= repo_eres_socio()
+    val insta_repo_eres_socio = repo_eres_socio()
     private val palabrasBloqueadasNormalizadas: List<Pair<String, Regex>> =
         palabrasBloqueadas.map { palabra ->
             val normalizada = normalizarTexto(palabra)
@@ -97,7 +97,8 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     private val _estado_notificacion_con_ia_corta =
         MutableStateFlow<EstadoIA_notifi_corta>(EstadoIA_notifi_corta.Idle)
 
-    val estado_notificaion_con_ia_corta: StateFlow<EstadoIA_notifi_corta> = _estado_notificacion_con_ia_corta
+    val estado_notificaion_con_ia_corta: StateFlow<EstadoIA_notifi_corta> =
+        _estado_notificacion_con_ia_corta
 
     private val _estado_envio_notificaciones = MutableStateFlow("")
     val estado_envio_notificaciones = _estado_envio_notificaciones.asStateFlow()
@@ -105,7 +106,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     private val _estado_envio_recientes = MutableStateFlow(false)
     val estado_envio_recientes = _estado_envio_recientes.asStateFlow()
 
-        fun cambiar_Estado_reciente(estado: Boolean) {
+    fun cambiar_Estado_reciente(estado: Boolean) {
         _estado_envio_recientes.value = estado
     }
 
@@ -117,7 +118,9 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     val estadoValidacion: StateFlow<EstadoValidacionNotificacion> =
         _estadoValidacion
 
+
     fun mejorar_texto_con_promo_IA(
+        saldo_tienda: Int,
         localidad_tienda: String,
         id_tienda: String,
         nombre_tienda: String,
@@ -152,7 +155,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                         monto_descuento = "30",
                         tipo = "Gen IA (Promociones X3)",
                         precio_soles = viewmodel_recargas.calcular_precio_soles("30")
-                            .toString()
+                            .toString(), estado = "Aceptado", monto_restante = saldo_tienda - 30
                     )
                     viewmodel_recargas.restar_puntos_recarga(
                         historial_descuento,
@@ -171,8 +174,17 @@ class viewmodel_pantallas_promocionar : ViewModel() {
             }
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
-    fun enviar_notificacion(localidad_tienda:String,nombre_tienda:String,id_tienda:String,descontar_monedas:String,usuarios: List<String>, i: obj_contador_notificaciones) {
+    fun enviar_notificacion(
+        saldo_tienda: Int,
+        localidad_tienda: String,
+        nombre_tienda: String,
+        id_tienda: String,
+        descontar_monedas: String,
+        usuarios: List<String>,
+        i: obj_contador_notificaciones
+    ) {
         viewModelScope.launch {
             try {
                 val estado_notificacion =
@@ -190,9 +202,11 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                         id_tienda = id_tienda,
                         nombre_tienda = nombre_tienda,
                         monto_descuento = descontar_monedas,
-                        tipo = "Envio de notificaciones a ${usuarios.size} (Actual)",
+                        tipo = "Envio de notificaciones a ${usuarios.size} seguidores (Actual)",
                         precio_soles = viewmodel_recargas.calcular_precio_soles(descontar_monedas)
-                            .toString()
+                            .toString(),
+                        estado = "Aceptado",
+                        monto_restante = saldo_tienda - descontar_monedas.toInt()
                     )
                     viewmodel_recargas.restar_puntos_recarga(
                         historial_descuento,
@@ -212,12 +226,14 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         }
     }
 
+
     fun mejorar_mejorar_notificacion_con_IA_corta(
-        localidad_tienda: String,id_tienda: String,nombre_tienda: String,
+        saldo_tienda: Int,
+        localidad_tienda: String, id_tienda: String, nombre_tienda: String,
         titulo_publicacion: String,
         descripcion: String
     ) {
-        Log.d("titulo_publicacion","$titulo_publicacion $descripcion")
+        Log.d("titulo_publicacion", "$titulo_publicacion $descripcion")
         viewModelScope.launch {
 
             _estado_notificacion_con_ia_corta.value =
@@ -230,7 +246,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                 ) { notificacionIA ->
                     _estado_notificacion_con_ia_corta.value =
                         EstadoIA_notifi_corta.Success(notificacionIA)
-                    if(notificacionIA.titulo.isNotEmpty() && notificacionIA.descripcion.isNotEmpty()){
+                    if (notificacionIA.titulo.isNotEmpty() && notificacionIA.descripcion.isNotEmpty()) {
                         val historial_descuento = historial_descuento(
                             tipo_transaccion = "descuento",
                             fecha = obtenerFechaActual(),
@@ -242,7 +258,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                             monto_descuento = "20",
                             tipo = "Gen IA (Notificacion - promo seleccionada)",
                             precio_soles = viewmodel_recargas.calcular_precio_soles("20")
-                                .toString()
+                                .toString(), estado = "Aceptado", monto_restante = saldo_tienda - 20
                         )
                         viewmodel_recargas.restar_puntos_recarga(
                             historial_descuento,

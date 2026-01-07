@@ -4,6 +4,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.estadisticas_publiccaciones
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.img_content
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.informacion_publcacion
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
@@ -108,7 +109,8 @@ class repo_promos_cercanas {
                     informacion_publcacion = informacion,
                     img = img,
                     exclussivo = doc.getBoolean("exclusivo") ?: false,
-                    dias_restantes = tiempoRestanteString
+                    dias_restantes = tiempoRestanteString,
+                    estadisticas = estadisticas_publiccaciones()
                 )
 
                 val listaFiltrado = listOfNotNull(informacion.categoria)

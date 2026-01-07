@@ -123,9 +123,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
-import com.geinzz.geinzwork.data.model.EstadoNotificacion
 import com.geinzz.geinzwork.data.model.OpcionPromocionIA
-import com.geinzz.geinzwork.data.model.ResultadoValidacion
 import com.geinzz.geinzwork.data.model.datos_fecha_hora_tipo
 import com.geinzz.geinzwork.data.model.datos_publicaciones_realizadas
 import com.geinzz.geinzwork.data.model.fechas_horas_promociones
@@ -157,12 +155,13 @@ import com.google.firebase.auth.FirebaseAuth
 fun pantalla_promocionar(
     viewmodel_pantalla_promocionar: viewmodel_pantallas_promocionar,
     viewmodel_socios: viewmodel_eres_socio,
-    i: items_pantallas_promociones
+    i: items_pantallas_promociones,
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val imagenes = remember { mutableStateListOf<ImagenReview>() }
     val viewmodel_recargas: viewmodel_recargas = viewModel()
+    val monedas_tienda by viewmodel_recargas.saldo.collectAsState()
     val maxFotos = 5
     val maxFotos_notifi = 1
     var nombre_publicacion by rememberSaveable { mutableStateOf("") }
@@ -250,6 +249,9 @@ fun pantalla_promocionar(
         viewmodel_pantalla_promocionar
             .validarTexto(titulo_notificacion, descripcion_notificacion)
     }
+    LaunchedEffect(i.id_tienda, i.localidad_tienda) {
+        viewmodel_recargas.obtner_saldo_actual_reactivo(i.id_tienda, i.localidad_tienda)
+    }
 
     LaunchedEffect(hora_escrita) {
         if (hora_escrita.isNotEmpty()) {
@@ -329,9 +331,9 @@ fun pantalla_promocionar(
                     id_tienda = i.id_tienda,
                     nombre_tienda = i.nombre_tienda,
                     monto_descuento = monedas_costo_publicidad,
-                    tipo = if(seleccion.tipo.equals("horas"))"Publicidad por ${hora_escrita} horas"  else "Publicidad por ${dias_restantes_pr} dias ",
+                    tipo = if (seleccion.tipo.equals("horas")) "Publicidad por ${hora_escrita} horas" else "Publicidad por ${dias_restantes_pr} dias ",
                     precio_soles = viewmodel_recargas.calcular_precio_soles(monedas_costo_publicidad)
-                        .toString()
+                        .toString(), estado = "Aceptado", monto_restante = monedas_tienda-monedas_costo_publicidad.toInt()
                 )
                 viewmodel_recargas.restar_puntos_recarga(
                     historial,
@@ -527,6 +529,7 @@ fun pantalla_promocionar(
                         onClick = {
                             if (!cargando) {
                                 viewmodel_pantalla_promocionar.mejorar_texto_con_promo_IA(
+                                    monedas_tienda,
                                     localidad_tienda = i.localidad_tienda,
                                     id_tienda = i.id_tienda,
                                     nombre_tienda = i.nombre_tienda,
@@ -777,18 +780,26 @@ fun pantalla_promocionar(
                             ubicacion = ubicacaion_container(),
                             datos_hora_fecha = datos_fecha_hora_tipo(
                                 horas = fechas_horas_promociones(
-                                    hora_inicio =  if(seleccion.tipo=="horas")obtenerHoraActual() else "",
-                                    hora_fin =  if(seleccion.tipo=="horas")obtenerHoraFin(hora_escrita.toInt()) else "",
-                                    activo = if(seleccion.tipo=="horas") true else false,
-                                    timestamp_inicio = if(seleccion.tipo=="horas")obtenerTimestampHoraInicio() else 0L,
-                                    timestamp_fin = if(seleccion.tipo=="horas")obtenerTimestampHoraFin(hora_escrita.toInt())else 0L
+                                    hora_inicio = if (seleccion.tipo == "horas") obtenerHoraActual() else "",
+                                    hora_fin = if (seleccion.tipo == "horas") obtenerHoraFin(
+                                        hora_escrita.toInt()
+                                    ) else "",
+                                    activo = if (seleccion.tipo == "horas") true else false,
+                                    timestamp_inicio = if (seleccion.tipo == "horas") obtenerTimestampHoraInicio() else 0L,
+                                    timestamp_fin = if (seleccion.tipo == "horas") obtenerTimestampHoraFin(
+                                        hora_escrita.toInt()
+                                    ) else 0L
                                 ),
                                 dias = fechas_promociones(
-                                    fecha_inicio = if(seleccion.tipo=="dias")fecha_inicio else "",
-                                    fecha_fin = if(seleccion.tipo=="dias")fecha_fin  else "",
-                                    activo =if(seleccion.tipo=="dias") true else false,
-                                    timestamp_inicio =if(seleccion.tipo=="dias") obtenerTimestampFecha(fecha_inicio) else 0L,
-                                    timestamp_fin =if(seleccion.tipo=="dias") obtenerTimestampFecha(fecha_fin)  else 0L
+                                    fecha_inicio = if (seleccion.tipo == "dias") fecha_inicio else "",
+                                    fecha_fin = if (seleccion.tipo == "dias") fecha_fin else "",
+                                    activo = if (seleccion.tipo == "dias") true else false,
+                                    timestamp_inicio = if (seleccion.tipo == "dias") obtenerTimestampFecha(
+                                        fecha_inicio
+                                    ) else 0L,
+                                    timestamp_fin = if (seleccion.tipo == "dias") obtenerTimestampFecha(
+                                        fecha_fin
+                                    ) else 0L
                                 )
                             ),
                         )
@@ -959,6 +970,7 @@ fun pantalla_promocionar(
                             onClick = {
                                 if (!cargando) {
                                     viewmodel_pantalla_promocionar.mejorar_mejorar_notificacion_con_IA_corta(
+                                        monedas_tienda,
                                         localidad_tienda = i.localidad_tienda,
                                         id_tienda = i.id_tienda,
                                         nombre_tienda = i.nombre_tienda,
@@ -1077,6 +1089,7 @@ fun pantalla_promocionar(
                                     i.categoira_tienda
                                 )
                                 viewmodel_pantalla_promocionar.enviar_notificacion(
+                                    monedas_tienda,
                                     i.localidad_tienda,
                                     i.nombre_tienda,
                                     i.id_tienda,

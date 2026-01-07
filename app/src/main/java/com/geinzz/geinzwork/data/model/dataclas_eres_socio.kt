@@ -99,19 +99,19 @@ data class datos_fecha_hora_tipo(
 )
 
 data class fechas_horas_promociones(
-    val hora_inicio: String="",
-    val hora_fin: String="",
-    val activo: Boolean= false,
-    val timestamp_inicio: Long= 0L ,
-    val timestamp_fin: Long= 0L
+    val hora_inicio: String = "",
+    val hora_fin: String = "",
+    val activo: Boolean = false,
+    val timestamp_inicio: Long = 0L,
+    val timestamp_fin: Long = 0L
 )
 
 data class fechas_promociones(
-    val fecha_inicio: String="",
-    val fecha_fin: String ="",
-    val activo: Boolean= false,
-    val timestamp_inicio: Long= 0L ,
-    val timestamp_fin: Long= 0L
+    val fecha_inicio: String = "",
+    val fecha_fin: String = "",
+    val activo: Boolean = false,
+    val timestamp_inicio: Long = 0L,
+    val timestamp_fin: Long = 0L
 )
 
 data class img_contaier(val lista_img: List<String> = emptyList(), val logo_img: String = "")
@@ -212,7 +212,7 @@ data class historial_recargas(
     val monto: String,
     val precio_soles: String,
     val yape: Boolean,
-    val plin: Boolean,
+    val plin: Boolean,val estado: String,val monto_posterior: Int
 )
 
 data class historial_descuento(
@@ -225,7 +225,7 @@ data class historial_descuento(
     val nombre_tienda: String,
     val monto_descuento: String,
     val tipo: String,
-    val precio_soles: String,
+    val precio_soles: String,val estado: String,val monto_restante: Int
 )
 
 
@@ -247,15 +247,16 @@ data class OpcionPromocionIA(
 
 data class nombre_precio_notificaciones(val tipo: String, val precio: Int)
 
-enum class EstadoNotificacion {
-    PERMITIDA,
-    ADVERTENCIA,
-    BLOQUEADA
-}
 
-data class ResultadoValidacion(
-    val estado: EstadoNotificacion,
-    val mensaje: String,
-    val palabraDetectada: String? = null
+data class historial_financiero(
+    val id_transaccion: String,
+    val monedas: Number,
+    val hora: String,
+    val fecha: String,
+    val nombre_tienda: String,
+    val precio_soles: String,
+    val tipo_realziado: String,//recarga o descuento,
+    val tipo_transaccion: String, //generacion por ia o publicdad
+    val estodo:String,
+    val monto_restante: Number
 )
-

@@ -174,6 +174,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
     var nombre_tienda by remember { mutableStateOf("") }
     var localidad_tienda by remember { mutableStateOf("") }
     var id_tienda by remember { mutableStateOf("") }
+    var moneda_total_tienda by remember { mutableStateOf(0) }
 
     LaunchedEffect(tipo_) {
         if (tipo_.isNotEmpty()) {
@@ -547,9 +548,11 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                             state.datos.id_tienda
                                         )
                                     }
-                                    nombre_tienda= state.datos.nombre
-                                    localidad_tienda=state.datos.localidad_tienda
-                                    id_tienda=state.datos.id_tienda
+                                    nombre_tienda = state.datos.nombre
+                                    localidad_tienda = state.datos.localidad_tienda
+                                    id_tienda = state.datos.id_tienda
+                                    moneda_total_tienda =
+                                        state.datos.saldo_disponible_tienda.toInt()
 
                                     pantalla_carga_socios(state.datos, isConnected) { valor ->
                                         id_registrado = valor
@@ -606,10 +609,10 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                             if (mostrar_bundle_desbloqueo) {
                                                 BadgedBox(
                                                     badge = {
-                                                            Text(
-                                                                text = "🔥",
-                                                                fontSize = 17.sp
-                                                            )
+                                                        Text(
+                                                            text = "🔥",
+                                                            fontSize = 17.sp
+                                                        )
 
                                                     }
 
@@ -649,8 +652,10 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                             )
                                         },
                                         selected = pantallaSeleccionada == "Promocionar",
-                                        onClick = { pantallaSeleccionada = "Promocionar"
-                                            mostrar_bundle_desbloqueo=false},
+                                        onClick = {
+                                            pantallaSeleccionada = "Promocionar"
+                                            mostrar_bundle_desbloqueo = false
+                                        },
                                         alwaysShowLabel = true,
                                         modifier = Modifier.padding(top = 4.dp)
                                     )
@@ -701,7 +706,9 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                         selected = pantallaSeleccionada == "Publicaciones",
                                         onClick = {
                                             pantallaSeleccionada = "Publicaciones"
-                                            viewmodel_pantalla_promocionar.cambiar_Estado_reciente(false)
+                                            viewmodel_pantalla_promocionar.cambiar_Estado_reciente(
+                                                false
+                                            )
                                         },
                                         alwaysShowLabel = true,
                                         modifier = Modifier.padding(top = 4.dp)
@@ -731,7 +738,6 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                         alwaysShowLabel = true,
                                         modifier = Modifier.padding(top = 4.dp)
                                     )
-
 
 
                                 }
@@ -768,7 +774,13 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                     }
 
                                     "Recargas" -> {
-                                        pantala_recarga(viewmodel,nombre_tienda,localidad_tienda,id_tienda)
+                                        pantala_recarga(
+                                            viewmodel,
+                                            nombre_tienda,
+                                            localidad_tienda,
+                                            id_tienda,
+                                            moneda_total_tienda
+                                        )
 //                                        pantallaSoporte()
                                     }
                                 }
