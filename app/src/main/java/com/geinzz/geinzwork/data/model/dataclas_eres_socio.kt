@@ -91,6 +91,7 @@ data class agregar_promociones(
     val ubicacion: ubicacaion_container,
     val datos_hora_fecha: datos_fecha_hora_tipo,
     val formato_fecha_hora: String,
+    val mensaje_predeterminado: msjes_predeteminados_generales
 )
 
 data class datos_fecha_hora_tipo(
@@ -128,6 +129,14 @@ data class informacion_container(
     val contactar: Boolean
 )
 
+data class msjes_predeteminados_generales(
+    val compartir:mensaje_predeterminado,
+    val whatsapp:mensaje_predeterminado
+)
+data class mensaje_predeterminado(
+    val msje_predermindo: String, val activo_o_no: Boolean
+)
+
 data class ubicacaion_container(
     val direccion: String = "",
     val lat: Double = 0.0,
@@ -163,6 +172,7 @@ data class obj_contador_notificaciones(
     val nombre_tienda: String,
     val numero_contacto_tienda: String,
     val categoira_tienda: String,
+    val id_img_storage:String,
 )
 
 data class obj_suspend_notificacion(
@@ -185,8 +195,7 @@ data class obj_parametros_notificacion(
 data class datos_publicaciones_realizadas(
     val titulo: String,
     val descripcion: String,
-    val activo: Boolean,
-    val fecha_publicado: String,
+    val vence_en:String,
     val id: String,
     val img: String
 )
@@ -212,7 +221,7 @@ data class historial_recargas(
     val monto: String,
     val precio_soles: String,
     val yape: Boolean,
-    val plin: Boolean,val estado: String,val monto_posterior: Int
+    val plin: Boolean, val estado: String, val monto_posterior: Int
 )
 
 data class historial_descuento(
@@ -225,7 +234,7 @@ data class historial_descuento(
     val nombre_tienda: String,
     val monto_descuento: String,
     val tipo: String,
-    val precio_soles: String,val estado: String,val monto_restante: Int
+    val precio_soles: String, val estado: String, val monto_restante: Int
 )
 
 
@@ -257,6 +266,45 @@ data class historial_financiero(
     val precio_soles: String,
     val tipo_realziado: String,//recarga o descuento,
     val tipo_transaccion: String, //generacion por ia o publicdad
-    val estodo:String,
+    val estodo: String,
     val monto_restante: Number
 )
+
+
+data class EstadisticasPromo(
+    val vistas: Int = 0,
+    val compartidos: Int = 0,
+    val whatsapp: Int = 0
+)
+
+data class publicaciones_notificaciones_geinz(
+    val id: String,
+    val img_principal: String,
+    val nombre: String,
+    val tipo: String,
+    val estado: String,
+    val realizado: String,
+    val vence: String,
+    val total_gastado: String
+)
+
+data class obtener_datos_promociones(
+    val lista_img: List<String>,
+    val categoira: String,
+    val compartir: Boolean,
+    val contactar: Boolean,
+    val id_promocion: String,
+    val descripcion: String,
+    val titulo: String,
+    val numero: String,
+    val fecha_iniciada: Long,
+    val fecha_terminada: Long
+)
+
+data class DatosDemograficosUsuario(
+    val localidad: String,
+    val nacionalidad: String,
+    val genero: String,
+    val edad: Int,
+)
+

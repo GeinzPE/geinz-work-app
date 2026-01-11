@@ -149,7 +149,8 @@ class MainActivity : AppCompatActivity() {
             "seyt" -> "servicios_y_tramites"
             "lgtr" -> "lugares_turisticos"
             "nemg" -> "salud_y_seguridad"
-            "ads"->"promocionar"
+            "ads"->"promocionar_ads"
+            "rec"->"promocionar_rec"
             else -> null
         }
 
@@ -184,7 +185,7 @@ class MainActivity : AppCompatActivity() {
                         "${enc(categoria)}"
 
                 Log.d("DeepLinkDebug", "cddddNAVEGANDO -> $ruta")
-                repo_eres_socio.agregar_contador_estadistica_noti("abierto",id,localidad,id_promocion)
+                repo_eres_socio.agregar_contador_estadistica_noti("abierto",id,localidad,id_promocion,firebaseAuth.uid.toString())
 
                 navController.navigate(ruta) {
                     launchSingleTop = true

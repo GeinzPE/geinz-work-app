@@ -29,6 +29,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 
 @Composable
 fun dialog_administrar_perfil(
+    id_user:String,
     ondimis: () -> Unit,
     contex: Context,
     id_tienda: String,
@@ -39,6 +40,7 @@ fun dialog_administrar_perfil(
         confirmButton = {
             btn_aceptar_etc_dialog_general(txt_btn = "Iniciar Verificación") {
                 abrir_whattsapp(
+                    id_user,
                     tipo = "normal",
                     id_tienda = "",
                     localidad_tienda = "",

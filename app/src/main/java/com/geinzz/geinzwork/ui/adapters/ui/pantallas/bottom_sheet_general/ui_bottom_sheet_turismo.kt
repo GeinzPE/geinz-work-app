@@ -486,7 +486,7 @@ fun card_img_container(
             )
             abierto_flag(datos.subcategoria_filtrado)
             spacer_vertical(10.dp)
-            CollageGoogleMapsStyle(aspectRatio = 1.1f, with = 360.dp, imagenes = datos.lista_img)
+            CollageGoogleMapsStyle(id_respado_user,aspectRatio = 1.1f, with = 360.dp, imagenes = datos.lista_img)
             spacer_vertical(10.dp)
             chips_filtrado(lista_turismo_bottom_sheet) { i ->
                 when (i) {
@@ -792,6 +792,7 @@ fun card_img_container(
                                             when (i.nombre_red) {
                                                 "llamar" -> {
                                                     llamar(
+                                                        id_respado_user,
                                                         "tienda",
                                                         item.id_tienda,
                                                         item.localidad_tienda,
@@ -805,6 +806,7 @@ fun card_img_container(
 
                                                 "whatsapp" -> {
                                                     abrir_whattsapp(
+                                                        id_respado_user,
                                                         "tienda",
                                                         item.id_tienda,
                                                         item.localidad_tienda,
@@ -819,7 +821,7 @@ fun card_img_container(
                                                         context,
                                                         i.valor,
                                                         item.id_tienda,
-                                                        item.localidad_tienda
+                                                        item.localidad_tienda,id_respado_user
                                                     )
                                                 }
 
@@ -829,7 +831,7 @@ fun card_img_container(
                                                         context,
                                                         i.valor,
                                                         item.id_tienda,
-                                                        item.localidad_tienda
+                                                        item.localidad_tienda,id_respado_user
                                                     )
                                                 }
 
@@ -839,7 +841,7 @@ fun card_img_container(
                                                         context,
                                                         i.valor,
                                                         item.id_tienda,
-                                                        item.localidad_tienda
+                                                        item.localidad_tienda,id_respado_user
                                                     )
                                                 }
 
@@ -848,7 +850,7 @@ fun card_img_container(
                                                         context,
                                                         i.valor,
                                                         item.id_tienda,
-                                                        item.localidad_tienda
+                                                        item.localidad_tienda,id_respado_user
                                                     )
                                                 }
 
@@ -882,7 +884,7 @@ fun card_img_container(
         dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
             dialog_Crear_ruta = false
             if (crear_ruta && verificarUbiActiva(context)) {
-                constantes_lista_localidades.abrir_google_maps(
+                constantes_lista_localidades.abrir_google_maps(id_respado_user,
                     tipo_creacion_ruta, id_tienda_parms, localidad_tienda,
                     context, lat_tienda, long_tienda,
                 ) { dialogo ->

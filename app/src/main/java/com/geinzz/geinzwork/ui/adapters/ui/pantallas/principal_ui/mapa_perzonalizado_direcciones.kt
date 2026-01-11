@@ -159,6 +159,7 @@ import kotlinx.coroutines.launch
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun pantalla_mapa_perzonalizado(
+    id_user:String,
     verificar_intener: Boolean,
     viewmodelMapa: viewmodel_mapa_personalizado,
     viewmode_segurirdad_Salud: viewmode_seguridad_salud,
@@ -168,7 +169,7 @@ fun pantalla_mapa_perzonalizado(
     localidad: String
 ) {
     Box() {
-        MyGoogle_maps(
+        MyGoogle_maps(id_user,
             verificar_intener,
             viewmodelMapa,
             tipo,
@@ -184,7 +185,7 @@ fun pantalla_mapa_perzonalizado(
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("MissingPermission")
 @Composable
-fun MyGoogle_maps(
+fun MyGoogle_maps(id_user:String,
     verificar_intener: Boolean,
     viewmodelMapa: viewmodel_mapa_personalizado,
     tipo: String,
@@ -494,7 +495,7 @@ fun MyGoogle_maps(
         dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
             dialog_Crear_ruta = false
             if (crear_ruta && verificarUbiActiva(context)) {
-                constantes_lista_localidades.abrir_google_maps(
+                constantes_lista_localidades.abrir_google_maps(id_user,
                     "tienda", id_tienda, localidad,
                     context, latitud, longitud,
                 ) { dialogo ->
@@ -916,14 +917,14 @@ fun MyGoogle_maps(
                 onclick_iconos = { id, datos ->
                     when (datos.nombre_red) {
                         "llamar" -> {
-                            llamar("tienda", id, localidad, context, datos.valor, {
+                            llamar(id_user,"tienda", id, localidad, context, datos.valor, {
                                 call_dialog_permise = true
                                 numero_llamada = datos.valor
                             })
                         }
 
                         "whatsapp" -> {
-                            abrir_whattsapp("tienda", id, localidad, context, datos.valor)
+                            abrir_whattsapp(id_user,"tienda", id, localidad, context, datos.valor)
                         }
 
                         "tiktok" -> {
@@ -932,7 +933,7 @@ fun MyGoogle_maps(
                                 context = context,
                                 username = datos.valor,
                                 id_tienda = id,
-                                localidad_tienda = localidad
+                                localidad_tienda = localidad,id_user
                             )
                         }
 
@@ -943,7 +944,7 @@ fun MyGoogle_maps(
                                 context = context,
                                 pageUrl = datos.valor,
                                 id_tienda = id,
-                                localidad_tienda = localidad
+                                localidad_tienda = localidad,id_user
                             )
                         }
 
@@ -954,7 +955,7 @@ fun MyGoogle_maps(
                                 context = context,
                                 url = datos.valor,
                                 id_tienda = id,
-                                localidad_tienda = localidad
+                                localidad_tienda = localidad,id_user
                             )
                         }
 
@@ -963,7 +964,7 @@ fun MyGoogle_maps(
                                 context = context,
                                 url = datos.valor,
                                 id_tienda = id,
-                                localidad_tienda = localidad
+                                localidad_tienda = localidad,id_user
                             )
                         }
 

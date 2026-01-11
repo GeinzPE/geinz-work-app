@@ -538,7 +538,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
                 repo_erese_socio.agregar_contador(
                     "guardados",
                     item_favoritos.id_tienda_lugar,
-                    item_favoritos.localida_tienda
+                    item_favoritos.localida_tienda,id_user
                 )
             } catch (e: Exception) {
                 Log.d("error", "error al guardar faboritos")
@@ -638,7 +638,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
                 val datos = repo_filtrado.obtener_datos_tienda_id(localidad_tienda, id_tienda)
                 repo_filtrado.guardar_tienda_favorito(id_user, datos)
                 favoritos.update { it.toMutableMap().apply { put(id_tienda, true) } }
-                repo_erese_socio.agregar_contador("guardados", id_tienda, localidad_tienda)
+                repo_erese_socio.agregar_contador("guardados", id_tienda, localidad_tienda,id_user)
 
             } catch (e: Exception) {
                 Log.d("error", "error al guardar faboritos")

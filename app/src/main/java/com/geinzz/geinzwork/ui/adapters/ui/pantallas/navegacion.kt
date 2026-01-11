@@ -556,12 +556,21 @@ fun nativationWrapper(
 
                 composable<promociones_y_ofertas> {navback ->
                     val datos = navback.toRoute<promociones_y_ofertas>()
-                    ui_promos_cerca_de_ti(datos.localidad,isConnected)
+                    ui_promos_cerca_de_ti(
+                        localidad = datos.localidad,
+                        verificar_intener = isConnected,
+                        iniciar_seccion = {
+                            bottom_sheet_iniciar_seccion = true
+                        },
+                        crear_cuenta = {
+                            navController.navigate(crear_cuenta_geinz("crear"))
+                        })
                 }
 
                 composable<map_perzonalizado> { navback ->
                     val direcciones = navback.toRoute<map_perzonalizado>()
                     pantalla_mapa_perzonalizado(
+                        id_respado_user,
                         verificar_intener = isConnected,
                         viewmodelMapa = viewmodelMapa,
                         viewmode_segurirdad_Salud = viewmode_segurirdad_Salud,
@@ -620,7 +629,7 @@ fun nativationWrapper(
 
                 composable<ui_salud_seguridad> { navback ->
                     val salud_Seguridad = navback.toRoute<ui_salud_seguridad>()
-                    ui_salud_seguirdad(
+                    ui_salud_seguirdad(     id_respado_user,
                         viewmode_segurirdad_Salud,
                         localida = salud_Seguridad.localidad,
                         abrir_mapa = { latitud, longitud ->
@@ -635,7 +644,7 @@ fun nativationWrapper(
 
                 composable<ui_servicios_tramites> { navback ->
                     val servicio = navback.toRoute<ui_servicios_tramites>()
-                    ui_servicio_tramite(isConnected, servicio.localidad)
+                    ui_servicio_tramite(isConnected, servicio.localidad,id_respado_user)
                 }
 
                 composable(
@@ -702,7 +711,7 @@ fun nativationWrapper(
                 }
 
                 composable("salud_y_seguridad") {
-                    ui_salud_seguirdad(
+                    ui_salud_seguirdad(     id_respado_user,
                         viewmode_segurirdad_Salud,
                         localida = "barranca",
                         abrir_mapa = { latitud, longitud ->
@@ -720,11 +729,14 @@ fun nativationWrapper(
                         iniciar_normal = { navController.navigate("login_principal") })
                 }
                 composable("servicios_y_tramites") {
-                    ui_servicio_tramite(isConnected, "barranca")
+                    ui_servicio_tramite(isConnected, "barranca",id_respado_user)
                 }
 
-                composable("promocionar") {
+                composable("promocionar_ads") {
                     login_socios(isConnected,"envio")
+                }
+                composable("promocionar_rec") {
+                    login_socios(isConnected,"recargas")
                 }
 
 

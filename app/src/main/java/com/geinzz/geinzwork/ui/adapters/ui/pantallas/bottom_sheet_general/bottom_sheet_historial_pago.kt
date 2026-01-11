@@ -3,6 +3,8 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -63,6 +66,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.ShimmerImagenConMarca
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
@@ -104,7 +108,7 @@ fun bottom_sheet_historial_pago(
         "Publicaciones",
         "Recargas"
     )
-    var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
+    var subCategoriaSeleccionada by remember { mutableStateOf("Hoy") }
 
     LaunchedEffect(id_tienda) {
         viewmodel_monedas.obtner_historial_pagos_tienda(id_tienda, localidad)
@@ -128,10 +132,10 @@ fun bottom_sheet_historial_pago(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(maxHeight * 0.5f), // 👈 50% visual
+                                .height(maxHeight * 0.5f),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator()
+                            ShimmerImagenConMarca()
                         }
                     }
 
@@ -148,8 +152,7 @@ fun bottom_sheet_historial_pago(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(min = maxHeightSheet),
-
+                                .fillMaxHeight()
                             ) {
 
                             LazyColumn(
@@ -160,8 +163,7 @@ fun bottom_sheet_historial_pago(
                                         end = 10.dp,
                                         top = 10.dp,
                                         bottom = 20.dp
-                                    )
-                                    .heightIn(max = maxHeightSheet),
+                                    ),
                                 verticalArrangement = Arrangement.spacedBy(25.dp)
                             ) {
                                 item {
@@ -203,7 +205,7 @@ fun bottom_sheet_historial_pago(
                                                 )
                                             }
                                             texto_generico_one_line(
-                                                "Gastados",
+                                                "Invertido",
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
                                         }
@@ -233,7 +235,7 @@ fun bottom_sheet_historial_pago(
                                                 }"
                                             )
                                             texto_generico_one_line(
-                                                "Gastados",
+                                                "Invertido",
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
                                         }
@@ -247,7 +249,6 @@ fun bottom_sheet_historial_pago(
                                             10.dp
                                         )
                                     ) {
-
                                         items(lsita_fitlrado_opciones) { subcategoria ->
                                             val seleccionado =
                                                 subCategoriaSeleccionada == subcategoria
@@ -266,8 +267,17 @@ fun bottom_sheet_historial_pago(
                                     }
                                 }
 
-                                items(listaFiltrada) { item ->
+                                items(listaFiltrada, key = {item->item.id_transaccion}) { item ->
+                                    Box(
+                                        modifier = Modifier.animateItem(
+                                            placementSpec = tween(
+                                                durationMillis = 350,
+                                                easing = FastOutSlowInEasing
+                                            )
+                                        )
+                                    ){
                                     item_historial_pagos(item)
+                                    }
                                 }
                                 item {
                                     if (listaFiltrada.isEmpty()) {
@@ -398,7 +408,7 @@ fun item_historial_pagos(i: historial_financiero) {
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             texto_generico_one_line(
-                if (i.tipo_realziado == "recarga") "Monto recargado : ${i.monedas}" else "Monto gastado : ${i.monedas}",
+                if (i.tipo_realziado == "recarga") "Monto recargado : ${i.monedas}" else "Monto Invertido : ${i.monedas}",
                 style = MaterialTheme.typography.bodyMedium
             )
             spacer_horizonta(5.dp)
@@ -501,15 +511,18 @@ fun calcularTotalMonedasDescuento(
         .sumOf { it.monedas.toInt() ?: 0 }
 }
 
-fun calcularTotalSolesDescuento(
-    lista: List<historial_financiero>
-): Double {
-    return lista
+fun calcularTotalSolesDescuento(lista: List<historial_financiero>): Double {
+    val total = lista
         .filter { it.tipo_realziado.equals("descuento", ignoreCase = true) }
         .sumOf { it.precio_soles.toDoubleOrNull() ?: 0.0 }
+
+    // Redondear a 2 decimales
+    return String.format("%.2f", total).toDouble()
 }
 
 
+
+@RequiresApi(Build.VERSION_CODES.O)
 fun convertirHoraAmPm(hora24: String): String {
     return try {
         val formato24 = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
@@ -522,6 +535,7 @@ fun convertirHoraAmPm(hora24: String): String {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 fun formatearFechaLarga(fecha: String): String {
     return try {
         val inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")

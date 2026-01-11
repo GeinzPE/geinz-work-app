@@ -963,7 +963,7 @@ fun ui_pantalla_busqueda(
 
         if (aler_dialog_contacto) {
             val (llamada, whatsapp, long) = datos_numeros_salud_seguridad
-            dialog_salud_seguridad_algolia(
+            dialog_salud_seguridad_algolia(uid_respald_user,
                 long,
                 dialog_seguridad_salud_algolia(
                     whatsapp,
@@ -981,7 +981,7 @@ fun ui_pantalla_busqueda(
                 crear_ruta = { crear_ruta ->
                     dialog_Crear_ruta = false
                     if (crear_ruta && verificarUbiActiva(context)) {
-                        constantes_lista_localidades.abrir_google_maps(
+                        constantes_lista_localidades.abrir_google_maps(uid_respald_user,
                             "tienda", id_tienda_crear_ruta, localidad_tienda_crear_ruta,
                             context, latitud, longitud,
                         ) { dialogo ->
@@ -1082,7 +1082,7 @@ fun ui_pantalla_busqueda(
         }
 
         if (mostar_bottom_sheet_ayuda_geinz) {
-            bottom_sheet_ayudanos_a_creccer(
+            bottom_sheet_ayudanos_a_creccer(uid_respald_user,
                 verificar_intener, ultimaLocalidad ?: "barranca",
                 { mostar_bottom_sheet_ayuda_geinz = false }, viewModelFiltros
             )

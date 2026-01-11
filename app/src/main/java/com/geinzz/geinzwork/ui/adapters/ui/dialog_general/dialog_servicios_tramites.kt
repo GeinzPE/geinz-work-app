@@ -80,6 +80,7 @@ import okhttp3.internal.wait
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun dialog_servicios_tramite(
+    id_user:String,
     localida: String,
     ondimis: () -> Unit,
     dataclass_lugares_db: dataclass_lugares_db
@@ -153,7 +154,7 @@ fun dialog_servicios_tramite(
                             .background(MaterialTheme.colorScheme.primary)
                             .fillMaxWidth()
                             .clickable {
-                                constantes_lista_localidades.abrir_google_maps(
+                                constantes_lista_localidades.abrir_google_maps(id_user,
                                     "normal","","",
                                     contex,
                                     latitud,
@@ -195,7 +196,7 @@ fun dialog_servicios_tramite(
                                                 .size(35.dp)
                                                 .clip(CircleShape)
                                                 .clickable {
-                                                    abrir_whattsapp("normal",dataclass_lugares_db.id,localida,contex, i)
+                                                    abrir_whattsapp(id_user,"normal",dataclass_lugares_db.id,localida,contex, i)
                                                 }
                                         )
                                     }
@@ -210,7 +211,7 @@ fun dialog_servicios_tramite(
                                                 .size(35.dp)
                                                 .clip(CircleShape)
                                                 .clickable {
-                                                    llamar("tienda",dataclass_lugares_db.id,localida,contex, i, {
+                                                    llamar(id_user,"tienda",dataclass_lugares_db.id,localida,contex, i, {
                                                         call_dialog_permise = true
                                                     })
                                                 }
@@ -227,7 +228,7 @@ fun dialog_servicios_tramite(
                                             .clickable {
                                                 openWebLink(
                                                     contex,
-                                                    dataclass_lugares_db.contacto.sitio_web,dataclass_lugares_db.id,localida
+                                                    dataclass_lugares_db.contacto.sitio_web,dataclass_lugares_db.id,localida,id_user
                                                 )
                                             },
                                         colorFilter = ColorFilter.tint(Color.White)
@@ -254,7 +255,7 @@ fun dialog_servicios_tramite(
                                                     openInstagram(
                                                         "negocio",
                                                         contex,
-                                                        dataclass_lugares_db.contacto.ig,dataclass_lugares_db.id,localida
+                                                        dataclass_lugares_db.contacto.ig,dataclass_lugares_db.id,localida,id_user
                                                     )
                                                 }
                                         )
@@ -271,7 +272,7 @@ fun dialog_servicios_tramite(
                                                     openFacebook(
                                                         "separado",
                                                         contex,
-                                                        dataclass_lugares_db.contacto.facebook,dataclass_lugares_db.id,localida
+                                                        dataclass_lugares_db.contacto.facebook,dataclass_lugares_db.id,localida,id_user
                                                     )
                                                 }
                                         )
@@ -288,7 +289,7 @@ fun dialog_servicios_tramite(
                                                     openTiktok(
                                                         "negocio",
                                                         contex,
-                                                        dataclass_lugares_db.contacto.tk,dataclass_lugares_db.id,localida
+                                                        dataclass_lugares_db.contacto.tk,dataclass_lugares_db.id,localida,id_user
                                                     )
                                                 }
                                         )

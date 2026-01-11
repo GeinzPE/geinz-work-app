@@ -3,20 +3,30 @@ package com.geinzz.geinzwork.model
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import com.geinzz.geinzwork.data.model.DatosDemograficosUsuario
+import com.geinzz.geinzwork.data.model.EstadisticasPromo
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.estadisticas_publiccaciones
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.img_content
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.informacion_publcacion
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.tiendas_con_mas_de_una_promo
+import com.geinzz.geinzwork.data.model.mensaje_predeterminado
+import com.geinzz.geinzwork.data.model.msjes_predeteminados_generales
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.Period
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import kotlin.math.ceil
+import kotlin.math.floor
 
 class repo_promos_cercanas {
     val db = FirebaseFirestore.getInstance()
@@ -32,6 +42,7 @@ class repo_promos_cercanas {
                 .collection("promos_ofertas")
                 .get()
                 .await()
+
 
             // 🔹 Primero agrupamos todas las promos por idTienda
             val promosPorTienda = snapshot.documents.mapNotNull { doc ->
@@ -61,6 +72,12 @@ class repo_promos_cercanas {
                 val infoMap = doc.get("informacion") as? Map<*, *> ?: emptyMap<String, Any>()
                 val imgMap = doc.get("img_container") as? Map<*, *> ?: emptyMap<String, Any>()
                 val tipo_hora_dias = doc.get("tipo_hora_dias") as? String ?: ""
+                val mensaje_predeterminado = doc.get("mensaje_predeterminado") as? Map<*, *> ?: emptyMap<String, Any>()
+                val compartir= mensaje_predeterminado.get("compartir") as? Map<*, *> ?: emptyMap<String, Any>()
+                val whatsapp = mensaje_predeterminado.get("whatsapp") as? Map<*, *> ?: emptyMap<String, Any>()
+                val msje_compartir= compartir.get("msje_predermindo") as? String ?:""
+                val msje_whatsapp = whatsapp.get("msje_predermindo") as? String ?:""
+
 
                 val datos_hora_fecha = doc.get("datos_hora_fecha") as? Map<*, *> ?: emptyMap<String, Any>()
                 val horas = datos_hora_fecha["horas"] as? Map<*, *> ?: emptyMap<String, Any>()
@@ -98,6 +115,16 @@ class repo_promos_cercanas {
                     categoria = infoMap["categoria"] as? String ?: "",
                     compartir = infoMap["compartir"] as? Boolean ?: false,
                     contactar = infoMap["contactar"] as? Boolean ?: false,
+                    msjes_predeteminados_generales=msjes_predeteminados_generales(
+                        compartir = mensaje_predeterminado(
+                            msje_predermindo = msje_compartir,
+                            activo_o_no = true
+                        ),
+                        whatsapp =mensaje_predeterminado(
+                            msje_predermindo = msje_whatsapp,
+                            activo_o_no = true
+                        )
+                    )
                 )
 
                 val img = img_content(
@@ -110,7 +137,17 @@ class repo_promos_cercanas {
                     img = img,
                     exclussivo = doc.getBoolean("exclusivo") ?: false,
                     dias_restantes = tiempoRestanteString,
-                    estadisticas = estadisticas_publiccaciones()
+                    estadisticas = estadisticas_publiccaciones(),
+                    texto_msje_whatsapp=msjes_predeteminados_generales(
+                        compartir = mensaje_predeterminado(
+                            msje_predermindo = msje_compartir,
+                            activo_o_no = true
+                        ),
+                        whatsapp =mensaje_predeterminado(
+                            msje_predermindo = msje_whatsapp,
+                            activo_o_no = true
+                        )
+                    )
                 )
 
                 val listaFiltrado = listOfNotNull(informacion.categoria)
@@ -129,39 +166,213 @@ class repo_promos_cercanas {
     }
 
 
+    suspend fun obtener_estadisticas(
+        localidad: String,
+        id_promo: String
+    ): EstadisticasPromo {
+
+        val statsRef = db
+            .collection("Tiendas")
+            .document(localidad)
+            .collection("promos_ofertas")
+            .document(id_promo)
+            .collection("estadisticas")
+
+        val compartidos = statsRef.document("compartidos")
+            .get().await()
+            .getLong("total")?.toInt() ?: 0
+
+        val whatsapp = statsRef.document("whatsapp")
+            .get().await()
+            .getLong("total")?.toInt() ?: 0
+
+        return EstadisticasPromo(
+            vistas = 0,
+            compartidos = compartidos,
+            whatsapp = whatsapp
+        )
+    }
+
+
+
     fun tiempoRestante(timestampFin: Long): String {
-        val ahora = System.currentTimeMillis()
-        val diff = timestampFin - ahora
+        val ahoraMs = System.currentTimeMillis()
+        val diffMs = timestampFin - ahoraMs
 
-        if (diff <= 0) return "Expirado"
+        if (diffMs <= 0) return "Expirado"
 
-        val dias = diff / (1000 * 60 * 60 * 24)
-        val horas = (diff / (1000 * 60 * 60)) % 24
-        val minutos = (diff / (1000 * 60)) % 60
+        val totalHoras = diffMs.toDouble() / (1000 * 60 * 60)
+        val totalMinutos = diffMs.toDouble() / (1000 * 60)
 
-        return when {
-            dias > 0 -> "$dias ${if (dias == 1L) "día" else "días"} restantes"
-            horas > 0 && minutos > 0 -> "$horas ${if (horas == 1L) "hora" else "horas"} y $minutos ${if (minutos == 1L) "minuto" else "minutos"} restantes"
-            horas > 0 -> "$horas ${if (horas == 1L) "hora" else "horas"} restantes"
-            minutos > 0 -> "$minutos ${if (minutos == 1L) "minuto" else "minutos"} restantes"
-            else -> "Menos de un minuto restante"
+        return if (totalHoras >= 24) {
+            // Mostrar días completos restantes
+            val dias = ceil(totalHoras / 24).toLong()  // +1 implícito para el día actual
+            "$dias ${if (dias == 1L) "día" else "días"} restantes"
+        } else {
+            // Mostrar horas y minutos restantes
+            val horas = floor(totalHoras).toLong()
+            val minutos = floor(totalMinutos % 60).toLong()
+            when {
+                horas > 0 && minutos > 0 -> "$horas ${if (horas == 1L) "hora" else "horas"} y $minutos ${if (minutos == 1L) "minuto" else "minutos"} restantes"
+                horas > 0 -> "$horas ${if (horas == 1L) "hora" else "horas"} restantes"
+                minutos > 0 -> "$minutos ${if (minutos == 1L) "minuto" else "minutos"} restantes"
+                else -> "Menos de un minuto restante"
+            }
         }
     }
 
 
-    fun agregar_contador_estadisticas_publicacion(tipo: String,id_promo: String,localidad: String){
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun agregar_contador_estadisticas_publicacion(
+        tipoEvento: String,
+        id_promo: String,
+        localidad: String,
+        idUser: String
+    ) {
         val db = FirebaseFirestore.getInstance()
+
+        val estadisticaBase = db
             .collection("Tiendas").document(localidad)
             .collection("promos_ofertas").document(id_promo)
-            .collection("estadisticas").document(tipo)
+            .collection("estadisticas")
+            .document(tipoEvento)
 
-        db.update("total", FieldValue.increment(1))
-            .addOnSuccessListener {
-                Log.d("CONTADOR", "Contador actualizado correctamente")
+        val hoy = LocalDate.now().toString()
+
+        // 1️⃣ TOTAL (todos los eventos)
+        incrementar(estadisticaBase)
+
+        // 2️⃣ POR DÍA (todos los eventos)
+        incrementar(
+            estadisticaBase
+                .collection("por_dia")
+                .document(hoy)
+        )
+
+        // 3️⃣ ALCANCE (solo vistas)
+        if (tipoEvento == "vista") {
+            registrarAlcanceUnico(
+                estadisticaBase = estadisticaBase,
+                idUser = idUser
+            )
+        }
+
+        // 4️⃣ DEMOGRAFÍA (todo menos compartir)
+        if (tipoEvento != "compartir") {
+            obtenerDatosUsuario(idUser) { datos ->
+                if (datos == null) return@obtenerDatosUsuario
+
+                if (datos.localidad.isNotEmpty()) {
+                    incrementar(
+                        estadisticaBase
+                            .collection("localidad")
+                            .document(datos.localidad)
+                    )
+                }
+
+                if (datos.genero.isNotEmpty()) {
+                    incrementar(
+                        estadisticaBase
+                            .collection("genero")
+                            .document(datos.genero.lowercase())
+                    )
+                }
+
+                incrementar(
+                    estadisticaBase
+                        .collection("edad")
+                        .document(obtenerRangoEdad(datos.edad))
+                )
             }
-            .addOnFailureListener { e ->
-                db.set(mapOf("total" to 1))
+        }
+    }
+
+
+    fun registrarAlcanceUnico(
+        estadisticaBase: DocumentReference,
+        idUser: String
+    ) {
+        val alcanceUserRef = estadisticaBase
+            .collection("alcance_users")
+            .document(idUser)
+
+        alcanceUserRef.get().addOnSuccessListener { doc ->
+            if (!doc.exists()) {
+                alcanceUserRef.set(
+                    mapOf("ts" to FieldValue.serverTimestamp())
+                )
+
+                incrementar(
+                    estadisticaBase
+                        .collection("alcance")
+                        .document("total")
+                )
             }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun obtenerDatosUsuario(
+        idUser: String,
+        onResult: (DatosDemograficosUsuario?) -> Unit
+    ) {
+        db.collection("Trabajadores_Usuarios_Drivers")
+            .document("users")
+            .collection("users")
+            .document(idUser)
+            .get()
+            .addOnSuccessListener { snapshot ->
+
+                if (!snapshot.exists()) {
+                    onResult(null)
+                    return@addOnSuccessListener
+                }
+
+                val data = snapshot.data ?: run {
+                    onResult(null)
+                    return@addOnSuccessListener
+                }
+
+                val fechaNacString = data["fecha_nac"] as? String
+
+                val edad = try {
+                    fechaNacString?.let {
+                        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                        val fechaNac = LocalDate.parse(it, formatter)
+                        Period.between(fechaNac, LocalDate.now()).years
+                    } ?: 0
+                } catch (e: Exception) {
+                    0 // 🔒 nunca crashea
+                }
+
+                onResult(
+                    DatosDemograficosUsuario(
+                        localidad = data["localida"] as? String ?: "",
+                        nacionalidad = data["nacionalidad_nacimiento"] as? String ?: "",
+                        genero = data["genero"] as? String ?: "",
+                        edad = edad
+                    )
+                )
+            }
+            .addOnFailureListener {
+                onResult(null)
+            }
+    }
+    fun incrementar(ref: DocumentReference) {
+        ref.update("total", FieldValue.increment(1))
+            .addOnFailureListener {
+                ref.set(mapOf("total" to 1))
+            }
+    }
+
+
+    fun obtenerRangoEdad(edad: Int): String {
+        return when (edad) {
+            in 18..25 -> "18-25"
+            in 26..35 -> "26-35"
+            in 36..45 -> "36-45"
+            else -> "otro"
+        }
     }
 
 }

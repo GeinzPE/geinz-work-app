@@ -41,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
@@ -48,6 +49,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -65,6 +67,7 @@ import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.EstadisticasPromo
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.compartir_contacto_pulicaciones
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
@@ -88,12 +91,14 @@ import com.github.panpf.zoomimage.compose.zoom.rememberZoomableState
 import com.github.panpf.zoomimage.compose.zoom.zoomable
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
+import com.valentinilk.shimmer.shimmer
 import org.checkerframework.framework.qual.ConditionalPostconditionAnnotation
 import java.net.URLEncoder
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CollageGoogleMapsStyle(
+    id_user: String,
     aspectRatio: Float = 1.4f,
     with: Dp = 250.dp,
     imagenes: List<String>,
@@ -130,6 +135,7 @@ fun CollageGoogleMapsStyle(
 
         if (galeriaActiva) {
             ZoomableGalleryFullScreen(
+                id_user,
                 compartir_promocion(),
                 "",
                 imagenes,
@@ -155,6 +161,7 @@ fun CollageGoogleMapsStyle(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CollageGoogleMapsStyle_sin_scroll(
+    id_user: String,
     categoria: String,
     it: compartir_promocion,
     tag: String,
@@ -197,6 +204,7 @@ fun CollageGoogleMapsStyle_sin_scroll(
     // Galería zoomable fullscreen
     if (galeriaActiva) {
         ZoomableGalleryFullScreen(
+            id_user,
             it = it,
             tag = tag,
             imagenes = imagenes,
@@ -211,6 +219,7 @@ fun CollageGoogleMapsStyle_sin_scroll(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CollageGoogleMapsStyle_sin_scroll_promociones(
+    id_user: String,
     it: compartir_promocion,
     tag: String,
     aspectRatio: Float = 1.4f,
@@ -255,6 +264,7 @@ fun CollageGoogleMapsStyle_sin_scroll_promociones(
             .coerceAtLeast(0)
 
         ZoomableGalleryFullScreen_para_promociones(
+            id_user,
             id_promocion = idPromocionSeleccionada,
             it = it,
             tag = tag,
@@ -632,6 +642,7 @@ fun GaleriaInstagram(
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun ZoomableGalleryFullScreen(
+    id_user:String,
     it: compartir_promocion,
     tag: String = "",
     imagenes: List<String>,
@@ -721,6 +732,7 @@ fun ZoomableGalleryFullScreen(
                             modifier = Modifier.weight(1f),
                             clikeable = {
                                 abrir_whattsapp(
+                                    id_user,
                                     "promocion",
                                     "",
                                     "",
@@ -743,6 +755,7 @@ fun ZoomableGalleryFullScreen(
                             modifier = Modifier.weight(1f),
                             clikeable = {
                                 compartir_hosting_promo(
+                                    id_user,
                                     it.nombre_tienda,
                                     it.categoria,
                                     context,
@@ -764,6 +777,7 @@ fun ZoomableGalleryFullScreen(
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun ZoomableGalleryFullScreen_para_promociones(
+    id_user: String,
     id_promocion: String,
     it: compartir_promocion,
     tag: String = "",
@@ -859,7 +873,7 @@ fun ZoomableGalleryFullScreen_para_promociones(
                             txt_icono = "Me interesa",
                             modifier = Modifier.weight(1f),
                             clikeable = {
-                                abrir_whattsapp(
+                                abrir_whattsapp(id_user,
                                     "promocion",
                                     "",
                                     "",
@@ -882,7 +896,7 @@ fun ZoomableGalleryFullScreen_para_promociones(
                             txt_icono = "Compartir",
                             modifier = Modifier.weight(1f),
                             clikeable = {
-                                compartir_hosting_promo(
+                                compartir_hosting_promo(id_user,
                                     it.nombre_tienda,
                                     it.categoria,
                                     context,
@@ -981,16 +995,19 @@ fun ZoomableGalleryFullScreen_para_promociones(
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun ZoomableGalleryFullScreen_promociones(
+    estadisticas: EstadisticasPromo?,
     i: compartir_contacto_pulicaciones,
     titulo: String, txt: String,
     imagenes: List<String>,
     startIndex: Int = 0,
     onDismiss: () -> Unit,
-    clikc_compartir: (id:String,categoria:String,localidad:String,id_tienda:String) -> Unit,
-    click_contacto_directo: (id:String,numero:String,localidad:String,id_tienda:String) -> Unit,
-    abrir_prefil:(String)-> Unit,
+    clikc_compartir: (id: String, categoria: String, localidad: String, id_tienda: String) -> Unit,
+    click_contacto_directo: (id: String, numero: String, localidad: String, id_tienda: String,categoria:String) -> Unit,
+    abrir_prefil: (String) -> Unit,
 ) {
     val (valorRestante, tipo) = parseDiasHorasRestantes(i.dias_restantes)
+    var layoutReady by remember { mutableStateOf(false) }
+
     val backgroundColor = when {
         tipo == "dias" -> when {
             valorRestante > 5 -> Color(0xFF15BB1A) // Verde
@@ -1032,11 +1049,17 @@ fun ZoomableGalleryFullScreen_promociones(
     val pagerState = com.google.accompanist.pager.rememberPagerState(initialPage = startIndex)
     var allowScroll by remember { mutableStateOf(true) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().padding(top = 25.dp, bottom = 10.dp)) {
+
         com.google.accompanist.pager.HorizontalPager(
             state = pagerState,
             count = imagenes.size,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(if (layoutReady) 1f else 0f)
+                .onGloballyPositioned {
+                    layoutReady = true
+                },
             userScrollEnabled = allowScroll
         ) { page ->
 
@@ -1044,11 +1067,10 @@ fun ZoomableGalleryFullScreen_promociones(
             val painter = rememberAsyncImagePainter(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(imagenes[page])
-                    .placeholder(R.drawable.cargando_img_categorias)
+                    .placeholder (R.drawable.cargando_img_categorias)
                     .error(R.drawable.cargando_img_categorias)
                     .build()
             )
-
             val state = painter.state
             ZoomImage(
                 painter = painter,
@@ -1058,73 +1080,58 @@ fun ZoomableGalleryFullScreen_promociones(
                 contentScale = ContentScale.Fit
             )
 
-            // 🟡 Loader encima mientras carga
-            if (state is AsyncImagePainter.State.Loading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = Color.White)
-                }
-            }
         }
 
-            Box(
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        colors = color_top
+                    )
+                )
+                .height(100.dp)
+        ) {
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = color_top
-                        )
-                    )
-                    .height(100.dp)
+                    .padding(top = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
+
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                        .weight(1f)
+                )
 
-                    // Espacio izquierdo (equilibra la X)
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
+                // Texto centrado REAL
+                if (imagenes.size > 1) {
+                    Text(
+                        text = "${pagerState.currentPage + 1} de ${imagenes.size}",
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.weight(1f)
                     )
-
-                    // Texto centrado REAL
-                    if (imagenes.size > 1) {
-                        Text(
-                            text = "${pagerState.currentPage + 1} de ${imagenes.size}",
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleMedium,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    // Botón cerrar (X)
-                    IconButton(
-                        onClick = onDismiss,
-                        modifier = Modifier
-                            .weight(1f)
-                            .wrapContentWidth(Alignment.End)
-                            .padding(end = 16.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Cerrar",
-                            tint = Color.White
-                        )
-                    }
                 }
 
+                // Botón cerrar (X)
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .weight(1f)
+                        .wrapContentWidth(Alignment.End)
+                        .padding(end = 16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar",
+                        tint = Color.White
+                    )
+                }
             }
 
-
-
+        }
 
 
         Box(
@@ -1212,17 +1219,31 @@ fun ZoomableGalleryFullScreen_promociones(
                     BotonCompartirReddit(
                         icon = R.drawable.icono_whatsapp_blanco_tasns,
                         descripcion = "contactados",
-                        contador = "2.5k", onClick = { click_contacto_directo(i.id_promocion,i.numero_contacto,i.localidad_tineda,i.iod_tienda) })
+                        contador = "${estadisticas?.whatsapp ?: 0}",
+                        onClick = {
+                            click_contacto_directo(
+                                i.id_promocion,
+                                i.numero_contacto,
+                                i.localidad_tineda,
+                                i.iod_tienda,i.categoria
+                            )
+                        })
                     BotonCompartirReddit(
                         icon = R.drawable.comparir_icon,
                         descripcion = "compartidos",
-                        contador = "4.5k",
-                        onClick = { clikc_compartir(i.id_promocion,i.categoria,i.localidad_tineda,i.iod_tienda) })
+                        contador = "${estadisticas?.compartidos ?: 0}",
+                        onClick = {
+                            clikc_compartir(
+                                i.id_promocion,
+                                i.categoria,
+                                i.localidad_tineda,
+                                i.iod_tienda
+                            )
+                        })
                 }
             }
         }
-        }
-
+    }
 
 
 }
@@ -1254,12 +1275,13 @@ fun BotonCompartirReddit(
             contentDescription = descripcion,
             modifier = Modifier.size(16.dp)
         )
-
-        Text(
-            text = contador,
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.White
-        )
+        AnimatedVisibility(!contador.equals("0")) {
+            Text(
+                text = contador,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White
+            )
+        }
     }
 }
 
@@ -1306,6 +1328,7 @@ fun PegasooPagerIndicator(
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun compartir_hosting_promo(
+    id_user:String,
     nombre_tienda: String,
     categoria: String,
     context: Context,
@@ -1353,7 +1376,7 @@ fun compartir_hosting_promo(
         repo_erese_socio.agregar_contador(
             "compartidos",
             id_tienda,
-            localidad_tienda
+            localidad_tienda,id_user
         )
     } catch (e: Exception) {
         e.printStackTrace()
@@ -1481,5 +1504,31 @@ private fun ZoomableImagePagerItem(
                 )
                 .then(gestureModifier)
         )
+    }
+}
+
+@Composable
+fun ShimmerImagenConMarca() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .shimmer()
+            .background(Color(0xFF1C1C1C)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                painter = painterResource(id = R.drawable.logo_geinz_500x500),
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.7f),
+                modifier = Modifier.size(60.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Cargando",
+                color = Color.White.copy(alpha = 0.6f),
+                fontSize = 12.sp
+            )
+        }
     }
 }

@@ -446,6 +446,138 @@ exports.verificarMinimoSeguidores = onDocumentCreated(
     }
   }
 );
+
+exports.alertaSaldoBajo = onDocumentWritten(
+  'Tiendas/{localidad}/{localidad}/{id_tienda}',
+  async (event) => {
+    try {
+      console.log("===== TRIGGER alertaSaldoBajo =====");
+      console.log("Params recibidos:", event.params);
+
+      const beforeData = event.data?.before?.data() || {};
+      const afterData = event.data?.after?.data() || {};
+      console.log("Datos ANTES del cambio:", beforeData);
+      console.log("Datos DESPUÉS del cambio:", afterData);
+
+      const saldoAntes = beforeData.puntos_tienda || 0;
+      const saldoDespues = afterData.puntos_tienda || 0;
+      const notiEnviada = afterData.ultima_notificacion_enviada || false;
+      const propietarios = afterData.propietario_id || [];
+      const idTienda = event.params.id_tienda;
+
+      console.log("Saldo antes:", saldoAntes);
+      console.log("Saldo después:", saldoDespues);
+      console.log("ultima_notificacion_enviada:", notiEnviada);
+      console.log("Propietarios:", propietarios);
+
+      // 🔹 Reiniciar flag si el saldo sube por encima del umbral
+      if (saldoDespues >= 50 && notiEnviada) {
+        await event.data.after.ref.update({ ultima_notificacion_enviada: false });
+      }
+
+      // 🔹 Comprobamos si debemos enviar notificación
+      if (saldoDespues < 50 && !notiEnviada) {
+     
+        for (const propietarioId of propietarios) {
+
+          const tokenDoc = await admin
+            .firestore()
+            .collection("Trabajadores_Usuarios_Drivers")
+            .doc("users")
+            .collection("tokens")
+            .doc(propietarioId)
+            .get();
+
+          if (!tokenDoc.exists) {
+            console.log(`No se encontró doc de tokens para propietario ${propietarioId}`);
+            continue;
+          }
+
+          const tokensMap = tokenDoc.data()?.tokens || {};
+          const tokens = Object.values(tokensMap);
+
+
+          if (tokens.length === 0) {
+            continue;
+          }
+
+          for (const token of tokens) {
+       
+            await enviarNotificacionFCM_tienda({
+              token,
+              title: `🎯 ¡A punto de quedarte sin monedas!`,
+              body: `Te quedan pocas monedas. ¡No dejes que tu alcance se detenga! 🔔✨`,
+              link: "https://geinzworkapp.web.app/share?t=scr&id=rec",
+              idTienda,
+              idAnuncio: "",
+              tipo_notificacion: "logo",
+              prioridad: "high",
+            });
+          }
+        }
+
+
+        await event.data.after.ref.update({ ultima_notificacion_enviada: true });
+      } else {
+      }
+
+  
+
+    } catch (error) {
+      console.error("ERROR alertaSaldoBajo:", error);
+    }
+  }
+);
+
+exports.limpiarEstadoNotificacionesDiario = onSchedule(
+  "0 0 * * *", // todos los días a medianoche
+  {
+    timeZone: "America/Lima",
+  },
+  async (event) => {
+    try {
+      console.log("===== Ejecutando limpiarEstadoNotificacionesDiario =====");
+
+      const now = new Date();
+      now.setHours(0, 0, 0, 0); // ignorar horas, minutos y segundos
+
+      // Tomamos todas las notificaciones activas
+      const snapshot = await admin.firestore()
+        .collectionGroup("estado_notificaciones")
+        .where("promocion_nueva", "==", true)
+        .get();
+
+      for (const doc of snapshot.docs) {
+        const data = doc.data();
+        if (!data.fecha_fin) continue;
+
+        // Parseamos fecha_fin (DD/MM/YYYY)
+        const [day, month, year] = data.fecha_fin.split("/").map(Number);
+        const fechaFin = new Date(year, month - 1, day);
+        fechaFin.setHours(0, 0, 0, 0);
+
+        // Si hoy es igual o mayor a fechaFin, reseteamos
+        if (now >= fechaFin) {
+          console.log(`Reseteando estado de notificación: ${doc.ref.path}`);
+          await doc.ref.update({
+            contador: 0,
+            promocion_nueva: false,
+            fecha_inicio: "",
+            fecha_fin: "",
+          });
+        }
+      }
+
+      console.log("===== Limpieza completada =====");
+      return { success: true };
+    } catch (error) {
+      console.error("ERROR limpiarEstadoNotificacionesDiario:", error);
+      return { success: false, error: error.message };
+    }
+  }
+);
+
+
 async function enviarNotificacionFCM_tienda({
   token,
   title,
@@ -473,7 +605,6 @@ const mensaje = {
   },
   android: { priority: prioridad }
 };
-
     const respuesta = await admin.messaging().send(mensaje);
     console.log("Notificación enviada al token:", token);
     return respuesta;
@@ -484,7 +615,6 @@ const mensaje = {
     }
   }
 }
-
 
 /*
 

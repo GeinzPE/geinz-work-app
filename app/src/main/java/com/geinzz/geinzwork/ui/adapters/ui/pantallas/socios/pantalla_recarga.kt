@@ -4,6 +4,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -73,7 +74,8 @@ fun pantala_recarga(
     nombre_tienda: String,
     localida_tienda: String,
     id_tienda: String,
-    monedas_user: Int
+    monedas_user: Int,
+    cargando:(Boolean)-> Unit
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -93,82 +95,90 @@ fun pantala_recarga(
     LaunchedEffect(Unit) {
         viewmodel_paramo.obtener_precios_paquetes()
     }
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Crossfade(targetState = estado) { curren_state ->
 
-        when (estado) {
-            is viewmodel_eres_socio.CargaPaquetesPago.Loading -> {
-                CircularProgressIndicator()
-            }
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
 
-            is viewmodel_eres_socio.CargaPaquetesPago.Success -> {
-                val datos = (estado as viewmodel_eres_socio.CargaPaquetesPago.Success).datos
-                LazyColumn(
-                    state = listState,
-                    verticalArrangement = Arrangement.spacedBy(30.dp),
-                    modifier = Modifier.padding(top = 10.dp, start = 5.dp, end = 5.dp)
-                ) {
-                    item {
-                        Text(
-                            fontFamily = baners_geinz_work,
-                            text = "Potencia tu negocio con GEINZ Ads",
-                            color = Color.White, fontSize = 25.sp, textAlign = TextAlign.Center
-                        )
-                        spacer_vertical(10.dp)
-                        texto_generico_multilinea(
-                            "¡Hola $nombre_tienda! \uD83C\uDFAF Descubre los planes de GEINZ y toma el control de tus promociones, notificaciones y beneficios",
-                            MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                    items(datos) { i ->
-                        item_pantalla_recarga(i, { nombre, monedas, montosoles ->
-                            val datos_recarga = historial_recargas(
-                                "recarga",
-                                fecha = obtenerFechaActual(),
-                                hora = obtenerHoraActual(),
-                                id_recarga = viewmodel_recarga_insta.generarIdRecarga(),
-                                localidad_tienda = localida_tienda,
-                                id_tienda = id_tienda,
-                                nombre_tienda = nombre_tienda,
-                                tipo = nombre,
-                                monto = monedas,
-                                precio_soles = montosoles,
-                                yape = true,
-                                plin = false,
-                                estado = "Aceptado",
-                                monto_posterior = monedas_user
+            when (curren_state) {
+                is viewmodel_eres_socio.CargaPaquetesPago.Loading -> {
+                    ShimmerImagenConMarca()
+//                    cargando(true)
+                }
+
+                is viewmodel_eres_socio.CargaPaquetesPago.Success -> {
+//                    cargando(false)
+                    val datos = curren_state.datos // ✅ aquí no hay cast
+                    LazyColumn(
+                        state = listState,
+                        verticalArrangement = Arrangement.spacedBy(30.dp),
+                        modifier = Modifier.padding(top = 10.dp, start = 5.dp, end = 5.dp)
+                    ) {
+                        item {
+                            Text(
+                                fontFamily = baners_geinz_work,
+                                text = "Potencia tu negocio con GEINZ Ads",
+                                color = Color.White, fontSize = 25.sp, textAlign = TextAlign.Center
                             )
-                            viewmodel_recarga_insta.recargar_puntos(
-                                i = datos_recarga,
-                                id_user = id_user
+                            spacer_vertical(10.dp)
+                            texto_generico_multilinea(
+                                "¡Hola $nombre_tienda! \uD83C\uDFAF Descubre los planes de GEINZ y toma el control de tus promociones, notificaciones y beneficios",
+                                MaterialTheme.typography.bodyMedium
                             )
-                        })
+                        }
+                        items(datos) { i ->
+                            item_pantalla_recarga(i) { nombre, monedas, montosoles ->
+                                val datos_recarga = historial_recargas(
+                                    "recarga",
+                                    fecha = obtenerFechaActual(),
+                                    hora = obtenerHoraActual(),
+                                    id_recarga = viewmodel_recarga_insta.generarIdRecarga(),
+                                    localidad_tienda = localida_tienda,
+                                    id_tienda = id_tienda,
+                                    nombre_tienda = nombre_tienda,
+                                    tipo = nombre,
+                                    monto = monedas,
+                                    precio_soles = montosoles,
+                                    yape = true,
+                                    plin = false,
+                                    estado = "Aceptado",
+                                    monto_posterior = monedas_user
+                                )
+                                viewmodel_recarga_insta.recargar_puntos(
+                                    i = datos_recarga,
+                                    id_user = id_user
+                                )
+                            }
+                        }
+                        item { spacer_vertical(20.dp) }
                     }
-                    item { spacer_vertical(20.dp) }
+                }
+
+                is viewmodel_eres_socio.CargaPaquetesPago.Error -> {
+//                    cargando(false)
+                    val text = curren_state.txt // ✅ aquí tampoco hay cast
+                    Text(text)
+                    Log.d("obtenreodasr", text)
                 }
             }
 
-            is viewmodel_eres_socio.CargaPaquetesPago.Error -> {
-                val text = (estado as viewmodel_eres_socio.CargaPaquetesPago.Error).txt
-                Text(text)
-                Log.d("obtenreodasr", text)
-            }
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(40.dp)
-                .align(Alignment.BottomCenter)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.Black
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black
+                            )
                         )
                     )
-                )
-                .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
-        )
+                    .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+            )
+        }
     }
+
 
 
 }

@@ -42,7 +42,7 @@ object open_fb_tk_ig {
         }
     }
 
-        fun openInstagram(tienda:String,context: Context, url: String,id_tienda:String,localidad_tienda:String) {
+        fun openInstagram(tienda:String,context: Context, url: String,id_tienda:String,localidad_tienda:String,id_user:String) {
 
             if (url.isBlank()) {
                 Toast.makeText(context, "Enlace de Instagram no disponible", Toast.LENGTH_SHORT).show()
@@ -55,7 +55,7 @@ object open_fb_tk_ig {
 
                 // 🔥 Agregar contador solo si corresponde
                 if (tienda == "Tienda" && id_tienda.isNotEmpty() && localidad_tienda.isNotEmpty()) {
-                    repo_socios.agregar_contador("instagram", id_tienda, localidad_tienda)
+                    repo_socios.agregar_contador("instagram", id_tienda, localidad_tienda,id_user)
                 }
 
                 // Si la app de Instagram está instalada, intenta abrirla
@@ -79,7 +79,7 @@ object open_fb_tk_ig {
         }
 
 
-        fun openFacebook(tipo:String="Tienda",context: Context, pageUrl: String,id_tienda:String,localidad_tienda:String) {
+        fun openFacebook(tipo:String="Tienda",context: Context, pageUrl: String,id_tienda:String,localidad_tienda:String,id_user:String) {
 
             if (pageUrl.isBlank()) {
                 Toast.makeText(context, "Enlace de Facebook no disponible", Toast.LENGTH_SHORT).show()
@@ -95,7 +95,7 @@ object open_fb_tk_ig {
 
                 // 🔥 Contador solo si corresponde
                 if (tipo == "Tienda" && id_tienda.isNotEmpty() && localidad_tienda.isNotEmpty()) {
-                    repo_socios.agregar_contador("facebook", id_tienda, localidad_tienda)
+                    repo_socios.agregar_contador("facebook", id_tienda, localidad_tienda,id_user)
                 }
 
                 when {
@@ -124,7 +124,7 @@ object open_fb_tk_ig {
 
 
 
-        fun openWebLink(context: Context, url: String,id_tienda:String,localidad_tienda:String) {
+        fun openWebLink(context: Context, url: String,id_tienda:String,localidad_tienda:String,id_user:String) {
 
             if (url.isBlank()) {
                 Toast.makeText(context, "Enlace de sitio web no disponible", Toast.LENGTH_SHORT).show()
@@ -139,7 +139,7 @@ object open_fb_tk_ig {
 
                 // 🔥 Contador solo si corresponde
                 if (id_tienda.isNotEmpty() && localidad_tienda.isNotEmpty()) {
-                    repo_socios.agregar_contador("sitio_web", id_tienda, localidad_tienda)
+                    repo_socios.agregar_contador("sitio_web", id_tienda, localidad_tienda,id_user)
                 }
 
             } catch (e: Exception) {
@@ -149,7 +149,7 @@ object open_fb_tk_ig {
 
 
 
-        fun openTiktok(tipo:String="Tienda",context: Context, username: String,id_tienda:String,localidad_tienda:String) {
+        fun openTiktok(tipo:String="Tienda",context: Context, username: String,id_tienda:String,localidad_tienda:String,id_user:String) {
 
             if (username.isBlank()) {
                 Toast.makeText(context, "Enlace de sitio web no disponible", Toast.LENGTH_SHORT).show()
@@ -160,7 +160,7 @@ object open_fb_tk_ig {
 
             // 🔥 Contador solo si corresponde
             if (tipo == "Tienda" && id_tienda.isNotEmpty() && localidad_tienda.isNotEmpty()) {
-                repo_socios.agregar_contador("tiktok", id_tienda, localidad_tienda)
+                repo_socios.agregar_contador("tiktok", id_tienda, localidad_tienda,id_user)
             }
 
             if (isPackageInstalled(context, "com.ss.android.ugc.trill")) {
@@ -173,6 +173,7 @@ object open_fb_tk_ig {
 
 
         fun abrir_whattsapp(
+            id_user:String,
             tipo:String="tienda",id_tienda:String,localidad_tienda:String,
             context: Context,
             numero: String,
@@ -191,7 +192,7 @@ object open_fb_tk_ig {
 
                 // 🔥 Contador solo si corresponde
                 if (tipo == "tienda" && id_tienda.isNotEmpty() && localidad_tienda.isNotEmpty()) {
-                    repo_socios.agregar_contador("whatsapp", id_tienda, localidad_tienda)
+                    repo_socios.agregar_contador("whatsapp", id_tienda, localidad_tienda,id_user)
                 }
 
             } catch (e: Exception) {

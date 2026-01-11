@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti
 
 import android.R
+import com.geinzz.geinzwork.data.model.msjes_predeteminados_generales
 
 data class obj_completo(
     val dataclass_promociones_cerca_de_ti: dataclass_promociones_cerca_de_ti,
@@ -19,7 +20,8 @@ data class dataclass_promociones_cerca_de_ti(
     val img: img_content,
     val exclussivo: Boolean,
     val dias_restantes: String,
-    val estadisticas: estadisticas_publiccaciones
+    val estadisticas: estadisticas_publiccaciones,
+    val texto_msje_whatsapp: msjes_predeteminados_generales
 )
 
 data class estadisticas_publiccaciones(
@@ -41,7 +43,7 @@ data class informacion_publcacion(
     val id_tienda: String,
     val categoria: String,
     val compartir: Boolean,
-    val contactar: Boolean,
+    val contactar: Boolean,val msjes_predeteminados_generales:msjes_predeteminados_generales,
 )
 
 data class ubicacion(

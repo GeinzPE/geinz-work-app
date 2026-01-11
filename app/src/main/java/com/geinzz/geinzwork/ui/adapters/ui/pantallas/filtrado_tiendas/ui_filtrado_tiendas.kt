@@ -671,6 +671,7 @@ var generador_qr by remember { mutableStateOf("") }
 
     if (mostar_bottom_sheet_ayuda_geinz) {
         bottom_sheet_ayudanos_a_creccer(
+            id_respado_user,
             verificar_intener,
             ultimaLocalidad ?: "barranca",
             { mostar_bottom_sheet_ayuda_geinz = false }, viewModelFiltros

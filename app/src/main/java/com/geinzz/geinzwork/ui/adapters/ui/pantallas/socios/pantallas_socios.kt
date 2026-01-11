@@ -127,7 +127,9 @@ import androidx.compose.animation.with
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.material.Badge
 import androidx.compose.material3.Badge
@@ -138,17 +140,22 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import com.geinzz.geinzwork.data.model.items_pantallas_promociones
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.firebaseAuth
 import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_promocionar
+import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_recientes
+import com.google.firebase.auth.FirebaseAuth
 
 
 @OptIn(ExperimentalAnimationApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun login_socios(isConnected: Boolean, tipo_: String = "") {
+    firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     var id_registrado by remember { mutableStateOf("") }
     val viewmodel: viewmodel_eres_socio = viewModel()
+    val viewmodel_pantalla_reciente: viewmodel_pantallas_recientes = viewModel()
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
     val state_socio = viewmodel.state_eres_socio.collectAsState()
     val scope = rememberCoroutineScope()
@@ -159,6 +166,8 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
     val idSocio by viewmodel.idSocio.collectAsState()
     var cerrar_Seccion_cuenta_tienda by remember { mutableStateOf(false) }
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+    val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
+    ?: ""
     var localidad_seleciondad by remember { mutableStateOf("") }
     val localidad_tienda_select_ by data_store_localidad.get_localidad_tienda_socio(context)
         .collectAsState(initial = "")
@@ -170,15 +179,18 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
     val mostarr_bundel_recientes by viewmodel_pantalla_promocionar.estado_envio_recientes.collectAsState()
 
     var mostrar_bundle_desbloqueo by remember { mutableStateOf(false) }
+    var mostrar_bundle_recargas by remember { mutableStateOf(false) }
 
     var nombre_tienda by remember { mutableStateOf("") }
     var localidad_tienda by remember { mutableStateOf("") }
     var id_tienda by remember { mutableStateOf("") }
     var moneda_total_tienda by remember { mutableStateOf(0) }
-
+    var cargandoState by remember { mutableStateOf(false) }
     LaunchedEffect(tipo_) {
-        if (tipo_.isNotEmpty()) {
+        if (tipo_.isNotEmpty() && tipo_.equals("envio")) {
             mostrar_bundle_desbloqueo = true
+        } else if (tipo_.equals("recargas")) {
+            mostrar_bundle_recargas = true
         }
     }
     LaunchedEffect(Unit) {
@@ -438,7 +450,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                                             }
                                                         } else {
                                                             viewmodel.verificar_existencia_tienda(
-                                                                uid_respald_user,
+                                                                id_user,
                                                                 ingresar_correo,
                                                                 correo_electronico_cuenta_user,
                                                                 id_registrado,
@@ -462,7 +474,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                                             }
                                                         } else {
                                                             viewmodel.verificar_existencia_tienda(
-                                                                uid_respald_user,
+                                                                id_user,
                                                                 ingresar_correo,
                                                                 correo_electronico_cuenta_user,
                                                                 id_registrado,
@@ -504,7 +516,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                             }
                             SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
                         }
-                        BtnSoporte("problemas", context, uid_respald_user)
+                        BtnSoporte("problemas", context, id_user)
                     }
                 }
 
@@ -554,7 +566,11 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                     moneda_total_tienda =
                                         state.datos.saldo_disponible_tienda.toInt()
 
-                                    pantalla_carga_socios(state.datos, isConnected) { valor ->
+                                    pantalla_carga_socios(
+                                        id_user,
+                                        state.datos,
+                                        isConnected
+                                    ) { valor ->
                                         id_registrado = valor
                                     }
                                 }
@@ -565,58 +581,87 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                     }
                     Scaffold(
                         bottomBar = {
-                            BottomNavigation(
-                                backgroundColor = Color.Black,
-                                elevation = 8.dp
+                            AnimatedVisibility(
+                                visible = !cargandoState, // si NO está cargando, se muestra
+                                enter = slideInVertically(
+                                    initialOffsetY = { it }, // entra desde abajo
+                                    animationSpec = tween(
+                                        durationMillis = 300,
+                                        easing = FastOutSlowInEasing
+                                    )
+                                ),
+                                exit = slideOutVertically(
+                                    targetOffsetY = { it }, // sale hacia abajo
+                                    animationSpec = tween(
+                                        durationMillis = 300,
+                                        easing = FastOutSlowInEasing
+                                    )
+                                )
                             ) {
+
                                 BottomNavigation(
                                     backgroundColor = Color.Black,
                                     elevation = 8.dp
                                 ) {
-                                    BottomNavigationItem(
-                                        icon = {
-                                            Image(
-                                                painter = painterResource(R.drawable.home_seleccionado),
-                                                contentDescription = null,
-                                                colorFilter = if (pantallaSeleccionada == "Inicio")
-                                                    ColorFilter.tint(Color.White) else ColorFilter.tint(
-                                                    Color.Gray
-                                                ),
-                                                modifier = Modifier
-                                                    .size(25.dp)
-                                                    .padding(bottom = 4.dp)
-                                            )
-                                        },
-                                        label = {
-                                            Text(
-                                                text = "Inicio",
-                                                fontFamily = FontFamily.Default,
-                                                color = if (pantallaSeleccionada == "Inicio") Color.White else Color.Gray,
-                                                fontSize = 13.sp,
-                                                fontWeight = FontWeight.Normal,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis// fuerza que sea normal, no bold
-                                            )
-                                        },
-                                        selected = pantallaSeleccionada == "Inicio",
-                                        onClick = { pantallaSeleccionada = "Inicio" },
-                                        alwaysShowLabel = true,
-                                        modifier = Modifier.padding(top = 4.dp)
-                                    )
+                                    BottomNavigation(
+                                        backgroundColor = Color.Black,
+                                        elevation = 8.dp
+                                    ) {
+                                        BottomNavigationItem(
+                                            icon = {
+                                                Image(
+                                                    painter = painterResource(R.drawable.home_seleccionado),
+                                                    contentDescription = null,
+                                                    colorFilter = if (pantallaSeleccionada == "Inicio")
+                                                        ColorFilter.tint(Color.White) else ColorFilter.tint(
+                                                        Color.Gray
+                                                    ),
+                                                    modifier = Modifier
+                                                        .size(25.dp)
+                                                        .padding(bottom = 4.dp)
+                                                )
+                                            },
+                                            label = {
+                                                Text(
+                                                    text = "Inicio",
+                                                    fontFamily = FontFamily.Default,
+                                                    color = if (pantallaSeleccionada == "Inicio") Color.White else Color.Gray,
+                                                    fontSize = 13.sp,
+                                                    fontWeight = FontWeight.Normal,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis// fuerza que sea normal, no bold
+                                                )
+                                            },
+                                            selected = pantallaSeleccionada == "Inicio",
+                                            onClick = { pantallaSeleccionada = "Inicio" },
+                                            alwaysShowLabel = true,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
 
-                                    BottomNavigationItem(
-                                        icon = {
-                                            if (mostrar_bundle_desbloqueo) {
-                                                BadgedBox(
-                                                    badge = {
-                                                        Text(
-                                                            text = "🔥",
-                                                            fontSize = 17.sp
+                                        BottomNavigationItem(
+                                            icon = {
+                                                if (mostrar_bundle_desbloqueo) {
+                                                    BadgedBox(
+                                                        badge = {
+                                                            Text(
+                                                                text = "🔥",
+                                                                fontSize = 17.sp
+                                                            )
+
+                                                        }
+
+                                                    ) {
+                                                        Image(
+                                                            painter = painterResource(R.drawable.promocionar),
+                                                            contentDescription = null,
+                                                            colorFilter = if (pantallaSeleccionada == "Promocionar") ColorFilter.tint(
+                                                                Color.White
+                                                            ) else ColorFilter.tint(Color.Gray),
+                                                            modifier = Modifier.size(27.dp)
                                                         )
-
                                                     }
 
-                                                ) {
+                                                } else {
                                                     Image(
                                                         painter = painterResource(R.drawable.promocionar),
                                                         contentDescription = null,
@@ -627,50 +672,49 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                                     )
                                                 }
 
-                                            } else {
-                                                Image(
-                                                    painter = painterResource(R.drawable.promocionar),
-                                                    contentDescription = null,
-                                                    colorFilter = if (pantallaSeleccionada == "Promocionar") ColorFilter.tint(
-                                                        Color.White
-                                                    ) else ColorFilter.tint(Color.Gray),
-                                                    modifier = Modifier.size(27.dp)
+
+                                            },
+                                            label = {
+                                                Text(
+                                                    text = "Promocionar",
+                                                    fontFamily = FontFamily.Default,
+                                                    color = if (pantallaSeleccionada == "Promocionar") Color.White else Color.Gray,
+                                                    fontSize = 13.sp,
+                                                    fontWeight = FontWeight.Normal,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis // fuerza que sea normal, no bold
                                                 )
-                                            }
-
-
-                                        },
-                                        label = {
-                                            Text(
-                                                text = "Promocionar",
-                                                fontFamily = FontFamily.Default,
-                                                color = if (pantallaSeleccionada == "Promocionar") Color.White else Color.Gray,
-                                                fontSize = 13.sp,
-                                                fontWeight = FontWeight.Normal,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis // fuerza que sea normal, no bold
-                                            )
-                                        },
-                                        selected = pantallaSeleccionada == "Promocionar",
-                                        onClick = {
-                                            pantallaSeleccionada = "Promocionar"
-                                            mostrar_bundle_desbloqueo = false
-                                        },
-                                        alwaysShowLabel = true,
-                                        modifier = Modifier.padding(top = 4.dp)
-                                    )
-                                    BottomNavigationItem(
-                                        icon = {
-                                            if (mostarr_bundel_recientes) {
-                                                BadgedBox(
-                                                    badge = {
-                                                        Badge(
-                                                            backgroundColor = Color.Red,
-                                                        ) {
-                                                            Text(text = "1", fontSize = 12.sp)
+                                            },
+                                            selected = pantallaSeleccionada == "Promocionar",
+                                            onClick = {
+                                                pantallaSeleccionada = "Promocionar"
+                                                mostrar_bundle_desbloqueo = false
+                                            },
+                                            alwaysShowLabel = true,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                        BottomNavigationItem(
+                                            icon = {
+                                                if (mostarr_bundel_recientes) {
+                                                    BadgedBox(
+                                                        badge = {
+                                                            Badge(
+                                                                backgroundColor = Color.Red,
+                                                            ) {
+                                                                Text(text = "1", fontSize = 12.sp)
+                                                            }
                                                         }
+                                                    ) {
+                                                        Image(
+                                                            painter = painterResource(R.drawable.historial),
+                                                            contentDescription = null,
+                                                            colorFilter = if (pantallaSeleccionada == "Publicaciones") ColorFilter.tint(
+                                                                Color.White
+                                                            ) else ColorFilter.tint(Color.Gray),
+                                                            modifier = Modifier.size(30.dp)
+                                                        )
                                                     }
-                                                ) {
+                                                } else {
                                                     Image(
                                                         painter = painterResource(R.drawable.historial),
                                                         contentDescription = null,
@@ -680,68 +724,83 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                                         modifier = Modifier.size(30.dp)
                                                     )
                                                 }
-                                            } else {
-                                                Image(
-                                                    painter = painterResource(R.drawable.historial),
-                                                    contentDescription = null,
-                                                    colorFilter = if (pantallaSeleccionada == "Publicaciones") ColorFilter.tint(
-                                                        Color.White
-                                                    ) else ColorFilter.tint(Color.Gray),
-                                                    modifier = Modifier.size(30.dp)
+
+                                            },
+                                            label = {
+                                                Text(
+                                                    text = "Recientes",
+                                                    fontFamily = FontFamily.Default,
+                                                    color = if (pantallaSeleccionada == "Publicaciones") Color.White else Color.Gray,
+                                                    fontSize = 13.sp,
+                                                    fontWeight = FontWeight.Normal,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
                                                 )
-                                            }
+                                            },
+                                            selected = pantallaSeleccionada == "Publicaciones",
+                                            onClick = {
+                                                pantallaSeleccionada = "Publicaciones"
+                                                viewmodel_pantalla_promocionar.cambiar_Estado_reciente(
+                                                    false
+                                                )
+                                            },
+                                            alwaysShowLabel = true,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
 
-                                        },
-                                        label = {
-                                            Text(
-                                                text = "Recientes",
-                                                fontFamily = FontFamily.Default,
-                                                color = if (pantallaSeleccionada == "Publicaciones") Color.White else Color.Gray,
-                                                fontSize = 13.sp,
-                                                fontWeight = FontWeight.Normal,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-                                        },
-                                        selected = pantallaSeleccionada == "Publicaciones",
-                                        onClick = {
-                                            pantallaSeleccionada = "Publicaciones"
-                                            viewmodel_pantalla_promocionar.cambiar_Estado_reciente(
-                                                false
-                                            )
-                                        },
-                                        alwaysShowLabel = true,
-                                        modifier = Modifier.padding(top = 4.dp)
-                                    )
+                                        BottomNavigationItem(
+                                            icon = {
+                                                if (mostrar_bundle_recargas) {
+                                                    BadgedBox(
+                                                        badge = {
+                                                            Text(
+                                                                text = "\uD83D\uDCB0",
+                                                                fontSize = 17.sp
+                                                            )
+                                                        }
 
-                                    BottomNavigationItem(
-                                        icon = {
-                                            Image(
-                                                painter = painterResource(R.drawable.icon_monedas_3d),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(30.dp)
-                                            )
-                                        },
-                                        label = {
-                                            Text(
-                                                text = "Recargas",
-                                                fontFamily = FontFamily.Default,
-                                                color = if (pantallaSeleccionada == "Recargas") Color.White else Color.Gray,
-                                                fontSize = 13.sp,
-                                                fontWeight = FontWeight.Normal,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-                                        },
-                                        selected = pantallaSeleccionada == "Recargas",
-                                        onClick = { pantallaSeleccionada = "Recargas" },
-                                        alwaysShowLabel = true,
-                                        modifier = Modifier.padding(top = 4.dp)
-                                    )
+                                                    ) {
+                                                        Image(
+                                                            painter = painterResource(R.drawable.icon_monedas_3d),
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(30.dp)
+                                                        )
+                                                    }
+
+                                                } else {
+                                                    Image(
+                                                        painter = painterResource(R.drawable.icon_monedas_3d),
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(30.dp)
+                                                    )
+                                                }
+
+                                            },
+                                            label = {
+                                                Text(
+                                                    text = "Recargas",
+                                                    fontFamily = FontFamily.Default,
+                                                    color = if (pantallaSeleccionada == "Recargas") Color.White else Color.Gray,
+                                                    fontSize = 13.sp,
+                                                    fontWeight = FontWeight.Normal,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            },
+                                            selected = pantallaSeleccionada == "Recargas",
+                                            onClick = {
+                                                pantallaSeleccionada = "Recargas"
+                                                mostrar_bundle_recargas = false
+                                            },
+                                            alwaysShowLabel = true,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
 
 
+                                    }
                                 }
                             }
+
                         }
                     ) { paddingValues ->
                         Box(
@@ -769,18 +828,25 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                     }
 
                                     "Publicaciones" -> {
-                                        pantalla_aun_no_disponible()
+                                        PantallaRecientes(
+                                            id_tienda,
+                                            localidad_tienda,
+                                            viewmodel_pantalla_reciente, { cargando ->
+                                                cargandoState = cargando
+                                            })
 //                                        pantallaSoporte()
                                     }
 
                                     "Recargas" -> {
                                         pantala_recarga(
-                                            viewmodel,
-                                            nombre_tienda,
-                                            localidad_tienda,
-                                            id_tienda,
-                                            moneda_total_tienda
-                                        )
+                                            viewmodel_paramo = viewmodel,
+                                            nombre_tienda = nombre_tienda,
+                                            localida_tienda = localidad_tienda,
+                                            id_tienda = id_tienda,
+                                            monedas_user = moneda_total_tienda,
+                                            cargando = { cargando ->
+                                                cargandoState = cargando
+                                            })
 //                                        pantallaSoporte()
                                     }
                                 }

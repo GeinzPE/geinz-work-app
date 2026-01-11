@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.identity.util.UUID
+import com.geinzz.geinzwork.data.model.DatosDemograficosUsuario
 import com.geinzz.geinzwork.data.model.agregar_promociones
 import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
 import com.geinzz.geinzwork.data.model.datos_publicaciones_realizadas
@@ -26,6 +27,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_ubicacion_container
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.notificacionesFCM.enviar_notificacion_lista_dispo
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -33,12 +35,19 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.Period
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 import kotlin.collections.component1
 import kotlin.collections.component2
+import kotlin.math.ceil
+import kotlin.math.floor
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 
@@ -48,6 +57,7 @@ class repo_eres_socio {
     private val db_sec: FirebaseFirestore by lazy {
         FirebaseSecundario.getFirestore()
     }
+
     fun escuchar_datos_tienda(
         localidad_tienda: String,
         id_tienda: String,
@@ -236,42 +246,118 @@ class repo_eres_socio {
     }
 
 
-    fun agregar_contador(tipo: String, id_tienda: String, localida_tienda: String) {
-        Log.d("agregar", "$tipo $localida_tienda $id_tienda")
-        val db = FirebaseFirestore.getInstance()
+    fun agregar_contador(
+        tipo: String,
+        id_tienda: String,
+        localida_tienda: String,
+        id_user: String
+    ) {
+
+        val estadisticaRef = FirebaseFirestore.getInstance()
             .collection("Tiendas").document(localida_tienda)
             .collection(localida_tienda).document(id_tienda)
-            .collection("estadisticas").document(tipo)
+            .collection("estadisticas")
+            .document(tipo)
 
-        db.update("total", FieldValue.increment(1))
-            .addOnSuccessListener {
-                Log.d("CONTADOR", "Contador actualizado correctamente")
+        // 🔹 TOTAL (lo que ya tienes)
+        incrementar(estadisticaRef)
+
+        // 🔹 DATOS DEL USUARIO
+        obtenerDatosUsuario(id_user) { datos ->
+            if (datos == null) return@obtenerDatosUsuario
+
+            // LOCALIDAD
+            if (datos.localidad.isNotEmpty()) {
+                incrementar(
+                    estadisticaRef
+                        .collection("localida")
+                        .document(datos.localidad)
+                )
             }
-            .addOnFailureListener { e ->
-                db.set(mapOf("total" to 1))
+
+            // GENERO
+            if (datos.genero.isNotEmpty()) {
+                incrementar(
+                    estadisticaRef
+                        .collection("genero")
+                        .document(datos.genero.lowercase())
+                )
+            }
+
+            // EDAD
+            incrementar(
+                estadisticaRef
+                    .collection("edad")
+                    .document(obtenerRangoEdad(datos.edad))
+            )
+        }
+    }
+
+
+    fun incrementar(ref: DocumentReference) {
+        ref.update("total", FieldValue.increment(1))
+            .addOnFailureListener {
+                ref.set(mapOf("total" to 1))
             }
     }
+
+
+    fun obtenerRangoEdad(edad: Int): String {
+        return when (edad) {
+            in 18..25 -> "18-25"
+            in 26..35 -> "26-35"
+            in 36..45 -> "36-45"
+            else -> "otro"
+        }
+    }
+
 
     fun agregar_contador_estadistica_noti(
         tipo: String,
         id_tienda: String,
         localida_tienda: String,
-        id_notificacion: String
+        id_notificacion: String,
+        id_user: String
     ) {
-        Log.d("agregar", "$tipo $localida_tienda $id_tienda")
-        val db = FirebaseFirestore.getInstance()
+        val estadisticaRef = FirebaseFirestore.getInstance()
             .collection("Tiendas").document(localida_tienda)
             .collection(localida_tienda).document(id_tienda)
             .collection("notificaciones_enviadas").document(id_notificacion)
-            .collection("estadisticas").document(tipo)
+            .collection("estadisticas")
+            .document(tipo)
 
-        db.update("total", FieldValue.increment(1))
-            .addOnSuccessListener {
-                Log.d("CONTADOR", "Contador actualizado correctamente")
+        // 🔹 TOTAL
+        incrementar(estadisticaRef)
+
+        // 🔹 DATOS DEL USUARIO
+        obtenerDatosUsuario(id_user) { datos ->
+            if (datos == null) return@obtenerDatosUsuario
+
+            // LOCALIDAD
+            if (datos.localidad.isNotBlank()) {
+                incrementar(
+                    estadisticaRef
+                        .collection("localida")
+                        .document(datos.localidad.lowercase())
+                )
             }
-            .addOnFailureListener { e ->
-                db.set(mapOf("total" to 1))
+
+            // GÉNERO
+            if (datos.genero.isNotBlank()) {
+                incrementar(
+                    estadisticaRef
+                        .collection("genero")
+                        .document(datos.genero.lowercase())
+                )
             }
+
+            // EDAD (por rango)
+            incrementar(
+                estadisticaRef
+                    .collection("edad")
+                    .document(obtenerRangoEdad(datos.edad))
+            )
+        }
     }
 
 
@@ -288,6 +374,54 @@ class repo_eres_socio {
             .addOnFailureListener { e ->
                 // Si no existe el doc, lo creamos como 0 (o 1 si prefieres)
                 db.set(mapOf("total" to 0))
+            }
+    }
+
+
+    fun obtenerDatosUsuario(
+        idUser: String,
+        onResult: (DatosDemograficosUsuario?) -> Unit
+    ) {
+        db.collection("Trabajadores_Usuarios_Drivers")
+            .document("users")
+            .collection("users")
+            .document(idUser)
+            .get()
+            .addOnSuccessListener { snapshot ->
+
+                if (!snapshot.exists()) {
+                    onResult(null)
+                    return@addOnSuccessListener
+                }
+
+                val data = snapshot.data ?: run {
+                    onResult(null)
+                    return@addOnSuccessListener
+                }
+
+                val fechaNacString = data["fecha_nac"] as? String
+
+                val edad = try {
+                    fechaNacString?.let {
+                        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                        val fechaNac = LocalDate.parse(it, formatter)
+                        Period.between(fechaNac, LocalDate.now()).years
+                    } ?: 0
+                } catch (e: Exception) {
+                    0 // 🔒 nunca crashea
+                }
+
+                onResult(
+                    DatosDemograficosUsuario(
+                        localidad = data["localida"] as? String ?: "",
+                        nacionalidad = data["nacionalidad_nacimiento"] as? String ?: "",
+                        genero = data["genero"] as? String ?: "",
+                        edad = edad
+                    )
+                )
+            }
+            .addOnFailureListener {
+                onResult(null)
             }
     }
 
@@ -880,7 +1014,8 @@ class repo_eres_socio {
                 "datos_hora_fecha" to i.datos_hora_fecha,
                 "img_container" to i.img_container,
                 "informacion" to i.informacion,
-                "ubicacion" to i.ubicacion
+                "ubicacion" to i.ubicacion,
+                "mensaje_predeterminado" to i.mensaje_predeterminado
             )
 
             ref.set(hashMap, SetOptions.merge()).await()
@@ -930,7 +1065,7 @@ class repo_eres_socio {
                 "img_notificacion" to i.parametros_notificacion.img_notifiacion,
                 "nombre_tienda" to i.nombre_tienda,
                 "numero_contacto" to i.numero_contacto_tienda,
-                "categoria_tienda" to i.categoira_tienda
+                "categoria_tienda" to i.categoira_tienda,"id_img_storage" to i.id_img_storage
             )
 
             val params_notificacion = hashMapOf(
@@ -1073,9 +1208,6 @@ class repo_eres_socio {
 
         val resultado = mutableListOf<datos_publicaciones_realizadas>()
 
-        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        val hoy = Date()
-
         val snapshot = db.collection("Tiendas")
             .document(localidad)
             .collection(localidad)
@@ -1091,36 +1223,43 @@ class repo_eres_socio {
             Log.d("PUB_TEST", "DOC ${doc.id} => ${doc.data}")
 
             val informacion = doc.get("informacion") as? Map<String, Any>
-            val fechas = doc.get("fechas") as? Map<String, Any>
+
             val imgContainer = doc.get("img_container") as? Map<String, Any>
 
             val titulo = informacion?.get("titulo") as? String ?: ""
             val descripcion = informacion?.get("descripcion") as? String ?: ""
             val id = informacion?.get("id_promocion") as? String ?: doc.id
 
-            val inicioStr = fechas?.get("inicio") as? String
-            val finStr = fechas?.get("fin") as? String
+            val datos_hora_fecha =
+                doc.get("datos_hora_fecha") as? Map<*, *> ?: emptyMap<String, Any>()
+            val horas = datos_hora_fecha["horas"] as? Map<*, *> ?: emptyMap<String, Any>()
+            val fechas = datos_hora_fecha["dias"] as? Map<*, *> ?: emptyMap<String, Any>()
+            val tipo_hora_dias = doc.get("tipo_hora_dias") as? String ?: ""
 
-            val inicio = inicioStr?.let { runCatching { dateFormat.parse(it) }.getOrNull() }
-            val fin = finStr?.let { runCatching { dateFormat.parse(it) }.getOrNull() }
+            // 🔹 Obtenemos el timestamp final según tipo (horas o días)
+            val timestampFin = when (tipo_hora_dias) {
+                "horas" -> (horas["timestamp_fin"] as? Number)?.toLong() ?: 0L
+                "dias" -> (fechas["timestamp_fin"] as? Number)?.toLong() ?: 0L
+                else -> 0L
+            }
+            val timestampFinMs =
+                if (timestampFin < 1000000000000L) timestampFin * 1000 else timestampFin
 
-            val activo = if (inicio != null && fin != null) {
-                !hoy.before(inicio) && !hoy.after(fin)
-            } else false
-
+            val tiempoRestanteString = tiempoRestante(timestampFinMs)
             val listaImg = imgContainer?.get("lista_img") as? List<*>
             val img = listaImg?.firstOrNull() as? String ?: ""
-
-            resultado.add(
-                datos_publicaciones_realizadas(
-                    titulo = titulo,
-                    descripcion = descripcion,
-                    activo = activo,
-                    fecha_publicado = inicioStr ?: "",
-                    id = id,
-                    img = img
+            if (!tiempoRestanteString.equals("Expirado") && !tiempoRestanteString.equals("0 días")) {
+                resultado.add(
+                    datos_publicaciones_realizadas(
+                        titulo = titulo,
+                        descripcion = descripcion,
+                        vence_en = tiempoRestanteString,
+                        id = id,
+                        img = img
+                    )
                 )
-            )
+            }
+
         }
 
         return resultado
@@ -1175,7 +1314,10 @@ class repo_eres_socio {
 
         // 4️⃣ Log para debug
         listaOrdenada.forEach { plan ->
-            Log.d("ListaPlanes", "${plan.nombre_plan} - ${plan.monedas} monedas - S/${plan.precio_soles}")
+            Log.d(
+                "ListaPlanes",
+                "${plan.nombre_plan} - ${plan.monedas} monedas - S/${plan.precio_soles}"
+            )
         }
 
         // 5️⃣ Retornar lista ordenada
@@ -1183,6 +1325,31 @@ class repo_eres_socio {
     }
 
 
+    fun tiempoRestante(timestampFin: Long): String {
+        val ahoraMs = System.currentTimeMillis()
+        val diffMs = timestampFin - ahoraMs
+
+        if (diffMs <= 0) return "Expirado"
+
+        val totalHoras = diffMs.toDouble() / (1000 * 60 * 60)
+        val totalMinutos = diffMs.toDouble() / (1000 * 60)
+
+        return if (totalHoras >= 24) {
+            // Mostrar días completos restantes
+            val dias = ceil(totalHoras / 24).toLong()  // +1 implícito para el día actual
+            "$dias ${if (dias == 1L) "día" else "días"}"
+        } else {
+            // Mostrar horas y minutos restantes
+            val horas = floor(totalHoras).toLong()
+            val minutos = floor(totalMinutos % 60).toLong()
+            when {
+                horas > 0 && minutos > 0 -> "$horas ${if (horas == 1L) "hora" else "horas"} y $minutos ${if (minutos == 1L) "minuto" else "minutos"} restantes"
+                horas > 0 -> "$horas ${if (horas == 1L) "hora" else "horas"} restantes"
+                minutos > 0 -> "$minutos ${if (minutos == 1L) "minuto" else "minutos"} restantes"
+                else -> "Menos de un minuto restante"
+            }
+        }
+    }
 
 
 }

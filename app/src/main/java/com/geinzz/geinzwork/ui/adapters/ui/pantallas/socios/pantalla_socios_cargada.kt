@@ -115,6 +115,7 @@ import kotlinx.coroutines.launch
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun pantalla_carga_socios(
+    id_user:String,
     datos: datos_tienda,
     isConnected: Boolean,
     id_registrado: (String) -> Unit
@@ -748,6 +749,7 @@ fun pantalla_carga_socios(
                                             ) {
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                                                     BoxFotosTipos(
+                                                        id_user,
                                                         "ambientales",
                                                         id_tienda,
                                                         fotosAmbientales,
@@ -802,7 +804,7 @@ fun pantalla_carga_socios(
                                                     )
                                             ) {
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                                                    BoxFotosTipos(
+                                                    BoxFotosTipos(id_user,
                                                         "servicios_productos",
                                                         id_tienda,
                                                         fotosServicios,
@@ -858,6 +860,7 @@ fun pantalla_carga_socios(
                                                     )
                                             ) {
                                                 BoxTipo_promociones(
+                                                    id_user,
                                                     "promociones",
                                                     id_tienda,
                                                     fotosPromociones,
@@ -997,7 +1000,7 @@ fun pantalla_carga_socios(
                             modifier = Modifier
                                 .animateContentSize() // ← Animación suave
                         ) {
-                            expandibles_wrapp_socio_metodos_pago_tienda(
+                            expandibles_wrapp_socio_metodos_pago_tienda(id_user,
                                 viewModelFiltros = viewmodel,
                                 context = context,
                                 expandido = mostar_metodos_pago_tienda,
@@ -1716,6 +1719,7 @@ fun pantalla_carga_socios(
 
         if (mostrarDialogozoom) {
             ZoomableGalleryFullScreen(
+                id_user,
                 compartir_promocion(),
                 imagenes = listOf(valor_img_completa),
                 startIndex = 0,

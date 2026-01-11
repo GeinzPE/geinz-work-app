@@ -4,8 +4,10 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geinzz.geinzwork.data.model.EstadisticasPromo
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
 import com.geinzz.geinzwork.model.repo_promos_cercanas
@@ -98,10 +100,11 @@ class viewmodel_promos_cercanas : ViewModel() {
         _estadoPromos.asStateFlow()
 
 
-    fun agregar_estadisticas_publicacion(tipo: String, id_promo: String, localidad: String) {
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun agregar_estadisticas_publicacion(tipo: String, id_promo: String, localidad: String, iduser: String) {
         viewModelScope.launch {
             try {
-                repo.agregar_contador_estadisticas_publicacion(tipo, id_promo, localidad)
+                repo.agregar_contador_estadisticas_publicacion(tipo, id_promo, localidad,iduser)
             } catch (e: Exception) {
                 Log.d("error", "$e")
             }
@@ -188,6 +191,21 @@ class viewmodel_promos_cercanas : ViewModel() {
             } else {
                 estado_carga_promociones.succes(listaFiltrada.value)
             }
+    }
+
+
+    private val _statsCache =
+        mutableStateMapOf<String, EstadisticasPromo>()
+
+    val statsCache: Map<String, EstadisticasPromo> = _statsCache
+
+    fun cargarStats(localidad: String, idPromo: String) {
+        if (_statsCache.containsKey(idPromo)) return
+
+        viewModelScope.launch {
+            _statsCache[idPromo] =
+                repo.obtener_estadisticas(localidad, idPromo)
+        }
     }
 
 

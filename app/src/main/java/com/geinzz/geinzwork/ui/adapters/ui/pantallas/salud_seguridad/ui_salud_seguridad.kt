@@ -101,6 +101,7 @@ private val REQUEST_CALL_PHONE = 1
 
 @Composable
 fun ui_salud_seguirdad(
+    id_user: String,
     viewmode_segurirdad_Salud: viewmode_seguridad_salud,
     localida: String,
     abrir_mapa: (latitud: Double, longitud: Double) -> Unit
@@ -283,7 +284,7 @@ fun ui_salud_seguirdad(
                         isLoading = false
                         error_empity = false
                         Box(modifier = Modifier.padding(8.dp)) {
-                            carta_salud_cuidad(
+                            carta_salud_cuidad(id_user,
                                 viewmode_segurirdad_Salud,
                                 i,
                                 abrir_mapa = { la, lo ->
@@ -495,6 +496,7 @@ fun filtrado_texfiel(texto: String, onValueChange: (String) -> Unit) {
 
 @Composable
 fun carta_salud_cuidad(
+    id_user:String,
     viewmode_segurirdad_Salud: viewmode_seguridad_salud,
     i: dataclass_seguridad,
     abrir_mapa: (latitud: Double, longitud: Double) -> Unit
@@ -585,7 +587,7 @@ fun carta_salud_cuidad(
                         R.drawable.vector_ruta_icon,
                         fondo = MaterialTheme.colorScheme.primary
                     ) {
-                        constantes_lista_localidades.abrir_google_maps("emergencia","","",
+                        constantes_lista_localidades.abrir_google_maps(id_user,"emergencia","","",
                             context = context,
                             i.latidud, i.longitud
                         ) { mostrar_dialog ->

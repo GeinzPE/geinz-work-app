@@ -1,8 +1,11 @@
 package com.geinzz.geinzwork.viewModels
 
+import android.content.Context
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.NotificacionIA
@@ -16,6 +19,8 @@ import com.geinzz.geinzwork.model.repo_recargas
 
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -80,6 +85,9 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     val insta_repo = repo_pantallas_promocionar()
     val viewmodel_recargas = viewmodel_recargas()
 
+    private val _estadoImagen = MutableStateFlow<ImagenEstado>(ImagenEstado.Idle)
+    val estadoImagen: StateFlow<ImagenEstado> = _estadoImagen
+
     @RequiresApi(Build.VERSION_CODES.O)
     val insta_repo_eres_socio = repo_eres_socio()
     private val palabrasBloqueadasNormalizadas: List<Pair<String, Regex>> =
@@ -99,6 +107,19 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
     val estado_notificaion_con_ia_corta: StateFlow<EstadoIA_notifi_corta> =
         _estado_notificacion_con_ia_corta
+
+
+    private val _estado_texto_whatsap_con_ia =
+        MutableStateFlow<ESstado_ia_msje_whatsap>(ESstado_ia_msje_whatsap.Idle)
+
+    val estado_texto_whatsap_con_ia: StateFlow<ESstado_ia_msje_whatsap> =
+        _estado_texto_whatsap_con_ia
+
+    private val _estado_texto_compartir_con_ia =
+        MutableStateFlow<ESstado_ia_msje_compartir>(ESstado_ia_msje_compartir.Idle)
+
+    val estado_texto_compatir_con_ia: StateFlow<ESstado_ia_msje_compartir> =
+        _estado_texto_compartir_con_ia
 
     private val _estado_envio_notificaciones = MutableStateFlow("")
     val estado_envio_notificaciones = _estado_envio_notificaciones.asStateFlow()
@@ -134,6 +155,10 @@ class viewmodel_pantallas_promocionar : ViewModel() {
             _estado_promociones_ia.value = EstadoIA.Loading
 
             try {
+                if (saldo_tienda < 30) {
+                    _estado_promociones_ia.value = EstadoIA.Error("Saldo insuficiente")
+                    return@launch
+                }
                 val lista = insta_repo.generar_promociones_con_IA(
                     tituloUsuario,
                     descripcionUsuario,
@@ -187,6 +212,10 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
+                if (saldo_tienda < descontar_monedas.toInt()) {
+                    _estado_envio_notificaciones.value = "saldo insuficiente"
+                    return@launch
+                }
                 val estado_notificacion =
                     insta_repo_eres_socio.verificar_envio_notificaciones(i.localida, i.id_tienda)
                 if (estado_notificacion) {
@@ -240,6 +269,11 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                 EstadoIA_notifi_corta.Loading
 
             try {
+                if (saldo_tienda < 20) {
+                    _estado_notificacion_con_ia_corta.value =
+                        EstadoIA_notifi_corta.Error("saldo insuficiente")
+                    return@launch
+                }
                 insta_repo.crear_notificacion_conIA_corta(
                     titulo_publicacion,
                     descripcion
@@ -273,6 +307,140 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                 _estado_notificacion_con_ia_corta.value =
                     EstadoIA_notifi_corta.Error(
                         e.message ?: "Error al generar la notificación con IA"
+                    )
+            }
+        }
+    }
+
+
+    fun mejorar_texto_perzonalizado_whatsapp(
+        saldo_tienda: Int,
+        localidad_tienda: String,
+        id_tienda: String,
+        nombre_tienda: String,
+        titulo_publicacion: String,
+        descripcion: String
+    ) {
+        viewModelScope.launch {
+            _estado_texto_whatsap_con_ia.value =
+                ESstado_ia_msje_whatsap.Loading
+            if (saldo_tienda < 10) {
+                _estado_texto_whatsap_con_ia.value =
+                    ESstado_ia_msje_whatsap.Error("Saldo insuficiente")
+                return@launch
+            }
+
+            try {
+                insta_repo.mejorar_texto_perzonalizado_whatsapp(
+                    titulo_publicacion,
+                    descripcion
+                ) { notificacionIA ->
+
+                    if (notificacionIA.isBlank()) {
+                        _estado_texto_whatsap_con_ia.value =
+                            ESstado_ia_msje_whatsap.Error("No se pudo generar el mensaje")
+                        return@mejorar_texto_perzonalizado_whatsapp
+                    }
+
+                    _estado_texto_whatsap_con_ia.value =
+                        ESstado_ia_msje_whatsap.Success(notificacionIA)
+
+                    val historial = historial_descuento(
+                        tipo_transaccion = "descuento",
+                        fecha = obtenerFechaActual(),
+                        hora = obtenerHoraActual(),
+                        id_recarga = viewmodel_recargas.generarIdRecarga(),
+                        localidad_tienda = localidad_tienda,
+                        id_tienda = id_tienda,
+                        nombre_tienda = nombre_tienda,
+                        monto_descuento = "10",
+                        tipo = "Gen IA (Mensaje WhatsApp personalizado)",
+                        precio_soles = viewmodel_recargas
+                            .calcular_precio_soles("10")
+                            .toString(),
+                        estado = "Aceptado",
+                        monto_restante = saldo_tienda - 10
+                    )
+
+                    viewmodel_recargas.restar_puntos_recarga(
+                        historial,
+                        "10",
+                        id_tienda,
+                        localidad_tienda
+                    )
+                }
+            } catch (e: Exception) {
+                _estado_texto_whatsap_con_ia.value =
+                    ESstado_ia_msje_whatsap.Error(
+                        e.message ?: "Error al generar el mensaje"
+                    )
+            }
+        }
+    }
+
+
+
+    fun mejorar_texto_perzonalizado_compatir(
+        saldo_tienda: Int,
+        localidad_tienda: String,
+        id_tienda: String,
+        nombre_tienda: String,
+        titulo_publicacion: String,
+        descripcion: String
+    ) {
+        viewModelScope.launch {
+            _estado_texto_compartir_con_ia.value =
+                ESstado_ia_msje_compartir.Loading
+
+            if (saldo_tienda < 10) {
+                _estado_texto_compartir_con_ia.value =
+                    ESstado_ia_msje_compartir.Error("Saldo insuficiente")
+                return@launch
+            }
+
+            try {
+                insta_repo.mejorar_texto_perzonalizado_compartir(
+                    titulo_publicacion,
+                    descripcion
+                ) { notificacionIA ->
+
+                    if (notificacionIA.isBlank()) {
+                        _estado_texto_compartir_con_ia.value =
+                            ESstado_ia_msje_compartir.Error("No se pudo generar el mensaje")
+                        return@mejorar_texto_perzonalizado_compartir
+                    }
+
+                    _estado_texto_compartir_con_ia.value =
+                        ESstado_ia_msje_compartir.Success(notificacionIA)
+
+                    val historial = historial_descuento(
+                        tipo_transaccion = "descuento",
+                        fecha = obtenerFechaActual(),
+                        hora = obtenerHoraActual(),
+                        id_recarga = viewmodel_recargas.generarIdRecarga(),
+                        localidad_tienda = localidad_tienda,
+                        id_tienda = id_tienda,
+                        nombre_tienda = nombre_tienda,
+                        monto_descuento = "10",
+                        tipo = "Gen IA (Mensaje WhatsApp personalizado)",
+                        precio_soles = viewmodel_recargas
+                            .calcular_precio_soles("10")
+                            .toString(),
+                        estado = "Aceptado",
+                        monto_restante = saldo_tienda - 10
+                    )
+
+                    viewmodel_recargas.restar_puntos_recarga(
+                        historial,
+                        "10",
+                        id_tienda,
+                        localidad_tienda
+                    )
+                }
+            } catch (e: Exception) {
+                _estado_texto_compartir_con_ia.value =
+                    ESstado_ia_msje_compartir.Error(
+                        e.message ?: "Error al generar el mensaje"
                     )
             }
         }
@@ -351,6 +519,55 @@ class viewmodel_pantallas_promocionar : ViewModel() {
             .replace(Regex("\\s+"), " ")
     }
 
+    fun subirImgTemporal(context: Context, uri: Uri, idTemporal: String, idTienda: String) {
+        viewModelScope.launch {
+            _estadoImagen.value = ImagenEstado.Cargando
+
+            try {
+                val resultado: Result<String> =
+                    insta_repo.subirImgNotificacionTemporal(context, uri, idTemporal, idTienda)
+
+                resultado.onSuccess { url ->
+                    _estadoImagen.value = ImagenEstado.Exito(url = url, idTemporal = idTemporal)
+                }.onFailure { e ->
+                    _estadoImagen.value = ImagenEstado.Error(e.message ?: "Error desconocido")
+                }
+            } catch (e: Exception) {
+                _estadoImagen.value = ImagenEstado.Error(e.message ?: "Excepción inesperada")
+                Log.e("FirebaseUpload", "Excepción: ${e.message}")
+            }
+        }
+    }
+
+    fun eliminarImagen(idTienda: String, idTemporal: String) {
+        Log.d("FirebaseDelete", "$idTienda $idTemporal")
+        viewModelScope.launch {
+            try {
+                _estadoImagen.value = ImagenEstado.Idle
+                insta_repo.eliminarImgTemporal(idTienda, idTemporal)
+                // ✅ Aquí reseteamos el estado para que Compose deje de mostrar la imagen
+
+            } catch (e: Exception) {
+                Log.e("FirebaseDelete", "Error eliminando imagen temporal: ${e.message}")
+                // Opcional: cambiar el estado a Error si quieres mostrar mensaje
+                _estadoImagen.value = ImagenEstado.Error("No se pudo eliminar la imagen")
+            }
+        }
+    }
+
+
+    fun resetImagen() {
+        _estadoImagen.value = ImagenEstado.Idle
+    }
+
+
+    sealed class ImagenEstado {
+        object Idle : ImagenEstado()
+        object Cargando : ImagenEstado()
+        data class Exito(val url: String, val idTemporal: String) : ImagenEstado()
+        data class Error(val mensaje: String) : ImagenEstado()
+    }
+
 
     sealed class EstadoValidacionNotificacion {
         object Idle : EstadoValidacionNotificacion()
@@ -375,5 +592,20 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         data class Success(val lista: List<OpcionPromocionIA>) : EstadoIA()
         data class Error(val mensaje: String) : EstadoIA()
     }
+
+    sealed class ESstado_ia_msje_whatsap {
+        object Idle : ESstado_ia_msje_whatsap()
+        object Loading : ESstado_ia_msje_whatsap()
+        data class Success(val txt_descripcion: String) : ESstado_ia_msje_whatsap()
+        data class Error(val mensaje: String) : ESstado_ia_msje_whatsap()
+    }
+
+    sealed class ESstado_ia_msje_compartir {
+        object Idle : ESstado_ia_msje_compartir()
+        object Loading : ESstado_ia_msje_compartir()
+        data class Success(val txt_descripcion: String) : ESstado_ia_msje_compartir()
+        data class Error(val mensaje: String) : ESstado_ia_msje_compartir()
+    }
+
 
 }

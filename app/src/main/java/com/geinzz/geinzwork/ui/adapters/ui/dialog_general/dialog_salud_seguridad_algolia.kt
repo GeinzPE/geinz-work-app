@@ -54,6 +54,7 @@ import kotlinx.coroutines.delay
 @SuppressLint("UnusedCrossfadeTargetStateParameter")
 @Composable
 fun dialog_salud_seguridad_algolia(
+    id_user:String,
     long: Long,
     item: dialog_seguridad_salud_algolia,
     ondimis: () -> Unit
@@ -210,7 +211,7 @@ fun dialog_salud_seguridad_algolia(
                             box_llamada_whatsap(
                                 numero = i, tipo = mostrar_lista_numero,
                                 click_icon = {
-                                    llamar("emergencia","","",context, i, {
+                                    llamar(id_user,"emergencia","","",context, i, {
                                         call_dialog_permise = true
                                         numero_llamada = i
                                     })
@@ -226,7 +227,7 @@ fun dialog_salud_seguridad_algolia(
                             box_llamada_whatsap(
                                 i, mostrar_lista_numero,
                                 click_icon = {
-                                    abrir_whattsapp("emergencia","","",context, i)
+                                    abrir_whattsapp(id_user,"emergencia","","",context, i)
                                 },
                                 click_copiar = { copiarTexto_portapapeles_compouse(i, context) })
                         }

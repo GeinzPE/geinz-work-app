@@ -164,6 +164,31 @@ class viewmodel_eres_socio : ViewModel() {
     }
 
 
+//    fun enviar_notificacion(id_user: String) {
+//        Log.d("envimaorns_ntoi","notifioneviada")
+//        viewModelScope.launch {
+//            try {
+//                enviar_notificacion_lista_dispo(
+//                    id_promo = "",
+//                    id_tienda = "",
+//                    localidad = "",
+//                    categora_tienda = "",
+//                    tipo_notificacion_params = "screen",
+//                    id_users = listOf(id_user),
+//                    titulo = "\uD83C\uDFAF ¡A punto de quedarte sin monedas!",
+//                    txt = "Te quedan pocas monedas. ¡No dejes que tu alcance se detenga! \uD83D\uDD14✨",
+//                    logo_tienda = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+//                    tipo_notificacion = "Basico",
+//                    url_img = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/walpaper_geinz%2Fturisticos%2Fimg11.webp?alt=media&token=1151dd65-8a6b-497d-a452-a8d948859422",
+//                    prioridad = "high"
+//
+//                )
+//            } catch (e: Exception) {
+//
+//            }
+//        }
+//    }
+
     fun verificar_existencia_tienda(
         id_user: String,
         ingresa_correo: Boolean,

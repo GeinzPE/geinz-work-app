@@ -720,6 +720,7 @@ fun bottom_sheet_review(
     if (mostar_img_zoom) {
         imagenZoomSeleccionada?.let { imagenString ->
             ZoomableGalleryFullScreen(
+                id_respado_user,
                 compartir_promocion(),
                 imagenes = listOf(imagenString), // 👈 List<String>
                 startIndex = 0,
@@ -1320,6 +1321,7 @@ fun bottom_Sheet_seguro(
     if (mostar_img_zoom) {
         imagenZoomSeleccionada?.let { imagenString ->
             ZoomableGalleryFullScreen(
+                id_respado_user,
                 compartir_promocion(),
                 imagenes = listOf(imagenString), // 👈 List<String>
                 startIndex = 0,

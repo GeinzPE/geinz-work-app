@@ -293,7 +293,7 @@ fun bottom_sheet_tiendas_filtradas(
             repo_socio.agregar_contador(
                 "clic",
                 nuevoId,
-                tiendas_filtradas.localidad ?: "barranca"
+                tiendas_filtradas.localidad ?: "barranca",id_user,
             )
             Log.d("CLIC", "Clic REAL: $nuevoId")
         }
@@ -308,7 +308,7 @@ fun bottom_sheet_tiendas_filtradas(
             repo_socio.agregar_contador(
                 "vistas",
                 nuevoId,
-                tiendas_filtradas.localidad ?: "barranca"
+                tiendas_filtradas.localidad ?: "barranca",id_user
             )
             Log.d("VISTA", "Vista REAL: $nuevoId")
 
@@ -432,6 +432,7 @@ var qr_generado_tienda by remember { mutableStateOf("") }
                         }
                         item {
                             cabezero_tiendas(
+                                id_user,
                                 tiendas_filtradas.metodo_contacto_tienda.whatsapp.numero,
                                 distanciaUsuarioTienda = distanciaUsuarioTienda,
                                 nombreTienda = tiendas_filtradas.nombre_tienda,
@@ -554,7 +555,7 @@ var qr_generado_tienda by remember { mutableStateOf("") }
                             spacer_vertical(10.dp)
                         }
                         item {
-                            Expandible_Metodo_contacto(
+                            Expandible_Metodo_contacto(id_user,
                                 id_tienda = tiendas_filtradas.id_tienda,
                                 localidad_tienda = tiendas_filtradas.localidad ?: "barranca",
                                 iconos_cosas_clikeables = iconos_cosas_clikeables,
@@ -573,6 +574,7 @@ var qr_generado_tienda by remember { mutableStateOf("") }
 
                             if (tieneMetodos) {
                                 item_metodos_de_pago(
+                                    id_user,
                                     modifier = Modifier.padding(horizontal = 10.dp),
                                     metodos_pago = tiendas_filtradas,
                                     expandido = expander_metodos_pagos,
@@ -663,6 +665,7 @@ var qr_generado_tienda by remember { mutableStateOf("") }
 
             if (mostar_dialog_verificar_perfil) {
                 dialog_administrar_perfil(
+                    id_user,
                     ondimis = { mostar_dialog_verificar_perfil = false },
                     contex = context,
                     id_tienda = tiendas_filtradas.id_tienda,
@@ -679,6 +682,7 @@ var qr_generado_tienda by remember { mutableStateOf("") }
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun cabezero_tiendas(
+    id_user:String,
     numero_tienda:String,
     distanciaUsuarioTienda: Float?,
     nombreTienda: String, logo_tienda_img: String,
@@ -723,6 +727,7 @@ fun cabezero_tiendas(
 
     if (mostrarDialogozoom) {
         ZoomableGalleryFullScreen(
+            id_user,
             compartir_promocion(),
             imagenes = listOf(img_tienda_perfil),
             startIndex = 0,
@@ -777,7 +782,7 @@ fun cabezero_tiendas(
                     ),
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
-                    perfil_img_zooom(
+                    perfil_img_zooom(id_user,
                         categoritienda, localidad, id_tienda, nombreTienda,
                         distanciaUsuarioTienda = distanciaUsuarioTienda,
                         triggerAnimacion = triggerAnimacion,
@@ -793,10 +798,11 @@ fun cabezero_tiendas(
                 // 🔹 COLLAGE (ocupa lo que necesite)
                 if (lista_img.lista_ambiernte.isNotEmpty()) {
                     CollageGoogleMapsStyle_sin_scroll(
-                        categoritienda,
-                        compartir_promocion(),
-                        "ambiente",
-                        1.1f,
+                        id_user = id_user,
+                        categoria = categoritienda,
+                        it = compartir_promocion(),
+                        tag = "ambiente",
+                        aspectRatio = 1.1f,
                         imagenes = lista_img.lista_ambiernte
                     )
                 }
@@ -805,10 +811,11 @@ fun cabezero_tiendas(
                        // 🔹 COLLAGE (ocupa lo que necesite)
                 if (lista_img.lista_productos.isNotEmpty()) {
                     CollageGoogleMapsStyle_sin_scroll(
-                        categoritienda,
-                        compartir_promocion(),
-                        "productos",
-                        1.1f,
+                        id_user = id_user,
+                        categoria = categoritienda,
+                        it = compartir_promocion(),
+                        tag = "productos",
+                        aspectRatio = 1.1f,
                         imagenes = lista_img.lista_productos
                     )
                 }
@@ -817,9 +824,10 @@ fun cabezero_tiendas(
                 // 🔹 COLLAGE (ocupa lo que necesite)
                 if (lista_img.lista_promociones.isNotEmpty()) {
                     CollageGoogleMapsStyle_sin_scroll_promociones(
-                        compartir_promocion(nombre_tienda,id_tienda,localidad, URLEncoder.encode(categoritienda, "UTF-8"),numero_tienda),
-                        "promociones",
-                        1.1f,
+                        id_user = id_user,
+                        it = compartir_promocion(nombre_tienda,id_tienda,localidad, URLEncoder.encode(categoritienda, "UTF-8"),numero_tienda),
+                        tag = "promociones",
+                        aspectRatio = 1.1f,
                         imagenes = lista_img.lista_promociones
                     )
                 }
@@ -855,6 +863,7 @@ fun cabezero_tiendas(
             }
             spacer_horizonta(15.dp)
             abrir_google_maps(
+                id_user,
                 iconos_cosas_clikeables = iconos_cosas_clikeables,
                 id_tienda = id_tienda,
                 localidad = localidad,
@@ -875,6 +884,7 @@ fun cabezero_tiendas(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun perfil_img_zooom(
+    id_user:String,
     categoria: String, localidad: String, id_tienda: String, nombre_tienda: String,
     distanciaUsuarioTienda: Float?,
     triggerAnimacion: Boolean,
@@ -991,6 +1001,7 @@ fun perfil_img_zooom(
                     .background(Color.Black.copy(alpha = 0.5f))
                     .clickable {
                         compartirLugarFirebaseHosttiendas(
+                            id_user,
                             categoria,
                             context,
                             localidad,
@@ -1061,7 +1072,7 @@ fun perfil_cabezero(
                 viewModelFiltros.setear_color(color)
             })
         spacer_vertical(5.dp)
-//    TextoCopiable(id_tienda)
+    TextoCopiable(id_tienda)
         text_expandible_wrapp(
             texto = "${categoritienda.capitalizeFirst()}",
             style = MaterialTheme.typography.bodyMedium
@@ -1102,6 +1113,7 @@ fun TextoCopiable(id_tienda: String) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun abrir_google_maps(
+    iduser: String,
     iconos_cosas_clikeables: Boolean,
     id_tienda: String,
     localidad: String,
@@ -1125,7 +1137,7 @@ fun abrir_google_maps(
 
         FloatingActionButton(
             onClick = {
-                constantes_lista_localidades.abrir_google_maps(
+                constantes_lista_localidades.abrir_google_maps(iduser,
                     "tienda", id_tienda, localidad,
                     context,
                     latitud,
@@ -1306,6 +1318,7 @@ fun Expandible_direccion_ref(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Expandible_Metodo_contacto(
+    iduser:String,
     id_tienda: String,
     localidad_tienda: String,
     iconos_cosas_clikeables: Boolean,
@@ -1344,6 +1357,7 @@ fun Expandible_Metodo_contacto(
                             texto = metodos_contactos.whatsapp.numero
                         ) {
                             abrir_whattsapp(
+                                iduser,
                                 "tienda", id_tienda,
                                 localidad_tienda, context, metodos_contactos.whatsapp.numero
                             )
@@ -1357,6 +1371,7 @@ fun Expandible_Metodo_contacto(
                             texto = metodos_contactos.llamada.numero
                         ) {
                             llamar(
+                                iduser,
                                 "tienda", id_tienda,
                                 localidad_tienda, context, metodos_contactos.llamada.numero, {
                                     call_dialog_permise = true
@@ -1374,7 +1389,7 @@ fun Expandible_Metodo_contacto(
                             openTiktok(
                                 "Tienda",
                                 context, metodos_contactos.tiktok.url, id_tienda,
-                                localidad_tienda
+                                localidad_tienda,iduser
                             )
                         }
                     }
@@ -1387,7 +1402,7 @@ fun Expandible_Metodo_contacto(
                         ) {
                             openWebLink(
                                 context, metodos_contactos.sitio_web.url, id_tienda,
-                                localidad_tienda
+                                localidad_tienda,iduser
                             )
                         }
                     }
@@ -1403,7 +1418,7 @@ fun Expandible_Metodo_contacto(
                                 context,
                                 metodos_contactos.instagram.url,
                                 id_tienda,
-                                localidad_tienda
+                                localidad_tienda,iduser
                             )
                         }
                     }
@@ -1417,7 +1432,7 @@ fun Expandible_Metodo_contacto(
                             openFacebook(
                                 "Tienda",
                                 context, metodos_contactos.facebook.url, id_tienda,
-                                localidad_tienda
+                                localidad_tienda,iduser
                             )
                         }
                     }
@@ -1507,6 +1522,7 @@ fun Expandible_qr_tienda(
 
 @Composable
 fun item_metodos_de_pago(
+    iduser: String,
     modifier: Modifier = Modifier, metodos_pago: modelo_tienda, expandido: Boolean,
     onClickExpand: () -> Unit
 ) {
@@ -1616,6 +1632,7 @@ fun item_metodos_de_pago(
     if (mostrar_dialog_pagos) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             dialog_qr_pago_tienda(
+                iduser,
                 metodoPagoSeleccionado,
                 { mostrar_dialog_pagos = !mostrar_dialog_pagos })
         }
@@ -2135,6 +2152,7 @@ fun tienda_cercana() {
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun compartirLugarFirebaseHosttiendas(
+    iduser: String,
     categoria: String,
     context: Context,
     localidad_tienda: String,
@@ -2170,7 +2188,7 @@ fun compartirLugarFirebaseHosttiendas(
         repo_erese_socio.agregar_contador(
             "compartidos",
             id_tienda,
-            localidad_tienda
+            localidad_tienda,iduser
         )
     } catch (e: Exception) {
         e.printStackTrace()

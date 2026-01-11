@@ -699,6 +699,7 @@ fun pantalla_principal(
             ) {
                 cerrar_buttom_var()
                 dialog_promociones_negocios(
+                    id_respado_user,
                     verificar_intener = isConnected,
                     id_tienda = p.id_tienda,
                     localidad = p.lugar,
@@ -717,7 +718,7 @@ fun pantalla_principal(
 
 
         if (mostar_bottom_sheet_ayuda_geinz) {
-            bottom_sheet_ayudanos_a_creccer(
+            bottom_sheet_ayudanos_a_creccer(id_respado_user,
                 isConnected, ultimaLocalidad ?: "barranca",
                 { mostar_bottom_sheet_ayuda_geinz = false }, viewModel_filtado_tiendas
             )

@@ -61,7 +61,7 @@ object notificacionesFCM {
         val tipo_notificacion_string = when (tipo_notificacion) {
             "Basico" -> "logo"
             "Avanzado" -> "imagen"
-            "Primiun" -> "premium"
+            "Premium" -> "premium"
             else -> "basico"
         }
 

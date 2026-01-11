@@ -641,6 +641,7 @@ object constantes_expandibles_generales {
     @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun expandibles_wrapp_socio_metodos_pago_tienda(
+        id_user:String,
         viewModelFiltros: viewmodel_eres_socio,
         context: Context,
         expandido: Boolean,
@@ -721,7 +722,7 @@ object constantes_expandibles_generales {
                                     style = MaterialTheme.typography.bodyMedium
                                 )
 
-                                verificar_activo_pago(
+                                verificar_activo_pago(id_user,
                                     logo = R.drawable.yape_logo,
                                     nombre_metodo = "yape",
                                     enable = metodos_pago.yape.enable,
@@ -753,7 +754,7 @@ object constantes_expandibles_generales {
 
 
 
-                                verificar_activo_pago(
+                                verificar_activo_pago(id_user,
                                     logo = R.drawable.logo_plin,
                                     nombre_metodo = "plin",
                                     enable = metodos_pago.plin.enable,
@@ -783,7 +784,7 @@ object constantes_expandibles_generales {
                                         guardar_dado_datos()
                                     })
 
-                                verificar_activo_pago(
+                                verificar_activo_pago(id_user,
                                     logo = R.drawable.logo_agora,
                                     nombre_metodo = "agora",
                                     enable = metodos_pago.agora.enable,
@@ -802,7 +803,7 @@ object constantes_expandibles_generales {
                                     },
                                     cambiar_datos_internos_pagos = { titular: String, numero: String, uri -> })
 
-                                verificar_activo_pago(
+                                verificar_activo_pago(id_user,
                                     logo = R.drawable.efectivo_logo,
                                     nombre_metodo = "efectivo",
                                     enable = metodos_pago.efectivo.enable,
@@ -821,7 +822,7 @@ object constantes_expandibles_generales {
                                     },
                                     cambiar_datos_internos_pagos = { titular: String, numero: String, uri -> })
 
-                                verificar_activo_pago(
+                                verificar_activo_pago(id_user,
                                     logo = R.drawable.visa_logo,
                                     nombre_metodo = "visa",
                                     enable = metodos_pago.visa_mastercard.enable,
@@ -841,6 +842,7 @@ object constantes_expandibles_generales {
                                     cambiar_datos_internos_pagos = { titular: String, numero: String, uri -> })
 
                                 verificar_activo_pago(
+                                    id_user,
                                     logo = R.drawable.master_car_logo,
                                     nombre_metodo = "mastercard",
                                     enable = metodos_pago.visa_mastercard.enable,
@@ -1315,6 +1317,7 @@ object constantes_expandibles_generales {
     @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun verificar_activo_pago(
+        iduser:String,
         logo: Int,
         nombre_metodo: String,
         enable: Boolean,
@@ -1582,6 +1585,7 @@ object constantes_expandibles_generales {
         // ───────── ZOOM ─────────
         if (expandirImg && valorImgCompleta.isNotEmpty()) {
             ZoomableGalleryFullScreen(
+                iduser,
                 compartir_promocion(),
                 imagenes = listOf(valorImgCompleta),
                 startIndex = 0,

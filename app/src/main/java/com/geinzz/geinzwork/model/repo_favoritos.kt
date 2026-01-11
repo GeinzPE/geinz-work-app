@@ -32,6 +32,7 @@ class repo_favoritos {
             .collection("users")
             .document(id_user)
             .collection("favoritos")
+        Log.d("obteniredos_id","$id_user")
 
         ref.addSnapshotListener { snapshot, error ->
             if (error != null) {

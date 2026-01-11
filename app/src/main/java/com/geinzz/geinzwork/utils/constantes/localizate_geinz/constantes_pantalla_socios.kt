@@ -135,7 +135,7 @@ object constantes_pantalla_socios {
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
                         ) {
-                            abrir_whattsapp(
+                            abrir_whattsapp(id_user,
                                 "",
                                 "",
                                 "",
@@ -212,7 +212,7 @@ object constantes_pantalla_socios {
 
     @RequiresApi(Build.VERSION_CODES.R)
     @Composable
-    fun BoxFotosTipos(
+    fun BoxFotosTipos(id_user:String,
         tipo: String,
         id_tienda: String,
         urlsDesdeDb: List<String>, max: Int,
@@ -430,6 +430,7 @@ object constantes_pantalla_socios {
         }
         if (mostrarDialogozoom) {
             ZoomableGalleryFullScreen(
+                id_user,
                 compartir_promocion(),
                 imagenes = listOf(valor_img_completa),
                 startIndex = 0,
@@ -443,6 +444,7 @@ object constantes_pantalla_socios {
     @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun BoxTipo_promociones(
+        id_user:String,
         tipo: String,
         id_tienda: String,
         urlsDesdeDb: Map<String, String>,
@@ -564,7 +566,7 @@ spacer_vertical(10.dp)
         }
 
         if (mostrarDialogozoom && valor_img_completa != null) {
-            ZoomableGalleryFullScreen(
+            ZoomableGalleryFullScreen(id_user,
                 compartir_promocion(),
                 imagenes = listOf(valor_img_completa!!.second ?: ""), // URL
                 startIndex = 0,

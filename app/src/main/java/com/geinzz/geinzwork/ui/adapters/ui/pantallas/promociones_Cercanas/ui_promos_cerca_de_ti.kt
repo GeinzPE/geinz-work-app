@@ -78,6 +78,7 @@ import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.tiendas_con_mas_de_una_promo
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.ui.adapters.ZoomableGalleryFullScreenVerticalPager
@@ -89,21 +90,34 @@ import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen_promociones
 import com.geinzz.geinzwork.ui.adapters.ui.btn_compartir
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.firebaseAuth
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_promos_cercanas
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ui_promos_cerca_de_ti(localidad: String, verificar_intener: Boolean) {
+fun ui_promos_cerca_de_ti(
+    localidad: String,
+    verificar_intener: Boolean,
+    iniciar_seccion: () -> Unit,
+    crear_cuenta: () -> Unit
+) {
     val context = LocalContext.current
+    val firebaseAuth = FirebaseAuth.getInstance()
+    val uid_respald_user by data_store_localidad
+        .get_uid_user(context)
+        .collectAsState(initial = firebaseAuth.uid.orEmpty())
+
     val viewModel: viewmodel_promos_cercanas = viewModel()
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
 
@@ -113,6 +127,7 @@ fun ui_promos_cerca_de_ti(localidad: String, verificar_intener: Boolean) {
     var lista_img by remember {
         mutableStateOf<List<String>>(emptyList())
     }
+    var mostrar_bottom_shet_registrate by remember { mutableStateOf(false) }
 
 
     var index_galeria_img by remember { mutableStateOf(0) }
@@ -130,7 +145,11 @@ fun ui_promos_cerca_de_ti(localidad: String, verificar_intener: Boolean) {
 
     var promoSeleccionada by remember { mutableStateOf<obj_completo?>(null) }
 
-    var promoSeleccionada_unica by remember { mutableStateOf<dataclass_promociones_cerca_de_ti?>(null) }
+    var promoSeleccionada_unica by remember {
+        mutableStateOf<dataclass_promociones_cerca_de_ti?>(
+            null
+        )
+    }
 
     var indexImagenSeleccionada by remember { mutableStateOf(0) }
 
@@ -277,81 +296,137 @@ fun ui_promos_cerca_de_ti(localidad: String, verificar_intener: Boolean) {
                         key = { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
                     ) { item ->
 
-                        val index = promos.indexOfFirst { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion ==
-                                item.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
+                        val index = promos.indexOfFirst {
+                            it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion ==
+                                    item.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion
+                        }
 
 
                         carta_promocion_geinz(
                             i = item.dataclass_promociones_cerca_de_ti,
                             img_clikeble = { id_promo, listaimg, select ->
-                                Log.d("mostramosooom", "$id_promo ${listaimg.size} $select")
-                                promoSeleccionada = item
-                                // ✅ Usar el index calculado
-                                promoSeleccionada_unica=item.dataclass_promociones_cerca_de_ti
-                                indexImagenSeleccionada = select
-                                mostrar_zoom_img = true
-                                lista_img = listaimg
-                                index_galeria_img = select
-                                titulo_poromo = item.dataclass_promociones_cerca_de_ti.informacion_publcacion.titulo
-                                descripcion = item.dataclass_promociones_cerca_de_ti.informacion_publcacion.descripcion
-                                nombre_tienda = item.dataclass_promociones_cerca_de_ti.informacion_publcacion.nombre_tienda
-                                img_tienda = item.dataclass_promociones_cerca_de_ti.img.logo_img
-                                dias_restantes = item.dataclass_promociones_cerca_de_ti.dias_restantes
+                                if (uid_respald_user.isNotEmpty()) {
+                                    Log.d("mostramosooom", "$id_promo ${listaimg.size} $select")
+                                    promoSeleccionada = item
+                                    // ✅ Usar el index calculado
+                                    promoSeleccionada_unica = item.dataclass_promociones_cerca_de_ti
+                                    indexImagenSeleccionada = select
+                                    mostrar_zoom_img = true
+                                    lista_img = listaimg
+                                    index_galeria_img = select
+                                    titulo_poromo =
+                                        item.dataclass_promociones_cerca_de_ti.informacion_publcacion.titulo
+                                    descripcion =
+                                        item.dataclass_promociones_cerca_de_ti.informacion_publcacion.descripcion
+                                    nombre_tienda =
+                                        item.dataclass_promociones_cerca_de_ti.informacion_publcacion.nombre_tienda
+                                    img_tienda = item.dataclass_promociones_cerca_de_ti.img.logo_img
+                                    dias_restantes =
+                                        item.dataclass_promociones_cerca_de_ti.dias_restantes
 
-                                viewModel.agregar_estadisticas_publicacion(
-                                    "vistas",
-                                    id_promo,
-                                    localidad
-                                )
+                                    viewModel.agregar_estadisticas_publicacion(
+                                        "click",
+                                        id_promo,
+                                        localidad,uid_respald_user
+                                    )
+
+                                } else {
+                                    mostrar_bottom_shet_registrate = true
+
+                                }
                             },
-                            share_promo = { id_tienda,id,categoria ->
-                                compartir_hosting_promo(id_tienda,context, localidad, id,categoria)
+                            share_promo = { id_tienda, id, categoria ->
+                                compartir_hosting_promo(
+                                    item.dataclass_promociones_cerca_de_ti.texto_msje_whatsapp.compartir.msje_predermindo,
+                                    uid_respald_user,
+                                    id_tienda,
+                                    context,
+                                    localidad,
+                                    id,
+                                    categoria
+                                )
                                 viewModel.agregar_estadisticas_publicacion(
                                     "compartidos",
                                     id,
-                                    localidad
+                                    localidad,uid_respald_user
                                 )
                             },
-                            whatsap_promo = { id ->
-                                abrir_whattsapp(
-                                    "promocion",
-                                    "",
-                                    "",
-                                    context,
-                                    item.dataclass_promociones_cerca_de_ti
-                                        .informacion_publcacion.numero,
-                                    "Hola, quiero esta oferta que vi Geinz: " +
-                                            "https://geinzworkapp.web.app/share?" +
-                                            "t=prof&cl=pro" +
-                                            "&id=${URLEncoder.encode(id, "UTF-8")}" +
-                                            "&l=$localidad"
-                                )
-                                viewModel.agregar_estadisticas_publicacion(
-                                    "whatsapp",
-                                    id,
-                                    localidad
-                                )
+                            whatsap_promo = { id,id_tienda,categoira ->
+                                if (uid_respald_user.isNotEmpty()) {
+                                    abrir_whattsapp(
+                                        uid_respald_user,
+                                        "promocion",
+                                        "",
+                                        "",
+                                        context,
+                                        item.dataclass_promociones_cerca_de_ti
+                                            .informacion_publcacion.numero,
+                                        "${item.dataclass_promociones_cerca_de_ti.texto_msje_whatsapp.whatsapp.msje_predermindo}" +
+                                                "https://geinzworkapp.web.app/share?" +
+                                                "t=prn" +
+                                                "&id=$id_tienda" +
+                                                "&l=$localidad" +
+                                                "&c=${
+                                                    URLEncoder.encode(categoira, "UTF-8")
+                                                }" + "&pi=$id"
+                                    )
+                                    viewModel.agregar_estadisticas_publicacion(
+                                        "whatsapp",
+                                        id,
+                                        localidad,uid_respald_user
+                                    )
+                                } else {
+                                    mostrar_bottom_shet_registrate = true
+                                }
 
                             },
-                            mostrar_perfil = { id ->
+                            mostrar_perfil = { id ,id_promo->
+                                if (uid_respald_user.isNotEmpty()) {
+                                    viewModel.agregar_estadisticas_publicacion(
+                                        "click_perfil",
+                                        id_promo,
+                                        localidad,uid_respald_user
+                                    )
                                 show_bottom_sheeet = true
-                                id_tienda_select = id
+                                    id_tienda_select = id
+                                }else{
+                                    mostrar_bottom_shet_registrate = true
+                                }
                             }
                         )
 
                     }
 
                 }
+
                 if (mostrar_zoom_img && promoSeleccionada != null) {
                     ZoomableGalleryFullScreenVerticalPager(
+                        uid_respald_user,
                         viewModel = viewModel,
                         localidad_general = localidad,
                         promoSeleccionada = promoSeleccionada_unica!!,
                         index_galeria_img,
-                        onDismiss = { mostrar_zoom_img = false; promoSeleccionada = null }
+                        onDismiss = { mostrar_zoom_img = false; promoSeleccionada = null },
                     )
 
                 }
+                if (mostrar_bottom_shet_registrate) {
+                    bottom_sheet_registrate(
+                        ondimis = {
+                            mostrar_bottom_shet_registrate = false
+                        },
+                        iniciar_seccion_normal = {
+                            iniciar_seccion()
+                            mostrar_bottom_shet_registrate = false
+                        },
+                        crear_cuenta_geinz = {
+                            crear_cuenta()
+                            mostrar_bottom_shet_registrate = false
+                        },
+                        texto_bottom_Sheet = "Inicia sesión ver mas detalles de esta promo o oferta"
+                    )
+                }
+
 
                 if (show_bottom_sheeet) {
                     bottom_sheet_tiendas_filtradas(
@@ -372,11 +447,11 @@ fun ui_promos_cerca_de_ti(localidad: String, verificar_intener: Boolean) {
 fun carta_promocion_geinz(
     i: dataclass_promociones_cerca_de_ti,
     img_clikeble: (id: String, lista: List<String>, Int) -> Unit,
-    share_promo: (String,String,String) -> Unit,
-    whatsap_promo: (String) -> Unit, mostrar_perfil: (String) -> Unit
+    share_promo: (String, String, String) -> Unit,
+    whatsap_promo: (String,id_tienda:String,categoira:String) -> Unit, mostrar_perfil: (String,id_promo:String) -> Unit
 ) {
     val (valorRestante, tipo) = parseDiasHorasRestantes(i.dias_restantes)
-
+    Log.d("dias_restantes_obenidos","${i.dias_restantes}")
     val backgroundColor = when {
         tipo == "dias" -> when {
             valorRestante > 5 -> Color(0xFF15BB1A) // Verde
@@ -384,12 +459,14 @@ fun carta_promocion_geinz(
             valorRestante == 1 -> Color(0xFFEC1707) // Rojo
             else -> Color.Gray
         }
+
         tipo == "horas" -> when {
             valorRestante > 12 -> Color(0xFF15BB1A)
             valorRestante in 6..12 -> Color(0xFFFF9900)
             valorRestante in 1..5 -> Color(0xFFEC1707)
             else -> Color.Gray
         }
+
         else -> Color.Gray
     }
     Column(modifier = Modifier.padding(bottom = 20.dp)) {
@@ -430,7 +507,10 @@ fun carta_promocion_geinz(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }
                     ) {
-                        mostrar_perfil(i.informacion_publcacion.id_tienda)
+                        mostrar_perfil(
+                            i.informacion_publcacion.id_tienda,
+                            i.informacion_publcacion.id_promocion
+                        )
                     },
                 contentScale = ContentScale.Crop
             )
@@ -497,7 +577,7 @@ fun carta_promocion_geinz(
                         modifier = Modifier
                             .size(30.dp)
                             .clickable {
-                                whatsap_promo(i.informacion_publcacion.id_promocion)
+                                whatsap_promo(i.informacion_publcacion.id_promocion,i.informacion_publcacion.id_tienda,i.informacion_publcacion.categoria)
                             },
                         tint = Color.Unspecified
                     )
@@ -507,6 +587,7 @@ fun carta_promocion_geinz(
 
     }
 }
+
 fun parseDiasHorasRestantes(diasRestantesStr: String): Pair<Int, String> {
     // Ejemplos de strings que podrías tener: "3 días restantes" o "5 horas restantes"
     val regex = """(\d+)\s*(día|días|hora|horas)""".toRegex()
@@ -519,6 +600,7 @@ fun parseDiasHorasRestantes(diasRestantesStr: String): Pair<Int, String> {
         0 to "dias"
     }
 }
+
 @Composable
 fun GaleriaHorizontalInstagram(
     imagenes: List<String>,
@@ -583,12 +665,15 @@ fun GaleriaHorizontalInstagram(
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun compartir_hosting_promo(
+    msje:String,
+    id_user:String,
     id_tienda: String,
     context: Context,
     localidad_tienda: String,
     idpromo: String,
     categoria: String,
 ) {
+    Log.d("menjsame","$msje")
     try {
         val localidad_pasada = when (localidad_tienda) {
             "barranca" -> "ba"
@@ -611,7 +696,7 @@ fun compartir_hosting_promo(
                     }" + "&pi=$idpromo"
 
 
-        val texto = "Mira esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25 \n$link"
+        val texto = "$msje \n$link"
 
         // Intent simple de compartir
         val intent = Intent(Intent.ACTION_SEND).apply {

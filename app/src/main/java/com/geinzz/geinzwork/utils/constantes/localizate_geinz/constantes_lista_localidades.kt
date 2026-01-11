@@ -348,6 +348,7 @@ object constantes_lista_localidades {
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun abrir_google_maps(
+        iduser:String,
         tipo:String="tienda",id_tienda:String,localidad:String,
         context: Context,
         latitud: Double,
@@ -357,7 +358,7 @@ object constantes_lista_localidades {
         Log.d("lateitudes", "${latitud} ${longitud} $id_tienda $localidad")
         if (verificarUbiActiva(context)) {
             if(tipo == "tienda" && id_tienda.isNotEmpty() &&localidad.isNotEmpty()){
-                repo_socios.agregar_contador("ruta",id_tienda,localidad)
+                repo_socios.agregar_contador("ruta",id_tienda,localidad,iduser)
             }
             abrirRutaEnGoogleMaps(context, latitud, longitud)
         } else {
@@ -1992,7 +1993,7 @@ object constantes_lista_localidades {
     }
 
 
-    fun llamar(tipo:String="tienda",id_tienda:String,localidad: String,context: Context, numero: String, open_dialog: () -> Unit) {
+    fun llamar(id_user: String,tipo:String="tienda",id_tienda:String,localidad: String,context: Context, numero: String, open_dialog: () -> Unit) {
         if (ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.CALL_PHONE
@@ -2000,12 +2001,12 @@ object constantes_lista_localidades {
         ) {
             open_dialog()
         } else {
-            makePhoneCall(tipo,id_tienda,localidad,context, numero)
+            makePhoneCall(tipo,id_tienda,localidad,context, numero,id_user)
 
         }
     }
 
-    private fun requestCallPermission(tipo:String="tienda",id_tienda:String,localidad: String,context: Context, phoneNumber: String) {
+    private fun requestCallPermission(tipo:String="tienda",id_tienda:String,localidad: String,context: Context, phoneNumber: String,iduser:String) {
         if (ContextCompat.checkSelfPermission(
                 context,
                 android.Manifest.permission.CALL_PHONE
@@ -2017,11 +2018,11 @@ object constantes_lista_localidades {
                 REQUEST_CALL_PHONE
             )
         } else {
-            makePhoneCall(tipo,id_tienda,localidad,context, phoneNumber)
+            makePhoneCall(tipo,id_tienda,localidad,context, phoneNumber,iduser)
         }
     }
 
-    private fun makePhoneCall(tipo:String="tienda",id_tienda:String,localidad: String,context: Context, phoneNumber: String) {
+    private fun makePhoneCall(tipo:String="tienda",id_tienda:String,localidad: String,context: Context, phoneNumber: String,id_user:String) {
         val callIntent = Intent(Intent.ACTION_CALL)
         callIntent.data = Uri.parse("tel:$phoneNumber")
         if (ActivityCompat.checkSelfPermission(
@@ -2030,11 +2031,11 @@ object constantes_lista_localidades {
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             if(tipo=="tienda"){
-            repo_socios.agregar_contador("llamada",id_tienda,localidad)
+            repo_socios.agregar_contador("llamada",id_tienda,localidad,id_user)
             }
             context.startActivity(callIntent)
         } else {
-            requestCallPermission(tipo,id_tienda,localidad,context, phoneNumber)
+            requestCallPermission(tipo,id_tienda,localidad,context, phoneNumber,id_user)
         }
     }
 

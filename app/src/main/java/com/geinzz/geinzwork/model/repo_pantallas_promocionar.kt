@@ -1,15 +1,23 @@
 package com.geinzz.geinzwork.model
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
+import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.NotificacionIA
 import com.geinzz.geinzwork.data.model.OpcionPromocionIA
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenWebPSinRecorte
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.acortarDescripcionNotificacion
 
 import com.google.firebase.Firebase
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.util.UUID
 
 class repo_pantallas_promocionar {
 
@@ -44,6 +52,55 @@ class repo_pantallas_promocionar {
     }
 
 
+    suspend fun subirImgNotificacionTemporal(
+        context: Context,
+        uri: Uri,
+        idTemporal: String,
+        idTienda: String
+    ): Result<String> {
+        return try {
+            val storageRef = Firebase.storage.reference
+                .child("tiendas/$idTienda/imagenes/notificaciones/$idTemporal")
+
+            // Comprimir imagen y obtener ByteArray
+            val imgComprimida: ByteArray = procesarImagenWebPSinRecorte(context, uri)
+
+            // Subir imagen desde ByteArray
+            storageRef.putBytes(imgComprimida).await()
+
+            // Obtener URL de descarga
+            val downloadUrl = storageRef.downloadUrl.await()
+
+            Result.success(downloadUrl.toString())
+        } catch (e: Exception) {
+            Log.e("FirebaseUpload", "Error subiendo imagen: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+
+    suspend fun eliminarImgTemporal(idTienda: String, idTemporal: String): Boolean {
+        return try {
+            // 1️⃣ Eliminar imagen de Storage
+            val storageRef = Firebase.storage.reference
+                .child("tiendas/$idTienda/imagenes/notificaciones/$idTemporal")
+            storageRef.delete().await()
+
+            // 2️⃣ Eliminar ID o URL de Firestore
+            val docRef = FirebaseFirestore.getInstance()
+                .collection("Tiendas")
+                .document(idTienda)
+                .collection("notificaciones_temporales")
+                .document(idTemporal)
+            docRef.delete().await()
+
+            true // todo salió bien
+        } catch (e: Exception) {
+            Log.e("FirebaseDelete", "Error eliminando imagen temporal: ${e.message}")
+            false // algo falló
+        }
+    }
+
     suspend fun crear_notificacion_conIA_corta(
         tituloPublicacion: String,
         descCorta: String,
@@ -53,7 +110,7 @@ class repo_pantallas_promocionar {
         val model = Firebase.ai(
             backend = GenerativeBackend.googleAI()
         ).generativeModel("gemini-2.5-flash")
-        val descripcion_acortada=acortarDescripcionNotificacion(descCorta)
+        val descripcion_acortada = acortarDescripcionNotificacion(descCorta)
 
         try {
             val prompt = generarPromptNotificacionSeleccionada(
@@ -80,6 +137,85 @@ class repo_pantallas_promocionar {
         }
 
     }
+
+
+    suspend fun mejorar_texto_perzonalizado_whatsapp(
+        titulo_publicacion: String,
+        descripcion: String,
+        onResultado: (String) -> Unit
+    ) {
+        val model = Firebase.ai(
+            backend = GenerativeBackend.googleAI()
+        ).generativeModel("gemini-2.5-flash")
+
+        val descripcionAcortada = acortarDescripcionNotificacion(descripcion)
+
+        try {
+            val prompt = generarPromptWhatsAppContacto(
+                titulo_publicacion,
+                descripcionAcortada
+            )
+
+            val inicio = System.currentTimeMillis()
+            val result = model.generateContent(prompt)
+            val fin = System.currentTimeMillis()
+
+            val textoGenerado = result.text?.trim().orEmpty()
+
+            Log.d("Gemini", "Tiempo: ${fin - inicio} ms")
+            Log.d("Gemini", "Resultado:\n$textoGenerado")
+
+            // ✅ Retornar UNA SOLA RESPUESTA
+            onResultado(textoGenerado)
+
+        } catch (e: Exception) {
+            Log.e("Gemini", "Error IA: ${e.message}")
+            onResultado("")
+        }
+    }
+
+
+
+    suspend fun mejorar_texto_perzonalizado_compartir(
+        titulo_publicacion: String,
+        descripcion: String,
+        onResultado: (String) -> Unit
+    ) {
+        val model = Firebase.ai(
+            backend = GenerativeBackend.googleAI()
+        ).generativeModel("gemini-2.5-flash")
+
+        val descripcionAcortada = acortarDescripcionNotificacion(descripcion)
+
+        try {
+            val prompt = generarPromptPromocion_text_compartir(
+                titulo_publicacion,
+                descripcionAcortada,
+            )
+
+            val inicio = System.currentTimeMillis()
+            val result = model.generateContent(prompt)
+            val fin = System.currentTimeMillis()
+
+            val textoGenerado = result.text?.trim().orEmpty()
+
+            Log.d("Gemini", "Tiempo: ${fin - inicio} ms")
+            Log.d("Gemini", "Resultado:\n$textoGenerado")
+
+            // ✅ Retorna UNA SOLA RESPUESTA
+            if (textoGenerado.isNotBlank()) {
+                onResultado(textoGenerado)
+            } else {
+                onResultado("")
+            }
+
+        } catch (e: Exception) {
+            Log.e("Gemini", "Error IA: ${e.message}")
+            onResultado("")
+        }
+    }
+
+
 
     fun crear_notificacion_conIA(
         scope: CoroutineScope,
@@ -182,8 +318,6 @@ class repo_pantallas_promocionar {
     }
 
 
-
-
     fun generarPromptNotificacionOptimizado(
         tituloPublicacion: String,
         descCorta: String, // ≤60 chars
@@ -257,6 +391,59 @@ T:
 D:
 """.trimIndent()
     }
+
+
+    fun generarPromptPromocion_text_compartir(
+        tituloUsuario: String,
+        descripcionUsuario: String,
+    ): String {
+
+        return """
+Crea un mensaje muy corto para compartir y provocar clic inmediato.
+
+Reglas:
+- Máx 18 palabras
+- Español
+- Usa información concreta del título
+- Inicio fuerte y directo
+- EXACTAMENTE 2 emojis
+- Sin preguntas
+- Sin relleno
+- Devuelve SOLO el texto
+
+Datos:
+$tituloUsuario
+$descripcionUsuario
+""".trimIndent()
+    }
+
+
+
+    fun generarPromptWhatsAppContacto(
+        titulo: String,
+        descripcion: String,
+    ): String {
+
+        return """
+Actúa como un cliente interesado que contacta por WhatsApp.
+
+Reglas:
+- Mensaje de WhatsApp
+- Máx 60 caracteres
+- Español
+- Natural y respetuoso
+- Estructura: saludo + interés en el título + pregunta de disponibilidad
+- Incluye EXACTAMENTE 1 emoji
+- No inventes datos
+- Devuelve SOLO el mensaje
+
+Datos:
+Título: $titulo
+Descripción: $descripcion
+""".trimIndent()
+    }
+
+
 
     fun generarPromptNotificacionSeleccionada(
         tituloPublicacion: String,

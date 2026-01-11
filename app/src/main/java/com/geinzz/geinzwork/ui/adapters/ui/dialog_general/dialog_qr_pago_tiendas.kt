@@ -40,7 +40,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun dialog_qr_pago_tienda(item_metodos_pago: item_metodos_pago, ondimis: () -> Unit) {
+fun dialog_qr_pago_tienda(id_user:String,item_metodos_pago: item_metodos_pago, ondimis: () -> Unit) {
     var mostar_numero_completo by remember { mutableStateOf(false) }
     var galeriaActiva by remember { mutableStateOf(false) }
     AlertDialog(
@@ -142,7 +142,7 @@ fun dialog_qr_pago_tienda(item_metodos_pago: item_metodos_pago, ondimis: () -> U
         }
     )
     if(galeriaActiva){
-        ZoomableGalleryFullScreen(compartir_promocion(),"",listOf(item_metodos_pago.codigo_qr),0, { galeriaActiva = false })
+        ZoomableGalleryFullScreen(id_user,compartir_promocion(),"",listOf(item_metodos_pago.codigo_qr),0, { galeriaActiva = false })
     }
 }
 

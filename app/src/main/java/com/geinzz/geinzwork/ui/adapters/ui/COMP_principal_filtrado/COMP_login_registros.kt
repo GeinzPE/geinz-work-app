@@ -5,14 +5,18 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -49,20 +53,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.nombre_precio_notificaciones
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown_select_params
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.joelkanyi.jcomposecountrycodepicker.annotation.RestrictedApi
 import com.joelkanyi.jcomposecountrycodepicker.component.CountrySelectionDialog
 import com.joelkanyi.jcomposecountrycodepicker.component.KomposeCountryCodePicker
@@ -102,6 +110,61 @@ fun MyOutlinedTextField(
             shape = RoundedCornerShape(50),
             label = { Text(text = labelText) },
             placeholder = { Text(text = placeholderText) },
+            trailingIcon = {
+                if (isError) {
+                    androidx.compose.material3.Icon(
+                        imageVector = Icons.Filled.Error,
+                        contentDescription = "Error",
+                        tint = Color.Red
+                    )
+                }
+            },
+            enabled = enabled,
+            textStyle = MaterialTheme.typography.bodyMedium,
+            isError = isError,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                focusedBorderColor = if (isError) Color.Red else MaterialTheme.colorScheme.primary,
+                focusedLabelColor = if (isError) Color.Red else MaterialTheme.colorScheme.primary
+            )
+        )
+        AnimatedVisibility(isError) {
+            Box(modifier = Modifier.padding(top = 5.dp, start = 5.dp)) {
+                val campo_error =
+                    if (texto_error.isEmpty()) "El campo es obligatorio" else texto_error
+                retornar_pleaceholder_label(campo_error, Color.Red)
+            }
+        }
+    }
+}
+
+
+@Composable
+fun MyOutlinedTextField_proco_raduis(
+    value: String,
+    onValueChange: (String) -> Unit,
+    labelText: String = "Label",
+    placeholderText: String = "Escribe aquí",
+    texto_error: String = "",
+    isError: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    isPassword: Boolean = false,
+    enabled: Boolean = true
+) {
+    Column {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 5.dp),
+            shape = RoundedCornerShape(20.dp),
+            label = { retornar_pleaceholder_label(placeholderText) },
+            placeholder = { retornar_pleaceholder_label(placeholderText) },
             trailingIcon = {
                 if (isError) {
                     androidx.compose.material3.Icon(
@@ -372,7 +435,7 @@ fun ExpandDropDown_select_params(
                         onClick = {
                             selected = option.tipo
                             expanded = false
-                            onSeleccionado(option.tipo,option.precio)
+                            onSeleccionado(option.tipo, option.precio)
                         }
                     )
                 }
@@ -387,6 +450,96 @@ fun ExpandDropDown_select_params(
     }
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ExpandDropDown_select_params_notificacion(
+    idSeleccionado: String?,
+    seleccionado: String = "",
+    lista: List<nombre_precio_notificaciones>,
+    isError: Boolean,
+    textoError: String,
+    label: String,
+    onSeleccionado: (String, Int) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    val bloqueado = !idSeleccionado.isNullOrEmpty()
+
+    // 🔄 sincroniza cambios externos
+    var selected by remember(seleccionado) { mutableStateOf(seleccionado) }
+
+    Column {
+        ExposedDropdownMenuBox(
+            expanded = expanded && !bloqueado,
+            onExpandedChange = {
+                if (!bloqueado) expanded = !expanded
+            },
+            modifier = Modifier
+                .padding(vertical = 5.dp)
+                .clip(RoundedCornerShape(30))
+        ) {
+            TextField(
+                value = selected,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(label) },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(
+                        expanded = expanded && !bloqueado
+                    )
+                },
+                enabled = !bloqueado, // 🔒 BLOQUEO REAL
+                isError = isError
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded && !bloqueado,
+                onDismissRequest = { expanded = false },
+                shape = RoundedCornerShape(
+                    bottomStart = 30.dp,
+                    bottomEnd = 30.dp
+                )
+            ) {
+                lista.forEach { option ->
+                    DropdownMenuItem(
+                        text = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(5.dp)
+                            ) {
+                                Text("${option.tipo.capitalizeFirst()} :")
+                                Text(option.precio.toString())
+                                Image(
+                                    painter = painterResource(R.drawable.icon_monedas_3d),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        },
+                        enabled = !bloqueado,
+                        onClick = {
+                            if (!bloqueado) {
+                                selected = option.tipo
+                                expanded = false
+                                onSeleccionado(option.tipo, option.precio)
+                            }
+                        }
+                    )
+                }
+            }
+        }
+
+        AnimatedVisibility(isError) {
+            Box(modifier = Modifier.padding(top = 5.dp, start = 5.dp)) {
+                retornar_pleaceholder_label(textoError, Color.Red)
+            }
+        }
+    }
+}
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -453,6 +606,7 @@ fun ExpandDropDown(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpandDropDown_precio_nombre_notificaciones(
+    seleccionado:String,
     lista: List<nombre_precio_notificaciones>,
     isError: Boolean,
     texto_error: String,
@@ -460,7 +614,7 @@ fun ExpandDropDown_precio_nombre_notificaciones(
     selecionado: (String, Int) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var selected by rememberSaveable { mutableStateOf("") }
+    var selected by remember(seleccionado) { mutableStateOf(seleccionado) }
 
     Column {
         ExposedDropdownMenuBox(
@@ -491,11 +645,24 @@ fun ExpandDropDown_precio_nombre_notificaciones(
             ) {
                 lista.forEach { option ->
                     DropdownMenuItem(
-                        text = { Text(option.tipo) },
+                        text = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(5.dp)
+                            ) {
+                                Text("${option.tipo.capitalizeFirst()} :")
+                                Text(option.precio.toString())
+                                Image(
+                                    painter = painterResource(R.drawable.icon_monedas_3d),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        },
                         onClick = {
                             selected = option.tipo
                             expanded = false
-                            selecionado(option.tipo,option.precio)
+                            selecionado(option.tipo, option.precio)
                         }
                     )
                 }
@@ -581,7 +748,6 @@ fun ExpandDropDownconvalor_inicial(
         }
     }
 }
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -705,7 +871,6 @@ fun DatePickerExample_promociones(
 }
 
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 fun calcularDiasEntreFechas(fechaInicio: String, fechaFin: String): Int {
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -715,8 +880,6 @@ fun calcularDiasEntreFechas(fechaInicio: String, fechaFin: String): Int {
 
     return ChronoUnit.DAYS.between(inicio, fin).toInt()
 }
-
-
 
 
 @Composable
@@ -822,7 +985,7 @@ fun input_password(
     mostrar_ocultar_contra: () -> Unit,
     valor_contra: (String) -> Unit
 ) {
-    Log.d("isError",isError.toString())
+    Log.d("isError", isError.toString())
     Column() {
         OutlinedTextField(
             value = user_contra,

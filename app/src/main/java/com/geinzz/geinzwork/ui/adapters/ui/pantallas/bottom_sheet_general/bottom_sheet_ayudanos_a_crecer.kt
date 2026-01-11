@@ -81,6 +81,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_ayudanos_a_creccer(
+    id_user:String,
     verificar_intener: Boolean,
     localidad: String,
     ondimis: () -> Unit,
@@ -248,7 +249,7 @@ fun bottom_sheet_ayudanos_a_creccer(
                         modifier = Modifier.padding(vertical = 10.dp)
                     ) {
                         items(lsita_img) { img ->
-                            img_baner_informativo(img)
+                            img_baner_informativo(id_usser = id_user,img)
                         }
                     }
                     Column(modifier = Modifier.padding(horizontal = 10.dp)) {
@@ -372,7 +373,7 @@ fun bottom_sheet_ayudanos_a_creccer(
 }
 
 @Composable
-fun img_baner_informativo(img: String) {
+fun img_baner_informativo(id_usser:String,img: String) {
     var mostar_img by remember { mutableStateOf(false) }
 
     Box(
@@ -414,6 +415,7 @@ fun img_baner_informativo(img: String) {
     // 🔹 Pantalla de zoom
     if (mostar_img) {
         ZoomableGalleryFullScreen(
+            id_usser,
             compartir_promocion(),
             imagenes = listOf(img),
             startIndex = 0,

@@ -152,6 +152,8 @@ fun bottom_navigation(
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
+    val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
+    ?: ""
     LaunchedEffect(uiActionVM) {
         Log.d("UiAction", "🚀 LaunchedEffect iniciado, escuchando acciones")
 
@@ -174,7 +176,7 @@ fun bottom_navigation(
                     repo_erese_socio.agregar_contador(
                         "perfil_qr",
                         id_tienda_params,
-                        localida_tienda
+                        localida_tienda,uid_respald_user
                     )
                     botoom_sheet_perfil_user = true
                     }else{
@@ -194,7 +196,7 @@ fun bottom_navigation(
                     repo_erese_socio.agregar_contador(
                         "review_qr",
                         action.idTienda,
-                        "barranca"
+                        "barranca",uid_respald_user
                     )
 
                     bottom_sheet = true
@@ -217,7 +219,7 @@ fun bottom_navigation(
                         repo_erese_socio.agregar_contador(
                             "review_c_qr",
                             action.idTienda,
-                            "barranca"
+                            "barranca",uid_respald_user
                         )
                     dialog_estas_tienda = true
                                       }else{
@@ -234,9 +236,10 @@ fun bottom_navigation(
                         repo_erese_socio.agregar_contador(
                             "crear_ruta_qr",
                             action.id_tienda,
-                            "barranca"
+                            "barranca",uid_respald_user
                         )
                     constantes_lista_localidades.abrir_google_maps(
+                        id_user,
                         "tienda",
                         action.id_tienda,
                         "barranca",
@@ -277,10 +280,11 @@ fun bottom_navigation(
         contract = ScanContract(),
         onResult = { result ->
             handleScanResult(
+                uid_respald_user,
                 context,
                 result?.contents,
                 crear_ruta = { lat, lng ->
-                    constantes_lista_localidades.abrir_google_maps("tienda",id_tienda_params,localida_tienda,context, lat, lng) { dialogo ->
+                    constantes_lista_localidades.abrir_google_maps(id_user,"tienda",id_tienda_params,localida_tienda,context, lat, lng) { dialogo ->
                         if (dialogo) Toast.makeText(
                             context,
                             "Activa tu ubicación primero",
@@ -592,6 +596,7 @@ fun bottom_navigation(
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun handleScanResult(
+    id_user:String,
     context: Context,
     contenidoEscaneado: String?,
     crear_ruta: (lat: Double, long: Double) -> Unit,
@@ -626,13 +631,13 @@ fun handleScanResult(
                         repo_erese_socio.agregar_contador(
                             "crear_ruta_qr",
                             idTienda,
-                            "barranca"
+                            "barranca",id_user
                         )
 
                         repo_erese_socio.agregar_contador(
                             "crear_ruta",
                             idTienda,
-                            "barranca"
+                            "barranca",id_user
                         )
                     }
                 }
@@ -645,7 +650,7 @@ fun handleScanResult(
                         repo_erese_socio.agregar_contador(
                             "review_c_qr",
                             idTienda,
-                            "barranca"
+                            "barranca",id_user
                         )
                 }
                 "rew"->{
@@ -653,7 +658,7 @@ fun handleScanResult(
                     repo_erese_socio.agregar_contador(
                         "review_qr",
                         idTienda,
-                        "barranca"
+                        "barranca",id_user
                     )
                 }
                 "prf"->{
@@ -663,7 +668,7 @@ fun handleScanResult(
                     repo_erese_socio.agregar_contador(
                         "perfil_qr",
                         idTienda,
-                        localidad
+                        localidad,id_user
                     )
                 }
                 else->{

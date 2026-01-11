@@ -102,7 +102,7 @@ import com.google.firebase.database.core.Context
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ui_servicio_tramite(verificar_intener: Boolean, localida: String) {
+fun ui_servicio_tramite(verificar_intener: Boolean, localida: String,iduser:String) {
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
     val viewmode_servicios_tramite: viewmode_servicios_tramite = viewModel()
     val lugares by viewmode_servicios_tramite.lugares.observeAsState(emptyList())
@@ -418,7 +418,7 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String) {
         }
 
         if(mostar_bottom_sheet_ayuda_geinz){
-            bottom_sheet_ayudanos_a_creccer(verificar_intener,localida?:"barranca",
+            bottom_sheet_ayudanos_a_creccer(iduser,verificar_intener,localida?:"barranca",
                 { mostar_bottom_sheet_ayuda_geinz = false },viewmodel_filtrado)
         }
         if (motrar_dialog_tienda_Select) {
@@ -442,7 +442,7 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String) {
 
         // 🔹 Diálogo de detalle
         if (dialog_servicos_tramite && seleccionado != null) {
-            dialog_servicios_tramite(
+            dialog_servicios_tramite(iduser,
                 localida,
                 ondimis = { dialog_servicos_tramite = false },
                 seleccionado!!

@@ -69,11 +69,13 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.viewModels.EstadoPromocion
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_datos_promociones
+import com.google.firebase.auth.FirebaseAuth
 import java.net.URLEncoder
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun dialog_promociones_negocios(
+    iduser:String,
     verificar_intener: Boolean,
     id_tienda: String,
     localidad: String,
@@ -83,7 +85,7 @@ fun dialog_promociones_negocios(
 ) {
     val context = LocalContext.current
 
-
+    val firebaseAuth= FirebaseAuth.getInstance()
     val viewModel: viewmodel_datos_promociones = viewModel()
     val estado by viewModel.estadoPromocion.collectAsState()
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
@@ -101,7 +103,8 @@ fun dialog_promociones_negocios(
         }
     }
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
-
+    val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
+    ?: ""
     var mostrar_bottom_datos by remember { mutableStateOf(false) }
     var mostar_dialog_registrate by remember { mutableStateOf(false) }
 
@@ -254,6 +257,7 @@ fun dialog_promociones_negocios(
                                         interactionSource = remember { MutableInteractionSource() }
                                     ) {
                                         abrir_whattsapp(
+                                            iduser,
                                             tipo = "tienda",
                                             id_tienda = promo.id_tienda,
                                             localidad_tienda = promo.localidad,
@@ -274,7 +278,7 @@ fun dialog_promociones_negocios(
                                         indication = null,
                                         interactionSource = remember { MutableInteractionSource() }
                                     ) {
-                                        if (uid_respald_user.isNotEmpty()) {
+                                        if (id_user.isNotEmpty()) {
                                             mostrar_bottom_datos = true
                                         } else {
                                             mostar_dialog_registrate = true
@@ -334,6 +338,7 @@ fun dialog_promociones_negocios(
         }
         if (mostrarDialogozoom) {
             ZoomableGalleryFullScreen(
+                iduser,
                 compartir_promocion(),
                 imagenes = listOf(valor_img_completa),
                 startIndex = 0,
@@ -344,7 +349,6 @@ fun dialog_promociones_negocios(
     }
 
     if (mostrar_bottom_datos) {
-
         bottom_sheet_tiendas_filtradas(
             verificar_intener,
             viewmodel_filtrado,
