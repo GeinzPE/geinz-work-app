@@ -529,55 +529,6 @@ exports.alertaSaldoBajo = onDocumentWritten(
   }
 );
 
-exports.limpiarEstadoNotificacionesDiario = onSchedule(
-  "0 0 * * *", // todos los días a medianoche
-  {
-    timeZone: "America/Lima",
-  },
-  async (event) => {
-    try {
-      console.log("===== Ejecutando limpiarEstadoNotificacionesDiario =====");
-
-      const now = new Date();
-      now.setHours(0, 0, 0, 0); // ignorar horas, minutos y segundos
-
-      // Tomamos todas las notificaciones activas
-      const snapshot = await admin.firestore()
-        .collectionGroup("estado_notificaciones")
-        .where("promocion_nueva", "==", true)
-        .get();
-
-      for (const doc of snapshot.docs) {
-        const data = doc.data();
-        if (!data.fecha_fin) continue;
-
-        // Parseamos fecha_fin (DD/MM/YYYY)
-        const [day, month, year] = data.fecha_fin.split("/").map(Number);
-        const fechaFin = new Date(year, month - 1, day);
-        fechaFin.setHours(0, 0, 0, 0);
-
-        // Si hoy es igual o mayor a fechaFin, reseteamos
-        if (now >= fechaFin) {
-          console.log(`Reseteando estado de notificación: ${doc.ref.path}`);
-          await doc.ref.update({
-            contador: 0,
-            promocion_nueva: false,
-            fecha_inicio: "",
-            fecha_fin: "",
-          });
-        }
-      }
-
-      console.log("===== Limpieza completada =====");
-      return { success: true };
-    } catch (error) {
-      console.error("ERROR limpiarEstadoNotificacionesDiario:", error);
-      return { success: false, error: error.message };
-    }
-  }
-);
-
-
 async function enviarNotificacionFCM_tienda({
   token,
   title,
