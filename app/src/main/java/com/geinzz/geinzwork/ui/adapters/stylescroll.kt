@@ -243,6 +243,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
                             },
                             clikc_compartir = { idPromo, categoria, localidad, idTienda ->
                                 compartir_hosting_promo(
+                                    viewModel,
                                     promo.texto_msje_whatsapp.compartir.msje_predermindo,
                                     id_user,
                                     idTienda,

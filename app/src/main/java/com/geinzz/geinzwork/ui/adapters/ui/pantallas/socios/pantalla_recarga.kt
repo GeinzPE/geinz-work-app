@@ -63,6 +63,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
+import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas.generarIdRecarga
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import com.geinzz.geinzwork.viewModels.viewmodel_recargas
 import com.google.firebase.auth.FirebaseAuth
@@ -131,7 +132,7 @@ fun pantala_recarga(
                                     "recarga",
                                     fecha = obtenerFechaActual(),
                                     hora = obtenerHoraActual(),
-                                    id_recarga = viewmodel_recarga_insta.generarIdRecarga(),
+                                    id_recarga = generarIdRecarga(),
                                     localidad_tienda = localida_tienda,
                                     id_tienda = id_tienda,
                                     nombre_tienda = nombre_tienda,

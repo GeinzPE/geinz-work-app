@@ -6,6 +6,8 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 data class datos_tienda(
     val id_tienda: String = "",
@@ -27,7 +29,6 @@ data class datos_tienda(
     val crear_ruta_qr: Number = 0,
     val localidad_tienda: String = "",
     val fecha_ingreso: String = "",
-    val fecha_termino: String = "",
     val descripcion: String = "",
     val lista_ids_propietarios: List<String> = emptyList(),
     val saldo_disponible_tienda: Number = 0,
@@ -49,9 +50,9 @@ data class widget_tienda(
     val nombre_tienda: String = "",
     val img_tienda: String = "",
     val horario_tiendaMap: HorarioAtencion_box = HorarioAtencion_box(),
-    val fecha_termino: String = "",
     val localidad_tienda: String = "",
-    val categoira_tienda: String = ""
+    val categoira_tienda: String = "",
+    val fecha_fin_panel: StateFlow<String> = MutableStateFlow("")
 )
 
 
@@ -85,6 +86,7 @@ data class servicio_comodidad(
 )
 
 data class agregar_promociones(
+    val estado: String = "",
     val exclusivo: Boolean,
     val img_container: img_contaier,
     val informacion: informacion_container,
@@ -130,11 +132,12 @@ data class informacion_container(
 )
 
 data class msjes_predeteminados_generales(
-    val compartir:mensaje_predeterminado,
-    val whatsapp:mensaje_predeterminado
+    val compartir: mensaje_predeterminado = mensaje_predeterminado(),
+    val whatsapp: mensaje_predeterminado = mensaje_predeterminado()
 )
+
 data class mensaje_predeterminado(
-    val msje_predermindo: String, val activo_o_no: Boolean
+    val msje_predermindo: String = "", val activo_o_no: Boolean = false
 )
 
 data class ubicacaion_container(
@@ -172,7 +175,7 @@ data class obj_contador_notificaciones(
     val nombre_tienda: String,
     val numero_contacto_tienda: String,
     val categoira_tienda: String,
-    val id_img_storage:String,
+    val id_img_storage: String,
 )
 
 data class obj_suspend_notificacion(
@@ -195,7 +198,7 @@ data class obj_parametros_notificacion(
 data class datos_publicaciones_realizadas(
     val titulo: String,
     val descripcion: String,
-    val vence_en:String,
+    val vence_en: String,
     val id: String,
     val img: String
 )
@@ -285,7 +288,8 @@ data class publicaciones_notificaciones_geinz(
     val estado: String,
     val realizado: String,
     val vence: String,
-    val total_gastado: String
+    val total_gastado: String,
+    val estado_publicacion:String,
 )
 
 data class obtener_datos_promociones(
@@ -307,4 +311,10 @@ data class DatosDemograficosUsuario(
     val genero: String,
     val edad: Int,
 )
+
+data class EstadoNotificaciones(
+    val restantes: Int,
+    val fechaFin: String? = null
+)
+
 

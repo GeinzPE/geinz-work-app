@@ -30,8 +30,6 @@ class DeepLinkViewModel : ViewModel() {
         _promo.value = datos_para_promocieons_activas(id_tienda, lugar, "",id_promo)
     }
 
-
-
     fun clearPromo() {
         _promo.value = null
     }

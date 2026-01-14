@@ -109,12 +109,15 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantall
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.estadisticas_aplicables
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
+import com.geinzz.geinzwork.viewModels.viewmodel_recargas
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun pantalla_carga_socios(
+    fecha_finalizado_flow: StateFlow<String>,
     id_user:String,
     datos: datos_tienda,
     isConnected: Boolean,
@@ -123,6 +126,7 @@ fun pantalla_carga_socios(
     val firebaseAuth = FirebaseAuth.getInstance()
     val viewmodel: viewmodel_eres_socio = viewModel()
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
+    val viewmodel_recargas: viewmodel_recargas = viewModel()
     val labels = listOf("Vistas", "Guardados", "Clics", "Compartidos")
     val labels2 = listOf("Facebook", "Instagram", "TikTok", "Sitio web")
     val labels3 = listOf("Llamada", "Whatsapp", "Rutas")
@@ -157,6 +161,7 @@ fun pantalla_carga_socios(
     val _tick by viewModelFiltros.tick.collectAsState()
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     val esta_vincualdo by viewmodel.esta_vinculado.collectAsState()
+    val fecha_tienda_fin by fecha_finalizado_flow.collectAsState()
 
     LaunchedEffect(uid_respald_user) {
         if (uid_respald_user.isNotEmpty()) {
@@ -170,7 +175,7 @@ fun pantalla_carga_socios(
 
     val datos = datos
     id_tienda = datos.id_tienda
-    fecha_termino = datos.fecha_termino
+    fecha_termino = fecha_tienda_fin
     fotosAmbientales =
         datos.obtener_img_tiendas.lista_ambiernte
     fotosServicios =
@@ -239,7 +244,7 @@ fun pantalla_carga_socios(
     val datos_fechas = datos_tienda_fechas(
         datos.id_tienda,
         datos.fecha_ingreso,
-        datos.fecha_termino,
+        fecha_tienda_fin,
         dias.toString(),
         color,
         datos.saldo_disponible_tienda.toString() ?: "0",
@@ -948,6 +953,7 @@ fun pantalla_carga_socios(
                                 .animateContentSize() // ← Animación suave
                         ) {
                             expandibles_wrapp_socio_geinzz_datos_tienda(
+                                nombre_negocio,viewmodel_recargas = viewmodel_recargas,
                                 viewModelFiltros = viewmodel,
                                 context = context,
                                 expandido = mostrar_datos_teinda,

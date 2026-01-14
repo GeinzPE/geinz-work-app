@@ -69,6 +69,8 @@ class repo_promos_cercanas {
 
             // 🔹 Mapear cada promo
             snapshot.documents.mapNotNull { doc ->
+                val estado = doc.getString("estado") ?: "expirado"
+                if (estado != "activo") return@mapNotNull null
                 val infoMap = doc.get("informacion") as? Map<*, *> ?: emptyMap<String, Any>()
                 val imgMap = doc.get("img_container") as? Map<*, *> ?: emptyMap<String, Any>()
                 val tipo_hora_dias = doc.get("tipo_hora_dias") as? String ?: ""

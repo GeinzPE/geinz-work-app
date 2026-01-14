@@ -2,7 +2,9 @@ package com.geinzz.geinzwork.model
 
 import Item
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.geinzz.geinzwork.data.model.data_class_tienda_geinz
 import com.geinzz.geinzwork.data.model.dataclass_lugares_db
 import com.geinzz.geinzwork.data.model.dataclass_novedades.dataclass_novedades_geinz
@@ -137,6 +139,7 @@ class repo_agregar_datos(context: Context) {
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun agregar_por_14_dias_a_nuevos(data_class_tienda_geinz: nuevas_teindas_dias) {
 
         val hoy = LocalDate.now()

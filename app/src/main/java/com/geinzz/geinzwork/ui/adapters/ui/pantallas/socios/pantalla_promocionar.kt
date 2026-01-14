@@ -1,5 +1,8 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -11,8 +14,14 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -107,6 +116,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -119,19 +129,29 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Shader
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.core.view.WindowCompat
 import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
+import com.android.identity.documenttype.Icon
 import com.geinzz.geinzwork.data.model.OpcionPromocionIA
 import com.geinzz.geinzwork.data.model.datos_fecha_hora_tipo
 import com.geinzz.geinzwork.data.model.datos_publicaciones_realizadas
@@ -145,15 +165,13 @@ import com.geinzz.geinzwork.data.model.obj_parametros_notificacion
 import com.geinzz.geinzwork.data.model.obj_suspend_notificacion
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen_nueve
+import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown_precio_nombre_notificaciones
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown_select_params
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown_select_params_notificacion
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField_proco_raduis
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.input_email_user_name
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.texto_expandido_wrapp_sin_max_line
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
@@ -161,12 +179,15 @@ import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaD
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerTimestampFecha
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerTimestampHoraFin
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerTimestampHoraInicio
+import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.notificacionesFCM.enviar_notificacion_lista_dispo
 import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_promocionar
 import com.geinzz.geinzwork.viewModels.viewmodel_recargas
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.auth.FirebaseAuth
 import com.valentinilk.shimmer.shimmer
+import java.net.URLEncoder
 import java.util.UUID
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -180,7 +201,7 @@ fun pantalla_promocionar(
     val context = LocalContext.current
     var imagenSeleccionada by remember { mutableStateOf<ImagenReview?>(null) }
     var url_img_notificaion_seleccionada by remember { mutableStateOf("") }
-
+    val snackbarHostState = remember { SnackbarHostState() }
     val estadoImagen by viewmodel_pantalla_promocionar.estadoImagen.collectAsState()
     var id_img_notificacion by remember { mutableStateOf("") }
     LaunchedEffect(estadoImagen) {
@@ -216,6 +237,30 @@ fun pantalla_promocionar(
     val imagenes = remember { mutableStateListOf<ImagenReview>() }
     val viewmodel_recargas: viewmodel_recargas = viewModel()
     val monedas_tienda by viewmodel_recargas.saldo.collectAsState()
+    val estado by viewmodel_recargas.estadoNotificaciones.collectAsState()
+
+    val restantes = estado.restantes
+    val fechaFin = estado.fechaFin
+    val colorEstadoNotificaciones = when (restantes) {
+        3 -> Color.Green
+        2 -> Color.Yellow
+        1 -> Color(0xFFFF9800)
+        0 -> Color.Yellow
+        else -> Color.Red
+    }
+
+    val texto = when {
+        restantes == 0 && !fechaFin.isNullOrEmpty() ->
+            "Tus notificaciones se renuevan el $fechaFin"
+
+        restantes == 1 ->
+            "Te queda 1 notificación"
+
+        else ->
+            "Te quedan $restantes notificaciones"
+    }
+
+
     val maxFotos = 5
 
     var nombre_publicacion by rememberSaveable { mutableStateOf("") }
@@ -256,7 +301,7 @@ fun pantalla_promocionar(
     )
     val lista_tipo_promocion =
         listOf(nombre_precio_notificaciones("horas", 3), nombre_precio_notificaciones("dias", 30))
-    var seleccion by remember { mutableStateOf(lista_tipo_promocion[0]) }
+    var seleccion by remember { mutableStateOf(lista_tipo_promocion[1]) }
 
     val tipo_notificacion_precio_nombre = listOf(
         nombre_precio_notificaciones("informativas", 5),
@@ -288,7 +333,7 @@ fun pantalla_promocionar(
 
     val cantidad_seguidores by viewmodel_socios.seguidores_obtenidos.collectAsState()
 
-    val state_envio_notificaciones by viewmodel_pantalla_promocionar.estado_envio_notificaciones.collectAsState()
+    val state_envio_notificaciones by viewmodel_pantalla_promocionar.estadoEnvioNotificaciones.collectAsState()
     val state_validacion_notificacion by viewmodel_pantalla_promocionar.estadoValidacion.collectAsState()
     val croppedUri = constantes_carga_ucrop_img.croppedUri
     val croppedUri_notificacion = constantes_carga_ucrop_img.croppedUri
@@ -322,6 +367,7 @@ fun pantalla_promocionar(
     }
     LaunchedEffect(i.id_tienda, i.localidad_tienda) {
         viewmodel_recargas.obtner_saldo_actual_reactivo(i.id_tienda, i.localidad_tienda)
+        viewmodel_recargas.obtner_estado_notificaciones(i.id_tienda, i.localidad_tienda)
     }
 
     LaunchedEffect(hora_escrita) {
@@ -365,11 +411,7 @@ fun pantalla_promocionar(
 
         }
     }
-    LaunchedEffect(state_envio_notificaciones) {
-        if (state_envio_notificaciones.isNotEmpty()) {
-            Toast.makeText(context, state_envio_notificaciones, Toast.LENGTH_SHORT).show()
-        }
-    }
+
     LaunchedEffect(i.id_tienda) {
         viewmodel_socios.obtener_lista_seguidores(i.localidad_tienda, i.id_tienda)
         viewmodel_socios.obtner_publicaciones_subidas(i.id_tienda, i.localidad_tienda)
@@ -422,25 +464,26 @@ fun pantalla_promocionar(
     LaunchedEffect(state) {
         when (state) {
             viewmodel_eres_socio.SubidaPromoState.Success -> {
-                Toast
-                    .makeText(
-                        context,
-                        "✅ Promoción subida correctamente",
-                        Toast.LENGTH_SHORT
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = "Promocion subida correctamente",
+                        duration = SnackbarDuration.Short
                     )
-                    .show()
+                }
                 viewmodel_pantalla_promocionar.cambiar_Estado_reciente(true)
                 val historial = historial_descuento(
                     "descuento",
                     fecha = obtenerFechaActual(),
                     hora = obtenerHoraActual(),
-                    id_recarga = viewmodel_recargas.generarIdRecarga(),
+                    id_recarga = constantes_cobro_monedas.generarIdRecarga(),
                     localidad_tienda = i.localidad_tienda,
                     id_tienda = i.id_tienda,
                     nombre_tienda = i.nombre_tienda,
                     monto_descuento = monedas_costo_publicidad,
                     tipo = if (seleccion.tipo.equals("horas")) "Publicidad por ${hora_escrita} horas" else "Publicidad por ${dias_restantes_pr} dias ",
-                    precio_soles = viewmodel_recargas.calcular_precio_soles(monedas_costo_publicidad)
+                    precio_soles = constantes_cobro_monedas.calcular_precio_soles(
+                        monedas_costo_publicidad
+                    )
                         .toString(),
                     estado = "Aceptado",
                     monto_restante = monedas_tienda - monedas_costo_publicidad.toInt()
@@ -451,22 +494,60 @@ fun pantalla_promocionar(
                     i.id_tienda,
                     i.localidad_tienda
                 )
+                nombre_publicacion = ""
+                descripcion_publicacion = ""
+                contacto_directo = false
+                compartir = false
+                fecha_fin = ""
+                hora_escrita = "0"
+                listaOpcionesIA = emptyList()
+                imagenes.clear()
+                viewmodel_socios.resetear_Estado_promo_subida()
+                viewmodel_pantalla_promocionar.descartarCambios()
+                viewmodel_pantalla_promocionar.limpiar_resutlados_ia_promo()
 
             }
 
             is viewmodel_eres_socio.SubidaPromoState.Error -> {
-                Toast
-                    .makeText(
-                        context,
-                        (state as viewmodel_eres_socio.SubidaPromoState.Error).msg,
-                        Toast.LENGTH_SHORT
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = "${(state as viewmodel_eres_socio.SubidaPromoState.Error).msg}",
+                        duration = SnackbarDuration.Short
                     )
-                    .show()
+                }
             }
 
             else -> {}
         }
 
+    }
+
+    LaunchedEffect(state_envio_notificaciones) {
+        when (state_envio_notificaciones) {
+
+            is viewmodel_pantallas_promocionar.EstadoEnvioNotificacion.Success -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = "Notificaciones enviadas correctamente",
+                        duration = SnackbarDuration.Short
+                    )
+                }
+                titulo_notificacion = ""
+                descripcion_notificacion = ""
+                url_img_notificaion_seleccionada = ""
+                tipo_notificacion_params_seleccionada = ""
+                prioridad_selec = ""
+                imagenSeleccionada = null
+                tipo_notificacion_params_seleccionada = ""
+                tipo_notificacion_seleccionada = ""
+                idSeleccionado = null
+                viewmodel_pantalla_promocionar.resetear_Estado_promo_subida()
+                viewmodel_pantalla_promocionar.descartarCambios()
+                viewmodel_pantalla_promocionar.resetear_Estado_notificacion_enviadad()
+            }
+
+            else -> {}
+        }
     }
 
 
@@ -522,13 +603,28 @@ fun pantalla_promocionar(
         )
     }
 
+    val showHeader by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex >= 2
+        }
+    }
+
+    CambiarStatusBar(showHeader)
+
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 4.dp, vertical = 10.dp)
+
     ) {
-        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+
+
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 4.dp, vertical = 10.dp)
+        ) {
             item {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     Text(
@@ -543,22 +639,26 @@ fun pantalla_promocionar(
                     style = MaterialTheme.typography.bodyMedium
                 )
                 spacer_vertical(10.dp)
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-//                ) {
-//                    texto_generico_one_line("saldo ${monedas_tienda}")
-//                    Image(
-//                        painter = painterResource(R.drawable.icon_monedas_3d),
-//                        contentDescription = null,
-//                        modifier = Modifier.size(20.dp)
-//                    )
-//                }
-//                spacer_vertical(10.dp)
             }
 
+
             item {
-                texto_generico_one_line("Promociones", style = MaterialTheme.typography.titleLarge)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(7.dp)
+                ) {
+                    Text(
+                        text = "Promociones",
+                        fontFamily = baners_geinz_work,
+                        fontSize = 25.sp
+                    )
+                    Image(
+                        painter = painterResource(R.drawable.promocio_iconn),
+                        contentDescription = null,
+                        modifier = Modifier.size(25.dp)
+                    )
+                }
+
                 spacer_vertical(10.dp)
                 texto_generico_multilinea(
                     "Selecciona hasta 5 imágenes que quieras mostrar en tu publicación",
@@ -601,7 +701,7 @@ fun pantalla_promocionar(
                 MyOutlinedTextField_proco_raduis(
                     value = nombre_publicacion,
                     onValueChange = { input ->
-
+                        viewmodel_pantalla_promocionar.titulo = input
                         if (input.length <= MAX_TITULO) {
                             nombre_publicacion = input
                             version_nombre_publicacion_original = input
@@ -623,7 +723,8 @@ fun pantalla_promocionar(
                 Column(modifier = Modifier.animateContentSize()) {
                     OutlinedTextField(
                         value = descripcion_publicacion,
-                        onValueChange = {
+                        onValueChange = { it ->
+                            viewmodel_pantalla_promocionar.descripcion = it
                             descripcion_publicacion = it
                             descripcion_publicacion_original = it
                         },
@@ -679,88 +780,98 @@ fun pantalla_promocionar(
                         label = "buttonColor"
                     )
 
-
-                    Button(
-                        onClick = {
-                            if (!cargando) {
-                                viewmodel_pantalla_promocionar.mejorar_texto_con_promo_IA(
-                                    monedas_tienda,
-                                    localidad_tienda = i.localidad_tienda,
-                                    id_tienda = i.id_tienda,
-                                    nombre_tienda = i.nombre_tienda,
-                                    tituloUsuario = nombre_publicacion,
-                                    descripcionUsuario = descripcion_publicacion,
-                                    nombreTienda = i.nombre_tienda,
-                                    localidad = i.localidad_tienda,
-                                    diasRestantes = dias_restantes_pr
-                                )
-                            }
-                        },
-                        enabled = !cargando,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = buttonColor,
-                            disabledContainerColor = buttonColor,
-                            contentColor = Color.White,
-                            disabledContentColor = Color.White
-                        ),
-                        modifier = Modifier.fillMaxWidth()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(40.dp)
+                            .clip(CircleShape)
                     ) {
-                        if (cargando) {
-                            Box(
-                                modifier = Modifier
-                                    .height(20.dp)
-                                    .width(160.dp)
-                                    .shimmer()
+                        // 🔥 Fondo animado SOLO cuando no carga
+                        if (!cargando) {
+                            FondoIAAnimado(
+                                modifier = Modifier.matchParentSize()
+                            )
+                        }
+                        Button(
+                            onClick = {
+                                if (!cargando) {
+                                    viewmodel_pantalla_promocionar.mejorar_texto_con_promo_IA(
+                                        monedas_tienda,
+                                        localidad_tienda = i.localidad_tienda,
+                                        id_tienda = i.id_tienda,
+                                        nombre_tienda = i.nombre_tienda,
+                                        tituloUsuario = nombre_publicacion,
+                                        descripcionUsuario = descripcion_publicacion,
+                                        nombreTienda = i.nombre_tienda,
+                                        localidad = i.localidad_tienda,
+                                        diasRestantes = dias_restantes_pr
+                                    )
+                                }
+                            },
+                            enabled = !cargando,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (cargando) buttonColor else Color.Transparent,
+                                disabledContainerColor = if (cargando) buttonColor else Color.Transparent,
+                                contentColor = Color.White,
+                                disabledContentColor = Color.White
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            if (cargando) {
+                                Box(
+                                    modifier = Modifier
+                                        .height(20.dp)
+                                        .width(160.dp)
+                                        .shimmer(), contentAlignment = Alignment.Center
 
-                            ) {
-
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
 
-                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
 
+                                        Spacer(modifier = Modifier.width(8.dp))
+
+                                        texto_generico_one_line(
+                                            "Generando contenido..",
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+
+                                    }
+                                }
+                            } else {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
                                     texto_generico_one_line(
-                                        "Generando contenido..",
+                                        "Mejorar con IA",
                                         style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    spacer_horizonta(5.dp)
+                                    Icon(
+                                        imageVector = Icons.Default.AutoAwesome,
+                                        contentDescription = "Mejorar con IA",
+                                        tint = Color.White
+                                    )
+                                    spacer_horizonta(5.dp)
+                                    texto_generico_one_line(
+                                        "30",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    spacer_horizonta(5.dp)
+                                    Image(
+                                        painter = painterResource(R.drawable.icon_monedas_3d),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
                                     )
 
                                 }
-                            }
-                        } else {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                texto_generico_one_line(
-                                    "Mejorar con IA",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                spacer_horizonta(5.dp)
-                                Icon(
-                                    imageVector = Icons.Default.AutoAwesome,
-                                    contentDescription = "Mejorar con IA",
-                                    tint = Color.White
-                                )
-                                spacer_horizonta(5.dp)
-                                texto_generico_one_line(
-                                    "30",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                spacer_horizonta(5.dp)
-                                Image(
-                                    painter = painterResource(R.drawable.icon_monedas_3d),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp)
-                                )
-
                             }
                         }
                     }
                 }
                 spacer_vertical(10.dp)
             }
-
-
 
             item {
                 Column(
@@ -851,76 +962,90 @@ fun pantalla_promocionar(
                                         label = "buttonColor"
                                     )
                                     if (nombre_publicacion.isNotEmpty() && descripcion_publicacion.isNotEmpty()) {
-                                        Button(
-                                            onClick = {
-                                                if (!cargando) {
-                                                    viewmodel_pantalla_promocionar.mejorar_texto_perzonalizado_whatsapp(
-                                                        monedas_tienda,
-                                                        localidad_tienda = i.localidad_tienda,
-                                                        id_tienda = i.id_tienda,
-                                                        nombre_tienda = i.nombre_tienda,
-                                                        titulo_publicacion = nombre_publicacion,
-                                                        descripcion = descripcion_publicacion,
-                                                    )
-                                                }
-                                            },
-                                            enabled = !cargando,
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = buttonColor,
-                                                disabledContainerColor = buttonColor,
-                                                contentColor = Color.White,
-                                                disabledContentColor = Color.White
-                                            ),
-                                            modifier = Modifier.fillMaxWidth()
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(40.dp)
+                                                .clip(CircleShape)
                                         ) {
-                                            if (cargando) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .height(20.dp)
-                                                        .width(160.dp)
-                                                        .shimmer()
+                                            // 🔥 Fondo animado SOLO cuando no carga
+                                            if (!cargando) {
+                                                FondoIAAnimado(
+                                                    modifier = Modifier.matchParentSize()
+                                                )
+                                            }
+                                            Button(
+                                                onClick = {
+                                                    if (!cargando) {
+                                                        viewmodel_pantalla_promocionar.mejorar_texto_perzonalizado_whatsapp(
+                                                            monedas_tienda,
+                                                            localidad_tienda = i.localidad_tienda,
+                                                            id_tienda = i.id_tienda,
+                                                            nombre_tienda = i.nombre_tienda,
+                                                            titulo_publicacion = nombre_publicacion,
+                                                            descripcion = descripcion_publicacion,
+                                                        )
+                                                    }
+                                                },
+                                                enabled = !cargando,
+                                                colors = ButtonDefaults.buttonColors(
+                                                    containerColor = if (cargando) buttonColor else Color.Transparent,
+                                                    disabledContainerColor = if (cargando) buttonColor else Color.Transparent,
+                                                    contentColor = Color.White,
+                                                    disabledContentColor = Color.White
+                                                ),
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                if (cargando) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .height(20.dp)
+                                                            .width(160.dp)
+                                                            .shimmer(),
+                                                        contentAlignment = Alignment.Center
 
-                                                ) {
-
-                                                    Row(
-                                                        verticalAlignment = Alignment.CenterVertically
                                                     ) {
 
-                                                        Spacer(modifier = Modifier.width(8.dp))
+                                                        Row(
+                                                            verticalAlignment = Alignment.CenterVertically
+                                                        ) {
 
+                                                            Spacer(modifier = Modifier.width(8.dp))
+
+                                                            texto_generico_one_line(
+                                                                "Generando contenido..",
+                                                                style = MaterialTheme.typography.bodyMedium
+                                                            )
+
+                                                        }
+                                                    }
+                                                } else {
+                                                    Row(
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                    ) {
                                                         texto_generico_one_line(
-                                                            "Generando contenido..",
+                                                            "Mejorar mensaje con IA",
                                                             style = MaterialTheme.typography.bodyMedium
+                                                        )
+                                                        spacer_horizonta(5.dp)
+                                                        Icon(
+                                                            imageVector = Icons.Default.AutoAwesome,
+                                                            contentDescription = "Mejorar con IA",
+                                                            tint = Color.White
+                                                        )
+                                                        spacer_horizonta(5.dp)
+                                                        texto_generico_one_line(
+                                                            "10",
+                                                            style = MaterialTheme.typography.bodyMedium
+                                                        )
+                                                        spacer_horizonta(5.dp)
+                                                        Image(
+                                                            painter = painterResource(R.drawable.icon_monedas_3d),
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(20.dp)
                                                         )
 
                                                     }
-                                                }
-                                            } else {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                ) {
-                                                    texto_generico_one_line(
-                                                        "Mejorar mensaje con IA",
-                                                        style = MaterialTheme.typography.bodyMedium
-                                                    )
-                                                    spacer_horizonta(5.dp)
-                                                    Icon(
-                                                        imageVector = Icons.Default.AutoAwesome,
-                                                        contentDescription = "Mejorar con IA",
-                                                        tint = Color.White
-                                                    )
-                                                    spacer_horizonta(5.dp)
-                                                    texto_generico_one_line(
-                                                        "10",
-                                                        style = MaterialTheme.typography.bodyMedium
-                                                    )
-                                                    spacer_horizonta(5.dp)
-                                                    Image(
-                                                        painter = painterResource(R.drawable.icon_monedas_3d),
-                                                        contentDescription = null,
-                                                        modifier = Modifier.size(20.dp)
-                                                    )
-
                                                 }
                                             }
                                         }
@@ -985,76 +1110,90 @@ fun pantalla_promocionar(
                                         label = "buttonColor"
                                     )
                                     if (nombre_publicacion.isNotEmpty() && descripcion_publicacion.isNotEmpty()) {
-                                        Button(
-                                            onClick = {
-                                                if (!cargando) {
-                                                    viewmodel_pantalla_promocionar.mejorar_texto_perzonalizado_compatir(
-                                                        monedas_tienda,
-                                                        localidad_tienda = i.localidad_tienda,
-                                                        id_tienda = i.id_tienda,
-                                                        nombre_tienda = i.nombre_tienda,
-                                                        titulo_publicacion = nombre_publicacion,
-                                                        descripcion = descripcion_publicacion,
-                                                    )
-                                                }
-                                            },
-                                            enabled = !cargando,
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = buttonColor,
-                                                disabledContainerColor = buttonColor,
-                                                contentColor = Color.White,
-                                                disabledContentColor = Color.White
-                                            ),
-                                            modifier = Modifier.fillMaxWidth()
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(40.dp)
+                                                .clip(CircleShape)
                                         ) {
-                                            if (cargando) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .height(20.dp)
-                                                        .width(160.dp)
-                                                        .shimmer()
+                                            // 🔥 Fondo animado SOLO cuando no carga
+                                            if (!cargando) {
+                                                FondoIAAnimado(
+                                                    modifier = Modifier.matchParentSize()
+                                                )
+                                            }
+                                            Button(
+                                                onClick = {
+                                                    if (!cargando) {
+                                                        viewmodel_pantalla_promocionar.mejorar_texto_perzonalizado_compatir(
+                                                            monedas_tienda,
+                                                            localidad_tienda = i.localidad_tienda,
+                                                            id_tienda = i.id_tienda,
+                                                            nombre_tienda = i.nombre_tienda,
+                                                            titulo_publicacion = nombre_publicacion,
+                                                            descripcion = descripcion_publicacion,
+                                                        )
+                                                    }
+                                                },
+                                                enabled = !cargando,
+                                                colors = ButtonDefaults.buttonColors(
+                                                    containerColor = if (cargando) buttonColor else Color.Transparent,
+                                                    disabledContainerColor = if (cargando) buttonColor else Color.Transparent,
+                                                    contentColor = Color.White,
+                                                    disabledContentColor = Color.White
+                                                ),
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                if (cargando) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .height(20.dp)
+                                                            .width(160.dp)
+                                                            .shimmer(),
+                                                        contentAlignment = Alignment.Center
 
-                                                ) {
-
-                                                    Row(
-                                                        verticalAlignment = Alignment.CenterVertically
                                                     ) {
 
-                                                        Spacer(modifier = Modifier.width(8.dp))
+                                                        Row(
+                                                            verticalAlignment = Alignment.CenterVertically
+                                                        ) {
 
+                                                            Spacer(modifier = Modifier.width(8.dp))
+
+                                                            texto_generico_one_line(
+                                                                "Generando contenido..",
+                                                                style = MaterialTheme.typography.bodyMedium
+                                                            )
+
+                                                        }
+                                                    }
+                                                } else {
+                                                    Row(
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                    ) {
                                                         texto_generico_one_line(
-                                                            "Generando contenido..",
+                                                            "Mejorar mensaje con IA",
                                                             style = MaterialTheme.typography.bodyMedium
+                                                        )
+                                                        spacer_horizonta(5.dp)
+                                                        Icon(
+                                                            imageVector = Icons.Default.AutoAwesome,
+                                                            contentDescription = "Mejorar con IA",
+                                                            tint = Color.White
+                                                        )
+                                                        spacer_horizonta(5.dp)
+                                                        texto_generico_one_line(
+                                                            "10",
+                                                            style = MaterialTheme.typography.bodyMedium
+                                                        )
+                                                        spacer_horizonta(5.dp)
+                                                        Image(
+                                                            painter = painterResource(R.drawable.icon_monedas_3d),
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(20.dp)
                                                         )
 
                                                     }
-                                                }
-                                            } else {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                ) {
-                                                    texto_generico_one_line(
-                                                        "Mejorar mensaje con IA",
-                                                        style = MaterialTheme.typography.bodyMedium
-                                                    )
-                                                    spacer_horizonta(5.dp)
-                                                    Icon(
-                                                        imageVector = Icons.Default.AutoAwesome,
-                                                        contentDescription = "Mejorar con IA",
-                                                        tint = Color.White
-                                                    )
-                                                    spacer_horizonta(5.dp)
-                                                    texto_generico_one_line(
-                                                        "10",
-                                                        style = MaterialTheme.typography.bodyMedium
-                                                    )
-                                                    spacer_horizonta(5.dp)
-                                                    Image(
-                                                        painter = painterResource(R.drawable.icon_monedas_3d),
-                                                        contentDescription = null,
-                                                        modifier = Modifier.size(20.dp)
-                                                    )
-
                                                 }
                                             }
                                         }
@@ -1145,7 +1284,7 @@ fun pantalla_promocionar(
                             horizontalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
                             texto_generico_one_line(
-                                "inversión por hora : 3",
+                                "inversión por hora : 3/h",
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             Image(
@@ -1165,7 +1304,7 @@ fun pantalla_promocionar(
                         MyOutlinedTextField_proco_raduis(
                             value = hora_escrita,
                             onValueChange = { input ->
-
+                                viewmodel_pantalla_promocionar.hora_fin = input
                                 var sanitizedInput = input.filter { it.isDigit() }
 
                                 if (sanitizedInput.length > 3) {
@@ -1207,12 +1346,13 @@ fun pantalla_promocionar(
                                 "0"
                             ), enter = fadeIn(), exit = fadeOut()
                         ) {
+
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(5.dp)
                             ) {
                                 texto_generico_multilinea(
-                                    "Total de monedas por $hora_escrita h = $monedas_costo_publicidad",
+                                    "Total de monedas por $hora_escrita  h = $monedas_costo_publicidad",
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                                 Image(
@@ -1312,7 +1452,7 @@ fun pantalla_promocionar(
                                 horizontalArrangement = Arrangement.spacedBy(5.dp)
                             ) {
                                 texto_generico_multilinea(
-                                    "Total de monedas por $dias_restantes_pr h = $monedas_total",
+                                    "Total de monedas por $dias_restantes_pr dias= $monedas_total",
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                                 Image(
@@ -1347,6 +1487,7 @@ fun pantalla_promocionar(
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
+
                     Button(onClick = {
                         if (monedas_tienda < monedas_costo_publicidad.toInt()) {
                             Toast.makeText(context, "saldo insuficiente", Toast.LENGTH_SHORT).show()
@@ -1354,6 +1495,7 @@ fun pantalla_promocionar(
                             val datos_publicacion = agregar_promociones(
                                 formato_fecha_hora = seleccion.tipo,
                                 exclusivo = false,
+                                estado = "activo",
                                 img_container = img_contaier(),
                                 informacion = informacion_container(
                                     categoria = i.categoira_tienda,
@@ -1435,209 +1577,515 @@ fun pantalla_promocionar(
                 }
             }
 
-
-
-
             item {
                 spacer_vertical(50.dp)
-                texto_generico_one_line(
-                    "Notificaciones",
-                    style = MaterialTheme.typography.titleLarge
-                )
-                spacer_vertical(10.dp)
-                texto_generico_multilinea(
-                    "Notifica a tus seguidores y envía notificaciones sobre promociones ,novedades o información a tus seguidores",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                spacer_vertical(10.dp)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    horizontalArrangement = Arrangement.spacedBy(7.dp)
                 ) {
-                    texto_generico_one_line(
-                        "Cantidad de seguidores ${cantidad_seguidores.size}",
-                        style = MaterialTheme.typography.bodyMedium
+                    Text(
+                        text = "Notificaciones",
+                        fontFamily = baners_geinz_work,
+                        fontSize = 25.sp
                     )
                     Image(
-                        painter = painterResource(R.drawable.perfil_qr),
+                        painter = painterResource(R.drawable.campana_3d_webp),
                         contentDescription = null,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(25.dp)
                     )
                 }
-                spacer_vertical(10.dp)
+
             }
 
             if (cantidad_seguidores.size >= 10) {
                 item {
-                    texto_generico_one_line(
-                        "Notifica tus publicaciones activas",
-                        style = MaterialTheme.typography.titleLarge
-                    )
                     spacer_vertical(10.dp)
-                    if (publicaicones_realizadas.isNotEmpty()) {
-                        LazyRow(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            items(publicaicones_realizadas, key = { it.id }) { i ->
+                    texto_generico_multilinea(
+                        "Notifica a tus seguidores sobre promociones, novedades o información importante.Recuerda que solo puedes enviar hasta 3 notificaciones por semana.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
 
-                                item_publicaiones_realizadas(
-                                    i = i,
-                                    seleccionado = i.id == idSeleccionado
-                                ) { titulo, descripcion, id, img ->
+                    spacer_vertical(10.dp)
 
-                                    if (idSeleccionado == id) {
-                                        // 🔴 DESELECCIONAR
-                                        idSeleccionado = null
 
-                                        titulo_notificacion = ""
-                                        descripcion_notificacion = ""
-                                        url_img_notificaion_seleccionada = ""
-                                        tipo_notificacion_params_seleccionada = ""
-                                        prioridad_selec = ""
-                                        imagenSeleccionada = null
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        texto_generico_one_line(
+                            "Cantidad de seguidores ${cantidad_seguidores.size}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
 
-                                        mostrar_btn_mejorar_IA = false
-                                        id_publicacion_selecionada = ""
-                                        id_img_notificacion = ""
-                                        precio_tipo_notificacion = 0
-                                        tipo_notificacion_params_seleccionada = ""
-                                        tipo_notificacion_seleccionada = ""
+                        Image(
+                            painter = painterResource(R.drawable.perfil_qr),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    spacer_vertical(10.dp)
+                }
+                item {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        texto_generico_one_line(
+                            "$texto",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colorEstadoNotificaciones
+                        )
+                        Image(
+                            painter = painterResource(R.drawable.campana_3d_webp),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    spacer_vertical(10.dp)
+                }
+                if (restantes != 0) {
+                    item {
+                        texto_generico_one_line(
+                            "Notifica tus publicaciones activas",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        spacer_vertical(12.dp)
+                        if (publicaicones_realizadas.isNotEmpty()) {
+                            LazyRow(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                items(publicaicones_realizadas, key = { it.id }) { i ->
 
-                                    } else {
-                                        // 🟢 SELECCIONAR
-                                        idSeleccionado = id
+                                    item_publicaiones_realizadas(
+                                        i = i,
+                                        seleccionado = i.id == idSeleccionado
+                                    ) { titulo, descripcion, id, img ->
 
-                                        url_img_notificaion_seleccionada = img
-                                        imagenSeleccionada = ImagenReview(
-                                            uri = null,
-                                            url = img,
-                                            isEditing = false
-                                        )
+                                        if (idSeleccionado == id) {
+                                            // 🔴 DESELECCIONAR
+                                            idSeleccionado = null
 
-                                        titulo_notificacion = titulo
-                                        descripcion_notificacion = descripcion
+                                            titulo_notificacion = ""
+                                            descripcion_notificacion = ""
+                                            url_img_notificaion_seleccionada = ""
+                                            tipo_notificacion_params_seleccionada = ""
+                                            prioridad_selec = ""
+                                            imagenSeleccionada = null
 
-                                        val tipo = "promociones y ofertas"
-                                        val precio = tipo_notificacion_precio_nombre
-                                            .firstOrNull { it.tipo == tipo }
-                                            ?.precio ?: 0
+                                            mostrar_btn_mejorar_IA = false
+                                            id_publicacion_selecionada = ""
+                                            id_img_notificacion = ""
+                                            precio_tipo_notificacion = 0
+                                            tipo_notificacion_params_seleccionada = ""
+                                            tipo_notificacion_seleccionada = ""
 
-                                        tipo_notificacion_params_seleccionada = tipo
-                                        precio_tipo_notificacion = precio
+                                        } else {
+                                            // 🟢 SELECCIONAR
+                                            idSeleccionado = id
 
-                                        mostrar_btn_mejorar_IA = true
-                                        id_publicacion_selecionada = id
-                                        id_img_notificacion = id
-                                        if(descripcion_notificacion.length>=400){
-                                            error_texto_notificacion=true
-                                        }else{
-                                            error_texto_notificacion=false
-                                        }
-                                        if(titulo_notificacion.length>=100){
-                                            error_texto_notificacion=true
-                                        }else{
-                                            error_texto_notificacion=false
+                                            url_img_notificaion_seleccionada = img
+                                            imagenSeleccionada = ImagenReview(
+                                                uri = null,
+                                                url = img,
+                                                isEditing = false
+                                            )
+
+                                            titulo_notificacion = titulo
+                                            descripcion_notificacion = descripcion
+
+                                            val tipo = "promociones y ofertas"
+                                            val precio = tipo_notificacion_precio_nombre
+                                                .firstOrNull { it.tipo == tipo }
+                                                ?.precio ?: 0
+
+                                            tipo_notificacion_params_seleccionada = tipo
+                                            precio_tipo_notificacion = precio
+
+                                            mostrar_btn_mejorar_IA = true
+                                            id_publicacion_selecionada = id
+                                            id_img_notificacion = id
+                                            if (descripcion_notificacion.length >= 400) {
+                                                error_texto_notificacion = true
+                                            } else {
+                                                error_texto_notificacion = false
+                                            }
+                                            if (titulo_notificacion.length >= 100) {
+                                                error_texto_notificacion = true
+                                            } else {
+                                                error_texto_notificacion = false
+                                            }
                                         }
                                     }
                                 }
                             }
+
+
                         }
-
-
                     }
-
-                }
-                item {
-                    Column(modifier = Modifier.animateContentSize()) {
-                        MyOutlinedTextField_proco_raduis(
-                            value = titulo_notificacion,
-                            onValueChange = { text ->
+                    item {
+                        spacer_vertical(12.dp)
+                        Column(
+                            modifier = Modifier.animateContentSize(),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            MyOutlinedTextField_proco_raduis(
+                                value = titulo_notificacion,
+                                onValueChange = { text ->
+                                    viewmodel_pantalla_promocionar.titulo_notificacion = text
                                     titulo_notificacion = text
-                                if(titulo_notificacion.length>=100){
-                                    error_titulo_notificacion=true
-                                }else{
-                                    error_titulo_notificacion=false
-                                }
+                                    if (titulo_notificacion.length >= 100) {
+                                        error_titulo_notificacion = true
+                                    } else {
+                                        error_titulo_notificacion = false
+                                    }
 
-                            },
-                            texto_error = "El título no puede exceder 70 caracteres",
-                            isError = error_titulo_notificacion,
-                            labelText = "Título de notificación",
-                            placeholderText = "Ej: Nueva promoción disponible"
-                        )
+                                },
+                                texto_error = "El título no puede exceder 70 caracteres",
+                                isError = error_titulo_notificacion,
+                                labelText = "Título de notificación",
+                                placeholderText = "Ej: Nueva promoción disponible"
+                            )
 
 
-                        MyOutlinedTextField_proco_raduis(
-                            value = descripcion_notificacion,
-                            onValueChange = { text ->
+                            MyOutlinedTextField_proco_raduis(
+                                value = descripcion_notificacion,
+
+                                onValueChange = { text ->
+                                    viewmodel_pantalla_promocionar.descripcion_notificacion = text
                                     descripcion_notificacion = text
-                                if(descripcion_notificacion.length>=400){
-                                    error_texto_notificacion=true
-                                }else{
-                                    error_texto_notificacion=false
-                                }
-                            },
-                            texto_error = "La descripción no puede exceder 400 caracteres",
-                            isError = error_texto_notificacion,
-                            labelText = "Descripción de la notificación",
-                            placeholderText = "Ej: Aprovecha esta oferta por tiempo limitado"
-                        )
-
-                        if (mostrar_btn_mejorar_IA) {
-                            val cargando =
-                                estado_textos_notificacion_corta_generada is viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Loading
-
-                            Button(
-                                modifier = Modifier.fillMaxWidth(),
-                                onClick = {
-                                    if (!cargando) {
-                                        viewmodel_pantalla_promocionar.mejorar_mejorar_notificacion_con_IA_corta(
-                                            monedas_tienda,
-                                            localidad_tienda = i.localidad_tienda,
-                                            id_tienda = i.id_tienda,
-                                            nombre_tienda = i.nombre_tienda,
-                                            titulo_publicacion = titulo_notificacion,
-                                            descripcion = descripcion_notificacion
-                                        )
+                                    if (descripcion_notificacion.length >= 400) {
+                                        error_texto_notificacion = true
+                                    } else {
+                                        error_texto_notificacion = false
                                     }
                                 },
-                                enabled = !cargando
-                            ) {
-                                if (cargando) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(18.dp),
-                                            strokeWidth = 2.dp,
-                                            color = Color.White
+                                texto_error = "La descripción no puede exceder 400 caracteres",
+                                isError = error_texto_notificacion,
+                                labelText = "Descripción de la notificación",
+                                placeholderText = "Ej: Aprovecha esta oferta por tiempo limitado"
+                            )
+
+                            AnimatedVisibility(titulo_notificacion.isNotEmpty() && descripcion_notificacion.isNotEmpty()) {
+
+                                val cargando =
+                                    estado_textos_notificacion_corta_generada is viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Loading
+                                val buttonColor by animateColorAsState(
+                                    targetValue = if (cargando)
+                                        Color.Black
+                                    else
+                                        MaterialTheme.colorScheme.primary,
+                                    label = "buttonColor"
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(40.dp)
+                                        .clip(CircleShape)
+                                ) {
+                                    // 🔥 Fondo animado SOLO cuando no carga
+                                    if (!cargando) {
+                                        FondoIAAnimado(
+                                            modifier = Modifier.matchParentSize()
                                         )
-
-                                        Spacer(modifier = Modifier.width(8.dp))
-
-                                        texto_generico_one_line("Generando contenido…")
                                     }
-                                } else {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically
+                                    Button(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        onClick = {
+                                            if (!cargando) {
+                                                viewmodel_pantalla_promocionar.mejorar_mejorar_notificacion_con_IA_corta(
+                                                    monedas_tienda,
+                                                    localidad_tienda = i.localidad_tienda,
+                                                    id_tienda = i.id_tienda,
+                                                    nombre_tienda = i.nombre_tienda,
+                                                    titulo_publicacion = titulo_notificacion,
+                                                    descripcion = descripcion_notificacion
+                                                )
+                                            }
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = if (cargando) buttonColor else Color.Transparent,
+                                            disabledContainerColor = if (cargando) buttonColor else Color.Transparent,
+                                            contentColor = Color.White,
+                                            disabledContentColor = Color.White
+                                        ),
+                                        enabled = !cargando
                                     ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            texto_generico_one_line(
-                                                "Mejorar titulo y texto con IA",
-                                                style = MaterialTheme.typography.bodyMedium
+                                        if (cargando) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .height(20.dp)
+                                                    .width(160.dp)
+                                                    .shimmer(), contentAlignment = Alignment.Center
+
+                                            ) {
+
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+
+                                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                                    texto_generico_one_line(
+                                                        "Generando contenido..",
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
+
+                                                }
+                                            }
+                                        } else {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                ) {
+                                                    texto_generico_one_line(
+                                                        "Mejorar titulo y texto con IA",
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
+                                                    spacer_horizonta(5.dp)
+                                                    Icon(
+                                                        imageVector = Icons.Default.AutoAwesome,
+                                                        contentDescription = "Mejorar con IA",
+                                                        tint = Color.White
+                                                    )
+                                                    spacer_horizonta(5.dp)
+                                                    texto_generico_one_line(
+                                                        "20",
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
+                                                    spacer_horizonta(5.dp)
+                                                    Image(
+                                                        painter = painterResource(R.drawable.icon_monedas_3d),
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(20.dp)
+                                                    )
+
+                                                }
+
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+
+                            ExpandDropDown_precio_nombre_notificaciones(
+                                prioridad_selec,
+                                lista = prioridad_notificacion_precio_nombre,
+                                isError = false,
+                                texto_error = "selecciona tu prioridad",
+                                lable = "selecciona tu prioridad"
+                            ) { prioridad, precio ->
+                                viewmodel_pantalla_promocionar.prioridad_notificacion = prioridad
+                                prioridad_selec = prioridad
+                                precio_prioridad_notificacion = precio
+
+                            }
+
+
+                            ExpandDropDown_precio_nombre_notificaciones(
+                                tipo_notificacion_seleccionada,
+                                lista = formato_notificacion_nombre_precio,
+                                isError = false,
+                                texto_error = "selecciona tu formato de notificacion",
+                                lable = "selecciona tu formato de notificacion"
+                            ) { plan, precio ->
+                                viewmodel_pantalla_promocionar.formato_notificacion = plan
+                                tipo_notificacion_seleccionada = plan
+                                precio_formato = precio
+                            }
+
+                            ExpandDropDown_select_params_notificacion(
+                                idSeleccionado = idSeleccionado,
+                                seleccionado = tipo_notificacion_params_seleccionada,
+                                lista = tipo_notificacion_precio_nombre,
+                                isError = false,
+                                textoError = "selecciona tu tipo de notificacion",
+                                label = "selecciona tu tipo de notificacion"
+                            ) { tipo, precio ->
+                                viewmodel_pantalla_promocionar.tipo_notificacion = tipo
+                                Log.d("precioestableico", "$precio")
+                                tipo_notificacion_params_seleccionada = tipo
+                                precio_tipo_notificacion = precio
+                            }
+
+
+
+                            if (tipo_notificacion_seleccionada.isNotEmpty() && titulo_notificacion.isNotEmpty() && descripcion_notificacion.isNotEmpty()) {
+                                Column() {
+                                    spacer_vertical(10.dp)
+                                    item_como_quedaria_lanotificacion_aproximada(
+                                        id_tienda = i.id_tienda,
+                                        viewmodel_pantalla_promocionar = viewmodel_pantalla_promocionar,
+                                        estadoImagen = estadoImagen,
+                                        imagenSeleccionada = imagenSeleccionada,
+                                        select_img = {
+                                            picker_notificacion.launch(
+                                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                             )
-                                            spacer_horizonta(5.dp)
-                                            Icon(
-                                                imageVector = Icons.Default.AutoAwesome,
-                                                contentDescription = "Mejorar con IA",
-                                                tint = Color.White
-                                            )
-                                            spacer_horizonta(5.dp)
+
+                                        },
+                                        imagenSeleccionada_fun = { imagenSeleccionada = null },
+                                        mostar_zoom = { imagenSeleccionada_fun ->
+                                            mostar_img_zoom = true
+                                            imagenZoomSeleccionada =
+                                                imagenSeleccionada_fun
+                                        },
+                                        tipo = tipo_notificacion_seleccionada,
+                                        titulo = titulo_notificacion,
+                                        texto = descripcion_notificacion,
+                                        img = i.img_tienda,
+                                    )
+                                    spacer_vertical(10.dp)
+                                    AnimatedVisibility(
+                                        tipo_notificacion_params_seleccionada.isNotEmpty()
+                                                && tipo_notificacion_seleccionada.isNotEmpty()
+                                                && prioridad_selec.isNotEmpty()
+                                                && titulo_notificacion.isNotEmpty()
+                                                && descripcion_notificacion.isNotEmpty()
+                                    ) {
+                                        when (state_validacion_notificacion) {
+                                            is viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Idle -> {}
+                                            is viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Permitida -> {
+
+                                                Button(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    onClick = {
+                                                        scope.launch {
+                                                            enviar_notificacion_lista_dispo(
+                                                                "",
+                                                                id_tienda = "",
+                                                                localidad = "",
+                                                                categora_tienda = "",
+                                                                "",
+                                                                id_users = listOf(id_user),
+                                                                titulo = titulo_notificacion,
+                                                                txt = descripcion_notificacion,
+                                                                logo_tienda = i.img_tienda,
+                                                                tipo_notificacion = tipo_notificacion_seleccionada,
+                                                                url_img = url_img_notificaion_seleccionada,
+                                                                prioridad = prioridad_selec
+                                                            )
+                                                        }
+                                                    }) {
+                                                    texto_generico_one_line(
+                                                        "Ver vista previa",
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
+                                                }
+
+
+                                            }
+
+                                            is viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Bloqueada -> {
+                                                Text(
+                                                    text = (state_validacion_notificacion as viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Bloqueada).mensaje,
+                                                    color = Color.Red
+                                                )
+                                            }
+
+                                        }
+                                    }
+                                }
+
+                            }
+
+                            Column() {
+
+                                if (prioridad_selec.isNotEmpty()) {
+                                    spacer_vertical(10.dp)
+                                    texto_generico_one_line(
+                                        "Parametros de notificacion",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        modifier = Modifier.padding(horizontal = 5.dp)
+                                    )
+                                    spacer_vertical(5.dp)
+                                    precio_final_notificacion(
+                                        "Prioridad : ",
+                                        prioridad_selec,
+                                        precio_prioridad_notificacion.toString()
+                                    )
+
+                                }
+
+                                if (tipo_notificacion_seleccionada.isNotEmpty()) {
+
+                                    precio_final_notificacion(
+                                        "Formato de notificacion : ",
+                                        tipo_notificacion_seleccionada,
+                                        precio_formato.toString()
+                                    )
+
+                                }
+
+                                if (tipo_notificacion_params_seleccionada.isNotEmpty()) {
+                                    precio_final_notificacion(
+                                        "Tipo de notificacion : ",
+                                        tipo_notificacion_params_seleccionada,
+                                        precio_tipo_notificacion.toString()
+                                    )
+                                }
+
+                                if (tipo_notificacion_params_seleccionada.isNotEmpty() &&
+                                    tipo_notificacion_seleccionada.isNotEmpty() &&
+                                    prioridad_selec.isNotEmpty() &&
+                                    titulo_notificacion.isNotEmpty() &&
+                                    descripcion_notificacion.isNotEmpty() && !error_titulo_notificacion && !error_texto_notificacion
+                                ) {
+                                    precio_final_notificacion(
+                                        "Inversion final",
+                                        "",
+                                        precio_por_notificacion_general.toString()
+                                    )
+                                    precio_final_notificacion(
+                                        "Total de seguidores",
+                                        "",
+                                        cantidad_seguidores.size.toString()
+                                    )
+                                    spacer_vertical(5.dp)
+
+                                    Button(modifier = Modifier.fillMaxWidth(), onClick = {
+                                        val id_creado_tipo =
+                                            if (id_publicacion_selecionada.isNotEmpty()) generarIdImagen_nueve() else generarIdImagen()
+
+                                        val obj = obj_contador_notificaciones(
+                                            id_tienda = id_socio,
+                                            localida = i.localidad_tienda,
+                                            categoria = i.categoira_tienda,
+                                            idnotificacion = id_creado_tipo,
+                                            fecha_enviada = obtenerFechaActual(),
+                                            precio_envio = 50,
+                                            parametros_notificacion = obj_parametros_notificacion(
+                                                titulo_notificacion = titulo_notificacion,
+                                                texto_notificacion = descripcion_notificacion,
+                                                logo_notificacion = i.img_tienda,
+                                                img_notifiacion = url_img_notificaion_seleccionada,
+                                                priorida_notificacion = prioridad_selec,
+                                                tipo_notificacion = tipo_notificacion_seleccionada,
+                                                notificacion_publicidad = id_publicacion_selecionada.isEmpty(),
+                                                id_publicacion_anuncio = id_publicacion_selecionada
+                                            ),
+                                            suspendido = obj_suspend_notificacion(),
+                                            tipo_notificacion = tipo_notificacion_params_seleccionada,
+                                            i.nombre_tienda,
+                                            i.numero_contacto_tienda,
+                                            i.categoira_tienda, id_img_notificacion,
+                                        )
+                                        viewmodel_pantalla_promocionar.enviar_notificacion(
+                                            monedas_tienda,
+                                            i.localidad_tienda,
+                                            i.nombre_tienda,
+                                            i.id_tienda,
+                                            precio_por_notificacion_general.toString(),
+                                            cantidad_seguidores,
+                                            obj
+                                        )
+                                    }) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
                                             texto_generico_one_line(
-                                                "20",
+                                                "Notificar a tus seguidores por $precio_por_notificacion_general",
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
                                             spacer_horizonta(5.dp)
@@ -1646,234 +2094,27 @@ fun pantalla_promocionar(
                                                 contentDescription = null,
                                                 modifier = Modifier.size(20.dp)
                                             )
-
                                         }
-
-                                    }
-                                }
-                            }
-                        }
-
-
-                        ExpandDropDown_precio_nombre_notificaciones(
-                            prioridad_selec,
-                            lista = prioridad_notificacion_precio_nombre,
-                            isError = false,
-                            texto_error = "selecciona tu prioridad",
-                            lable = "selecciona tu prioridad"
-                        ) { prioridad, precio ->
-                            prioridad_selec = prioridad
-                            precio_prioridad_notificacion = precio
-
-                        }
-
-
-                        ExpandDropDown_precio_nombre_notificaciones(
-                            tipo_notificacion_seleccionada,
-                            lista = formato_notificacion_nombre_precio,
-                            isError = false,
-                            texto_error = "selecciona tu formato de notificacion",
-                            lable = "selecciona tu formato de notificacion"
-                        ) { plan, precio ->
-                            tipo_notificacion_seleccionada = plan
-                            precio_formato = precio
-                        }
-
-                        ExpandDropDown_select_params_notificacion(
-                            idSeleccionado = idSeleccionado,
-                            seleccionado = tipo_notificacion_params_seleccionada,
-                            lista = tipo_notificacion_precio_nombre,
-                            isError = false,
-                            textoError = "selecciona tu tipo de notificacion",
-                            label = "selecciona tu tipo de notificacion"
-                        ) { tipo, precio ->
-                            Log.d("precioestableico", "$precio")
-                            tipo_notificacion_params_seleccionada = tipo
-                            precio_tipo_notificacion = precio
-                        }
-
-
-
-                        if (tipo_notificacion_seleccionada.isNotEmpty()) {
-                            spacer_vertical(10.dp)
-                            item_como_quedaria_lanotificacion_aproximada(
-                                id_tienda = i.id_tienda,
-                                viewmodel_pantalla_promocionar = viewmodel_pantalla_promocionar,
-                                estadoImagen = estadoImagen,
-                                imagenSeleccionada = imagenSeleccionada,
-                                select_img = {
-                                    picker_notificacion.launch(
-                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                    )
-                                },
-                                imagenSeleccionada_fun = { imagenSeleccionada = null },
-                                mostar_zoom = { imagenSeleccionada_fun ->
-                                    mostar_img_zoom = true
-                                    imagenZoomSeleccionada =
-                                        imagenSeleccionada_fun
-                                },
-                                tipo = tipo_notificacion_seleccionada,
-                                titulo = titulo_notificacion,
-                                texto = descripcion_notificacion,
-                                img = i.img_tienda,
-                            )
-                            spacer_vertical(10.dp)
-                            if (tipo_notificacion_params_seleccionada.isNotEmpty() && tipo_notificacion_seleccionada.isNotEmpty() && prioridad_selec.isNotEmpty() && titulo_notificacion.isNotEmpty() && descripcion_notificacion.isNotEmpty()) {
-                                when (state_validacion_notificacion) {
-                                    is viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Idle -> {}
-                                    is viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Permitida -> {
-
-                                        Button(modifier = Modifier.fillMaxWidth(), onClick = {
-                                            scope.launch {
-                                                enviar_notificacion_lista_dispo(
-                                                    "",
-                                                    id_tienda = "",
-                                                    localidad = "",
-                                                    categora_tienda = "",
-                                                    "",
-                                                    id_users = listOf(id_user),
-                                                    titulo = titulo_notificacion,
-                                                    txt = descripcion_notificacion,
-                                                    logo_tienda = i.img_tienda,
-                                                    tipo_notificacion = tipo_notificacion_seleccionada,
-                                                    url_img = url_img_notificaion_seleccionada,
-                                                    prioridad = prioridad_selec
-                                                )
-                                            }
-                                        }) {
-                                            texto_generico_one_line(
-                                                "Ver vista previa",
-                                                style = MaterialTheme.typography.bodyMedium
-                                            )
-                                        }
-
-
                                     }
 
-                                    is viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Bloqueada -> {
-                                        Text(
-                                            text = (state_validacion_notificacion as viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Bloqueada).mensaje,
-                                            color = Color.Red
-                                        )
-                                    }
-
-                                }
-                            }
-
-                        }
-
-
-                        if (prioridad_selec.isNotEmpty()) {
-                            spacer_vertical(10.dp)
-                            texto_generico_one_line(
-                                "Parametros de notificacion",
-                                style = MaterialTheme.typography.titleLarge,
-                                modifier = Modifier.padding(horizontal = 5.dp)
-                            )
-                            spacer_vertical(10.dp)
-                            precio_final_notificacion(
-                                "Prioridad : ",
-                                prioridad_selec,
-                                precio_prioridad_notificacion.toString()
-                            )
-
-
-                        }
-
-                        if (tipo_notificacion_seleccionada.isNotEmpty()) {
-
-                            precio_final_notificacion(
-                                "Formato de notificacion : ",
-                                tipo_notificacion_seleccionada,
-                                precio_formato.toString()
-                            )
-
-                        }
-
-                        if (tipo_notificacion_params_seleccionada.isNotEmpty()) {
-                            precio_final_notificacion(
-                                "Tipo de notificacion : ",
-                                tipo_notificacion_params_seleccionada,
-                                precio_tipo_notificacion.toString()
-                            )
-                        }
-                        if (tipo_notificacion_params_seleccionada.isNotEmpty() &&
-                            tipo_notificacion_seleccionada.isNotEmpty() &&
-                            prioridad_selec.isNotEmpty() &&
-                            titulo_notificacion.isNotEmpty() &&
-                            descripcion_notificacion.isNotEmpty() && !error_titulo_notificacion && !error_texto_notificacion
-                        ) {
-                            precio_final_notificacion(
-                                "Inversion final",
-                                "",
-                                precio_por_notificacion_general.toString()
-                            )
-                            precio_final_notificacion(
-                                "Total de seguidores",
-                                "",
-                                cantidad_seguidores.size.toString()
-                            )
-                            spacer_vertical(10.dp)
-
-                            Button(modifier = Modifier.fillMaxWidth(), onClick = {
-                                val id_creado_tipo =
-                                    if (id_publicacion_selecionada.isNotEmpty()) generarIdImagen_nueve() else generarIdImagen()
-
-                                val obj = obj_contador_notificaciones(
-                                    id_tienda = id_socio,
-                                    localida = i.localidad_tienda,
-                                    categoria = i.categoira_tienda,
-                                    idnotificacion = id_creado_tipo,
-                                    fecha_enviada = obtenerFechaActual(),
-                                    precio_envio = 50,
-                                    parametros_notificacion = obj_parametros_notificacion(
-                                        titulo_notificacion = titulo_notificacion,
-                                        texto_notificacion = descripcion_notificacion,
-                                        logo_notificacion = i.img_tienda,
-                                        img_notifiacion = url_img_notificaion_seleccionada,
-                                        priorida_notificacion = prioridad_selec,
-                                        tipo_notificacion = tipo_notificacion_seleccionada,
-                                        notificacion_publicidad = id_publicacion_selecionada.isEmpty(),
-                                        id_publicacion_anuncio = id_publicacion_selecionada
-                                    ),
-                                    suspendido = obj_suspend_notificacion(),
-                                    tipo_notificacion = tipo_notificacion_params_seleccionada,
-                                    i.nombre_tienda,
-                                    i.numero_contacto_tienda,
-                                    i.categoira_tienda, id_img_notificacion,
-                                )
-                                viewmodel_pantalla_promocionar.enviar_notificacion(
-                                    monedas_tienda,
-                                    i.localidad_tienda,
-                                    i.nombre_tienda,
-                                    i.id_tienda,
-                                    precio_por_notificacion_general.toString(),
-                                    cantidad_seguidores,
-                                    obj
-                                )
-                            }) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    texto_generico_one_line(
-                                        "Notificar a tus seguidores por $precio_por_notificacion_general",
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                    spacer_horizonta(5.dp)
-                                    Image(
-                                        painter = painterResource(R.drawable.icon_monedas_3d),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(20.dp)
-                                    )
                                 }
                             }
 
                         }
 
                     }
-
                 }
             } else {
                 item {
-                    texto_generico_one_line("te falta cumplir los requisitos para notificar a tus seguidores")
+                    RequisitosNotificacion(
+                        i.categoira_tienda,
+                        context,
+                        i.localidad_tienda,
+                        i.id_tienda,
+                        i.img_tienda,
+                        cantidad_seguidores.size,
+                        10
+                    )
                 }
             }
 
@@ -1883,6 +2124,45 @@ fun pantalla_promocionar(
 
 
         }
+
+        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
+
+
+        AnimatedVisibility(
+            visible = showHeader,
+            enter = slideInVertically(
+                initialOffsetY = { -it } // 👈 entra desde arriba
+            ) + fadeIn(),
+            exit = slideOutVertically(
+                targetOffsetY = { -it } // 👈 sale hacia arriba
+            ) + fadeOut()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    texto_generico_one_line(
+                        "Saldo actual $monedas_tienda",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Image(
+                        painter = painterResource(R.drawable.icon_monedas_3d),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+
         if (mostar_img_zoom) {
             imagenZoomSeleccionada?.let { imagenString ->
                 ZoomableGalleryFullScreen(
@@ -1905,8 +2185,7 @@ fun pantalla_promocionar(
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
             ) {
-                texto_generico_one_line("subieindo promo")
-                CircularProgressIndicator()
+                ShimmerImagenConMarca_suviendo_p_n("Subiendo promocion...")
             }
         }
         Box(
@@ -1922,12 +2201,140 @@ fun pantalla_promocionar(
                         )
                     )
                 )
-                .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+
+        )
+
+
+        AnimatedVisibility(
+            state_envio_notificaciones == viewmodel_pantallas_promocionar.EstadoEnvioNotificacion.Loading,
+            modifier = Modifier.fillMaxSize(),
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+            ) {
+                ShimmerImagenConMarca_suviendo_p_n("Enviando notificaciones a tus seguidores...")
+            }
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .align(Alignment.BottomCenter)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black
+                        )
+                    )
+                )
+
         )
     }
 
 
 }
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun RequisitosNotificacion(
+    categoria: String, context: Context, localidad_tienda: String, id_tienda: String,
+    img_tienda: String,
+    cantidadSeguidores: Int,
+    maximo: Int = 10
+) {
+    val progreso = (cantidadSeguidores / maximo.toFloat()).coerceIn(0f, 1f)
+
+    val progresoAnimado by animateFloatAsState(
+        targetValue = progreso,
+        animationSpec = tween(durationMillis = 600),
+        label = ""
+    )
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        spacer_vertical(10.dp)
+        texto_generico_multilinea(
+            "Te falta cumplir los requisitos para notificar a tus seguidores",
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            // Barra de progreso
+            LinearProgressIndicator(
+                progress = progresoAnimado,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(50)),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Emoji gorro de graduación 🎓
+            Text(
+                text = "\uD83C\uDF89",
+                fontSize = 18.sp
+            )
+        }
+
+        // Texto de apoyo (opcional)
+        Text(
+            text = "$cantidadSeguidores / $maximo seguidores",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Button(
+            onClick = {
+                compartirLugarFirebaseHosttiendas(categoria, context, localidad_tienda, id_tienda)
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White,
+                disabledContentColor = Color.White
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+
+            Box(contentAlignment = Alignment.Center) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    texto_generico_one_line(
+                        "Compartir mi perfil",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    AsyncImage(
+                        model = img_tienda,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clip(CircleShape),
+                        placeholder = painterResource(R.drawable.cargando_img_categorias),
+                        error = painterResource(R.drawable.cargando_img_categorias)
+                    )
+
+                }
+
+            }
+        }
+    }
+}
+
 
 fun generarIdFirebase(): String {
     return FirebaseFirestore.getInstance()
@@ -2276,40 +2683,6 @@ fun acortarDescripcionNotificacion(
         limpio.substring(0, maxCaracteres).trimEnd() + "…"
     }
 }
-
-
-//suspend fun generarPromocionesConIA(
-//    tituloUsuario: String,
-//    descripcionUsuario: String,
-//    nombreTienda: String,
-//    localidad: String,
-//    diasRestantes: Int
-//): List<OpcionPromocionIA> {
-//
-//    return try {
-//        val model = Firebase.ai(
-//            backend = GenerativeBackend.googleAI()
-//        ).generativeModel("gemini-2.5-flash")
-//
-//        val prompt = generarPromptPromocionProduccion(
-//            tituloUsuario = tituloUsuario,
-//            descripcionUsuario = descripcionUsuario,
-//            nombreTienda = nombreTienda,
-//            localidad = localidad,
-//            diasRestantes = diasRestantes
-//        )
-//
-//        val result = model.generateContent(prompt)
-//        val texto = result.text ?: return emptyList()
-//
-//        parsearOpcionesIA(texto)
-//
-//    } catch (e: Exception) {
-//        Log.e("IA", "Error IA promociones: ${e.message}")
-//        emptyList()
-//    }
-//}
-//
 
 
 @Composable
@@ -2703,6 +3076,136 @@ fun precio_final_notificacion(texto: String, tipo_select: String, precio: String
         )
     }
 }
+
+@Composable
+fun CambiarStatusBar(showHeader: Boolean) {
+
+    val colorHeaderActivo = Color(0xFF262626)
+    val colorHeaderInactivo = Color.Black
+
+    val view = LocalView.current
+    val activity = view.context as? Activity ?: return
+    val window = activity.window
+
+    LaunchedEffect(showHeader) {
+        window.statusBarColor =
+            if (showHeader)
+                colorHeaderActivo.toArgb()
+            else
+                colorHeaderInactivo.toArgb()
+
+        WindowCompat.getInsetsController(window, view)
+            .isAppearanceLightStatusBars = false // iconos claros
+    }
+}
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun compartirLugarFirebaseHosttiendas(
+    categoria: String,
+    context: Context,
+    localidad_tienda: String,
+    id_tienda: String,
+) {
+    try {
+        val repo_erese_socio = repo_eres_socio()
+        // Construimos el link de la Cloud Function
+        val link = "https://geinzworkapp.web.app/share?" +
+                "t=ti" +
+                "&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
+                "&l=${URLEncoder.encode(localidad_tienda, "UTF-8")}" +
+                "&c=${URLEncoder.encode(categoria, "UTF-8")}"
+
+        val texto = "Hola \uD83D\uDC4B, aquí estaré publicando promociones y novedades: 🔥\n$link"
+
+
+        // Intent simple de compartir
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, texto)
+        }
+
+        // Abrimos el chooser para que el usuario seleccione la app
+        context.startActivity(
+            Intent.createChooser(intent, "Compartir con")
+                .apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+        )
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Toast.makeText(context, "Error al compartir el lugar", Toast.LENGTH_SHORT).show()
+    }
+}
+
+
+@Composable
+fun ShimmerImagenConMarca_suviendo_p_n(texto: String = "GEINZ") {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .shimmer()
+            .background(Color(0xFF1C1C1C)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            CircularProgressIndicator(
+                color = Color.White
+            )
+            spacer_vertical(10.dp)
+            Text(
+                text = texto,
+                color = Color.White.copy(alpha = 0.8f),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 10.dp)
+            )
+
+        }
+    }
+}
+
+
+@Composable
+fun FondoIAAnimado(
+    modifier: Modifier = Modifier
+) {
+    val transition = rememberInfiniteTransition(label = "ia_bg")
+
+    val offset by transition.animateFloat(
+        initialValue = -800f,
+        targetValue = 1600f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 14000,
+                easing = LinearEasing
+            )
+        ),
+        label = "offset"
+    )
+
+    val coloresSuaves = listOf(
+        Color(0xFF4285F4).copy(alpha = 0.9f), // azul Google
+        Color(0xFF8700F3).copy(alpha = 0.85f), // 💜 color de tu marca (suavizado)
+        Color(0xFF9C27B0).copy(alpha = 0.85f), // morado
+        Color(0xFFE91E63).copy(alpha = 0.8f),  // rosado
+        Color(0xFF00BCD4).copy(alpha = 0.85f)  // cyan
+    )
+
+
+    Box(
+        modifier = modifier.background(
+            Brush.linearGradient(
+                colors = coloresSuaves,
+                start = Offset(offset, offset * 0.3f),
+                end = Offset(offset + 1200f, offset + 1200f)
+            )
+        )
+    )
+}
+
+
 
 
 

@@ -43,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -98,15 +99,19 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.geinzz.geinzwork.viewModels.viewmodel_datos_promociones
 import com.geinzz.geinzwork.viewModels.viewmodel_promos_cercanas
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ui_promos_cerca_de_ti(
+    activar_promo_params: String,
     localidad: String,
     verificar_intener: Boolean,
     iniciar_seccion: () -> Unit,
@@ -138,6 +143,8 @@ fun ui_promos_cerca_de_ti(
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     val categorias by viewModel._categoriasDisponibles.collectAsState()
+    val viewmodel_repo_datos_promo: viewmodel_datos_promociones = viewModel()
+    val datos_promo_parametros by viewmodel_repo_datos_promo.datos_promocion_parametro.collectAsState()
     var tiendaSeleccionada by remember { mutableStateOf<String?>(null) }
     var nombre_tienda by remember { mutableStateOf("") }
     var img_tienda by remember { mutableStateOf("") }
@@ -152,6 +159,42 @@ fun ui_promos_cerca_de_ti(
     }
 
     var indexImagenSeleccionada by remember { mutableStateOf(0) }
+
+    // Dentro de tu Composable
+    var estadisticasAgregadas by remember { mutableStateOf(false) }
+
+
+
+
+
+
+    LaunchedEffect(activar_promo_params, datos_promo_parametros) {
+        if (activar_promo_params.isNotEmpty()) {
+            viewmodel_repo_datos_promo.obtener_datos_promociones_por_paramtros(
+                localidad,
+                activar_promo_params
+            )
+
+            mostrar_zoom_img = true
+            promoSeleccionada_unica = datos_promo_parametros
+            if (!estadisticasAgregadas) {
+
+                // Agregar estadísticas solo 1 vez
+                viewModel.agregar_estadisticas_publicacion(
+                    "click",
+                    activar_promo_params,
+                    localidad, uid_respald_user
+                )
+                viewModel.agregar_estadisticas_publicacion(
+                    "vistas",
+                    activar_promo_params,
+                    localidad, uid_respald_user
+                )
+                estadisticasAgregadas = true // marcamos que ya se ejecutó
+            }
+
+        }
+    }
 
 
     LaunchedEffect(localidad) {
@@ -293,7 +336,7 @@ fun ui_promos_cerca_de_ti(
 
                     items(
                         items = promos,
-                        key = { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
+                        key = { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion + it.hashCode()}
                     ) { item ->
 
                         val index = promos.indexOfFirst {
@@ -327,7 +370,7 @@ fun ui_promos_cerca_de_ti(
                                     viewModel.agregar_estadisticas_publicacion(
                                         "click",
                                         id_promo,
-                                        localidad,uid_respald_user
+                                        localidad, uid_respald_user
                                     )
 
                                 } else {
@@ -337,6 +380,7 @@ fun ui_promos_cerca_de_ti(
                             },
                             share_promo = { id_tienda, id, categoria ->
                                 compartir_hosting_promo(
+                                    viewModel,
                                     item.dataclass_promociones_cerca_de_ti.texto_msje_whatsapp.compartir.msje_predermindo,
                                     uid_respald_user,
                                     id_tienda,
@@ -348,10 +392,10 @@ fun ui_promos_cerca_de_ti(
                                 viewModel.agregar_estadisticas_publicacion(
                                     "compartidos",
                                     id,
-                                    localidad,uid_respald_user
+                                    localidad, uid_respald_user
                                 )
                             },
-                            whatsap_promo = { id,id_tienda,categoira ->
+                            whatsap_promo = { id, id_tienda, categoira ->
                                 if (uid_respald_user.isNotEmpty()) {
                                     abrir_whattsapp(
                                         uid_respald_user,
@@ -373,23 +417,23 @@ fun ui_promos_cerca_de_ti(
                                     viewModel.agregar_estadisticas_publicacion(
                                         "whatsapp",
                                         id,
-                                        localidad,uid_respald_user
+                                        localidad, uid_respald_user
                                     )
                                 } else {
                                     mostrar_bottom_shet_registrate = true
                                 }
 
                             },
-                            mostrar_perfil = { id ,id_promo->
+                            mostrar_perfil = { id, id_promo ->
                                 if (uid_respald_user.isNotEmpty()) {
                                     viewModel.agregar_estadisticas_publicacion(
                                         "click_perfil",
                                         id_promo,
-                                        localidad,uid_respald_user
+                                        localidad, uid_respald_user
                                     )
-                                show_bottom_sheeet = true
+                                    show_bottom_sheeet = true
                                     id_tienda_select = id
-                                }else{
+                                } else {
                                     mostrar_bottom_shet_registrate = true
                                 }
                             }
@@ -398,14 +442,14 @@ fun ui_promos_cerca_de_ti(
                     }
 
                 }
-
-                if (mostrar_zoom_img && promoSeleccionada != null) {
+//                if (mostrar_zoom_img && promoSeleccionada != null) {
+                if (mostrar_zoom_img) {
                     ZoomableGalleryFullScreenVerticalPager(
-                        uid_respald_user,
+                        id_user = uid_respald_user,
                         viewModel = viewModel,
                         localidad_general = localidad,
                         promoSeleccionada = promoSeleccionada_unica!!,
-                        index_galeria_img,
+                        indeximg_seleccionado = index_galeria_img,
                         onDismiss = { mostrar_zoom_img = false; promoSeleccionada = null },
                     )
 
@@ -448,10 +492,11 @@ fun carta_promocion_geinz(
     i: dataclass_promociones_cerca_de_ti,
     img_clikeble: (id: String, lista: List<String>, Int) -> Unit,
     share_promo: (String, String, String) -> Unit,
-    whatsap_promo: (String,id_tienda:String,categoira:String) -> Unit, mostrar_perfil: (String,id_promo:String) -> Unit
+    whatsap_promo: (String, id_tienda: String, categoira: String) -> Unit,
+    mostrar_perfil: (String, id_promo: String) -> Unit
 ) {
     val (valorRestante, tipo) = parseDiasHorasRestantes(i.dias_restantes)
-    Log.d("dias_restantes_obenidos","${i.dias_restantes}")
+    Log.d("dias_restantes_obenidos", "${i.dias_restantes}")
     val backgroundColor = when {
         tipo == "dias" -> when {
             valorRestante > 5 -> Color(0xFF15BB1A) // Verde
@@ -577,7 +622,11 @@ fun carta_promocion_geinz(
                         modifier = Modifier
                             .size(30.dp)
                             .clickable {
-                                whatsap_promo(i.informacion_publcacion.id_promocion,i.informacion_publcacion.id_tienda,i.informacion_publcacion.categoria)
+                                whatsap_promo(
+                                    i.informacion_publcacion.id_promocion,
+                                    i.informacion_publcacion.id_tienda,
+                                    i.informacion_publcacion.categoria
+                                )
                             },
                         tint = Color.Unspecified
                     )
@@ -665,15 +714,16 @@ fun GaleriaHorizontalInstagram(
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun compartir_hosting_promo(
-    msje:String,
-    id_user:String,
+    viewmodelPromosCercanas: viewmodel_promos_cercanas,
+    msje: String,
+    id_user: String,
     id_tienda: String,
     context: Context,
     localidad_tienda: String,
     idpromo: String,
     categoria: String,
 ) {
-    Log.d("menjsame","$msje")
+    Log.d("menjsame", "$msje")
     try {
         val localidad_pasada = when (localidad_tienda) {
             "barranca" -> "ba"
@@ -688,12 +738,9 @@ fun compartir_hosting_promo(
 
         val link =
             "https://geinzworkapp.web.app/share?" +
-                    "t=prn" +
-                    "&id=$id_tienda" +
+                    "t=prms" +
                     "&l=$localidad_pasada" +
-                    "&c=${
-                        URLEncoder.encode(categoria, "UTF-8")
-                    }" + "&pi=$idpromo"
+                    "&pi=$idpromo"
 
 
         val texto = "$msje \n$link"
@@ -711,11 +758,12 @@ fun compartir_hosting_promo(
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
         )
-//        repo_erese_socio.agregar_contador(
-//            "compartidos",
-//            id_tienda,
-//            localidad_tienda
-//        )
+
+        viewmodelPromosCercanas.agregar_estadisticas_publicacion(
+            "compartidos",
+            idpromo,
+            localidad_tienda, id_user
+        )
     } catch (e: Exception) {
         e.printStackTrace()
         Toast.makeText(context, "Error al compartir el lugar", Toast.LENGTH_SHORT).show()

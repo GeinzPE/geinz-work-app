@@ -24,15 +24,15 @@ import kotlinx.coroutines.launch
 class viewmodel_carga_img_general(
     private val context: Context,
 ) : ViewModel() {
+    val viewmodel_para_fecha_fin_real_time = viewmodel_eres_socio()
     private val _urlsCarga = MutableStateFlow<List<String>>(emptyList())
     val urlsCarga = _urlsCarga.asStateFlow()
 
     private val _urlsCarga_turistico = MutableStateFlow<List<String>>(emptyList())
     val urlsCarga_turistico = _urlsCarga_turistico.asStateFlow()
 
-    private val _es_aniversario_hoy =MutableStateFlow<Boolean> (false)
-    val es_aniversario_hoy =_es_aniversario_hoy.asStateFlow()
-
+    private val _es_aniversario_hoy = MutableStateFlow<Boolean>(false)
+    val es_aniversario_hoy = _es_aniversario_hoy.asStateFlow()
 
 
     private val _estado_carga_widget_tienda = MutableStateFlow<widget_tienda>(widget_tienda())
@@ -54,6 +54,10 @@ class viewmodel_carga_img_general(
                     _idTienda.value = id
                     // Ahora que el id ya existe, puedes cargar todo
                     obtner_datos_tienda(id, "barranca")
+                    viewmodel_para_fecha_fin_real_time.obtener_fecha_fin_en_tiempo_real(
+                        id,
+                        "barranca"
+                    )
                 }
             }
         }
@@ -105,31 +109,32 @@ class viewmodel_carga_img_general(
     @RequiresApi(Build.VERSION_CODES.O)
     private fun obtner_datos_tienda(id_tienda: String, localidad: String) {
         try {
-        viewModelScope.launch {
-            repo.obtener_datos_tienda(
-                id_tienda,
-                localidad,
-                resultado = { res ->
-                    Log.d("hoariao;ohafa",res.horario_tiendaMap.sábado.cerrado.toString())
-            _estado_carga_widget_tienda.value =res
-                },
-                error = { error ->
-                    Log.d("noxeiste_dato_fiera","no existe")
-                    _estado_carga_widget_tienda.value = widget_tienda()
-                })
-        }
-        }catch (e: Exception){
-         Log.d("Error_obtenr","error al obtenr los datos")
+            viewModelScope.launch {
+                repo.obtener_datos_tienda(
+                    id_tienda,
+                    localidad,
+                    resultado = { res ->
+                        Log.d("hoariao;ohafa", res.horario_tiendaMap.sábado.cerrado.toString())
+                        _estado_carga_widget_tienda.value = res
+
+                    },
+                    error = { error ->
+                        Log.d("noxeiste_dato_fiera", "no existe")
+                        _estado_carga_widget_tienda.value = widget_tienda()
+                    })
+            }
+        } catch (e: Exception) {
+            Log.d("Error_obtenr", "error al obtenr los datos")
         }
     }
 
 
-    fun esaniversario_hoy(localidad:String){
+    fun esaniversario_hoy(localidad: String) {
         viewModelScope.launch {
             try {
-                _es_aniversario_hoy.value= constantes_lista_localidades.esAniversarioHoy(localidad)
-            }catch (e: Exception){
-                _es_aniversario_hoy.value=false
+                _es_aniversario_hoy.value = constantes_lista_localidades.esAniversarioHoy(localidad)
+            } catch (e: Exception) {
+                _es_aniversario_hoy.value = false
             }
         }
 

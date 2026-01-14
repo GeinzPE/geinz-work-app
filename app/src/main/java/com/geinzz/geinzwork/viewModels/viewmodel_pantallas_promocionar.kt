@@ -5,7 +5,9 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.NotificacionIA
@@ -19,6 +21,8 @@ import com.geinzz.geinzwork.model.repo_recargas
 
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
+import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas
+import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio.SubidaPromoState
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,6 +89,82 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     val insta_repo = repo_pantallas_promocionar()
     val viewmodel_recargas = viewmodel_recargas()
 
+    var titulo by mutableStateOf("")
+
+    var descripcion by mutableStateOf("")
+
+    var uriImagen by mutableStateOf<Uri?>(null)
+
+    var hora_fin  by mutableStateOf("")
+
+    var titulo_notificacion by mutableStateOf("")
+
+    var descripcion_notificacion by mutableStateOf("")
+
+    var prioridad_notificacion by mutableStateOf("")
+
+    var formato_notificacion by mutableStateOf("")
+
+    var tipo_notificacion by mutableStateOf("")
+
+
+    enum class CampoPendiente {
+        TITULO,
+        DESCRIPCION,
+        IMAGEN,
+        HORA_FIN,
+        TITULO_NOTIFICACION,
+        DESCRIPCION_NOTIFICACION,
+        PRIORIDAD,
+        FORMATO,
+        TIPO
+    }
+
+    fun hayCambiosSinGuardar(): Boolean {
+        return titulo.isNotBlank() ||
+                descripcion.isNotBlank() ||
+                uriImagen != null ||
+                hora_fin.isNotBlank() ||
+                titulo_notificacion.isNotBlank() ||
+                descripcion_notificacion.isNotBlank() ||
+                prioridad_notificacion.isNotBlank() ||
+                formato_notificacion.isNotBlank() ||
+                tipo_notificacion.isNotBlank()
+    }
+
+
+    fun obtenerCampoModificado(): CampoPendiente? {
+        return when {
+            titulo.isNotBlank() -> CampoPendiente.TITULO
+            descripcion.isNotBlank() -> CampoPendiente.DESCRIPCION
+            uriImagen != null -> CampoPendiente.IMAGEN
+            hora_fin.isNotBlank() -> CampoPendiente.HORA_FIN
+            titulo_notificacion.isNotBlank() -> CampoPendiente.TITULO_NOTIFICACION
+            descripcion_notificacion.isNotBlank() -> CampoPendiente.DESCRIPCION_NOTIFICACION
+            prioridad_notificacion.isNotBlank() -> CampoPendiente.PRIORIDAD
+            formato_notificacion.isNotBlank() -> CampoPendiente.FORMATO
+            tipo_notificacion.isNotBlank() -> CampoPendiente.TIPO
+            else -> null
+        }
+    }
+
+
+
+
+
+    fun descartarCambios() {
+        titulo = ""
+        descripcion = ""
+        uriImagen = null
+        hora_fin = ""
+        titulo_notificacion = ""
+        descripcion_notificacion = ""
+        prioridad_notificacion = ""
+        formato_notificacion = ""
+        tipo_notificacion = ""
+
+    }
+
     private val _estadoImagen = MutableStateFlow<ImagenEstado>(ImagenEstado.Idle)
     val estadoImagen: StateFlow<ImagenEstado> = _estadoImagen
 
@@ -121,8 +201,13 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     val estado_texto_compatir_con_ia: StateFlow<ESstado_ia_msje_compartir> =
         _estado_texto_compartir_con_ia
 
-    private val _estado_envio_notificaciones = MutableStateFlow("")
-    val estado_envio_notificaciones = _estado_envio_notificaciones.asStateFlow()
+
+    private val _estadoEnvioNotificaciones =
+        MutableStateFlow<EstadoEnvioNotificacion>(EstadoEnvioNotificacion.Idle)
+
+    val estadoEnvioNotificaciones: StateFlow<EstadoEnvioNotificacion> =
+        _estadoEnvioNotificaciones
+
 
     private val _estado_envio_recientes = MutableStateFlow(false)
     val estado_envio_recientes = _estado_envio_recientes.asStateFlow()
@@ -173,13 +258,13 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                         tipo_transaccion = "descuento",
                         fecha = obtenerFechaActual(),
                         hora = obtenerHoraActual(),
-                        id_recarga = viewmodel_recargas.generarIdRecarga(),
+                        id_recarga = constantes_cobro_monedas.generarIdRecarga(),
                         localidad_tienda = localidad_tienda,
                         id_tienda = id_tienda,
                         nombre_tienda = nombre_tienda,
                         monto_descuento = "30",
                         tipo = "Gen IA (Promociones X3)",
-                        precio_soles = viewmodel_recargas.calcular_precio_soles("30")
+                        precio_soles = constantes_cobro_monedas.calcular_precio_soles("30")
                             .toString(), estado = "Aceptado", monto_restante = saldo_tienda - 30
                     )
                     viewmodel_recargas.restar_puntos_recarga(
@@ -200,6 +285,10 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         }
     }
 
+    fun limpiar_resutlados_ia_promo(){
+        _estado_promociones_ia.value = EstadoIA.Idle
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun enviar_notificacion(
         saldo_tienda: Int,
@@ -211,49 +300,76 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         i: obj_contador_notificaciones
     ) {
         viewModelScope.launch {
+            _estadoEnvioNotificaciones.value = EstadoEnvioNotificacion.Loading
+
             try {
-                if (saldo_tienda < descontar_monedas.toInt()) {
-                    _estado_envio_notificaciones.value = "saldo insuficiente"
+                val monedas = descontar_monedas.toInt()
+
+                if (saldo_tienda < monedas) {
+                    _estadoEnvioNotificaciones.value =
+                        EstadoEnvioNotificacion.Error("Saldo insuficiente")
                     return@launch
                 }
-                val estado_notificacion =
-                    insta_repo_eres_socio.verificar_envio_notificaciones(i.localida, i.id_tienda)
-                if (estado_notificacion) {
-                    insta_repo_eres_socio.agregarContadorNotificacion(usuarios, i)
-                    _estado_envio_notificaciones.value = "Notificaciones enviadas correctamente"
-                    _estado_envio_recientes.value = true
-                    val historial_descuento = historial_descuento(
-                        tipo_transaccion = "descuento",
-                        fecha = obtenerFechaActual(),
-                        hora = obtenerHoraActual(),
-                        id_recarga = viewmodel_recargas.generarIdRecarga(),
-                        localidad_tienda = localidad_tienda,
-                        id_tienda = id_tienda,
-                        nombre_tienda = nombre_tienda,
-                        monto_descuento = descontar_monedas,
-                        tipo = "Envio de notificaciones a ${usuarios.size} seguidores (Actual)",
-                        precio_soles = viewmodel_recargas.calcular_precio_soles(descontar_monedas)
-                            .toString(),
-                        estado = "Aceptado",
-                        monto_restante = saldo_tienda - descontar_monedas.toInt()
+
+                val puedeEnviar =
+                    insta_repo_eres_socio.verificar_envio_notificaciones(
+                        i.localida,
+                        i.id_tienda
                     )
-                    viewmodel_recargas.restar_puntos_recarga(
-                        historial_descuento,
-                        descontar_monedas,
-                        id_tienda,
-                        localidad_tienda
-                    )
-                } else {
-                    _estado_envio_notificaciones.value =
-                        "superaste el maximo de notificaciones semanales"
+
+                if (!puedeEnviar) {
+                    _estadoEnvioNotificaciones.value =
+                        EstadoEnvioNotificacion.Error(
+                            "Superaste el máximo de notificaciones semanales"
+                        )
+                    return@launch
                 }
+
+                insta_repo_eres_socio.agregarContadorNotificacion(usuarios, i)
+
+                val historial = historial_descuento(
+                    tipo_transaccion = "descuento",
+                    fecha = obtenerFechaActual(),
+                    hora = obtenerHoraActual(),
+                    id_recarga = constantes_cobro_monedas.generarIdRecarga(),
+                    localidad_tienda = localidad_tienda,
+                    id_tienda = id_tienda,
+                    nombre_tienda = nombre_tienda,
+                    monto_descuento = descontar_monedas,
+                    tipo = "Envio de notificaciones a ${usuarios.size} seguidores (Actual)",
+                    precio_soles = constantes_cobro_monedas
+                        .calcular_precio_soles(descontar_monedas)
+                        .toString(),
+                    estado = "Aceptado",
+                    monto_restante = saldo_tienda - monedas
+                )
+
+                viewmodel_recargas.restar_puntos_recarga(
+                    historial,
+                    descontar_monedas,
+                    id_tienda,
+                    localidad_tienda
+                )
+
+                _estadoEnvioNotificaciones.value =
+                    EstadoEnvioNotificacion.Success(
+                        "Notificaciones enviadas correctamente"
+                    )
+
+                _estado_envio_recientes.value = true
+
             } catch (e: Exception) {
-                _estado_envio_notificaciones.value =
-                    "error al enviar las notificaciones"
-                Log.d("error_envio_noti", "error al enviar las notificaciones")
+                _estadoEnvioNotificaciones.value =
+                    EstadoEnvioNotificacion.Error("Error al enviar las notificaciones")
+                Log.e("error_envio_noti", e.message ?: "error")
             }
         }
     }
+
+    fun resetear_Estado_promo_subida(){
+        _estadoEnvioNotificaciones.value = EstadoEnvioNotificacion.Idle
+    }
+
 
 
     fun mejorar_mejorar_notificacion_con_IA_corta(
@@ -285,13 +401,13 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                             tipo_transaccion = "descuento",
                             fecha = obtenerFechaActual(),
                             hora = obtenerHoraActual(),
-                            id_recarga = viewmodel_recargas.generarIdRecarga(),
+                            id_recarga = constantes_cobro_monedas.generarIdRecarga(),
                             localidad_tienda = localidad_tienda,
                             id_tienda = id_tienda,
                             nombre_tienda = nombre_tienda,
                             monto_descuento = "20",
                             tipo = "Gen IA (Notificacion - promo seleccionada)",
-                            precio_soles = viewmodel_recargas.calcular_precio_soles("20")
+                            precio_soles = constantes_cobro_monedas.calcular_precio_soles("20")
                                 .toString(), estado = "Aceptado", monto_restante = saldo_tienda - 20
                         )
                         viewmodel_recargas.restar_puntos_recarga(
@@ -311,6 +427,10 @@ class viewmodel_pantallas_promocionar : ViewModel() {
             }
         }
     }
+    fun resetear_Estado_notificacion_enviadad(){
+        _estado_notificacion_con_ia_corta.value = EstadoIA_notifi_corta.Idle
+    }
+
 
 
     fun mejorar_texto_perzonalizado_whatsapp(
@@ -349,13 +469,13 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                         tipo_transaccion = "descuento",
                         fecha = obtenerFechaActual(),
                         hora = obtenerHoraActual(),
-                        id_recarga = viewmodel_recargas.generarIdRecarga(),
+                        id_recarga = constantes_cobro_monedas.generarIdRecarga(),
                         localidad_tienda = localidad_tienda,
                         id_tienda = id_tienda,
                         nombre_tienda = nombre_tienda,
                         monto_descuento = "10",
                         tipo = "Gen IA (Mensaje WhatsApp personalizado)",
-                        precio_soles = viewmodel_recargas
+                        precio_soles = constantes_cobro_monedas
                             .calcular_precio_soles("10")
                             .toString(),
                         estado = "Aceptado",
@@ -377,7 +497,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
             }
         }
     }
-
 
 
     fun mejorar_texto_perzonalizado_compatir(
@@ -417,13 +536,13 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                         tipo_transaccion = "descuento",
                         fecha = obtenerFechaActual(),
                         hora = obtenerHoraActual(),
-                        id_recarga = viewmodel_recargas.generarIdRecarga(),
+                        id_recarga = constantes_cobro_monedas.generarIdRecarga(),
                         localidad_tienda = localidad_tienda,
                         id_tienda = id_tienda,
                         nombre_tienda = nombre_tienda,
                         monto_descuento = "10",
                         tipo = "Gen IA (Mensaje WhatsApp personalizado)",
-                        precio_soles = viewmodel_recargas
+                        precio_soles = constantes_cobro_monedas
                             .calcular_precio_soles("10")
                             .toString(),
                         estado = "Aceptado",
@@ -561,7 +680,23 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     }
 
 
-    sealed class ImagenEstado {
+    fun validar_si_hay_datos_promocionar(
+        titulo_publicacion: String,
+        texto_publicacion: String,
+        img: Uri?,
+        fecha_fin_: String,
+        horas: String
+    ): Boolean {
+        // Retorna true si hay algún campo con datos
+        return titulo_publicacion.isNotBlank() ||
+                texto_publicacion.isNotBlank() ||
+                img != null ||
+                fecha_fin_.isNotBlank() ||
+                horas.isNotBlank()
+    }
+
+
+                sealed class ImagenEstado {
         object Idle : ImagenEstado()
         object Cargando : ImagenEstado()
         data class Exito(val url: String, val idTemporal: String) : ImagenEstado()
@@ -577,7 +712,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
             val mensaje: String
         ) : EstadoValidacionNotificacion()
     }
-
 
     sealed class EstadoIA_notifi_corta {
         object Idle : EstadoIA_notifi_corta()
@@ -606,6 +740,22 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         data class Success(val txt_descripcion: String) : ESstado_ia_msje_compartir()
         data class Error(val mensaje: String) : ESstado_ia_msje_compartir()
     }
+
+
+
+    sealed class EstadoEnvioNotificacion {
+        object Idle : EstadoEnvioNotificacion()
+        object Loading : EstadoEnvioNotificacion()
+
+        data class Success(
+            val mensaje: String
+        ) : EstadoEnvioNotificacion()
+
+        data class Error(
+            val mensaje: String
+        ) : EstadoEnvioNotificacion()
+    }
+
 
 
 }

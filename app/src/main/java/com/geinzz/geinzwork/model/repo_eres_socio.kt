@@ -34,6 +34,9 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
+import com.google.firebase.Timestamp
+
+
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
@@ -70,6 +73,10 @@ class repo_eres_socio {
             .collection(localidad_tienda)
             .document(id_tienda)
 
+
+
+
+
         return ref.addSnapshotListener { snapshot, e ->
             if (e != null) {
                 error(e)
@@ -77,6 +84,7 @@ class repo_eres_socio {
             }
 
             if (snapshot != null && snapshot.exists()) {
+
 
                 val data = snapshot.data ?: emptyMap<String, Any>()
 
@@ -90,7 +98,6 @@ class repo_eres_socio {
 
                 val fechas = data["fechas"] as? Map<String, Any> ?: emptyMap()
                 val fecha_ingreso = fechas["fecha_ingreso"] as? String ?: ""
-                val fecha_termino = fechas["fecha_fin"] as? String ?: ""
 
                 val descripcion = data["descripcion"] as? String ?: ""
                 val propietario_id = data["propietario_id"] as? List<String> ?: emptyList()
@@ -169,7 +176,6 @@ class repo_eres_socio {
                                     crear_ruta_qr = crear_ruta_qr,
                                     localidad_tienda = localidadTienda,
                                     fecha_ingreso = fecha_ingreso,
-                                    fecha_termino = fecha_termino,
                                     descripcion = descripcion,
                                     lista_ids_propietarios = propietario_id,
                                     saldo_disponible_tienda = saldo_tienda,
@@ -186,6 +192,37 @@ class repo_eres_socio {
                             )
                         }
                     }
+            }
+        }
+    }
+
+
+    fun fechaFinTiendaPanel(
+        idTienda: String,
+        localidad: String,
+        onCambio: (String) -> Unit
+    ): ListenerRegistration {
+        // Obtenemos la referencia al documento
+        val docRef = db.collection("Tiendas")
+            .document(localidad)
+            .collection("tiendas_servicios_geinz_activos")
+            .document(idTienda)
+
+        // Agregamos un listener para tiempo real
+        return docRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                // Manejo de error
+                Log.e("Firestore", "Error escuchando cambios: ${error.message}")
+                onCambio("")
+                return@addSnapshotListener
+            }
+
+            if (snapshot != null && snapshot.exists()) {
+                val fechaFin = snapshot.get("panel_admin") as? Map<String, Any> ?: emptyMap()
+                val fecha_fin_retunt = fechaFin.get("fecha_fin") as? String ?: ""
+                onCambio(fecha_fin_retunt)
+            } else {
+                onCambio("") // No existe el documento
             }
         }
     }
@@ -549,49 +586,179 @@ class repo_eres_socio {
     }
 
 
-    fun restar_puntos(
-        localidad_tienda: String,
-        id_tienda: String,
-        puntos_restar: Int,
-        mes_agregado_cantidad: String
+//   suspend fun restar_puntos(
+//        localidad_tienda: String,
+//        id_tienda: String,
+//        puntos_restar: Int,
+//        mes_agregado_cantidad: String
+//    ) {
+//        val refTienda = db.collection("Tiendas")
+//            .document(localidad_tienda.lowercase())
+//            .collection(localidad_tienda.lowercase())
+//            .document(id_tienda)
+//
+//        refTienda.get().addOnSuccessListener { res ->
+//            if (res.exists()) {
+//
+//                val puntosActuales = (res.getLong("puntos_tienda") ?: 0).toInt()
+//                val nuevosPuntos = (puntosActuales - puntos_restar).coerceAtLeast(0)
+//
+//                // NUEVA FECHA FIN (desde hoy)
+//                val nuevaFechaFin = sumarTiempoDesdeHoy(mes_agregado_cantidad)
+//
+//                val updates = hashMapOf<String, Any>(
+//                    "puntos_tienda" to nuevosPuntos,
+//                )
+//
+//                refTienda.update(updates)
+//                    .addOnSuccessListener {
+//                        Log.d("Puntos", "Puntos y fecha actualizados")
+//                    }
+//                    .addOnFailureListener { e ->
+//                        Log.e("Puntos", "Error al actualizar", e)
+//                    }
+//            }
+//
+//        }.addOnFailureListener {
+//            Log.e("Puntos", "Error al obtener puntos", it)
+//        }
+//
+//
+//        // 1️⃣ Obtener propietario
+//        val idPropietarioSnap = db.collection("Tiendas")
+//            .document(localidad_tienda.lowercase())
+//            .collection(localidad_tienda.lowercase())
+//            .document(id_tienda)
+//            .get()
+//            .await()
+//
+//        val propietario_id: List<String> = if (idPropietarioSnap.exists()) {
+//            val data = idPropietarioSnap.data
+//            data?.get("propietario_id") as? List<String> ?: emptyList()
+//        } else {
+//            emptyList()
+//        }
+//
+//        // 2️⃣ Referencia a las notificaciones
+//        val estadoRef = db.collection("Tiendas")
+//            .document(localidad_tienda.lowercase())
+//            .collection("tiendas_servicios_geinz_activos")
+//            .document(id_tienda)
+//
+//        val snapshot = estadoRef.get().await()
+//        val notificaciones = snapshot.get("panel_admin") as? Map<*, *>
+//        val timestampFinExiste = notificaciones?.containsKey("timestamp_fin") == true
+//        val propietarioExiste = snapshot.contains("propietario_id")
+//
+//        if (!snapshot.exists() || !timestampFinExiste) {
+//            // 🔥 NUEVO CICLO DE NOTIFICACIONES
+//            val fechaFinString = sumarTiempoDesdeHoy(mes_agregado_cantidad)
+//
+//            val panel_admin_map = hashMapOf(
+//                "fecha_fin" to fechaFinString,
+//                "timestamp_fin" to stringFechaATimestamp(fechaFinString)
+//            )
+//
+//            // 🔹 Crear mapa a guardar
+//            val mapaCompleto = hashMapOf<String, Any>(
+//                "panel_admin" to panel_admin_map
+//            )
+//
+//            // 🔹 Solo agregar propietario_id si no existe
+//            if (!propietarioExiste) {
+//                mapaCompleto["propietario_id"] = propietario_id
+//            }
+//
+//            // 🔹 Guardar en Firestore con merge
+//            estadoRef.set(mapaCompleto, SetOptions.merge()).await()
+//
+//        } else {
+//        }
+//    }
+
+
+    suspend fun restar_puntos(
+        localidadTienda: String,
+        idTienda: String,
+        puntosRestar: Int,
+        mesAgregadoCantidad: String
     ) {
+        val localidadLower = localidadTienda.lowercase()
+        Log.d("Puntos", "==== INICIO restar_puntos ====")
+        Log.d(
+            "Puntos",
+            "Tienda: $idTienda, Localidad: $localidadLower, Puntos a restar: $puntosRestar"
+        )
 
-        val refTienda = db.collection("Tiendas")
-            .document(localidad_tienda.lowercase())
-            .collection(localidad_tienda.lowercase())
-            .document(id_tienda)
+        try {
+            // 1️⃣ Referencia a la tienda principal
+            val refTienda = db.collection("Tiendas")
+                .document(localidadLower)
+                .collection(localidadLower)
+                .document(idTienda)
 
-        refTienda.get().addOnSuccessListener { res ->
-            if (res.exists()) {
-
-                val puntosActuales = (res.getLong("puntos_tienda") ?: 0).toInt()
-                val nuevosPuntos = (puntosActuales - puntos_restar).coerceAtLeast(0)
-
-                // NUEVA FECHA FIN (desde hoy)
-                val nuevaFechaFin = sumarTiempoDesdeHoy(mes_agregado_cantidad)
-
-                val updates = hashMapOf<String, Any>(
-                    "puntos_tienda" to nuevosPuntos,
-                    "fechas.fecha_fin" to nuevaFechaFin    // <-- SOLO ESTO SE ACTUALIZA DEL MAPA
-                )
-
-                refTienda.update(updates)
-                    .addOnSuccessListener {
-                        Log.d("Puntos", "Puntos y fecha actualizados")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("Puntos", "Error al actualizar", e)
-                    }
+            val tiendaSnap = refTienda.get().await()
+            if (!tiendaSnap.exists()) {
+                Log.e("Puntos", "La tienda no existe")
+                return
             }
 
-        }.addOnFailureListener {
-            Log.e("Puntos", "Error al obtener puntos", it)
+            // 🔹 Calcular y actualizar puntos
+            val puntosActuales = (tiendaSnap.getLong("puntos_tienda") ?: 0).toInt()
+            val nuevosPuntos = (puntosActuales - puntosRestar).coerceAtLeast(0)
+            refTienda.update("puntos_tienda", nuevosPuntos).await()
+            Log.d("Puntos", "Puntos actualizados: $puntosActuales → $nuevosPuntos")
+
+            // 🔹 Obtener propietario_id
+            val propietarioId: List<String> =
+                tiendaSnap.get("propietario_id") as? List<String> ?: emptyList()
+            Log.d("Puntos", "Propietario_id: $propietarioId")
+
+            // 2️⃣ Subcolección "tiendas_servicios_geinz_activos"
+            val estadoRef = db.collection("Tiendas")
+                .document(localidadLower)
+                .collection("tiendas_servicios_geinz_activos")
+                .document(idTienda)
+
+            val estadoSnap = estadoRef.get().await()
+            val propietarioExiste = estadoSnap.contains("propietario_id")
+            val panelAdmin = estadoSnap.get("panel_admin") as? Map<*, *>
+            val timestampFinExiste = panelAdmin?.containsKey("timestamp_fin") == true
+
+            val nuevaFechaFin = sumarTiempoDesdeHoy(mesAgregadoCantidad)
+            Log.d("Puntos", "Nueva fecha_fin calculada: $nuevaFechaFin")
+
+            // 🔹 Crear mapa panel_admin
+            val panelAdminMap = hashMapOf(
+                "fecha_fin" to nuevaFechaFin,
+                "timestamp_fin" to stringFechaATimestamp(nuevaFechaFin)
+            )
+
+            // 🔹 Mapa completo a guardar
+            val mapaCompleto = hashMapOf<String, Any>(
+                "panel_admin" to panelAdminMap
+            )
+
+            if (!propietarioExiste && propietarioId.isNotEmpty()) {
+                mapaCompleto["propietario_id"] = propietarioId
+                Log.d("Puntos", "Agregando propietario_id al documento")
+            } else {
+                Log.d("Puntos", "Propietario_id ya existe, no se agregará")
+            }
+
+            // 🔹 Guardar en Firestore con merge (crea doc si no existía)
+            estadoRef.set(mapaCompleto, SetOptions.merge()).await()
+            Log.d("Puntos", "Panel_admin y propietario_id actualizados correctamente")
+
+            Log.d("Puntos", "==== FIN restar_puntos ====")
+        } catch (e: Exception) {
+            Log.e("Puntos", "Error en restar_puntos: ${e.message}", e)
         }
     }
 
 
     fun sumarTiempoDesdeHoy(texto: String): String {
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
         val hoy = LocalDate.now()
 
         return try {
@@ -612,6 +779,7 @@ class repo_eres_socio {
             hoy.format(formatter)
         }
     }
+
 
     fun obtner_img_stoprage_cambios(
         tipo: String,
@@ -1010,6 +1178,7 @@ class repo_eres_socio {
 
 
             val hashMap = hashMapOf<String, Any>(
+                "estado" to i.estado,
                 "tipo_hora_dias" to i.formato_fecha_hora,
                 "datos_hora_fecha" to i.datos_hora_fecha,
                 "img_container" to i.img_container,
@@ -1033,8 +1202,8 @@ class repo_eres_socio {
     ) {
         try {
             enviar_notificacion_lista_dispo(
-                i.idnotificacion,
-                i.id_tienda, i.localida, i.categoria,
+                id_promo = i.idnotificacion,
+                id_tienda = i.id_tienda, localidad = i.localida, categora_tienda = i.categoria,
                 tipo_notificacion_params = i.tipo_notificacion,
                 id_users = usuarios,
                 titulo = i.parametros_notificacion.titulo_notificacion,
@@ -1065,7 +1234,7 @@ class repo_eres_socio {
                 "img_notificacion" to i.parametros_notificacion.img_notifiacion,
                 "nombre_tienda" to i.nombre_tienda,
                 "numero_contacto" to i.numero_contacto_tienda,
-                "categoria_tienda" to i.categoira_tienda,"id_img_storage" to i.id_img_storage
+                "categoria_tienda" to i.categoira_tienda, "id_img_storage" to i.id_img_storage
             )
 
             val params_notificacion = hashMapOf(
@@ -1120,38 +1289,77 @@ class repo_eres_socio {
         }
     }
 
+    fun stringFechaATimestamp(fecha: String): Timestamp {
+        val formato = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        formato.isLenient = false
+        val date = formato.parse(fecha)!!
+        return Timestamp(date)
+    }
+
 
     suspend fun actualizarEstadoNotificaciones(i: obj_contador_notificaciones) {
-        val estadoRef = db.collection("Tiendas")
+
+        // 1️⃣ Obtener propietario
+        val idPropietarioSnap = db.collection("Tiendas")
             .document(i.localida)
             .collection(i.localida)
             .document(i.id_tienda)
-            .collection("estado_notificaciones")
-            .document("estado")
+            .get()
+            .await()
+
+        val propietario_id: List<String> = if (idPropietarioSnap.exists()) {
+            val data = idPropietarioSnap.data
+            data?.get("propietario_id") as? List<String> ?: emptyList()
+        } else {
+            emptyList()
+        }
+
+        // 2️⃣ Referencia a las notificaciones
+        val estadoRef = db.collection("Tiendas")
+            .document(i.localida)
+            .collection("tiendas_servicios_geinz_activos")
+            .document(i.id_tienda)
 
         val snapshot = estadoRef.get().await()
+        val notificaciones = snapshot.get("notificaciones") as? Map<*, *>
+        val timestampFinExiste = notificaciones?.containsKey("timestamp_fin") == true
+        val propietarioExiste = snapshot.contains("propietario_id")
 
-        if (!snapshot.exists()) {
-            // 👉 Primera notificación
-            val estado = hashMapOf(
+        if (!snapshot.exists() || !timestampFinExiste) {
+            // 🔥 NUEVO CICLO DE NOTIFICACIONES
+            val fechaFinString = obtenerFechaConDias(i.fecha_enviada, 7)
+
+            val mapaNotificaciones = hashMapOf(
                 "fecha_inicio" to i.fecha_enviada,
-                "fecha_fin" to obtenerFechaConDias(i.fecha_enviada, 7),
+                "fecha_fin" to fechaFinString,
                 "contador" to 1,
                 "maximo" to 3,
-                "promocion_nueva" to true   // 👈 CLAVE
+                "promocion_nueva" to true,
+                "timestamp_fin" to stringFechaATimestamp(fechaFinString)
             )
-            estadoRef.set(estado).await()
+
+            // 🔹 Crear mapa a guardar
+            val mapaCompleto = hashMapOf<String, Any>(
+                "notificaciones" to mapaNotificaciones
+            )
+
+            // 🔹 Solo agregar propietario_id si no existe
+            if (!propietarioExiste) {
+                mapaCompleto["propietario_id"] = propietario_id
+            }
+
+            // 🔹 Guardar en Firestore con merge
+            estadoRef.set(mapaCompleto, SetOptions.merge()).await()
 
         } else {
-            // 👉 Ya existe → incrementar y marcar nuevo
+            // 👉 MISMO CICLO → SOLO INCREMENTA
             estadoRef.update(
-                mapOf(
-                    "contador" to FieldValue.increment(1),
-                    "promocion_nueva" to true   // 👈 CLAVE
-                )
+                "notificaciones.contador",
+                FieldValue.increment(1)
             ).await()
         }
     }
+
 
     suspend fun verificar_envio_notificaciones(
         localidad: String, id_tienda: String

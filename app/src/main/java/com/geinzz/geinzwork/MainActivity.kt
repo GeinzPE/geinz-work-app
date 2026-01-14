@@ -151,6 +151,7 @@ class MainActivity : AppCompatActivity() {
             "nemg" -> "salud_y_seguridad"
             "ads"->"promocionar_ads"
             "rec"->"promocionar_rec"
+
             else -> null
         }
 
@@ -221,8 +222,13 @@ class MainActivity : AppCompatActivity() {
                     lugar = localidad,
                     id_promo = id_promocion,
                 )
-//                repo_eres_socio.agregar_contador_estadistica_noti("abierto",id,localidad,id_promocion)
 
+            }
+
+            "prms"->{
+                uiActionVM.emitir(
+                    UiAction.Abrir_pantalla_promos_cecanas(id_promocion, localidad)
+                )
             }
 
 

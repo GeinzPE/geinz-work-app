@@ -309,6 +309,7 @@ fun bottom_sheet_historial_pago(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun item_historial_pagos(i: historial_financiero) {
     var expanded by remember { mutableStateOf(false) }

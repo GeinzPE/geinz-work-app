@@ -1,8 +1,10 @@
 package com.geinzz.geinzwork.model
 
+import android.util.Log
 import com.geinzz.geinzwork.data.model.obtener_datos_promociones
 import com.geinzz.geinzwork.data.model.publicaciones_notificaciones_geinz
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
@@ -43,6 +45,7 @@ class repo_pantalla_recientes {
             val ahora = System.currentTimeMillis()
 
             val listaPromos = promocionesSnapshot.documents.map { doc ->
+
                 val img_container = doc.get("img_container") as? Map<String, Any> ?: emptyMap()
                 val lista = img_container.get("lista_img") as? List<String> ?: emptyList()
                 val informacion = doc.get("informacion") as? Map<String, Any> ?: emptyMap()
@@ -52,29 +55,34 @@ class repo_pantalla_recientes {
                 val horasMap = hora_fecha_general["horas"] as? Map<String, Any> ?: emptyMap()
                 val diasMap = hora_fecha_general["dias"] as? Map<String, Any> ?: emptyMap()
 
+                val estado_publicacion=doc.get("estado") as? String?:""
                 val hora_inicio = horasMap["hora_inicio"] as? String ?: ""
                 val hora_fin = horasMap["hora_fin"] as? String ?: ""
                 val timestamp_inicio = (horasMap["timestamp_inicio"] as? Number)?.toLong() ?: 0L
                 val dia_inicio = diasMap["fecha_inicio"] as? String ?: ""
                 val dia_fin = diasMap["fecha_fin"] as? String ?: ""
-
+                val id_promo=informacion["id_promocion"] as? String ?: ""
                 val timestampFin = when (tipo_hora_dias) {
                     "horas" -> (horasMap["timestamp_fin"] as? Number)?.toLong() ?: 0L
                     "dias" -> (diasMap["timestamp_fin"] as? Number)?.toLong() ?: 0L
                     else -> 0L
                 }
+
+
+
                 val timestampFinMs =
                     if (timestampFin < 1_000_000_000_000L) timestampFin * 1000 else timestampFin
                 val (valorRestante, tipo) = parseDiasHorasRestantes(tiempoRestante(timestampFinMs))
                 publicaciones_notificaciones_geinz(
-                    id = informacion["id_promocion"] as? String ?: "",
+                    id = id_promo,
                     img_principal = lista.firstOrNull() ?: "",
                     nombre = informacion["titulo"] as? String ?: "",
                     tipo = "promoción",
                     estado = tipo_hora_dias,
                     realizado = if (tipo_hora_dias == "horas") timestampAFechaSolo(timestamp_inicio) else dia_inicio,
                     vence = "${valorRestante} $tipo",
-                    total_gastado = ""
+                    total_gastado = "",
+                            estado_publicacion=estado_publicacion,
                 )
             }
 
@@ -89,7 +97,7 @@ class repo_pantalla_recientes {
                     estado = "Enviado",
                     realizado = doc.getString("fecha_envio") ?: "",
                     vence = "",
-                    total_gastado = ""
+                    total_gastado = "",""
                 )
             }
 
@@ -104,6 +112,34 @@ class repo_pantalla_recientes {
         e.printStackTrace()
         emptyList()
     }
+
+    fun escucharEstadosTodasPromociones(
+        idTienda: String,
+        localidad: String,
+        onCambio: (Map<String, String>) -> Unit
+    ): ListenerRegistration {
+        val ref = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(idTienda)
+            .collection("promociones_geinz")
+
+        return ref.addSnapshotListener { snapshots, error ->
+            if (error != null || snapshots == null) {
+                onCambio(emptyMap())
+                return@addSnapshotListener
+            }
+
+            val estados = snapshots.documents.associate { doc ->
+                doc.id to (doc.getString("estado") ?: "")
+            }
+
+            onCambio(estados)
+        }
+    }
+
+
+
 
 
 
@@ -174,8 +210,6 @@ class repo_pantalla_recientes {
         }
     }
 
-
-
     fun timestampAFechaSolo(timestampMillis: Long): String {
         val date = Date(timestampMillis)
         val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) // solo fecha
@@ -195,9 +229,6 @@ class repo_pantalla_recientes {
             0 to "dias"
         }
     }
-
-
-
 
     fun tiempoRestante(timestampFin: Long): String {
         val ahoraMs = System.currentTimeMillis()
@@ -224,6 +255,39 @@ class repo_pantalla_recientes {
             }
         }
     }
+
+    fun cambiar_estado_publicacion(
+        id_tienda: String,
+        localidad: String,
+        id_promo: String,
+        estado_cambiado: String
+    ) {
+        val ref = db.collection("Tiendas")
+            .document(localidad)
+            .collection("promos_ofertas")
+            .document(id_promo)
+
+        val ref2 = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(id_tienda)
+            .collection("promociones_geinz")
+            .document(id_promo)
+
+        val hashMap = hashMapOf<String, Any>(
+            "estado" to estado_cambiado // ✅ usamos la variable, no la cadena literal
+        )
+
+        // Actualizamos ambas colecciones
+        ref.update(hashMap)
+            .addOnSuccessListener { Log.d("Firestore", "Estado actualizado en promos_ofertas") }
+            .addOnFailureListener { e -> Log.e("Firestore", "Error: ${e.message}") }
+
+        ref2.update(hashMap)
+            .addOnSuccessListener { Log.d("Firestore", "Estado actualizado en promociones_geinz") }
+            .addOnFailureListener { e -> Log.e("Firestore", "Error: ${e.message}") }
+    }
+
 
 
 

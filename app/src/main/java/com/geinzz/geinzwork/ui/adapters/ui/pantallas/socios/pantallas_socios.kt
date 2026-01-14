@@ -3,6 +3,8 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -132,8 +134,10 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.material.Badge
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
@@ -180,6 +184,8 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
 
     var mostrar_bundle_desbloqueo by remember { mutableStateOf(false) }
     var mostrar_bundle_recargas by remember { mutableStateOf(false) }
+    var campoBloqueante by mutableStateOf<viewmodel_pantallas_promocionar.CampoPendiente?>(null)
+
 
     var nombre_tienda by remember { mutableStateOf("") }
     var localidad_tienda by remember { mutableStateOf("") }
@@ -232,6 +238,26 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
             }
         }
     }
+
+    var mostrarDialogoSalir by remember { mutableStateOf(false) }
+    var pantallaDestino by remember { mutableStateOf("") }
+
+
+
+    fun intentarCambiarPantalla(nuevaPantalla: String) {
+        if (
+            pantallaSeleccionada == "Promocionar" &&
+            viewmodel_pantalla_promocionar.hayCambiosSinGuardar()
+        ) {
+            pantallaDestino = nuevaPantalla
+            campoBloqueante =
+                viewmodel_pantalla_promocionar.obtenerCampoModificado()
+            mostrarDialogoSalir = true
+        } else {
+            pantallaSeleccionada = nuevaPantalla
+        }
+    }
+
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
 
@@ -547,7 +573,9 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
 
                                 is viewmodel_eres_socio.carga_acces_socio.succes -> {
 
+
                                     LaunchedEffect(state.datos) {
+
                                         item_pantalla_promociones = items_pantallas_promociones(
                                             state.datos.categoira_tienda,
                                             state.datos.nombre,
@@ -567,6 +595,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                         state.datos.saldo_disponible_tienda.toInt()
 
                                     pantalla_carga_socios(
+                                        fecha_finalizado_flow=viewmodel.fecha_finalizar_panel_real_time,
                                         id_user,
                                         state.datos,
                                         isConnected
@@ -633,7 +662,10 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                                 )
                                             },
                                             selected = pantallaSeleccionada == "Inicio",
-                                            onClick = { pantallaSeleccionada = "Inicio" },
+                                            onClick = {
+//                                                pantallaSeleccionada = "Inicio"
+                                                intentarCambiarPantalla("Inicio")
+                                            },
                                             alwaysShowLabel = true,
                                             modifier = Modifier.padding(top = 4.dp)
                                         )
@@ -687,7 +719,8 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                             },
                                             selected = pantallaSeleccionada == "Promocionar",
                                             onClick = {
-                                                pantallaSeleccionada = "Promocionar"
+                                                intentarCambiarPantalla("Promocionar")
+//                                                pantallaSeleccionada = "Promocionar"
                                                 mostrar_bundle_desbloqueo = false
                                             },
                                             alwaysShowLabel = true,
@@ -739,7 +772,8 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                             },
                                             selected = pantallaSeleccionada == "Publicaciones",
                                             onClick = {
-                                                pantallaSeleccionada = "Publicaciones"
+                                                intentarCambiarPantalla("Publicaciones")
+//                                                pantallaSeleccionada = "Publicaciones"
                                                 viewmodel_pantalla_promocionar.cambiar_Estado_reciente(
                                                     false
                                                 )
@@ -789,7 +823,8 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                             },
                                             selected = pantallaSeleccionada == "Recargas",
                                             onClick = {
-                                                pantallaSeleccionada = "Recargas"
+                                                intentarCambiarPantalla("Recargas")
+//                                                pantallaSeleccionada = "Recargas"
                                                 mostrar_bundle_recargas = false
                                             },
                                             alwaysShowLabel = true,
@@ -807,7 +842,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(
-                                    bottom = paddingValues.calculateBottomPadding() // solo bottom
+                                    bottom = paddingValues.calculateBottomPadding()
                                 )
                                 .padding(horizontal = 10.dp),
                             contentAlignment = Alignment.Center
@@ -834,7 +869,6 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                             viewmodel_pantalla_reciente, { cargando ->
                                                 cargandoState = cargando
                                             })
-//                                        pantallaSoporte()
                                     }
 
                                     "Recargas" -> {
@@ -847,7 +881,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                             cargando = { cargando ->
                                                 cargandoState = cargando
                                             })
-//                                        pantallaSoporte()
+
                                     }
                                 }
                             }
@@ -859,6 +893,52 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
             }
         }
 
+        if (mostrarDialogoSalir) {
+            val mensaje = when (campoBloqueante) {
+                viewmodel_pantallas_promocionar.CampoPendiente.TITULO -> "Ya escribiste un título"
+                viewmodel_pantallas_promocionar.CampoPendiente.DESCRIPCION -> "Ya escribiste una descripción"
+                viewmodel_pantallas_promocionar.CampoPendiente.IMAGEN -> "Seleccionaste una imagen"
+                viewmodel_pantallas_promocionar.CampoPendiente.HORA_FIN -> "Seleccionaste una hora"
+                viewmodel_pantallas_promocionar.CampoPendiente.TITULO_NOTIFICACION -> "Ya escribiste un título de notificación"
+                viewmodel_pantallas_promocionar.CampoPendiente.DESCRIPCION_NOTIFICACION -> "Ya escribiste una descripción de notificación"
+                viewmodel_pantallas_promocionar.CampoPendiente.PRIORIDAD -> "Seleccionaste una prioridad"
+                viewmodel_pantallas_promocionar.CampoPendiente.FORMATO -> "Seleccionaste un formato"
+                viewmodel_pantallas_promocionar.CampoPendiente.TIPO -> "Seleccionaste un tipo"
+                null -> ""
+            }
+
+            AlertDialog(
+                onDismissRequest = { mostrarDialogoSalir = false },
+                title = { texto_generico_one_line("Descartar cambios",   style = MaterialTheme.typography.titleLarge) },
+                text = {
+                    Column() {
+                    texto_generico_multilinea(
+                        "Tienes datos sin guardar. ¿Deseas descartarlos?",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    texto_generico_multilinea(
+                        mensaje,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewmodel_pantalla_promocionar.descartarCambios()
+                        pantallaSeleccionada = pantallaDestino
+                        mostrarDialogoSalir = false
+                    }) {
+                        Text("Sí")
+                    }
+                },
+
+                dismissButton = {
+                    TextButton(onClick = { mostrarDialogoSalir = false }) {
+                        Text("No")
+                    }
+                }
+            )
+        }
         if (cerrar_Seccion_cuenta_tienda) {
             dialogo_cerrar_seccion_teinda(
                 txt = "¿Estás seguro de que deseas cerrar sesión de tu cuenta de tienda? Al hacerlo, tu dispositivo se desvinculará completamente de la tienda, incluyendo la eliminación del ID de tienda asociado a tu cuenta. Tendrás que volver a iniciar sesión y vincular nuevamente tu dispositivo para acceder otra vez.",

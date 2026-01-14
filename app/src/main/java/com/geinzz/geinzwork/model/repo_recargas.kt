@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.model
 
+import com.geinzz.geinzwork.data.model.EstadoNotificaciones
 import com.geinzz.geinzwork.data.model.historial_descuento
 import com.geinzz.geinzwork.data.model.historial_financiero
 import com.geinzz.geinzwork.data.model.historial_recargas
@@ -59,6 +60,7 @@ class repo_recargas {
             false
         }
     }
+
     fun obtner_saldo_reactivo(
         id_tienda: String,
         localidad: String
@@ -88,6 +90,69 @@ class repo_recargas {
             listener.remove()
         }
     }
+
+
+    fun obtner_estado_notificaciones_reactivos(
+        id_tienda: String,
+        localidad: String
+    ): Flow<EstadoNotificaciones> = callbackFlow {
+
+        val MAX_POR_DEFECTO = 3
+
+        val listener = db
+            .collection("Tiendas")
+            .document(localidad)
+            .collection("tiendas_servicios_geinz_activos")
+            .document(id_tienda)
+            .addSnapshotListener { snapshot, error ->
+
+                if (error != null) {
+                    trySend(
+                        EstadoNotificaciones(
+                            restantes = MAX_POR_DEFECTO
+                        )
+                    )
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    val mapa_notificaicones =
+                        snapshot.get("notificaciones") as? Map<String, Any> ?: emptyMap()
+                    val contador = mapa_notificaicones.get("contador") as? Number ?: 0
+                    val maximo = 3
+                    val fechaFin = mapa_notificaicones.get("fecha_fin") as? String ?: ""
+
+                    val restantes = (maximo - contador.toInt())
+                        .coerceAtLeast(0)
+
+
+                    if (restantes == 0) {
+                        trySend(
+                            EstadoNotificaciones(
+                                restantes = 0,
+                                fechaFin = fechaFin
+                            )
+                        )
+                    } else {
+                        trySend(
+                            EstadoNotificaciones(
+                                restantes = restantes
+                            )
+                        )
+                    }
+
+                } else {
+                    trySend(
+                        EstadoNotificaciones(
+                            restantes = MAX_POR_DEFECTO
+                        )
+                    )
+                }
+            }
+
+        awaitClose { listener.remove() }
+    }
+
 
     suspend fun guardar_historial_descuento(i: historial_descuento): Boolean {
         return try {
@@ -195,20 +260,22 @@ class repo_recargas {
                 val datosRecarga = data["datos_recarga"] as? Map<*, *>
                 val datosTienda = data["datos_tienda"] as? Map<*, *>
                 val horaFecha = data["hora_fecha"] as? Map<*, *>
-                val id_trascacion =data["id_transaccion"] as? String?:""
-                val tipo_transacion=data["tipo_transacción"] as? String ?: ""
+                val id_trascacion = data["id_transaccion"] as? String ?: ""
+                val tipo_transacion = data["tipo_transacción"] as? String ?: ""
 
                 historial_financiero(
-                    id_transaccion =id_trascacion,
-                    monedas = datosRecarga?.get(if(tipo_transacion.equals("descuento"))"monto_descontado" else "monto_aumentado") as? Number?:0,
+                    id_transaccion = id_trascacion,
+                    monedas = datosRecarga?.get(if (tipo_transacion.equals("descuento")) "monto_descontado" else "monto_aumentado") as? Number
+                        ?: 0,
                     hora = horaFecha?.get("hora") as? String ?: "",
                     fecha = horaFecha?.get("fecha") as? String ?: "",
                     nombre_tienda = datosTienda?.get("nombre_tienda") as? String ?: "",
                     precio_soles = datosRecarga?.get("precio_soles") as? String ?: "",
                     tipo_realziado = tipo_transacion,
                     tipo_transaccion = datosRecarga?.get("tipo_paquete") as? String ?: "",
-                    estodo = datosRecarga?.get("estado") as? String?:"",
-                    monto_restante=datosRecarga?.get(if(tipo_transacion.equals("descuento"))"monto_restante" else "monto_anterior") as? Number?:0,
+                    estodo = datosRecarga?.get("estado") as? String ?: "",
+                    monto_restante = datosRecarga?.get(if (tipo_transacion.equals("descuento")) "monto_restante" else "monto_anterior") as? Number
+                        ?: 0,
                 )
             }
 

@@ -121,7 +121,8 @@ exports.share = onRequest(async (req, res) => {
       nemg: "numeros_servicios_publicos",
     };
 
-    const coll_completa = tipo === "prn" ? "promos_ofertas" : "promo";
+    const coll_completa = tipo === "prms" ? "promos_ofertas" : "promo";
+    // const coll_completa_datos_promos_intern= "prn"
     // ============================
     //        MAPA LOCALIDADES
     // ============================
@@ -139,14 +140,22 @@ exports.share = onRequest(async (req, res) => {
     // ============================
     //        VALIDACIÓN BASE
     // ============================
-    if (!tipo || !id) {
-      return res.status(400).send("Faltan parámetros obligatorios: tipo, id.");
+    if (!tipo) {
+      return res.status(400).send("Faltan parámetros obligatorios: tipo");
     }
 
     // ============================
     //   TIPOS QUE NO USAN LOCALIDAD
     // ============================
-    const TIPOS_SIN_LOCALIDAD = ["rew", "rewc", "ru", "prf", "prn", "scr"];
+    const TIPOS_SIN_LOCALIDAD = [
+      "rew",
+      "rewc",
+      "ru",
+      "prf",
+      "prn",
+      "scr",
+      "prms",
+    ];
 
     if (!TIPOS_SIN_LOCALIDAD.includes(tipo) && (!localidad || !categoria)) {
       return res.status(400).send("Faltan parámetros: localidad, categoria.");
@@ -172,7 +181,7 @@ exports.share = onRequest(async (req, res) => {
         .doc(localidad)
         .collection(categoria)
         .doc(id);
-    } else if (tipo === "prn") {
+    } else if (tipo === "prms") {
       ref = admin
         .firestore()
         .collection("Tiendas")
@@ -202,7 +211,7 @@ exports.share = onRequest(async (req, res) => {
         titulo = capitalizeFirstLetter(data.nombre_tienda || "Tienda en Geinz");
       } else if (tipo === "tu") {
         titulo = capitalizeFirstLetter(data.nombre || "Lugar en Geinz");
-      } else if (tipo === "prn") {
+      } else if (tipo === "prms") {
         titulo = capitalizeFirstLetter(
           data?.informacion?.titulo || "Mira esta promo en Geinz"
         );
@@ -232,7 +241,7 @@ exports.share = onRequest(async (req, res) => {
         } else if (data.img_tienda?.logo_tienda) {
           imagen = data.img_tienda.logo_tienda;
         }
-      } else if (tipo === "prn") {
+      } else if (tipo === "prms") {
         const promos = data.img_container?.lista_img || [];
         if (promos.length > 0) {
           imagen = promos[0]; // toma siempre la primera imagen si existe
@@ -448,7 +457,7 @@ exports.verificarMinimoSeguidores = onDocumentCreated(
 );
 
 exports.alertaSaldoBajo = onDocumentWritten(
-  'Tiendas/{localidad}/{localidad}/{id_tienda}',
+  "Tiendas/{localidad}/{localidad}/{id_tienda}",
   async (event) => {
     try {
       console.log("===== TRIGGER alertaSaldoBajo =====");
@@ -459,8 +468,8 @@ exports.alertaSaldoBajo = onDocumentWritten(
       console.log("Datos ANTES del cambio:", beforeData);
       console.log("Datos DESPUÉS del cambio:", afterData);
 
-      const saldoAntes = beforeData.puntos_tienda || 0;
-      const saldoDespues = afterData.puntos_tienda || 0;
+      const saldoAntes = Number(beforeData.puntos_tienda || 0);
+      const saldoDespues = Number(afterData.puntos_tienda || 0);
       const notiEnviada = afterData.ultima_notificacion_enviada || false;
       const propietarios = afterData.propietario_id || [];
       const idTienda = event.params.id_tienda;
@@ -472,14 +481,17 @@ exports.alertaSaldoBajo = onDocumentWritten(
 
       // 🔹 Reiniciar flag si el saldo sube por encima del umbral
       if (saldoDespues >= 50 && notiEnviada) {
-        await event.data.after.ref.update({ ultima_notificacion_enviada: false });
+        await event.data.after.ref.update({
+          ultima_notificacion_enviada: false,
+        });
+        console.log("✅ Flag de notificación reiniciado porque saldo subió >=50");
       }
 
-      // 🔹 Comprobamos si debemos enviar notificación
-      if (saldoDespues < 50 && !notiEnviada) {
-     
-        for (const propietarioId of propietarios) {
+      // 🔹 Enviar notificación solo si el saldo baja de 50 y antes estaba >=50
+      if (saldoDespues < 50 && saldoAntes >= 50 && !notiEnviada) {
+        console.log("⚠️ Saldo bajo detectado, enviando notificaciones...");
 
+        for (const propietarioId of propietarios) {
           const tokenDoc = await admin
             .firestore()
             .collection("Trabajadores_Usuarios_Drivers")
@@ -489,25 +501,24 @@ exports.alertaSaldoBajo = onDocumentWritten(
             .get();
 
           if (!tokenDoc.exists) {
-            console.log(`No se encontró doc de tokens para propietario ${propietarioId}`);
+            console.log(
+              `No se encontró doc de tokens para propietario ${propietarioId}`
+            );
             continue;
           }
 
           const tokensMap = tokenDoc.data()?.tokens || {};
           const tokens = Object.values(tokensMap);
 
-
-          if (tokens.length === 0) {
-            continue;
-          }
+          if (tokens.length === 0) continue;
 
           for (const token of tokens) {
-       
             await enviarNotificacionFCM_tienda({
               token,
-              title: `🎯 ¡A punto de quedarte sin monedas!`,
-              body: `Te quedan pocas monedas. ¡No dejes que tu alcance se detenga! 🔔✨`,
+              title: `⚠️ ¡Tu saldo está bajo!`,
+              body: `Tu tienda tiene menos de 50 monedas. Mantén tu alcance y visibilidad activo recargando cuando puedas 💼✨`,
               link: "https://geinzworkapp.web.app/share?t=scr&id=rec",
+              logo:"https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
               idTienda,
               idAnuncio: "",
               tipo_notificacion: "logo",
@@ -516,25 +527,143 @@ exports.alertaSaldoBajo = onDocumentWritten(
           }
         }
 
-
-        await event.data.after.ref.update({ ultima_notificacion_enviada: true });
+        // 🔹 Marcar que ya se envió la notificación
+        await event.data.after.ref.update({
+          ultima_notificacion_enviada: true,
+        });
+        console.log("✅ Notificación enviada y flag actualizado");
       } else {
+        console.log("No se cumple condición de saldo bajo o ya se envió notificación");
       }
-
-  
-
     } catch (error) {
       console.error("ERROR alertaSaldoBajo:", error);
     }
   }
 );
 
+
+
+exports.resetearEstadoNotificacionesYPanel = onSchedule(
+  {
+      schedule: "0 0 * * *", // Cada minuto
+    timeZone: "America/Lima",
+  },
+  async () => {
+    try {
+      const ahora = admin.firestore.Timestamp.now();
+      logger.info("⏱ Ejecutando resetearEstadoNotificacionesYPanel", {
+        ahora: ahora.toDate().toISOString(),
+      });
+
+      const snapshot = await admin
+        .firestore()
+        .collectionGroup("tiendas_servicios_geinz_activos")
+        .get();
+
+      if (snapshot.empty) {
+        logger.info("✅ No hay documentos para verificar");
+        return;
+      }
+
+      const batch = admin.firestore().batch();
+      const propietariosSet = new Map(); // propietarioId => Set("notificaciones"|"panel")
+      let huboReseteo = false;
+
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        const propietarios = data.propietario_id || [];
+
+        // --- NOTIFICACIONES (resetear si vencidas) ---
+        const noti = data.notificaciones;
+        if (noti?.timestamp_fin && noti.timestamp_fin.toMillis() <= ahora.toMillis()) {
+          batch.update(doc.ref, {
+            "notificaciones.contador": 0,
+            "notificaciones.fecha_inicio": "",
+            "notificaciones.fecha_fin": "",
+            "notificaciones.promocion_nueva": false,
+            "notificaciones.ultima_notificacion_enviada": false,
+            "notificaciones.timestamp_fin": admin.firestore.FieldValue.delete(),
+          });
+          propietarios.forEach((p) => {
+            if (!propietariosSet.has(p)) propietariosSet.set(p, new Set());
+            propietariosSet.get(p).add("notificaciones");
+          });
+          huboReseteo = true;
+        }
+
+        // --- PANEL ADMIN (solo notificar si vencido) ---
+        const panel = data.panel_admin;
+        if (panel?.timestamp_fin && panel.timestamp_fin.toMillis() <= ahora.toMillis()) {
+          propietarios.forEach((p) => {
+            if (!propietariosSet.has(p)) propietariosSet.set(p, new Set());
+            propietariosSet.get(p).add("panel");
+          });
+          huboReseteo = true; // marcar que hay algo que notificar
+        }
+      });
+
+      if (!huboReseteo) return;
+      await batch.commit();
+      logger.info("♻️ Reseteo de notificaciones completado y panel revisado");
+
+      // --- Enviar notificaciones ---
+      for (const [propietarioId, tipos] of propietariosSet) {
+        const tokenDoc = await admin
+          .firestore()
+          .collection("Trabajadores_Usuarios_Drivers")
+          .doc("users")
+          .collection("tokens")
+          .doc(propietarioId)
+          .get();
+
+        if (!tokenDoc.exists) continue;
+        const tokensMap = tokenDoc.data()?.tokens || {};
+        const tokens = Object.values(tokensMap);
+        if (tokens.length === 0) continue;
+
+        for (const token of tokens) {
+          if (tipos.has("notificaciones")) {
+            await enviarNotificacionFCM_tienda({
+              token,
+              title: "♻️ ¡Tus notificaciones fueron renovadas!",
+              body: "✨ Ya puedes enviar nuevas notificaciones y mantener a tus clientes al día 🔔🚀",
+              link: "https://geinzworkapp.web.app/share?t=scr&id=ads",
+              logo:"https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+              idTienda: "",
+              idAnuncio: "",
+              tipo_notificacion: "logo",
+              prioridad: "high",
+            });
+          }
+
+          if (tipos.has("panel")) {
+            await enviarNotificacionFCM_tienda({
+              token,
+              title: "⏰ Tu panel vencio hoy 😣",
+              body: "⚡ Renueva tu panel para seguir teniendo control de tu negocio 📈💼",
+              link: "https://geinzworkapp.web.app/share?t=scr&id=pnl",
+              logo:"https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+              idTienda: "",
+              idAnuncio: "",
+              tipo_notificacion: "logo",
+              prioridad: "high",
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error("❌ Error en resetearEstadoNotificacionesYPanel", error);
+    }
+  }
+);
+
+
 async function enviarNotificacionFCM_tienda({
   token,
   title,
   body,
   link = "https://geinzworkapp.web.app/share?t=scr&id=ads",
-  logo = "",
+  logo = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
   image = "",
   idTienda,
   idAnuncio = "", // ✅ agregar
@@ -542,20 +671,20 @@ async function enviarNotificacionFCM_tienda({
   prioridad = "high",
 }) {
   try {
-const mensaje = {
-  token: token,
-  data: {
-    title: String(title),
-    body: String(body),
-    link: String(link),
-    logo: String(logo),
-    image: String(image),
-    idTienda: String(idTienda),
-    idAnuncio: String(idAnuncio),
-    tipo_notificacion: String(tipo_notificacion),
-  },
-  android: { priority: prioridad }
-};
+    const mensaje = {
+      token: token,
+      data: {
+        title: String(title),
+        body: String(body),
+        link: String(link),
+        logo: String(logo),
+        image: String(image),
+        idTienda: String(idTienda),
+        idAnuncio: String(idAnuncio),
+        tipo_notificacion: String(tipo_notificacion),
+      },
+      android: { priority: prioridad },
+    };
     const respuesta = await admin.messaging().send(mensaje);
     console.log("Notificación enviada al token:", token);
     return respuesta;

@@ -52,6 +52,8 @@ import androidx.navigation.toRoute
 import com.geinzz.geinzwork.Network_internet.ConnectivityViewModel
 import com.geinzz.geinzwork.NotificacionRS
 import com.geinzz.geinzwork.data.model.FavoritosFactory
+import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
+import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.UiAction
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -75,6 +77,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.ui_servic
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.login_socios
 import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5_s
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.DeepLinkViewModel
 import com.geinzz.geinzwork.viewModels.UiActionViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_favoritos
@@ -111,6 +114,8 @@ fun nativationWrapper(
     val viewModel_filtrado_tiendas: viewModel_filtado_tiendas = viewModel()
     val viewmode_segurirdad_Salud: viewmode_seguridad_salud = viewModel()
     val viewmodelMapa: viewmodel_mapa_personalizado = viewModel()
+
+    var id_promo_params by remember { mutableStateOf("") }
     val mostrarCarga by viewModel_login_user.mostrarCarga.observeAsState(false)
     val systemUiController = rememberSystemUiController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -140,6 +145,29 @@ fun nativationWrapper(
             )
         )
     }
+    LaunchedEffect(uiActionVM) {
+        Log.d("UiAction", "🚀 LaunchedEffect iniciado, escuchando acciones")
+
+        uiActionVM.actions.collect { action ->
+
+            Log.d("UiAction", "📩 Acción recibida: $action")
+
+            when (action) {
+
+
+                is UiAction.AbrirPerfil -> TODO()
+                is UiAction.Abrir_pantalla_promos_cecanas -> {
+                    id_promo_params=action.id_promocion
+                    navController.navigate(promociones_y_ofertas(action.localida_tienda,id_promo_params))
+                }
+                is UiAction.ReviewPrivada -> TODO()
+                is UiAction.ReviewPublica -> TODO()
+                is UiAction.Ruta -> TODO()
+                else -> {}
+            }
+        }
+    }
+
     LaunchedEffect(firebaseAuth.currentUser, uid_respald_user) {
         val current = firebaseAuth.currentUser
         if (current != null) {
@@ -407,7 +435,7 @@ fun nativationWrapper(
                         },
                         listner_sevicios_tramites = { localidad ->
 //                            navController.navigate(ui_servicios_tramites(localidad))
-                            navController.navigate(promociones_y_ofertas(localidad))
+                            navController.navigate(promociones_y_ofertas(localidad,""))
 
                         },
                         abrir_guardar_datos = {
@@ -557,6 +585,7 @@ fun nativationWrapper(
                 composable<promociones_y_ofertas> {navback ->
                     val datos = navback.toRoute<promociones_y_ofertas>()
                     ui_promos_cerca_de_ti(
+                        datos.id_promo,
                         localidad = datos.localidad,
                         verificar_intener = isConnected,
                         iniciar_seccion = {
@@ -737,6 +766,22 @@ fun nativationWrapper(
                 }
                 composable("promocionar_rec") {
                     login_socios(isConnected,"recargas")
+                }
+
+                composable("promocionar_rec") {
+                    login_socios(isConnected,"envio")
+                }
+                composable ("promociones_nuevas"){
+                    ui_promos_cerca_de_ti(
+                        id_promo_params,
+                        localidad = "barranca",
+                        verificar_intener = isConnected,
+                        iniciar_seccion = {
+                            bottom_sheet_iniciar_seccion = true
+                        },
+                        crear_cuenta = {
+                            navController.navigate(crear_cuenta_geinz("crear"))
+                        })
                 }
 
 

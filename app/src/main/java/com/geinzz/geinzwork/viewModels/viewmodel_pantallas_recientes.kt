@@ -1,5 +1,7 @@
 package com.geinzz.geinzwork.viewModels
 
+import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.obtener_datos_promociones
@@ -18,8 +20,16 @@ class viewmodel_pantallas_recientes : ViewModel() {
     private val _estadoPromoNoti = MutableStateFlow<EstadoPromoNoti>(EstadoPromoNoti.Vacío)
     val estadoPromoNoti: StateFlow<EstadoPromoNoti> = _estadoPromoNoti
 
-    private val _estadoPromocion = MutableStateFlow<EstadoDatosPromocion>(EstadoDatosPromocion.Loading)
+    private val _estadoPromocion =
+        MutableStateFlow<EstadoDatosPromocion>(EstadoDatosPromocion.Loading)
     val estadoPromocion: StateFlow<EstadoDatosPromocion> = _estadoPromocion
+
+
+    private val _estado_promociones = MutableStateFlow<Map<String, String>>(emptyMap())
+    val estado_promociones: StateFlow<Map<String, String>> = _estado_promociones
+
+
+
 
     fun obtner_noti_promo(id_tienda: String, localidad: String) {
         viewModelScope.launch {
@@ -39,6 +49,14 @@ class viewmodel_pantallas_recientes : ViewModel() {
         }
     }
 
+    fun obtener_estadotiempo_real_promociones(idTienda: String, localidad: String) {
+        instarepo.escucharEstadosTodasPromociones(idTienda, localidad) { estadosTodos ->
+            // Reemplazamos todo el mapa de estados
+            _estado_promociones.value = estadosTodos
+        }
+    }
+
+
 
     fun cargarDatosPromocion(idTienda: String, localidad: String, idPromo: String) {
         viewModelScope.launch {
@@ -51,10 +69,33 @@ class viewmodel_pantallas_recientes : ViewModel() {
                     _estadoPromocion.value = EstadoDatosPromocion.Error("No se encontraron datos")
                 }
             } catch (e: Exception) {
-                _estadoPromocion.value = EstadoDatosPromocion.Error(e.message ?: "Error desconocido")
+                _estadoPromocion.value =
+                    EstadoDatosPromocion.Error(e.message ?: "Error desconocido")
             }
         }
     }
+
+
+    fun cambiar_estado_promociones(
+        id_tienda: String,
+        localidad: String,
+        id_promo: String,
+        estado_cambiado: String
+    ) {
+        viewModelScope.launch {
+            try {
+                instarepo.cambiar_estado_publicacion(
+                    id_tienda,
+                    localidad,
+                    id_promo,
+                    estado_cambiado
+                )
+            } catch (e: Exception) {
+                Log.d("error_cambiar", "error al cambiar estado de publicaion")
+            }
+        }
+    }
+
 
     fun esVencido(vence: String): Boolean {
         return vence.equals("0 dias")

@@ -1,14 +1,9 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,7 +15,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -71,14 +65,17 @@ import com.valentinilk.shimmer.shimmer
 fun PantallaRecientes(
     id_tienda: String,
     localidad_tienda: String,
-    viewModelPantallasRecientes: viewmodel_pantallas_recientes = viewModel(),  cargando:(Boolean)-> Unit
+    viewModelPantallasRecientes: viewmodel_pantallas_recientes = viewModel(),
+    cargando: (Boolean) -> Unit
 ) {
+
     // Observamos el estado del ViewModel
     val estadoPromoNoti by viewModelPantallasRecientes.estadoPromoNoti.collectAsState()
 
     // Lanzamos la carga de datos al inicio
     LaunchedEffect(Unit) {
         viewModelPantallasRecientes.obtner_noti_promo(id_tienda, localidad_tienda)
+        viewModelPantallasRecientes.obtener_estadotiempo_real_promociones(id_tienda, localidad_tienda)
     }
     val lsita_fitlrado_opciones = listOf(
         "Todos",
@@ -86,7 +83,8 @@ fun PantallaRecientes(
         "Notificaciones",
         "Vencidos",
         "Activos",
-        "Por vencer"
+        "Por vencer",
+        "En pausa"
     )
     var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
     var bottom_sheet_datos_competos by remember { mutableStateOf(false) }
@@ -95,192 +93,200 @@ fun PantallaRecientes(
 
     Crossfade(targetState = estadoPromoNoti) { curren_state ->
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        when (curren_state) {
-            is viewmodel_pantallas_recientes.EstadoPromoNoti.Cargando -> {
-                ShimmerImagenConMarca()
-            }
-
-            is viewmodel_pantallas_recientes.EstadoPromoNoti.Success -> {
-                val lista =
-                    curren_state.lista
-                val listaOrdenada = ordenarPorVence(lista)
-                val listaFiltrada = when (subCategoriaSeleccionada) {
-
-                    "Todos" -> listaOrdenada
-
-                    "Promociones o ofertas" ->
-                        listaOrdenada.filter { it.tipo == "promoción" }
-
-                    "Notificaciones" ->
-                        listaOrdenada.filter { it.tipo == "notificación" }
-
-                    "Vencidos" ->
-                        listaOrdenada.filter { viewModelPantallasRecientes.esVencido(it.vence) }
-
-                    "Activos" ->
-                        listaOrdenada.filter { viewModelPantallasRecientes.esActivo(it.vence) }
-
-                    "Por vencer" ->
-                        listaOrdenada.filter { viewModelPantallasRecientes.esPorVencer(it.vence) }
-
-                    else -> listaOrdenada
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            when (curren_state) {
+                is viewmodel_pantallas_recientes.EstadoPromoNoti.Cargando -> {
+                    ShimmerImagenConMarca()
                 }
 
-                val listState = rememberLazyListState()
-                val targetAlpha = if (listState.canScrollForward) 1f else 0f
-                val alphaAnim by animateFloatAsState(
-                    targetValue = targetAlpha,
-                    animationSpec = tween(durationMillis = 500)
-                )
+                is viewmodel_pantallas_recientes.EstadoPromoNoti.Success -> {
+                    val lista =
+                        curren_state.lista
+                    val listaOrdenada = ordenarPorVence(lista)
+                    val listaFiltrada = when (subCategoriaSeleccionada) {
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(vertical = 10.dp)
-                ) {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        "Todos" -> listaOrdenada
+
+                        "Promociones o ofertas" ->
+                            listaOrdenada.filter { it.tipo == "promoción" }
+
+                        "Notificaciones" ->
+                            listaOrdenada.filter { it.tipo == "notificación" }
+
+                        "Vencidos" ->
+                            listaOrdenada.filter { viewModelPantallasRecientes.esVencido(it.vence) }
+
+                        "Activos" ->
+                            listaOrdenada.filter { viewModelPantallasRecientes.esActivo(it.vence) }
+
+                        "Por vencer" ->
+                            listaOrdenada.filter { viewModelPantallasRecientes.esPorVencer(it.vence) }
+
+                        else -> listaOrdenada
+                    }
+
+                    val listState = rememberLazyListState()
+                    val targetAlpha = if (listState.canScrollForward) 1f else 0f
+                    val alphaAnim by animateFloatAsState(
+                        targetValue = targetAlpha,
+                        animationSpec = tween(durationMillis = 500)
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(vertical = 10.dp)
                     ) {
-                        item {
-                            Text(
-                                fontFamily = baners_geinz_work,
-                                text = "Tus Publicaciones y Notificaciones",
-                                color = Color.White,
-                                fontSize = 25.sp
-                            )
-                            spacer_vertical(10.dp)
-                            texto_generico_multilinea(
-                                "Aquí puedes ver todas tus promociones activas y las notificaciones que has enviado a tus seguidores.",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-
-                            spacer_vertical(10.dp)
-                        }
-                        item {
-                            LazyRow(
-                                horizontalArrangement = Arrangement.spacedBy(
-                                    10.dp
-                                )
-                            ) {
-                                items(lsita_fitlrado_opciones) { subcategoria ->
-                                    val seleccionado =
-                                        subCategoriaSeleccionada == subcategoria
-
-                                    chisp_filtrado_busqueda(
-                                        carta_selecionada = seleccionado,
-                                        filtrado = subcategoria.capitalizeFirst(),
-                                        btn_visible = false,
-                                        clik_card = {
-                                            subCategoriaSeleccionada =
-                                                subcategoria
-                                        },
-                                        onClick_delete = {}
-                                    )
-                                }
-                            }}
-
-                        item {
-                            spacer_vertical(10.dp)
-                        }
-                        if (listaFiltrada.isEmpty()) {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
                             item {
-                                Box(
-                                    modifier = Modifier
-                                        .fillParentMaxHeight()
-                                        .fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    texto_generico_one_line(
-                                        "Aún no hay registros en este filtro",
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                }
+                                Text(
+                                    fontFamily = baners_geinz_work,
+                                    text = "Tus Publicaciones y Notificaciones",
+                                    color = Color.White,
+                                    fontSize = 25.sp
+                                )
+                                spacer_vertical(10.dp)
+                                texto_generico_multilinea(
+                                    "Aquí puedes ver todas tus promociones activas y las notificaciones que has enviado a tus seguidores.",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+
+                                spacer_vertical(10.dp)
                             }
-                        } else {
-                            items(
-                                items = listaFiltrada,
-                                key = { item ->
-                                    "${item.id}_${item.tipo}_${item.realizado}"
-                                }
-                            ) { item ->
-                                Box(
-                                    modifier = Modifier.animateItem(
-                                        placementSpec = tween(
-                                            durationMillis = 350,
-                                            easing = FastOutSlowInEasing
-                                        )
+                            item {
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(
+                                        10.dp
                                     )
                                 ) {
-                                    item_recientes(item) { id_promo ->
-                                        bottom_sheet_datos_competos = true
-                                        id_promo_select = id_promo
+                                    items(lsita_fitlrado_opciones) { subcategoria ->
+                                        val seleccionado =
+                                            subCategoriaSeleccionada == subcategoria
+
+                                        chisp_filtrado_busqueda(
+                                            carta_selecionada = seleccionado,
+                                            filtrado = subcategoria.capitalizeFirst(),
+                                            btn_visible = false,
+                                            clik_card = {
+                                                subCategoriaSeleccionada =
+                                                    subcategoria
+                                            },
+                                            onClick_delete = {}
+                                        )
                                     }
                                 }
                             }
+
+                            item {
+                                spacer_vertical(10.dp)
+                            }
+                            if (listaFiltrada.isEmpty()) {
+                                item {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillParentMaxHeight()
+                                            .fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        texto_generico_one_line(
+                                            "Aún no hay registros en este filtro",
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+                                }
+                            } else {
+                                items(
+                                    items = listaFiltrada,
+                                    key = { item ->
+                                        "${item.id}_${item.tipo}_${item.realizado}"
+                                    }
+                                ) { item ->
+                                    Box(
+                                        modifier = Modifier.animateItem(
+                                            placementSpec = tween(
+                                                durationMillis = 350,
+                                                easing = FastOutSlowInEasing
+                                            )
+                                        )
+                                    ) {
+                                        item_recientes(localidad_tienda,id_tienda,viewModelPantallasRecientes,item = item, item_clikeado = { id_promo ->
+                                            bottom_sheet_datos_competos = true
+                                            id_promo_select = id_promo
+                                        }, cambiar_a_pausar = {nuevo_estado,id_promo->
+                                                viewModelPantallasRecientes.cambiar_estado_promociones(id_tienda,localidad_tienda,id_promo,nuevo_estado)
+                                        })
+                                    }
+                                }
+                            }
+                            item {
+                                spacer_vertical(30.dp)
+                            }
                         }
-                        item {
-                            spacer_vertical(30.dp)
-                        }
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(40.dp)
-                            .align(Alignment.BottomCenter)
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.Transparent,
-                                        Color.Black
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .align(Alignment.BottomCenter)
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color.Transparent,
+                                            Color.Black
+                                        )
                                     )
                                 )
-                            )
-                            .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+                                .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+                        )
+                    }
+                }
+
+                is viewmodel_pantallas_recientes.EstadoPromoNoti.Vacío -> {
+
+                    Text(
+                        text = "No hay notificaciones ni promociones",
+                        modifier = Modifier.align(Alignment.Center),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                     )
                 }
+
+                is viewmodel_pantallas_recientes.EstadoPromoNoti.Error -> {
+                    val mensaje =
+                        curren_state.mensaje
+                    Text(
+                        text = "Error: $mensaje",
+                        modifier = Modifier.align(Alignment.Center),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+
             }
-
-            is viewmodel_pantallas_recientes.EstadoPromoNoti.Vacío -> {
-
-                Text(
-                    text = "No hay notificaciones ni promociones",
-                    modifier = Modifier.align(Alignment.Center),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                )
+            if (bottom_sheet_datos_competos) {
+                bottom_sheet_datos_promos_noti(
+                    viewModelPantallasRecientes,
+                    id_tienda,
+                    localidad_tienda,
+                    id_promo_select,
+                    {
+                        bottom_sheet_datos_competos = false
+                    })
             }
-
-            is viewmodel_pantallas_recientes.EstadoPromoNoti.Error -> {
-                val mensaje =
-                    curren_state.mensaje
-                Text(
-                    text = "Error: $mensaje",
-                    modifier = Modifier.align(Alignment.Center),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-
-
         }
-        if(bottom_sheet_datos_competos){
-            bottom_sheet_datos_promos_noti(viewModelPantallasRecientes,id_tienda,localidad_tienda,id_promo_select,{
-                bottom_sheet_datos_competos=false
-            })
-        }
-    }
 
     }
 }
 
-fun ordenarPorVence(lista: List< publicaciones_notificaciones_geinz>): List< publicaciones_notificaciones_geinz> {
+fun ordenarPorVence(lista: List<publicaciones_notificaciones_geinz>): List<publicaciones_notificaciones_geinz> {
     return lista.sortedByDescending { item ->
         val vence = item.vence.trim() // "12 dias" o "9 horas"
         val parts = vence.split(" ")
@@ -299,21 +305,31 @@ fun ordenarPorVence(lista: List< publicaciones_notificaciones_geinz>): List< pub
 
 
 @Composable
-fun item_recientes(item: publicaciones_notificaciones_geinz,item_clikeado:(String)-> Unit) {
+fun item_recientes(
+    localidad_tienda: String,id_tienda: String,
+    viewModel: viewmodel_pantallas_recientes,
+    item: publicaciones_notificaciones_geinz,
+    item_clikeado: (String) -> Unit,
+    cambiar_a_pausar: (tipo: String, id_promo: String) -> Unit
+) {
     val diasRestantes = item.vence
         .substringBefore(" ") // toma solo el número antes del primer espacio
         .toLongOrNull() ?: 0L
+
+
+    val estados by viewModel.estado_promociones.collectAsState()
+    val estadoSwitch = estados[item.id] ?: item.estado_publicacion
 
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFF2B2B2B)).clickable{
+            .background(Color(0xFF2B2B2B))
+            .clickable {
                 item_clikeado(item.id)
             }
     ) {
-
 
         AsyncImage(
             model = item.img_principal,
@@ -331,8 +347,6 @@ fun item_recientes(item: publicaciones_notificaciones_geinz,item_clikeado:(Strin
             placeholder = painterResource(R.drawable.cargando_img_categorias),
             error = painterResource(R.drawable.cargando_img_categorias)
         )
-
-
 
         Spacer(modifier = Modifier.width(7.dp))
 
@@ -380,36 +394,41 @@ fun item_recientes(item: publicaciones_notificaciones_geinz,item_clikeado:(Strin
                             )
                         }
 
-                        if (item.tipo.equals("promoción") && !item.vence.equals("0 dias")) {
+                        if (item.tipo.equals("promoción") && item.vence != "0 dias") {
                             Switch(
-                                checked = true,
-                                onCheckedChange = { /*cambiar_valor(it)*/ },
+                                checked = estadoSwitch == "activo",
+                                onCheckedChange = { isChecked ->
+                                    val nuevoEstado = if (isChecked) "activo" else "pausado"
+                                    cambiar_a_pausar(nuevoEstado, item.id)
+                                },
                                 colors = SwitchDefaults.colors(
                                     checkedThumbColor = MaterialTheme.colorScheme.primary,
                                     checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                                     uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                                    uncheckedTrackColor = MaterialTheme.colorScheme.outline.copy(
-                                        alpha = 0.3f
-                                    )
-                                ), modifier = Modifier.padding(end = 10.dp)
+                                    uncheckedTrackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                ),
+                                modifier = Modifier.padding(end = 10.dp)
                             )
                         }
                     }
 
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)){
-                    texto_generico_one_line(
-                        "Tipo : ${item.estado.capitalizeFirst()}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        texto_generico_one_line(
+                            "Tipo : ${item.estado.capitalizeFirst()}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                         Image(
                             painter = painterResource(
                                 if (item.estado.equals("dias")) {
                                     R.drawable.por_dias_icon_3d
                                 } else if (item.estado.equals("horas")) {
                                     R.drawable.reloj_icon_hora_3d
-                                } else if (item.estado.equals("Enviado")){
+                                } else if (item.estado.equals("Enviado")) {
                                     R.drawable.check_enviado_3d_icon
-                                }else{
+                                } else {
                                     R.drawable.logo_geinz_500x500
 
                                 }
@@ -431,7 +450,8 @@ fun item_recientes(item: publicaciones_notificaciones_geinz,item_clikeado:(Strin
             if (item.tipo.equals("promoción")) {
                 texto_generico_one_line(
                     "Vence en: ${item.vence}",
-                    style = MaterialTheme.typography.bodyMedium, color = colorPorVencimiento(item.vence)
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colorPorVencimiento(item.vence)
                 )
             } else {
                 texto_generico_one_line(
@@ -459,15 +479,17 @@ fun colorPorVencimiento(vence: String): Color {
                 else -> Color.Gray
             }
         }
+
         vence.contains("horas") || vence.contains("minuto") -> {
             Color(0xFFF44336) // menos de 1 día → rojo
         }
+
         else -> Color.Gray
     }
 }
 
 @Composable
-fun ShimmerImagenConMarca() {
+fun ShimmerImagenConMarca(texto:String="GEINZ") {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -476,15 +498,8 @@ fun ShimmerImagenConMarca() {
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-//            Icon(
-//                painter = painterResource(id = R.drawable.logo_geinz_500x500),
-//                contentDescription = null,
-//                tint = Color.Unspecified, // ✅ quitar el tint para PNG color real
-//                modifier = Modifier.size(200.dp)
-//            )
-//            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "GEINZ",
+                text = texto,
                 color = Color.White.copy(alpha = 0.8f), // un poco más visible
                 fontSize = 50.sp,                        // más grande
                 fontWeight = FontWeight.Bold

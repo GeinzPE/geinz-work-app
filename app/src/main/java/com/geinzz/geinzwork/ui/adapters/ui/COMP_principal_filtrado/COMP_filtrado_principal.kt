@@ -177,6 +177,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.start_shadow_bottom_sheet_default
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
+import com.geinzz.geinzwork.viewModels.viewmodel_recargas
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import kotlinx.coroutines.CoroutineScope
@@ -392,7 +393,7 @@ fun cargando_progess_mas_texto(text: String) {
 }
 
 @Composable
-fun ColumnContenedorComun(
+fun  ColumnContenedorComun(
     modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit
 ) {
     Column(
@@ -1688,6 +1689,7 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun baner_widget_tienda_geinz_baner(
+    viewmodel_recargas:viewmodel_recargas,
     switchActivo: Boolean,
     motivo_cierre: String,
     context: Context,
@@ -1706,8 +1708,8 @@ fun baner_widget_tienda_geinz_baner(
     mostar_panel_geinz: () -> Unit, sin_internet_al_renovar: () -> Unit
 ) {
 
-
-    val (dias, color) = obtenerDiasYColor(item.fecha_termino)
+    val fechaFin by item.fecha_fin_panel.collectAsState()
+    val (dias, color) = obtenerDiasYColor(fechaFin)
     var color_estado by remember { mutableStateOf(Color(0XFF535252)) }
     var txt_estado_teinda by remember { mutableStateOf("") }
 
@@ -2216,7 +2218,8 @@ fun baner_widget_tienda_geinz_baner(
             puntosSeguros,
             { por_removar = !por_removar },
             { total_cancelar, meses_agregados ->
-                viewmodel.descontar_puntos(
+                viewmodel.descontar_puntos(viewmodel_recargas,
+                    item.total_puntos.toInt(),item.nombre_tienda,
                     "barranca",
                     item.id_tienda,
                     total_cancelar.toInt(),

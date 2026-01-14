@@ -236,15 +236,20 @@ object constantes_horas {
 
     fun obtenerDiasYColor(fechaFin: String): Pair<Long, Color> {
         return try {
-            val formato = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+            val formato = DateTimeFormatter.ofPattern("dd/MM/yyyy") // corregí yyy -> yyyy
+            Log.d("FechaLog", "Fecha recibida: $fechaFin")
 
             val hoy = LocalDate.now()
+            Log.d("FechaLog", "Hoy: $hoy")
+
             val fin = LocalDate.parse(fechaFin, formato)
+            Log.d("FechaLog", "Fecha fin parseada: $fin")
 
             var diasRestantes = ChronoUnit.DAYS.between(hoy, fin)
+            Log.d("FechaLog", "Días restantes antes de check negativo: $diasRestantes")
 
-            // 🔥 Evitar negativos
             if (diasRestantes < 0) diasRestantes = 0
+            Log.d("FechaLog", "Días restantes después de check negativo: $diasRestantes")
 
             val color = when {
                 diasRestantes >= 10 -> Color(0xFF00FF0C)   // Verde
@@ -252,10 +257,12 @@ object constantes_horas {
                 diasRestantes in 0..2 -> Color(0xFFFF0F00) // Rojo
                 else -> Color.Gray
             }
+            Log.d("FechaLog", "Color asignado: $color")
 
             Pair(diasRestantes, color)
 
         } catch (e: Exception) {
+            Log.e("FechaLog", "Error parseando fecha: ${e.message}")
             Pair(0, Color.Gray)
         }
     }

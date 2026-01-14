@@ -13,9 +13,14 @@ import com.geinzz.geinzwork.data.model.datos_publicaciones_realizadas
 import com.geinzz.geinzwork.data.model.datos_recarga
 
 import com.geinzz.geinzwork.data.model.datos_tienda
+import com.geinzz.geinzwork.data.model.historial_descuento
 import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.model.repo_eres_socio
+import com.geinzz.geinzwork.model.repo_recargas
+import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
+import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
+import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.notificacionesFCM.enviar_notificacion_lista_dispo
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.delay
@@ -24,17 +29,25 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 @RequiresApi(Build.VERSION_CODES.O)
 class viewmodel_eres_socio : ViewModel() {
 
     val instace_repo = repo_eres_socio()
+    val insta_repo = repo_recargas()
 
     private val _state_eres_socio = MutableStateFlow<carga_acces_socio>(carga_acces_socio.idle)
     val state_eres_socio: StateFlow<carga_acces_socio> = _state_eres_socio
 
     private val _seguidores_obtenidos = MutableStateFlow<List<String>>(emptyList())
     val seguidores_obtenidos: StateFlow<List<String>> = _seguidores_obtenidos
+
+
+
+    private val _fecha_finalizar_panel_real_time = MutableStateFlow("") // inicializamos con string vacío
+    val fecha_finalizar_panel_real_time = _fecha_finalizar_panel_real_time.asStateFlow()
+
 
 
     private val _lista_publicaciones =
@@ -141,8 +154,15 @@ class viewmodel_eres_socio : ViewModel() {
 //        _cargandoIdSocio.value = false
 //    }
 
+    fun generarIdRecarga(): String {
+        return UUID.randomUUID().toString()
+    }
+
 
     fun descontar_puntos(
+        viewmodel_recargas:viewmodel_recargas,
+        saldo_tienda:Int,
+        nombre_tienda:String,
         localidad_tienda: String,
         id_tienda: String,
         puntos_descuento: Int,
@@ -155,6 +175,27 @@ class viewmodel_eres_socio : ViewModel() {
                     id_tienda,
                     puntos_descuento,
                     meses_agregados
+                )
+                val historial_descuento = historial_descuento(
+                    tipo_transaccion = "descuento",
+                    fecha = obtenerFechaActual(),
+                    hora = obtenerHoraActual(),
+                    id_recarga = constantes_cobro_monedas.generarIdRecarga(),
+                    localidad_tienda = localidad_tienda,
+                    id_tienda = id_tienda,
+                    nombre_tienda = nombre_tienda,
+                    monto_descuento = puntos_descuento.toString(),
+                    tipo = "Panel activo por $meses_agregados",
+                    precio_soles = constantes_cobro_monedas.calcular_precio_soles(puntos_descuento.toString())
+                        .toString(),
+                    estado = "Aceptado",
+                    monto_restante = saldo_tienda - puntos_descuento.toInt()
+                )
+                viewmodel_recargas.restar_puntos_recarga(
+                    historial_descuento,
+                    "0",
+                    id_tienda,
+                    localidad_tienda
                 )
 
             } catch (e: Exception) {
@@ -250,6 +291,7 @@ class viewmodel_eres_socio : ViewModel() {
                 viewModelScope.launch {
                     if (datos.nombre.isNotEmpty()) {
                         _state_eres_socio.value = carga_acces_socio.succes(datos)
+                        obtener_fecha_fin_en_tiempo_real(id_tienda,localidad_tienda)
                     } else {
                         _state_eres_socio.value = carga_acces_socio.error("No se encontraron datos")
                     }
@@ -265,6 +307,21 @@ class viewmodel_eres_socio : ViewModel() {
         )
     }
 
+
+    fun obtener_fecha_fin_en_tiempo_real(id_tienda: String,localidad: String){
+        viewModelScope.launch {
+            try {
+                instace_repo.fechaFinTiendaPanel(id_tienda,localidad,{res->
+                    if(res.isNotEmpty()){
+                        _fecha_finalizar_panel_real_time.value=res
+                        Log.d("fechas_otbenideosa",res)
+                    }
+                })
+            }catch (e: Exception){
+                Log.d("error","error al obtner la fecha")
+            }
+        }
+    }
 
     fun cambiar_cerrado(
         id_tienda: String,
@@ -469,6 +526,11 @@ class viewmodel_eres_socio : ViewModel() {
             }
         }
     }
+
+    fun resetear_Estado_promo_subida(){
+        _subidaPromoState.value = SubidaPromoState.Idle
+    }
+
 
 
     fun cambiar_atrubitos(

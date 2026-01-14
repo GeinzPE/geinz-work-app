@@ -4,6 +4,13 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.lazy.items
+
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
+import androidx.lifecycle.viewModelScope
+
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,9 +18,12 @@ import com.geinzz.geinzwork.data.model.EstadisticasPromo
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
 import com.geinzz.geinzwork.model.repo_promos_cercanas
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class viewmodel_promos_cercanas : ViewModel() {
@@ -79,10 +89,7 @@ class viewmodel_promos_cercanas : ViewModel() {
     }
 
 
-    private val _estadoPromos =
-        MutableStateFlow<estado_carga_promociones>(
-            estado_carga_promociones.loading
-        )
+
 
     private val listaCompleta =
         MutableStateFlow<List<obj_completo>>(emptyList())
@@ -96,8 +103,17 @@ class viewmodel_promos_cercanas : ViewModel() {
     val _categoriasDisponibles: StateFlow<List<String>> =
         categoriasDisponibles.asStateFlow()
 
+    private val _estadoPromos =
+        MutableStateFlow<estado_carga_promociones>(
+            estado_carga_promociones.loading
+        )
     val estadoPromos: StateFlow<estado_carga_promociones> =
         _estadoPromos.asStateFlow()
+
+
+    // Este flujo indica qué promos están activas
+
+
 
 
     @RequiresApi(Build.VERSION_CODES.O)

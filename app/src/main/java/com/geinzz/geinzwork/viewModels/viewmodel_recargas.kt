@@ -6,6 +6,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geinzz.geinzwork.data.model.EstadoNotificaciones
 import com.geinzz.geinzwork.data.model.historial_descuento
 import com.geinzz.geinzwork.data.model.historial_financiero
 import com.geinzz.geinzwork.data.model.historial_recargas
@@ -38,6 +39,13 @@ class viewmodel_recargas : ViewModel() {
 
     private val _saldo = MutableStateFlow(0)
     val saldo: StateFlow<Int> = _saldo
+
+    private val _estadoNotificaciones =
+        MutableStateFlow(EstadoNotificaciones(restantes = 3))
+
+    val estadoNotificaciones: StateFlow<EstadoNotificaciones> =
+        _estadoNotificaciones
+
 
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -88,6 +96,22 @@ class viewmodel_recargas : ViewModel() {
         }
     }
 
+    fun obtner_estado_notificaciones(id_tienda: String, localidad: String) {
+        viewModelScope.launch {
+            try {
+                insta_repo
+                    .obtner_estado_notificaciones_reactivos(id_tienda, localidad)
+                    .collect { estadoNoti ->
+                        _estadoNotificaciones.value = estadoNoti
+                    }
+            } catch (e: Exception) {
+                Log.e(
+                    "error",
+                    "Error al obtener el estado de notificaciones: ${e.message}"
+                )
+            }
+        }
+    }
 
     fun restar_puntos_recarga(
         i: historial_descuento,
@@ -151,11 +175,21 @@ class viewmodel_recargas : ViewModel() {
 
             "Esta semana" -> lista.filter {
                 val fecha = historialFechaToLocalDate(it.fecha) ?: return@filter false
-                val semanaItem =
-                    fecha.get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear())
 
-                semanaItem == semanaActual && fecha.year == añoActual
+                val hoy = LocalDate.now()
+                val weekFields = WeekFields.of(Locale.getDefault())
+
+                // Obtener lunes de la semana actual
+                val lunes = hoy.with(weekFields.dayOfWeek(), 1L)
+                // Obtener domingo de la semana actual
+                val domingo = hoy.with(weekFields.dayOfWeek(), 7L)
+
+                // Retorna true si la fecha está entre lunes y domingo
+                fecha in lunes..domingo
             }
+
+
+
 
             "Este mes" -> lista.filter {
                 val fecha = historialFechaToLocalDate(it.fecha) ?: return@filter false
@@ -183,14 +217,7 @@ class viewmodel_recargas : ViewModel() {
     }
 
 
-    fun generarIdRecarga(): String {
-        return UUID.randomUUID().toString()
-    }
 
-    fun calcular_precio_soles(monedas_gasto: String): Double {
-        val monedas = monedas_gasto.toDoubleOrNull() ?: 0.0
-        return monedas / 100
-    }
 
     sealed class state_historial_financiero {
         object Idle : state_historial_financiero()

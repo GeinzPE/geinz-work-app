@@ -987,7 +987,7 @@ fun datos_teindas() {
                         titulo = titulo,
                         txt = texto,
                         logo_tienda = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
-                        tipo_notificacion = "Primiun",
+                        tipo_notificacion = "Premium",
                         url_img = imagen_url,
                         prioridad = "high"
                     )

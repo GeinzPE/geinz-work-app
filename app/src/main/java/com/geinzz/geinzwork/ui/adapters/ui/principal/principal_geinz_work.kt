@@ -126,8 +126,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.text.TextStyle
 import androidx.core.content.ContextCompat
 import coil3.request.CachePolicy
-import com.geinzz.geinzwork.data.model.dataclass_promos.datos_para_promocieons_activas
-import com.geinzz.geinzwork.data.model.dataclass_promos.promociones_tiendas_negocios
+
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.nuevos_lugares_agregados
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
@@ -157,6 +156,7 @@ import com.geinzz.geinzwork.viewModels.DeepLinkViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_carga_img_general
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
+import com.geinzz.geinzwork.viewModels.viewmodel_recargas
 import com.geinzz.geinzwork.viewmodel_carga_img_generalFactory
 import com.google.firebase.messaging.FirebaseMessaging
 
@@ -189,6 +189,7 @@ fun pantalla_principal(
     val vm_fotos_salud: viewmodel_carga_img_general = viewModel(
         factory = viewmodel_carga_img_generalFactory.Factory(context)
     )
+    val viewmodel: viewmodel_eres_socio = viewModel()
     val viewModel_cordenadas: viewModel_principal_geinz_work = viewModel()
     val viewModel_filtado_tiendas: viewModel_filtado_tiendas = viewModel()
     val stateCat by viewModel_cordenadas._state_cat.observeAsState()
@@ -250,8 +251,8 @@ fun pantalla_principal(
     val estados_carga_widget by vm_fotos_salud.estado_carga_widget_tienda.collectAsState()
     var datos_tienda by remember(estados_carga_widget.dia_hoy) { mutableStateOf(widget_tienda()) }
 
-    LaunchedEffect(estados_carga_widget) {
 
+    LaunchedEffect(estados_carga_widget) {
         datos_tienda = estados_carga_widget
     }
 
@@ -358,7 +359,8 @@ fun pantalla_principal(
     var dejar_seguir_nombre by remember { mutableStateOf("") }
     var dejar_seguir_id by remember { mutableStateOf("") }
     var dejar_seguir_localidad by remember { mutableStateOf("") }
-    val viewmodel: viewmodel_eres_socio = viewModel()
+
+    val viewmodel_recargas: viewmodel_recargas = viewModel()
     LaunchedEffect(ud_tienda_shader, estados_carga_widget) {
         if (ud_tienda_shader != "") {
             mostrar_widget_tienda = true
@@ -516,9 +518,11 @@ fun pantalla_principal(
                 spacer_vertical(20.dp)
             }
             item {
-                if (mostrar_widget_tienda) {
+                if (mostrar_widget_tienda && isConnected) {
                     spacer_vertical(10.dp)
                     baner_widget_tienda_geinz_baner(
+
+                        viewmodel_recargas,
                         switchActivo, motivo_cierre,
                         context = context,
                         isConnected = isConnected,
@@ -710,15 +714,16 @@ fun pantalla_principal(
                         deepLinkVM.clearPromo()
                         abir_butom_Var()
 
-                    }, crear_cuenta = { crear_cuenta()},
-                    iniciar_seccion = {iniciar_seccion()}
+                    }, crear_cuenta = { crear_cuenta() },
+                    iniciar_seccion = { iniciar_seccion() }
                 )
             }
         }
 
 
         if (mostar_bottom_sheet_ayuda_geinz) {
-            bottom_sheet_ayudanos_a_creccer(id_respado_user,
+            bottom_sheet_ayudanos_a_creccer(
+                id_respado_user,
                 isConnected, ultimaLocalidad ?: "barranca",
                 { mostar_bottom_sheet_ayuda_geinz = false }, viewModel_filtado_tiendas
             )
@@ -1391,6 +1396,7 @@ fun carga_progres_categoria(anchoAnimado: Dp, alturaFija: Dp) {
 //    )
 //
 //}
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun nuevos_lugares_agregados_fun(
     id_user: String,

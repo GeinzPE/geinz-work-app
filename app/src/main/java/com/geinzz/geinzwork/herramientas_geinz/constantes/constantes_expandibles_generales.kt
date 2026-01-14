@@ -89,6 +89,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.H
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.geinzz.geinzwork.viewModels.viewmodel_recargas
 
 
 object constantes_expandibles_generales {
@@ -176,6 +177,8 @@ object constantes_expandibles_generales {
     @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun expandibles_wrapp_socio_geinzz_datos_tienda(
+        nombre_tienda:String,
+        viewmodel_recargas:viewmodel_recargas,
         viewModelFiltros: viewmodel_eres_socio,
         context: Context,
         expandido: Boolean,
@@ -304,11 +307,13 @@ object constantes_expandibles_generales {
                                     modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
                                 )
 
+                                if(datos_tienda_fechas.fecha_termino.isNotEmpty()){
                                 texto_generico_one_line(
                                     "fecha de finalizacion :${datos_tienda_fechas.fecha_termino}",
                                     style = MaterialTheme.typography.bodyMedium,
                                     modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
                                 )
+                                }
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(5.dp),
@@ -368,10 +373,11 @@ object constantes_expandibles_generales {
         }
         if (por_renovar) {
             dialog_renovar_plan(
-                datos_tienda_fechas.saldo_cuenta_tienda?.toLongOrNull() ?: 0L,
-                { por_renovar = !por_renovar },
-                { total_cancelar, meses_agregados ->
+                saldo_disponible = datos_tienda_fechas.saldo_cuenta_tienda?.toLongOrNull() ?: 0L,
+                ondimis = { por_renovar = !por_renovar },
+                comprar = { total_cancelar, meses_agregados ->
                     viewModelFiltros.descontar_puntos(
+                        viewmodel_recargas, datos_tienda_fechas.saldo_cuenta_tienda.toInt(),nombre_tienda,
                         localidad_tienda = "barranca",
                         id_tienda = datos_tienda_fechas.id_tienda,
                         puntos_descuento = total_cancelar.toInt(),
@@ -1125,6 +1131,7 @@ object constantes_expandibles_generales {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun expandido_wrap_socio_atributos(
         id_tienda:String,localida:String,

@@ -44,12 +44,21 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.estadisticas_publiccaciones
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.img_content
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.informacion_publcacion
 import com.geinzz.geinzwork.data.model.dataclass_promos.promociones_tiendas_negocios
 import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
+import com.geinzz.geinzwork.data.model.mensaje_predeterminado
+import com.geinzz.geinzwork.data.model.msjes_predeteminados_generales
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlin.collections.get
+import kotlin.math.ceil
+import kotlin.math.floor
 
 class repo_obtener_datos_promociones {
     private val db = FirebaseFirestore.getInstance()
@@ -107,7 +116,6 @@ class repo_obtener_datos_promociones {
             categoria = categoria
         )
     }
-
 
 
     suspend fun obtner_datos_promocion_notificacion(
@@ -193,7 +201,8 @@ class repo_obtener_datos_promociones {
                 val datos = ref.data ?: emptyMap<String, Any>()
 //                Log.d("PROMO_DEBUG", "Datos promocion geinz: $datos")
 
-                val informacion_notificacion = datos["informacion"] as? Map<String, Any> ?: emptyMap()
+                val informacion_notificacion =
+                    datos["informacion"] as? Map<String, Any> ?: emptyMap()
                 val img_container = datos["img_container"] as? Map<String, Any> ?: emptyMap()
                 val lista_img = img_container["lista_img"] as? List<String> ?: emptyList()
                 val logo_img = img_container["logo_img"] as? String ?: ""
@@ -212,7 +221,7 @@ class repo_obtener_datos_promociones {
                     categoria = categoria
                 )
             }
-        }else if(id_promo.length>9){
+        } else if (id_promo.length > 9) {
             val ref = db
                 .collection("Tiendas")
                 .document(localidad)
@@ -258,14 +267,114 @@ class repo_obtener_datos_promociones {
         )
     }
 
+    suspend fun obtener_datos_promociones_scroll_infinito_compartido(
+        localidad: String,
+        id_promo: String
+    ): dataclass_promociones_cerca_de_ti {
+        val ref = db.collection("Tiendas")
+            .document(localidad)
+            .collection("promos_ofertas")
+            .document(id_promo)
+            .get()
+            .await()
+
+        if (!ref.exists()) return dataclass_promociones_cerca_de_ti()
+
+        val datos = ref.data ?: emptyMap<String, Any>()
+        val estado = datos["estado"] as? String ?: "expirado"
+
+        if (estado != "activo") {
+
+            return dataclass_promociones_cerca_de_ti()
+        }
+
+        val tipo_hora_dias = datos["tipo_hora_dias"] as? String ?: ""
+        val img_container = datos["img_container"] as? Map<*, *>
+        val informacion = datos["informacion"] as? Map<*, *>
+        val mensaje_predeterminado = datos["mensaje_predeterminado"] as? Map<*, *>
+        val whatsapp_msje = mensaje_predeterminado?.get("whatsapp") as? Map<*, *>
+        val compartir_msje = mensaje_predeterminado?.get("compartir") as? Map<*, *>
+        val datos_hora_fecha = datos["datos_hora_fecha"] as? Map<*, *> ?: emptyMap<String, Any>()
+        val horas = datos_hora_fecha["horas"] as? Map<*, *> ?: emptyMap<String, Any>()
+        val fechas = datos_hora_fecha["dias"] as? Map<*, *> ?: emptyMap<String, Any>()
+
+        val logo = img_container?.get("logo_img") as? String ?: ""
+        val lista_img_container = img_container?.get("lista_img") as? List<String> ?: emptyList()
+
+        val id_promocion = informacion?.get("id_promocion") as? String ?: ""
+        val id_tienda = informacion?.get("id_tienda") as? String ?: ""
+        val nombre_tienda = informacion?.get("nombre_tienda") as? String ?: ""
+        val titulo = informacion?.get("titulo") as? String ?: ""
+        val descripcion = informacion?.get("descripcion") as? String ?: ""
+        val categoria = informacion?.get("categoria") as? String ?: ""
+        val compartir = informacion?.get("compartir") as? Boolean ?: false
+        val contactar = informacion?.get("contactar") as? Boolean ?: false
+        val numero = informacion?.get("numero") as? String ?: ""
+
+        val compartir_msj_bool = compartir_msje?.get("activo_o_no") as? Boolean ?: false
+        val compartir_msj = compartir_msje?.get("msje_predermindo") as? String ?: ""
+        val wsap_msj_bool = whatsapp_msje?.get("activo_o_no") as? Boolean ?: false
+        val wsap_msj = whatsapp_msje?.get("msje_predermindo") as? String ?: ""
+
+        val timestampFin = when (tipo_hora_dias) {
+            "horas" -> (horas["timestamp_fin"] as? Number)?.toLong() ?: 0L
+            "dias" -> (fechas["timestamp_fin"] as? Number)?.toLong() ?: 0L
+            else -> 0L
+        }
+        val timestampFinMs = if (timestampFin < 1_000_000_000_000L) timestampFin * 1000 else timestampFin
+
+        return dataclass_promociones_cerca_de_ti(
+            informacion_publcacion = informacion_publcacion(
+                descripcion = descripcion,
+                numero = numero,
+                titulo = titulo,
+                nombre_tienda = nombre_tienda,
+                id_promocion = id_promocion,
+                id_tienda = id_tienda,
+                categoria = categoria,
+                compartir = compartir,
+                contactar = contactar,
+                msjes_predeteminados_generales = msjes_predeteminados_generales(
+                    compartir = mensaje_predeterminado(msje_predermindo = compartir_msj, activo_o_no = compartir_msj_bool),
+                    whatsapp = mensaje_predeterminado(msje_predermindo = wsap_msj, activo_o_no = wsap_msj_bool)
+                )
+            ),
+            img = img_content(logo_img = logo, lista_img = lista_img_container),
+            exclussivo = false,
+            dias_restantes = tiempoRestante(timestampFinMs),
+            estadisticas = estadisticas_publiccaciones(total_clicks_whatsapp = 0, total_total_compartidos = 0),
+            texto_msje_whatsapp = msjes_predeteminados_generales(
+                compartir = mensaje_predeterminado(msje_predermindo = compartir_msj, activo_o_no = compartir_msj_bool),
+                whatsapp = mensaje_predeterminado(msje_predermindo = wsap_msj, activo_o_no = wsap_msj_bool)
+            )
+        )
+    }
 
 
+    fun tiempoRestante(timestampFin: Long): String {
+        val ahoraMs = System.currentTimeMillis()
+        val diffMs = timestampFin - ahoraMs
 
+        if (diffMs <= 0) return "Expirado"
 
+        val totalHoras = diffMs.toDouble() / (1000 * 60 * 60)
+        val totalMinutos = diffMs.toDouble() / (1000 * 60)
 
-
-
-
-
+        return if (totalHoras >= 24) {
+            // Mostrar días completos restantes
+            val dias = ceil(totalHoras / 24).toLong()  // +1 implícito para el día actual
+            "$dias ${if (dias == 1L) "día" else "días"} restantes"
+        } else {
+            // Mostrar horas y minutos restantes
+            val horas = floor(totalHoras).toLong()
+            val minutos = floor(totalMinutos % 60).toLong()
+            when {
+                horas > 0 && minutos > 0 -> "$horas ${if (horas == 1L) "hora" else "horas"} y $minutos ${if (minutos == 1L) "minuto" else "minutos"} restantes"
+                horas > 0 -> "$horas ${if (horas == 1L) "hora" else "horas"} restantes"
+                minutos > 0 -> "$minutos ${if (minutos == 1L) "minuto" else "minutos"} restantes"
+                else -> "Menos de un minuto restante"
+            }
+        }
+    }
 
 }

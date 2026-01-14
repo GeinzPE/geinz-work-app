@@ -24,7 +24,12 @@ sealed class Items_menu(
 
 }
 
+
+
 sealed class UiAction {
+
+    data class Abrir_pantalla_promos_cecanas(val id_promocion:String, val localida_tienda:String): UiAction()
+
     data class AbrirPerfil(
         val idTienda: String,
         val localidad: String

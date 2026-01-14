@@ -257,6 +257,8 @@ fun bottom_navigation(
                     }
 
                 }
+
+                else -> {}
             }
         }
     }

@@ -10,12 +10,16 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.storage.FirebaseStorage
 import io.ktor.client.plugins.cache.storage.FileStorage
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class repo_carga_img_general {
     val db = FirebaseFirestore.getInstance()
     val storage = FirebaseStorage.getInstance()
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    val repo_eres_socio= repo_eres_socio()
 
 
     suspend fun obtenerUrlsCarga(): List<String> = suspendCoroutine { continuation ->
@@ -93,12 +97,25 @@ class repo_carga_img_general {
     val horario=DiaHoy()
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun obtener_datos_tienda(
-        id_tienda: String, localida: String, resultado: (widget_tienda) -> Unit,
+        id_tienda: String,
+        localidad: String,
+        resultado: (widget_tienda) -> Unit,
         error: (Exception) -> Unit,
-    ) : ListenerRegistration {
+    ): ListenerRegistration {
 
-        val ref =
-            db.collection("Tiendas").document(localida).collection(localida).document(id_tienda)
+        // StateFlow que se actualizará en tiempo real desde fechaFinTiendaPanel
+        val fechaFinFlow = MutableStateFlow("")
+
+        val listenerFecha = repo_eres_socio.fechaFinTiendaPanel(id_tienda, localidad) { fecha ->
+            fechaFinFlow.value = fecha ?: ""
+        }
+
+        val ref = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(id_tienda)
+
+        // Listener de Firestore para los datos de la tienda
         return ref.addSnapshotListener { snapshot, e ->
             if (e != null) {
                 error(e)
@@ -113,27 +130,26 @@ class repo_carga_img_general {
                 val img_tienda = data["img_tienda"] as? Map<String, Any> ?: emptyMap()
                 val logo = img_tienda["logo_tienda"] as? String ?: ""
                 val horario_atencion = data["horario_atencion"] as? Map<String, Any> ?: emptyMap()
-                val fechas = data["fechas"] as? Map<String, Any> ?: emptyMap()
-                val fecha_termino = fechas["fecha_fin"] as? String ?: ""
-                val total_puntos =data["puntos_tienda"] as? Number?:0
-                val categoria_teinda =data["categoria_tienda"] as? String?:""
-                val localidad_teinda=data["localidad"] as? String?:""
+                val total_puntos = data["puntos_tienda"] as? Number ?: 0
+                val categoria_tienda = data["categoria_tienda"] as? String ?: ""
+                val localidad_tienda = data["localidad"] as? String ?: ""
                 val horarioMap = horario_atencion.to_horario_atencion_box_dia()
 
+                // Emitimos el widget con el StateFlow
                 resultado(
                     widget_tienda(
                         total_puntos = total_puntos.toString(),
                         dia_hoy = horario,
                         id_tienda = id_tienda,
                         nombre_tienda = nombre_tienda,
-                        img_tienda =logo,
+                        img_tienda = logo,
                         horario_tiendaMap = horarioMap,
-                        fecha_termino = fecha_termino,localidad_teinda,categoria_teinda
+                        localidad_tienda,
+                        categoria_tienda,
+                        fecha_fin_panel = fechaFinFlow // <-- pasamos el StateFlow
                     )
                 )
-
             }
         }
-
     }
 }
