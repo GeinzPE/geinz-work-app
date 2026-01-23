@@ -642,7 +642,7 @@ fun GaleriaInstagram(
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun ZoomableGalleryFullScreen(
-    id_user:String,
+    id_user: String,
     it: compartir_promocion,
     tag: String = "",
     imagenes: List<String>,
@@ -873,7 +873,8 @@ fun ZoomableGalleryFullScreen_para_promociones(
                             txt_icono = "Me interesa",
                             modifier = Modifier.weight(1f),
                             clikeable = {
-                                abrir_whattsapp(id_user,
+                                abrir_whattsapp(
+                                    id_user,
                                     "promocion",
                                     "",
                                     "",
@@ -896,7 +897,8 @@ fun ZoomableGalleryFullScreen_para_promociones(
                             txt_icono = "Compartir",
                             modifier = Modifier.weight(1f),
                             clikeable = {
-                                compartir_hosting_promo(id_user,
+                                compartir_hosting_promo(
+                                    id_user,
                                     it.nombre_tienda,
                                     it.categoria,
                                     context,
@@ -1002,7 +1004,7 @@ fun ZoomableGalleryFullScreen_promociones(
     startIndex: Int = 0,
     onDismiss: () -> Unit,
     clikc_compartir: (id: String, categoria: String, localidad: String, id_tienda: String) -> Unit,
-    click_contacto_directo: (id: String, numero: String, localidad: String, id_tienda: String,categoria:String) -> Unit,
+    click_contacto_directo: (id: String, numero: String, localidad: String, id_tienda: String, categoria: String) -> Unit,
     abrir_prefil: (String) -> Unit,
 ) {
     val (valorRestante, tipo) = parseDiasHorasRestantes(i.dias_restantes)
@@ -1049,7 +1051,9 @@ fun ZoomableGalleryFullScreen_promociones(
     val pagerState = com.google.accompanist.pager.rememberPagerState(initialPage = startIndex)
     var allowScroll by remember { mutableStateOf(true) }
 
-    Box(modifier = Modifier.fillMaxSize().padding(top = 25.dp, bottom = 10.dp)) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .padding(top = 25.dp, bottom = 10.dp)) {
 
         com.google.accompanist.pager.HorizontalPager(
             state = pagerState,
@@ -1067,7 +1071,7 @@ fun ZoomableGalleryFullScreen_promociones(
             val painter = rememberAsyncImagePainter(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(imagenes[page])
-                    .placeholder (R.drawable.cargando_img_categorias)
+                    .placeholder(R.drawable.cargando_img_categorias)
                     .error(R.drawable.cargando_img_categorias)
                     .build()
             )
@@ -1206,6 +1210,7 @@ fun ZoomableGalleryFullScreen_promociones(
                 }
 
                 spacer_vertical(5.dp)
+
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -1216,30 +1221,32 @@ fun ZoomableGalleryFullScreen_promociones(
                         color = backgroundColor
                     )
                     Spacer(modifier = Modifier.weight(1f))
-                    BotonCompartirReddit(
-                        icon = R.drawable.icono_whatsapp_blanco_tasns,
-                        descripcion = "contactados",
-                        contador = "${estadisticas?.whatsapp ?: 0}",
-                        onClick = {
-                            click_contacto_directo(
-                                i.id_promocion,
-                                i.numero_contacto,
-                                i.localidad_tineda,
-                                i.iod_tienda,i.categoria
-                            )
-                        })
-                    BotonCompartirReddit(
-                        icon = R.drawable.comparir_icon,
-                        descripcion = "compartidos",
-                        contador = "${estadisticas?.compartidos ?: 0}",
-                        onClick = {
-                            clikc_compartir(
-                                i.id_promocion,
-                                i.categoria,
-                                i.localidad_tineda,
-                                i.iod_tienda
-                            )
-                        })
+                    if (!i.dias_restantes.equals("Expirado")) {
+                        BotonCompartirReddit(
+                            icon = R.drawable.icono_whatsapp_blanco_tasns,
+                            descripcion = "contactados",
+                            contador = "${estadisticas?.whatsapp ?: 0}",
+                            onClick = {
+                                click_contacto_directo(
+                                    i.id_promocion,
+                                    i.numero_contacto,
+                                    i.localidad_tineda,
+                                    i.iod_tienda, i.categoria
+                                )
+                            })
+                        BotonCompartirReddit(
+                            icon = R.drawable.comparir_icon,
+                            descripcion = "compartidos",
+                            contador = "${estadisticas?.compartidos ?: 0}",
+                            onClick = {
+                                clikc_compartir(
+                                    i.id_promocion,
+                                    i.categoria,
+                                    i.localidad_tineda,
+                                    i.iod_tienda
+                                )
+                            })
+                    }
                 }
             }
         }
@@ -1328,7 +1335,7 @@ fun PegasooPagerIndicator(
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun compartir_hosting_promo(
-    id_user:String,
+    id_user: String,
     nombre_tienda: String,
     categoria: String,
     context: Context,
@@ -1376,7 +1383,7 @@ fun compartir_hosting_promo(
         repo_erese_socio.agregar_contador(
             "compartidos",
             id_tienda,
-            localidad_tienda,id_user
+            localidad_tienda, id_user
         )
     } catch (e: Exception) {
         e.printStackTrace()

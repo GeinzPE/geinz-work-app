@@ -10,6 +10,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.geinzz.geinzwork.utils.constantes.hora.timePiker24hours
 import com.geinzz.geinzwork.utils.constantes.hora.datePickterFracment
+import com.google.firebase.Timestamp
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -118,30 +119,60 @@ object mostrarFechaDialog_horaDialog {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun obtenerTimestampHoraFin(horas: Int): Long {
-        val ahora = LocalDateTime.now() // Fecha + hora local
-        val fin = ahora.plusHours(horas.toLong())
-        // Ajustar a tu zona horaria local
-        val zoned = fin.atZone(ZoneId.systemDefault())
-        return zoned.toInstant().toEpochMilli()
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun obtenerTimestampHoraInicio(): Long {
+    fun obtenerTimestampHoraFin(horas: Int): Timestamp {
         val ahora = LocalDateTime.now()
-        val zoned = ahora.atZone(ZoneId.systemDefault())
-        return zoned.toInstant().toEpochMilli()
+        val fin = ahora.plusHours(horas.toLong())
+
+        val instant = fin
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+
+        return Timestamp(instant.epochSecond, instant.nano)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun obtenerTimestampHoraInicio(): Timestamp {
+        val ahora = LocalDateTime.now()
+
+        val instant = ahora
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+
+        return Timestamp(instant.epochSecond, instant.nano)
     }
 
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun obtenerTimestampFecha(fecha: String): Long {
+    fun obtenerTimestampInicio(): Timestamp {
+        val instant = LocalDateTime.now()
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+
+        return Timestamp(instant.epochSecond, instant.nano)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun obtenerTimestampFinDias(dias: Int): Timestamp {
+        val instant = LocalDateTime.now()
+            .plusDays(dias.toLong())
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+
+        return Timestamp(instant.epochSecond, instant.nano)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun obtenerTimestampFecha(fecha: String): Timestamp {
         val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
         val localDate = LocalDate.parse(fecha, formatter)
-        return localDate.atStartOfDay()
-            .toInstant(ZoneOffset.UTC)
-            .toEpochMilli()
+
+        val instant = localDate
+            .atStartOfDay(ZoneId.systemDefault()) // ⬅ zona local (importante)
+            .toInstant()
+
+        return Timestamp(instant.epochSecond, instant.nano)
     }
+
 
 
 }

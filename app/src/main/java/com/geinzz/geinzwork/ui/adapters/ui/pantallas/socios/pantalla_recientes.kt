@@ -1,5 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -24,6 +26,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -33,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,12 +60,16 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_datos_notificacion
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_datos_promos_noti
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_recientes
 import com.valentinilk.shimmer.shimmer
+import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PantallaRecientes(
     id_tienda: String,
@@ -68,6 +77,7 @@ fun PantallaRecientes(
     viewModelPantallasRecientes: viewmodel_pantallas_recientes = viewModel(),
     cargando: (Boolean) -> Unit
 ) {
+    val estadoPromociones by viewModelPantallasRecientes.estado_promociones.collectAsState()
 
     // Observamos el estado del ViewModel
     val estadoPromoNoti by viewModelPantallasRecientes.estadoPromoNoti.collectAsState()
@@ -81,15 +91,17 @@ fun PantallaRecientes(
         "Todos",
         "Promociones o ofertas",
         "Notificaciones",
-        "Vencidos",
-        "Activos",
-        "Por vencer",
-        "En pausa"
+        "Promos Activas",
+        "Promos Vencidas",
+        "Promos por vencer",
+        "Promos en pausa"
     )
     var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
     var bottom_sheet_datos_competos by remember { mutableStateOf(false) }
+    var bottom_sheet_datos_competos_notificacion by remember { mutableStateOf(false) }
     var id_promo_select by remember { mutableStateOf("") }
-    // UI principal
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Crossfade(targetState = estadoPromoNoti) { curren_state ->
 
@@ -104,6 +116,7 @@ fun PantallaRecientes(
                 }
 
                 is viewmodel_pantallas_recientes.EstadoPromoNoti.Success -> {
+
                     val lista =
                         curren_state.lista
                     val listaOrdenada = ordenarPorVence(lista)
@@ -117,17 +130,37 @@ fun PantallaRecientes(
                         "Notificaciones" ->
                             listaOrdenada.filter { it.tipo == "notificación" }
 
-                        "Vencidos" ->
-                            listaOrdenada.filter { viewModelPantallasRecientes.esVencido(it.vence) }
+                        "Promos Vencidas" ->
+                            listaOrdenada.filter {
+                                viewModelPantallasRecientes.esVencido(it.vence)
+                            }
 
-                        "Activos" ->
-                            listaOrdenada.filter { viewModelPantallasRecientes.esActivo(it.vence) }
+                        "Promos Activas" ->
+                            listaOrdenada.filter {
+                                val estadoActual =
+                                    estadoPromociones[it.id] ?: it.estado_publicacion
 
-                        "Por vencer" ->
-                            listaOrdenada.filter { viewModelPantallasRecientes.esPorVencer(it.vence) }
+                                viewModelPantallasRecientes.esActivo(it.vence) &&
+                                        !viewModelPantallasRecientes.en_pausa(estadoActual)
+                            }
+
+                        "Promos por vencer" ->
+                            listaOrdenada.filter {
+                                viewModelPantallasRecientes.esPorVencer(it.vence)
+                            }
+
+                        "Promos en pausa" ->
+                            listaOrdenada.filter {
+                                val estadoActual =
+                                    estadoPromociones[it.id] ?: it.estado_publicacion
+
+                                viewModelPantallasRecientes.en_pausa(estadoActual)
+                            }
 
                         else -> listaOrdenada
                     }
+
+
 
                     val listState = rememberLazyListState()
                     val targetAlpha = if (listState.canScrollForward) 1f else 0f
@@ -184,9 +217,16 @@ fun PantallaRecientes(
                                     }
                                 }
                             }
-
                             item {
                                 spacer_vertical(10.dp)
+
+                                    if(listaFiltrada.isNotEmpty()){
+                                        texto_generico_one_line(
+                                            "Encontrados (${listaFiltrada.size})"
+                                        )
+                                        spacer_vertical(5.dp)
+                                    }
+
                             }
                             if (listaFiltrada.isEmpty()) {
                                 item {
@@ -217,12 +257,29 @@ fun PantallaRecientes(
                                             )
                                         )
                                     ) {
-                                        item_recientes(localidad_tienda,id_tienda,viewModelPantallasRecientes,item = item, item_clikeado = { id_promo ->
-                                            bottom_sheet_datos_competos = true
-                                            id_promo_select = id_promo
-                                        }, cambiar_a_pausar = {nuevo_estado,id_promo->
+                                        item_recientes(
+                                            localidad_tienda = localidad_tienda,
+                                            id_tienda = id_tienda,
+                                            viewModel = viewModelPantallasRecientes,
+                                            item = item,
+                                            item_clikeado = { id_promo,tipo ->
+                                                if(tipo.equals("notificación")){
+                                                    bottom_sheet_datos_competos_notificacion=true
+                                                    id_promo_select = id_promo
+                                                }else{
+                                                bottom_sheet_datos_competos = true
+                                                id_promo_select = id_promo
+                                                }
+                                            },
+                                            cambiar_a_pausar = { nuevo_estado, id_promo->
                                                 viewModelPantallasRecientes.cambiar_estado_promociones(id_tienda,localidad_tienda,id_promo,nuevo_estado)
-                                        })
+                                                scope.launch {
+                                                    snackbarHostState.showSnackbar(
+                                                        message = "Estado cambiado correctamente",
+                                                        duration = SnackbarDuration.Short
+                                                    )
+                                                }
+                                            })
                                     }
                                 }
                             }
@@ -245,6 +302,9 @@ fun PantallaRecientes(
                                 )
                                 .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
                         )
+
+                        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
+
                     }
                 }
 
@@ -273,12 +333,22 @@ fun PantallaRecientes(
             }
             if (bottom_sheet_datos_competos) {
                 bottom_sheet_datos_promos_noti(
-                    viewModelPantallasRecientes,
-                    id_tienda,
-                    localidad_tienda,
-                    id_promo_select,
-                    {
+                    viewmodel_pantalla = viewModelPantallasRecientes,
+                    id_tienda = id_tienda,
+                    localida = localidad_tienda,
+                    id_promo = id_promo_select,
+                    ondimis = {
                         bottom_sheet_datos_competos = false
+                    })
+            }
+            if(bottom_sheet_datos_competos_notificacion){
+                bottom_sheet_datos_notificacion(
+                    viewmodel_pantalla = viewModelPantallasRecientes,
+                    id_tienda = id_tienda,
+                    localida = localidad_tienda,
+                    id_promo = id_promo_select,
+                    ondimis = {
+                        bottom_sheet_datos_competos_notificacion = false
                     })
             }
         }
@@ -309,7 +379,7 @@ fun item_recientes(
     localidad_tienda: String,id_tienda: String,
     viewModel: viewmodel_pantallas_recientes,
     item: publicaciones_notificaciones_geinz,
-    item_clikeado: (String) -> Unit,
+    item_clikeado: (String,String) -> Unit,
     cambiar_a_pausar: (tipo: String, id_promo: String) -> Unit
 ) {
     val diasRestantes = item.vence
@@ -327,7 +397,7 @@ fun item_recientes(
             .clip(RoundedCornerShape(20.dp))
             .background(Color(0xFF2B2B2B))
             .clickable {
-                item_clikeado(item.id)
+                item_clikeado(item.id,item.tipo)
             }
     ) {
 
@@ -339,7 +409,7 @@ fun item_recientes(
                 .height(120.dp)
                 .width(100.dp)
                 .clip(RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp)),
-            colorFilter = if (item.vence == "0 dias") {
+            colorFilter = if (item.vence == "Expirado") {
                 ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) }) // Blanco y negro
             } else {
                 null
@@ -394,7 +464,7 @@ fun item_recientes(
                             )
                         }
 
-                        if (item.tipo.equals("promoción") && item.vence != "0 dias") {
+                        if (item.tipo.equals("promoción") && item.vence != "Expirado") {
                             Switch(
                                 checked = estadoSwitch == "activo",
                                 onCheckedChange = { isChecked ->
@@ -449,7 +519,7 @@ fun item_recientes(
 
             if (item.tipo.equals("promoción")) {
                 texto_generico_one_line(
-                    "Vence en: ${item.vence}",
+                    "${item.vence}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = colorPorVencimiento(item.vence)
                 )
@@ -468,7 +538,7 @@ fun item_recientes(
 
 fun colorPorVencimiento(vence: String): Color {
     return when {
-        vence.contains("dias") -> {
+        vence.contains("días") -> {
             // extraemos el número de días
             val dias = vence.substringBefore(" ").toLongOrNull() ?: 0L
             when {
@@ -494,7 +564,7 @@ fun ShimmerImagenConMarca(texto:String="GEINZ") {
         modifier = Modifier
             .fillMaxSize()
             .shimmer()
-            .background(Color(0xFF1C1C1C)),
+            .background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {

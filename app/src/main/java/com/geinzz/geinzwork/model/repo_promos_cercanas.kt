@@ -13,7 +13,9 @@ import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.tiendas_con_mas_de_una_promo
 import com.geinzz.geinzwork.data.model.mensaje_predeterminado
 import com.geinzz.geinzwork.data.model.msjes_predeteminados_generales
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.tiempoRestante
 import com.google.firebase.Firebase
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -33,8 +35,12 @@ class repo_promos_cercanas {
 
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun obtener_promos(
+        tipo_seleccionado: String,
         localidad: String
     ): List<obj_completo> {
+
+        Log.d("PROMOS_DEBUG", "▶ obtener_promos | tipo=$tipo_seleccionado | localidad=$localidad")
+
         return try {
             val snapshot = db
                 .collection("Tiendas")
@@ -43,10 +49,11 @@ class repo_promos_cercanas {
                 .get()
                 .await()
 
+            Log.d("PROMOS_DEBUG", "📦 Total docs Firestore: ${snapshot.size()}")
 
-            // 🔹 Primero agrupamos todas las promos por idTienda
+            // 🔹 Agrupar promos por tienda
             val promosPorTienda = snapshot.documents.mapNotNull { doc ->
-                val infoMap = doc.get("informacion") as? Map<*, *> ?: emptyMap<String, Any>()
+                val infoMap = doc.get("informacion") as? Map<*, *> ?: return@mapNotNull null
                 val imgMap = doc.get("img_container") as? Map<*, *> ?: emptyMap<String, Any>()
 
                 val idTienda = infoMap["id_tienda"] as? String ?: return@mapNotNull null
@@ -54,58 +61,86 @@ class repo_promos_cercanas {
                 val logo = imgMap["logo_img"] as? String ?: ""
 
                 Triple(idTienda, nombreTienda, logo)
-            }.groupBy { it.first } // Agrupamos por idTienda
+            }.groupBy { it.first }
 
-            // 🔹 Lista de tiendas con más de una promo
-            val listaTiendasConMasDeUnaPromo = promosPorTienda.filter { it.value.size > 1 }
+            Log.d("PROMOS_DEBUG", "🏪 Tiendas encontradas: ${promosPorTienda.size}")
+
+            val listaTiendasConMasDeUnaPromo = promosPorTienda
+                .filter { it.value.size > 1 }
                 .map { (idTienda, promos) ->
-                    val primerElemento = promos.first()
+                    val p = promos.first()
                     tiendas_con_mas_de_una_promo(
                         id = idTienda,
-                        nombre_tienda = primerElemento.second,
-                        logo_img = primerElemento.third
+                        nombre_tienda = p.second,
+                        logo_img = p.third
                     )
                 }
 
-            // 🔹 Mapear cada promo
             snapshot.documents.mapNotNull { doc ->
+
+                Log.d("PROMO_ITEM", "──────────────")
+                Log.d("PROMO_ITEM", "📄 Promo ID: ${doc.id}")
+
                 val estado = doc.getString("estado") ?: "expirado"
-                if (estado != "activo") return@mapNotNull null
-                val infoMap = doc.get("informacion") as? Map<*, *> ?: emptyMap<String, Any>()
-                val imgMap = doc.get("img_container") as? Map<*, *> ?: emptyMap<String, Any>()
-                val tipo_hora_dias = doc.get("tipo_hora_dias") as? String ?: ""
-                val mensaje_predeterminado = doc.get("mensaje_predeterminado") as? Map<*, *> ?: emptyMap<String, Any>()
-                val compartir= mensaje_predeterminado.get("compartir") as? Map<*, *> ?: emptyMap<String, Any>()
-                val whatsapp = mensaje_predeterminado.get("whatsapp") as? Map<*, *> ?: emptyMap<String, Any>()
-                val msje_compartir= compartir.get("msje_predermindo") as? String ?:""
-                val msje_whatsapp = whatsapp.get("msje_predermindo") as? String ?:""
+                Log.d("PROMO_ITEM", "estado=$estado")
 
-
-                val datos_hora_fecha = doc.get("datos_hora_fecha") as? Map<*, *> ?: emptyMap<String, Any>()
-                val horas = datos_hora_fecha["horas"] as? Map<*, *> ?: emptyMap<String, Any>()
-                val fechas = datos_hora_fecha["dias"] as? Map<*, *> ?: emptyMap<String, Any>()
-
-                // 🔹 Obtenemos el timestamp final según tipo (horas o días)
-                val timestampFin = when (tipo_hora_dias) {
-                    "horas" -> (horas["timestamp_fin"] as? Number)?.toLong() ?: 0L
-                    "dias"  -> (fechas["timestamp_fin"] as? Number)?.toLong() ?: 0L
-                    else    -> 0L
+                if (estado != "activo") {
+                    Log.d("PROMO_ITEM", "⛔ DESCARTADA: no activa")
+                    return@mapNotNull null
                 }
 
-                // 🔹 Ajuste a milisegundos si estuviera en segundos
-                val timestampFinMs = if (timestampFin < 1000000000000L) timestampFin * 1000 else timestampFin
+                val infoMap = doc.get("informacion") as? Map<*, *> ?: run {
+                    Log.d("PROMO_ITEM", "⛔ sin informacion")
+                    return@mapNotNull null
+                }
 
-                // 🔹 Logs para debug
-                Log.d("DEBUG_PROMO", "PROMO ID=${doc.id} TIPO=$tipo_hora_dias")
-                Log.d("DEBUG_PROMO", "timestampFin original = $timestampFin")
-                Log.d("DEBUG_PROMO", "timestampFin ajustado (ms) = $timestampFinMs")
-                val ahora = System.currentTimeMillis()
-                Log.d("DEBUG_PROMO", "Ahora = $ahora")
-                val diff = timestampFinMs - ahora
-                Log.d("DEBUG_PROMO", "Diff = $diff")
+                val categoria_params = infoMap["categoria"] as? String ?: ""
+                Log.d("PROMO_ITEM", "categoria=$categoria_params")
 
-                val tiempoRestanteString = tiempoRestante(timestampFinMs)
-                Log.d("DEBUG_PROMO", "tiempoRestanteString = $tiempoRestanteString")
+                if (tipo_seleccionado != "Todos" && categoria_params != tipo_seleccionado) {
+                    Log.d(
+                        "PROMO_ITEM",
+                        "⛔ DESCARTADA: filtro categoria (seleccion=$tipo_seleccionado)"
+                    )
+                    return@mapNotNull null
+                }
+
+                val tipo_hora_dias = doc.get("tipo_hora_dias") as? String ?: ""
+                Log.d("PROMO_ITEM", "tipo_hora_dias=$tipo_hora_dias")
+
+                val datos_hora_fecha =
+                    doc.get("datos_hora_fecha") as? Map<*, *> ?: emptyMap<String, Any>()
+                val horasMap = datos_hora_fecha["horas"] as? Map<*, *> ?: emptyMap<String, Any>()
+                val diasMap = datos_hora_fecha["dias"] as? Map<*, *> ?: emptyMap<String, Any>()
+
+                val timestampFin = when (tipo_hora_dias) {
+                    "horas" -> horasMap["timestamp_fin"] as? Timestamp
+                    "dias" -> diasMap["timestamp_fin"] as? Timestamp
+                    else -> null
+                }
+
+                Log.d("PROMO_ITEM", "timestampFin=$timestampFin")
+
+                val tiempo = timestampFin?.let { tiempoRestante(it) } ?: "Expirado"
+                Log.d("PROMO_ITEM", "tiempoRestante=$tiempo")
+
+                if (tiempo == "Expirado") {
+                    Log.d("PROMO_ITEM", "⛔ DESCARTADA: expirada")
+                    return@mapNotNull null
+                }
+
+                Log.d("PROMO_ITEM", "✅ PROMO VÁLIDA")
+
+                val imgMap = doc.get("img_container") as? Map<*, *> ?: emptyMap<String, Any>()
+                val mensaje_predeterminado =
+                    doc.get("mensaje_predeterminado") as? Map<*, *> ?: emptyMap<String, Any>()
+                val compartir =
+                    mensaje_predeterminado["compartir"] as? Map<*, *> ?: emptyMap<String, Any>()
+                val whatsapp =
+                    mensaje_predeterminado["whatsapp"] as? Map<*, *> ?: emptyMap<String, Any>()
+
+                val msje_compartir = compartir["msje_predermindo"] as? String ?: ""
+                val msje_whatsapp = whatsapp["msje_predermindo"] as? String ?: ""
 
                 val informacion = informacion_publcacion(
                     descripcion = infoMap["descripcion"] as? String ?: "",
@@ -114,15 +149,15 @@ class repo_promos_cercanas {
                     nombre_tienda = infoMap["nombre_tienda"] as? String ?: "",
                     id_promocion = doc.id,
                     id_tienda = infoMap["id_tienda"] as? String ?: "",
-                    categoria = infoMap["categoria"] as? String ?: "",
+                    categoria = categoria_params,
                     compartir = infoMap["compartir"] as? Boolean ?: false,
                     contactar = infoMap["contactar"] as? Boolean ?: false,
-                    msjes_predeteminados_generales=msjes_predeteminados_generales(
+                    msjes_predeteminados_generales = msjes_predeteminados_generales(
                         compartir = mensaje_predeterminado(
                             msje_predermindo = msje_compartir,
                             activo_o_no = true
                         ),
-                        whatsapp =mensaje_predeterminado(
+                        whatsapp = mensaje_predeterminado(
                             msje_predermindo = msje_whatsapp,
                             activo_o_no = true
                         )
@@ -138,31 +173,22 @@ class repo_promos_cercanas {
                     informacion_publcacion = informacion,
                     img = img,
                     exclussivo = doc.getBoolean("exclusivo") ?: false,
-                    dias_restantes = tiempoRestanteString,
+                    dias_restantes = tiempo,
                     estadisticas = estadisticas_publiccaciones(),
-                    texto_msje_whatsapp=msjes_predeteminados_generales(
-                        compartir = mensaje_predeterminado(
-                            msje_predermindo = msje_compartir,
-                            activo_o_no = true
-                        ),
-                        whatsapp =mensaje_predeterminado(
-                            msje_predermindo = msje_whatsapp,
-                            activo_o_no = true
-                        )
-                    )
+                    texto_msje_whatsapp = informacion.msjes_predeteminados_generales,
+                    timestampFin ?: Timestamp.now(),
+                    estado
                 )
-
-                val listaFiltrado = listOfNotNull(informacion.categoria)
 
                 obj_completo(
                     dataclass_promociones_cerca_de_ti = promo,
-                    lista_filtrado = listaFiltrado,
+                    lista_filtrado = listOfNotNull(informacion.categoria),
                     lista_tiendas_con_mas_promo = listaTiendasConMasDeUnaPromo
                 )
             }.shuffled()
 
         } catch (e: Exception) {
-            Log.e("ERROR_PROMO", "Error al obtener promociones: ${e.message}")
+            Log.e("ERROR_PROMO", "❌ Error al obtener promociones", e)
             emptyList()
         }
     }
@@ -193,34 +219,6 @@ class repo_promos_cercanas {
             compartidos = compartidos,
             whatsapp = whatsapp
         )
-    }
-
-
-
-    fun tiempoRestante(timestampFin: Long): String {
-        val ahoraMs = System.currentTimeMillis()
-        val diffMs = timestampFin - ahoraMs
-
-        if (diffMs <= 0) return "Expirado"
-
-        val totalHoras = diffMs.toDouble() / (1000 * 60 * 60)
-        val totalMinutos = diffMs.toDouble() / (1000 * 60)
-
-        return if (totalHoras >= 24) {
-            // Mostrar días completos restantes
-            val dias = ceil(totalHoras / 24).toLong()  // +1 implícito para el día actual
-            "$dias ${if (dias == 1L) "día" else "días"} restantes"
-        } else {
-            // Mostrar horas y minutos restantes
-            val horas = floor(totalHoras).toLong()
-            val minutos = floor(totalMinutos % 60).toLong()
-            when {
-                horas > 0 && minutos > 0 -> "$horas ${if (horas == 1L) "hora" else "horas"} y $minutos ${if (minutos == 1L) "minuto" else "minutos"} restantes"
-                horas > 0 -> "$horas ${if (horas == 1L) "hora" else "horas"} restantes"
-                minutos > 0 -> "$minutos ${if (minutos == 1L) "minuto" else "minutos"} restantes"
-                else -> "Menos de un minuto restante"
-            }
-        }
     }
 
 
@@ -360,6 +358,7 @@ class repo_promos_cercanas {
                 onResult(null)
             }
     }
+
     fun incrementar(ref: DocumentReference) {
         ref.update("total", FieldValue.increment(1))
             .addOnFailureListener {

@@ -1,9 +1,12 @@
 package com.geinzz.geinzwork.viewModels
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geinzz.geinzwork.data.model.notificaciones
 import com.geinzz.geinzwork.data.model.obtener_datos_promociones
 import com.geinzz.geinzwork.data.model.publicaciones_notificaciones_geinz
 import com.geinzz.geinzwork.model.repo_pantalla_recientes
@@ -23,6 +26,12 @@ class viewmodel_pantallas_recientes : ViewModel() {
     private val _estadoPromocion =
         MutableStateFlow<EstadoDatosPromocion>(EstadoDatosPromocion.Loading)
     val estadoPromocion: StateFlow<EstadoDatosPromocion> = _estadoPromocion
+
+
+
+    private val _estado_notificacion=MutableStateFlow<EstadoDatosNotificacion>(
+        EstadoDatosNotificacion.Loading)
+    val estado_notificacion: StateFlow<EstadoDatosNotificacion> = _estado_notificacion
 
 
     private val _estado_promociones = MutableStateFlow<Map<String, String>>(emptyMap())
@@ -75,6 +84,25 @@ class viewmodel_pantallas_recientes : ViewModel() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun cargar_datos_notificacion(idTienda: String, localidad: String, idPromo: String){
+        viewModelScope.launch {
+                _estado_notificacion.value= EstadoDatosNotificacion.Loading
+            try {
+                val datos=instarepo.obtenerNotificacionCompleta(localidad,idTienda,idPromo)
+                if (datos != null) {
+                _estado_notificacion.value=EstadoDatosNotificacion.Success(datos)
+                }else {
+                    _estado_notificacion.value = EstadoDatosNotificacion.Error("No se encontraron datos")
+                }
+
+            }catch (e:Exception){
+                _estado_notificacion.value =
+                    EstadoDatosNotificacion.Error(e.message ?: "Error desconocido")
+            }
+        }
+    }
+
 
     fun cambiar_estado_promociones(
         id_tienda: String,
@@ -98,7 +126,7 @@ class viewmodel_pantallas_recientes : ViewModel() {
 
 
     fun esVencido(vence: String): Boolean {
-        return vence.equals("0 dias")
+        return vence.equals("Expirado")
     }
 
     fun esPorVencer(vence: String): Boolean {
@@ -106,6 +134,9 @@ class viewmodel_pantallas_recientes : ViewModel() {
         return horas > 0 && horas <= 12
     }
 
+    fun en_pausa(estado: String): Boolean {
+        return estado.equals("pausado", ignoreCase = true)
+    }
 
     fun esActivo(vence: String): Boolean {
         return !esVencido(vence) && !esPorVencer(vence) && !vence.equals("")
@@ -136,6 +167,14 @@ class viewmodel_pantallas_recientes : ViewModel() {
         data class Success(val datos: obtener_datos_promociones) : EstadoDatosPromocion()
         data class Error(val mensaje: String) : EstadoDatosPromocion()
     }
+
+
+    sealed class EstadoDatosNotificacion {
+        object Loading : EstadoDatosNotificacion()
+        data class Success(val datos: notificaciones) : EstadoDatosNotificacion()
+        data class Error(val mensaje: String) : EstadoDatosNotificacion()
+    }
+
 
 
     sealed class EstadoPromoNoti {

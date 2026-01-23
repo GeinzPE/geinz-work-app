@@ -8,6 +8,7 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.identity.util.UUID
 import com.geinzz.geinzwork.data.model.DatosDemograficosUsuario
+import com.geinzz.geinzwork.data.model.NotificacionIA
 import com.geinzz.geinzwork.data.model.agregar_promociones
 import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
 import com.geinzz.geinzwork.data.model.datos_publicaciones_realizadas
@@ -16,8 +17,11 @@ import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.data.model.fechas_promociones
 import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
 import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.formatoFechaHora
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.normalizar
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenWebPSinRecorte
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.acortarDescripcionNotificacion
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaConDias
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.timeStampNumero
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
@@ -27,6 +31,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_ubicacion_container
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.notificacionesFCM.enviar_notificacion_lista_dispo
+import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -35,6 +40,9 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import com.google.firebase.Timestamp
+import com.google.firebase.ai.ai
+import com.google.firebase.ai.type.GenerativeBackend
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 
 import java.text.SimpleDateFormat
@@ -44,10 +52,12 @@ import java.time.LocalDateTime
 import java.time.Period
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.collections.component1
 import kotlin.collections.component2
+import kotlin.collections.get
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -461,6 +471,9 @@ class repo_eres_socio {
                 onResult(null)
             }
     }
+
+
+
 
 
     fun verificar_existencia_tienda(
@@ -992,7 +1005,8 @@ class repo_eres_socio {
         localidad: String,
         idPromo: String,
         urls: List<String>
-    ) {
+    ) : Result<Unit> {
+        return try {
         val db = FirebaseFirestore.getInstance()
 
         val ref = db
@@ -1015,6 +1029,10 @@ class repo_eres_socio {
         )
         ref2.set(data, SetOptions.merge()).await()
         ref.set(data, SetOptions.merge()).await()
+            Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
     }
 
     suspend fun cambiar_atributos_tiendas(
@@ -1176,6 +1194,9 @@ class repo_eres_socio {
                 .document(i.informacion.id_tienda).collection("promociones_geinz")
                 .document(i.informacion.id_promocion)
 
+            val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
+                .document(i.informacion.id_tienda).collection("gen_con_IA_historial")
+                .document(i.informacion.id_promocion)
 
             val hashMap = hashMapOf<String, Any>(
                 "estado" to i.estado,
@@ -1184,26 +1205,117 @@ class repo_eres_socio {
                 "img_container" to i.img_container,
                 "informacion" to i.informacion,
                 "ubicacion" to i.ubicacion,
-                "mensaje_predeterminado" to i.mensaje_predeterminado
+                "mensaje_predeterminado" to i.mensaje_predeterminado,
             )
+
+            // 🤖 SOLO SI EXISTE IA
+            if (i.generaciones_con_ia != null) {
+                val hashmpa_gen_con_IA = hashMapOf<String, Any>(
+                    "fecha" to Timestamp.now(),
+                    "id_promo_o_noti" to i.informacion.id_promocion,
+                    "tipo" to "publicacion",
+                    "generacions_con_IA" to i.generaciones_con_ia
+                )
+                val descripcionAcortada = acortarDescripcionNotificacion(
+                    i.informacion.descripcion
+                )
+
+                val nombreGeneracion=  crear_notificacion_conIA_corta(
+                    i.informacion.titulo,
+                    descripcionAcortada
+                )
+                nombreGeneracion.let {
+                    hashmpa_gen_con_IA["nombre_generacion"] = it
+                }
+
+                gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
+            }
 
             ref.set(hashMap, SetOptions.merge()).await()
             ref2.set(hashMap, SetOptions.merge()).await()
 
-            Result.success(Unit) // ✅ TERMINÓ BIEN
+            Result.success(Unit)
         } catch (e: Exception) {
-            Result.failure(e)    // ❌ FALLÓ
+            Result.failure(e)
         }
     }
+
+
+
+
+
+    fun generarPromptNombreGeneracionIA(
+        titulo: String,
+        descripcion: String
+    ): String {
+        return """
+Devuelve SOLO el nombre final.
+NO incluyas etiquetas como "Nombre:", ni comillas, ni explicaciones.
+Máximo 40 caracteres.
+Incluye exactamente 1 emoji relevante.
+Resume sin inventar.
+
+Título: $titulo
+Descripción: $descripcion
+""".trimIndent()
+    }
+
+
+
+
+    suspend fun crear_notificacion_conIA_corta(
+        tituloPublicacion: String,
+        descCorta: String
+    ): String {
+
+        val model = Firebase.ai(
+            backend = GenerativeBackend.googleAI()
+        ).generativeModel("gemini-2.5-flash")
+
+        val descripcionAcortada = acortarDescripcionNotificacion(descCorta)
+
+        return try {
+            val prompt = generarPromptNombreGeneracionIA(
+                tituloPublicacion,
+                descripcionAcortada
+            )
+
+            val result = model.generateContent(prompt)
+
+            result.text
+                ?.trim()
+                ?.lines()?.firstOrNull()
+                ?.removePrefix("Nombre:")
+                ?.removePrefix("Nombre :")
+                ?.trim()
+                ?.take(40)
+                ?: "Generación IA"
+
+
+        } catch (e: Exception) {
+            Log.e("Gemini", "Error IA: ${e.message}")
+            "Generación IA"
+        }
+    }
+
+
 
     suspend fun agregarContadorNotificacion(
         usuarios: List<String>,
         i: obj_contador_notificaciones
     ) {
         try {
-            enviar_notificacion_lista_dispo(
+
+            // 🔒 VALIDACIONES BÁSICAS (NO IA)
+            require(i.idnotificacion.isNotBlank())
+            require(i.id_tienda.isNotBlank())
+            require(i.localida.isNotBlank())
+
+            val resultado = enviar_notificacion_lista_dispo(
                 id_promo = i.idnotificacion,
-                id_tienda = i.id_tienda, localidad = i.localida, categora_tienda = i.categoria,
+                id_tienda = i.id_tienda,
+                localidad = i.localida,
+                categora_tienda = i.categoria,
                 tipo_notificacion_params = i.tipo_notificacion,
                 id_users = usuarios,
                 titulo = i.parametros_notificacion.titulo_notificacion,
@@ -1213,9 +1325,12 @@ class repo_eres_socio {
                 url_img = i.parametros_notificacion.img_notifiacion,
                 prioridad = i.parametros_notificacion.priorida_notificacion
             )
-//            Log.d("NOTI", "Enviados: ${resultado.enviadosCorrectos}")
-//            Log.d("NOTI", "Fallidos: ${resultado.enviadosFallidos}")
+
+            Log.d("NOTI", "Enviados: ${resultado.enviadosCorrectos}")
+            Log.d("NOTI", "Fallidos: ${resultado.enviadosFallidos}")
+
             actualizarEstadoNotificaciones(i)
+
             val ref = db.collection("Tiendas")
                 .document(i.localida)
                 .collection(i.localida)
@@ -1223,8 +1338,18 @@ class repo_eres_socio {
                 .collection("notificaciones_enviadas")
                 .document(i.idnotificacion)
 
+            val rootRef = db.collection("Tiendas").document(i.localida)
 
-            // Transformamos los objetos anidados en Map para Firebase
+            val historialIARef = rootRef
+                .collection(i.localida)
+                .document(i.id_tienda)
+                .collection("gen_con_IA_historial")
+                .document(i.idnotificacion)
+
+            // ------------------------------------------------------------------
+            // ⬇️ NO SE TOCA: MAPS ORIGINALES (tal como pediste)
+            // ------------------------------------------------------------------
+
             val paramsMap = hashMapOf(
                 "id_tienda" to i.id_tienda,
                 "localidad" to i.localida,
@@ -1234,7 +1359,8 @@ class repo_eres_socio {
                 "img_notificacion" to i.parametros_notificacion.img_notifiacion,
                 "nombre_tienda" to i.nombre_tienda,
                 "numero_contacto" to i.numero_contacto_tienda,
-                "categoria_tienda" to i.categoira_tienda, "id_img_storage" to i.id_img_storage
+                "categoria_tienda" to i.categoira_tienda,
+                "id_img_storage" to i.id_img_storage
             )
 
             val params_notificacion = hashMapOf(
@@ -1245,6 +1371,12 @@ class repo_eres_socio {
                 "tipo_clikeable" to i.tipo_notificacion,
                 "notificacion_nueva" to i.parametros_notificacion.notificacion_publicidad,
                 "total_gastado" to i.precio_envio,
+                "msje_predeterminado" to i.parametros_notificacion.mensaje_programado_whatsap
+            )
+
+            val resultado_notificacion = hashMapOf(
+                "enviados" to resultado.enviadosCorrectos,
+                "fallido" to resultado.enviadosFallidos
             )
 
             val suspendidoMap = hashMapOf(
@@ -1254,19 +1386,63 @@ class repo_eres_socio {
 
             val hashMap = hashMapOf<String, Any>(
                 "fecha_envio" to i.fecha_enviada,
-                "params_noti" to paramsMap,
+                "datos_de_notificacion" to paramsMap,
                 "observacion" to suspendidoMap,
-                "params_notificacion" to params_notificacion
+                "resultado_notificacion" to resultado_notificacion,
+                "params_notificacion" to params_notificacion,
+                "fecha_caducidad" to i.fecha_caducidad
             )
 
-            // Usando await() para que sea verdaderamente suspend
+            // ------------------------------------------------------------------
+            // 🤖 IA OPCIONAL (CORRECTO)
+            // ------------------------------------------------------------------
+
+            val generacionSeleccionada =
+                i.generaciones_con_ia_notificaciones?.generacion_selecionada
+
+            val nombreGeneracion: String? =
+                if (
+                    generacionSeleccionada != null &&
+                    generacionSeleccionada.titulo.isNotBlank() &&
+                    generacionSeleccionada.descripcion.isNotBlank()
+                ) {
+                    val descripcionAcortada = acortarDescripcionNotificacion(
+                        generacionSeleccionada.descripcion
+                    )
+
+                    crear_notificacion_conIA_corta(
+                        generacionSeleccionada.titulo,
+                        descripcionAcortada
+                    )
+                } else {
+                    null
+                }
+
+            val historialIAData = mutableMapOf<String, Any>(
+                "fecha" to Timestamp.now(),
+                "id_promo_o_noti" to i.idnotificacion,
+                "tipo" to "notificacion",
+                "generacions_con_IA" to i.generaciones_con_ia_notificaciones
+            )
+
+            nombreGeneracion?.let {
+                historialIAData["nombre_generacion"] = it
+            }
+
+            // ------------------------------------------------------------------
+            // ✅ GUARDADO FINAL
+            // ------------------------------------------------------------------
+
             ref.set(hashMap).await()
+            historialIARef.set(historialIAData, SetOptions.merge()).await()
+
             Log.d("FIREBASE_NOTI", "✅ Notificación guardada correctamente")
 
         } catch (e: Exception) {
             Log.e("FIREBASE_NOTI", "❌ Error al guardar notificación", e)
         }
     }
+
 
     suspend fun obtenerSeguidoresTienda(localidad: String, idTienda: String): List<String> {
         val db = FirebaseFirestore.getInstance()
@@ -1361,7 +1537,7 @@ class repo_eres_socio {
     }
 
 
-    suspend fun verificar_envio_notificaciones(
+    suspend fun     verificar_envio_notificaciones(
         localidad: String, id_tienda: String
     ): Boolean {
 
@@ -1444,29 +1620,44 @@ class repo_eres_socio {
             val fechas = datos_hora_fecha["dias"] as? Map<*, *> ?: emptyMap<String, Any>()
             val tipo_hora_dias = doc.get("tipo_hora_dias") as? String ?: ""
 
+            val datosHoraFecha = doc["datos_hora_fecha"] as? Map<*, *> ?: emptyMap<Any, Any>()
+            val diasMap = datosHoraFecha["dias"] as? Map<*, *> ?: emptyMap<Any, Any>()
+            val horasMap = datosHoraFecha["horas"] as? Map<*, *> ?: emptyMap<Any, Any>()
+            val menjsa_predeterminado_whatsap=doc.get("mensaje_predeterminado") as? Map<String, Any>
+            val wsap_msej=menjsa_predeterminado_whatsap?.get("whatsapp")  as? Map<String, Any>
+            val wsap=wsap_msej?.get("msje_predermindo") as? String?:""
             // 🔹 Obtenemos el timestamp final según tipo (horas o días)
-            val timestampFin = when (tipo_hora_dias) {
-                "horas" -> (horas["timestamp_fin"] as? Number)?.toLong() ?: 0L
-                "dias" -> (fechas["timestamp_fin"] as? Number)?.toLong() ?: 0L
-                else -> 0L
-            }
-            val timestampFinMs =
-                if (timestampFin < 1000000000000L) timestampFin * 1000 else timestampFin
 
-            val tiempoRestanteString = tiempoRestante(timestampFinMs)
+            val timestampFin = when (tipo_hora_dias) {
+                "horas" -> (horasMap["timestamp_fin"] as? Timestamp)
+                "dias" -> (diasMap["timestamp_fin"]  as? Timestamp)
+                else -> null
+            }
+
+
+            val tiempo = timestampFin?.let {
+                constantes_datos_expirados_fechas_publicaciones.tiempoRestante(
+                    it
+                )
+            } ?: "Expirado"
+
+
+            val (valorRestante, tipo) = parseDiasHorasRestantes(tiempo)
+
             val listaImg = imgContainer?.get("lista_img") as? List<*>
             val img = listaImg?.firstOrNull() as? String ?: ""
-            if (!tiempoRestanteString.equals("Expirado") && !tiempoRestanteString.equals("0 días")) {
+            if(!tiempo.equals("Expirado")){
                 resultado.add(
                     datos_publicaciones_realizadas(
                         titulo = titulo,
                         descripcion = descripcion,
-                        vence_en = tiempoRestanteString,
+                        vence_en = tiempo,
                         id = id,
-                        img = img
+                        img = img,wsap,timestampFin?: Timestamp.now()
                     )
                 )
             }
+
 
         }
 
@@ -1532,6 +1723,26 @@ class repo_eres_socio {
         return listaOrdenada
     }
 
+
+    fun parseDiasHorasRestantes(diasRestantesStr: String): Pair<Int, String> {
+        // Ejemplos de strings que podrías tener: "3 días restantes" o "5 horas restantes"
+        val regex = """(\d+)\s*(día|días|hora|horas)""".toRegex()
+        val match = regex.find(diasRestantesStr)
+        return if (match != null) {
+            val valor = match.groupValues[1].toIntOrNull() ?: 0
+            val tipo = if (match.groupValues[2].startsWith("día")) "dias" else "horas"
+            valor to tipo
+        } else {
+            0 to "dias"
+        }
+    }
+
+
+    fun obtenerFechaFinDosDias(): Timestamp {
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.DAY_OF_MONTH, 2) // sumamos 2 días
+        return Timestamp(cal.time)
+    }
 
     fun tiempoRestante(timestampFin: Long): String {
         val ahoraMs = System.currentTimeMillis()

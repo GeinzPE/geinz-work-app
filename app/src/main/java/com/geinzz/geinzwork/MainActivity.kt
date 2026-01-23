@@ -17,9 +17,12 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.rememberNavController
+import com.geinzz.geinzwork.data.model.localizate_geinz.DeepLinkViewModelFactory
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.UiAction
+import com.geinzz.geinzwork.model.SessionRepository
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.nativationWrapper
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.handleScanResult
@@ -31,6 +34,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordena
 import com.geinzz.geinzwork.viewModels.DeepLinkViewModel
 import com.geinzz.geinzwork.viewModels.UiActionViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_usuarios_general
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.delay
@@ -39,15 +43,21 @@ import java.net.URLEncoder
 
 class MainActivity : AppCompatActivity() {
 
+
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var datosViewModel: viewModel_usuarios_general
-    private val deepLinkViewModel: DeepLinkViewModel by viewModels()
+    private lateinit var deepLinkViewModel: DeepLinkViewModel
     private lateinit var navController: androidx.navigation.NavHostController
     lateinit var cropLauncher: ActivityResultLauncher<Intent>
     private val uiActionVM: UiActionViewModel by viewModels()
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (FirebaseApp.getApps(this).isEmpty()) {
+            FirebaseApp.initializeApp(this)
+        }
+        firebaseAuth = FirebaseAuth.getInstance()
+
         enableEdgeToEdge()
         cropLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -61,9 +71,17 @@ class MainActivity : AppCompatActivity() {
 
         crearCanalNotificaciones()
 
-        firebaseAuth = FirebaseAuth.getInstance()
+
         datosViewModel = ViewModelProvider(this)[viewModel_usuarios_general::class.java]
         datosViewModel.obtener_localida_nombre_user(firebaseAuth.uid.toString())
+
+
+        val sessionRepository = SessionRepository(applicationContext)
+
+        deepLinkViewModel = ViewModelProvider(
+            this,
+            DeepLinkViewModelFactory(sessionRepository)
+        )[DeepLinkViewModel::class.java]
 
         procesarIntent(intent)
 
@@ -71,7 +89,7 @@ class MainActivity : AppCompatActivity() {
             FuenteControladaApp {
                 GeinzWorkTheme {
                     navController = rememberNavController()
-                    nativationWrapper(uiActionVM,navController)
+                    nativationWrapper(uiActionVM,navController,deepLinkViewModel)
 
                     LaunchedEffect(Unit) {
                         delay(150)
@@ -218,6 +236,7 @@ class MainActivity : AppCompatActivity() {
 
             "prn"->{
                 deepLinkViewModel.setPromo_notificacion(
+                    "promo_notificacion",
                     id_tienda = id,
                     lugar = localidad,
                     id_promo = id_promocion,

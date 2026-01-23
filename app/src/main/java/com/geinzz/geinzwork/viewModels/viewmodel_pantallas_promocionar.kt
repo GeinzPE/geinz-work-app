@@ -195,6 +195,13 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     val estado_texto_whatsap_con_ia: StateFlow<ESstado_ia_msje_whatsap> =
         _estado_texto_whatsap_con_ia
 
+
+    private val _estado_texto_whatsap_con_ia_notificacion =
+        MutableStateFlow<Estado_ia_mensaje_whatsap_notificaion>(Estado_ia_mensaje_whatsap_notificaion.Idle)
+
+    val estado_texto_whatsap_con_ia_notificacion: StateFlow<Estado_ia_mensaje_whatsap_notificaion> =
+        _estado_texto_whatsap_con_ia_notificacion
+
     private val _estado_texto_compartir_con_ia =
         MutableStateFlow<ESstado_ia_msje_compartir>(ESstado_ia_msje_compartir.Idle)
 
@@ -226,6 +233,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
 
     fun mejorar_texto_con_promo_IA(
+        tipo_generacion: repo_pantallas_promocionar.TipoGeneracionIA, // 👈 enum directo
         saldo_tienda: Int,
         localidad_tienda: String,
         id_tienda: String,
@@ -234,7 +242,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         descripcionUsuario: String,
         nombreTienda: String,
         localidad: String,
-        diasRestantes: Int
     ) {
         viewModelScope.launch {
             _estado_promociones_ia.value = EstadoIA.Loading
@@ -244,12 +251,13 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                     _estado_promociones_ia.value = EstadoIA.Error("Saldo insuficiente")
                     return@launch
                 }
+
                 val lista = insta_repo.generar_promociones_con_IA(
+                    tipo_generacion,
                     tituloUsuario,
                     descripcionUsuario,
                     nombreTienda,
-                    localidad,
-                    diasRestantes
+                    localidad
                 )
 
                 if (lista.isNotEmpty()) {
@@ -499,6 +507,73 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     }
 
 
+
+    fun mejorar_texto_perzonalizado_whatsapp_notificacion(
+        saldo_tienda: Int,
+        localidad_tienda: String,
+        id_tienda: String,
+        nombre_tienda: String,
+        titulo_publicacion: String,
+        descripcion: String
+    ) {
+        viewModelScope.launch {
+            _estado_texto_whatsap_con_ia_notificacion.value =
+                Estado_ia_mensaje_whatsap_notificaion.Loading
+            if (saldo_tienda < 10) {
+                _estado_texto_whatsap_con_ia_notificacion.value =
+                    Estado_ia_mensaje_whatsap_notificaion.Error("Saldo insuficiente")
+                return@launch
+            }
+
+            try {
+                insta_repo.mejorar_texto_perzonalizado_whatsapp(
+                    titulo_publicacion,
+                    descripcion
+                ) { notificacionIA ->
+
+                    if (notificacionIA.isBlank()) {
+                        _estado_texto_whatsap_con_ia_notificacion.value =
+                            Estado_ia_mensaje_whatsap_notificaion.Error("No se pudo generar el mensaje")
+                        return@mejorar_texto_perzonalizado_whatsapp
+                    }
+
+                    _estado_texto_whatsap_con_ia_notificacion.value =
+                        Estado_ia_mensaje_whatsap_notificaion.Success(notificacionIA)
+
+                    val historial = historial_descuento(
+                        tipo_transaccion = "descuento",
+                        fecha = obtenerFechaActual(),
+                        hora = obtenerHoraActual(),
+                        id_recarga = constantes_cobro_monedas.generarIdRecarga(),
+                        localidad_tienda = localidad_tienda,
+                        id_tienda = id_tienda,
+                        nombre_tienda = nombre_tienda,
+                        monto_descuento = "10",
+                        tipo = "Gen IA (Mensaje WhatsApp personalizado)",
+                        precio_soles = constantes_cobro_monedas
+                            .calcular_precio_soles("10")
+                            .toString(),
+                        estado = "Aceptado",
+                        monto_restante = saldo_tienda - 10
+                    )
+
+                    viewmodel_recargas.restar_puntos_recarga(
+                        historial,
+                        "10",
+                        id_tienda,
+                        localidad_tienda
+                    )
+                }
+            } catch (e: Exception) {
+                _estado_texto_whatsap_con_ia_notificacion.value =
+                    Estado_ia_mensaje_whatsap_notificaion.Error(
+                        e.message ?: "Error al generar el mensaje"
+                    )
+            }
+        }
+    }
+
+
     fun mejorar_texto_perzonalizado_compatir(
         saldo_tienda: Int,
         localidad_tienda: String,
@@ -658,6 +733,9 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         }
     }
 
+    fun cambiar_estado_img_notifi_select (){
+        _estadoImagen.value=ImagenEstado.Idle
+    }
     fun eliminarImagen(idTienda: String, idTemporal: String) {
         Log.d("FirebaseDelete", "$idTienda $idTemporal")
         viewModelScope.launch {
@@ -704,6 +782,8 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     }
 
 
+
+
     sealed class EstadoValidacionNotificacion {
         object Idle : EstadoValidacionNotificacion()
         object Permitida : EstadoValidacionNotificacion()
@@ -729,18 +809,38 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
     sealed class ESstado_ia_msje_whatsap {
         object Idle : ESstado_ia_msje_whatsap()
+        data class reseteo (val mensaje: String="Mira esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25") : ESstado_ia_msje_whatsap()
         object Loading : ESstado_ia_msje_whatsap()
         data class Success(val txt_descripcion: String) : ESstado_ia_msje_whatsap()
         data class Error(val mensaje: String) : ESstado_ia_msje_whatsap()
     }
 
+    sealed class Estado_ia_mensaje_whatsap_notificaion{
+        object Idle : Estado_ia_mensaje_whatsap_notificaion()
+        data class reseteo (val mensaje: String="Hola, quiero mas informacion sobre lo que vi en ") : Estado_ia_mensaje_whatsap_notificaion()
+        object Loading : Estado_ia_mensaje_whatsap_notificaion()
+        data class Success(val txt_descripcion: String) : Estado_ia_mensaje_whatsap_notificaion()
+        data class Error(val mensaje: String) : Estado_ia_mensaje_whatsap_notificaion()
+    }
+
     sealed class ESstado_ia_msje_compartir {
         object Idle : ESstado_ia_msje_compartir()
+        data class reseteo (val mensaje: String="Hola, quiero esta oferta que vi Geinz:") : ESstado_ia_msje_compartir()
         object Loading : ESstado_ia_msje_compartir()
         data class Success(val txt_descripcion: String) : ESstado_ia_msje_compartir()
         data class Error(val mensaje: String) : ESstado_ia_msje_compartir()
     }
 
+
+    fun reseteo_wshap_promocion(){
+        _estado_texto_whatsap_con_ia.value= ESstado_ia_msje_whatsap.reseteo()
+    }
+    fun reseteo_compartir(){
+        _estado_texto_compartir_con_ia.value= ESstado_ia_msje_compartir.reseteo()
+    }
+    fun reseteo_wshap_notificacion(){
+        _estado_texto_whatsap_con_ia_notificacion.value= Estado_ia_mensaje_whatsap_notificaion.reseteo()
+    }
 
 
     sealed class EstadoEnvioNotificacion {

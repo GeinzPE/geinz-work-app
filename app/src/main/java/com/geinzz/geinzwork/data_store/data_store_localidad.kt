@@ -30,7 +30,7 @@ object data_store_localidad {
     private val LONGITUD_USER_KEY = doublePreferencesKey("longitud")
     private val HORA_HASHING_USER_KEY = stringPreferencesKey("hora_hashing_user")
 
-    private val UID_USER_REGISTER = stringPreferencesKey("uid_user_register")
+    val UID_USER_REGISTER = stringPreferencesKey("uid_user_register")
     private val EMAIL_USER_REGISTER = stringPreferencesKey("email_user_register")
 
     private val KEY_URLS_salud = stringPreferencesKey("urls_carga_salud")

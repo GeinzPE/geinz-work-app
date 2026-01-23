@@ -2,9 +2,13 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,6 +41,7 @@ import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +51,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -54,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -114,6 +121,10 @@ fun bottom_sheet_historial_pago(
         viewmodel_monedas.obtner_historial_pagos_tienda(id_tienda, localidad)
     }
 
+    val expandedMap = remember {
+        mutableStateMapOf<String, Boolean>()
+    }
+
     ModalBottomSheet(
         onDismissRequest = { ondimis() },
         modifier = Modifier.fillMaxWidth(),
@@ -149,11 +160,14 @@ fun bottom_sheet_historial_pago(
                                     filtro = subCategoriaSeleccionada
                                 )
                             }
+
+                        val historialAgrupado =
+                            viewmodel_monedas.agruparHistorialPorFecha(listaFiltrada)
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .fillMaxHeight()
-                            ) {
+                        ) {
 
                             LazyColumn(
                                 modifier = Modifier
@@ -240,8 +254,6 @@ fun bottom_sheet_historial_pago(
                                             )
                                         }
                                     }
-//                                PieChartGastoMonedasVsSoles(lista)
-
                                 }
                                 item {
                                     LazyRow(
@@ -267,20 +279,173 @@ fun bottom_sheet_historial_pago(
                                     }
                                 }
 
-                                items(listaFiltrada, key = {item->item.id_transaccion}) { item ->
-                                    Box(
-                                        modifier = Modifier.animateItem(
-                                            placementSpec = tween(
-                                                durationMillis = 350,
-                                                easing = FastOutSlowInEasing
-                                            )
-                                        )
-                                    ){
-                                    item_historial_pagos(item)
+                                historialAgrupado.forEach { (fecha, listaPorFecha) ->
+
+                                    val expanded = expandedMap[fecha] ?: false
+
+                                    item(key = "group_$fecha") {
+
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 6.dp)
+                                                .clip(RoundedCornerShape(20.dp))
+                                                .animateContentSize()
+                                                .background(
+                                                    if (expanded)
+                                                        MaterialTheme.colorScheme.surface
+                                                    else
+                                                        Color.Transparent
+                                                )
+                                        ) {
+
+                                            // 🔹 HEADER
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable {
+                                                        expandedMap[fecha] = !expanded
+                                                    }
+                                                    .padding(vertical = 12.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+
+                                                Divider(
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .height(1.dp)
+                                                )
+
+                                                Text(
+                                                    text = fecha,
+                                                    style = MaterialTheme.typography.labelMedium.copy(
+                                                        fontWeight = FontWeight.Bold
+                                                    ),
+                                                    fontSize = 20.sp,
+                                                    modifier = Modifier.padding(horizontal = 12.dp)
+                                                )
+
+                                                Divider(
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .height(1.dp)
+                                                )
+                                            }
+
+                                            // 🔹 CONTENIDO EXPANDIDO
+                                            AnimatedVisibility(
+                                                visible = expanded,
+                                                exit = fadeOut()
+                                                ,modifier = Modifier.animateContentSize()
+                                            ) {
+                                                Column(modifier = Modifier.animateContentSize()) {
+                                                    Spacer(modifier = Modifier.height(4.dp))
+
+                                                    listaPorFecha.forEachIndexed { index, item ->
+
+                                                        AnimatedVisibility(
+                                                            visible = expanded,
+                                                            enter = fadeIn(
+                                                                tween(300, delayMillis = index * 60)
+                                                            ) + slideInVertically(
+                                                                tween(
+                                                                    300,
+                                                                    delayMillis = index * 60
+                                                                ),
+                                                                initialOffsetY = { it / 4 }
+                                                            ),
+                                                            exit = fadeOut()
+                                                        ) {
+
+                                                            Column {
+
+                                                                Box(
+                                                                    modifier = Modifier
+                                                                        .animateItem(
+                                                                            placementSpec = tween(
+                                                                                350,
+                                                                                easing = FastOutSlowInEasing
+                                                                            )
+                                                                        )
+                                                                        .padding(horizontal = 12.dp)
+                                                                ) {
+                                                                    item_historial_pagos(item)
+                                                                }
+
+                                                                Spacer(modifier = Modifier.height(8.dp)) // 👈 espacio entre items
+                                                            }
+                                                        }
+                                                    }
+
+
+                                                    // 🔹 TOTAL DEL DÍA
+                                                    val totalMonedas = listaPorFecha
+                                                        .filter { it.tipo_realziado == "descuento" }
+                                                        .sumOf { it.monedas.toDouble() }
+
+                                                    val totalSoles = listaPorFecha
+                                                        .filter { it.tipo_realziado == "descuento" }
+                                                        .sumOf { it.precio_soles.toDoubleSeguro() }
+
+                                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                                    if (subCategoriaSeleccionada != "Recargas") {
+                                                    Divider(modifier = Modifier.padding(horizontal = 12.dp))
+                                                        Column(
+                                                            modifier = Modifier
+                                                                .fillMaxWidth()
+                                                                .padding(16.dp)
+                                                        ) {
+                                                            Row(
+                                                                modifier = Modifier.fillMaxWidth(),
+                                                                horizontalArrangement = Arrangement.SpaceBetween
+                                                            ) {
+                                                                texto_generico_one_line(
+                                                                    "Total del día",
+                                                                    style = MaterialTheme.typography.titleSmall
+                                                                )
+
+                                                                texto_generico_one_line(
+                                                                    "S/ ${"%.2f".format(totalSoles)}",
+                                                                    style = MaterialTheme.typography.titleSmall
+                                                                )
+                                                            }
+
+                                                            Spacer(modifier = Modifier.height(4.dp))
+
+                                                            Row(
+                                                                verticalAlignment = Alignment.CenterVertically
+                                                            ) {
+                                                                texto_generico_one_line(
+                                                                    "Total en monedas",
+                                                                    style = MaterialTheme.typography.titleSmall
+                                                                )
+
+                                                                Spacer(modifier = Modifier.weight(1f))
+
+                                                                texto_generico_one_line(
+                                                                    totalMonedas.toInt().toString(),
+                                                                    style = MaterialTheme.typography.titleSmall
+                                                                )
+
+                                                                Spacer(modifier = Modifier.width(5.dp))
+
+                                                                Image(
+                                                                    painter = painterResource(R.drawable.icon_monedas_3d),
+                                                                    contentDescription = null,
+                                                                    modifier = Modifier.size(20.dp)
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
+
                                 item {
-                                    if (listaFiltrada.isEmpty()) {
+                                    if (historialAgrupado.isEmpty()) {
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
@@ -522,7 +687,6 @@ fun calcularTotalSolesDescuento(lista: List<historial_financiero>): Double {
 }
 
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 fun convertirHoraAmPm(hora24: String): String {
     return try {
@@ -571,5 +735,13 @@ fun obtenerLineaSoles(lista: List<historial_financiero>): List<Float> {
         total += it.precio_soles.toFloatOrNull() ?: 0f
         total
     }
+}
+
+fun String.toDoubleSeguro(): Double {
+    return this
+        .replace("S/", "")
+        .replace(",", "")
+        .trim()
+        .toDoubleOrNull() ?: 0.0
 }
 

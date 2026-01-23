@@ -102,7 +102,9 @@ private lateinit var firebaseAuth: FirebaseAuth
 fun nativationWrapper(
     uiActionVM: UiActionViewModel,
     navegacion: NavHostController,
+    deepLinkVM: DeepLinkViewModel,
     connectivityViewModel: ConnectivityViewModel = viewModel()
+
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -133,7 +135,6 @@ fun nativationWrapper(
 
     val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
     ?: ""
-    val deepLinkVM: DeepLinkViewModel = viewModel()
 
     var email_respaldo_user by remember { mutableStateOf("") }
     var datos_principales_user by remember {
@@ -183,7 +184,7 @@ fun nativationWrapper(
     }
 
     val viewmodelFavoritos: viewModel_favoritos = viewModel(
-        key = "favoritos_${uid_respald_user ?: ""}",
+        key = "favoritos_${id_user ?: ""}",
         factory = FavoritosFactory(id_user)
     )
 
@@ -192,7 +193,6 @@ fun nativationWrapper(
             datos_principales_user = datos_principales_user(it.nombre, it.img_perfil, it.localida)
         }
     }
-
 
     SideEffect {
         // Si la ruta actual es de las principales...
@@ -433,9 +433,9 @@ fun nativationWrapper(
                         listener_seguridad = { localida ->
                             navController.navigate(ui_salud_seguridad(localida))
                         },
-                        listner_sevicios_tramites = { localidad ->
+                        listner_sevicios_tramites = { localidad,id ->
 //                            navController.navigate(ui_servicios_tramites(localidad))
-                            navController.navigate(promociones_y_ofertas(localidad,""))
+                            navController.navigate(promociones_y_ofertas(localidad,id))
 
                         },
                         abrir_guardar_datos = {
@@ -455,7 +455,14 @@ fun nativationWrapper(
                         iniciar_seccion = { navController.navigate("login_principal") },
                         crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
-                        }, abir_butom_Var = {isvisble_buttomvar=true}, cerrar_buttom_var = {isvisble_buttomvar=false}
+                        }, abir_butom_Var = {isvisble_buttomvar=true}, cerrar_buttom_var = {isvisble_buttomvar=false},{
+                            navController.navigate("pantalla_principal") {
+                                popUpTo("pantalla_principal") {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
+                        }
                     )
                 }
                 // Login
@@ -585,7 +592,8 @@ fun nativationWrapper(
                 composable<promociones_y_ofertas> {navback ->
                     val datos = navback.toRoute<promociones_y_ofertas>()
                     ui_promos_cerca_de_ti(
-                        datos.id_promo,
+                        "clik_directo",
+                        activar_promo_params = datos.id_promo,
                         localidad = datos.localidad,
                         verificar_intener = isConnected,
                         iniciar_seccion = {
@@ -593,7 +601,14 @@ fun nativationWrapper(
                         },
                         crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
-                        })
+                        }, onBack = {
+                            navController.navigate("pantalla_principal") {
+                                popUpTo("pantalla_principal") {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
+                        }, )
                 }
 
                 composable<map_perzonalizado> { navback ->
@@ -773,6 +788,7 @@ fun nativationWrapper(
                 }
                 composable ("promociones_nuevas"){
                     ui_promos_cerca_de_ti(
+                        "promociones_nuevas",
                         id_promo_params,
                         localidad = "barranca",
                         verificar_intener = isConnected,
@@ -781,6 +797,14 @@ fun nativationWrapper(
                         },
                         crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
+                        },{
+                            navController.navigate("pantalla_principal") {
+                                popUpTo("pantalla_principal") {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
+
                         })
                 }
 

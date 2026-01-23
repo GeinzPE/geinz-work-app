@@ -148,6 +148,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.verificar_version
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.firebaseAuth
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.promociones_Cercanas.ui_promos_cerca_de_ti
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.guarar_token_user
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
@@ -174,12 +175,12 @@ fun pantalla_principal(
     ver_lugares: (String) -> Unit,
     listner_busqueda: () -> Unit,
     listener_seguridad: (String) -> Unit,
-    listner_sevicios_tramites: (String) -> Unit,
+    listner_sevicios_tramites: (String,String) -> Unit,
     abrir_guardar_datos: () -> Unit,
     mostrar_panel_geinz: () -> Unit,
     mostar_nuevos_lugares_geinz: (String) -> Unit,
     iniciar_seccion: () -> Unit,
-    crear_cuenta: () -> Unit, abir_butom_Var: () -> Unit, cerrar_buttom_var: () -> Unit
+    crear_cuenta: () -> Unit, abir_butom_Var: () -> Unit, cerrar_buttom_var: () -> Unit,onback_preset:()-> Unit,
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -194,6 +195,9 @@ fun pantalla_principal(
     val viewModel_filtado_tiendas: viewModel_filtado_tiendas = viewModel()
     val stateCat by viewModel_cordenadas._state_cat.observeAsState()
     val nuevas_tiendas_agregadas by viewModel_filtado_tiendas.datos_nuevos_lugares.collectAsState()
+    var navegarAPromo by remember { mutableStateOf(false) }
+    var idPromoSeleccionada by remember { mutableStateOf("") }
+    var localidad_promo_seleccionada by remember { mutableStateOf("") }
     val ultimaLocalidad by data_store_localidad
         .obtener_localidad(context)
         .collectAsState(initial = null)
@@ -575,7 +579,7 @@ fun pantalla_principal(
             item {
                 if (!mostrar_widget_tienda) {
                     spacer_vertical(20.dp)
-                    baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul) }
+                    baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul,"") }
                     spacer_vertical(20.dp)
                 }
             }
@@ -634,7 +638,7 @@ fun pantalla_principal(
             }
             item {
                 if (mostrar_widget_tienda) {
-                    baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul) }
+                    baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul,"") }
                     spacer_vertical(20.dp)
                 }
             }
@@ -715,11 +719,22 @@ fun pantalla_principal(
                         abir_butom_Var()
 
                     }, crear_cuenta = { crear_cuenta() },
-                    iniciar_seccion = { iniciar_seccion() }
+                    iniciar_seccion = { iniciar_seccion() },{onback_preset()},{it_promo_select,localidad_pasada->
+                        idPromoSeleccionada = it_promo_select
+                        localidad_promo_seleccionada=localidad_pasada
+                        navegarAPromo = true
+                        mostrarDialog = false
+                        deepLinkVM.clearPromo()
+                        abir_butom_Var()
+                    }
                 )
             }
         }
 
+        if (navegarAPromo) {
+          listner_sevicios_tramites(localidad_promo_seleccionada,idPromoSeleccionada)
+
+        }
 
         if (mostar_bottom_sheet_ayuda_geinz) {
             bottom_sheet_ayudanos_a_creccer(

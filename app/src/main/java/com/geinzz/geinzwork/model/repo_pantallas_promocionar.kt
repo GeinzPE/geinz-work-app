@@ -2,48 +2,110 @@ package com.geinzz.geinzwork.model
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.viewModelScope
+import com.geinzz.geinzwork.data.model.DatosDemograficosUsuario
 import com.geinzz.geinzwork.data.model.NotificacionIA
 import com.geinzz.geinzwork.data.model.OpcionPromocionIA
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenWebPSinRecorte
+import com.geinzz.geinzwork.herramientas_geinz.constantes.generarPromptNotificacionOptimizado
+import com.geinzz.geinzwork.herramientas_geinz.constantes.generarPromptNotificacionSeleccionada
+import com.geinzz.geinzwork.herramientas_geinz.constantes.generarPromptPromocion_text_compartir
+import com.geinzz.geinzwork.herramientas_geinz.constantes.generarPromptWhatsAppContacto
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoAtencion
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoInformativo
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoVenta
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.acortarDescripcionNotificacion
 
 import com.google.firebase.Firebase
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
+import java.time.Period
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 class repo_pantallas_promocionar {
 
+    val db = FirebaseFirestore.getInstance()
+
+    enum class TipoGeneracionIA(
+        val tituloUI: String,
+        val icono: String
+    ) {
+        VENTA(
+            tituloUI = "Venta",
+            icono = "🛒"
+        ),
+        ATENCION(
+            tituloUI = "Llamado de atención",
+            icono = "✨"
+        ),
+        INFORMATIVO(
+            tituloUI = "Informativo",
+            icono = "🏢"
+        )
+    }
+
+
+    fun generarPromptSegunTipo(
+        tipo: TipoGeneracionIA,
+        tituloUsuario: String,
+        descripcionUsuario: String,
+        nombreTienda: String,
+        localidad: String
+    ): String {
+        return when (tipo) {
+            TipoGeneracionIA.VENTA -> generarPromptPromoVenta(
+                tituloUsuario, descripcionUsuario, nombreTienda, localidad
+            )
+
+            TipoGeneracionIA.ATENCION -> generarPromptPromoAtencion(
+                tituloUsuario, descripcionUsuario, nombreTienda, localidad
+            )
+
+            TipoGeneracionIA.INFORMATIVO -> generarPromptPromoInformativo(
+                tituloUsuario, descripcionUsuario, nombreTienda, localidad
+            )
+        }
+    }
+
+
     suspend fun generar_promociones_con_IA(
+        tipo_generacion: TipoGeneracionIA,
         tituloUsuario: String,
         descripcionUsuario: String,
         nombreTienda: String,
         localidad: String,
-        diasRestantes: Int
     ): List<OpcionPromocionIA> {
+
         return try {
             val model = Firebase.ai(
                 backend = GenerativeBackend.googleAI()
             ).generativeModel("gemini-2.5-flash")
 
-            val prompt = generarPromptPromocionProduccion(
+            val prompt = generarPromptSegunTipo(
+                tipo = tipo_generacion,
                 tituloUsuario = tituloUsuario,
                 descripcionUsuario = descripcionUsuario,
                 nombreTienda = nombreTienda,
-                localidad = localidad,
-                diasRestantes = diasRestantes
+                localidad = localidad
             )
+
             val result = model.generateContent(prompt)
             val texto = result.text ?: return emptyList()
 
-            parsearOpcionesIA(texto)
+            parsearOpcionesIA(tipo_generacion,texto)
 
         } catch (e: Exception) {
             Log.e("IA", "Error IA promociones: ${e.message}")
@@ -53,14 +115,11 @@ class repo_pantallas_promocionar {
 
 
     suspend fun subirImgNotificacionTemporal(
-        context: Context,
-        uri: Uri,
-        idTemporal: String,
-        idTienda: String
+        context: Context, uri: Uri, idTemporal: String, idTienda: String
     ): Result<String> {
         return try {
-            val storageRef = Firebase.storage.reference
-                .child("tiendas/$idTienda/imagenes/notificaciones/$idTemporal")
+            val storageRef =
+                Firebase.storage.reference.child("tiendas/$idTienda/imagenes/notificaciones/$idTemporal")
 
             // Comprimir imagen y obtener ByteArray
             val imgComprimida: ByteArray = procesarImagenWebPSinRecorte(context, uri)
@@ -82,16 +141,13 @@ class repo_pantallas_promocionar {
     suspend fun eliminarImgTemporal(idTienda: String, idTemporal: String): Boolean {
         return try {
             // 1️⃣ Eliminar imagen de Storage
-            val storageRef = Firebase.storage.reference
-                .child("tiendas/$idTienda/imagenes/notificaciones/$idTemporal")
+            val storageRef =
+                Firebase.storage.reference.child("tiendas/$idTienda/imagenes/notificaciones/$idTemporal")
             storageRef.delete().await()
 
             // 2️⃣ Eliminar ID o URL de Firestore
-            val docRef = FirebaseFirestore.getInstance()
-                .collection("Tiendas")
-                .document(idTienda)
-                .collection("notificaciones_temporales")
-                .document(idTemporal)
+            val docRef = FirebaseFirestore.getInstance().collection("Tiendas").document(idTienda)
+                .collection("notificaciones_temporales").document(idTemporal)
             docRef.delete().await()
 
             true // todo salió bien
@@ -102,9 +158,7 @@ class repo_pantallas_promocionar {
     }
 
     suspend fun crear_notificacion_conIA_corta(
-        tituloPublicacion: String,
-        descCorta: String,
-        onResultado: (NotificacionIA) -> Unit
+        tituloPublicacion: String, descCorta: String, onResultado: (NotificacionIA) -> Unit
     ) {
 
         val model = Firebase.ai(
@@ -140,9 +194,7 @@ class repo_pantallas_promocionar {
 
 
     suspend fun mejorar_texto_perzonalizado_whatsapp(
-        titulo_publicacion: String,
-        descripcion: String,
-        onResultado: (String) -> Unit
+        titulo_publicacion: String, descripcion: String, onResultado: (String) -> Unit
     ) {
         val model = Firebase.ai(
             backend = GenerativeBackend.googleAI()
@@ -152,8 +204,7 @@ class repo_pantallas_promocionar {
 
         try {
             val prompt = generarPromptWhatsAppContacto(
-                titulo_publicacion,
-                descripcionAcortada
+                titulo_publicacion, descripcionAcortada
             )
 
             val inicio = System.currentTimeMillis()
@@ -175,11 +226,8 @@ class repo_pantallas_promocionar {
     }
 
 
-
     suspend fun mejorar_texto_perzonalizado_compartir(
-        titulo_publicacion: String,
-        descripcion: String,
-        onResultado: (String) -> Unit
+        titulo_publicacion: String, descripcion: String, onResultado: (String) -> Unit
     ) {
         val model = Firebase.ai(
             backend = GenerativeBackend.googleAI()
@@ -216,7 +264,6 @@ class repo_pantallas_promocionar {
     }
 
 
-
     fun crear_notificacion_conIA(
         scope: CoroutineScope,
         tituloPublicacion: String,
@@ -234,11 +281,7 @@ class repo_pantallas_promocionar {
 
             try {
                 val prompt = generarPromptNotificacionOptimizado(
-                    tituloPublicacion,
-                    descCorta,
-                    nombreTienda,
-                    localidad,
-                    diasRestantes
+                    tituloPublicacion, descCorta, nombreTienda, localidad, diasRestantes
                 )
 
                 val inicio = System.currentTimeMillis()
@@ -262,7 +305,10 @@ class repo_pantallas_promocionar {
     }
 
 
-    fun parsearOpcionesIA(texto: String): List<OpcionPromocionIA> {
+    fun parsearOpcionesIA(
+        tipo: TipoGeneracionIA,
+        texto: String
+    ): List<OpcionPromocionIA> {
 
         val opciones = mutableListOf<OpcionPromocionIA>()
 
@@ -288,6 +334,7 @@ class repo_pantallas_promocionar {
 
             opciones.add(
                 OpcionPromocionIA(
+                    tipoIA = tipo,          // 👈 AQUÍ está la magia
                     titulo = titulo,
                     descripcion = descripcion
                 )
@@ -297,181 +344,227 @@ class repo_pantallas_promocionar {
         return opciones
     }
 
+
     fun parsearRespuestaGemini(texto: String): NotificacionIA {
         var titulo = ""
         var descripcion = ""
 
         texto.lines().forEach { linea ->
             when {
-                linea.startsWith("T:") ->
-                    titulo = linea.removePrefix("T:").trim()
+                linea.startsWith("T:") -> titulo = linea.removePrefix("T:").trim()
 
-                linea.startsWith("D:") ->
-                    descripcion = linea.removePrefix("D:").trim()
+                linea.startsWith("D:") -> descripcion = linea.removePrefix("D:").trim()
             }
         }
 
         return NotificacionIA(
-            titulo = titulo,
-            descripcion = descripcion
+            titulo = titulo, descripcion = descripcion
         )
     }
 
 
-    fun generarPromptNotificacionOptimizado(
-        tituloPublicacion: String,
-        descCorta: String, // ≤60 chars
-        nombreTienda: String,
-        localidad: String,
-        diasRestantes: Int
-    ): String {
 
-        return """
-Genera un título (≤40) y una descripción (≤90) para notificación.
-No inventes datos. Español neutro.
-Usa MÁXIMO 1 emoji SOLO en el título. Sin emojis en la descripción.
-Texto claro, directo y comercial. Incluye CTA breve.
-
-Datos:
-t:$tituloPublicacion
-d:$descCorta
-n:$nombreTienda
-l:$localidad
-r:$diasRestantes
-
-Urgencia:
-r=1 -> "Último día"
-r<=3 -> "Últimos días"
-r>3 -> "Por tiempo limitado"
-
-Salida EXACTA:
-T: texto
-D: texto
-""".trimIndent()
+    enum class EventoNotificacion(val key: String) {
+        VISTA("vista"),
+        CLICK("click"),
+        CLICK_PERFIL("click_perfil"),
+        CLICK_ANUNCIO("click_anuncio"),
+        CLICK_WHATSAPP("click_whatsapp"),
+        TIEMPO_ANUNCIO("tiempo_anuncio"),
+        CERRAR_ANUNCIO("cerrar_anuncio")
     }
 
-    fun generarPromptPromocionProduccion(
-        tituloUsuario: String,
-        descripcionUsuario: String,
-        nombreTienda: String,
-        localidad: String,
-        diasRestantes: Int
-    ): String {
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun registrarEventoNotificacion(
+        localidadTienda: String,
+        idTienda: String,
+        idPromo: String,
+        idUser: String,
+        evento: EventoNotificacion,
+        valor: Long? = null
+    ) {
+        val db = FirebaseFirestore.getInstance()
 
-        return """
-Mejora el título y la descripción de una promoción usando SOLO la información dada.
-No inventes datos ni precios.
-Genera EXACTAMENTE 3 opciones distintas.
+        // Documento base de la promo
+        val promoRef = db.collection("Tiendas")
+            .document(localidadTienda)
+            .collection(localidadTienda)
+            .document(idTienda)
+            .collection("notificaciones_enviadas")
+            .document(idPromo)
 
-Reglas:
-- Título ≤60 caracteres
-- Descripción 30–50 palabras
-- Español claro y comercial
-- Sin emojis
-- Texto profesional y directo
+        val eventoDoc = promoRef.collection("eventos").document(evento.key)
+        val hoy = LocalDate.now().toString()
 
-Datos reales:
-titulo:$tituloUsuario
-descripcion:$descripcionUsuario
-tienda:$nombreTienda
-localidad:$localidad
-duracion:$diasRestantes dias
+        // 1️⃣ Guardar tiempo individual por usuario
+        if (valor != null) {
+            val usuarioRef = eventoDoc.collection("usuarios").document(idUser)
+                .collection("por_dia").document(hoy)
 
-Salida EXACTA:
-Opcion 1:
-T:
-D:
+            usuarioRef.update("totalSegundos", FieldValue.increment(valor))
+                .addOnFailureListener {
+                    usuarioRef.set(mapOf("totalSegundos" to valor))
+                }
+        }
 
-Opcion 2:
-T:
-D:
+        // 2️⃣ TOTAL GLOBAL
+        incrementar(eventoDoc) // sigue sumando eventos globales
 
-Opcion 3:
-T:
-D:
-""".trimIndent()
-    }
+        // 3️⃣ POR DÍA GLOBAL
+        incrementar(eventoDoc.collection("por_dia").document(hoy))
 
+        // 4️⃣ Alcance único
+        if (evento == EventoNotificacion.VISTA) {
+            registrarAlcanceUnico(eventoDoc, idUser)
+        }
 
-    fun generarPromptPromocion_text_compartir(
-        tituloUsuario: String,
-        descripcionUsuario: String,
-    ): String {
-
-        return """
-Crea un mensaje muy corto para compartir y provocar clic inmediato.
-
-Reglas:
-- Máx 18 palabras
-- Español
-- Usa información concreta del título
-- Inicio fuerte y directo
-- EXACTAMENTE 2 emojis
-- Sin preguntas
-- Sin relleno
-- Devuelve SOLO el texto
-
-Datos:
-$tituloUsuario
-$descripcionUsuario
-""".trimIndent()
+        // 5️⃣ Demografía
+        if (evento != EventoNotificacion.CERRAR_ANUNCIO) {
+            registrarDemografiaEvento(eventoDoc, idUser)
+        }
     }
 
 
 
-    fun generarPromptWhatsAppContacto(
-        titulo: String,
-        descripcion: String,
-    ): String {
 
-        return """
-Actúa como un cliente interesado que contacta por WhatsApp.
+    fun registrarDemografiaEvento(
+        eventoDoc: DocumentReference,
+        idUser: String
+    ) {
+        obtenerDatosUsuario(idUser) { datos ->
+            if (datos == null) return@obtenerDatosUsuario
 
-Reglas:
-- Mensaje de WhatsApp
-- Máx 60 caracteres
-- Español
-- Natural y respetuoso
-- Estructura: saludo + interés en el título + pregunta de disponibilidad
-- Incluye EXACTAMENTE 1 emoji
-- No inventes datos
-- Devuelve SOLO el mensaje
+            // 📍 LOCALIDAD
+            if (datos.localidad.isNotEmpty()) {
+                incrementar(
+                    eventoDoc.collection("localidad")
+                        .document(datos.localidad)
+                )
+            }
 
-Datos:
-Título: $titulo
-Descripción: $descripcion
-""".trimIndent()
+            // 👤 GÉNERO
+            if (datos.genero.isNotEmpty()) {
+                incrementar(
+                    eventoDoc.collection("genero")
+                        .document(datos.genero.lowercase())
+                )
+            }
+
+            // 🎂 EDAD
+            incrementar(
+                eventoDoc.collection("edad")
+                    .document(obtenerRangoEdad(datos.edad))
+            )
+        }
     }
 
 
 
-    fun generarPromptNotificacionSeleccionada(
-        tituloPublicacion: String,
-        descCorta: String
-    ): String {
 
-        return """
-Crea una notificación PUSH comercial.
-Reescribe desde cero, pero CONSERVA los datos clave del contexto.
-No inventes información.
-
-Reglas:
-- Mantén producto, precio y lugar si existen
-- Cambia redacción y enfoque (beneficio / urgencia / acción)
-- Título y descripción deben ser nuevos
-- Título ≤40, descripción ≤90
-- Español neutro, CTA corto
-- 1 emoji SOLO en título
-
-Base (contexto):
-T:$tituloPublicacion
-D:$descCorta
-
-Salida EXACTA:
-T:
-D:
-""".trimIndent()
+    fun incrementar(ref: DocumentReference) {
+        ref.update("total", FieldValue.increment(1))
+            .addOnFailureListener {
+                ref.set(mapOf("total" to 1))
+            }
     }
 
+
+    fun registrarAlcanceUnico(
+        eventoDoc: DocumentReference,
+        idUser: String
+    ) {
+        val ref = eventoDoc
+            .collection("alcance_users")
+            .document(idUser)
+
+        ref.get().addOnSuccessListener { doc ->
+            if (!doc.exists()) {
+                ref.set(mapOf("ts" to FieldValue.serverTimestamp()))
+                incrementar(
+                    eventoDoc.collection("alcance")
+                        .document("total")
+                )
+            }
+        }
+    }
+    object MedidorTiempoAnuncio {
+        private var inicio: Long = 0L
+        private var cerrado = false
+
+        fun iniciar() {
+            inicio = System.currentTimeMillis()
+            cerrado = false
+        }
+
+        fun finalizarUnaVez(): Long? {
+            if (cerrado) return null
+            cerrado = true
+            return ((System.currentTimeMillis() - inicio) / 1000).coerceAtLeast(1)
+        }
+    }
+
+
+
+
+
+    fun obtenerRangoEdad(edad: Int): String {
+        return when (edad) {
+            in 18..25 -> "18-25"
+            in 26..35 -> "26-35"
+            in 36..45 -> "36-45"
+            else -> "otro"
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun obtenerDatosUsuario(
+        idUser: String,
+        onResult: (DatosDemograficosUsuario?) -> Unit
+    ) {
+        db.collection("Trabajadores_Usuarios_Drivers")
+            .document("users")
+            .collection("users")
+            .document(idUser)
+            .get()
+            .addOnSuccessListener { snapshot ->
+
+                if (!snapshot.exists()) {
+                    onResult(null)
+                    return@addOnSuccessListener
+                }
+
+                val data = snapshot.data ?: run {
+                    onResult(null)
+                    return@addOnSuccessListener
+                }
+
+                val fechaNacString = data["fecha_nac"] as? String
+
+                val edad = try {
+                    fechaNacString?.let {
+                        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                        val fechaNac = LocalDate.parse(it, formatter)
+                        Period.between(fechaNac, LocalDate.now()).years
+                    } ?: 0
+                } catch (e: Exception) {
+                    0 // 🔒 nunca crashea
+                }
+
+                onResult(
+                    DatosDemograficosUsuario(
+                        localidad = data["localida"] as? String ?: "",
+                        nacionalidad = data["nacionalidad_nacimiento"] as? String ?: "",
+                        genero = data["genero"] as? String ?: "",
+                        edad = edad
+                    )
+                )
+            }
+            .addOnFailureListener {
+                onResult(null)
+            }
+    }
 
 }
+
+
+

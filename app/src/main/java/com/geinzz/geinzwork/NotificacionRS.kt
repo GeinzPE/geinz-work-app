@@ -2,6 +2,7 @@ package com.geinzz.geinzwork
 
 import android.content.Context
 import android.util.Log
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.notificacionesFCM
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
@@ -144,72 +145,72 @@ class NotificacionRS {
         })
     }
 
-//    fun enviarNotificacionFCM_LINK(
-//        id_user: String,
-//        token: String,
-//        titulo: String,
-//        cuerpo: String,
-//        link: String,
-//        tipoNotificacion: String,
-//        urlLogo: String? = null,
-//        urlImagen: String? = null,
-//        prioridad: String = "high",
-//        resultado: (token: String, exito: Boolean) -> Unit
-//    ) {
-//
-//        val jsonBody = """
-//    {
-//      "token": "$token",
-//      "title": "$titulo",
-//      "body": "$cuerpo",
-//      "link": "$link",
-//      "tipo_notificacion": "$tipoNotificacion",
-//      "logo": "${urlLogo ?: ""}",
-//      "image": "${urlImagen ?: ""}",
-//      "prioridad": "$prioridad"
-//    }
-//    """.trimIndent()
-//
-//        val client = OkHttpClient()
-//        val requestBody = jsonBody.toRequestBody("application/json".toMediaType())
-//
-//        val request = Request.Builder()
-//            .url(CLOUD_FUNCTION_URL)
-//            .post(requestBody)
-//            .addHeader("Content-Type", "application/json")
-//            .build()
-//
-//        client.newCall(request).enqueue(object : Callback {
-//
-//            override fun onFailure(call: Call, e: IOException) {
-//                Log.e("FCM_ENVIO", "Error con token $token: ${e.message}")
-//                resultado(token, false)
-//            }
-//
-//            override fun onResponse(call: Call, response: Response) {
-//                val bodyStr = response.body?.string() ?: ""
-//
-//                val exito = bodyStr.contains("Notificación enviada", true)
-//                val tokenInvalido =
-//                    bodyStr.contains("not a valid FCM registration token", true)
-//
-//                when {
-//                    exito -> {
-//                        Log.d("FCM_ENVIO", "✅ Enviado a token: $token")
-//                        resultado(token, true)
-//                    }
-//                    tokenInvalido -> {
-//                        Log.d("FCM_ENVIO", "❌ Token inválido: $token")
-//                        resultado(token, false)
-//                    }
-//                    else -> {
-//                        Log.d("FCM_ENVIO", "⚠️ Error desconocido con token: $token")
-//                        resultado(token, false)
-//                    }
-//                }
-//            }
-//        })
-//    }
+    fun enviarNotificacionFCM_LINK(
+        id_user: String,
+        token: String,
+        titulo: String,
+        cuerpo: String,
+        link: String,
+        tipoNotificacion: String,
+        urlLogo: String? = null,
+        urlImagen: String? = null,
+        prioridad: String = "high",
+        resultado: (token: String, exito: Boolean) -> Unit
+    ) {
+
+        val jsonBody = """
+    {
+      "token": "$token",
+      "title": "$titulo",
+      "body": "$cuerpo",
+      "link": "$link",
+      "tipo_notificacion": "$tipoNotificacion",
+      "logo": "${urlLogo ?: ""}",
+      "image": "${urlImagen ?: ""}",
+      "prioridad": "$prioridad"
+    }
+    """.trimIndent()
+
+        val client = OkHttpClient()
+        val requestBody = jsonBody.toRequestBody("application/json".toMediaType())
+
+        val request = Request.Builder()
+            .url(CLOUD_FUNCTION_URL)
+            .post(requestBody)
+            .addHeader("Content-Type", "application/json")
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("FCM_ENVIO", "Error con token $token: ${e.message}")
+                resultado(token, false)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val bodyStr = response.body?.string() ?: ""
+
+                val exito = bodyStr.contains("Notificación enviada", true)
+                val tokenInvalido =
+                    bodyStr.contains("not a valid FCM registration token", true)
+
+                when {
+                    exito -> {
+                        Log.d("FCM_ENVIO", "✅ Enviado a token: $token")
+                        resultado(token, true)
+                    }
+                    tokenInvalido -> {
+                        Log.d("FCM_ENVIO", "❌ Token inválido: $token")
+                        resultado(token, false)
+                    }
+                    else -> {
+                        Log.d("FCM_ENVIO", "⚠️ Error desconocido con token: $token")
+                        resultado(token, false)
+                    }
+                }
+            }
+        })
+    }
 
     suspend fun enviarNotificacionFCM_LINK_SUSPEND(
         id_user: String,
@@ -264,6 +265,94 @@ class NotificacionRS {
             }
         })
     }
+
+//    suspend fun enviarNotificacionFCM_LINK_SUSPEND(
+//        id_user: String,
+//        token: String,
+//        titulo: String,
+//        cuerpo: String,
+//        link: String,
+//        tipoNotificacion: String,
+//        urlLogo: String? = null,
+//        urlImagen: String? = null,
+//        prioridad: String = "high"
+//    ): notificacionesFCM.ResultadoFCM = suspendCancellableCoroutine { cont ->
+//
+//        val jsonBody = """
+//    {
+//      "token": "$token",
+//      "title": "$titulo",
+//      "body": "$cuerpo",
+//      "link": "$link",
+//      "tipo_notificacion": "$tipoNotificacion",
+//      "logo": "${urlLogo ?: ""}",
+//      "image": "${urlImagen ?: ""}",
+//      "prioridad": "$prioridad"
+//    }
+//    """.trimIndent()
+//
+//        val client = OkHttpClient()
+//
+//        val request = Request.Builder()
+//            .url(CLOUD_FUNCTION_URL)
+//            .post(jsonBody.toRequestBody("application/json".toMediaType()))
+//            .build()
+//
+//        client.newCall(request).enqueue(object : Callback {
+//
+//            override fun onFailure(call: Call, e: IOException) {
+//                if (cont.isActive) {
+//                    cont.resume(
+//                        notificacionesFCM.ResultadoFCM(
+//                            success = false,
+//                            errorCode = "NETWORK_ERROR"
+//                        )
+//                    )
+//                }
+//            }
+//
+//            override fun onResponse(call: Call, response: Response) {
+//                val bodyStr = response.body?.string().orEmpty()
+//
+//                // 🟢 Caso correcto
+//                if (response.isSuccessful && bodyStr.contains("messageId", true)) {
+//                    val messageId = Regex("messageId\"\\s*:\\s*\"(.*?)\"")
+//                        .find(bodyStr)
+//                        ?.groupValues
+//                        ?.get(1)
+//
+//                    if (cont.isActive) {
+//                        cont.resume(
+//                            ResultadoFCM(
+//                                success = true,
+//                                messageId = messageId
+//                            )
+//                        )
+//                    }
+//                    return
+//                }
+//
+//                // 🔴 Errores reales de FCM
+//                val errorCode = when {
+//                    bodyStr.contains("UNREGISTERED", true) -> "UNREGISTERED"
+//                    bodyStr.contains("INVALID_ARGUMENT", true) -> "INVALID_ARGUMENT"
+//                    bodyStr.contains("NOT_FOUND", true) -> "NOT_FOUND"
+//                    bodyStr.contains("PERMISSION_DENIED", true) -> "PERMISSION_DENIED"
+//                    else -> "UNKNOWN"
+//                }
+//
+//                if (cont.isActive) {
+//                    cont.resume(
+//                        ResultadoFCM(
+//                            success = false,
+//                            errorCode = errorCode
+//                        )
+//                    )
+//                }
+//            }
+//        })
+//    }
+
 
 
 

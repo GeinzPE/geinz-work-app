@@ -1,10 +1,13 @@
 package com.geinzz.geinzwork.model
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.geinzz.geinzwork.data.model.EstadoNotificaciones
 import com.geinzz.geinzwork.data.model.historial_descuento
 import com.geinzz.geinzwork.data.model.historial_financiero
 import com.geinzz.geinzwork.data.model.historial_recargas
 import com.geinzz.geinzwork.data.model.recargar_monedas_tienda
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -12,6 +15,9 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class repo_recargas {
 
@@ -238,6 +244,7 @@ class repo_recargas {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun obtner_historial(
         id_tienda: String,
         localidad: String
@@ -259,29 +266,63 @@ class repo_recargas {
 
                 val datosRecarga = data["datos_recarga"] as? Map<*, *>
                 val datosTienda = data["datos_tienda"] as? Map<*, *>
-                val horaFecha = data["hora_fecha"] as? Map<*, *>
-                val id_trascacion = data["id_transaccion"] as? String ?: ""
-                val tipo_transacion = data["tipo_transacción"] as? String ?: ""
+
+
+                val timestamp = data?.get("timestamp") as? Timestamp
+                    ?: return@mapNotNull null
+
+                val dateTime = timestampToLocalDateTime(timestamp)
+
+                val tipoTransaccion = data["tipo_transacción"] as? String ?: ""
 
                 historial_financiero(
-                    id_transaccion = id_trascacion,
-                    monedas = datosRecarga?.get(if (tipo_transacion.equals("descuento")) "monto_descontado" else "monto_aumentado") as? Number
-                        ?: 0,
-                    hora = horaFecha?.get("hora") as? String ?: "",
-                    fecha = horaFecha?.get("fecha") as? String ?: "",
+                    id_transaccion = data["id_transaccion"] as? String ?: "",
+                    monedas = datosRecarga?.get(
+                        if (tipoTransaccion == "descuento") "monto_descontado"
+                        else "monto_aumentado"
+                    ) as? Number ?: 0,
+                    hora = formatHora(dateTime),
+                    fecha = formatFecha(dateTime),
                     nombre_tienda = datosTienda?.get("nombre_tienda") as? String ?: "",
                     precio_soles = datosRecarga?.get("precio_soles") as? String ?: "",
-                    tipo_realziado = tipo_transacion,
+                    tipo_realziado = tipoTransaccion,
                     tipo_transaccion = datosRecarga?.get("tipo_paquete") as? String ?: "",
                     estodo = datosRecarga?.get("estado") as? String ?: "",
-                    monto_restante = datosRecarga?.get(if (tipo_transacion.equals("descuento")) "monto_restante" else "monto_anterior") as? Number
-                        ?: 0,
+                    monto_restante = datosRecarga?.get(
+                        if (tipoTransaccion == "descuento") "monto_restante"
+                        else "monto_anterior"
+                    ) as? Number ?: 0
                 )
             }
+                // 🔥 ORDEN CORRECTO DESDE EL REPO
+                .sortedByDescending { it.fecha + it.hora }
 
         } catch (e: Exception) {
             emptyList()
         }
     }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun timestampToLocalDateTime(timestamp: Timestamp): LocalDateTime {
+        return timestamp.toDate()
+            .toInstant()
+            .atZone(ZoneId.systemDefault())
+            .toLocalDateTime()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun formatFecha(dateTime: LocalDateTime): String {
+        return dateTime.toLocalDate()
+            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun formatHora(dateTime: LocalDateTime): String {
+        return dateTime.toLocalTime()
+            .format(DateTimeFormatter.ofPattern("HH:mm"))
+    }
+
 
 }

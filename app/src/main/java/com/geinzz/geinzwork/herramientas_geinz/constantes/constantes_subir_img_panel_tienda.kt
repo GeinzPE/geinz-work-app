@@ -510,6 +510,13 @@ object constantes_subir_img_panel_tienda {
         return (min..max).random().toString()
     }
 
+    fun generarIdImagen_cinco(): String {
+        val min = 10_000   // número más pequeño de 5 dígitos
+        val max = 99_999   // número más grande de 5 dígitos
+        return (min..max).random().toString()
+    }
+
+
 
 
 

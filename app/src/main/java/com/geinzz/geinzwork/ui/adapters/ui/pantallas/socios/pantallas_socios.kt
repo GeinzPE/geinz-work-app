@@ -586,6 +586,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                             state.datos.ubicacion,
                                             state.datos.saldo_disponible_tienda,
                                             state.datos.id_tienda
+
                                         )
                                     }
                                     nombre_tienda = state.datos.nombre
@@ -894,33 +895,15 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
         }
 
         if (mostrarDialogoSalir) {
-            val mensaje = when (campoBloqueante) {
-                viewmodel_pantallas_promocionar.CampoPendiente.TITULO -> "Ya escribiste un título"
-                viewmodel_pantallas_promocionar.CampoPendiente.DESCRIPCION -> "Ya escribiste una descripción"
-                viewmodel_pantallas_promocionar.CampoPendiente.IMAGEN -> "Seleccionaste una imagen"
-                viewmodel_pantallas_promocionar.CampoPendiente.HORA_FIN -> "Seleccionaste una hora"
-                viewmodel_pantallas_promocionar.CampoPendiente.TITULO_NOTIFICACION -> "Ya escribiste un título de notificación"
-                viewmodel_pantallas_promocionar.CampoPendiente.DESCRIPCION_NOTIFICACION -> "Ya escribiste una descripción de notificación"
-                viewmodel_pantallas_promocionar.CampoPendiente.PRIORIDAD -> "Seleccionaste una prioridad"
-                viewmodel_pantallas_promocionar.CampoPendiente.FORMATO -> "Seleccionaste un formato"
-                viewmodel_pantallas_promocionar.CampoPendiente.TIPO -> "Seleccionaste un tipo"
-                null -> ""
-            }
-
             AlertDialog(
                 onDismissRequest = { mostrarDialogoSalir = false },
                 title = { texto_generico_one_line("Descartar cambios",   style = MaterialTheme.typography.titleLarge) },
                 text = {
-                    Column() {
                     texto_generico_multilinea(
                         "Tienes datos sin guardar. ¿Deseas descartarlos?",
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    texto_generico_multilinea(
-                        mensaje,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    }
+
                 },
                 confirmButton = {
                     TextButton(onClick = {

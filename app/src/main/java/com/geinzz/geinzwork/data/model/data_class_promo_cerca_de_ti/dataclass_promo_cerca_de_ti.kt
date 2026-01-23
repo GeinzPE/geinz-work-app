@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti
 
 import android.R
 import com.geinzz.geinzwork.data.model.msjes_predeteminados_generales
+import com.google.firebase.Timestamp
 
 data class obj_completo(
     val dataclass_promociones_cerca_de_ti: dataclass_promociones_cerca_de_ti = dataclass_promociones_cerca_de_ti(),
@@ -21,7 +22,9 @@ data class dataclass_promociones_cerca_de_ti(
     val exclussivo: Boolean = false,
     val dias_restantes: String = "",
     val estadisticas: estadisticas_publiccaciones = estadisticas_publiccaciones(),
-    val texto_msje_whatsapp: msjes_predeteminados_generales = msjes_predeteminados_generales()
+    val texto_msje_whatsapp: msjes_predeteminados_generales = msjes_predeteminados_generales(),
+    val fecha_fin: Timestamp=Timestamp.now(),
+    val estado_publicacion:String=""
 )
 
 data class estadisticas_publiccaciones(

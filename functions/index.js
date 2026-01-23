@@ -35,7 +35,7 @@ exports.syncLugarToAlgolia = onDocumentWritten(
     data.objectID = lugarId;
     await index.saveObject(data);
     logger.info(`Documento ${lugarId} agregado/actualizado en Algolia`);
-  }
+  },
 );
 
 // ==================== Notificaciones ====================
@@ -70,7 +70,7 @@ exports.enviarNotificacion = onRequest(async (req, res) => {
 
     const prioridadesPermitidas = ["high", "normal", "low"];
     const prioridadFinal = prioridadesPermitidas.includes(
-      prioridad.toLowerCase()
+      prioridad.toLowerCase(),
     )
       ? prioridad.toLowerCase()
       : "high";
@@ -190,6 +190,15 @@ exports.share = onRequest(async (req, res) => {
         .doc(id_promo_compartida);
     } else if (tipo === "scr") {
       ref = admin.firestore().collection("share_screen").doc(mapa_ids_scren);
+    } else if (tipo == "prn") {
+      ref = admin
+        .firestore()
+        .collection("Tiendas")
+        .doc(localidad)
+        .collection(localidad)
+        .doc(id)
+        .collection("notificaciones_enviadas")
+        .doc(id_promo_compartida);
     }
     // rew | rewc | ru | prf → NO FIRESTORE
 
@@ -213,10 +222,14 @@ exports.share = onRequest(async (req, res) => {
         titulo = capitalizeFirstLetter(data.nombre || "Lugar en Geinz");
       } else if (tipo === "prms") {
         titulo = capitalizeFirstLetter(
-          data?.informacion?.titulo || "Mira esta promo en Geinz"
+          data?.informacion?.titulo || "Mira esta promo en Geinz",
         );
       } else if (tipo === "scr") {
         titulo = capitalizeFirstLetter(data.titulo || "Geinz");
+      } else if (tipo == "prn") {
+        titulo = capitalizeFirstLetter(
+          data.datos_de_notificacion.nombre_tienda || "Geinz",
+        );
       }
     }
 
@@ -256,6 +269,10 @@ exports.share = onRequest(async (req, res) => {
         } else {
           imagen = "https://geinzworkapp.web.app/default.jpg";
         }
+      } else if (tipo == "prn") {
+        imagen =
+          data?.datos_de_notificacion?.img_notificacion ||
+          "https://geinzworkapp.web.app/default.jpg";
       }
     }
 
@@ -304,26 +321,22 @@ function capitalizeFirstLetter(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-exports.desactivarPromocionesExpiradas = onSchedule(
+exports.eliminarPromocionesExpiradasCadaMinuto = onSchedule(
   {
-    schedule: "0 0 * * *",
+    schedule: "0 0 * * *", // ⏱️ cada minuto
     timeZone: "America/Lima",
     region: "us-central1",
   },
   async () => {
     const db = admin.firestore();
+    const ahora = admin.firestore.Timestamp.now();
 
-    console.log("🔄 Revisando promociones expiradas...");
-
-    // 🕛 HOY sin hora (00:00) en America/Lima
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
+    console.log("🗑️ Revisando promociones expiradas...");
 
     const snapshot = await db
       .collection("Tiendas")
-      .doc("barranca") // luego lo puedes hacer dinámico
+      .doc("barranca")
       .collection("promos_ofertas")
-      .where("fechas.activo", "==", true)
       .get();
 
     if (snapshot.empty) {
@@ -331,129 +344,171 @@ exports.desactivarPromocionesExpiradas = onSchedule(
       return;
     }
 
-    const batch = db.batch();
-    let contador = 0;
+    let eliminadas = 0;
 
-    snapshot.forEach((doc) => {
+    for (const doc of snapshot.docs) {
       const data = doc.data();
-      const fechaFinStr = data?.fechas?.fin; // "dd/MM/yyyy"
+      const tipo = data?.tipo_hora_dias;
+      const fechas = data?.datos_hora_fecha;
 
-      if (!fechaFinStr) return;
+      let timestampFin = null;
 
-      const [dia, mes, anio] = fechaFinStr.split("/").map(Number);
-
-      // 📅 Fecha fin sin hora
-      const fechaFinDate = new Date(anio, mes - 1, dia);
-      fechaFinDate.setHours(0, 0, 0, 0);
-
-      // ❌ Si la promo ya venció
-      if (fechaFinDate < hoy) {
-        batch.update(doc.ref, {
-          "fechas.activo": false,
-        });
-        contador++;
+      if (tipo === "dias") {
+        timestampFin = fechas?.dias?.timestamp_fin;
+      } else if (tipo === "horas") {
+        timestampFin = fechas?.horas?.timestamp_fin;
       }
-    });
 
-    if (contador > 0) {
-      await batch.commit();
+      if (!timestampFin) continue;
+
+      if (timestampFin.toMillis() <= ahora.toMillis()) {
+        const promoId = doc.id;
+        const idTienda = data?.informacion?.id_tienda;
+
+        if (!idTienda) continue;
+
+        const destinoRef = db
+          .collection("Tiendas")
+          .doc("barranca")
+          .collection("barranca")
+          .doc(idTienda)
+          .collection("promociones_geinz")
+          .doc(promoId);
+
+        // 1️⃣ Copiar promo
+        await destinoRef.set({
+          ...data,
+          estado: "expirada",
+          eliminada_en: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        // 2️⃣ Copiar estadísticas
+        await copiarSubcolecciones(doc.ref, destinoRef);
+
+        // 🆕 3️⃣ BORRAR estadísticas originales
+        await borrarSubcolecciones(doc.ref);
+
+        // 4️⃣ Eliminar promo activa
+        await doc.ref.delete();
+
+        eliminadas++;
+        console.log(`🗑️ Promo procesada: ${promoId}`);
+      }
     }
 
-    console.log(`✅ Promociones desactivadas: ${contador}`);
+    console.log(`✅ Total promociones procesadas: ${eliminadas}`);
   }
 );
+
+
+async function copiarSubcolecciones(origenRef, destinoRef) {
+  const colecciones = await origenRef.listCollections();
+
+  for (const col of colecciones) {
+    const snap = await col.get();
+
+    for (const doc of snap.docs) {
+      const nuevoDocRef = destinoRef.collection(col.id).doc(doc.id);
+      await nuevoDocRef.set(doc.data());
+
+      // 🔁 copiar sub-subcolecciones
+      await copiarSubcolecciones(doc.ref, nuevoDocRef);
+    }
+  }
+}
+
+async function borrarSubcolecciones(docRef) {
+  const colecciones = await docRef.listCollections();
+
+  for (const col of colecciones) {
+    const snap = await col.get();
+
+    for (const doc of snap.docs) {
+      // 🔁 borrar sub-subcolecciones primero
+      await borrarSubcolecciones(doc.ref);
+
+      // ❌ borrar documento
+      await doc.ref.delete();
+    }
+  }
+}
+
 
 exports.verificarMinimoSeguidores = onDocumentCreated(
   "Tiendas/{localidad}/{localidad}/{idTienda}/seguidores/{idUsuario}",
   async (event) => {
+    const { localidad, idTienda } = event.params;
+    const db = admin.firestore();
+
+    const tiendaRef = db
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection(localidad)
+      .doc(idTienda);
+
     try {
-      // 🔹 Obtenemos parámetros del trigger
-      const { localidad, idTienda } = event.params;
+      await db.runTransaction(async (tx) => {
+        const tiendaDoc = await tx.get(tiendaRef);
+        if (!tiendaDoc.exists) return;
 
-      // 🔹 Referencia a la tienda
-      const tiendaRef = admin
-        .firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection(localidad)
-        .doc(idTienda);
+        const tiendaData = tiendaDoc.data();
 
-      const tiendaDoc = await tiendaRef.get();
-      if (!tiendaDoc.exists) return null;
-
-      const tiendaData = tiendaDoc.data();
-      const yaDesbloqueado = tiendaData?.notificacionDesbloqueoEnviada || false;
-      const nombre_tienda = tiendaData?.nombre_tienda || "🥳🥳"; // Valor por defecto
-
-      const propietarios = tiendaData?.propietario_id || [];
-      if (propietarios.length === 0) return null;
-
-      // 🔹 Contamos los seguidores
-      const totalSeguidores = (await tiendaRef.collection("seguidores").get())
-        .size;
-      console.log(
-        `Tienda ${idTienda} ahora tiene ${totalSeguidores} seguidores`
-      );
-
-      if (totalSeguidores < 10) return null;
-
-      console.log(`Propietarios a notificar: ${propietarios}`);
-
-      // 🔹 Recorremos todos los propietarios
-      for (const propietarioId of propietarios) {
-        const tokenDoc = await admin
-          .firestore()
-          .collection("Trabajadores_Usuarios_Drivers")
-          .doc("users")
-          .collection("tokens")
-          .doc(propietarioId)
-          .get();
-
-        if (!tokenDoc.exists) {
-          console.log(
-            `No existe doc de tokens para propietario ${propietarioId}`
-          );
-          continue;
+        // 🔕 YA DESBLOQUEADO → SALIR
+        if (tiendaData?.notificacionDesbloqueoEnviada === true) {
+          console.log("🔕 Notificación ya enviada anteriormente");
+          return;
         }
 
-        const tokensMap = tokenDoc?.data()?.tokens || {};
-        const tokens = Object.values(tokensMap);
+        // 🔢 CONTAR SEGUIDORES
+        const seguidoresSnap = await tiendaRef.collection("seguidores").get();
 
-        if (tokens.length === 0) {
-          console.log(
-            `No hay tokens dentro del map para propietario ${propietarioId}`
-          );
-          continue;
+        const totalSeguidores = seguidoresSnap.size;
+
+        console.log(`👥 Seguidores actuales: ${totalSeguidores}`);
+
+        if (totalSeguidores < 10) return;
+
+        // 🔒 MARCAMOS PRIMERO (clave)
+        tx.update(tiendaRef, {
+          notificacionDesbloqueoEnviada: true,
+        });
+
+        const nombre_tienda = tiendaData?.nombre_tienda || "Tu tienda 🎉";
+
+        const propietarios = tiendaData?.propietario_id || [];
+        if (propietarios.length === 0) return;
+
+        // 🔔 ENVIAR NOTIFICACIONES
+        for (const propietarioId of propietarios) {
+          const tokenDoc = await db
+            .collection("Trabajadores_Usuarios_Drivers")
+            .doc("users")
+            .collection("tokens")
+            .doc(propietarioId)
+            .get();
+
+          if (!tokenDoc.exists) continue;
+
+          const tokens = Object.values(tokenDoc.data()?.tokens || {});
+          for (const token of tokens) {
+            await enviarNotificacionFCM_tienda({
+              token,
+              title: `🎉 ¡Felicidades ${nombre_tienda}!`,
+              body: `¡Alcanzaste ${totalSeguidores} seguidores! Ya puedes enviar promociones 📢`,
+              idTienda,
+              tipo_notificacion: "logo",
+              prioridad: "high",
+            });
+          }
         }
-
-        console.log(
-          `Enviando notificación a ${tokens.length} token(s) de propietario ${propietarioId}`
-        );
-
-        // 🔹 Enviamos la notificación a cada token usando la función reutilizable
-        for (const token of tokens) {
-          await enviarNotificacionFCM_tienda({
-            token,
-            title: `🎉¡Felicidades ${nombre_tienda}! 🥳`,
-            body: `¡Ya tienes tus primeros ${totalSeguidores} seguidores 👨🏻‍👩🏻‍👦‍👦! Ahora has desbloqueado la opción de enviar notificaciones sobre tus promociones y ofertas a tus seguidores. 📢`,
-            idTienda,
-            idAnuncio: "", // opcional si tu función tiene parámetro idAnuncio=""
-            tipo_notificacion: "logo",
-            prioridad: "high",
-          });
-        }
-      }
-
-      // 🔹 Marcamos que ya se envió la notificación
-      await tiendaRef.update({ notificacionDesbloqueoEnviada: true });
-      console.log("Marcado notificacionDesbloqueoEnviada: true");
+      });
 
       return null;
     } catch (error) {
-      console.error("ERROR verificarMinimoSeguidores:", error);
+      console.error("❌ ERROR verificarMinimoSeguidores:", error);
       return null;
     }
-  }
+  },
 );
 
 exports.alertaSaldoBajo = onDocumentWritten(
@@ -484,7 +539,9 @@ exports.alertaSaldoBajo = onDocumentWritten(
         await event.data.after.ref.update({
           ultima_notificacion_enviada: false,
         });
-        console.log("✅ Flag de notificación reiniciado porque saldo subió >=50");
+        console.log(
+          "✅ Flag de notificación reiniciado porque saldo subió >=50",
+        );
       }
 
       // 🔹 Enviar notificación solo si el saldo baja de 50 y antes estaba >=50
@@ -502,7 +559,7 @@ exports.alertaSaldoBajo = onDocumentWritten(
 
           if (!tokenDoc.exists) {
             console.log(
-              `No se encontró doc de tokens para propietario ${propietarioId}`
+              `No se encontró doc de tokens para propietario ${propietarioId}`,
             );
             continue;
           }
@@ -518,7 +575,7 @@ exports.alertaSaldoBajo = onDocumentWritten(
               title: `⚠️ ¡Tu saldo está bajo!`,
               body: `Tu tienda tiene menos de 50 monedas. Mantén tu alcance y visibilidad activo recargando cuando puedas 💼✨`,
               link: "https://geinzworkapp.web.app/share?t=scr&id=rec",
-              logo:"https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+              logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
               idTienda,
               idAnuncio: "",
               tipo_notificacion: "logo",
@@ -533,19 +590,19 @@ exports.alertaSaldoBajo = onDocumentWritten(
         });
         console.log("✅ Notificación enviada y flag actualizado");
       } else {
-        console.log("No se cumple condición de saldo bajo o ya se envió notificación");
+        console.log(
+          "No se cumple condición de saldo bajo o ya se envió notificación",
+        );
       }
     } catch (error) {
       console.error("ERROR alertaSaldoBajo:", error);
     }
-  }
+  },
 );
-
-
 
 exports.resetearEstadoNotificacionesYPanel = onSchedule(
   {
-      schedule: "0 0 * * *", // Cada minuto
+    schedule: "0 0 * * *", // Cada minuto
     timeZone: "America/Lima",
   },
   async () => {
@@ -575,7 +632,10 @@ exports.resetearEstadoNotificacionesYPanel = onSchedule(
 
         // --- NOTIFICACIONES (resetear si vencidas) ---
         const noti = data.notificaciones;
-        if (noti?.timestamp_fin && noti.timestamp_fin.toMillis() <= ahora.toMillis()) {
+        if (
+          noti?.timestamp_fin &&
+          noti.timestamp_fin.toMillis() <= ahora.toMillis()
+        ) {
           batch.update(doc.ref, {
             "notificaciones.contador": 0,
             "notificaciones.fecha_inicio": "",
@@ -593,7 +653,10 @@ exports.resetearEstadoNotificacionesYPanel = onSchedule(
 
         // --- PANEL ADMIN (solo notificar si vencido) ---
         const panel = data.panel_admin;
-        if (panel?.timestamp_fin && panel.timestamp_fin.toMillis() <= ahora.toMillis()) {
+        if (
+          panel?.timestamp_fin &&
+          panel.timestamp_fin.toMillis() <= ahora.toMillis()
+        ) {
           propietarios.forEach((p) => {
             if (!propietariosSet.has(p)) propietariosSet.set(p, new Set());
             propietariosSet.get(p).add("panel");
@@ -628,7 +691,7 @@ exports.resetearEstadoNotificacionesYPanel = onSchedule(
               title: "♻️ ¡Tus notificaciones fueron renovadas!",
               body: "✨ Ya puedes enviar nuevas notificaciones y mantener a tus clientes al día 🔔🚀",
               link: "https://geinzworkapp.web.app/share?t=scr&id=ads",
-              logo:"https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+              logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
               idTienda: "",
               idAnuncio: "",
               tipo_notificacion: "logo",
@@ -642,7 +705,7 @@ exports.resetearEstadoNotificacionesYPanel = onSchedule(
               title: "⏰ Tu panel vencio hoy 😣",
               body: "⚡ Renueva tu panel para seguir teniendo control de tu negocio 📈💼",
               link: "https://geinzworkapp.web.app/share?t=scr&id=pnl",
-              logo:"https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+              logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
               idTienda: "",
               idAnuncio: "",
               tipo_notificacion: "logo",
@@ -654,9 +717,8 @@ exports.resetearEstadoNotificacionesYPanel = onSchedule(
     } catch (error) {
       logger.error("❌ Error en resetearEstadoNotificacionesYPanel", error);
     }
-  }
+  },
 );
-
 
 async function enviarNotificacionFCM_tienda({
   token,

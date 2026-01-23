@@ -5,8 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
 import com.geinzz.geinzwork.data.model.dataclass_promos.promociones_tiendas_negocios
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones
 import com.geinzz.geinzwork.model.repo_obtener_datos_promociones
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes.db
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -98,12 +100,17 @@ class viewmodel_datos_promociones : ViewModel() {
                     id_promo = id_promo
                 )
 
-                _estadoPromocion.value =
-                    if (promo.url_img.isNotEmpty()) {
-                        EstadoPromocion.Exito(promo)
-                    } else {
-                        EstadoPromocion.Vacio
-                    }
+                if (esPromocionCaducada(promo.fecha_caducidad_promocion)) {
+                    _estadoPromocion.value = EstadoPromocion.Vacio
+                } else {
+                    _estadoPromocion.value =
+                        if (promo.nombre_tienda.isNotEmpty()) {
+                            EstadoPromocion.Exito(promo)
+                        } else {
+                            EstadoPromocion.Vacio
+                        }
+                }
+
 
             } catch (e: Exception) {
                 _estadoPromocion.value =
@@ -113,6 +120,23 @@ class viewmodel_datos_promociones : ViewModel() {
             }
         }
     }
+
+    fun pasar_Scroll_limpiar_datos(){
+        _estadoPromocion.value = EstadoPromocion.Idle
+    }
+
+    fun esPromocionCaducada(fechaCaducidad: Timestamp): Boolean {
+        val ahora = Timestamp.now()
+        val caducada = ahora.toDate().after(fechaCaducidad.toDate())
+
+        if (caducada) {
+            println("La promoción está expirado")
+        }
+
+        return caducada
+    }
+
+
 
     fun obtener_datos_promociones_por_paramtros(
         localidad: String,
@@ -132,6 +156,8 @@ class viewmodel_datos_promociones : ViewModel() {
 
 
 sealed class EstadoPromocion {
+    object Idle : EstadoPromocion()
+
     object Cargando : EstadoPromocion()
     data class Exito(
         val data: promociones_tiendas_negocios

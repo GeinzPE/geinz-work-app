@@ -14,6 +14,7 @@ import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import java.net.URL
@@ -25,6 +26,13 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         Log.d("FCM", "Nuevo token: $token")
     }
 
+    override fun onCreate() {
+        super.onCreate()
+        // 🔹 Inicializar Firebase si no está inicializado
+        if (FirebaseApp.getApps(this).isEmpty()) {
+            FirebaseApp.initializeApp(this)
+        }
+    }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
 

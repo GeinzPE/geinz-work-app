@@ -157,6 +157,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_cantidad_slado_
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_renovar_plan
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.eres_socio_geinz
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.item_metodos_de_pago
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.FondoIAAnimado
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.textosTituloGeinzWork
@@ -1292,6 +1293,87 @@ fun chisp_filtrado_busqueda(
     }
 
 }
+
+@Composable
+fun chisp_filtrado_busqueda_con_la_IA(
+    carta_selecionada: Boolean,
+    filtrado: String,
+    btn_visible: Boolean = true,
+    clik_card: () -> Unit,
+    onClick_delete: () -> Unit,
+    alto: Dp = 45.dp,
+) {
+
+    val surfaceColor = MaterialTheme.colorScheme.surface
+
+    // 🎨 Fondo base animado (siempre existe)
+    val colorBase by animateColorAsState(
+        targetValue = if (carta_selecionada)
+            surfaceColor.copy(alpha = 0.6f) // base debajo del fondo IA
+        else
+            surfaceColor, // 👈 chips normales
+        animationSpec = tween(
+            durationMillis = 400,
+            easing = LinearOutSlowInEasing
+        ),
+        label = ""
+    )
+
+    val colorText = MaterialTheme.colorScheme.onSurface
+
+    Box(
+        modifier = Modifier
+            .clip(CircleShape)
+            .height(alto)
+            .background(colorBase)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                clik_card()
+            }
+    ) {
+
+        // 🤖 Fondo IA animado SOLO cuando está seleccionado
+        if (carta_selecionada) {
+            FondoIAAnimado(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clip(CircleShape)
+            )
+        }
+
+        // 👉 Contenido del chip
+        Row(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(horizontal = 15.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            texto_generico_one_line(
+                filtrado.capitalizeFirst(),
+                color = colorText,
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            if (btn_visible && carta_selecionada) {
+                spacer_horizonta(7.dp)
+                btn_close_gris(
+                    imageVector = Icons.Default.Close,
+                    onClick = onClick_delete,
+                    size_container = 20.dp,
+                    size_icon = 15.dp,
+                    tint_icon = colorText
+                )
+            }
+        }
+    }
+}
+
+
+
+
 
 @Composable
 fun ImagenesSuperpuestasCollage(nombre_usuario: String, modifier: Modifier = Modifier) {

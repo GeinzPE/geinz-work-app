@@ -40,8 +40,9 @@ class viewmodel_eres_socio : ViewModel() {
     private val _state_eres_socio = MutableStateFlow<carga_acces_socio>(carga_acces_socio.idle)
     val state_eres_socio: StateFlow<carga_acces_socio> = _state_eres_socio
 
-    private val _seguidores_obtenidos = MutableStateFlow<List<String>>(emptyList())
-    val seguidores_obtenidos: StateFlow<List<String>> = _seguidores_obtenidos
+    private val _seguidores_obtenidos = MutableStateFlow<EstadoSeguidores>(EstadoSeguidores.Cargando)
+    val seguidores_obtenidos: StateFlow<EstadoSeguidores> = _seguidores_obtenidos
+
 
 
 
@@ -507,7 +508,7 @@ class viewmodel_eres_socio : ViewModel() {
                 )
 
                 // 2️⃣ Guardar URLs en Firestore
-                instace_repo.guardarImagenesEnFirestore_promociones(
+              val res_completado=  instace_repo.guardarImagenesEnFirestore_promociones(
                     idSocio,
                     img_tienda,
                     localidad = localidad,
@@ -515,8 +516,13 @@ class viewmodel_eres_socio : ViewModel() {
                     urls = urls
                 )
 
-                // ✅ TODO OK
+                if (res_completado.isSuccess) {
+
                 _subidaPromoState.value = SubidaPromoState.Success
+                } else {
+                    _subidaPromoState.value = SubidaPromoState.Error("ocurrio un error en el proceso")
+                }
+                // ✅ TODO OK
 
 
             } catch (e: Exception) {
@@ -558,7 +564,7 @@ class viewmodel_eres_socio : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                val resultado = instace_repo.crear_promocion(i, localidad)
+                instace_repo.crear_promocion(i, localidad)
 
             } catch (e: Exception) {
                 Log.d("error", "error al crear la publicacion")
@@ -567,16 +573,29 @@ class viewmodel_eres_socio : ViewModel() {
     }
 
 
+
+
     fun obtener_lista_seguidores(localidad: String, id_tienda: String) {
         viewModelScope.launch {
+            _seguidores_obtenidos.value = EstadoSeguidores.Cargando
             try {
-                _seguidores_obtenidos.value =
-                    instace_repo.obtenerSeguidoresTienda(localidad, id_tienda)
+                val lista = instace_repo.obtenerSeguidoresTienda(localidad, id_tienda)
+
+                _seguidores_obtenidos.value = when {
+                    lista.isEmpty() -> EstadoSeguidores.Vacio
+                    lista.size < 10 -> EstadoSeguidores.NoCumpleMinimo(lista.size)
+                    else -> EstadoSeguidores.Exito(lista)
+                }
+
             } catch (e: Exception) {
-                Log.d("error_envio_noti", "error al obtener los seguidores")
+                Log.d("error_envio_noti", "error al obtener los seguidores", e)
+                _seguidores_obtenidos.value = EstadoSeguidores.Error(e.message ?: "Error desconocido")
             }
         }
     }
+
+
+
 
     fun obtner_publicaciones_subidas(id_tienda: String, localidad: String) {
         viewModelScope.launch {
@@ -637,6 +656,16 @@ class viewmodel_eres_socio : ViewModel() {
         object LimiteAlcanzado : EstadoEnvioNotificacion()
         data class Error(val mensaje: String) : EstadoEnvioNotificacion()
     }
+
+
+    sealed class EstadoSeguidores {
+        object Cargando : EstadoSeguidores()
+        data class Exito(val seguidores: List<String>) : EstadoSeguidores()
+        object Vacio : EstadoSeguidores()
+        data class Error(val mensaje: String) : EstadoSeguidores()
+        data class NoCumpleMinimo(val cantidad: Int): EstadoSeguidores() // nuevo estado si hay menos de 10 seguidores
+    }
+
 
 
 }

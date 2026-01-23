@@ -52,6 +52,8 @@ import com.geinzz.geinzwork.data.model.dataclass_promos.promociones_tiendas_nego
 import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
 import com.geinzz.geinzwork.data.model.mensaje_predeterminado
 import com.geinzz.geinzwork.data.model.msjes_predeteminados_generales
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -113,7 +115,7 @@ class repo_obtener_datos_promociones {
             numero_contacto_teinda = numero_contacto,
             img_logo_tienda = logo_tienda,
             localidad = localidad_db,
-            categoria = categoria
+            categoria = categoria,"promocion_perfil","","","",Timestamp.now()
         )
     }
 
@@ -143,14 +145,19 @@ class repo_obtener_datos_promociones {
             val datos = ref.data ?: emptyMap<String, Any>()
 //            Log.d("PROMO_DEBUG", "Datos recibidos: $datos")
 
-            val params_noti = datos["params_noti"] as? Map<String, Any> ?: emptyMap()
-//            Log.d("PROMO_DEBUG", "Params_notificacion: $params_noti")
+            val params_notificacion = datos["params_notificacion"] as? Map<String, Any> ?: emptyMap()
+            val datos_de_notificacion=datos["datos_de_notificacion"] as? Map<String, Any> ?: emptyMap()
+            val fecha_caducidad= datos["fecha_caducidad"] as? Timestamp?:Timestamp.now()
+            //            Log.d("PROMO_DEBUG", "Params_notificacion: $params_noti")
 
-            val img_container = params_noti["img_notificacion"] as? String ?: ""
-            val logo_img = params_noti["logo_notificacion"] as? String ?: ""
-            val nombre_tienda = params_noti["nombre_tienda"] as? String ?: ""
-            val numero = params_noti["numero_contacto"] as? String ?: ""
-            val categoria = params_noti["categoria_tienda"] as? String ?: ""
+            val img_container = datos_de_notificacion["img_notificacion"] as? String ?: ""
+            val logo_img = datos_de_notificacion["logo_notificacion"] as? String ?: ""
+            val nombre_tienda = datos_de_notificacion["nombre_tienda"] as? String ?: ""
+            val numero = datos_de_notificacion["numero_contacto"] as? String ?: ""
+            val categoria = datos_de_notificacion["categoria_tienda"] as? String ?: ""
+            val id_img_storage = datos_de_notificacion["id_img_storage"] as? String ?: ""
+            val id_notificaicon_datos=params_notificacion["id_noti"] as? String?:""
+            val msje_predeterminado=params_notificacion["msje_predeterminado"] as? String?:""
 
 //            Log.d("PROMO_DEBUG", "Preparando objeto promociones_tiendas_negocios")
             return promociones_tiendas_negocios(
@@ -160,7 +167,7 @@ class repo_obtener_datos_promociones {
                 numero_contacto_teinda = numero,
                 img_logo_tienda = logo_img,
                 localidad = localidad,
-                categoria = categoria
+                categoria = categoria,"notifiacion_promo_solo_seguidores",id_img_storage,id_notificaicon_datos,msje_predeterminado,fecha_caducidad
             )
 
             // Para id de 9 dígitos
@@ -181,6 +188,7 @@ class repo_obtener_datos_promociones {
 //            Log.d("PROMO_DEBUG", "Datos notificacion enviados: $datos1")
 
             val params_noti = datos1["params_notificacion"] as? Map<String, Any> ?: emptyMap()
+            val fecha_caducidad= datos1["fecha_caducidad"] as? Timestamp?:Timestamp.now()
 //            Log.d("PROMO_DEBUG", "Params_notificacion: $params_noti")
 
             val id_promocionnoti = params_noti["id_noti"] as? String ?: ""
@@ -203,13 +211,15 @@ class repo_obtener_datos_promociones {
 
                 val informacion_notificacion =
                     datos["informacion"] as? Map<String, Any> ?: emptyMap()
+
                 val img_container = datos["img_container"] as? Map<String, Any> ?: emptyMap()
                 val lista_img = img_container["lista_img"] as? List<String> ?: emptyList()
                 val logo_img = img_container["logo_img"] as? String ?: ""
                 val nombre_tienda = informacion_notificacion["nombre_tienda"] as? String ?: ""
                 val numero = informacion_notificacion["numero"] as? String ?: ""
                 val categoria = informacion_notificacion["categoria"] as? String ?: ""
-
+                val id_notificaicon_datos=params_noti["id_noti"] as? String?:""
+                val msje_predeterminado=params_noti["msje_predeterminado"] as? String?:""
 //                Log.d("PROMO_DEBUG", "Preparando objeto promociones_tiendas_negocios con primera imagen de lista: ${lista_img.firstOrNull()}")
                 return promociones_tiendas_negocios(
                     id_tienda = id_tienda,
@@ -218,7 +228,7 @@ class repo_obtener_datos_promociones {
                     numero_contacto_teinda = numero,
                     img_logo_tienda = logo_img,
                     localidad = localidad,
-                    categoria = categoria
+                    categoria = categoria,"notifiacion_promo",id_publicacion_anuncio,id_notificaicon_datos,msje_predeterminado,fecha_caducidad
                 )
             }
         } else if (id_promo.length > 9) {
@@ -233,7 +243,8 @@ class repo_obtener_datos_promociones {
                 .await()
             val datos = ref.data ?: emptyMap<String, Any>()
 //                Log.d("PROMO_DEBUG", "Datos promocion geinz: $datos")
-
+            val params_noti = datos["params_notificacion"] as? Map<String, Any> ?: emptyMap()
+            val datos_de_notificacion=datos["datos_de_notificacion"] as? Map<String, Any> ?: emptyMap()
             val informacion_notificacion = datos["informacion"] as? Map<String, Any> ?: emptyMap()
             val img_container = datos["img_container"] as? Map<String, Any> ?: emptyMap()
             val lista_img = img_container["lista_img"] as? List<String> ?: emptyList()
@@ -241,6 +252,9 @@ class repo_obtener_datos_promociones {
             val nombre_tienda = informacion_notificacion["nombre_tienda"] as? String ?: ""
             val numero = informacion_notificacion["numero"] as? String ?: ""
             val categoria = informacion_notificacion["categoria"] as? String ?: ""
+            val id_img_storage = datos_de_notificacion["id_img_storage"] as? String ?: ""
+            val id_notificaicon_datos=params_noti["id_noti"] as? String?:""
+            val msje_predeterminado=params_noti["msje_predeterminado"] as? String?:""
 
 //                Log.d("PROMO_DEBUG", "Preparando objeto promociones_tiendas_negocios con primera imagen de lista: ${lista_img.firstOrNull()}")
             return promociones_tiendas_negocios(
@@ -250,7 +264,7 @@ class repo_obtener_datos_promociones {
                 numero_contacto_teinda = numero,
                 img_logo_tienda = logo_img,
                 localidad = localidad,
-                categoria = categoria
+                categoria = categoria,"notifiacion_promo_simple",id_img_storage,id_notificaicon_datos,msje_predeterminado,Timestamp.now()
             )
         }
 
@@ -263,11 +277,11 @@ class repo_obtener_datos_promociones {
             numero_contacto_teinda = "",
             img_logo_tienda = "",
             localidad = localidad,
-            categoria = ""
+            categoria = "","notifiacion_promo","","","",Timestamp.now()
         )
     }
 
-    suspend fun obtener_datos_promociones_scroll_infinito_compartido(
+    suspend fun   obtener_datos_promociones_scroll_infinito_compartido(
         localidad: String,
         id_promo: String
     ): dataclass_promociones_cerca_de_ti {
@@ -294,9 +308,6 @@ class repo_obtener_datos_promociones {
         val mensaje_predeterminado = datos["mensaje_predeterminado"] as? Map<*, *>
         val whatsapp_msje = mensaje_predeterminado?.get("whatsapp") as? Map<*, *>
         val compartir_msje = mensaje_predeterminado?.get("compartir") as? Map<*, *>
-        val datos_hora_fecha = datos["datos_hora_fecha"] as? Map<*, *> ?: emptyMap<String, Any>()
-        val horas = datos_hora_fecha["horas"] as? Map<*, *> ?: emptyMap<String, Any>()
-        val fechas = datos_hora_fecha["dias"] as? Map<*, *> ?: emptyMap<String, Any>()
 
         val logo = img_container?.get("logo_img") as? String ?: ""
         val lista_img_container = img_container?.get("lista_img") as? List<String> ?: emptyList()
@@ -315,13 +326,24 @@ class repo_obtener_datos_promociones {
         val compartir_msj = compartir_msje?.get("msje_predermindo") as? String ?: ""
         val wsap_msj_bool = whatsapp_msje?.get("activo_o_no") as? Boolean ?: false
         val wsap_msj = whatsapp_msje?.get("msje_predermindo") as? String ?: ""
+        val datos_hora_fecha = datos.get("datos_hora_fecha") as? Map<*, *> ?: emptyMap<String, Any>()
+        val horasMap = datos_hora_fecha["horas"] as? Map<*, *> ?: emptyMap<String, Any>()
+        val diasMap = datos_hora_fecha["dias"] as? Map<*, *> ?: emptyMap<String, Any>()
 
         val timestampFin = when (tipo_hora_dias) {
-            "horas" -> (horas["timestamp_fin"] as? Number)?.toLong() ?: 0L
-            "dias" -> (fechas["timestamp_fin"] as? Number)?.toLong() ?: 0L
-            else -> 0L
+            "horas" -> (horasMap["timestamp_fin"] as? Timestamp)
+            "dias" -> (diasMap["timestamp_fin"]  as? Timestamp)
+            else -> null
         }
-        val timestampFinMs = if (timestampFin < 1_000_000_000_000L) timestampFin * 1000 else timestampFin
+        // 🔹 Ajuste a milisegundos si estuviera en segundos
+        val tiempo = timestampFin?.let {
+            constantes_datos_expirados_fechas_publicaciones.tiempoRestante(
+                it
+            )
+        } ?: "Expirado"
+
+
+
 
         return dataclass_promociones_cerca_de_ti(
             informacion_publcacion = informacion_publcacion(
@@ -341,12 +363,12 @@ class repo_obtener_datos_promociones {
             ),
             img = img_content(logo_img = logo, lista_img = lista_img_container),
             exclussivo = false,
-            dias_restantes = tiempoRestante(timestampFinMs),
+            dias_restantes = tiempo,
             estadisticas = estadisticas_publiccaciones(total_clicks_whatsapp = 0, total_total_compartidos = 0),
             texto_msje_whatsapp = msjes_predeteminados_generales(
                 compartir = mensaje_predeterminado(msje_predermindo = compartir_msj, activo_o_no = compartir_msj_bool),
                 whatsapp = mensaje_predeterminado(msje_predermindo = wsap_msj, activo_o_no = wsap_msj_bool)
-            )
+            ),fecha_fin=timestampFin?: Timestamp.now(),estado
         )
     }
 

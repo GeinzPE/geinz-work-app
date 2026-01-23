@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import com.geinzz.geinzwork.model.repo_pantallas_promocionar
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -93,8 +93,25 @@ data class agregar_promociones(
     val ubicacion: ubicacaion_container,
     val datos_hora_fecha: datos_fecha_hora_tipo,
     val formato_fecha_hora: String,
-    val mensaje_predeterminado: msjes_predeteminados_generales
+    val mensaje_predeterminado: msjes_predeteminados_generales,
+    val generaciones_con_ia:generaciones_con_ia
 )
+
+data class generaciones_con_ia(
+    val titulo_original:String,
+    val descripcion_original: String,
+    val lista_generaciones:  List<OpcionPromocionIA>,
+    val generacion_selecionada:contenido_publicidad,
+    val generacion_wsap:String,
+    val generacion_compartir:String
+)
+
+data class generaciones_con_ia_notificaciones(
+    val generacion_selecionada:contenido_publicidad,
+    val generacion_wsap:String,
+)
+
+data class contenido_publicidad(val titulo: String,val descripcion: String)
 
 data class datos_fecha_hora_tipo(
     val horas: fechas_horas_promociones,
@@ -105,16 +122,16 @@ data class fechas_horas_promociones(
     val hora_inicio: String = "",
     val hora_fin: String = "",
     val activo: Boolean = false,
-    val timestamp_inicio: Long = 0L,
-    val timestamp_fin: Long = 0L
+    val timestamp_inicio: Timestamp = Timestamp.now(),
+    val timestamp_fin: Timestamp = Timestamp.now()
 )
 
 data class fechas_promociones(
     val fecha_inicio: String = "",
     val fecha_fin: String = "",
     val activo: Boolean = false,
-    val timestamp_inicio: Long = 0L,
-    val timestamp_fin: Long = 0L
+    val timestamp_inicio: Timestamp = Timestamp.now(),
+    val timestamp_fin: Timestamp = Timestamp.now()
 )
 
 data class img_contaier(val lista_img: List<String> = emptyList(), val logo_img: String = "")
@@ -159,7 +176,8 @@ data class items_pantallas_promociones(
     val subcategorias_tienda: List<String> = emptyList(),
     val ubicacion: ubicacaion_container = ubicacaion_container(),
     val saldo: Number = 0,
-    val id_tienda: String = ""
+    val id_tienda: String = "",
+
 )
 
 data class obj_contador_notificaciones(
@@ -176,6 +194,8 @@ data class obj_contador_notificaciones(
     val numero_contacto_tienda: String,
     val categoira_tienda: String,
     val id_img_storage: String,
+    val fecha_caducidad: Timestamp,
+    val generaciones_con_ia_notificaciones:generaciones_con_ia_notificaciones
 )
 
 data class obj_suspend_notificacion(
@@ -193,6 +213,7 @@ data class obj_parametros_notificacion(
     val tipo_notificacion: String,
     val notificacion_publicidad: Boolean,
     val id_publicacion_anuncio: String,
+    val mensaje_programado_whatsap:String
 )
 
 data class datos_publicaciones_realizadas(
@@ -200,7 +221,9 @@ data class datos_publicaciones_realizadas(
     val descripcion: String,
     val vence_en: String,
     val id: String,
-    val img: String
+    val img: String,
+    val texto_whatsapp:String,
+    val timestamp_fin: Timestamp
 )
 
 data class datos_recarga(
@@ -253,11 +276,18 @@ data class NotificacionIA(
 )
 
 data class OpcionPromocionIA(
+    val tipoIA: repo_pantallas_promocionar.TipoGeneracionIA? = null ,
     val titulo: String,
     val descripcion: String
 )
 
 data class nombre_precio_notificaciones(val tipo: String, val precio: Int)
+
+data class GeneracionIA(
+    val tipo: repo_pantallas_promocionar.TipoGeneracionIA,
+    val beneficios: List<String>
+)
+
 
 
 data class historial_financiero(
@@ -289,10 +319,22 @@ data class publicaciones_notificaciones_geinz(
     val realizado: String,
     val vence: String,
     val total_gastado: String,
-    val estado_publicacion:String,
+    val estado_publicacion: String, val fechaOrden: Long
+)
+
+data class TiempoPromo(
+    val duracion: String,
+    val transcurrido: String
+)
+
+data class CostoPromo(
+    val total: Double,
+    val consumido: Double
 )
 
 data class obtener_datos_promociones(
+    val estado:String,
+    val horas_o_fecha: String,
     val lista_img: List<String>,
     val categoira: String,
     val compartir: Boolean,
@@ -301,9 +343,40 @@ data class obtener_datos_promociones(
     val descripcion: String,
     val titulo: String,
     val numero: String,
-    val fecha_iniciada: Long,
-    val fecha_terminada: Long
+    val fecha_iniciada: String ,
+    val fecha_terminada: String ,
+    val duracion_total: String = "",      // 🔥 ej: "10 días" / "5 horas"
+    val tiempo_transcurrido: String = "", // 🔥 ej: "3 días" / "2 horas"
+    val costo_total: Double = 0.0,        // 🔥 inversión total
+    val costo_consumido: Double = 0.0,    // 🔥 ya cobrado
+    val estadisticas: EstadisticasPromoGenerales?,
+    val mensaje_predeterminado: msjes_predeteminados_generales
 )
+
+
+
+
+
+data class EstadisticasPromoGenerales(
+    val click: EstadisticaAccion? = null,
+    val vistas: EstadisticaAccion? = null,
+    val compartidos: EstadisticaAccion? = null,
+    val whatsapp: EstadisticaAccion? = null
+)
+
+data class EstadisticaAccion(
+    val tipo: String="", // 👈 CLAVE
+    val total: Int = 0,
+    val edad: Map<String, TotalEstadistica> = emptyMap(),
+    val genero: Map<String, TotalEstadistica> = emptyMap(),
+    val localidad: Map<String, TotalEstadistica> = emptyMap(),
+    val por_dia: Map<String, TotalEstadistica> = emptyMap()
+)
+
+data class TotalEstadistica(
+    val total: Int = 0
+)
+
 
 data class DatosDemograficosUsuario(
     val localidad: String,
@@ -317,4 +390,112 @@ data class EstadoNotificaciones(
     val fechaFin: String? = null
 )
 
+
+
+
+
+data class notificaciones(
+    val fecha_enviada: String,
+    val datos_de_notificacion:datos_de_notificacion,
+    val parametros_notificacion:parametros_notificacion,
+val EventoEstadisticas:EventosNotificacion
+    )
+data class datos_de_notificacion(
+    val categoira:String,
+    val img_id_storage:String,
+    val id_tienda: String,
+    val img_notifiacion:String,
+    val localidad:String,
+    val logo_notificacion:String,
+    val numero_contacto:String,
+    val texto_notificacion:String,
+    val titulo_notificacion:String,
+
+)
+
+data class parametros_notificacion(
+    val id_noti:String,
+    val id_promo_anuncio:String,
+    val notificacion_nuevo: Boolean,
+    val prioridad_notificacion:String,
+    val tipo_notificacion:String,
+    val tipo_precio:String,
+    val total_gastado:String,
+    val enviados:String,
+    val fallidos:String,
+    val mensaje_predeterminado:String
+)
+
+
+//// 📌 Estadísticas generales de un evento (clic, vista, cerrar, etc.)
+//data class EventoEstadisticas(
+//    val total: Long = 0,                 // Total acumulado
+//    val porDia: Map<String, Long> = mapOf(), // Total por día: "2026-01-16" -> 2
+//    val valores: Map<String, Long> = mapOf() // Valores numéricos asociados (ej. tiempo en segundos)
+//)
+
+// 📌 Alcance único de usuarios
+data class AlcanceUsuarios(
+    val total: Long = 0,                 // Total de usuarios únicos
+    val usuarios: Map<String, Long> = mapOf() // uid -> timestamp o 1
+)
+
+// 📌 Estadísticas demográficas
+data class DemografiaEvento(
+    val localidad: Map<String, Long> = mapOf(), // ej: "barranca" -> 20
+    val genero: Map<String, Long> = mapOf(),    // ej: "masculino" -> 15
+    val edad: Map<String, Long> = mapOf()       // ej: "18-25" -> 10
+)
+
+// 📌 Estadísticas completas de un evento
+data class EstadisticasEvento(
+    val total: Long = 0,                        // Total general
+    val porDia: Map<String, Long> = mapOf(),    // Total por día
+    val valores: Map<String, Long> = mapOf(),   // Valores (tiempo en segundos)
+    val alcanceUsuarios: AlcanceUsuarios = AlcanceUsuarios(),
+    val demografia: DemografiaEvento = DemografiaEvento()
+)
+
+
+
+// 📌 Estadísticas completas de una promoción
+data class EstadisticasPromocion(
+    val idPromo: String,
+    val eventos: Map<String, EstadisticasEvento> = mapOf() // "VISTA", "CLICK_ANUNCIO", "CERRAR_ANUNCIO"...
+)
+
+
+
+
+data class TiempoPorDia(
+    val total_segundos: Long = 0,
+    val eventos: Int = 0
+)
+
+
+
+data class EventosNotificacion(
+    val cerrar_anuncio: CerrarAnuncioEstadisticas = CerrarAnuncioEstadisticas(),
+    val click: EventoEstadisticas = EventoEstadisticas(),
+    val click_anuncio: EventoEstadisticas = EventoEstadisticas(),
+    val click_perfil: EventoEstadisticas = EventoEstadisticas(),
+    val click_whatsapp: EventoEstadisticas = EventoEstadisticas(),
+    val vista: EventoEstadisticas = EventoEstadisticas()
+)
+
+
+data class CerrarAnuncioEstadisticas(
+    val total: Int = 0,
+    val porDia: Map<String, TiempoPorDia> = emptyMap(),
+    val promedio_segundos: Double = 0.0
+)
+
+
+data class EventoEstadisticas(
+    val total: Long = 0L,
+    val porDia: Map<String, Long> = emptyMap(),
+    val edad: Map<String, Long> = emptyMap(),
+    val genero: Map<String, Long> = emptyMap(),
+    val localidad: Map<String, Long> = emptyMap()
+)
 

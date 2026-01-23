@@ -1097,7 +1097,7 @@ fun TextoCopiable(id_tienda: String) {
         fontSize = 16.sp,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.clickable {
+        modifier = Modifier.clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
             // Obtener el ClipboardManager
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("ID Tienda", id_tienda)

@@ -217,6 +217,18 @@ class viewmodel_recargas : ViewModel() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun agruparHistorialPorFecha(
+        lista: List<historial_financiero>
+    ): Map<String, List<historial_financiero>> {
+
+        return lista
+            .groupBy { it.fecha }
+            .toSortedMap(compareByDescending { it })
+    }
+
+
+
 
 
     sealed class state_historial_financiero {

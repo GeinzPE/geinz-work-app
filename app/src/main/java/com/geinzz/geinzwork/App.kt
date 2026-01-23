@@ -5,6 +5,7 @@ import com.geinzz.geinzwork.Network_internet.ConnectivityObserver
 import com.geinzz.geinzwork.Network_internet.DefaultConnectivityObserver
 import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
 import com.geinzz.geinzwork.utils.constantes.constantes.NetworkMonitor
+import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.firestoreSettings
@@ -17,17 +18,21 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // 🔥 Firestore principal (DEFAULT)
+        // 🔹 Inicializa Firebase principal
+        FirebaseApp.initializeApp(this)
+
+        // 🔹 Firestore settings
         val settings = firestoreSettings {
             isPersistenceEnabled = true
             cacheSizeBytes = FirebaseFirestoreSettings.CACHE_SIZE_UNLIMITED
         }
         FirebaseFirestore.getInstance().firestoreSettings = settings
 
-        // 🔥🔥🔥 AQUÍ VA EL FIREBASE SECUNDARIO (OBLIGATORIO)
+        // 🔹 Inicializa Firebase secundario
         FirebaseSecundario.inicializar(this)
 
-        // Red
+        // 🔹 Red
         connectivityObserver = DefaultConnectivityObserver(this)
     }
+
 }

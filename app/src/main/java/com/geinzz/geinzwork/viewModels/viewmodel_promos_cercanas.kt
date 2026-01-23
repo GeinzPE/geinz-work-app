@@ -41,35 +41,35 @@ class viewmodel_promos_cercanas : ViewModel() {
 
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun cargarSiguienteBloque(localidad: String) {
+    fun cargarSiguienteBloque(localidad: String,categoria_filtrado:String) {
         if (cargando) return
         cargando = true
 
         viewModelScope.launch {
             try {
-                val todasLasPromos = repo.obtener_promos(localidad)
-                Log.d("ViewModelPromos", "Total promos obtenidas de DB: ${todasLasPromos.size}")
+                val todasLasPromos = repo.obtener_promos(categoria_filtrado,localidad)
+//                Log.d("ViewModelPromos", "Total promos obtenidas de DB: ${todasLasPromos.size}")
 
                 // 🔹 eliminar duplicados globalmente por id_promocion
                 val todasFiltradas = todasLasPromos
                     .map { it.dataclass_promociones_cerca_de_ti }
                     .distinctBy { it.informacion_publcacion.id_promocion }
 
-                Log.d("ViewModelPromos", "Promos únicas tras distinctBy: ${todasFiltradas.size} -> IDs: ${todasFiltradas.map { it.informacion_publcacion.id_promocion }}")
+//                Log.d("ViewModelPromos", "Promos únicas tras distinctBy: ${todasFiltradas.size} -> IDs: ${todasFiltradas.map { it.informacion_publcacion.id_promocion }}")
 
                 // 🔹 Filtrar las promos que ya se cargaron
                 val existentesIds = _promosCargadas.value.map { it.informacion_publcacion.id_promocion }.toSet()
                 val nuevasDisponibles = todasFiltradas.filter { it.informacion_publcacion.id_promocion !in existentesIds }
                     .shuffled() // 🔹 orden aleatorio real cada vez
 
-                Log.d("ViewModelPromos", "Promos disponibles tras filtrar existentes: ${nuevasDisponibles.map { it.informacion_publcacion.id_promocion }}")
+//                Log.d("ViewModelPromos", "Promos disponibles tras filtrar existentes: ${nuevasDisponibles.map { it.informacion_publcacion.id_promocion }}")
 
                 // 🔹 Tomar solo hasta "bloque" elementos
                 val nuevasFiltradas = nuevasDisponibles.take(bloque)
 
                 if (nuevasFiltradas.isNotEmpty()) {
                     _promosCargadas.value = _promosCargadas.value + nuevasFiltradas
-                    Log.d("ViewModelPromos", "Total promos cargadas en StateFlow: ${_promosCargadas.value.size} -> IDs: ${_promosCargadas.value.map { it.informacion_publcacion.id_promocion }}")
+//                    Log.d("ViewModelPromos", "Total promos cargadas en StateFlow: ${_promosCargadas.value.size} -> IDs: ${_promosCargadas.value.map { it.informacion_publcacion.id_promocion }}")
                 } else {
                     Log.d("ViewModelPromos", "No hay más promos nuevas para cargar.")
                 }
@@ -110,12 +110,6 @@ class viewmodel_promos_cercanas : ViewModel() {
     val estadoPromos: StateFlow<estado_carga_promociones> =
         _estadoPromos.asStateFlow()
 
-
-    // Este flujo indica qué promos están activas
-
-
-
-
     @RequiresApi(Build.VERSION_CODES.O)
     fun agregar_estadisticas_publicacion(tipo: String, id_promo: String, localidad: String, iduser: String) {
         viewModelScope.launch {
@@ -128,12 +122,12 @@ class viewmodel_promos_cercanas : ViewModel() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun obtener_promociones(localidad: String) {
+    fun obtener_promociones(localidad: String,tipo_filtrado:String) {
         viewModelScope.launch {
             _estadoPromos.value = estado_carga_promociones.loading
 
             try {
-                val resultado = repo.obtener_promos(localidad)
+                val resultado = repo.obtener_promos(tipo_filtrado,localidad)
 
                 if (resultado.isEmpty()) {
                     _estadoPromos.value =
@@ -206,6 +200,19 @@ class viewmodel_promos_cercanas : ViewModel() {
                 estado_carga_promociones.empty("Esta tienda no tiene promociones activas")
             } else {
                 estado_carga_promociones.succes(listaFiltrada.value)
+            }
+    }
+
+    fun mostrarTodasLasPromociones() {
+        val base = listaCompleta.value
+
+        listaFiltrada.value = base
+
+        _estadoPromos.value =
+            if (base.isEmpty()) {
+                estado_carga_promociones.empty("No hay promociones disponibles")
+            } else {
+                estado_carga_promociones.succes(base)
             }
     }
 

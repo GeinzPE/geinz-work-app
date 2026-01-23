@@ -10,6 +10,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -31,6 +32,8 @@ import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.compartir_co
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.tiempoRestante
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen_promociones
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
@@ -38,6 +41,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.promociones_Cercanas.compar
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.ShimmerImagenConMarca
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_promos_cercanas
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -47,6 +51,7 @@ import java.net.URLEncoder
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ZoomableGalleryFullScreenVerticalPager(
+    categoria_select_filtro:String,
     id_user: String,
     viewModel: viewmodel_promos_cercanas,
     localidad_general: String,
@@ -54,6 +59,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
     indeximg_seleccionado: Int,
     onDismiss: () -> Unit,
 ) {
+    Log.d("lodisias_restantes_publica","${promoSeleccionada.fecha_fin}")
 
     val context = LocalContext.current
     val listaPromos by viewModel.promosCargadas.collectAsState()
@@ -73,6 +79,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
     var feedVisible by remember {
         mutableStateOf<List<dataclass_promociones_cerca_de_ti>>(emptyList())
     }
+    var dias_restantes by remember() {mutableStateOf("") }
 
 
     // Inicializar feed (promo seleccionada primero)
@@ -98,7 +105,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
 
     // ---------------- CARGA INICIAL ----------------
     LaunchedEffect(Unit) {
-        viewModel.cargarSiguienteBloque(localidad_general)
+        viewModel.cargarSiguienteBloque(localidad_general,categoria_select_filtro)
     }
 
     // ---------------- BOTTOM SHEET ----------------
@@ -126,7 +133,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
             !solicitandoBloque
         ) {
             solicitandoBloque = true
-            viewModel.cargarSiguienteBloque(localidad_general)
+            viewModel.cargarSiguienteBloque(localidad_general,categoria_select_filtro)
         }
     }
 
@@ -181,6 +188,9 @@ fun ZoomableGalleryFullScreenVerticalPager(
     var mostrarLoader by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
+        dias_restantes=   constantes_datos_expirados_fechas_publicaciones.tiempoRestante(
+            promoSeleccionada.fecha_fin
+        )
         delay(3000) // ⏱️ 3 segundos
         mostrarLoader = false
     }
@@ -211,13 +221,24 @@ fun ZoomableGalleryFullScreenVerticalPager(
 
                         val promo = feedVisible[index]
 
+                        val diasRestantes by produceState(
+                            initialValue = "",
+                            key1 = promo.informacion_publcacion.id_promocion
+                        ) {
+                            while (true) {
+                                value = tiempoRestante(promo.fecha_fin)
+                                delay(30_000) // cada 30s
+                            }
+                        }
+
+
                         val datos = compartir_contacto_pulicaciones(
                             promo.informacion_publcacion.id_promocion,
                             iod_tienda = promo.informacion_publcacion.id_tienda,
                             localidad_tineda = localidad_general,
                             categoria = promo.informacion_publcacion.categoria,
                             numero_contacto = promo.informacion_publcacion.numero,
-                            dias_restantes = promo.dias_restantes,
+                            dias_restantes = diasRestantes,
                             logo_img = promo.img.logo_img,
                             nombre_tienda = promo.informacion_publcacion.nombre_tienda
                         )
@@ -242,6 +263,17 @@ fun ZoomableGalleryFullScreenVerticalPager(
                                 viewModel.resetPromos()
                             },
                             clikc_compartir = { idPromo, categoria, localidad, idTienda ->
+                                val expirada = promoEstaExpirada(promo.fecha_fin)
+                                if (expirada) {
+                                    Toast.makeText(
+                                        context,
+                                        "La publicación ya caducó",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@ZoomableGalleryFullScreen_promociones
+                                }
+
+
                                 compartir_hosting_promo(
                                     viewModel,
                                     promo.texto_msje_whatsapp.compartir.msje_predermindo,
@@ -252,13 +284,24 @@ fun ZoomableGalleryFullScreenVerticalPager(
                                     idPromo,
                                     categoria
                                 )
+
                                 viewModel.agregar_estadisticas_publicacion(
                                     "compartidos",
                                     idPromo,
                                     localidad, id_user,
                                 )
+
                             },
                             click_contacto_directo = { id, numero, localidad, id_tienda,categoira ->
+                                val expirada = promoEstaExpirada(promo.fecha_fin)
+                                if (expirada) {
+                                    Toast.makeText(
+                                        context,
+                                        "La publicación ya caducó",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@ZoomableGalleryFullScreen_promociones
+                                }
 
                                 abrir_whattsapp(
                                     id_user,
@@ -269,18 +312,16 @@ fun ZoomableGalleryFullScreenVerticalPager(
                                     numero,
                                     "${promo.texto_msje_whatsapp.whatsapp.msje_predermindo}" +
                                             "https://geinzworkapp.web.app/share?" +
-                                            "t=prn" +
-                                            "&id=$id_tienda" +
+                                            "t=prms" +
                                             "&l=$localidad" +
-                                            "&c=${
-                                                URLEncoder.encode(categoira, "UTF-8")
-                                            }" + "&pi=$id"
+                                            "&pi=$id"
                                 )
                                 viewModel.agregar_estadisticas_publicacion(
                                     "whatsapp",
                                     id,
                                     localidad, id_user,
                                 )
+
 
                             },
                             abrir_prefil = { idTienda ->
@@ -316,5 +357,10 @@ fun ZoomableGalleryFullScreenVerticalPager(
             }
         }
     }
+}
+
+fun promoEstaExpirada(fechaFin: Timestamp): Boolean {
+    return constantes_datos_expirados_fechas_publicaciones
+        .tiempoRestante(fechaFin) == "Expirado"
 }
 

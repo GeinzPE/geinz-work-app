@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -39,6 +40,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -80,9 +83,11 @@ import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.tiendas_con_
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.ui.adapters.ZoomableGalleryFullScreenVerticalPager
+import com.geinzz.geinzwork.ui.adapters.promoEstaExpirada
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -93,6 +98,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.firebaseAuth
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
@@ -111,14 +117,17 @@ import java.net.URLEncoder
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ui_promos_cerca_de_ti(
+    flag_identificador:String,
     activar_promo_params: String,
     localidad: String,
     verificar_intener: Boolean,
     iniciar_seccion: () -> Unit,
-    crear_cuenta: () -> Unit
+    crear_cuenta: () -> Unit, onBack: () -> Unit
 ) {
+    Log.d("flag_psada","$flag_identificador")
     val context = LocalContext.current
     val firebaseAuth = FirebaseAuth.getInstance()
+    Log.d("daots","$activar_promo_params  $localidad $")
     val uid_respald_user by data_store_localidad
         .get_uid_user(context)
         .collectAsState(initial = firebaseAuth.uid.orEmpty())
@@ -163,42 +172,139 @@ fun ui_promos_cerca_de_ti(
     // Dentro de tu Composable
     var estadisticasAgregadas by remember { mutableStateOf(false) }
 
+    BackHandler {
+        Log.d("NAV_BACK", "Back desde ui_promos_cerca_de_ti")
+        onBack()   // 🔥 avisa al NavController
+    }
+
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    var yaIntentoCargar by remember { mutableStateOf(false) }
+    var datosCargados by remember { mutableStateOf(false) }
+
+    var promoExpirada by remember { mutableStateOf(false) }
+    var texto_snackbar by remember { mutableStateOf("") }
+    var snackbarMostrado by remember { mutableStateOf(false) }
+
+
+    var cargaFinalizada by remember { mutableStateOf(false) }
+    LaunchedEffect(activar_promo_params) {
+
+        Log.d("PROMO_FLOW", "▶ LaunchedEffect activar_promo_params = '$activar_promo_params'")
+
+        // reset
+        cargaFinalizada = false
+        estadisticasAgregadas = false
+        snackbarMostrado = false
+
+        if (activar_promo_params.isEmpty()) {
+            Log.w("PROMO_FLOW", "⚠ activar_promo_params VACÍO → no se consulta Firestore")
+            cargaFinalizada = true
+            promoExpirada = false
+            return@LaunchedEffect
+        }
+
+        Log.d("PROMO_FLOW", "📡 Consultando Firestore con id = $activar_promo_params")
+
+        viewmodel_repo_datos_promo.obtener_datos_promociones_por_paramtros(
+            localidad,
+            activar_promo_params
+        )
+    }
 
 
 
+    LaunchedEffect(datos_promo_parametros) {
 
+        Log.d("PROMO_FLOW", "▶ LaunchedEffect datos_promo_parametros")
 
-    LaunchedEffect(activar_promo_params, datos_promo_parametros) {
-        if (activar_promo_params.isNotEmpty()) {
-            viewmodel_repo_datos_promo.obtener_datos_promociones_por_paramtros(
+        if (activar_promo_params.isEmpty()) {
+            Log.w("PROMO_FLOW", "⛔ Se ignora datos_promo_parametros porque activar_promo_params está vacío")
+            return@LaunchedEffect
+        }
+
+        cargaFinalizada = true
+
+        val idPromo =
+            datos_promo_parametros.informacion_publcacion.id_promocion
+        val estado_publicaicones= datos_promo_parametros.estado_publicacion
+
+        if (estado_publicaicones.equals("pausado", ignoreCase = true)) {
+            promoExpirada = true
+            texto_snackbar = "Esta publicación no está disponible en este momento. Inténtalo más tarde."
+            return@LaunchedEffect
+        }
+
+        Log.d("PROMO_FLOW", "🆔 idPromo recibido = '$idPromo'")
+
+        // ❌ NO EXISTE
+        if (idPromo.isEmpty()) {
+            Log.e("PROMO_FLOW", "❌ idPromo vacío → promo NO existe")
+            promoExpirada = true
+            texto_snackbar="Este contenido ya no está disponible"
+
+            return@LaunchedEffect
+        }
+
+        // ⏱️ VALIDAR EXPIRACIÓN
+        val expirada = promoEstaExpirada(datos_promo_parametros.fecha_fin)
+
+        Log.d("PROMO_FLOW", "⏱ Fecha fin = ${datos_promo_parametros.fecha_fin} | Expirada = $expirada")
+
+        if (expirada) {
+            Log.e("PROMO_FLOW", "⛔ Promo EXPIRADA")
+            promoExpirada = true
+            return@LaunchedEffect
+        }
+
+        // ✅ EXISTE y NO está expirada → UI
+        Log.d("PROMO_FLOW", "✅ Promo válida → mostrar UI")
+
+        promoExpirada = false
+        mostrar_zoom_img = true
+        promoSeleccionada_unica = datos_promo_parametros
+
+        // 📊 ESTADÍSTICAS (SOLO UNA VEZ)
+        if (!estadisticasAgregadas) {
+            Log.d("PROMO_FLOW", "📊 Agregando estadísticas")
+
+            viewModel.agregar_estadisticas_publicacion(
+                "click",
+                activar_promo_params,
                 localidad,
-                activar_promo_params
+                uid_respald_user
             )
-
-            mostrar_zoom_img = true
-            promoSeleccionada_unica = datos_promo_parametros
-            if (!estadisticasAgregadas) {
-
-                // Agregar estadísticas solo 1 vez
-                viewModel.agregar_estadisticas_publicacion(
-                    "click",
-                    activar_promo_params,
-                    localidad, uid_respald_user
-                )
-                viewModel.agregar_estadisticas_publicacion(
-                    "vistas",
-                    activar_promo_params,
-                    localidad, uid_respald_user
-                )
-                estadisticasAgregadas = true // marcamos que ya se ejecutó
-            }
-
+            viewModel.agregar_estadisticas_publicacion(
+                "vistas",
+                activar_promo_params,
+                localidad,
+                uid_respald_user
+            )
+            estadisticasAgregadas = true
+        } else {
+            Log.d("PROMO_FLOW", "ℹ Estadísticas ya agregadas")
         }
     }
 
 
+
+    LaunchedEffect(estado, promoExpirada) {
+        if (
+            estado is viewmodel_promos_cercanas.estado_carga_promociones.succes &&
+            promoExpirada &&
+            !snackbarMostrado
+        ) {
+            snackbarMostrado = true
+            snackbarHostState.showSnackbar(
+                message = texto_snackbar,
+                duration = SnackbarDuration.Long
+            )
+        }
+    }
+
     LaunchedEffect(localidad) {
-        viewModel.obtener_promociones("barranca")
+        viewModel.obtener_promociones("barranca","Todos")
     }
     LaunchedEffect(show_bottom_sheeet) {
         if (show_bottom_sheeet) {
@@ -264,13 +370,12 @@ fun ui_promos_cerca_de_ti(
 
             // ---------- SUCCESS ----------
             is viewmodel_promos_cercanas.estado_carga_promociones.succes -> {
-
                 val promos =
                     (estado as viewmodel_promos_cercanas.estado_carga_promociones.succes).items
                 val tiendasConMasDeUnaPromo: List<tiendas_con_mas_de_una_promo> = promos
-                    .flatMap { it.lista_tiendas_con_mas_promo } // sacamos todas las listas de cada promo
+                    .flatMap { it.lista_tiendas_con_mas_promo }
                     .distinctBy { it.id } // eliminamos duplicados por id
-
+                Box(modifier = Modifier.fillMaxSize()){
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                     modifier = Modifier.padding(vertical = 5.dp)
@@ -305,8 +410,9 @@ fun ui_promos_cerca_de_ti(
                                     btn_visible = false,
                                     clik_card = {
                                         subCategoriaSeleccionada = subcategoria
+                                        tiendaSeleccionada=null
                                         if (subcategoria != "Todos") {
-                                            tiendaSeleccionada = null
+
                                         }
                                     },
                                     onClick_delete = {}
@@ -325,14 +431,27 @@ fun ui_promos_cerca_de_ti(
                                     i = tienda,
                                     seleccionada = tienda.id == tiendaSeleccionada,
                                     img_clikeada = { id ->
-                                        tiendaSeleccionada = id
+
+                                        tiendaSeleccionada =
+                                            if (tiendaSeleccionada == id) {
+                                                null // 🔥 deselecciona
+                                            } else {
+                                                id   // 🔥 selecciona
+                                            }
+
                                         subCategoriaSeleccionada = "Todos"
-                                        viewModel.filtrar_promociones_por_id(id)
+
+                                        if (tiendaSeleccionada != null) {
+                                            viewModel.filtrar_promociones_por_id(tiendaSeleccionada!!)
+                                        } else {
+                                            viewModel.mostrarTodasLasPromociones()
+                                        }
                                     }
                                 )
                             }
                         }
                     }
+
 
                     items(
                         items = promos,
@@ -407,12 +526,10 @@ fun ui_promos_cerca_de_ti(
                                             .informacion_publcacion.numero,
                                         "${item.dataclass_promociones_cerca_de_ti.texto_msje_whatsapp.whatsapp.msje_predermindo}" +
                                                 "https://geinzworkapp.web.app/share?" +
-                                                "t=prn" +
-                                                "&id=$id_tienda" +
+                                                "t=prms" +
                                                 "&l=$localidad" +
-                                                "&c=${
-                                                    URLEncoder.encode(categoira, "UTF-8")
-                                                }" + "&pi=$id"
+                                                "&pi=$id"
+
                                     )
                                     viewModel.agregar_estadisticas_publicacion(
                                         "whatsapp",
@@ -442,9 +559,16 @@ fun ui_promos_cerca_de_ti(
                     }
 
                 }
+                    SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
+
+                }
+
+
+
 //                if (mostrar_zoom_img && promoSeleccionada != null) {
                 if (mostrar_zoom_img) {
                     ZoomableGalleryFullScreenVerticalPager(
+                        subCategoriaSeleccionada,
                         id_user = uid_respald_user,
                         viewModel = viewModel,
                         localidad_general = localidad,
@@ -452,8 +576,9 @@ fun ui_promos_cerca_de_ti(
                         indeximg_seleccionado = index_galeria_img,
                         onDismiss = { mostrar_zoom_img = false; promoSeleccionada = null },
                     )
-
+                    return
                 }
+
                 if (mostrar_bottom_shet_registrate) {
                     bottom_sheet_registrate(
                         ondimis = {
@@ -483,6 +608,10 @@ fun ui_promos_cerca_de_ti(
                 }
             }
         }
+
+        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
+
+
     }
 }
 
@@ -495,6 +624,13 @@ fun carta_promocion_geinz(
     whatsap_promo: (String, id_tienda: String, categoira: String) -> Unit,
     mostrar_perfil: (String, id_promo: String) -> Unit
 ) {
+    val context=LocalContext.current
+    var diasRestantes by remember(i.informacion_publcacion.id_promocion) {
+        mutableStateOf(
+            constantes_datos_expirados_fechas_publicaciones
+                .tiempoRestante(i.fecha_fin)
+        )
+    }
     val (valorRestante, tipo) = parseDiasHorasRestantes(i.dias_restantes)
     Log.d("dias_restantes_obenidos", "${i.dias_restantes}")
     val backgroundColor = when {
@@ -585,7 +721,7 @@ fun carta_promocion_geinz(
                 Spacer(modifier = Modifier.height(2.dp))
 
                 Text(
-                    text = "${i.dias_restantes}",
+                    text = "${diasRestantes}",
                     fontSize = 12.sp,
                     color = backgroundColor
                 )
@@ -606,6 +742,19 @@ fun carta_promocion_geinz(
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() }
                             ) {
+
+                                val expirada = promoEstaExpirada(i.fecha_fin)
+
+                                if (expirada) {
+                                    Toast.makeText(
+                                        context,
+                                        "La publicación ya caducó",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@clickable
+                                }
+
+                                // ✅ Solo si sigue activa
                                 share_promo(
                                     i.informacion_publcacion.id_tienda,
                                     i.informacion_publcacion.id_promocion,
@@ -615,6 +764,7 @@ fun carta_promocion_geinz(
                     )
                 }
 
+
                 if (i.informacion_publcacion.contactar) {
                     Icon(
                         painterResource(R.drawable.whatsapp_icon),
@@ -622,6 +772,17 @@ fun carta_promocion_geinz(
                         modifier = Modifier
                             .size(30.dp)
                             .clickable {
+                                val expirada = promoEstaExpirada(i.fecha_fin)
+
+                                if (expirada) {
+                                    Toast.makeText(
+                                        context,
+                                        "La publicación ya caducó",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@clickable
+                                }
+
                                 whatsap_promo(
                                     i.informacion_publcacion.id_promocion,
                                     i.informacion_publcacion.id_tienda,
