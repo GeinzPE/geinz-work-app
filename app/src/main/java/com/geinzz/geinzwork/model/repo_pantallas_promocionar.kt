@@ -10,13 +10,22 @@ import com.geinzz.geinzwork.data.model.DatosDemograficosUsuario
 import com.geinzz.geinzwork.data.model.NotificacionIA
 import com.geinzz.geinzwork.data.model.OpcionPromocionIA
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenWebPSinRecorte
-import com.geinzz.geinzwork.herramientas_geinz.constantes.generarPromptNotificacionOptimizado
-import com.geinzz.geinzwork.herramientas_geinz.constantes.generarPromptNotificacionSeleccionada
-import com.geinzz.geinzwork.herramientas_geinz.constantes.generarPromptPromocion_text_compartir
-import com.geinzz.geinzwork.herramientas_geinz.constantes.generarPromptWhatsAppContacto
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptNotificacionOptimizado
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptNotificacionSeleccionada
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromocion_text_compartir
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptWhatsAppContacto
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionAtencion
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionCita
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionNovedad
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionOperativa
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionReposicion
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionServicios
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionUrgencia
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionVenta
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoAtencion
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoInformativo
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoVenta
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionVenta
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.acortarDescripcionNotificacion
 
 import com.google.firebase.Firebase
@@ -54,7 +63,36 @@ class repo_pantallas_promocionar {
         INFORMATIVO(
             tituloUI = "Informativo",
             icono = "🏢"
-        )
+        ),
+
+        URGENCIA(
+            tituloUI = "Urgencia",
+            icono = "⏰"
+        ),
+
+        NOVEDAD(
+            tituloUI = "Novedad",
+            icono = "🆕"
+        ),
+
+        OPERATIVA(
+            tituloUI = "Operativa",
+            icono = "⚠️" // Cambios de última hora, cierres inesperados
+        ),
+        REPOSICION(
+            tituloUI = "Reposición",
+            icono = "📦" // Nuevos productos o reposición de stock
+        ),
+        CITAS(
+            tituloUI = "Citas",
+            icono = "📅" // Recordatorio de citas o reservas
+        ),
+        SERVICIOS(
+            tituloUI = "Servicios",
+            icono = "🛠️" // Información sobre servicios, cambios o novedades
+        ),
+
+
     }
 
 
@@ -77,6 +115,48 @@ class repo_pantallas_promocionar {
             TipoGeneracionIA.INFORMATIVO -> generarPromptPromoInformativo(
                 tituloUsuario, descripcionUsuario, nombreTienda, localidad
             )
+
+            TipoGeneracionIA.URGENCIA -> {
+                generarPromptPromoInformativo(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+
+            }
+
+            TipoGeneracionIA.NOVEDAD -> {
+                generarPromptPromoInformativo(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+
+            }
+
+            TipoGeneracionIA.OPERATIVA -> {
+                generarPromptPromoInformativo(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+
+            }
+
+            TipoGeneracionIA.REPOSICION -> {
+                generarPromptPromoInformativo(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+
+            }
+
+            TipoGeneracionIA.CITAS -> {
+                generarPromptPromoInformativo(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+
+            }
+
+            TipoGeneracionIA.SERVICIOS -> {
+                generarPromptPromoInformativo(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+
+            }
         }
     }
 
@@ -105,7 +185,7 @@ class repo_pantallas_promocionar {
             val result = model.generateContent(prompt)
             val texto = result.text ?: return emptyList()
 
-            parsearOpcionesIA(tipo_generacion,texto)
+            parsearOpcionesIA(tipo_generacion, texto)
 
         } catch (e: Exception) {
             Log.e("IA", "Error IA promociones: ${e.message}")
@@ -158,19 +238,66 @@ class repo_pantallas_promocionar {
     }
 
     suspend fun crear_notificacion_conIA_corta(
-        tituloPublicacion: String, descCorta: String, onResultado: (NotificacionIA) -> Unit
+        tituloPublicacion: String,
+        descCorta: String,
+        tipoGeneracion: TipoGeneracionIA,  // <-- nuevo
+        onResultado: (NotificacionIA) -> Unit
     ) {
 
         val model = Firebase.ai(
             backend = GenerativeBackend.googleAI()
         ).generativeModel("gemini-2.5-flash")
+
         val descripcion_acortada = acortarDescripcionNotificacion(descCorta)
 
         try {
-            val prompt = generarPromptNotificacionSeleccionada(
-                tituloPublicacion,
-                descripcion_acortada,
-            )
+            // Elegimos el prompt según el tipo
+            val prompt = when (tipoGeneracion) {
+                TipoGeneracionIA.VENTA -> promptNotificacionVenta(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+
+                TipoGeneracionIA.ATENCION -> promptNotificacionAtencion(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+
+                TipoGeneracionIA.URGENCIA -> promptNotificacionUrgencia(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+
+                TipoGeneracionIA.NOVEDAD -> promptNotificacionNovedad(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+
+                TipoGeneracionIA.INFORMATIVO -> promptNotificacionAtencion(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+
+                TipoGeneracionIA.OPERATIVA -> promptNotificacionOperativa(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+
+                TipoGeneracionIA.REPOSICION -> promptNotificacionReposicion(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+
+                TipoGeneracionIA.CITAS -> promptNotificacionCita(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+
+                TipoGeneracionIA.SERVICIOS -> promptNotificacionServicios(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+            }
 
             val inicio = System.currentTimeMillis()
             val result = model.generateContent(prompt)
@@ -363,7 +490,6 @@ class repo_pantallas_promocionar {
     }
 
 
-
     enum class EventoNotificacion(val key: String) {
         VISTA("vista"),
         CLICK("click"),
@@ -425,8 +551,6 @@ class repo_pantallas_promocionar {
     }
 
 
-
-
     fun registrarDemografiaEvento(
         eventoDoc: DocumentReference,
         idUser: String
@@ -459,8 +583,6 @@ class repo_pantallas_promocionar {
     }
 
 
-
-
     fun incrementar(ref: DocumentReference) {
         ref.update("total", FieldValue.increment(1))
             .addOnFailureListener {
@@ -487,6 +609,7 @@ class repo_pantallas_promocionar {
             }
         }
     }
+
     object MedidorTiempoAnuncio {
         private var inicio: Long = 0L
         private var cerrado = false
@@ -502,9 +625,6 @@ class repo_pantallas_promocionar {
             return ((System.currentTimeMillis() - inicio) / 1000).coerceAtLeast(1)
         }
     }
-
-
-
 
 
     fun obtenerRangoEdad(edad: Int): String {

@@ -10,7 +10,7 @@ object proms_gen_IA {
         return """
 Mejora el título y la descripción de una promoción con ENFOQUE EN VENTA DIRECTA.
 Usa SOLO la información proporcionada. NO inventes datos ni precios.
-Si el usuario menciona un precio (ej: 120, cuesta 120, S/120), usa el símbolo S/.
+Si el usuario menciona un precio (ej: 120, cuesta 120, S/120), usa el símbolo s/
 
 Reglas:
 - Genera EXACTAMENTE 3 opciones distintas
@@ -51,7 +51,7 @@ D:
         return """
 Mejora el título y la descripción de una promoción con ENFOQUE EN LLAMAR LA ATENCIÓN.
 Usa SOLO la información proporcionada. NO inventes datos ni precios.
-Si el usuario menciona un precio, usa el símbolo S/.
+Si el usuario menciona un precio, usa el símbolo s/
 
 Reglas:
 - Genera EXACTAMENTE 3 opciones distintas
@@ -92,7 +92,7 @@ D:
         return """
 Mejora el título y la descripción de una promoción con ENFOQUE PROFESIONAL E INFORMATIVO.
 Usa SOLO la información proporcionada. NO inventes datos ni precios.
-Si el usuario menciona un precio, usa el símbolo S/.
+Si el usuario menciona un precio, usa el símbolo s/
 
 Reglas:
 - Genera EXACTAMENTE 3 opciones distintas
@@ -124,16 +124,13 @@ D:
 """.trimIndent()
     }
 
-}
 
+    fun generarPromptNotificacionOptimizado(
+        tituloPublicacion: String, descCorta: String, // ≤60 chars
+        nombreTienda: String, localidad: String, diasRestantes: Int
+    ): String {
 
-
-fun generarPromptNotificacionOptimizado(
-    tituloPublicacion: String, descCorta: String, // ≤60 chars
-    nombreTienda: String, localidad: String, diasRestantes: Int
-): String {
-
-    return """
+        return """
 Genera un título (≤40) y una descripción (≤90) para notificación.
 No inventes datos. Español neutro.
 Usa MÁXIMO 1 emoji SOLO en el título. Sin emojis en la descripción.
@@ -155,16 +152,16 @@ Salida EXACTA:
 T: texto
 D: texto
 """.trimIndent()
-}
+    }
 
-fun generarPromptPromocionProduccion(
-    tituloUsuario: String,
-    descripcionUsuario: String,
-    nombreTienda: String,
-    localidad: String,
-): String {
+    fun generarPromptPromocionProduccion(
+        tituloUsuario: String,
+        descripcionUsuario: String,
+        nombreTienda: String,
+        localidad: String,
+    ): String {
 
-    return """
+        return """
 Mejora el título y la descripción de una promoción usando SOLO la información dada.
 No inventes datos ni precios.
 Genera EXACTAMENTE 3 opciones distintas.
@@ -196,15 +193,15 @@ Opcion 3:
 T:
 D:
 """.trimIndent()
-}
+    }
 
 
-fun generarPromptPromocion_text_compartir(
-    tituloUsuario: String,
-    descripcionUsuario: String,
-): String {
+    fun generarPromptPromocion_text_compartir(
+        tituloUsuario: String,
+        descripcionUsuario: String,
+    ): String {
 
-    return """
+        return """
 Crea un mensaje muy corto para compartir y provocar clic inmediato.
 
 Reglas:
@@ -221,15 +218,15 @@ Datos:
 $tituloUsuario
 $descripcionUsuario
 """.trimIndent()
-}
+    }
 
 
-fun generarPromptWhatsAppContacto(
-    titulo: String,
-    descripcion: String,
-): String {
+    fun generarPromptWhatsAppContacto(
+        titulo: String,
+        descripcion: String,
+    ): String {
 
-    return """
+        return """
 Actúa como un cliente interesado que contacta por WhatsApp.
 
 Reglas:
@@ -246,14 +243,14 @@ Datos:
 Título: $titulo
 Descripción: $descripcion
 """.trimIndent()
-}
+    }
 
 
-fun generarPromptNotificacionSeleccionada(
-    tituloPublicacion: String, descCorta: String
-): String {
+    fun generarPromptNotificacionSeleccionada(
+        tituloPublicacion: String, descCorta: String
+    ): String {
 
-    return """
+        return """
 Crea una notificación PUSH comercial.
 Reescribe desde cero, pero CONSERVA los datos clave del contexto.
 No inventes información.
@@ -274,4 +271,230 @@ Salida EXACTA:
 T:
 D:
 """.trimIndent()
+    }
+
+
+    fun promptNotificacionVenta(tituloPublicacion: String, descCorta: String): String {
+        return """
+Adapta y mejora una notificación PUSH de tipo: Venta 🛒.
+NO crees información nueva.
+Optimiza el texto del usuario para que sea persuasivo y orientado a conversión.
+
+Objetivo:
+Impulsar clics o compras manteniendo los datos reales (producto, precio, lugar si existen).
+
+Reglas:
+- Mantén el significado original
+- Título ≤40 caracteres, descripción ≤90
+- Lenguaje claro, directo y comercial
+- CTA corto y concreto
+- 1 emoji SOLO en el título
+
+Texto original:
+T:$tituloPublicacion
+D:$descCorta
+
+Salida EXACTA:
+T:
+D:
+""".trimIndent()
+    }
+
+
+    fun promptNotificacionAtencion(tituloPublicacion: String, descCorta: String): String {
+        return """
+Adapta y mejora una notificación PUSH de tipo: Llamado de atención ✨.
+NO inventes información.
+
+Objetivo:
+Captar interés y aumentar la apertura de la notificación.
+
+Reglas:
+- Respeta el contenido original
+- NO elimines precios si existen
+- NO inventes precios
+- Si hay precios, formátalos como: s/
+- Título ≤40 caracteres, descripción ≤90
+- Usa ganchos claros, no engañosos
+- CTA opcional y corto
+- 1 emoji SOLO en el título
+
+Texto original:
+T:$tituloPublicacion
+D:$descCorta
+
+Salida EXACTA:
+T:
+D:
+""".trimIndent()
+    }
+
+
+    fun promptNotificacionUrgencia(tituloPublicacion: String, descCorta: String): String {
+        return """
+Adapta y mejora una notificación PUSH de tipo: Urgencia ⏰.
+NO agregues escasez falsa ni inventes tiempos o precios.
+
+Objetivo:
+Motivar acción rápida cuando el contexto lo justifica.
+
+Reglas:
+- Mantén los datos originales
+- NO borres precios
+- NO inventes precios
+- Precios siempre en formato: s/
+- Título ≤40 caracteres, descripción ≤90
+- Urgencia clara pero real
+- CTA corto y directo
+- 1 emoji SOLO en el título
+
+Texto original:
+T:$tituloPublicacion
+D:$descCorta
+
+Salida EXACTA:
+T:
+D:
+""".trimIndent()
+    }
+
+
+    fun promptNotificacionNovedad(tituloPublicacion: String, descCorta: String): String {
+        return """
+Adapta y mejora una notificación PUSH de tipo: Novedad 🆕.
+NO inventes lanzamientos, exclusividades ni precios.
+
+Objetivo:
+Informar y generar interés en algo reciente o actualizado.
+
+Reglas:
+- Respeta el contenido original
+- NO elimines precios si están presentes
+- NO inventes precios
+- Usa el formato s/ si hay precios
+- Título ≤40 caracteres, descripción ≤90
+- Lenguaje informativo y atractivo
+- CTA corto opcional
+- 1 emoji SOLO en el título
+
+Texto original:
+T:$tituloPublicacion
+D:$descCorta
+
+Salida EXACTA:
+T:
+D:
+""".trimIndent()
+    }
+
+
+    fun promptNotificacionServicios(titulo: String, descCorta: String): String {
+        return """
+Adapta y mejora una notificación PUSH de tipo: Servicio 🛠️.
+NO crees información nueva.
+Optimiza el texto escrito por el usuario para que sea claro, profesional y útil.
+
+Objetivo:
+Informar sobre cambios en locales, métodos de pago, servicios o novedades importantes.
+
+Reglas:
+- Mantén el significado original
+- Título ≤40 caracteres, descripción ≤90
+- Lenguaje claro y directo
+- CTA opcional
+- 1 emoji SOLO en el título
+
+Texto original:
+T:$titulo
+D:$descCorta
+
+Salida EXACTA:
+T:
+D:
+""".trimIndent()
+    }
+
+
+
+    fun promptNotificacionCita(titulo: String, descCorta: String): String {
+        return """
+Adapta y mejora una notificación PUSH de tipo: Cita / Reserva 📅.
+NO inventes datos.
+Convierte el texto del usuario en un recordatorio claro y accionable.
+
+Objetivo:
+Recordar citas, reservas o servicios agendados.
+
+Reglas:
+- Respeta fecha, hora y contexto
+- Título ≤40 caracteres, descripción ≤90
+- CTA corto si aplica (confirmar, asistir, ver)
+- 1 emoji SOLO en el título
+
+Texto original:
+T:$titulo
+D:$descCorta
+
+Salida EXACTA:
+T:
+D:
+""".trimIndent()
+    }
+
+
+    fun promptNotificacionReposicion(titulo: String, descCorta: String): String {
+        return """
+Adapta y mejora una notificación PUSH de tipo: Reposición 🛒.
+NO agregues productos ni datos nuevos.
+Optimiza el texto para que informe claramente la llegada o reposición.
+
+Objetivo:
+Avisar disponibilidad de nuevos productos o stock renovado.
+
+Reglas:
+- Mantén la información original
+- Título ≤40 caracteres, descripción ≤90
+- CTA corto invitando a revisar
+- 1 emoji SOLO en el título
+
+Texto original:
+T:$titulo
+D:$descCorta
+
+Salida EXACTA:
+T:
+D:
+""".trimIndent()
+    }
+
+
+    fun promptNotificacionOperativa(titulo: String, descCorta: String): String {
+        return """
+Adapta y mejora una notificación PUSH de tipo: Operativa ⚠️.
+NO crees ni exageres información.
+Haz el mensaje más claro y entendible para el usuario.
+
+Objetivo:
+Informar cambios de última hora, cierres inesperados o ajustes operativos.
+
+Reglas:
+- Mantén el mensaje original
+- Título ≤40 caracteres, descripción ≤90
+- Claridad y urgencia leve
+- CTA opcional
+- 1 emoji SOLO en el título
+
+Texto original:
+T:$titulo
+D:$descCorta
+
+Salida EXACTA:
+T:
+D:
+""".trimIndent()
+    }
+
 }
+
+
+

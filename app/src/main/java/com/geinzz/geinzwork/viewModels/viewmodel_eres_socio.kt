@@ -486,8 +486,56 @@ class viewmodel_eres_socio : ViewModel() {
     }
 
 
+//    @RequiresApi(Build.VERSION_CODES.R)
+//    fun subir_img_firestore_promociones(
+//        i: agregar_promociones,
+//        img_tienda: String,
+//        localidad: String,
+//        context: Context,
+//        imagenes: List<ImagenReview>,
+//        idSocio: String,
+//        idPromo: String
+//    ) {
+//        viewModelScope.launch {
+//            _subidaPromoState.value = SubidaPromoState.Loading
+//
+//            try {
+//                // 1️⃣ Subir imágenes
+//                val urls = instace_repo.subirImagenesAFirebase(
+//                    context = context,
+//                    imagenes = imagenes,
+//                    idSocio = idSocio,
+//                    idPromo = idPromo
+//                )
+//
+//                // 2️⃣ Guardar URLs en Firestore
+//              val res_completado=  instace_repo.guardarImagenesEnFirestore_promociones(
+//                    idSocio,
+//                    img_tienda,
+//                    localidad = localidad,
+//                    idPromo = idPromo,
+//                    urls = urls
+//                )
+//
+//                if (res_completado.isSuccess) {
+//                _subidaPromoState.value = SubidaPromoState.Success
+//                    crear_promociones(i,localidad)
+//                } else {
+//                    _subidaPromoState.value = SubidaPromoState.Error("ocurrio un error en el proceso")
+//                }
+//                // ✅ TODO OK
+//
+//
+//            } catch (e: Exception) {
+//                Log.e("error_agregado", "Error al subir imágenes", e)
+//                _subidaPromoState.value =
+//                    SubidaPromoState.Error("Error al subir la promoción")
+//            }
+//        }
+//    }
     @RequiresApi(Build.VERSION_CODES.R)
     fun subir_img_firestore_promociones(
+        i: agregar_promociones,
         img_tienda: String,
         localidad: String,
         context: Context,
@@ -495,43 +543,62 @@ class viewmodel_eres_socio : ViewModel() {
         idSocio: String,
         idPromo: String
     ) {
-        viewModelScope.launch {
-            _subidaPromoState.value = SubidaPromoState.Loading
+    viewModelScope.launch {
+        _subidaPromoState.value = SubidaPromoState.Loading
 
-            try {
-                // 1️⃣ Subir imágenes
-                val urls = instace_repo.subirImagenesAFirebase(
+        try {
+            // 🔒 1. Validación obligatoria
+            if (imagenes.isEmpty()) {
+                _subidaPromoState.value =
+                    SubidaPromoState.Error("Debes subir al menos una imagen")
+                return@launch
+            }
+
+            // 🔄 2. Subir imágenes CON REINTENTO
+            val urls = instace_repo.subirImagenesConReintento(intentos = 3) {
+                instace_repo.subirImagenesAFirebase(
                     context = context,
                     imagenes = imagenes,
                     idSocio = idSocio,
                     idPromo = idPromo
                 )
+            }
 
-                // 2️⃣ Guardar URLs en Firestore
-              val res_completado=  instace_repo.guardarImagenesEnFirestore_promociones(
-                    idSocio,
-                    img_tienda,
+            // 🔒 3. Verificación estricta
+            if (urls.size != imagenes.size) {
+                _subidaPromoState.value =
+                    SubidaPromoState.Error("No se pudieron subir todas las imágenes")
+                return@launch
+            }
+
+            // 💾 4. Guardar URLs en Firestore
+            val resCompletado =
+                instace_repo.guardarImagenesEnFirestore_promociones(
+                    id_tienda = idSocio,
+                    logo_tienda = img_tienda,
                     localidad = localidad,
                     idPromo = idPromo,
                     urls = urls
                 )
 
-                if (res_completado.isSuccess) {
-
-                _subidaPromoState.value = SubidaPromoState.Success
-                } else {
-                    _subidaPromoState.value = SubidaPromoState.Error("ocurrio un error en el proceso")
-                }
-                // ✅ TODO OK
-
-
-            } catch (e: Exception) {
-                Log.e("error_agregado", "Error al subir imágenes", e)
+            if (!resCompletado.isSuccess) {
                 _subidaPromoState.value =
-                    SubidaPromoState.Error("Error al subir la promoción")
+                    SubidaPromoState.Error("Error al guardar las imágenes")
+                return@launch
             }
+
+            // ✅ 5. Crear promoción SOLO si TODO salió bien
+            crear_promociones(i, localidad)
+            _subidaPromoState.value = SubidaPromoState.Success
+
+        } catch (e: Exception) {
+            Log.e("SUBIDA_PROMO", "Error crítico al subir imágenes", e)
+            _subidaPromoState.value =
+                SubidaPromoState.Error("No se pudo subir la promoción. Inténtalo nuevamente.")
         }
     }
+    }
+
 
     fun resetear_Estado_promo_subida(){
         _subidaPromoState.value = SubidaPromoState.Idle

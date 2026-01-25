@@ -1,6 +1,5 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -15,10 +14,8 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -32,8 +29,10 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,33 +40,50 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -77,132 +93,98 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
-
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.compose.AsyncImage
-import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.data.model.agregar_promociones
-import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
-import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
-import com.geinzz.geinzwork.data.model.fechas_promociones
-import com.geinzz.geinzwork.data.model.img_contaier
-import com.geinzz.geinzwork.data.model.informacion_container
-import com.geinzz.geinzwork.data.model.items_pantallas_promociones
-import com.geinzz.geinzwork.data.model.ubicacaion_container
-import com.geinzz.geinzwork.data_store.data_store_localidad
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.DatePickerExample_promociones
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.calcularDiasEntreFechas
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
-import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.lanzarCrop
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_carga_ucrop_img
-import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.lazy.items
-
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.LocalOffer
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Shader
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
-import com.android.identity.documenttype.Icon
+import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.GeneracionIA
 import com.geinzz.geinzwork.data.model.OpcionPromocionIA
+import com.geinzz.geinzwork.data.model.agregar_promociones
 import com.geinzz.geinzwork.data.model.contenido_publicidad
+import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
+import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
 import com.geinzz.geinzwork.data.model.datos_fecha_hora_tipo
 import com.geinzz.geinzwork.data.model.datos_publicaciones_realizadas
 import com.geinzz.geinzwork.data.model.fechas_horas_promociones
+import com.geinzz.geinzwork.data.model.fechas_promociones
 import com.geinzz.geinzwork.data.model.generaciones_con_ia
 import com.geinzz.geinzwork.data.model.generaciones_con_ia_notificaciones
 import com.geinzz.geinzwork.data.model.historial_descuento
+import com.geinzz.geinzwork.data.model.img_contaier
+import com.geinzz.geinzwork.data.model.informacion_container
+import com.geinzz.geinzwork.data.model.items_pantallas_promociones
 import com.geinzz.geinzwork.data.model.mensaje_predeterminado
 import com.geinzz.geinzwork.data.model.msjes_predeteminados_generales
 import com.geinzz.geinzwork.data.model.nombre_precio_notificaciones
 import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
 import com.geinzz.geinzwork.data.model.obj_parametros_notificacion
 import com.geinzz.geinzwork.data.model.obj_suspend_notificacion
+import com.geinzz.geinzwork.data.model.ubicacaion_container
+import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.obtenerFechaFinDosDias
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen_cinco
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen_nueve
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.model.repo_pantallas_promocionar
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.DatePickerExample_promociones
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown_precio_nombre_notificaciones
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown_select_params_notificacion
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField_proco_raduis
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.calcularDiasEntreFechas
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda_con_la_IA
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
+import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.lanzarCrop
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraFin
-import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerTimestampFecha
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerTimestampHoraFin
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerTimestampHoraInicio
 import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_carga_ucrop_img
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.notificacionesFCM.enviar_notificacion_lista_dispo
+import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_promocionar
 import com.geinzz.geinzwork.viewModels.viewmodel_recargas
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.valentinilk.shimmer.shimmer
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.net.URLEncoder
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 import kotlin.math.PI
 import kotlin.math.cos
@@ -294,6 +276,7 @@ fun pantalla_promocionar(
     var imagenZoomSeleccionada by remember { mutableStateOf<String?>(null) }
     var contacto_directo by rememberSaveable { mutableStateOf(false) }
     var compartir by rememberSaveable { mutableStateOf(false) }
+    var filtro_cercania by rememberSaveable { mutableStateOf(false) }
     var mensaje_perzonalizado by remember { mutableStateOf(false) }
     var mensaje_perzonalizado_compartir by remember { mutableStateOf(false) }
 //    var ubicacion by rememberSaveable { mutableStateOf(false) }
@@ -301,9 +284,15 @@ fun pantalla_promocionar(
     var numero_publicaicon by rememberSaveable { mutableStateOf(i.numero_contacto_tienda) }
     val state by viewmodel_socios.subidaPromoState.collectAsState()
     var numero_de_notificacion by rememberSaveable { mutableStateOf(i.numero_contacto_tienda) }
+    var direccion_negocio by rememberSaveable { mutableStateOf(i.ubicacion.direccion) }
+    var error_direccion_negocio by remember { mutableStateOf(false) }
+    var referencia_negocio by rememberSaveable { mutableStateOf(i.ubicacion.referencia) }
+    var error_referencia_negocio by remember { mutableStateOf(false) }
     val estado_texto_compatir_con_ia by viewmodel_pantalla_promocionar.estado_texto_compatir_con_ia.collectAsState()
+    var msj_estado_texto_compartir by remember { mutableStateOf("Mejorar mensaje con IA") }
     var mensaje_perzonalizado_txt_compartir by rememberSaveable(state) { mutableStateOf("Hola, quiero esta oferta que vi Geinz:") }
     val estado_texto_whatsapp_con_ia by viewmodel_pantalla_promocionar.estado_texto_whatsap_con_ia.collectAsState()
+    var texto_generar_nuevamente_whatsapp_ia by remember { mutableStateOf("Mejorar mensaje con IA") }
     var mensaje_perzonalizado_txt by rememberSaveable(state) { mutableStateOf("Mira esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25") }
     var msj_perzonalizado_whatsapp_ia_bool by rememberSaveable { mutableStateOf(false) }
     var msj_perzonalizado_compartir_ia_bool by rememberSaveable { mutableStateOf(false) }
@@ -311,6 +300,7 @@ fun pantalla_promocionar(
     var msj_perzonalizado_whatssap_ia_bool_notificacion by rememberSaveable { mutableStateOf(false) }
     var msje_titulo_descripcion by rememberSaveable { mutableStateOf(false) }
     val estado_texto_whatsapp_con_ia_con_notificacion by viewmodel_pantalla_promocionar.estado_texto_whatsap_con_ia_notificacion.collectAsState()
+    var estado_mejsem_whatsap_notificacion by remember { mutableStateOf("Mejorar mensaje con IA") }
 
 
     var hora_escrita by remember { mutableStateOf("1") }
@@ -371,7 +361,91 @@ fun pantalla_promocionar(
     )
 
 
+    val lista_generacions_IA_notificaciones = listOf(
+        GeneracionIA(
+            tipo = repo_pantallas_promocionar.TipoGeneracionIA.VENTA,
+            beneficios = listOf(
+                "Texto corto y persuasivo para acción inmediata",
+                "Impulsa clics y compras",
+                "Llamado a la acción claro y directo",
+                "Ideal para promociones y ventas rápidas"
+            )
+        ),
+        GeneracionIA(
+            tipo = repo_pantallas_promocionar.TipoGeneracionIA.ATENCION,
+            beneficios = listOf(
+                "Captura la atención en segundos",
+                "Ganchos que aumentan la apertura de la notificación",
+                "Lenguaje intrigante que invita a leer más",
+                "Ideal para anunciar novedades y atraer usuarios"
+            )
+        ),
+        GeneracionIA(
+            tipo = repo_pantallas_promocionar.TipoGeneracionIA.URGENCIA,
+            beneficios = listOf(
+                "Genera sensación de escasez o tiempo limitado",
+                "Fomenta acción inmediata",
+                "Ideal para ofertas que expiran pronto",
+                "Aumenta la conversión en notificaciones push"
+            )
+        ),
+        GeneracionIA(
+            tipo = repo_pantallas_promocionar.TipoGeneracionIA.NOVEDAD,
+            beneficios = listOf(
+                "Resalta lo nuevo o destacado",
+                "Incentiva al usuario a abrir la notificación",
+                "Perfecto para lanzamientos o actualizaciones",
+                "Atrae curiosidad sin ser demasiado agresivo"
+            )
+        )
+    )
+
+
+    val lista_generaciones_IA_informativas = listOf(
+        GeneracionIA(
+            tipo = repo_pantallas_promocionar.TipoGeneracionIA.OPERATIVA,
+            beneficios = listOf(
+                "Comunica cambios importantes de forma clara",
+                "Reduce confusión del usuario ante imprevistos",
+                "Ideal para cierres, retrasos o avisos de último momento",
+                "Lenguaje directo y fácil de entender"
+            )
+        ),
+        GeneracionIA(
+            tipo = repo_pantallas_promocionar.TipoGeneracionIA.REPOSICION,
+            beneficios = listOf(
+                "Informa disponibilidad de nuevos productos",
+                "Activa interés sin tono promocional agresivo",
+                "Ideal para avisar reposiciones o nuevas llegadas",
+                "Mantiene al usuario actualizado del stock"
+            )
+        ),
+        GeneracionIA(
+            tipo = repo_pantallas_promocionar.TipoGeneracionIA.CITAS,
+            beneficios = listOf(
+                "Recuerda citas o reservas pendientes",
+                "Reduce ausencias y olvidos",
+                "Mensaje claro y puntual",
+                "Ideal para servicios con horario agendado"
+            )
+        ),
+        GeneracionIA(
+            tipo = repo_pantallas_promocionar.TipoGeneracionIA.SERVICIOS,
+            beneficios = listOf(
+                "Comunica cambios o mejoras en el servicio",
+                "Informa novedades sin tono comercial",
+                "Ideal para cambios de local, horarios o métodos de pago",
+                "Genera confianza y transparencia con el usuario"
+            )
+        )
+    )
+
+
     var tipo_promp_seleccionado_IA by remember {
+        mutableStateOf<repo_pantallas_promocionar.TipoGeneracionIA?>(null)
+    }
+
+    var tipo_promp_seleccionado_IA_notificicaciones by remember {
         mutableStateOf<repo_pantallas_promocionar.TipoGeneracionIA?>(null)
     }
 
@@ -404,7 +478,9 @@ fun pantalla_promocionar(
     var mostrar_btn_mejorar_IA by rememberSaveable { mutableStateOf(false) }
 
     val estado_textos_notificaciones_generadas by viewmodel_pantalla_promocionar.estado_promociones_ia.collectAsState()
+    var msje_texto_notificacion_generada by remember { mutableStateOf("Mejorar título y descripción con IA") }
     val estado_textos_notificacion_corta_generada by viewmodel_pantalla_promocionar.estado_notificaion_con_ia_corta.collectAsState()
+    var mnsje_estado_notificacion_generada by remember { mutableStateOf("Mejorar titulo y texto con IA") }
 
 
     var monedas_costo_publicidad by remember { mutableStateOf("") }
@@ -448,6 +524,7 @@ fun pantalla_promocionar(
 
     LaunchedEffect(estado_texto_compatir_con_ia) {
         if (estado_texto_compatir_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_compartir.Success) {
+            msj_estado_texto_compartir = "Generar nuevamente"
             msj_perzonalizado_compartir_ia_bool = true
             mensaje_perzonalizado_txt_compartir =
                 (estado_texto_compatir_con_ia as viewmodel_pantallas_promocionar.ESstado_ia_msje_compartir.Success).txt_descripcion
@@ -458,6 +535,7 @@ fun pantalla_promocionar(
     LaunchedEffect(estado_texto_whatsapp_con_ia) {
         if (estado_texto_whatsapp_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_whatsap.Success) {
             msj_perzonalizado_whatsapp_ia_bool = true
+            texto_generar_nuevamente_whatsapp_ia = "Generar nuevamente"
             mensaje_perzonalizado_txt =
                 (estado_texto_whatsapp_con_ia as viewmodel_pantallas_promocionar.ESstado_ia_msje_whatsap.Success).txt_descripcion
         }
@@ -467,6 +545,7 @@ fun pantalla_promocionar(
     LaunchedEffect(estado_texto_whatsapp_con_ia_con_notificacion) {
         if (estado_texto_whatsapp_con_ia_con_notificacion is viewmodel_pantallas_promocionar.Estado_ia_mensaje_whatsap_notificaion.Success) {
             msj_perzonalizado_whatssap_ia_bool_notificacion = true
+            estado_mejsem_whatsap_notificacion = "Generar nuevamente"
             mensaje_whatsapp_de_publi_a_notificacion =
                 (estado_texto_whatsapp_con_ia_con_notificacion as viewmodel_pantallas_promocionar.Estado_ia_mensaje_whatsap_notificaion.Success).txt_descripcion
         }
@@ -476,6 +555,7 @@ fun pantalla_promocionar(
 
     LaunchedEffect(estado_textos_notificaciones_generadas) {
         if (estado_textos_notificaciones_generadas is viewmodel_pantallas_promocionar.EstadoIA.Success) {
+            msje_texto_notificacion_generada = "Generar nuevamente"
             listaOpcionesIA =
                 (estado_textos_notificaciones_generadas as viewmodel_pantallas_promocionar.EstadoIA.Success).lista
         }
@@ -483,6 +563,7 @@ fun pantalla_promocionar(
 
     LaunchedEffect(estado_textos_notificacion_corta_generada) {
         if (estado_textos_notificacion_corta_generada is viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Success) {
+            mnsje_estado_notificacion_generada = "Generar nuevamente"
             msj_perzonalizado_gen_notificacion = true
             titulo_notificacion =
                 (estado_textos_notificacion_corta_generada as viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Success).txt_descripcion.titulo
@@ -574,17 +655,22 @@ fun pantalla_promocionar(
                     id_tienda = i.id_tienda,
                     localidad = i.localidad_tienda
                 )
+                msj_estado_texto_compartir = "Mejorar mensaje con IA"
+                texto_generar_nuevamente_whatsapp_ia = "Mejorar mensaje con IA"
+                estado_mejsem_whatsap_notificacion = "Mejorar mensaje con IA"
                 nombre_publicacion = ""
                 descripcion_publicacion = ""
                 contacto_directo = false
                 compartir = false
                 fecha_fin = ""
                 hora_escrita = "0"
+                tipo_promp_seleccionado_IA = null
                 msj_perzonalizado_whatsapp_ia_bool = false
                 msj_perzonalizado_compartir_ia_bool = false
                 mensaje_perzonalizado_compartir = false
                 mensaje_perzonalizado = false
                 msje_titulo_descripcion = false
+                filtro_cercania=false
                 mensaje_perzonalizado_txt = "Mira esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25"
                 mensaje_perzonalizado_txt_compartir = "Hola, quiero esta oferta que vi Geinz:"
                 listaOpcionesIA = emptyList()
@@ -633,6 +719,7 @@ fun pantalla_promocionar(
                 tipo_notificacion_params_seleccionada = ""
                 tipo_notificacion_seleccionada = ""
                 idSeleccionado = null
+                tipo_promp_seleccionado_IA_notificicaciones = null
                 fechaCaducidad = obtenerFechaFinDosDias()
                 id_publicacion_selecionada = ""
                 id_img_notificacion = ""
@@ -641,6 +728,9 @@ fun pantalla_promocionar(
                 viewmodel_pantalla_promocionar.resetear_Estado_notificacion_enviadad()
                 viewmodel_pantalla_promocionar.cambiar_estado_img_notifi_select()
                 viewmodel_pantalla_promocionar.reseteo_wshap_notificacion()
+
+                msje_texto_notificacion_generada = "Mejorar con IA"
+                mnsje_estado_notificacion_generada = "Mejorar titulo y texto con IA"
             }
 
             else -> {}
@@ -701,7 +791,7 @@ fun pantalla_promocionar(
 
     val showHeader by remember {
         derivedStateOf {
-            listState.firstVisibleItemIndex == 1
+            listState.firstVisibleItemIndex >= 1
         }
     }
 
@@ -862,7 +952,7 @@ fun pantalla_promocionar(
                         }
                     }
 
-                    spacer_vertical(10.dp)
+                    spacer_vertical(15.dp)
                     if (nombre_publicacion.isNotEmpty() && descripcion_publicacion.isNotEmpty()) {
                         val cargando =
                             estado_textos_notificaciones_generadas is viewmodel_pantallas_promocionar.EstadoIA.Loading
@@ -873,6 +963,7 @@ fun pantalla_promocionar(
                                 MaterialTheme.colorScheme.primary,
                             label = "buttonColor"
                         )
+
 
                         Column(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -980,7 +1071,11 @@ fun pantalla_promocionar(
                                                     listaOpcionesIA = emptyList()
                                                 } ?: run {
                                                     // 🚨 null -> opcional: mostrar mensaje de error o toast
-                                                    Toast.makeText(context, "Selecciona un tipo de promoción antes", Toast.LENGTH_SHORT).show()
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Selecciona un tipo de generacion antes",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
                                                 }
                                             }
 
@@ -1021,7 +1116,7 @@ fun pantalla_promocionar(
                                                 verticalAlignment = Alignment.CenterVertically,
                                             ) {
                                                 texto_generico_one_line(
-                                                    "Mejorar con IA",
+                                                    msje_texto_notificacion_generada,
                                                     style = MaterialTheme.typography.bodyMedium
                                                 )
                                                 spacer_horizonta(5.dp)
@@ -1211,7 +1306,7 @@ fun pantalla_promocionar(
                                                         verticalAlignment = Alignment.CenterVertically,
                                                     ) {
                                                         texto_generico_one_line(
-                                                            "Mejorar mensaje con IA",
+                                                            texto_generar_nuevamente_whatsapp_ia,
                                                             style = MaterialTheme.typography.bodyMedium
                                                         )
                                                         spacer_horizonta(5.dp)
@@ -1243,6 +1338,8 @@ fun pantalla_promocionar(
                             }
                         }
                     }
+
+
 
                     Column(
                         modifier = Modifier
@@ -1362,7 +1459,7 @@ fun pantalla_promocionar(
                                                         verticalAlignment = Alignment.CenterVertically,
                                                     ) {
                                                         texto_generico_one_line(
-                                                            "Mejorar mensaje con IA",
+                                                            msj_estado_texto_compartir,
                                                             style = MaterialTheme.typography.bodyMedium
                                                         )
                                                         spacer_horizonta(5.dp)
@@ -1392,6 +1489,60 @@ fun pantalla_promocionar(
                                 }
                             }
                         }
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .animateContentSize()
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(MaterialTheme.colorScheme.surface)
+                            .padding(10.dp)
+                    ) {
+                        txt_publicaciones(
+                            R.drawable.google_maps_icono,
+                            filtro_cercania,
+                            { it -> filtro_cercania = it },
+                            "Cercanía ⭐"
+                        )
+                        if (filtro_cercania) {
+                            texto_generico_multilinea(
+                                "Permite que tu publicacion se muestre a usuarios que activen el filtro de cercanía y se encuentren cerca de tu negocio físico.",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            spacer_vertical(7.dp)
+
+                            texto_generico_multilinea(
+                                "La ubicación (latitud y longitud) se toma automáticamente de tu negocio registrado en Geinz",
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            spacer_vertical(7.dp)
+
+                            MyOutlinedTextField_proco_raduis(
+                                value = direccion_negocio,
+                                onValueChange = { input ->
+                                    direccion_negocio = input
+                                },
+                                texto_error = "",
+                                isError = error_direccion_negocio,
+                                labelText = "Mensaje predeterminado",
+                                placeholderText = "Direccion"
+                            )
+
+                            spacer_vertical(7.dp)
+
+                            MyOutlinedTextField_proco_raduis(
+                                value = referencia_negocio,
+                                onValueChange = { input ->
+                                    referencia_negocio = input
+                                },
+                                texto_error = "",
+                                isError = error_referencia_negocio,
+                                labelText = "Mensaje predeterminado",
+                                placeholderText = "Referencia"
+                            )
+
+                        }
+
                     }
 
                 }
@@ -1643,7 +1794,7 @@ fun pantalla_promocionar(
                                 horizontalArrangement = Arrangement.spacedBy(5.dp)
                             ) {
                                 texto_generico_multilinea(
-                                    "Total de monedas por $dias_restantes_pr dias= $monedas_total",
+                                    "Total de monedas por $dias_restantes_pr dias = $monedas_total",
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                                 Image(
@@ -1699,7 +1850,12 @@ fun pantalla_promocionar(
                                     compartir = compartir,
                                     contactar = contacto_directo
                                 ),
-                                ubicacion = ubicacaion_container(),
+                                ubicacion = ubicacaion_container(
+                                    direccion = direccion_negocio,
+                                    lat = i.ubicacion.lat,
+                                    long = i.ubicacion.long,
+                                    referencia =referencia_negocio
+                                ),
                                 datos_hora_fecha = datos_fecha_hora_tipo(
                                     horas = fechas_horas_promociones(
                                         hora_inicio = if (seleccion.tipo == "horas") obtenerHoraActual() else "",
@@ -1751,11 +1907,12 @@ fun pantalla_promocionar(
                                 ),
 
                                 )
-                            viewmodel_socios.crear_promociones(
-                                i = datos_publicacion,
-                                localidad = i.localidad_tienda
-                            )
+//                            viewmodel_socios.crear_promociones(
+//                                i = datos_publicacion,
+//                                localidad = i.localidad_tienda
+//                            )
                             viewmodel_socios.subir_img_firestore_promociones(
+                                datos_publicacion,
                                 img_tienda = i.img_tienda,
                                 localidad = i.localidad_tienda,
                                 context = context,
@@ -1986,111 +2143,238 @@ fun pantalla_promocionar(
                                     placeholderText = "Ej: Aprovecha esta oferta por tiempo limitado"
                                 )
 
-                                AnimatedVisibility(titulo_notificacion.isNotEmpty() && descripcion_notificacion.isNotEmpty()) {
 
-                                    val cargando =
-                                        estado_textos_notificacion_corta_generada is viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Loading
-                                    val buttonColor by animateColorAsState(
-                                        targetValue = if (cargando)
-                                            Color.Black
-                                        else
-                                            MaterialTheme.colorScheme.primary,
-                                        label = "buttonColor"
-                                    )
-                                    Box(
+                                ExpandDropDown_select_params_notificacion(
+                                    idSeleccionado = idSeleccionado,
+                                    seleccionado = tipo_notificacion_params_seleccionada,
+                                    lista = tipo_notificacion_precio_nombre,
+                                    isError = false,
+                                    textoError = "selecciona tu tipo de notificacion",
+                                    label = "selecciona tu tipo de notificacion"
+                                ) { tipo, precio ->
+                                    viewmodel_pantalla_promocionar.tipo_notificacion = tipo
+                                    Log.d("precioestableico", "$precio")
+                                    tipo_notificacion_params_seleccionada = tipo
+                                    precio_tipo_notificacion = precio
+                                }
+
+                                if (titulo_notificacion.isNotEmpty() && descripcion_notificacion.isNotEmpty() && tipo_notificacion_params_seleccionada.isNotEmpty()) {
+                                    Column(
+                                        verticalArrangement = Arrangement.spacedBy(12.dp),
                                         modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(40.dp)
-                                            .clip(CircleShape)
+                                            .animateContentSize()
                                     ) {
-                                        // 🔥 Fondo animado SOLO cuando no carga
-                                        if (!cargando) {
-                                            FondoIAAnimado(
-                                                modifier = Modifier.matchParentSize()
-                                            )
-                                        }
-                                        Button(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            onClick = {
-                                                if (!cargando) {
-                                                    viewmodel_pantalla_promocionar.mejorar_mejorar_notificacion_con_IA_corta(
-                                                        monedas_tienda,
-                                                        localidad_tienda = i.localidad_tienda,
-                                                        id_tienda = i.id_tienda,
-                                                        nombre_tienda = i.nombre_tienda,
-                                                        titulo_publicacion = titulo_notificacion,
-                                                        descripcion = descripcion_notificacion
-                                                    )
-                                                }
-                                            },
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = if (cargando) buttonColor else Color.Transparent,
-                                                disabledContainerColor = if (cargando) buttonColor else Color.Transparent,
-                                                contentColor = Color.White,
-                                                disabledContentColor = Color.White
-                                            ),
-                                            enabled = !cargando
-                                        ) {
-                                            if (cargando) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .height(20.dp)
-                                                        .width(160.dp)
-                                                        .shimmer(),
-                                                    contentAlignment = Alignment.Center
+                                        texto_generico_multilinea(
+                                            "Impulsa tus notificaciones con la IA de Geinz",
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+                                        texto_generico_multilinea(
+                                            "Deja que la IA de Geinz optimice tu contenido de forma rápida, precisa y profesional",
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                        texto_generico_multilinea(
+                                            "Elige el tipo de notificación que deseas generar",
+                                            style = MaterialTheme.typography.titleSmall
+                                        )
 
-                                                ) {
-
-                                                    Row(
-                                                        verticalAlignment = Alignment.CenterVertically
-                                                    ) {
-
-                                                        Spacer(modifier = Modifier.width(8.dp))
-
-                                                        texto_generico_one_line(
-                                                            "Generando contenido..",
-                                                            style = MaterialTheme.typography.bodyMedium
-                                                        )
-
-                                                    }
-                                                }
+                                        val lista_pasada =
+                                            if (tipo_notificacion_params_seleccionada == "informativas") {
+                                                lista_generaciones_IA_informativas
                                             } else {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
+                                                lista_generacions_IA_notificaciones
+                                            }
+                                        LazyRow(
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        ) {
+
+
+                                            items(lista_pasada) { subcategoria ->
+
+                                                val seleccionado =
+                                                    tipo_promp_seleccionado_IA_notificicaciones == subcategoria.tipo
+
+                                                chisp_filtrado_busqueda_con_la_IA(
+                                                    carta_selecionada = seleccionado,
+                                                    filtrado = "${subcategoria.tipo.icono} ${subcategoria.tipo.tituloUI}",
+                                                    btn_visible = false,
+                                                    clik_card = {
+                                                        tipo_promp_seleccionado_IA_notificicaciones =
+                                                            subcategoria.tipo
+                                                    },
+                                                    onClick_delete = {}
+                                                )
+                                            }
+                                        }
+
+                                        val beneficiosSeleccionados =
+                                            lista_pasada
+                                                .firstOrNull { it.tipo == tipo_promp_seleccionado_IA_notificicaciones }
+                                                ?.beneficios
+
+
+                                        if (!beneficiosSeleccionados.isNullOrEmpty()) {
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(top = 12.dp)
+                                            ) {
+                                                beneficiosSeleccionados.forEach { beneficio ->
                                                     Row(
                                                         verticalAlignment = Alignment.CenterVertically,
+                                                        modifier = Modifier.padding(vertical = 4.dp)
                                                     ) {
-                                                        texto_generico_one_line(
-                                                            "Mejorar titulo y texto con IA",
-                                                            style = MaterialTheme.typography.bodyMedium
-                                                        )
-                                                        spacer_horizonta(5.dp)
                                                         Icon(
-                                                            imageVector = Icons.Default.AutoAwesome,
-                                                            contentDescription = "Mejorar con IA",
-                                                            tint = Color.White
-                                                        )
-                                                        spacer_horizonta(5.dp)
-                                                        texto_generico_one_line(
-                                                            "20",
-                                                            style = MaterialTheme.typography.bodyMedium
-                                                        )
-                                                        spacer_horizonta(5.dp)
-                                                        Image(
-                                                            painter = painterResource(R.drawable.icon_monedas_3d),
+                                                            imageVector = Icons.Default.CheckCircle,
                                                             contentDescription = null,
-                                                            modifier = Modifier.size(20.dp)
+                                                            tint = MaterialTheme.colorScheme.primary,
+                                                            modifier = Modifier.size(16.dp)
                                                         )
-
+                                                        Spacer(modifier = Modifier.width(6.dp))
+                                                        texto_generico_multilinea(
+                                                            texto = beneficio,
+                                                            style = MaterialTheme.typography.bodySmall
+                                                        )
                                                     }
-
                                                 }
                                             }
                                         }
-                                    }
-                                }
+                                        AnimatedVisibility(!beneficiosSeleccionados.isNullOrEmpty()) {
 
+                                            val cargando =
+                                                estado_textos_notificacion_corta_generada is viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Loading
+                                            val buttonColor by animateColorAsState(
+                                                targetValue = if (cargando)
+                                                    Color.Black
+                                                else
+                                                    MaterialTheme.colorScheme.primary,
+                                                label = "buttonColor"
+                                            )
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(40.dp)
+                                                    .clip(CircleShape)
+                                            ) {
+                                                // 🔥 Fondo animado SOLO cuando no carga
+                                                if (!cargando) {
+                                                    FondoIAAnimado(
+                                                        modifier = Modifier.matchParentSize()
+                                                    )
+                                                }
+                                                Button(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    onClick = {
+                                                        if (!cargando) {
+                                                            val textoTipo =
+                                                                when (tipo_notificacion_params_seleccionada) {
+
+                                                                    "promociones y ofertas" ->
+                                                                        if (idSeleccionado.isNullOrEmpty())
+                                                                            "Gen IA (Notificación - Promo desde cero)"
+                                                                        else
+                                                                            "Gen IA (Notificación - Promo seleccionada)"
+
+                                                                    "informativa" ->
+                                                                        "Gen IA (Notificación - Informativa)"
+
+                                                                    else ->
+                                                                        "Gen IA (Notificación)"
+                                                                }
+
+                                                            tipo_promp_seleccionado_IA_notificicaciones?.let { tipoSeleccionado ->
+
+                                                                viewmodel_pantalla_promocionar.mejorar_mejorar_notificacion_con_IA_corta(
+                                                                    textoTipo,
+                                                                    tipoSeleccionado,
+                                                                    monedas_tienda,
+                                                                    localidad_tienda = i.localidad_tienda,
+                                                                    id_tienda = i.id_tienda,
+                                                                    nombre_tienda = i.nombre_tienda,
+                                                                    titulo_publicacion = titulo_notificacion,
+                                                                    descripcion = descripcion_notificacion
+                                                                )
+                                                            } ?: run {
+                                                                // 🚨 null -> opcional: mostrar mensaje de error o toast
+                                                                Toast.makeText(
+                                                                    context,
+                                                                    "Selecciona un tipo de generacion antes",
+                                                                    Toast.LENGTH_SHORT
+                                                                ).show()
+                                                            }
+                                                        }
+
+                                                    },
+                                                    colors = ButtonDefaults.buttonColors(
+                                                        containerColor = if (cargando) buttonColor else Color.Transparent,
+                                                        disabledContainerColor = if (cargando) buttonColor else Color.Transparent,
+                                                        contentColor = Color.White,
+                                                        disabledContentColor = Color.White
+                                                    ),
+                                                    enabled = !cargando
+                                                ) {
+                                                    if (cargando) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .height(20.dp)
+                                                                .width(160.dp)
+                                                                .shimmer(),
+                                                            contentAlignment = Alignment.Center
+
+                                                        ) {
+
+                                                            Row(
+                                                                verticalAlignment = Alignment.CenterVertically
+                                                            ) {
+
+                                                                Spacer(modifier = Modifier.width(8.dp))
+
+                                                                texto_generico_one_line(
+                                                                    "Generando contenido..",
+                                                                    style = MaterialTheme.typography.bodyMedium
+                                                                )
+
+                                                            }
+                                                        }
+                                                    } else {
+                                                        Row(
+                                                            verticalAlignment = Alignment.CenterVertically
+                                                        ) {
+                                                            Row(
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                            ) {
+                                                                texto_generico_one_line(
+                                                                    mnsje_estado_notificacion_generada,
+                                                                    style = MaterialTheme.typography.bodyMedium
+                                                                )
+                                                                spacer_horizonta(5.dp)
+                                                                Icon(
+                                                                    imageVector = Icons.Default.AutoAwesome,
+                                                                    contentDescription = "Mejorar con IA",
+                                                                    tint = Color.White
+                                                                )
+                                                                spacer_horizonta(5.dp)
+                                                                texto_generico_one_line(
+                                                                    "20",
+                                                                    style = MaterialTheme.typography.bodyMedium
+                                                                )
+                                                                spacer_horizonta(5.dp)
+                                                                Image(
+                                                                    painter = painterResource(R.drawable.icon_monedas_3d),
+                                                                    contentDescription = null,
+                                                                    modifier = Modifier.size(20.dp)
+                                                                )
+
+                                                            }
+
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        spacer_vertical(10.dp)
+                                    }
+
+                                }
 
                                 ExpandDropDown_precio_nombre_notificaciones(
                                     prioridad_selec,
@@ -2119,22 +2403,9 @@ fun pantalla_promocionar(
                                     precio_formato = precio
                                 }
 
-                                ExpandDropDown_select_params_notificacion(
-                                    idSeleccionado = idSeleccionado,
-                                    seleccionado = tipo_notificacion_params_seleccionada,
-                                    lista = tipo_notificacion_precio_nombre,
-                                    isError = false,
-                                    textoError = "selecciona tu tipo de notificacion",
-                                    label = "selecciona tu tipo de notificacion"
-                                ) { tipo, precio ->
-                                    viewmodel_pantalla_promocionar.tipo_notificacion = tipo
-                                    Log.d("precioestableico", "$precio")
-                                    tipo_notificacion_params_seleccionada = tipo
-                                    precio_tipo_notificacion = precio
-                                }
+
+
                                 if (tipo_notificacion_params_seleccionada == "promociones y ofertas") {
-
-
                                     Column(
                                         modifier = Modifier
                                             .animateContentSize()
@@ -2278,7 +2549,7 @@ fun pantalla_promocionar(
                                                                 verticalAlignment = Alignment.CenterVertically,
                                                             ) {
                                                                 texto_generico_one_line(
-                                                                    "Mejorar mensaje con IA",
+                                                                    estado_mejsem_whatsap_notificacion,
                                                                     style = MaterialTheme.typography.bodyMedium
                                                                 )
                                                                 spacer_horizonta(5.dp)
@@ -2795,7 +3066,7 @@ fun txt_publicaciones(icon: Int, valor: Boolean, retorno: (Boolean) -> Unit, tit
     Row(verticalAlignment = Alignment.CenterVertically) {
         Image(painterResource(icon), contentDescription = null, modifier = Modifier.size(25.dp))
         spacer_horizonta(5.dp)
-        texto_generico_one_line(
+        texto_generico_multilinea(
             titulo, modifier = Modifier
                 .weight(1f)
                 .padding(end = 20.dp)
@@ -3207,7 +3478,7 @@ fun SelectorOpcionesPromocionIA(
                                     "VERSIÓN ORIGINAL"
                                 else
                                     "Sugerencia IA · ${opcion.tipoIA?.tituloUI ?: "IA"}",
-                                            style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelSmall,
                                 color = if (esOriginal)
                                     MaterialTheme.colorScheme.onSecondaryContainer
                                 else

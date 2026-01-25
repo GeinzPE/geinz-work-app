@@ -1319,7 +1319,7 @@ fun chisp_filtrado_busqueda_con_la_IA(
         label = ""
     )
 
-    val colorText = MaterialTheme.colorScheme.onSurface
+    val colorText = Color.White
 
     Box(
         modifier = Modifier

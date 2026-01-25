@@ -2,8 +2,6 @@ package com.geinzz.geinzwork.ui.adapters
 
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.pager.PagerState
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.Dialog
@@ -23,15 +21,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.compartir_contacto_pulicaciones
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
-import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.tiempoRestante
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
@@ -45,13 +40,13 @@ import com.google.firebase.Timestamp
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.net.URLEncoder
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ZoomableGalleryFullScreenVerticalPager(
-    categoria_select_filtro:String,
+    tiendaSeleccionada1: String?,
+    categoria_select_filtro: String,
     id_user: String,
     viewModel: viewmodel_promos_cercanas,
     localidad_general: String,
@@ -105,7 +100,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
 
     // ---------------- CARGA INICIAL ----------------
     LaunchedEffect(Unit) {
-        viewModel.cargarSiguienteBloque(localidad_general,categoria_select_filtro)
+        viewModel.cargarSiguienteBloque(localidad_general,categoria_select_filtro,tiendaSeleccionada1)
     }
 
     // ---------------- BOTTOM SHEET ----------------
@@ -133,7 +128,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
             !solicitandoBloque
         ) {
             solicitandoBloque = true
-            viewModel.cargarSiguienteBloque(localidad_general,categoria_select_filtro)
+            viewModel.cargarSiguienteBloque(localidad_general,categoria_select_filtro,tiendaSeleccionada1)
         }
     }
 

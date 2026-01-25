@@ -1035,6 +1035,19 @@ class repo_eres_socio {
     }
     }
 
+    suspend fun subirImagenesConReintento(
+        intentos: Int = 3,
+        bloque: suspend () -> List<String>
+    ): List<String> {
+        repeat(intentos - 1) {
+            try {
+                return bloque()
+            } catch (_: Exception) { }
+        }
+        return bloque() // último intento
+    }
+
+
     suspend fun cambiar_atributos_tiendas(
         id_tienda: String,
         localidad_tienda: String,
@@ -1202,7 +1215,6 @@ class repo_eres_socio {
                 "estado" to i.estado,
                 "tipo_hora_dias" to i.formato_fecha_hora,
                 "datos_hora_fecha" to i.datos_hora_fecha,
-                "img_container" to i.img_container,
                 "informacion" to i.informacion,
                 "ubicacion" to i.ubicacion,
                 "mensaje_predeterminado" to i.mensaje_predeterminado,

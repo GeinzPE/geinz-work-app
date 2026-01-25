@@ -36,7 +36,8 @@ class repo_promos_cercanas {
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun obtener_promos(
         tipo_seleccionado: String,
-        localidad: String
+        localidad: String,
+        tiendaSeleccionada1: String?
     ): List<obj_completo> {
 
         Log.d("PROMOS_DEBUG", "▶ obtener_promos | tipo=$tipo_seleccionado | localidad=$localidad")
@@ -101,6 +102,15 @@ class repo_promos_cercanas {
                     Log.d(
                         "PROMO_ITEM",
                         "⛔ DESCARTADA: filtro categoria (seleccion=$tipo_seleccionado)"
+                    )
+                    return@mapNotNull null
+                }
+
+                val idTiendaInfo = infoMap["id_tienda"] as? String ?: ""
+                if (tiendaSeleccionada1 != null && idTiendaInfo != tiendaSeleccionada1) {
+                    Log.d(
+                        "PROMO_ITEM",
+                        "⛔ DESCARTADA: filtro por tienda (seleccionada=$tiendaSeleccionada1)"
                     )
                     return@mapNotNull null
                 }

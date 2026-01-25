@@ -41,13 +41,13 @@ class viewmodel_promos_cercanas : ViewModel() {
 
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun cargarSiguienteBloque(localidad: String,categoria_filtrado:String) {
+    fun cargarSiguienteBloque(localidad: String,categoria_filtrado:String,tiendaSeleccionada1:String?) {
         if (cargando) return
         cargando = true
 
         viewModelScope.launch {
             try {
-                val todasLasPromos = repo.obtener_promos(categoria_filtrado,localidad)
+                val todasLasPromos = repo.obtener_promos(categoria_filtrado,localidad,tiendaSeleccionada1)
 //                Log.d("ViewModelPromos", "Total promos obtenidas de DB: ${todasLasPromos.size}")
 
                 // 🔹 eliminar duplicados globalmente por id_promocion
@@ -127,7 +127,7 @@ class viewmodel_promos_cercanas : ViewModel() {
             _estadoPromos.value = estado_carga_promociones.loading
 
             try {
-                val resultado = repo.obtener_promos(tipo_filtrado,localidad)
+                val resultado = repo.obtener_promos(tipo_filtrado,localidad,null)
 
                 if (resultado.isEmpty()) {
                     _estadoPromos.value =

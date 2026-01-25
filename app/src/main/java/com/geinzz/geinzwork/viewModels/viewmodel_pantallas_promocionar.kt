@@ -17,14 +17,10 @@ import com.geinzz.geinzwork.data.model.historial_descuento
 import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.model.repo_pantallas_promocionar
-import com.geinzz.geinzwork.model.repo_recargas
 
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
 import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas
-import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio.SubidaPromoState
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -381,8 +377,10 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
 
     fun mejorar_mejorar_notificacion_con_IA_corta(
-        saldo_tienda: Int,
-        localidad_tienda: String, id_tienda: String, nombre_tienda: String,
+        tipo_select_IA:String,
+        tipoSeleccionado: repo_pantallas_promocionar.TipoGeneracionIA,
+        saldo_tienda: Int, localidad_tienda: String, id_tienda: String,
+        nombre_tienda: String,
         titulo_publicacion: String,
         descripcion: String
     ) {
@@ -400,7 +398,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                 }
                 insta_repo.crear_notificacion_conIA_corta(
                     titulo_publicacion,
-                    descripcion
+                    descripcion,tipoSeleccionado,
                 ) { notificacionIA ->
                     _estado_notificacion_con_ia_corta.value =
                         EstadoIA_notifi_corta.Success(notificacionIA)
@@ -414,7 +412,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                             id_tienda = id_tienda,
                             nombre_tienda = nombre_tienda,
                             monto_descuento = "20",
-                            tipo = "Gen IA (Notificacion - promo seleccionada)",
+                            tipo = tipo_select_IA,
                             precio_soles = constantes_cobro_monedas.calcular_precio_soles("20")
                                 .toString(), estado = "Aceptado", monto_restante = saldo_tienda - 20
                         )

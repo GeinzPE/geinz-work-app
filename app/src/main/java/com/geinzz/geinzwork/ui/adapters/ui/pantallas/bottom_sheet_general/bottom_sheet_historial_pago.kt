@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -73,6 +74,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.EstadisticasHistorialMonedas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.ShimmerImagenConMarca
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
@@ -335,13 +337,16 @@ fun bottom_sheet_historial_pago(
                                             // 🔹 CONTENIDO EXPANDIDO
                                             AnimatedVisibility(
                                                 visible = expanded,
-                                                exit = fadeOut()
-                                                ,modifier = Modifier.animateContentSize()
+                                                exit = fadeOut(),
+                                                modifier = Modifier.animateContentSize()
                                             ) {
                                                 Column(modifier = Modifier.animateContentSize()) {
                                                     Spacer(modifier = Modifier.height(4.dp))
 
+
                                                     listaPorFecha.forEachIndexed { index, item ->
+
+// 🔹 Contar cuántos items hay por tipo_realzia
 
                                                         AnimatedVisibility(
                                                             visible = expanded,
@@ -377,8 +382,20 @@ fun bottom_sheet_historial_pago(
                                                         }
                                                     }
 
+                                                    if (subCategoriaSeleccionada == "Todos" ||
+                                                        subCategoriaSeleccionada == "Hoy" ||
+                                                        subCategoriaSeleccionada == "Esta semana" ||
+                                                        subCategoriaSeleccionada == "Este mes"
+                                                    ) {
 
-                                                    // 🔹 TOTAL DEL DÍA
+                                                        val conteoPorTipo: Map<String, Int> = listaPorFecha.groupingBy { it.tipo_transaccion }
+                                                            .eachCount()
+
+
+                                                        EstadisticasHistorialMonedas.GraficoBarrasVerticalInteractivo(conteoPorTipo = conteoPorTipo)
+                                                    }
+
+
                                                     val totalMonedas = listaPorFecha
                                                         .filter { it.tipo_realziado == "descuento" }
                                                         .sumOf { it.monedas.toDouble() }
@@ -390,7 +407,11 @@ fun bottom_sheet_historial_pago(
                                                     Spacer(modifier = Modifier.height(8.dp))
 
                                                     if (subCategoriaSeleccionada != "Recargas") {
-                                                    Divider(modifier = Modifier.padding(horizontal = 12.dp))
+                                                        Divider(
+                                                            modifier = Modifier.padding(
+                                                                horizontal = 12.dp
+                                                            )
+                                                        )
                                                         Column(
                                                             modifier = Modifier
                                                                 .fillMaxWidth()
@@ -401,7 +422,7 @@ fun bottom_sheet_historial_pago(
                                                                 horizontalArrangement = Arrangement.SpaceBetween
                                                             ) {
                                                                 texto_generico_one_line(
-                                                                    "Total del día",
+                                                                    "Total en soles ",
                                                                     style = MaterialTheme.typography.titleSmall
                                                                 )
 
@@ -586,16 +607,17 @@ fun item_historial_pagos(i: historial_financiero) {
 
         }
         texto_generico_one_line(
-            "Realizado el : ${formatearFechaLarga(i.fecha).capitalizeFirst()}",
+            "Hora realizada: ${convertirHoraAmPm(i.hora)}",
             style = MaterialTheme.typography.bodyMedium
         )
 
 
         if (expanded) {
             texto_generico_one_line(
-                "Hora realizada: ${convertirHoraAmPm(i.hora)}",
+                "Realizado el : ${formatearFechaLarga(i.fecha).capitalizeFirst()}",
                 style = MaterialTheme.typography.bodyMedium
             )
+
             texto_generico_one_line(
                 "Realizado por : ${i.nombre_tienda}",
                 style = MaterialTheme.typography.bodyMedium
@@ -615,10 +637,19 @@ fun item_historial_pagos(i: historial_financiero) {
             )
 
             if (i.tipo_realziado.equals("descuento")) {
-                texto_generico_one_line(
-                    "Monto restante: ${i.monto_restante}",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    texto_generico_one_line(
+                        "Monto restante: ${i.monto_restante}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    spacer_horizonta(5.dp)
+                    Image(
+                        painter = painterResource(R.drawable.icon_monedas_3d),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+
+                }
             } else {
                 texto_generico_one_line(
                     "Monto anterior: ${i.monto_restante}",
