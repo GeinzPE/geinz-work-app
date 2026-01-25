@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.NotificacionIA
 import com.geinzz.geinzwork.data.model.OpcionPromocionIA
+import com.geinzz.geinzwork.data.model.Res_precios
 
 import com.geinzz.geinzwork.data.model.historial_descuento
 import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
@@ -21,6 +22,8 @@ import com.geinzz.geinzwork.model.repo_pantallas_promocionar
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
 import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -91,7 +94,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
     var uriImagen by mutableStateOf<Uri?>(null)
 
-    var hora_fin  by mutableStateOf("")
+    var hora_fin by mutableStateOf("")
 
     var titulo_notificacion by mutableStateOf("")
 
@@ -145,9 +148,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     }
 
 
-
-
-
     fun descartarCambios() {
         titulo = ""
         descripcion = ""
@@ -160,6 +160,14 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         tipo_notificacion = ""
 
     }
+
+    private val _estadoRangoPrecio =
+        MutableStateFlow(Res_precios())
+
+    val estadoRangoPrecio: StateFlow<Res_precios> =
+        _estadoRangoPrecio
+
+
 
     private val _estadoImagen = MutableStateFlow<ImagenEstado>(ImagenEstado.Idle)
     val estadoImagen: StateFlow<ImagenEstado> = _estadoImagen
@@ -193,7 +201,9 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
 
     private val _estado_texto_whatsap_con_ia_notificacion =
-        MutableStateFlow<Estado_ia_mensaje_whatsap_notificaion>(Estado_ia_mensaje_whatsap_notificaion.Idle)
+        MutableStateFlow<Estado_ia_mensaje_whatsap_notificaion>(
+            Estado_ia_mensaje_whatsap_notificaion.Idle
+        )
 
     val estado_texto_whatsap_con_ia_notificacion: StateFlow<Estado_ia_mensaje_whatsap_notificaion> =
         _estado_texto_whatsap_con_ia_notificacion
@@ -289,7 +299,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         }
     }
 
-    fun limpiar_resutlados_ia_promo(){
+    fun limpiar_resutlados_ia_promo() {
         _estado_promociones_ia.value = EstadoIA.Idle
     }
 
@@ -370,14 +380,13 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         }
     }
 
-    fun resetear_Estado_promo_subida(){
+    fun resetear_Estado_promo_subida() {
         _estadoEnvioNotificaciones.value = EstadoEnvioNotificacion.Idle
     }
 
 
-
     fun mejorar_mejorar_notificacion_con_IA_corta(
-        tipo_select_IA:String,
+        tipo_select_IA: String,
         tipoSeleccionado: repo_pantallas_promocionar.TipoGeneracionIA,
         saldo_tienda: Int, localidad_tienda: String, id_tienda: String,
         nombre_tienda: String,
@@ -398,7 +407,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                 }
                 insta_repo.crear_notificacion_conIA_corta(
                     titulo_publicacion,
-                    descripcion,tipoSeleccionado,
+                    descripcion, tipoSeleccionado,
                 ) { notificacionIA ->
                     _estado_notificacion_con_ia_corta.value =
                         EstadoIA_notifi_corta.Success(notificacionIA)
@@ -433,10 +442,10 @@ class viewmodel_pantallas_promocionar : ViewModel() {
             }
         }
     }
-    fun resetear_Estado_notificacion_enviadad(){
+
+    fun resetear_Estado_notificacion_enviadad() {
         _estado_notificacion_con_ia_corta.value = EstadoIA_notifi_corta.Idle
     }
-
 
 
     fun mejorar_texto_perzonalizado_whatsapp(
@@ -503,7 +512,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
             }
         }
     }
-
 
 
     fun mejorar_texto_perzonalizado_whatsapp_notificacion(
@@ -731,9 +739,10 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         }
     }
 
-    fun cambiar_estado_img_notifi_select (){
-        _estadoImagen.value=ImagenEstado.Idle
+    fun cambiar_estado_img_notifi_select() {
+        _estadoImagen.value = ImagenEstado.Idle
     }
+
     fun eliminarImagen(idTienda: String, idTemporal: String) {
         Log.d("FirebaseDelete", "$idTienda $idTemporal")
         viewModelScope.launch {
@@ -755,6 +764,53 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         _estadoImagen.value = ImagenEstado.Idle
     }
 
+    private var jobPrecio: Job? = null
+
+     fun procesarPrecioPeru(texto: String,    delayMs: Long = 600L
+    ) {
+        jobPrecio?.cancel()
+
+        jobPrecio = viewModelScope.launch {
+            delay(delayMs)
+
+            val regex = Regex(
+                """(?i)(s\/\.?|pen|soles?|nuevos?\s+soles?)\s*(\d+(\.\d{1,2})?)"""
+            )
+
+            val precios = regex.findAll(texto)
+                .mapNotNull { it.groups[2]?.value?.toDoubleOrNull() }
+                .toList()
+
+            when {
+                precios.isEmpty() -> {
+                    _estadoRangoPrecio.value = Res_precios(emptyList(), null, null)
+                }
+
+                precios.size > 1 -> {
+                    _estadoRangoPrecio.value = Res_precios(precios, null, null)
+                }
+
+                else -> {
+                    val precio = precios.first()
+                    val rango = obtenerRangoPrecio(precio)
+                    _estadoRangoPrecio.value = Res_precios(listOf(precio), precio, rango)
+                }
+            }
+        }
+    }
+
+
+    fun obtenerRangoPrecio(precio: Double): String {
+        return when (precio) {
+            in 0.0..50.0 -> "0 - 50"
+            in 51.0..200.0 -> "51 - 200"
+            in 201.0..1000.0 -> "201 - 1000"
+            in 1001.0..5000.0 -> "1001 - 5000"
+            in 5001.0..10000.0 -> "5001 - 10000"
+            else -> "Mayor a 10000"
+        }
+    }
+
 
     fun validar_si_hay_datos_promocionar(
         titulo_publicacion: String,
@@ -772,11 +828,13 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     }
 
 
-                sealed class ImagenEstado {
+    sealed class ImagenEstado {
         object Idle : ImagenEstado()
         object Cargando : ImagenEstado()
         data class Exito(val url: String, val idTemporal: String) : ImagenEstado()
         data class Error(val mensaje: String) : ImagenEstado()
+
+
     }
 
 
@@ -807,15 +865,19 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
     sealed class ESstado_ia_msje_whatsap {
         object Idle : ESstado_ia_msje_whatsap()
-        data class reseteo (val mensaje: String="Mira esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25") : ESstado_ia_msje_whatsap()
+        data class reseteo(val mensaje: String = "Mira esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25") :
+            ESstado_ia_msje_whatsap()
+
         object Loading : ESstado_ia_msje_whatsap()
         data class Success(val txt_descripcion: String) : ESstado_ia_msje_whatsap()
         data class Error(val mensaje: String) : ESstado_ia_msje_whatsap()
     }
 
-    sealed class Estado_ia_mensaje_whatsap_notificaion{
+    sealed class Estado_ia_mensaje_whatsap_notificaion {
         object Idle : Estado_ia_mensaje_whatsap_notificaion()
-        data class reseteo (val mensaje: String="Hola, quiero mas informacion sobre lo que vi en ") : Estado_ia_mensaje_whatsap_notificaion()
+        data class reseteo(val mensaje: String = "Hola, quiero mas informacion sobre lo que vi en ") :
+            Estado_ia_mensaje_whatsap_notificaion()
+
         object Loading : Estado_ia_mensaje_whatsap_notificaion()
         data class Success(val txt_descripcion: String) : Estado_ia_mensaje_whatsap_notificaion()
         data class Error(val mensaje: String) : Estado_ia_mensaje_whatsap_notificaion()
@@ -823,21 +885,26 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
     sealed class ESstado_ia_msje_compartir {
         object Idle : ESstado_ia_msje_compartir()
-        data class reseteo (val mensaje: String="Hola, quiero esta oferta que vi Geinz:") : ESstado_ia_msje_compartir()
+        data class reseteo(val mensaje: String = "Hola, quiero esta oferta que vi Geinz:") :
+            ESstado_ia_msje_compartir()
+
         object Loading : ESstado_ia_msje_compartir()
         data class Success(val txt_descripcion: String) : ESstado_ia_msje_compartir()
         data class Error(val mensaje: String) : ESstado_ia_msje_compartir()
     }
 
 
-    fun reseteo_wshap_promocion(){
-        _estado_texto_whatsap_con_ia.value= ESstado_ia_msje_whatsap.reseteo()
+    fun reseteo_wshap_promocion() {
+        _estado_texto_whatsap_con_ia.value = ESstado_ia_msje_whatsap.reseteo()
     }
-    fun reseteo_compartir(){
-        _estado_texto_compartir_con_ia.value= ESstado_ia_msje_compartir.reseteo()
+
+    fun reseteo_compartir() {
+        _estado_texto_compartir_con_ia.value = ESstado_ia_msje_compartir.reseteo()
     }
-    fun reseteo_wshap_notificacion(){
-        _estado_texto_whatsap_con_ia_notificacion.value= Estado_ia_mensaje_whatsap_notificaion.reseteo()
+
+    fun reseteo_wshap_notificacion() {
+        _estado_texto_whatsap_con_ia_notificacion.value =
+            Estado_ia_mensaje_whatsap_notificaion.reseteo()
     }
 
 
@@ -853,7 +920,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
             val mensaje: String
         ) : EstadoEnvioNotificacion()
     }
-
 
 
 }

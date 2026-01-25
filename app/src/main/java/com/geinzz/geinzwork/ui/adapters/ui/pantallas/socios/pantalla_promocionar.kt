@@ -112,6 +112,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -282,6 +283,41 @@ fun pantalla_promocionar(
 //    var ubicacion by rememberSaveable { mutableStateOf(false) }
 //    var exclusivo by rememberSaveable { mutableStateOf(false) }
     var numero_publicaicon by rememberSaveable { mutableStateOf(i.numero_contacto_tienda) }
+    val estadoPrecio by viewmodel_pantalla_promocionar.estadoRangoPrecio.collectAsStateWithLifecycle()
+    val resultado =
+        viewmodel_pantalla_promocionar.procesarPrecioPeru(nombre_publicacion )
+    var rango_precio_detectadoo by remember { mutableStateOf("") }
+    var mostar_precios_y_rangos by remember { mutableStateOf(false) }
+    when {
+        estadoPrecio.preciosDetectados.size > 1 -> {
+            Text("Se detectaron varios precios")
+
+            Log.d(
+                "PRECIO_IA",
+                "Se detectaron múltiples precios: ${estadoPrecio.preciosDetectados}"
+            )
+        }
+
+        estadoPrecio.precioFinal != null -> {
+            Text("Precio detectado: S/. ${estadoPrecio.precioFinal}")
+
+            Log.d(
+                "PRECIO_IA",
+                "Precio final detectado: S/. ${estadoPrecio.precioFinal}"
+            )
+        }
+
+        else -> {
+            Text("No se detectó precio")
+
+            Log.d(
+                "PRECIO_IA",
+                "No se detectó ningún precio en el texto"
+            )
+        }
+    }
+
+
     val state by viewmodel_socios.subidaPromoState.collectAsState()
     var numero_de_notificacion by rememberSaveable { mutableStateOf(i.numero_contacto_tienda) }
     var direccion_negocio by rememberSaveable { mutableStateOf(i.ubicacion.direccion) }
@@ -670,7 +706,7 @@ fun pantalla_promocionar(
                 mensaje_perzonalizado_compartir = false
                 mensaje_perzonalizado = false
                 msje_titulo_descripcion = false
-                filtro_cercania=false
+                filtro_cercania = false
                 mensaje_perzonalizado_txt = "Mira esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25"
                 mensaje_perzonalizado_txt_compartir = "Hola, quiero esta oferta que vi Geinz:"
                 listaOpcionesIA = emptyList()
@@ -891,6 +927,7 @@ fun pantalla_promocionar(
                             error_titulo_publicacion =
                                 nombre_publicacion.isNotEmpty() &&
                                         nombre_publicacion.length < MIN_TITULO
+                            viewmodel_pantalla_promocionar.procesarPrecioPeru(input)
                         },
                         labelText = "Título de la publicación",
                         placeholderText = "Título de la publicación",
@@ -1164,8 +1201,20 @@ fun pantalla_promocionar(
                         style = MaterialTheme.typography.titleLarge
                     )
                     texto_generico_multilinea(
-                        "Configura los parámetros de tu publicación y elige si deseas habilitar el compartir o el contacto directo por WhatsApp.",
+                        "Personaliza tu publicación y activa las opciones que te ayuden a lograr mejores resultados.",
                         style = MaterialTheme.typography.bodyMedium
+                    )
+                    texto_generico_one_line("Rango de precio detectado")
+                    MyOutlinedTextField_proco_raduis(
+                        value = numero_publicaicon,
+                        onValueChange = { input ->
+
+                        },
+                        texto_error = "El número debe tener 9 dígitos",
+                        isError = error_mostrado_numero_contacto,
+                        labelText = "Número de contacto",
+                        placeholderText = "Número de contacto",
+                        keyboardType = KeyboardType.Number
                     )
                     Column(
                         modifier = Modifier
@@ -1854,7 +1903,7 @@ fun pantalla_promocionar(
                                     direccion = direccion_negocio,
                                     lat = i.ubicacion.lat,
                                     long = i.ubicacion.long,
-                                    referencia =referencia_negocio
+                                    referencia = referencia_negocio
                                 ),
                                 datos_hora_fecha = datos_fecha_hora_tipo(
                                     horas = fechas_horas_promociones(
