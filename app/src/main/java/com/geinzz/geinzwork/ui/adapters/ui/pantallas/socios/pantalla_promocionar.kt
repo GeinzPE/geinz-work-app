@@ -52,6 +52,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
@@ -67,6 +68,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
@@ -105,10 +108,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
@@ -132,6 +139,7 @@ import com.geinzz.geinzwork.data.model.fechas_promociones
 import com.geinzz.geinzwork.data.model.generaciones_con_ia
 import com.geinzz.geinzwork.data.model.generaciones_con_ia_notificaciones
 import com.geinzz.geinzwork.data.model.historial_descuento
+import com.geinzz.geinzwork.data.model.horario_deseado
 import com.geinzz.geinzwork.data.model.img_contaier
 import com.geinzz.geinzwork.data.model.informacion_container
 import com.geinzz.geinzwork.data.model.items_pantallas_promociones
@@ -141,6 +149,8 @@ import com.geinzz.geinzwork.data.model.nombre_precio_notificaciones
 import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
 import com.geinzz.geinzwork.data.model.obj_parametros_notificacion
 import com.geinzz.geinzwork.data.model.obj_suspend_notificacion
+import com.geinzz.geinzwork.data.model.pantalla_horarios
+import com.geinzz.geinzwork.data.model.precio_rango_publicacion
 import com.geinzz.geinzwork.data.model.ubicacaion_container
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.obtenerFechaFinDosDias
@@ -150,10 +160,13 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_p
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.model.repo_pantallas_promocionar
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.DatePickerExample_promociones
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown_horario_publicacion
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown_precio_nombre_notificaciones
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown_select_params_notificacion
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField_proco_raduis
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.calcularDiasEntreFechas
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda_con_la_IA
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_pleaceholder_label
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -173,10 +186,12 @@ import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaD
 import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_carga_ucrop_img
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.simplificarCategoria
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.notificacionesFCM.enviar_notificacion_lista_dispo
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_promocionar
 import com.geinzz.geinzwork.viewModels.viewmodel_recargas
+import com.google.common.io.Files.append
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -205,6 +220,9 @@ fun pantalla_promocionar(
     val snackbarHostState = remember { SnackbarHostState() }
     val estadoImagen by viewmodel_pantalla_promocionar.estadoImagen.collectAsState()
     var id_img_notificacion by remember { mutableStateOf("") }
+    var aceptoTerminos_promociones by rememberSaveable() { mutableStateOf(false) }
+    var aceptoTerminos_notificaciones by rememberSaveable() { mutableStateOf(false) }
+
     LaunchedEffect(estadoImagen) {
         if (estadoImagen is viewmodel_pantallas_promocionar.ImagenEstado.Exito) {
             url_img_notificaion_seleccionada =
@@ -276,48 +294,22 @@ fun pantalla_promocionar(
     var mostar_img_zoom by remember { mutableStateOf(false) }
     var imagenZoomSeleccionada by remember { mutableStateOf<String?>(null) }
     var contacto_directo by rememberSaveable { mutableStateOf(false) }
+    var precio_encontrado by rememberSaveable { mutableStateOf(false) }
     var compartir by rememberSaveable { mutableStateOf(false) }
     var filtro_cercania by rememberSaveable { mutableStateOf(false) }
-    var mensaje_perzonalizado by remember { mutableStateOf(false) }
-    var mensaje_perzonalizado_compartir by remember { mutableStateOf(false) }
+    var horario_deseado by rememberSaveable { mutableStateOf(false) }
+    var mensaje_perzonalizado by remember { mutableStateOf(true) }
+    var mensaje_perzonalizado_compartir by remember { mutableStateOf(true) }
 //    var ubicacion by rememberSaveable { mutableStateOf(false) }
 //    var exclusivo by rememberSaveable { mutableStateOf(false) }
     var numero_publicaicon by rememberSaveable { mutableStateOf(i.numero_contacto_tienda) }
-    val estadoPrecio by viewmodel_pantalla_promocionar.estadoRangoPrecio.collectAsStateWithLifecycle()
-    val resultado =
-        viewmodel_pantalla_promocionar.procesarPrecioPeru(nombre_publicacion )
+    val estadoPrecio by viewmodel_pantalla_promocionar.estadoRangoPrecio.collectAsState()
+    var precio_detectado by remember { mutableStateOf("") }
+    var rango_detectado by remember { mutableStateOf("") }
     var rango_precio_detectadoo by remember { mutableStateOf("") }
     var mostar_precios_y_rangos by remember { mutableStateOf(false) }
-    when {
-        estadoPrecio.preciosDetectados.size > 1 -> {
-            Text("Se detectaron varios precios")
-
-            Log.d(
-                "PRECIO_IA",
-                "Se detectaron múltiples precios: ${estadoPrecio.preciosDetectados}"
-            )
-        }
-
-        estadoPrecio.precioFinal != null -> {
-            Text("Precio detectado: S/. ${estadoPrecio.precioFinal}")
-
-            Log.d(
-                "PRECIO_IA",
-                "Precio final detectado: S/. ${estadoPrecio.precioFinal}"
-            )
-        }
-
-        else -> {
-            Text("No se detectó precio")
-
-            Log.d(
-                "PRECIO_IA",
-                "No se detectó ningún precio en el texto"
-            )
-        }
-    }
-
-
+    var precio_seleccionado by remember { mutableStateOf<String?>(null) }
+    var precio_seleccionado_detectados by remember { mutableStateOf(false) }
     val state by viewmodel_socios.subidaPromoState.collectAsState()
     var numero_de_notificacion by rememberSaveable { mutableStateOf(i.numero_contacto_tienda) }
     var direccion_negocio by rememberSaveable { mutableStateOf(i.ubicacion.direccion) }
@@ -364,6 +356,36 @@ fun pantalla_promocionar(
         nombre_precio_notificaciones("high", 20),
         nombre_precio_notificaciones("normal", 10),
     )
+
+
+    val lista_filtrado_horario = listOf(
+        pantalla_horarios(
+            nombre = "Todo el día",
+            texto = "Tu publicación se mostrará durante todo el día para todos los compradores 🕛 ",
+            horario_mostrado = "00:00 - 23:59"
+        ),
+        pantalla_horarios(
+            nombre = "Mañana",
+            texto = "Tu publicación solo se mostrará durante el turno de la mañana para compradores interesados 🌞 ",
+            horario_mostrado = "06:00 - 12:00"
+        ),
+        pantalla_horarios(
+            nombre = "Tarde",
+            texto = "Tu publicación solo se mostrará durante el turno de la tarde 🌤 ",
+            horario_mostrado = "12:00 - 18:00"
+        ),
+        pantalla_horarios(
+            nombre = "Noche",
+            texto = "Tu publicación solo se mostrará durante el turno de la noche 🌙",
+            horario_mostrado = "18:00 - 23:59"
+        )
+    )
+
+    var turnoSeleccionado by rememberSaveable {
+        mutableStateOf<pantalla_horarios?>(null)
+    }
+
+
     var idSeleccionado by remember { mutableStateOf<String?>(null) }
 
     val lista_generacions_IA_proms = listOf(
@@ -525,9 +547,17 @@ fun pantalla_promocionar(
     val scope = rememberCoroutineScope()
 
     var error_mostrado_numero_contacto by remember { mutableStateOf(false) }
+    var error_texto_mostrado_numero_contacto by remember { mutableStateOf("") }
+    var error_texto_mostrado_numero_contacto_notificacion by remember { mutableStateOf("") }
+    var error_precio by remember { mutableStateOf(false) }
+    var texto_error_precio by remember { mutableStateOf("") }
     var error_mostrado_numero_contacto_notificacion by remember { mutableStateOf(false) }
     var error_mostrado_msje_perzonalisado by remember { mutableStateOf(false) }
+    var error_mostrado_msje_perzonalisado_notificacion by remember { mutableStateOf(false) }
+    var error_mostrado_texto_mjse_perzonalizado by remember { mutableStateOf("") }
+    var error_mostrado_texto_mjse_perzonalizado_notificacion by remember { mutableStateOf("") }
     var error_mostrado_msje_perzonalisado_compartir by remember { mutableStateOf(false) }
+    var menjsa_error_mostrado_compartir by remember { mutableStateOf("") }
     var error_horas_escritas by remember { mutableStateOf(false) }
     var mensajeErrorHoras by remember { mutableStateOf("") }
     var mensaje_whatsapp_de_publi_a_notificacion by remember { mutableStateOf("Hola, quiero mas informacion sobre lo que vi en ") }
@@ -650,12 +680,20 @@ fun pantalla_promocionar(
             constantes_carga_ucrop_img.croppedUri = null
         }
     }
-//
-//    LaunchedEffect(monedas_tienda) {
-//        if(monedas_tienda<30){
-//            viewmodel_socios.enviar_notificacion(id_user)
-//        }
-//    }
+    LaunchedEffect(estadoPrecio.precioFinal) {
+        estadoPrecio.precioFinal?.let {
+            precio_detectado = it.toInt().toString()
+        }
+
+    }
+
+    LaunchedEffect(precio_detectado) {
+        val precio = precio_detectado.toDoubleOrNull()
+        if (precio != null) {
+            viewmodel_pantalla_promocionar.actualizarRangoDesdePrecio(precio)
+        }
+    }
+
 
 
     LaunchedEffect(state) {
@@ -697,12 +735,16 @@ fun pantalla_promocionar(
                 nombre_publicacion = ""
                 descripcion_publicacion = ""
                 contacto_directo = false
+                horario_deseado = false
+                turnoSeleccionado = null
+                precio_detectado = ""
                 compartir = false
                 fecha_fin = ""
                 hora_escrita = "0"
                 tipo_promp_seleccionado_IA = null
                 msj_perzonalizado_whatsapp_ia_bool = false
                 msj_perzonalizado_compartir_ia_bool = false
+                precio_encontrado = false
                 mensaje_perzonalizado_compartir = false
                 mensaje_perzonalizado = false
                 msje_titulo_descripcion = false
@@ -772,7 +814,11 @@ fun pantalla_promocionar(
             else -> {}
         }
     }
-
+    LaunchedEffect(nombre_publicacion) {
+        if (nombre_publicacion.isNotEmpty()) {
+            viewmodel_pantalla_promocionar.procesarPrecioPeru(nombre_publicacion)
+        }
+    }
 
     LaunchedEffect(fecha_inicio, fecha_fin) {
         Log.d("sdiagbofsahng", "$fecha_inicio $fecha_fin")
@@ -784,7 +830,7 @@ fun pantalla_promocionar(
     }
 
     val MIN_TITULO = 5
-    val MAX_TITULO = 80
+    val MAX_TITULO = 150
 
     val picker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(5)
@@ -927,7 +973,7 @@ fun pantalla_promocionar(
                             error_titulo_publicacion =
                                 nombre_publicacion.isNotEmpty() &&
                                         nombre_publicacion.length < MIN_TITULO
-                            viewmodel_pantalla_promocionar.procesarPrecioPeru(input)
+
                         },
                         labelText = "Título de la publicación",
                         placeholderText = "Título de la publicación",
@@ -1204,18 +1250,7 @@ fun pantalla_promocionar(
                         "Personaliza tu publicación y activa las opciones que te ayuden a lograr mejores resultados.",
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    texto_generico_one_line("Rango de precio detectado")
-                    MyOutlinedTextField_proco_raduis(
-                        value = numero_publicaicon,
-                        onValueChange = { input ->
 
-                        },
-                        texto_error = "El número debe tener 9 dígitos",
-                        isError = error_mostrado_numero_contacto,
-                        labelText = "Número de contacto",
-                        placeholderText = "Número de contacto",
-                        keyboardType = KeyboardType.Number
-                    )
                     Column(
                         modifier = Modifier
                             .animateContentSize()
@@ -1234,15 +1269,29 @@ fun pantalla_promocionar(
                                 value = numero_publicaicon,
                                 onValueChange = { input ->
 
-
-                                    if (input.length <= 9 && input.all { it.isDigit() }) {
+                                    // Solo permitir números y máximo 9
+                                    if (input.all { it.isDigit() } && input.length <= 9) {
                                         numero_publicaicon = input
                                     }
 
-                                    error_mostrado_numero_contacto =
-                                        numero_publicaicon.isNotEmpty() && numero_publicaicon.length != 9
+                                    when {
+                                        numero_publicaicon.isBlank() -> {
+                                            error_mostrado_numero_contacto = true
+                                            error_texto_mostrado_numero_contacto = "El número no puede estar vacío"
+                                        }
+
+                                        numero_publicaicon.length < 9 -> {
+                                            error_mostrado_numero_contacto = true
+                                            error_texto_mostrado_numero_contacto = "El número debe tener 9 dígitos"
+                                        }
+
+                                        else -> {
+                                            error_mostrado_numero_contacto = false
+                                            error_texto_mostrado_numero_contacto = ""
+                                        }
+                                    }
                                 },
-                                texto_error = "El número debe tener 9 dígitos",
+                                texto_error = error_texto_mostrado_numero_contacto,
                                 isError = error_mostrado_numero_contacto,
                                 labelText = "Número de contacto",
                                 placeholderText = "Número de contacto",
@@ -1264,24 +1313,38 @@ fun pantalla_promocionar(
                                     icon = R.drawable.texto_predetermiando,
                                     valor = mensaje_perzonalizado,
                                     retorno = { it -> mensaje_perzonalizado = it },
-                                    titulo = "Mensaje perzonalizadao whatsapp"
+                                    titulo = "Mensaje perzonalizado whatsapp",false
                                 )
                                 if (mensaje_perzonalizado) {
                                     MyOutlinedTextField_proco_raduis(
                                         value = mensaje_perzonalizado_txt,
                                         onValueChange = { input ->
                                             mensaje_perzonalizado_txt = input
-                                            if (input.length <= 80) {
-                                                error_mostrado_msje_perzonalisado = false
-                                            } else {
-                                                error_mostrado_msje_perzonalisado = true
+
+                                            when {
+                                                input.isBlank() -> {
+                                                    error_mostrado_msje_perzonalisado = true
+                                                    error_mostrado_texto_mjse_perzonalizado = "El mensaje no puede estar vacío"
+                                                }
+
+                                                input.length > 80 -> {
+                                                    error_mostrado_msje_perzonalisado = true
+                                                    error_mostrado_texto_mjse_perzonalizado =
+                                                        "El mensaje no puede exceder 80 caracteres"
+                                                }
+
+                                                else -> {
+                                                    error_mostrado_msje_perzonalisado = false
+                                                    error_mostrado_texto_mjse_perzonalizado = ""
+                                                }
                                             }
                                         },
-                                        texto_error = "El mensaje no puede exceder 80 caracteres",
+                                        texto_error = error_mostrado_texto_mjse_perzonalizado,
                                         isError = error_mostrado_msje_perzonalisado,
                                         labelText = "Mensaje predeterminado",
                                         placeholderText = "Mensaje predeterminado"
                                     )
+
                                     spacer_vertical(10.dp)
                                     val cargando =
                                         estado_texto_whatsapp_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_whatsap.Loading
@@ -1416,7 +1479,7 @@ fun pantalla_promocionar(
                                     icon = R.drawable.texto_predetermiando,
                                     valor = mensaje_perzonalizado_compartir,
                                     retorno = { it -> mensaje_perzonalizado_compartir = it },
-                                    titulo = "Mensaje perzonalizadao compartir"
+                                    titulo = "Mensaje perzonalizado compartir",false
                                 )
 
                                 if (mensaje_perzonalizado_compartir) {
@@ -1424,17 +1487,30 @@ fun pantalla_promocionar(
                                         value = mensaje_perzonalizado_txt_compartir,
                                         onValueChange = { input ->
                                             mensaje_perzonalizado_txt_compartir = input
-                                            if (input.length <= 80) {
-                                                error_mostrado_msje_perzonalisado_compartir = false
-                                            } else {
-                                                error_mostrado_msje_perzonalisado_compartir = true
+
+                                            when {
+                                                input.isBlank() -> {
+                                                    error_mostrado_msje_perzonalisado_compartir = true
+                                                    menjsa_error_mostrado_compartir = "El mensaje no puede ir vacío"
+                                                }
+
+                                                input.length > 80 -> {
+                                                    error_mostrado_msje_perzonalisado_compartir = true
+                                                    menjsa_error_mostrado_compartir = "El mensaje no puede exceder 80 caracteres"
+                                                }
+
+                                                else -> {
+                                                    error_mostrado_msje_perzonalisado_compartir = false
+                                                    menjsa_error_mostrado_compartir = ""
+                                                }
                                             }
                                         },
-                                        texto_error = "El mensaje no puede exceder 80 caracteres",
+                                        texto_error = menjsa_error_mostrado_compartir,
                                         isError = error_mostrado_msje_perzonalisado_compartir,
                                         labelText = "Mensaje predeterminado",
                                         placeholderText = "Mensaje predeterminado"
                                     )
+
                                     spacer_vertical(10.dp)
                                     val cargando =
                                         estado_texto_compatir_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_compartir.Loading
@@ -1551,7 +1627,7 @@ fun pantalla_promocionar(
                             R.drawable.google_maps_icono,
                             filtro_cercania,
                             { it -> filtro_cercania = it },
-                            "Cercanía ⭐"
+                            "Cercanía"
                         )
                         if (filtro_cercania) {
                             texto_generico_multilinea(
@@ -1570,10 +1646,11 @@ fun pantalla_promocionar(
                                 value = direccion_negocio,
                                 onValueChange = { input ->
                                     direccion_negocio = input
+                                    error_direccion_negocio = input.isBlank()
                                 },
-                                texto_error = "",
+                                texto_error = if (error_direccion_negocio) "La dirección no puede estar vacía" else "",
                                 isError = error_direccion_negocio,
-                                labelText = "Mensaje predeterminado",
+                                labelText = "Direccion",
                                 placeholderText = "Direccion"
                             )
 
@@ -1583,15 +1660,185 @@ fun pantalla_promocionar(
                                 value = referencia_negocio,
                                 onValueChange = { input ->
                                     referencia_negocio = input
+                                    error_referencia_negocio = input.isBlank()
                                 },
-                                texto_error = "",
+                                texto_error = if (error_referencia_negocio) "La referencia no puede estar vacía" else "",
                                 isError = error_referencia_negocio,
-                                labelText = "Mensaje predeterminado",
+                                labelText = "Referencia",
                                 placeholderText = "Referencia"
                             )
 
                         }
 
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .animateContentSize()
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(MaterialTheme.colorScheme.surface)
+                            .padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        txt_publicaciones(
+                            R.drawable.efectivo_logo,
+                            precio_encontrado,
+                            { it -> precio_encontrado = it },
+                            "Precio (opcional)"
+                        )
+                        if (precio_encontrado) {
+                            // Texto explicativo
+                            texto_generico_multilinea(
+                                "El precio se detecta automáticamente para mejorar la visibilidad de tu publicación. Si no se detecta, puedes ingresarlo manualmente.",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+
+                            // Chips si hay varios precios
+                            if (estadoPrecio.preciosDetectados.size > 1) {
+                                texto_generico_multilinea(
+                                    "Precios detectados",
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                                LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                                    items(estadoPrecio.preciosDetectados.distinct()) { precio ->
+
+                                        val precioTexto = precio.toInt().toString()
+                                        val seleccionado = precio_seleccionado == precioTexto
+
+                                        chisp_filtrado_busqueda(
+                                            carta_selecionada = seleccionado,
+                                            filtrado = "S/ $precioTexto",
+                                            btn_visible = false,
+                                            clik_card = {
+                                                precio_seleccionado = precioTexto
+                                                precio_detectado = precioTexto
+                                                viewmodel_pantalla_promocionar.actualizarRangoDesdePrecio(
+                                                    precio
+                                                )
+                                            },
+                                            onClick_delete = {},
+                                            color_invertido = true,
+                                            alto = 40.dp
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Autocompletar primer precio si TextField está vacío
+                            LaunchedEffect(estadoPrecio.preciosDetectados) {
+                                if (precio_detectado.isEmpty() && estadoPrecio.preciosDetectados.isNotEmpty()) {
+                                    val primerPrecio = estadoPrecio.preciosDetectados.first()
+                                    precio_detectado = primerPrecio.toInt().toString()
+                                    viewmodel_pantalla_promocionar.actualizarRangoDesdePrecio(
+                                        primerPrecio
+                                    )
+                                }
+                            }
+
+                            // TextField siempre visible
+                            MyOutlinedTextField_proco_raduis(
+                                value = precio_detectado,
+                                onValueChange = { input ->
+                                    precio_detectado = input
+                                    precio_seleccionado_detectados = input.isNotEmpty()
+
+                                    val precio = input.toDoubleOrNull()
+
+                                    when {
+                                        input.isBlank() -> {
+                                            error_precio = true
+                                            texto_error_precio = "El precio no puede estar vacío"
+                                        }
+
+                                        precio == null -> {
+                                            error_precio = true
+                                            texto_error_precio = "Precio inválido"
+                                        }
+
+                                        precio == 0.0 -> {
+                                            error_precio = true
+                                            texto_error_precio = "El precio no puede ser 0"
+                                        }
+
+                                        else -> {
+                                            error_precio = false
+                                            texto_error_precio = ""
+
+                                            // Solo si es válido
+                                            viewmodel_pantalla_promocionar.actualizarRangoDesdePrecio(precio)
+                                        }
+                                    }
+                                },
+                                texto_error = texto_error_precio,
+                                isError = error_precio,
+                                labelText = "Precio",
+                                placeholderText = "Precio",
+                                keyboardType = KeyboardType.Number
+                            )
+
+
+                            // Mostrar rango
+                            estadoPrecio.rango?.let { rango ->
+                                rango_detectado = rango
+                                RangoVisual(rango)
+                            }
+                        }
+
+
+                    }
+
+                    if (seleccion.tipo.equals("dias")) {
+                        Column(
+                            modifier = Modifier
+                                .animateContentSize()
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(MaterialTheme.colorScheme.surface)
+                                .padding(10.dp), verticalArrangement = Arrangement.spacedBy(7.dp)
+                        ) {
+                            txt_publicaciones(
+                                R.drawable.reloj_icon_hora_3d,
+                                horario_deseado,
+                                { it -> horario_deseado = it },
+                                "Horario deseado (opcional)"
+                            )
+                            if (horario_deseado) {
+                                texto_generico_multilinea(
+                                    "Elige en qué horario quieres que tu publicación sea visible para los compradores: mañana, tarde, noche o todos los turnos según tu preferencia.",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                                spacer_vertical(7.dp)
+
+                                ExpandDropDown_horario_publicacion(
+                                    lista = lista_filtrado_horario,
+                                    isError = false,
+                                    texto_error = "",
+                                    lable = "Horario deseado",
+                                    selecionado = { selected ->
+                                        turnoSeleccionado = selected
+                                    }
+                                )
+
+
+                                turnoSeleccionado?.let { turno ->
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+
+                                    texto_generico_multilinea(
+                                        turno.texto,
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+
+                                    if (turno.nombre != "Todo el día") {
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "Horario: ${turno.horario_mostrado}",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+
+                            }
+                        }
                     }
 
                 }
@@ -1666,6 +1913,8 @@ fun pantalla_promocionar(
                     }
 
                     if (seleccion.tipo.equals("horas")) {
+                        horario_deseado = false
+                        turnoSeleccionado = null
                         texto_generico_one_line(
                             "Indica las horas que la publicación este activa",
                             style = MaterialTheme.typography.bodyMedium
@@ -1870,16 +2119,84 @@ fun pantalla_promocionar(
                     ""
                 }
 
+                val reglaImagen = imagenes.any { it.uri != null || it.url != null }
+
+                val reglaHora =
+                    hora_escrita.isNotEmpty() &&
+                            !error_horas_escritas
+
+                val reglaFecha =
+                    dias_restantes_pr > 0 &&
+                            fecha_fin.isNotEmpty()
+
+// ─────────────────────────────
+// 2️⃣ Regla BASE (imagen + hora/fecha)
+// ─────────────────────────────
+
+                val reglaBase =
+                    botonHabilitado &&
+                            reglaImagen &&
+                            (reglaHora || reglaFecha)
+
+// ─────────────────────────────
+// 3️⃣ Regla de ERRORES (finísima)
+// Si el flag está activo → NO debe haber error
+// Si no está activo → no bloquea
+// ─────────────────────────────
+
+                val reglaErrores =
+                    (!filtro_cercania || (!error_direccion_negocio && !error_referencia_negocio)) &&
+                            (!precio_encontrado || !error_precio) &&
+                            (!compartir || !error_mostrado_msje_perzonalisado_compartir) &&
+                            (!contacto_directo || (!error_mostrado_numero_contacto && !error_mostrado_msje_perzonalisado))
+
+// ─────────────────────────────
+// 4️⃣ VISIBILIDAD FINAL DEL BOTÓN
+// ─────────────────────────────
+
+                val visibleBoton =
+                    reglaBase &&
+                            reglaErrores
+
+// ─────────────────────────────
+// 5️⃣ DEBUG (súper útil)
+// ─────────────────────────────
+
+                Log.d(
+                    "visibleBoton",
+                    """
+    imagen=$reglaImagen
+    hora=$reglaHora
+    fecha=$reglaFecha
+    base=$reglaBase
+    errores=$reglaErrores
+    visible=$visibleBoton
+    """.trimIndent()
+                )
+
+
+
+
+
                 AnimatedVisibility(
-                    visible = botonHabilitado && (
-                            (hora_escrita.isNotEmpty() && !error_horas_escritas) ||
-                                    (dias_restantes_pr > 0 && fecha_fin.isNotEmpty())
-                            ),
+                    visible = visibleBoton,
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
+Column() {
+                    CheckTerminoUnico(
+                        checked = aceptoTerminos_promociones,
+                        onCheckedChange = { aceptoTerminos_promociones = it },
+                        textoAntes = "Estoy de acuerdo con los ",
+                        textoLink = "términos de publicaciones",
+                        onClickLink = {
+                            // abrir términos de notificación
+                        }
+                    )
 
-                    Button(onClick = {
+                    spacer_vertical(5.dp)
+
+                    Button(enabled = aceptoTerminos_promociones, onClick = {
                         if (monedas_tienda < monedas_costo_publicidad.toInt()) {
                             Toast.makeText(context, "saldo insuficiente", Toast.LENGTH_SHORT).show()
                         } else {
@@ -1897,8 +2214,9 @@ fun pantalla_promocionar(
                                     titulo = nombre_publicacion,
                                     numero = numero_campo,
                                     compartir = compartir,
-                                    contactar = contacto_directo
+                                    contactar = contacto_directo,
                                 ),
+
                                 ubicacion = ubicacaion_container(
                                     direccion = direccion_negocio,
                                     lat = i.ubicacion.lat,
@@ -1953,13 +2271,17 @@ fun pantalla_promocionar(
                                             mensaje_perzonalizado_txt_compartir
                                         else
                                             ""
+                                ), precio_publicacion = precio_rango_publicacion(
+                                    precio = precio_detectado ?: "",
+                                    rango = rango_detectado ?: ""
                                 ),
 
+                                horario_deseado = horario_deseado(
+                                    seleccion = turnoSeleccionado?.nombre ?: "",
+                                    horario = turnoSeleccionado?.horario_mostrado ?: ""
                                 )
-//                            viewmodel_socios.crear_promociones(
-//                                i = datos_publicacion,
-//                                localidad = i.localidad_tienda
-//                            )
+
+                            )
                             viewmodel_socios.subir_img_firestore_promociones(
                                 datos_publicacion,
                                 img_tienda = i.img_tienda,
@@ -1986,6 +2308,7 @@ fun pantalla_promocionar(
                             )
                         }
                     }
+}
                 }
             }
 
@@ -2054,10 +2377,10 @@ fun pantalla_promocionar(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
-                            texto_generico_one_line(
-                                "$texto",
+                            texto_generico_multilinea(
+                                "$texto Podrás enviar más en la próxima fecha de renovación",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = colorEstadoNotificaciones
+                                Color = colorEstadoNotificaciones
                             )
                             Image(
                                 painter = painterResource(R.drawable.campana_3d_webp),
@@ -2065,6 +2388,7 @@ fun pantalla_promocionar(
                                 modifier = Modifier.size(20.dp)
                             )
                         }
+
                         spacer_vertical(10.dp)
 
                         if (restantes != 0) {
@@ -2153,7 +2477,7 @@ fun pantalla_promocionar(
                             Column(
                                 modifier = Modifier.animateContentSize(),
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
+                            ){
                                 MyOutlinedTextField_proco_raduis(
                                     value = titulo_notificacion,
                                     onValueChange = { text ->
@@ -2205,6 +2529,9 @@ fun pantalla_promocionar(
                                     Log.d("precioestableico", "$precio")
                                     tipo_notificacion_params_seleccionada = tipo
                                     precio_tipo_notificacion = precio
+                                    error_mostrado_numero_contacto_notificacion=false
+                                    error_mostrado_msje_perzonalisado_notificacion=false
+                                    numero_de_notificacion=i.numero_contacto_tienda
                                 }
 
                                 if (titulo_notificacion.isNotEmpty() && descripcion_notificacion.isNotEmpty() && tipo_notificacion_params_seleccionada.isNotEmpty()) {
@@ -2425,6 +2752,15 @@ fun pantalla_promocionar(
 
                                 }
 
+                                spacer_vertical(20.dp)
+
+                            }
+
+
+                            Column(
+                                modifier = Modifier.animateContentSize(),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
                                 ExpandDropDown_precio_nombre_notificaciones(
                                     prioridad_selec,
                                     lista = prioridad_notificacion_precio_nombre,
@@ -2439,20 +2775,11 @@ fun pantalla_promocionar(
 
                                 }
 
-
-                                ExpandDropDown_precio_nombre_notificaciones(
-                                    tipo_notificacion_seleccionada,
-                                    lista = formato_notificacion_nombre_precio,
-                                    isError = false,
-                                    texto_error = "selecciona tu formato de notificacion",
-                                    lable = "selecciona tu formato de notificacion"
-                                ) { plan, precio ->
-                                    viewmodel_pantalla_promocionar.formato_notificacion = plan
-                                    tipo_notificacion_seleccionada = plan
-                                    precio_formato = precio
+                                if(prioridad_selec.isNotEmpty()){
+                                val textoestados=viewmodel_pantalla_promocionar.texto_retornable_prioridades(prioridad_selec)
+                                    texto_generico_multilinea(textoestados, style = MaterialTheme.typography.bodyMedium,
+                                       modifier =  Modifier.padding(10.dp))
                                 }
-
-
 
                                 if (tipo_notificacion_params_seleccionada == "promociones y ofertas") {
                                     Column(
@@ -2466,22 +2793,37 @@ fun pantalla_promocionar(
                                             icon = R.drawable.whatsapp_icon,
                                             valor = true,
                                             retorno = { },
-                                            titulo = "Contacto directo por Whatsapp"
+                                            titulo = "Contacto directo por Whatsapp",false
                                         )
 
                                         MyOutlinedTextField_proco_raduis(
                                             value = numero_de_notificacion,
                                             onValueChange = { input ->
 
-                                                if (input.length <= 9 && input.all { it.isDigit() }) {
+
+                                                // Solo permitir números y máximo 9
+                                                if (input.all { it.isDigit() } && input.length <= 9) {
                                                     numero_de_notificacion = input
                                                 }
 
-                                                error_mostrado_numero_contacto_notificacion =
-                                                    numero_de_notificacion.isNotBlank() &&
-                                                            numero_de_notificacion.length < 9
+                                                when {
+                                                    numero_de_notificacion.isBlank() -> {
+                                                        error_mostrado_numero_contacto_notificacion = true
+                                                        error_texto_mostrado_numero_contacto_notificacion = "El número no puede estar vacío"
+                                                    }
+
+                                                    numero_de_notificacion.length < 9 -> {
+                                                        error_mostrado_numero_contacto_notificacion = true
+                                                        error_texto_mostrado_numero_contacto_notificacion = "El número debe tener 9 dígitos"
+                                                    }
+
+                                                    else -> {
+                                                        error_mostrado_numero_contacto_notificacion = false
+                                                        error_texto_mostrado_numero_contacto_notificacion = ""
+                                                    }
+                                                }
                                             },
-                                            texto_error = "El número debe tener 9 dígitos",
+                                            texto_error = error_texto_mostrado_numero_contacto_notificacion,
                                             isError = error_mostrado_numero_contacto_notificacion,
                                             labelText = "Número de contacto",
                                             placeholderText = "Número de contacto",
@@ -2503,21 +2845,36 @@ fun pantalla_promocionar(
                                                 icon = R.drawable.texto_predetermiando,
                                                 valor = true,
                                                 retorno = {},
-                                                titulo = "Mensaje perzonalizadao whatsapp"
+                                                titulo = "Mensaje perzonalizado whatsapp",false
                                             )
 
                                             MyOutlinedTextField_proco_raduis(
                                                 value = mensaje_whatsapp_de_publi_a_notificacion,
                                                 onValueChange = { input ->
                                                     mensaje_whatsapp_de_publi_a_notificacion = input
-                                                    if (input.length <= 80) {
-                                                        error_mostrado_msje_perzonalisado = false
-                                                    } else {
-                                                        error_mostrado_msje_perzonalisado = true
+                                                    when {
+                                                        input.isBlank() -> {
+                                                            error_mostrado_msje_perzonalisado_notificacion = true
+                                                            error_mostrado_texto_mjse_perzonalizado_notificacion = "El mensaje no puede estar vacío"
+                                                        }
+
+                                                        input.length > 80 -> {
+                                                            error_mostrado_msje_perzonalisado_notificacion = true
+                                                            error_mostrado_texto_mjse_perzonalizado_notificacion =
+                                                                "El mensaje no puede exceder 80 caracteres"
+                                                        }
+
+                                                        else -> {
+                                                            error_mostrado_msje_perzonalisado_notificacion = false
+                                                            error_mostrado_texto_mjse_perzonalizado_notificacion = ""
+                                                        }
                                                     }
+
+
+
                                                 },
-                                                texto_error = "El mensaje no puede exceder 80 caracteres",
-                                                isError = error_mostrado_msje_perzonalisado,
+                                                texto_error = error_mostrado_texto_mjse_perzonalizado_notificacion,
+                                                isError = error_mostrado_msje_perzonalisado_notificacion,
                                                 labelText = "Mensaje predeterminado",
                                                 placeholderText = "Mensaje predeterminado"
                                             )
@@ -2631,7 +2988,25 @@ fun pantalla_promocionar(
                                     }
                                 }
 
+                                spacer_vertical(20.dp)
 
+                            }
+
+                            Column(
+                                modifier = Modifier.animateContentSize(),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ){
+                                ExpandDropDown_precio_nombre_notificaciones(
+                                    tipo_notificacion_seleccionada,
+                                    lista = formato_notificacion_nombre_precio,
+                                    isError = false,
+                                    texto_error = "selecciona tu formato de notificacion",
+                                    lable = "selecciona tu formato de notificacion"
+                                ) { plan, precio ->
+                                    viewmodel_pantalla_promocionar.formato_notificacion = plan
+                                    tipo_notificacion_seleccionada = plan
+                                    precio_formato = precio
+                                }
 
                                 if (tipo_notificacion_seleccionada.isNotEmpty() && titulo_notificacion.isNotEmpty() && descripcion_notificacion.isNotEmpty()) {
                                     Column() {
@@ -2711,141 +3086,171 @@ fun pantalla_promocionar(
                                     }
 
                                 }
+                                spacer_vertical(20.dp)
+                            }
 
-                                Column() {
-
-                                    if (prioridad_selec.isNotEmpty()) {
-                                        spacer_vertical(10.dp)
-                                        texto_generico_one_line(
-                                            "Parametros de notificacion",
-                                            style = MaterialTheme.typography.titleLarge,
-                                            modifier = Modifier.padding(horizontal = 5.dp)
-                                        )
-                                        spacer_vertical(5.dp)
-                                        precio_final_notificacion(
-                                            "Prioridad : ",
-                                            prioridad_selec,
-                                            precio_prioridad_notificacion.toString()
-                                        )
-
-                                    }
-
-                                    if (tipo_notificacion_seleccionada.isNotEmpty()) {
-
-                                        precio_final_notificacion(
-                                            "Formato de notificacion : ",
-                                            tipo_notificacion_seleccionada,
-                                            precio_formato.toString()
-                                        )
-
-                                    }
-
-                                    if (tipo_notificacion_params_seleccionada.isNotEmpty()) {
-                                        precio_final_notificacion(
-                                            "Tipo de notificacion : ",
-                                            tipo_notificacion_params_seleccionada,
-                                            precio_tipo_notificacion.toString()
-                                        )
-                                    }
-
-                                    if (tipo_notificacion_params_seleccionada.isNotEmpty() &&
-                                        tipo_notificacion_seleccionada.isNotEmpty() &&
-                                        prioridad_selec.isNotEmpty() &&
-                                        titulo_notificacion.isNotEmpty() &&
-                                        descripcion_notificacion.isNotEmpty() && !error_titulo_notificacion && !error_texto_notificacion
-                                    ) {
-                                        precio_final_notificacion(
-                                            "Inversion final",
-                                            "",
-                                            precio_por_notificacion_general.toString()
-                                        )
-                                        precio_final_notificacion(
-                                            "Total de seguidores",
-                                            "",
-                                            cantidad_seguidores.size.toString()
-                                        )
-                                        spacer_vertical(5.dp)
-
-                                        Button(modifier = Modifier.fillMaxWidth(), onClick = {
+                            Column() {
 
 
-                                            val id_creado_tipo = when {
-                                                id_publicacion_selecionada.isNotBlank() -> {
-                                                    generarIdImagen_nueve()
-                                                }
+                                if (prioridad_selec.isNotEmpty()) {
+                                    spacer_vertical(10.dp)
+                                    texto_generico_one_line(
+                                        "Parametros de notificacion",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        modifier = Modifier.padding(horizontal = 5.dp)
+                                    )
 
-                                                id_publicacion_selecionada.isBlank() &&
-                                                        tipo_notificacion_params_seleccionada == "informativas" -> {
-                                                    generarIdImagen_cinco()
-                                                }
 
-                                                else -> {
-                                                    generarIdImagen()
-                                                }
+                                    spacer_vertical(5.dp)
+                                    precio_final_notificacion(
+                                        "Prioridad : ",
+                                        prioridad_selec,
+                                        precio_prioridad_notificacion.toString()
+                                    )
+
+                                }
+
+
+
+                                if (tipo_notificacion_seleccionada.isNotEmpty()) {
+
+                                    precio_final_notificacion(
+                                        "Formato de notificacion : ",
+                                        tipo_notificacion_seleccionada,
+                                        precio_formato.toString()
+                                    )
+
+                                }
+
+                                if (tipo_notificacion_params_seleccionada.isNotEmpty()) {
+                                    precio_final_notificacion(
+                                        "Tipo de notificacion : ",
+                                        tipo_notificacion_params_seleccionada,
+                                        precio_tipo_notificacion.toString()
+                                    )
+                                }
+
+                                if (
+                                    tipo_notificacion_params_seleccionada.isNotEmpty() &&
+                                    tipo_notificacion_seleccionada.isNotEmpty() &&
+                                    prioridad_selec.isNotEmpty() &&
+                                    titulo_notificacion.isNotEmpty() &&
+                                    descripcion_notificacion.isNotEmpty() &&
+                                    !error_titulo_notificacion &&
+                                    !error_texto_notificacion &&
+
+                                    // 👉 Validación WhatsApp SOLO si es "promociones y ofertas"
+                                    (
+                                            tipo_notificacion_params_seleccionada != "promociones y ofertas" ||
+                                                    (
+                                                            !error_mostrado_numero_contacto_notificacion &&
+                                                                    !error_mostrado_msje_perzonalisado_notificacion
+                                                            )
+                                            )
+                                )
+                                {
+                                    precio_final_notificacion(
+                                        "Inversion final",
+                                        "",
+                                        precio_por_notificacion_general.toString()
+                                    )
+                                    precio_final_notificacion(
+                                        "Total de seguidores",
+                                        "",
+                                        cantidad_seguidores.size.toString()
+                                    )
+                                    spacer_vertical(10.dp)
+
+                                    CheckTerminoUnico(
+                                        checked = aceptoTerminos_notificaciones,
+                                        onCheckedChange = { aceptoTerminos_notificaciones = it },
+                                        textoAntes = "Estoy de acuerdo con los ",
+                                        textoLink = "términos de notificaciones",
+                                        onClickLink = {
+                                            // abrir términos de notificación
+                                        }
+                                    )
+                                    spacer_vertical(5.dp)
+
+                                    Button(modifier = Modifier.fillMaxWidth(),  enabled = aceptoTerminos_notificaciones, onClick = {
+                                        val id_creado_tipo = when {
+                                            id_publicacion_selecionada.isNotBlank() -> {
+                                                generarIdImagen_nueve()
                                             }
 
+                                            id_publicacion_selecionada.isBlank() &&
+                                                    tipo_notificacion_params_seleccionada == "informativas" -> {
+                                                generarIdImagen_cinco()
+                                            }
 
-                                            val obj = obj_contador_notificaciones(
-                                                id_tienda = id_socio,
-                                                localida = i.localidad_tienda,
-                                                categoria = i.categoira_tienda,
-                                                idnotificacion = id_creado_tipo,
-                                                fecha_enviada = obtenerFechaActual(),
-                                                precio_envio = 50,
-                                                parametros_notificacion = obj_parametros_notificacion(
-                                                    titulo_notificacion = titulo_notificacion,
-                                                    texto_notificacion = descripcion_notificacion,
-                                                    logo_notificacion = i.img_tienda,
-                                                    img_notifiacion = url_img_notificaion_seleccionada,
-                                                    priorida_notificacion = prioridad_selec,
-                                                    tipo_notificacion = tipo_notificacion_seleccionada,
-                                                    notificacion_publicidad = id_publicacion_selecionada.isEmpty(),
-                                                    id_publicacion_anuncio = id_publicacion_selecionada,
-                                                    mensaje_whatsapp_de_publi_a_notificacion
-                                                ),
-                                                suspendido = obj_suspend_notificacion(),
-                                                tipo_notificacion = tipo_notificacion_params_seleccionada,
-                                                nombre_tienda = i.nombre_tienda,
-                                                numero_contacto_tienda = numero_de_notificacion,
-                                                categoira_tienda = i.categoira_tienda,
-                                                id_img_storage = id_img_notificacion,
-                                                fecha_caducidad = fechaCaducidad,
-                                                generaciones_con_ia_notificaciones = generaciones_con_ia_notificaciones(
-                                                    generacion_selecionada = contenido_publicidad(
-                                                        titulo = if (msj_perzonalizado_gen_notificacion) titulo_notificacion else "",
-                                                        descripcion = if (msj_perzonalizado_gen_notificacion) descripcion_notificacion else ""
-                                                    ),
-                                                    generacion_wsap = if (msj_perzonalizado_whatssap_ia_bool_notificacion) mensaje_whatsapp_de_publi_a_notificacion else ""
-                                                )
-                                            )
-                                            viewmodel_pantalla_promocionar.enviar_notificacion(
-                                                saldo_tienda = monedas_tienda,
-                                                localidad_tienda = i.localidad_tienda,
-                                                nombre_tienda = i.nombre_tienda,
-                                                id_tienda = i.id_tienda,
-                                                descontar_monedas = precio_por_notificacion_general.toString(),
-                                                usuarios = cantidad_seguidores,
-                                                i = obj
-                                            )
-                                        }) {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                texto_generico_one_line(
-                                                    "Notificar a tus seguidores por $precio_por_notificacion_general",
-                                                    style = MaterialTheme.typography.bodyMedium
-                                                )
-                                                spacer_horizonta(5.dp)
-                                                Image(
-                                                    painter = painterResource(R.drawable.icon_monedas_3d),
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(20.dp)
-                                                )
+                                            else -> {
+                                                generarIdImagen()
                                             }
                                         }
 
-                                    }
-                                }
 
+                                        val obj = obj_contador_notificaciones(
+                                            id_tienda = id_socio,
+                                            localida = i.localidad_tienda,
+                                            categoria = i.categoira_tienda,
+                                            idnotificacion = id_creado_tipo,
+                                            fecha_enviada = obtenerFechaActual(),
+                                            precio_envio = 50,
+                                            parametros_notificacion = obj_parametros_notificacion(
+                                                titulo_notificacion = titulo_notificacion,
+                                                texto_notificacion = descripcion_notificacion,
+                                                logo_notificacion = i.img_tienda,
+                                                img_notifiacion = url_img_notificaion_seleccionada,
+                                                priorida_notificacion = prioridad_selec,
+                                                tipo_notificacion = tipo_notificacion_seleccionada,
+                                                notificacion_publicidad = id_publicacion_selecionada.isEmpty(),
+                                                id_publicacion_anuncio = id_publicacion_selecionada,
+                                                mensaje_whatsapp_de_publi_a_notificacion
+                                            ),
+                                            suspendido = obj_suspend_notificacion(),
+                                            tipo_notificacion = tipo_notificacion_params_seleccionada,
+                                            nombre_tienda = i.nombre_tienda,
+                                            numero_contacto_tienda = numero_de_notificacion,
+                                            categoira_tienda = i.categoira_tienda,
+                                            id_img_storage = id_img_notificacion,
+                                            fecha_caducidad = fechaCaducidad,
+                                            generaciones_con_ia_notificaciones = generaciones_con_ia_notificaciones(
+                                                generacion_selecionada = contenido_publicidad(
+                                                    titulo = if (msj_perzonalizado_gen_notificacion) titulo_notificacion else "",
+                                                    descripcion = if (msj_perzonalizado_gen_notificacion) descripcion_notificacion else ""
+                                                ),
+                                                generacion_wsap = if (msj_perzonalizado_whatssap_ia_bool_notificacion) mensaje_whatsapp_de_publi_a_notificacion else ""
+                                            )
+                                        )
+                                        viewmodel_pantalla_promocionar.enviar_notificacion(
+                                            saldo_tienda = monedas_tienda,
+                                            localidad_tienda = i.localidad_tienda,
+                                            nombre_tienda = i.nombre_tienda,
+                                            id_tienda = i.id_tienda,
+                                            descontar_monedas = precio_por_notificacion_general.toString(),
+                                            usuarios = cantidad_seguidores,
+                                            i = obj
+                                        )
+                                    }) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            texto_generico_one_line(
+                                                "Notificar a tus seguidores por $precio_por_notificacion_general",
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                            spacer_horizonta(5.dp)
+                                            Image(
+                                                painter = painterResource(R.drawable.icon_monedas_3d),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                    }
+
+                                }
                             }
+
+
+
 
 
                         }
@@ -3111,7 +3516,7 @@ fun generarIdFirebase(): String {
 
 
 @Composable
-fun txt_publicaciones(icon: Int, valor: Boolean, retorno: (Boolean) -> Unit, titulo: String) {
+fun txt_publicaciones(icon: Int, valor: Boolean, retorno: (Boolean) -> Unit, titulo: String,mostrar_swtih: Boolean=true) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Image(painterResource(icon), contentDescription = null, modifier = Modifier.size(25.dp))
         spacer_horizonta(5.dp)
@@ -3120,6 +3525,7 @@ fun txt_publicaciones(icon: Int, valor: Boolean, retorno: (Boolean) -> Unit, tit
                 .weight(1f)
                 .padding(end = 20.dp)
         )
+        if(mostrar_swtih){
         Switch(
             checked = valor,
             onCheckedChange = {
@@ -3131,6 +3537,7 @@ fun txt_publicaciones(icon: Int, valor: Boolean, retorno: (Boolean) -> Unit, tit
                 uncheckedTrackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
             )
         )
+        }
     }
 }
 
@@ -3833,13 +4240,20 @@ fun item_como_quedaria_lanotificacion_aproximada(
                                 }
                             },
                             mostrarZoom = {
-                                val url = when (estadoImagen) {
-                                    is viewmodel_pantallas_promocionar.ImagenEstado.Exito ->
-                                        estadoImagen.url
-
-                                    else -> imagenSeleccionada?.uri?.toString()
+                                val imgParaZoom: String? = when {
+                                imagenSeleccionada?.url != null -> {
+                                    imagenSeleccionada.url.toString()
                                 }
-                                url?.let { mostar_zoom(it) }
+
+                                estadoImagen is viewmodel_pantallas_promocionar.ImagenEstado.Exito -> {
+                                    estadoImagen.url
+                                }
+
+                                else -> null
+                            }
+
+
+                                imgParaZoom?.let { mostar_zoom(it) }
                             }
                         )
                     }
@@ -4012,6 +4426,90 @@ fun FondoIAAnimado(
             )
         )
     )
+}
+
+
+@Composable
+fun RangoVisual(texto: String) {
+    Column {
+        Text(
+            text = "Tu publicación también aparecerá para usuarios interesados en este rango de precio",
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.Gray
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(50))
+                .background(MaterialTheme.colorScheme.primary)
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = texto,
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
+}
+
+@Composable
+fun CheckTerminoUnico(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    textoAntes: String,
+    textoLink: String,
+    onClickLink: () -> Unit
+) {
+
+    val annotatedText = buildAnnotatedString {
+        append(textoAntes)
+
+        pushStringAnnotation(tag = "LINK", annotation = "link")
+        withStyle(
+            style = SpanStyle(
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = TextDecoration.Underline
+            )
+        ) {
+            append(textoLink)
+        }
+        pop()
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = CheckboxDefaults.colors(
+                checkedColor = MaterialTheme.colorScheme.primary,
+                checkmarkColor = Color.White,
+                uncheckedColor = MaterialTheme.colorScheme.outline
+            )
+        )
+
+        Spacer(Modifier.width(2.dp))
+
+        ClickableText(
+            text = annotatedText,
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = MaterialTheme.colorScheme.onSurface
+            ),
+            onClick = { offset ->
+                annotatedText
+                    .getStringAnnotations(offset, offset)
+                    .firstOrNull { it.tag == "LINK" }
+                    ?.let { onClickLink() }
+            }
+        )
+    }
 }
 
 

@@ -94,8 +94,12 @@ data class agregar_promociones(
     val datos_hora_fecha: datos_fecha_hora_tipo,
     val formato_fecha_hora: String,
     val mensaje_predeterminado: msjes_predeteminados_generales,
-    val generaciones_con_ia: generaciones_con_ia
+    val generaciones_con_ia: generaciones_con_ia,
+    val precio_publicacion:precio_rango_publicacion,
+    val horario_deseado:horario_deseado,
 )
+
+
 
 data class generaciones_con_ia(
     val titulo_original: String,
@@ -145,8 +149,12 @@ data class informacion_container(
     val titulo: String,
     val numero: String,
     val compartir: Boolean,
-    val contactar: Boolean
+    val contactar: Boolean,
+
 )
+
+data class horario_deseado(val seleccion:String,val horario:String)
+data class precio_rango_publicacion(val precio : String, val rango :String)
 
 data class msjes_predeteminados_generales(
     val compartir: mensaje_predeterminado = mensaje_predeterminado(),
@@ -349,7 +357,7 @@ data class obtener_datos_promociones(
     val costo_total: Double = 0.0,        // 🔥 inversión total
     val costo_consumido: Double = 0.0,    // 🔥 ya cobrado
     val estadisticas: EstadisticasPromoGenerales?,
-    val mensaje_predeterminado: msjes_predeteminados_generales
+    val mensaje_predeterminado: msjes_predeteminados_generales,val rango_publicacion:String,val precio_publicacion:String,val horaio_publicacion:String
 )
 
 
@@ -495,3 +503,5 @@ data class Res_precios(
     val precioFinal: Double? = null,     // null si hay más de uno
     val rango: String? = null // null si hay más de uno
 )
+
+data class pantalla_horarios(val nombre:String,val texto:String,val horario_mostrado:String)

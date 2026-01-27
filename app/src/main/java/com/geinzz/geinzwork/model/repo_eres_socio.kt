@@ -1218,6 +1218,9 @@ class repo_eres_socio {
                 "informacion" to i.informacion,
                 "ubicacion" to i.ubicacion,
                 "mensaje_predeterminado" to i.mensaje_predeterminado,
+                "horario_publicacion" to i.horario_deseado.seleccion,
+                "precio_publicacion" to i.precio_publicacion.precio,
+                "rango_establecido" to i.precio_publicacion.rango
             )
 
             // 🤖 SOLO SI EXISTE IA

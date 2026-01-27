@@ -308,6 +308,70 @@ fun bottom_sheet_datos_promos_noti(
                                         )
                                     }
 
+
+                                    if (datos.horaio_publicacion.isNotEmpty()) {
+
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            texto_generico_one_line(
+                                                "Horario de publicacion",
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                            Spacer(modifier = Modifier.weight(1f))
+                                            texto_generico_one_line(
+                                                datos.horaio_publicacion,
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                        }
+                                    }
+
+                                    if (datos.precio_publicacion.isNotEmpty()) {
+
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            texto_generico_one_line(
+                                                "Precio de la publicacion",
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                            Spacer(modifier = Modifier.weight(1f))
+                                            texto_generico_one_line(
+                                                " S/${datos.precio_publicacion}",
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                        }
+                                    }
+                                    if (datos.precio_publicacion.isNotEmpty()) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            texto_generico_one_line(
+                                                "Reango de precio",
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                            Spacer(modifier = Modifier.weight(1f))
+                                            texto_generico_one_line(
+                                                datos.rango_publicacion,
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                        }
+
+                                    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         texto_generico_one_line(
                                             "Publicado para ",
@@ -558,145 +622,145 @@ fun bottom_sheet_datos_promos_noti(
                                 totalVistas != 0 ||
                                 totalCompartidos != 0 ||
                                 totalWhatsapp != 0
-                            ){
+                            ) {
 
-                            item {
-                                // 🔹 Bloque de cuadros estadísticos
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    texto_generico_one_line(
-                                        "Métricas de audiencia",
-                                        style = MaterialTheme.typography.titleLarge
-                                    )
-
-                                    // 🔹 Fila superior
-                                    Row(
+                                item {
+                                    // 🔹 Bloque de cuadros estadísticos
+                                    Column(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                        verticalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
-                                        // Clicks
-                                        EstadisticasTikTokCuadro(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .clickable {
-                                                    if (estadisticaSeleccionadaTipo == "click") {
-                                                        estadisticaSeleccionadaTipo = null
-                                                        estadisticaSeleccionada = null
-                                                    } else {
-                                                        estadisticaSeleccionadaTipo = "click"
-                                                        estadisticaSeleccionada =
-                                                            estadisticas?.click?.copy(tipo = "click")
-                                                    }
-                                                },
-                                            titulo = "Clicks",
-                                            valor = totalClick.toString(),
-                                            subtitulo = "Usuarios que tocaron",
-                                            icono = R.drawable.clikc_drawable,
-                                            color = if (estadisticaSeleccionadaTipo == "click")
-                                                MaterialTheme.colorScheme.surfaceVariant
-                                            else Color(0xFF1C1C1E)
+                                        texto_generico_one_line(
+                                            "Métricas de audiencia",
+                                            style = MaterialTheme.typography.titleLarge
                                         )
 
-                                        // Vistas
-                                        EstadisticasTikTokCuadro(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .clickable {
-                                                    if (estadisticaSeleccionadaTipo == "vistas") {
-                                                        estadisticaSeleccionadaTipo = null
-                                                        estadisticaSeleccionada = null
-                                                    } else {
-                                                        estadisticaSeleccionadaTipo = "vistas"
-                                                        estadisticaSeleccionada =
-                                                            estadisticas?.vistas?.copy(tipo = "vistas")
-                                                    }
-                                                },
-                                            titulo = "Vistas",
-                                            valor = totalVistas.toString(),
-                                            subtitulo = "Alcance total",
-                                            icono = R.drawable.visibility_preview,
-                                            color = if (estadisticaSeleccionadaTipo == "vistas")
-                                                MaterialTheme.colorScheme.surfaceVariant
-                                            else Color(0xFF1C1C1E)
-                                        )
-                                    }
+                                        // 🔹 Fila superior
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            // Clicks
+                                            EstadisticasTikTokCuadro(
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .clickable {
+                                                        if (estadisticaSeleccionadaTipo == "click") {
+                                                            estadisticaSeleccionadaTipo = null
+                                                            estadisticaSeleccionada = null
+                                                        } else {
+                                                            estadisticaSeleccionadaTipo = "click"
+                                                            estadisticaSeleccionada =
+                                                                estadisticas?.click?.copy(tipo = "click")
+                                                        }
+                                                    },
+                                                titulo = "Clicks",
+                                                valor = totalClick.toString(),
+                                                subtitulo = "Usuarios que tocaron",
+                                                icono = R.drawable.clikc_drawable,
+                                                color = if (estadisticaSeleccionadaTipo == "click")
+                                                    MaterialTheme.colorScheme.surfaceVariant
+                                                else Color(0xFF1C1C1E)
+                                            )
 
-                                    // 🔹 Fila inferior
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                    ) {
-                                        // Compartidos
-                                        EstadisticasTikTokCuadro(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .clickable {
-                                                    if (estadisticaSeleccionadaTipo == "compartidos") {
-                                                        estadisticaSeleccionadaTipo = null
-                                                        estadisticaSeleccionada = null
-                                                    } else {
-                                                        estadisticaSeleccionadaTipo =
-                                                            "compartidos"
-                                                        estadisticaSeleccionada =
-                                                            estadisticas?.compartidos?.copy(tipo = "compartidos")
-                                                    }
-                                                },
-                                            titulo = "Compartidos",
-                                            valor = totalCompartidos.toString(),
-                                            subtitulo = "Veces compartido",
-                                            icono = R.drawable.comparir_icon,
-                                            color = if (estadisticaSeleccionadaTipo == "compartidos")
-                                                MaterialTheme.colorScheme.surfaceVariant
-                                            else Color(0xFF1C1C1E)
-                                        )
-
-                                        // WhatsApp
-                                        EstadisticasTikTokCuadro(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .clickable {
-                                                    if (estadisticaSeleccionadaTipo == "whatsapp") {
-                                                        estadisticaSeleccionadaTipo = null
-                                                        estadisticaSeleccionada = null
-                                                    } else {
-                                                        estadisticaSeleccionadaTipo = "whatsapp"
-                                                        estadisticaSeleccionada =
-                                                            estadisticas?.whatsapp?.copy(tipo = "whatsapp")
-                                                    }
-                                                },
-                                            titulo = "WhatsApp",
-                                            valor = totalWhatsapp.toString(),
-                                            subtitulo = "Contactos iniciados",
-                                            icono = R.drawable.icono_whatsapp_blanco_tasns,
-                                            color = if (estadisticaSeleccionadaTipo == "whatsapp")
-                                                MaterialTheme.colorScheme.surfaceVariant
-                                            else Color(0xFF1C1C1E)
-                                        )
-                                    }
-                                }
-                            }
-                            item {
-
-                                estadisticaSeleccionada?.let { estadistica ->
-                                    key(estadistica.tipo) {
-
-                                        val buyPersonData = remember(estadistica) {
-                                            generarBuyerPersona(estadistica)
+                                            // Vistas
+                                            EstadisticasTikTokCuadro(
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .clickable {
+                                                        if (estadisticaSeleccionadaTipo == "vistas") {
+                                                            estadisticaSeleccionadaTipo = null
+                                                            estadisticaSeleccionada = null
+                                                        } else {
+                                                            estadisticaSeleccionadaTipo = "vistas"
+                                                            estadisticaSeleccionada =
+                                                                estadisticas?.vistas?.copy(tipo = "vistas")
+                                                        }
+                                                    },
+                                                titulo = "Vistas",
+                                                valor = totalVistas.toString(),
+                                                subtitulo = "Alcance total",
+                                                icono = R.drawable.visibility_preview,
+                                                color = if (estadisticaSeleccionadaTipo == "vistas")
+                                                    MaterialTheme.colorScheme.surfaceVariant
+                                                else Color(0xFF1C1C1E)
+                                            )
                                         }
 
-                                        BuyerPersonaCard(buyPersonData)
+                                        // 🔹 Fila inferior
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            // Compartidos
+                                            EstadisticasTikTokCuadro(
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .clickable {
+                                                        if (estadisticaSeleccionadaTipo == "compartidos") {
+                                                            estadisticaSeleccionadaTipo = null
+                                                            estadisticaSeleccionada = null
+                                                        } else {
+                                                            estadisticaSeleccionadaTipo =
+                                                                "compartidos"
+                                                            estadisticaSeleccionada =
+                                                                estadisticas?.compartidos?.copy(tipo = "compartidos")
+                                                        }
+                                                    },
+                                                titulo = "Compartidos",
+                                                valor = totalCompartidos.toString(),
+                                                subtitulo = "Veces compartido",
+                                                icono = R.drawable.comparir_icon,
+                                                color = if (estadisticaSeleccionadaTipo == "compartidos")
+                                                    MaterialTheme.colorScheme.surfaceVariant
+                                                else Color(0xFF1C1C1E)
+                                            )
 
-                                        spacer_vertical(10.dp)
-
-                                        GraficosPromosMPAndroidChart(estadistica)
+                                            // WhatsApp
+                                            EstadisticasTikTokCuadro(
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .clickable {
+                                                        if (estadisticaSeleccionadaTipo == "whatsapp") {
+                                                            estadisticaSeleccionadaTipo = null
+                                                            estadisticaSeleccionada = null
+                                                        } else {
+                                                            estadisticaSeleccionadaTipo = "whatsapp"
+                                                            estadisticaSeleccionada =
+                                                                estadisticas?.whatsapp?.copy(tipo = "whatsapp")
+                                                        }
+                                                    },
+                                                titulo = "WhatsApp",
+                                                valor = totalWhatsapp.toString(),
+                                                subtitulo = "Contactos iniciados",
+                                                icono = R.drawable.icono_whatsapp_blanco_tasns,
+                                                color = if (estadisticaSeleccionadaTipo == "whatsapp")
+                                                    MaterialTheme.colorScheme.surfaceVariant
+                                                else Color(0xFF1C1C1E)
+                                            )
+                                        }
                                     }
                                 }
+                                item {
+
+                                    estadisticaSeleccionada?.let { estadistica ->
+                                        key(estadistica.tipo) {
+
+                                            val buyPersonData = remember(estadistica) {
+                                                generarBuyerPersona(estadistica)
+                                            }
+
+                                            BuyerPersonaCard(buyPersonData)
+
+                                            spacer_vertical(10.dp)
+
+                                            GraficosPromosMPAndroidChart(estadistica)
+                                        }
+                                    }
 
 
+                                }
                             }
-}
 
                         }
                         if (mostrarDialogozoom) {

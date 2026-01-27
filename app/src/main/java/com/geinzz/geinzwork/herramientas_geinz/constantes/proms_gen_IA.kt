@@ -273,7 +273,6 @@ D:
 """.trimIndent()
     }
 
-
     fun promptNotificacionVenta(tituloPublicacion: String, descCorta: String): String {
         return """
 Adapta y mejora una notificación PUSH de tipo: Venta 🛒.

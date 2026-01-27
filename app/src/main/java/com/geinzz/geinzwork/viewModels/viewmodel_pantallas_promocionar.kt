@@ -766,31 +766,40 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
     private var jobPrecio: Job? = null
 
-     fun procesarPrecioPeru(texto: String,    delayMs: Long = 600L
-    ) {
-        jobPrecio?.cancel()
-
-        jobPrecio = viewModelScope.launch {
-            delay(delayMs)
+    fun procesarPrecioPeru(texto: String) {
+        viewModelScope.launch {
 
             val regex = Regex(
-                """(?i)(s\/\.?|pen|soles?|nuevos?\s+soles?)\s*(\d+(\.\d{1,2})?)"""
+                "(?i)((?<![a-z])(s/\\.?|s/|so|soles?)(?![a-z])\\s*(\\d+(?:\\.\\d{1,2})?)|(\\d+(?:\\.\\d{1,2})?)\\s*(?<![a-z])(s/\\.?|s/|so|soles?)(?![a-z]))"
             )
 
             val precios = regex.findAll(texto)
-                .mapNotNull { it.groups[2]?.value?.toDoubleOrNull() }
+                .mapNotNull { match ->
+                    // Aquí capturamos el número detectado
+                    match.groups[3]?.value ?: match.groups[4]?.value
+                }
+                .mapNotNull { it.toDoubleOrNull() }
                 .toList()
 
+            Log.d("PRECIO_VM", "Texto: $texto")
+            Log.d("PRECIO_VM", "Precios detectados: $precios")
+
+            // Comportamiento según cantidad de precios detectados
             when {
                 precios.isEmpty() -> {
+                    // No se detectó ningún precio
                     _estadoRangoPrecio.value = Res_precios(emptyList(), null, null)
                 }
 
                 precios.size > 1 -> {
-                    _estadoRangoPrecio.value = Res_precios(precios, null, null)
+                    // Más de uno → solo devolvemos la lista de precios detectados
+                    val precio = precios.first()
+                    val rango = obtenerRangoPrecio(precio)
+                    _estadoRangoPrecio.value = Res_precios(precios, null, rango)
                 }
 
                 else -> {
+                    // Solo uno → seteamos precioFinal y calculamos rango
                     val precio = precios.first()
                     val rango = obtenerRangoPrecio(precio)
                     _estadoRangoPrecio.value = Res_precios(listOf(precio), precio, rango)
@@ -798,6 +807,21 @@ class viewmodel_pantallas_promocionar : ViewModel() {
             }
         }
     }
+
+
+
+    fun actualizarRangoDesdePrecio(precio: Double) {
+        val rango = obtenerRangoPrecio(precio)
+        _estadoRangoPrecio.value =
+            _estadoRangoPrecio.value.copy(
+                precioFinal = precio,
+                rango = rango
+            )
+    }
+
+
+
+
 
 
     fun obtenerRangoPrecio(precio: Double): String {
@@ -907,6 +931,24 @@ class viewmodel_pantallas_promocionar : ViewModel() {
             Estado_ia_mensaje_whatsap_notificaion.reseteo()
     }
 
+
+    fun texto_retornable_prioridades(prioridad:String):String{
+        return when (prioridad) {
+            "high" -> {
+                "🚀 Prioridad ALTA (high)\n" +
+                        "Tus notificaciones se envían casi de inmediato y llegan en minutos a tus seguidores."
+            }
+
+            "normal" -> {
+                "⏳ Prioridad NORMAL\n" +
+                        "Las notificaciones se envían de forma estándar y pueden tardar un poco más en llegar."
+            }
+
+            else -> {""
+            }
+        }
+
+    }
 
     sealed class EstadoEnvioNotificacion {
         object Idle : EstadoEnvioNotificacion()

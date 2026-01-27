@@ -109,7 +109,7 @@ class repo_pantalla_recientes {
                         dia_inicio,
                     vence = tiempo,
                     total_gastado = "",
-                    estado_publicacion = estado_publicacion,fechaOrden
+                    estado_publicacion = estado_publicacion, fechaOrden
                 )
             }
 
@@ -126,7 +126,7 @@ class repo_pantalla_recientes {
                     estado = "Enviado",
                     realizado = doc.getString("fecha_envio") ?: "",
                     vence = "",
-                    total_gastado = "", "",0L
+                    total_gastado = "", "", 0L
                 )
             }
 
@@ -192,7 +192,9 @@ class repo_pantalla_recientes {
             if (!docSnap.exists()) return null
 
             val data = docSnap.data ?: return null
-
+            val precio_publicacio = data["precio_publicacion"] as? String ?: ""
+            val rango_establecido = data["rango_establecido"] as? String ?: ""
+            val horario_publicacion = data["horario_publicacion"] as? String ?: ""
             val tipoHoraDias = data["tipo_hora_dias"] as? String ?: ""
 
             val estado = data["estado"] as? String ?: ""
@@ -256,11 +258,12 @@ class repo_pantalla_recientes {
                 fin = fechaFinTs,
                 tipo = tipoHoraDias
             )
-            val estadisticas=obtener_estadisticas_promocion(estado,id_tienda,id_promo,localidad)
+            val estadisticas =
+                obtener_estadisticas_promocion(estado, id_tienda, id_promo, localidad)
 
             // ---------------- RETURN FINAL ----------------
             obtener_datos_promociones(
-                estado = obtenerEstadoFinal(fechaFinTs,enPausa),
+                estado = obtenerEstadoFinal(fechaFinTs, enPausa),
                 horas_o_fecha = tipoHoraDias,
                 lista_img = listaImg,
                 categoira = categoria,
@@ -277,7 +280,10 @@ class repo_pantalla_recientes {
                 costo_total = costoPromo.total,
                 costo_consumido = costoPromo.consumido,
                 estadisticas = estadisticas,
-                mensaje_predeterminado = mensajesPredeterminados
+                mensaje_predeterminado = mensajesPredeterminados,
+                rango_establecido,
+                precio_publicacio,
+                horario_publicacion
             )
 
         } catch (e: Exception) {
@@ -295,7 +301,7 @@ class repo_pantalla_recientes {
 
         val estadisticasRef = when (tipo) {
 
-            "activo" , "pausado"-> db.collection("Tiendas")
+            "activo", "pausado" -> db.collection("Tiendas")
                 .document(localidad)
                 .collection("promos_ofertas")
                 .document(id_promo)

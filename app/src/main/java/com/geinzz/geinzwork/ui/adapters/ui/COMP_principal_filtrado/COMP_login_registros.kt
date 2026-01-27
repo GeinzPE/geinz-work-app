@@ -68,6 +68,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.nombre_precio_notificaciones
+import com.geinzz.geinzwork.data.model.pantalla_horarios
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ExpandDropDown_select_params
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
@@ -588,6 +589,68 @@ fun ExpandDropDown(
                             selected = option
                             expanded = false
                             selecionado(option)
+                        }
+                    )
+                }
+            }
+
+        }
+        AnimatedVisibility(isError) {
+            Box(modifier = Modifier.padding(top = 5.dp, start = 5.dp)) {
+                retornar_pleaceholder_label(texto_error, Color.Red)
+            }
+        }
+    }
+}
+
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ExpandDropDown_horario_publicacion(
+    lista: List<pantalla_horarios>,
+    isError: Boolean,
+    texto_error: String,
+    lable: String,
+    selecionado: (pantalla_horarios) -> Unit  // <-- ahora devuelve todo el objeto
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var selected by rememberSaveable { mutableStateOf("") }
+
+    Column {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
+            modifier = Modifier
+                .padding(vertical = 5.dp)
+                .clip(RoundedCornerShape(30))
+        ) {
+            TextField(
+                value = selected,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(lable) },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                isError = isError,
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                shape = RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
+            ) {
+                lista.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option.nombre) },
+                        onClick = {
+                            selected = option.nombre
+                            expanded = false
+                            selecionado(option) // <-- enviamos todo el objeto
                         }
                     )
                 }
