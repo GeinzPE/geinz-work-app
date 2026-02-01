@@ -12,6 +12,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.max
@@ -92,7 +93,6 @@ object constantes_datos_expirados_fechas_publicaciones {
     }
 
 
-
     fun Timestamp.formatoFechaHora(): String {
         val sdf = SimpleDateFormat(
             "dd 'de' MMMM 'de' yyyy - hh:mm a",
@@ -148,7 +148,6 @@ object constantes_datos_expirados_fechas_publicaciones {
     }
 
 
-
     @RequiresApi(Build.VERSION_CODES.O)
     fun calcularCostoPromo(
         inicio: Timestamp,
@@ -198,5 +197,23 @@ object constantes_datos_expirados_fechas_publicaciones {
         val cal = Calendar.getInstance()
         cal.add(Calendar.DAY_OF_MONTH, 2)
         return Timestamp(cal.time)
+    }
+
+
+    fun timestampEn30Dias(): Timestamp {
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_YEAR, 30)
+        return Timestamp(calendar.time)
+    }
+
+
+    fun timestampAFechaLegible(timestamp: Timestamp): String {
+        val locale = Locale("es", "ES")
+
+        val date = timestamp.toDate() // 🔥 aquí la conversión correcta
+        val formato = SimpleDateFormat("EEEE d 'de' MMMM 'del' yyyy", locale)
+
+        val fecha = formato.format(date)
+        return fecha.replaceFirstChar { it.uppercase() }
     }
 }

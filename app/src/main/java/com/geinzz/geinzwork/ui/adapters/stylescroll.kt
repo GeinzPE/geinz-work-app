@@ -227,6 +227,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
                         }
 
 
+
                         val datos = compartir_contacto_pulicaciones(
                             promo.informacion_publcacion.id_promocion,
                             iod_tienda = promo.informacion_publcacion.id_tienda,

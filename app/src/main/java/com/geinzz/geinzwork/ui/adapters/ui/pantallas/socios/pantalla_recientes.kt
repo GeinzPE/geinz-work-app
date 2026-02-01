@@ -96,7 +96,7 @@ fun PantallaRecientes(
         "Promos por vencer",
         "Promos en pausa"
     )
-    var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
+    var subCategoriaSeleccionada by remember { mutableStateOf("Promociones o ofertas") }
     var bottom_sheet_datos_competos by remember { mutableStateOf(false) }
     var bottom_sheet_datos_competos_notificacion by remember { mutableStateOf(false) }
     var id_promo_select by remember { mutableStateOf("") }

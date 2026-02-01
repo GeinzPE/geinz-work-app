@@ -585,11 +585,19 @@ class viewmodel_eres_socio : ViewModel() {
                 _subidaPromoState.value =
                     SubidaPromoState.Error("Error al guardar las imágenes")
                 return@launch
+            }else{
+            // ✅ 5. Crear promoción SOLO si TODO salió bien
+                val resPromo = crear_promociones(urls,i, localidad)
+
+                if (!resPromo.isSuccess) {
+                    _subidaPromoState.value =
+                        SubidaPromoState.Error("Las imágenes se subieron, pero la promoción no se creó")
+                    return@launch
+                }
+
+                _subidaPromoState.value = SubidaPromoState.Success
             }
 
-            // ✅ 5. Crear promoción SOLO si TODO salió bien
-            crear_promociones(i, localidad)
-            _subidaPromoState.value = SubidaPromoState.Success
 
         } catch (e: Exception) {
             Log.e("SUBIDA_PROMO", "Error crítico al subir imágenes", e)
@@ -625,19 +633,14 @@ class viewmodel_eres_socio : ViewModel() {
     }
 
 
-    fun crear_promociones(
+    suspend fun crear_promociones(
+        lista_img_subida: List<String>,
         i: agregar_promociones,
         localidad: String
-    ) {
-        viewModelScope.launch {
-            try {
-                instace_repo.crear_promocion(i, localidad)
-
-            } catch (e: Exception) {
-                Log.d("error", "error al crear la publicacion")
-            }
-        }
+    ): Result<Unit> {
+        return instace_repo.crear_promocion(lista_img_subida,i, localidad)
     }
+
 
 
 

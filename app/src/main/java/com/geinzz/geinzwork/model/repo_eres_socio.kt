@@ -19,6 +19,7 @@ import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
 import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.formatoFechaHora
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.timestampEn30Dias
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.normalizar
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenWebPSinRecorte
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.acortarDescripcionNotificacion
@@ -471,9 +472,6 @@ class repo_eres_socio {
                 onResult(null)
             }
     }
-
-
-
 
 
     fun verificar_existencia_tienda(
@@ -1005,34 +1003,34 @@ class repo_eres_socio {
         localidad: String,
         idPromo: String,
         urls: List<String>
-    ) : Result<Unit> {
+    ): Result<Unit> {
         return try {
-        val db = FirebaseFirestore.getInstance()
+            val db = FirebaseFirestore.getInstance()
 
-        val ref = db
-            .collection("Tiendas")
-            .document(localidad)
-            .collection("promos_ofertas")
-            .document(idPromo)
-        val ref2 = db.collection("Tiendas").document(localidad).collection(localidad)
-            .document(id_tienda).collection("promociones_geinz")
-            .document(idPromo)
+            val ref = db
+                .collection("Tiendas")
+                .document(localidad)
+                .collection("promos_ofertas")
+                .document(idPromo)
+            val ref2 = db.collection("Tiendas").document(localidad).collection(localidad)
+                .document(id_tienda).collection("promociones_geinz")
+                .document(idPromo)
 
 
-        val imgContainer = mapOf(
-            "lista_img" to urls,
-            "logo_img" to logo_tienda
-        )
+            val imgContainer = mapOf(
+                "lista_img" to urls,
+                "logo_img" to logo_tienda
+            )
 
-        val data = mapOf(
-            "img_container" to imgContainer
-        )
-        ref2.set(data, SetOptions.merge()).await()
-        ref.set(data, SetOptions.merge()).await()
+            val data = mapOf(
+                "img_container" to imgContainer
+            )
+            ref2.set(data, SetOptions.merge()).await()
+            ref.set(data, SetOptions.merge()).await()
             Result.success(Unit)
-    } catch (e: Exception) {
-        Result.failure(e)
-    }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     suspend fun subirImagenesConReintento(
@@ -1042,7 +1040,8 @@ class repo_eres_socio {
         repeat(intentos - 1) {
             try {
                 return bloque()
-            } catch (_: Exception) { }
+            } catch (_: Exception) {
+            }
         }
         return bloque() // último intento
     }
@@ -1194,6 +1193,7 @@ class repo_eres_socio {
     }
 
     suspend fun crear_promocion(
+        lista_img_subida: List<String>,
         i: agregar_promociones,
         localidad: String
     ): Result<Unit> {
@@ -1227,6 +1227,8 @@ class repo_eres_socio {
             if (i.generaciones_con_ia != null) {
                 val hashmpa_gen_con_IA = hashMapOf<String, Any>(
                     "fecha" to Timestamp.now(),
+                    "img_container" to lista_img_subida.first(),
+                    "caudidad" to timestampEn30Dias(),
                     "id_promo_o_noti" to i.informacion.id_promocion,
                     "tipo" to "publicacion",
                     "generacions_con_IA" to i.generaciones_con_ia
@@ -1235,7 +1237,7 @@ class repo_eres_socio {
                     i.informacion.descripcion
                 )
 
-                val nombreGeneracion=  crear_notificacion_conIA_corta(
+                val nombreGeneracion = crear_notificacion_conIA_corta(
                     i.informacion.titulo,
                     descripcionAcortada
                 )
@@ -1251,12 +1253,10 @@ class repo_eres_socio {
 
             Result.success(Unit)
         } catch (e: Exception) {
+            Log.e("CREAR_PROMO", "Error al crear promoción", e)
             Result.failure(e)
         }
     }
-
-
-
 
 
     fun generarPromptNombreGeneracionIA(
@@ -1274,8 +1274,6 @@ Título: $titulo
 Descripción: $descripcion
 """.trimIndent()
     }
-
-
 
 
     suspend fun crear_notificacion_conIA_corta(
@@ -1314,8 +1312,8 @@ Descripción: $descripcion
     }
 
 
-
     suspend fun agregarContadorNotificacion(
+
         usuarios: List<String>,
         i: obj_contador_notificaciones
     ) {
@@ -1411,7 +1409,7 @@ Descripción: $descripcion
             // ------------------------------------------------------------------
             // 🤖 IA OPCIONAL (CORRECTO)
             // ------------------------------------------------------------------
-
+if(i.generaciones_con_ia_notificaciones.titulo_original.isNotEmpty()){
             val generacionSeleccionada =
                 i.generaciones_con_ia_notificaciones?.generacion_selecionada
 
@@ -1435,6 +1433,8 @@ Descripción: $descripcion
 
             val historialIAData = mutableMapOf<String, Any>(
                 "fecha" to Timestamp.now(),
+                "img_container" to i.parametros_notificacion.img_notifiacion,
+                "caudidad" to timestampEn30Dias(),
                 "id_promo_o_noti" to i.idnotificacion,
                 "tipo" to "notificacion",
                 "generacions_con_IA" to i.generaciones_con_ia_notificaciones
@@ -1443,13 +1443,14 @@ Descripción: $descripcion
             nombreGeneracion?.let {
                 historialIAData["nombre_generacion"] = it
             }
+            historialIARef.set(historialIAData, SetOptions.merge()).await()
+}
 
             // ------------------------------------------------------------------
             // ✅ GUARDADO FINAL
             // ------------------------------------------------------------------
 
             ref.set(hashMap).await()
-            historialIARef.set(historialIAData, SetOptions.merge()).await()
 
             Log.d("FIREBASE_NOTI", "✅ Notificación guardada correctamente")
 
@@ -1552,7 +1553,7 @@ Descripción: $descripcion
     }
 
 
-    suspend fun     verificar_envio_notificaciones(
+    suspend fun verificar_envio_notificaciones(
         localidad: String, id_tienda: String
     ): Boolean {
 
@@ -1638,14 +1639,15 @@ Descripción: $descripcion
             val datosHoraFecha = doc["datos_hora_fecha"] as? Map<*, *> ?: emptyMap<Any, Any>()
             val diasMap = datosHoraFecha["dias"] as? Map<*, *> ?: emptyMap<Any, Any>()
             val horasMap = datosHoraFecha["horas"] as? Map<*, *> ?: emptyMap<Any, Any>()
-            val menjsa_predeterminado_whatsap=doc.get("mensaje_predeterminado") as? Map<String, Any>
-            val wsap_msej=menjsa_predeterminado_whatsap?.get("whatsapp")  as? Map<String, Any>
-            val wsap=wsap_msej?.get("msje_predermindo") as? String?:""
+            val menjsa_predeterminado_whatsap =
+                doc.get("mensaje_predeterminado") as? Map<String, Any>
+            val wsap_msej = menjsa_predeterminado_whatsap?.get("whatsapp") as? Map<String, Any>
+            val wsap = wsap_msej?.get("msje_predermindo") as? String ?: ""
             // 🔹 Obtenemos el timestamp final según tipo (horas o días)
 
             val timestampFin = when (tipo_hora_dias) {
                 "horas" -> (horasMap["timestamp_fin"] as? Timestamp)
-                "dias" -> (diasMap["timestamp_fin"]  as? Timestamp)
+                "dias" -> (diasMap["timestamp_fin"] as? Timestamp)
                 else -> null
             }
 
@@ -1661,14 +1663,14 @@ Descripción: $descripcion
 
             val listaImg = imgContainer?.get("lista_img") as? List<*>
             val img = listaImg?.firstOrNull() as? String ?: ""
-            if(!tiempo.equals("Expirado")){
+            if (!tiempo.equals("Expirado")) {
                 resultado.add(
                     datos_publicaciones_realizadas(
                         titulo = titulo,
                         descripcion = descripcion,
                         vence_en = tiempo,
                         id = id,
-                        img = img,wsap,timestampFin?: Timestamp.now()
+                        img = img, wsap, timestampFin ?: Timestamp.now()
                     )
                 )
             }

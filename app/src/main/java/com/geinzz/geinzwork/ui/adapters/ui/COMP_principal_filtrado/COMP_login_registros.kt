@@ -906,12 +906,28 @@ fun DatePickerExample_promociones(
         selectedYearContentColor = MaterialTheme.colorScheme.onBackground
     )
 
+    val confirmEnabled = datePickerState.selectedDateMillis?.let { selectedMillis ->
+
+        val fechaSeleccionada = Instant
+            .ofEpochMilli(selectedMillis)
+            .atZone(ZoneOffset.UTC)
+            .toLocalDate()
+
+        val hoy = LocalDate.now(ZoneOffset.UTC)
+
+        // ✅ TRUE si es HOY o futuro
+        !fechaSeleccionada.isBefore(hoy)
+
+    } ?: false
+
+
     if (showDialog) {
         DatePickerDialog(
             colors = colors,
             onDismissRequest = onDismiss,
             confirmButton = {
                 TextButton(
+                    enabled = confirmEnabled,
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
                             val fecha = Instant
@@ -924,7 +940,7 @@ fun DatePickerExample_promociones(
                         }
                     }
                 ) {
-                    texto_generico_one_line("Confirmar")
+                    texto_generico_one_line("Confirmar", color = if(confirmEnabled)Color.White else Color.Gray)
                 }
             }
         ) {

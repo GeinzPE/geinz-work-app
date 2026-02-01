@@ -239,6 +239,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
 
     fun mejorar_texto_con_promo_IA(
+        total_generaciones: Int,
         tipo_generacion: repo_pantallas_promocionar.TipoGeneracionIA, // 👈 enum directo
         saldo_tienda: Int,
         localidad_tienda: String,
@@ -248,6 +249,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         descripcionUsuario: String,
         nombreTienda: String,
         localidad: String,
+        total_cobrar:String,titulo_generacion_historial:String
     ) {
         viewModelScope.launch {
             _estado_promociones_ia.value = EstadoIA.Loading
@@ -259,6 +261,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                 }
 
                 val lista = insta_repo.generar_promociones_con_IA(
+                    total_generaciones,
                     tipo_generacion,
                     tituloUsuario,
                     descripcionUsuario,
@@ -276,14 +279,14 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                         localidad_tienda = localidad_tienda,
                         id_tienda = id_tienda,
                         nombre_tienda = nombre_tienda,
-                        monto_descuento = "30",
-                        tipo = "Gen IA (Promociones X3)",
-                        precio_soles = constantes_cobro_monedas.calcular_precio_soles("30")
-                            .toString(), estado = "Aceptado", monto_restante = saldo_tienda - 30
+                        monto_descuento = total_cobrar,
+                        tipo = titulo_generacion_historial,
+                        precio_soles = constantes_cobro_monedas.calcular_precio_soles(total_cobrar)
+                            .toString(), estado = "Aceptado", monto_restante = saldo_tienda - total_cobrar.toInt()
                     )
                     viewmodel_recargas.restar_puntos_recarga(
                         historial_descuento,
-                        "30",
+                        total_cobrar,
                         id_tienda,
                         localidad_tienda
                     )

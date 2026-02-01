@@ -143,6 +143,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import com.geinzz.geinzwork.data.model.DatosPublicidadIA
 import com.geinzz.geinzwork.data.model.items_pantallas_promociones
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.firebaseAuth
 import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_promocionar
@@ -241,7 +242,9 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
 
     var mostrarDialogoSalir by remember { mutableStateOf(false) }
     var pantallaDestino by remember { mutableStateOf("") }
-
+    var datosPublicidadIA by remember {
+        mutableStateOf(DatosPublicidadIA())
+    }
 
 
     fun intentarCambiarPantalla(nuevaPantalla: String) {
@@ -596,13 +599,49 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                         state.datos.saldo_disponible_tienda.toInt()
 
                                     pantalla_carga_socios(
-                                        fecha_finalizado_flow=viewmodel.fecha_finalizar_panel_real_time,
-                                        id_user,
-                                        state.datos,
-                                        isConnected
-                                    ) { valor ->
-                                        id_registrado = valor
-                                    }
+                                        fecha_finalizado_flow = viewmodel.fecha_finalizar_panel_real_time,
+                                        id_user = id_user,
+                                        datos = state.datos,
+                                        isConnected = isConnected,
+                                        id_registrado = { valor ->
+                                            id_registrado = valor
+                                        },
+                                        navegarcrear_pùblicidad_titulo_descripcion = { titulo, descrpcion,tipo ->
+                                            pantallaSeleccionada = "Promocionar"
+                                            datosPublicidadIA = DatosPublicidadIA(
+                                                titulo = titulo,
+                                                descripcion = descrpcion,
+                                                whatsapp = "",
+                                                compartir = "",tipo
+                                            )
+                                        },
+                                        navegarcrear_pùblicidad_wsap = { mejse,tipo ->
+                                            pantallaSeleccionada = "Promocionar"
+                                            datosPublicidadIA = DatosPublicidadIA(
+                                                titulo = "",
+                                                descripcion = "",
+                                                whatsapp = mejse,
+                                                compartir = "",tipo
+                                            )
+                                        },
+                                        navegarcrear_pùblicidad_todas = { titulo, descripcion, wsap, compartir,tipo ->
+                                            pantallaSeleccionada = "Promocionar"
+                                            datosPublicidadIA = DatosPublicidadIA(
+                                                titulo = titulo,
+                                                descripcion = descripcion,
+                                                whatsapp = wsap,
+                                                compartir = compartir,tipo
+                                            )
+                                        },
+                                        navegarcrear_pùblicidad_compartiro = { msje,tipo ->
+                                            pantallaSeleccionada = "Promocionar"
+                                            datosPublicidadIA = DatosPublicidadIA(
+                                                titulo = "",
+                                                descripcion = "",
+                                                whatsapp = "",
+                                                compartir = msje,tipo
+                                            )
+                                        })
                                 }
 
                                 else -> {}
@@ -857,10 +896,14 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
 
                                     "Promocionar" -> {
                                         pantalla_promocionar(
-                                            viewmodel_pantalla_promocionar,
-                                            viewmodel,
-                                            item_pantalla_promociones
-                                        )
+                                            datosPublicidadIA,
+                                            viewmodel_pantalla_promocionar = viewmodel_pantalla_promocionar,
+                                            viewmodel_socios = viewmodel,
+                                            i = item_pantalla_promociones, ocultar_buttom_bar = {
+
+                                            }, mostrar_buttom_bar = {
+
+                                            })
                                     }
 
                                     "Publicaciones" -> {
@@ -897,7 +940,12 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
         if (mostrarDialogoSalir) {
             AlertDialog(
                 onDismissRequest = { mostrarDialogoSalir = false },
-                title = { texto_generico_one_line("Descartar cambios",   style = MaterialTheme.typography.titleLarge) },
+                title = {
+                    texto_generico_one_line(
+                        "Descartar cambios",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
                 text = {
                     texto_generico_multilinea(
                         "Tienes datos sin guardar. ¿Deseas descartarlos?",

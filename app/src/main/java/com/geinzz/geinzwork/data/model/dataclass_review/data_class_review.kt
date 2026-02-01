@@ -3,6 +3,7 @@ package com.geinzz.geinzwork.data.model.dataclass_review
 import android.net.Uri
 import android.os.Parcelable
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
+import com.google.firebase.Timestamp
 import kotlinx.android.parcel.Parcelize
 
 data class data_class_review(val id_tienda_lugar: String = "", val localida_lugar: String = "")
@@ -41,5 +42,8 @@ data class ImagenReview(
     val url: String? = null,
     val isEditing: Boolean = false
 )
+
+
+
 
 

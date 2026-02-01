@@ -33,11 +33,14 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.OpenInFull
+import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -73,6 +76,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.cambiar_datos_pago_contacto
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.datos_grafico
+import com.geinzz.geinzwork.data.model.datos_para_generacion_dialog_historial_IA
 import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.data.model.datos_tienda_fechas
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
@@ -99,6 +103,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_mostar_leyendas
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialogo_cerrar_seccion_teinda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_historial_pago
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.ui_bottom_sheet_generaciones_IA
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.DiaHoy
@@ -118,10 +123,14 @@ import kotlinx.coroutines.launch
 @Composable
 fun pantalla_carga_socios(
     fecha_finalizado_flow: StateFlow<String>,
-    id_user:String,
+    id_user: String,
     datos: datos_tienda,
     isConnected: Boolean,
-    id_registrado: (String) -> Unit
+    id_registrado: (String) -> Unit,
+    navegarcrear_pùblicidad_todas:(String, String, String, String,String)-> Unit,
+    navegarcrear_pùblicidad_titulo_descripcion:(String, String,String)-> Unit,
+    navegarcrear_pùblicidad_wsap:(String,String)-> Unit,
+    navegarcrear_pùblicidad_compartiro:(String,String)-> Unit,
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
     val viewmodel: viewmodel_eres_socio = viewModel()
@@ -269,6 +278,7 @@ fun pantalla_carga_socios(
     var guardandoLogo by remember { mutableStateOf(false) }
 
     var mostra_bottom_sheet_historial by remember { mutableStateOf(false) }
+    var mostra_bottom_sheet_historial_de_gen_IA by remember { mutableStateOf(false) }
 
     LaunchedEffect(datos) {
         values2 = listOf(
@@ -809,7 +819,8 @@ fun pantalla_carga_socios(
                                                     )
                                             ) {
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                                                    BoxFotosTipos(id_user,
+                                                    BoxFotosTipos(
+                                                        id_user,
                                                         "servicios_productos",
                                                         id_tienda,
                                                         fotosServicios,
@@ -953,7 +964,7 @@ fun pantalla_carga_socios(
                                 .animateContentSize() // ← Animación suave
                         ) {
                             expandibles_wrapp_socio_geinzz_datos_tienda(
-                                nombre_negocio,viewmodel_recargas = viewmodel_recargas,
+                                nombre_negocio, viewmodel_recargas = viewmodel_recargas,
                                 viewModelFiltros = viewmodel,
                                 context = context,
                                 expandido = mostrar_datos_teinda,
@@ -1006,7 +1017,8 @@ fun pantalla_carga_socios(
                             modifier = Modifier
                                 .animateContentSize() // ← Animación suave
                         ) {
-                            expandibles_wrapp_socio_metodos_pago_tienda(id_user,
+                            expandibles_wrapp_socio_metodos_pago_tienda(
+                                id_user,
                                 viewModelFiltros = viewmodel,
                                 context = context,
                                 expandido = mostar_metodos_pago_tienda,
@@ -1622,31 +1634,55 @@ fun pantalla_carga_socios(
                     }
                     spacer_vertical(20.dp)
 
-                    Box(
+                    Button(
+                        onClick = {
+                            mostra_bottom_sheet_historial = true
+                        },
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }
-                            ) {
-                                mostra_bottom_sheet_historial = true
-                            }
+                            .fillMaxWidth(),
+                        shape = CircleShape,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
                     ) {
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
+                        texto_generico_one_line(
+                            "Historial de recarga y compra",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(vertical = 6.dp)
+                        )
+                    }
+
+                    spacer_vertical(10.dp)
+
+                    Button(
+                        onClick = {
+                            mostra_bottom_sheet_historial_de_gen_IA = true
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        shape = CircleShape,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
+
                             texto_generico_one_line(
-                                "Historial de recarga y compra",
+                                "Historial de generaciones con IA",
                                 style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(
-                                    vertical = 10.dp
-                                ),
+                                modifier = Modifier.padding(vertical = 6.dp)
+                            )
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = "IA", tint = Color.White
                             )
                         }
                     }
+
+                    spacer_vertical(20.dp)
 
                     if (!esta_vincualdo && isConnected) {
                         spacer_vertical(20.dp)
@@ -1721,6 +1757,34 @@ fun pantalla_carga_socios(
                 datos.localidad_tienda,
                 datos.saldo_disponible_tienda.toString(),
                 { mostra_bottom_sheet_historial = false })
+        }
+
+        if (mostra_bottom_sheet_historial_de_gen_IA) {
+            val datos_tienda_params=datos_para_generacion_dialog_historial_IA(
+                nombre_tienda = datos.nombre,
+                monedas_tienda = datos.saldo_disponible_tienda.toInt(),
+                localidad_tienda = datos.localidad_tienda,
+                id_tienda = datos.id_tienda
+            )
+            ui_bottom_sheet_generaciones_IA(
+                datos_tienda_params,
+                datos.id_tienda,
+                datos.localidad_tienda,
+                { mostra_bottom_sheet_historial_de_gen_IA =false },
+                datos.nombre,
+                usar_todas = { titulo, descripcion, wsap, compartir,tipo ->
+                    navegarcrear_pùblicidad_todas(titulo,descripcion,wsap,compartir,tipo)
+                },
+                usar_titulo_descripcion = { titulo, descrpcion,tipo ->
+                    navegarcrear_pùblicidad_titulo_descripcion(titulo,descrpcion,tipo)
+                },
+                usar_wsap = { msje,tipo->
+                    navegarcrear_pùblicidad_wsap(msje,tipo)
+                },
+                usar_compartir = { msje,tipo->
+                    navegarcrear_pùblicidad_compartiro(msje,tipo)
+                }
+            )
         }
 
         if (mostrarDialogozoom) {

@@ -1,13 +1,18 @@
 package com.geinzz.geinzwork.data.model
 
+import android.net.Uri
+import androidx.annotation.DrawableRes
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.model.repo_pantallas_promocionar
 import com.google.firebase.Timestamp
+import io.ktor.http.Url
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.net.URI
 
 data class datos_tienda(
     val id_tienda: String = "",
@@ -95,10 +100,9 @@ data class agregar_promociones(
     val formato_fecha_hora: String,
     val mensaje_predeterminado: msjes_predeteminados_generales,
     val generaciones_con_ia: generaciones_con_ia,
-    val precio_publicacion:precio_rango_publicacion,
-    val horario_deseado:horario_deseado,
+    val precio_publicacion: precio_rango_publicacion,
+    val horario_deseado: horario_deseado,
 )
-
 
 
 data class generaciones_con_ia(
@@ -111,6 +115,8 @@ data class generaciones_con_ia(
 )
 
 data class generaciones_con_ia_notificaciones(
+    val titulo_original: String,
+    val descripcion_original: String,
     val generacion_selecionada: contenido_publicidad,
     val generacion_wsap: String,
 )
@@ -151,10 +157,10 @@ data class informacion_container(
     val compartir: Boolean,
     val contactar: Boolean,
 
-)
+    )
 
-data class horario_deseado(val seleccion:String,val horario:String)
-data class precio_rango_publicacion(val precio : String, val rango :String)
+data class horario_deseado(val seleccion: String, val horario: String)
+data class precio_rango_publicacion(val precio: String, val rango: String)
 
 data class msjes_predeteminados_generales(
     val compartir: mensaje_predeterminado = mensaje_predeterminado(),
@@ -216,7 +222,7 @@ data class obj_parametros_notificacion(
     val titulo_notificacion: String,
     val texto_notificacion: String,
     val logo_notificacion: String,
-    val img_notifiacion: String,
+    val img_notifiacion: String="",
     val priorida_notificacion: String,
     val tipo_notificacion: String,
     val notificacion_publicidad: Boolean,
@@ -357,7 +363,10 @@ data class obtener_datos_promociones(
     val costo_total: Double = 0.0,        // 🔥 inversión total
     val costo_consumido: Double = 0.0,    // 🔥 ya cobrado
     val estadisticas: EstadisticasPromoGenerales?,
-    val mensaje_predeterminado: msjes_predeteminados_generales,val rango_publicacion:String,val precio_publicacion:String,val horaio_publicacion:String
+    val mensaje_predeterminado: msjes_predeteminados_generales,
+    val rango_publicacion: String,
+    val precio_publicacion: String,
+    val horaio_publicacion: String
 )
 
 
@@ -504,4 +513,70 @@ data class Res_precios(
     val rango: String? = null // null si hay más de uno
 )
 
-data class pantalla_horarios(val nombre:String,val texto:String,val horario_mostrado:String)
+data class pantalla_horarios(val nombre: String, val texto: String, val horario_mostrado: String)
+
+data class carta_promociones_geinz_vista_previa(
+    val lista_img_uri: List<Uri> = emptyList(),
+    val logo_img: String = "",
+    val nombre_tienda: String = "",
+    val titulo_publicacion: String = "",
+    val dias_restantes: String = "",
+    val compartir: Boolean = false,
+    val contactar: Boolean = false
+)
+
+
+
+data class datos_gen_IA_Tiendas(
+    val inicio: Timestamp,
+    val fin: Timestamp,
+    val id_promo_noti_cread: String,
+    val img_container: String,
+    val nombre_generacion: String,
+    val tipo_realizado: String,
+    val datos_generaciones:datos_generaciones_IA
+    )
+
+data class datos_generaciones_IA(
+    val titulo_original: String,
+    val descripcion_original: String,
+    val tipo_generacion_IA: String,
+    val generacion_wsap: String,
+    val generacion_compartir: String,
+    val generaciones: List<lista_genereracione>,
+    val titulo_seleccionado_gen_IA:String,
+    val descripcion_seleccionada_ge_IA: String
+)
+
+data class obt_item_gen_IA(
+    val img_:String,
+    val titulo_gen_IA : String,
+    val vencimiento: Timestamp,
+    val inicio: Timestamp,
+    val tipo:String,
+    val generacion_wsap:String,
+    val generacion_compartida:String,
+    val generacion_origini:lista_genereracione,
+    val lista_generaciones: List<lista_genereracione>
+)
+data class lista_genereracione(val tipo: String="Original", val titulo: String, val descripcion: String)
+
+data class DatosPublicidadIA(
+    val titulo: String="",
+    val descripcion: String="",
+    val whatsapp: String="",
+    val compartir: String="",
+    val tipo_redirigido: String=""
+)
+
+sealed class IconoIA {
+    data class Drawable(@DrawableRes val resId: Int) : IconoIA()
+    data class Vector(val imageVector: ImageVector) : IconoIA()
+}
+
+
+data class nuevas_generaciones_con_IA(val titulo_nuevo:String,val descripcion_nueva:String)
+
+data class datos_para_generacion_dialog_historial_IA(
+    val nombre_tienda:String,val monedas_tienda: Int,val localidad_tienda:String,val id_tienda:String
+)

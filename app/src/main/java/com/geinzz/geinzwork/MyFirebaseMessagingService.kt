@@ -19,6 +19,16 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import java.net.URL
 
+
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.Rect
+import android.graphics.RectF
+import kotlin.math.min
+
+
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
@@ -71,7 +81,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         // LOGO (para logo y premium)
         if ((tipo == "logo" || tipo == "premium") && logoUrl.isNotEmpty()) {
-            cargarBitmapDesdeUrl(logoUrl)?.let { logoBitmap ->
+            cargarBitmapCircularDesdeUrl(logoUrl)?.let { logoBitmap ->
                 builder.setLargeIcon(logoBitmap)
             }
         }
@@ -105,6 +115,39 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             null
         }
     }
+
+    fun cargarBitmapCircularDesdeUrl(url: String): Bitmap? {
+        return try {
+            val original = BitmapFactory.decodeStream(
+                URL(url).openConnection().getInputStream()
+            ) ?: return null
+
+            // 🔹 Escalar primero
+            val sizePx = 192
+            val scaled = Bitmap.createScaledBitmap(
+                original,
+                sizePx,
+                sizePx,
+                true
+            )
+
+            val output = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(output)
+
+            val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+            val rect = Rect(0, 0, sizePx, sizePx)
+            val rectF = RectF(rect)
+
+            canvas.drawOval(rectF, paint)
+            paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+            canvas.drawBitmap(scaled, null, rect, paint)
+
+            output
+        } catch (e: Exception) {
+            null
+        }
+    }
+
 
 
 

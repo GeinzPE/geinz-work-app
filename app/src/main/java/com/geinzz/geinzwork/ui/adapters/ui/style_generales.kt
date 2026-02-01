@@ -1252,7 +1252,6 @@ fun ZoomableGalleryFullScreen_promociones(
         }
     }
 
-
 }
 
 

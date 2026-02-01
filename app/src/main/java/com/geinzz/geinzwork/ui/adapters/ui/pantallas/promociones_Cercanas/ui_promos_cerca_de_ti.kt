@@ -547,8 +547,8 @@ fun ui_promos_cerca_de_ti(
 //                if (mostrar_zoom_img && promoSeleccionada != null) {
                 if (mostrar_zoom_img) {
                     ZoomableGalleryFullScreenVerticalPager(
-                        tiendaSeleccionada,
-                        subCategoriaSeleccionada,
+                        tiendaSeleccionada1 = tiendaSeleccionada,
+                        categoria_select_filtro = subCategoriaSeleccionada,
                         id_user = uid_respald_user,
                         viewModel = viewModel,
                         localidad_general = localidad,
@@ -640,7 +640,7 @@ fun carta_promocion_geinz(
             GaleriaHorizontalInstagram(
                 imagenes = i.img.lista_img,
                 modifier = Modifier.fillMaxSize(), img_clikeble_valor = { select ->
-                    img_clikeble(i.informacion_publcacion.id_promocion, i.img.lista_img, select)
+                    img_clikeble(i.informacion_publcacion.id_promocion, i   .img.lista_img, select)
                 }, long_listatener = {
                     Log.d("LONG_PRESS", "Long press en la galería")
                 })

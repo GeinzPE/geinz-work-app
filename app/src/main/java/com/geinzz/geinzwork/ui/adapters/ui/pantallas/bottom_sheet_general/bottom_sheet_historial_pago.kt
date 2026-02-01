@@ -135,7 +135,6 @@ fun bottom_sheet_historial_pago(
     ) {
         FuenteControladaApp {
             BoxWithConstraints {
-                val maxHeightSheet = maxHeight * 0.8f
                 val maxHeightSheet_empty = maxHeight * 0.4f
 
                 when (state) {

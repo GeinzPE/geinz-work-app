@@ -120,7 +120,6 @@ class repo_pantallas_promocionar {
                 generarPromptPromoInformativo(
                     tituloUsuario, descripcionUsuario, nombreTienda, localidad
                 )
-
             }
 
             TipoGeneracionIA.NOVEDAD -> {
@@ -161,7 +160,10 @@ class repo_pantallas_promocionar {
     }
 
 
+
+
     suspend fun generar_promociones_con_IA(
+        total_generaciones: Int,
         tipo_generacion: TipoGeneracionIA,
         tituloUsuario: String,
         descripcionUsuario: String,

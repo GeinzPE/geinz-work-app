@@ -1,6 +1,109 @@
 package com.geinzz.geinzwork.herramientas_geinz.constantes
 
 object proms_gen_IA {
+
+    fun generarPromptPromoVenta_solo_una_generacion(
+        tituloUsuario: String,
+        descripcionUsuario: String,
+        nombreTienda: String,
+        localidad: String
+    ): String {
+        return """
+Mejora el título y la descripción de una promoción con ENFOQUE EN VENTA DIRECTA.
+Usa SOLO la información proporcionada. NO inventes datos ni precios.
+Si el usuario menciona un precio (ej: 120, cuesta 120, S/120), usa el símbolo s/
+
+Reglas:
+- Genera UNA SOLA opción
+- Título ≤60 caracteres
+- Descripción 30–50 palabras
+- Español comercial y persuasivo
+- Llamados a la acción claros (ej: Aprovecha, Compra hoy, No te lo pierdas)
+- Sin emojis
+- No exageres beneficios irreales
+
+Datos reales:
+titulo:$tituloUsuario
+descripcion:$descripcionUsuario
+tienda:$nombreTienda
+localidad:$localidad
+
+Salida EXACTA:
+T:
+D:
+""".trimIndent()
+    }
+
+
+
+    fun generarPromptPromoAtencion_solo_una_generacion(
+        tituloUsuario: String,
+        descripcionUsuario: String,
+        nombreTienda: String,
+        localidad: String
+    ): String {
+        return """
+Mejora el título y la descripción de una promoción con ENFOQUE EN LLAMAR LA ATENCIÓN.
+Usa SOLO la información proporcionada. NO inventes datos ni precios.
+Si el usuario menciona un precio, usa el símbolo s/
+
+Reglas:
+- Genera UNA SOLA opción
+- Título ≤60 caracteres
+- Descripción 30–50 palabras
+- Español claro y atractivo
+- Usa preguntas, ganchos creativos o beneficios impactantes
+- Sin emojis
+- No uses promesas falsas
+
+Datos reales:
+titulo:$tituloUsuario
+descripcion:$descripcionUsuario
+tienda:$nombreTienda
+localidad:$localidad
+
+Salida EXACTA:
+T:
+D:
+""".trimIndent()
+    }
+
+
+
+    fun generarPromptPromoInformativo_solo_una_generacion(
+        tituloUsuario: String,
+        descripcionUsuario: String,
+        nombreTienda: String,
+        localidad: String
+    ): String {
+        return """
+Mejora el título y la descripción de una promoción con ENFOQUE PROFESIONAL E INFORMATIVO.
+Usa SOLO la información proporcionada. NO inventes datos ni precios.
+Si el usuario menciona un precio, usa el símbolo s/
+
+Reglas:
+- Genera UNA SOLA opción
+- Título ≤60 caracteres
+- Descripción 30–50 palabras
+- Español profesional, claro y confiable
+- Explica el valor del producto o servicio sin exageraciones
+- Sin emojis
+- Tono serio y elegante
+
+Datos reales:
+titulo:$tituloUsuario
+descripcion:$descripcionUsuario
+tienda:$nombreTienda
+localidad:$localidad
+
+Salida EXACTA:
+T:
+D:
+""".trimIndent()
+    }
+
+
+
     fun generarPromptPromoVenta(
         tituloUsuario: String,
         descripcionUsuario: String,
