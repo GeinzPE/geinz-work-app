@@ -23,8 +23,11 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNot
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionUrgencia
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionVenta
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoAtencion
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoAtencion_solo_una_generacion
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoInformativo
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoInformativo_solo_una_generacion
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoVenta
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoVenta_solo_una_generacion
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionVenta
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.acortarDescripcionNotificacion
 
@@ -160,10 +163,41 @@ class repo_pantallas_promocionar {
     }
 
 
+    fun generarPromptSegunTipoUnaGeneracion(
+        tipo: TipoGeneracionIA,
+        tituloUsuario: String,
+        descripcionUsuario: String,
+        nombreTienda: String,
+        localidad: String
+    ): String {
+        return when (tipo) {
+
+            TipoGeneracionIA.VENTA ->
+                generarPromptPromoVenta_solo_una_generacion(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+
+            TipoGeneracionIA.ATENCION ->
+                generarPromptPromoAtencion_solo_una_generacion(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+
+            TipoGeneracionIA.INFORMATIVO,
+            TipoGeneracionIA.URGENCIA,
+            TipoGeneracionIA.NOVEDAD,
+            TipoGeneracionIA.OPERATIVA,
+            TipoGeneracionIA.REPOSICION,
+            TipoGeneracionIA.CITAS,
+            TipoGeneracionIA.SERVICIOS ->
+                generarPromptPromoInformativo_solo_una_generacion(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+        }
+    }
+
 
 
     suspend fun generar_promociones_con_IA(
-        total_generaciones: Int,
         tipo_generacion: TipoGeneracionIA,
         tituloUsuario: String,
         descripcionUsuario: String,

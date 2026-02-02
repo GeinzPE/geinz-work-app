@@ -213,7 +213,14 @@ object constantes_datos_expirados_fechas_publicaciones {
         val date = timestamp.toDate() // 🔥 aquí la conversión correcta
         val formato = SimpleDateFormat("EEEE d 'de' MMMM 'del' yyyy", locale)
 
+
         val fecha = formato.format(date)
         return fecha.replaceFirstChar { it.uppercase() }
+    }
+
+    fun timestampToFechaHora(timestamp: Timestamp): String {
+        val date = timestamp.toDate()
+        val format = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        return format.format(date)
     }
 }

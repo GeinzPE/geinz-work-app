@@ -222,7 +222,7 @@ data class obj_parametros_notificacion(
     val titulo_notificacion: String,
     val texto_notificacion: String,
     val logo_notificacion: String,
-    val img_notifiacion: String="",
+    val img_notifiacion: String = "",
     val priorida_notificacion: String,
     val tipo_notificacion: String,
     val notificacion_publicidad: Boolean,
@@ -285,6 +285,13 @@ data class recargar_monedas_tienda(
 )
 
 data class NotificacionIA(
+    val titulo: String,
+    val descripcion: String
+)
+
+
+data class dialog_generaciones_IA_promo_noti(
+    val id_promo_noti_gen: String,
     val titulo: String,
     val descripcion: String
 )
@@ -526,7 +533,6 @@ data class carta_promociones_geinz_vista_previa(
 )
 
 
-
 data class datos_gen_IA_Tiendas(
     val inicio: Timestamp,
     val fin: Timestamp,
@@ -534,8 +540,9 @@ data class datos_gen_IA_Tiendas(
     val img_container: String,
     val nombre_generacion: String,
     val tipo_realizado: String,
-    val datos_generaciones:datos_generaciones_IA
-    )
+    val datos_generaciones: datos_generaciones_IA,
+    val nuevas_generaciones: nuevas_generaciones_con_IA
+)
 
 data class datos_generaciones_IA(
     val titulo_original: String,
@@ -544,29 +551,35 @@ data class datos_generaciones_IA(
     val generacion_wsap: String,
     val generacion_compartir: String,
     val generaciones: List<lista_genereracione>,
-    val titulo_seleccionado_gen_IA:String,
+    val titulo_seleccionado_gen_IA: String,
     val descripcion_seleccionada_ge_IA: String
 )
 
 data class obt_item_gen_IA(
-    val img_:String,
-    val titulo_gen_IA : String,
+    val id_generacion: String,
+    val img_: String,
+    val titulo_gen_IA: String,
     val vencimiento: Timestamp,
     val inicio: Timestamp,
-    val tipo:String,
-    val generacion_wsap:String,
-    val generacion_compartida:String,
-    val generacion_origini:lista_genereracione,
+    val tipo: String,
+    val generacion_wsap: String,
+    val generacion_compartida: String,
+    val generacion_origini: lista_genereracione,
     val lista_generaciones: List<lista_genereracione>
 )
-data class lista_genereracione(val tipo: String="Original", val titulo: String, val descripcion: String)
+
+data class lista_genereracione(
+    val tipo: String = "Original",
+    val titulo: String,
+    val descripcion: String
+)
 
 data class DatosPublicidadIA(
-    val titulo: String="",
-    val descripcion: String="",
-    val whatsapp: String="",
-    val compartir: String="",
-    val tipo_redirigido: String=""
+    val titulo: String = "",
+    val descripcion: String = "",
+    val whatsapp: String = "",
+    val compartir: String = "",
+    val tipo_redirigido: String = ""
 )
 
 sealed class IconoIA {
@@ -575,8 +588,17 @@ sealed class IconoIA {
 }
 
 
-data class nuevas_generaciones_con_IA(val titulo_nuevo:String,val descripcion_nueva:String)
+data class nuevas_generaciones_con_IA(
+    val titulo_nuevo: String,
+    val descripcion_nueva: String,
+    val fecha_nueva_generacion: String,
+    val titulo_anterior: String,
+    val descripcion_anteriror: String
+)
 
 data class datos_para_generacion_dialog_historial_IA(
-    val nombre_tienda:String,val monedas_tienda: Int,val localidad_tienda:String,val id_tienda:String
+    val nombre_tienda: String,
+    val monedas_tienda: Int,
+    val localidad_tienda: String,
+    val id_tienda: String
 )

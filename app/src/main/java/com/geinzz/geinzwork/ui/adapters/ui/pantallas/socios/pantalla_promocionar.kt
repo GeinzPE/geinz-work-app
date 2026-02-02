@@ -410,7 +410,11 @@ fun pantalla_promocionar(
         Log.d("estado_tipo",predeterminado.tipo_redirigido)
         if(predeterminado.tipo_redirigido.equals("publicacion")){
             nombre_publicacion=predeterminado.titulo
+            viewmodel_pantalla_promocionar.titulo=predeterminado.titulo
+            version_nombre_publicacion_original=predeterminado.titulo
             descripcion_publicacion=predeterminado.descripcion
+            viewmodel_pantalla_promocionar.descripcion=predeterminado.descripcion
+            descripcion_publicacion_original=predeterminado.descripcion
             if(predeterminado.whatsapp.isNotEmpty()){
                 contacto_directo=true
             }
@@ -420,7 +424,10 @@ fun pantalla_promocionar(
             }
         }else if(predeterminado.tipo_redirigido.equals("notificacion")){
             titulo_notificacion=predeterminado.titulo
+            viewmodel_pantalla_promocionar.titulo_notificacion=predeterminado.titulo
+
             descripcion_notificacion=predeterminado.descripcion
+            viewmodel_pantalla_promocionar.descripcion_notificacion=predeterminado.descripcion
             mensaje_whatsapp_de_publi_a_notificacion=predeterminado.whatsapp
         }
 
@@ -802,32 +809,34 @@ fun pantalla_promocionar(
                     id_tienda = i.id_tienda,
                     localidad = i.localidad_tienda
                 )
-                msj_estado_texto_compartir = "Mejorar mensaje con IA"
-                texto_generar_nuevamente_whatsapp_ia = "Mejorar mensaje con IA"
-                estado_mejsem_whatsap_notificacion = "Mejorar mensaje con IA"
-                nombre_publicacion = ""
-                descripcion_publicacion = ""
-                contacto_directo = false
-                horario_deseado = false
-                turnoSeleccionado = null
-                precio_detectado = ""
-                compartir = false
-                fecha_fin = ""
-                hora_escrita = "0"
-                tipo_promp_seleccionado_IA = null
-                msj_perzonalizado_whatsapp_ia_bool = false
-                msj_perzonalizado_compartir_ia_bool = false
-                precio_encontrado = false
-                mensaje_perzonalizado_compartir = false
-                mensaje_perzonalizado = false
-                msje_titulo_descripcion = false
-                filtro_cercania = false
-                mensaje_perzonalizado_txt = "Mira esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25"
-                mensaje_perzonalizado_txt_compartir = "Hola, quiero esta oferta que vi Geinz:"
                 listaOpcionesIA = emptyList()
                 imagenes.clear()
                 viewmodel_socios.resetear_Estado_promo_subida()
-                viewmodel_pantalla_promocionar.descartarCambios()
+                val cambios_borrados= viewmodel_pantalla_promocionar.descartarCambios()
+                if(cambios_borrados){
+                    msj_estado_texto_compartir = "Mejorar mensaje con IA"
+                    texto_generar_nuevamente_whatsapp_ia = "Mejorar mensaje con IA"
+                    estado_mejsem_whatsap_notificacion = "Mejorar mensaje con IA"
+                    nombre_publicacion = ""
+                    descripcion_publicacion = ""
+                    contacto_directo = false
+                    horario_deseado = false
+                    turnoSeleccionado = null
+                    precio_detectado = ""
+                    compartir = false
+                    fecha_fin = ""
+                    hora_escrita = "0"
+                    tipo_promp_seleccionado_IA = null
+                    msj_perzonalizado_whatsapp_ia_bool = false
+                    msj_perzonalizado_compartir_ia_bool = false
+                    precio_encontrado = false
+                    mensaje_perzonalizado_compartir = false
+                    mensaje_perzonalizado = false
+                    msje_titulo_descripcion = false
+                    filtro_cercania = false
+                    mensaje_perzonalizado_txt = "Mira esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25"
+                    mensaje_perzonalizado_txt_compartir = "Hola, quiero esta oferta que vi Geinz:"
+                }
                 viewmodel_pantalla_promocionar.limpiar_resutlados_ia_promo()
                 viewmodel_pantalla_promocionar.reseteo_compartir()
                 viewmodel_pantalla_promocionar.reseteo_wshap_promocion()
@@ -877,7 +886,25 @@ fun pantalla_promocionar(
                 id_publicacion_selecionada = ""
                 id_img_notificacion = ""
                 viewmodel_pantalla_promocionar.resetear_Estado_promo_subida()
-                viewmodel_pantalla_promocionar.descartarCambios()
+
+                val cambios_borrados= viewmodel_pantalla_promocionar.descartarCambios()
+                if(cambios_borrados){
+                    titulo_notificacion = ""
+                    titulo_notificacion_guardado=""
+                    descripcion_notificacion_guardado=""
+                    descripcion_notificacion = ""
+                    url_img_notificaion_seleccionada = ""
+                    tipo_notificacion_params_seleccionada = ""
+                    prioridad_selec = ""
+                    imagenSeleccionada = null
+                    tipo_notificacion_params_seleccionada = ""
+                    tipo_notificacion_seleccionada = ""
+                    idSeleccionado = null
+                    tipo_promp_seleccionado_IA_notificicaciones = null
+                    fechaCaducidad = obtenerFechaFinDosDias()
+                    id_publicacion_selecionada = ""
+                    id_img_notificacion = ""
+                }
                 viewmodel_pantalla_promocionar.resetear_Estado_notificacion_enviadad()
                 viewmodel_pantalla_promocionar.cambiar_estado_img_notifi_select()
                 viewmodel_pantalla_promocionar.reseteo_wshap_notificacion()

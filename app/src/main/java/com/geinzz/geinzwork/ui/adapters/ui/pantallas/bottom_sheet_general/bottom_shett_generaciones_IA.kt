@@ -1,11 +1,13 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
-import android.content.Context
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,7 +20,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,6 +30,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,8 +43,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,7 +55,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
@@ -64,71 +66,115 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.geinzz.geinzwork.data.model.IconoIA
 import com.geinzz.geinzwork.data.model.datos_para_generacion_dialog_historial_IA
+import com.geinzz.geinzwork.data.model.dialog_generaciones_IA_promo_noti
 
 import com.geinzz.geinzwork.data.model.lista_genereracione
+import com.geinzz.geinzwork.data.model.nuevas_generaciones_con_IA
 import com.geinzz.geinzwork.data.model.obt_item_gen_IA
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.timestampAFechaLegible
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoSubrayado
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line_Expandible
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dailog_generaciones_IA_versiones
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.promociones_Cercanas.parseDiasHorasRestantes
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.FondoIAAnimado
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.ShimmerImagenConMarca
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.viewModels.viewmodel_floating_filtrado
 import com.geinzz.geinzwork.viewModels.viewmodel_generaciones_IA
-import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_promocionar
-import com.geinzz.geinzwork.viewModels.viewmodel_recargas
-import com.google.firebase.Timestamp
+import kotlinx.coroutines.launch
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun ui_bottom_sheet_generaciones_IA(
-    i:datos_para_generacion_dialog_historial_IA,
-    id_tienda: String,
-    localidad: String,
+    i: datos_para_generacion_dialog_historial_IA,
     ondismis: () -> Unit,
     nombre_tienda: String,
     usar_todas: (String, String, String, String, String) -> Unit,
     usar_titulo_descripcion: (String, String, String) -> Unit,
     usar_wsap: (String, String) -> Unit,
     usar_compartir: (String, String) -> Unit
-
 ) {
     val viewmodelGeneracionesIa: viewmodel_generaciones_IA = viewModel()
-    val viewmodel_pantallas_promocionar:viewmodel_pantallas_promocionar=viewModel()
     val estaod_generaciones_IA by viewmodelGeneracionesIa.estado_generaciones_IA.collectAsState()
     var mostar_dialog_mejorar_versiones by remember { mutableStateOf(false) }
     var titulo_dialog_mejorar_version by remember { mutableStateOf("") }
     var texto_dialog_mejorar_version by remember { mutableStateOf("") }
     var tipo_seleccionado_promo_noti by remember { mutableStateOf("") }
+    var id_seleccionado_gen by remember { mutableStateOf("") }
+
+
     var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    var resultadoIA by remember {
+        mutableStateOf<dialog_generaciones_IA_promo_noti?>(null)
+    }
+
+    val scope = rememberCoroutineScope()
+
+    val estado_textos_notificaciones_generadas by viewmodelGeneracionesIa.estado_promociones_ia.collectAsState()
+
+
+    LaunchedEffect(estado_textos_notificaciones_generadas) {
+        if (estado_textos_notificaciones_generadas is viewmodel_generaciones_IA.EstadoIA_dialog_centrado.Success) {
+            resultadoIA =
+                (estado_textos_notificaciones_generadas as viewmodel_generaciones_IA.EstadoIA_dialog_centrado.Success).generacion
+            Log.d("desde_otro_sitio_Verinado", "$resultadoIA")
+            resultadoIA?.let { resultado ->
+                viewmodelGeneracionesIa.agregar_nueva_generacion_remasterizada(
+                    titulo_dialog_mejorar_version, texto_dialog_mejorar_version,
+                    i.id_tienda,
+                    i.localidad_tienda,
+                    resultado.titulo,
+                    resultado.descripcion,
+                    resultado.id_promo_noti_gen
+                )
+            }
+            scope.launch {
+                // Llama al SnackbarHostState para mostrar el mensaje
+                snackbarHostState.showSnackbar(
+                    message = "La nueva generación se creó correctamente.",
+
+                    duration = SnackbarDuration.Short
+                )
+            }
+            viewmodelGeneracionesIa.limpiar_Estado_nueva_generacion()
+        }
+    }
+
 
     val lsita_fitlrado_opciones = listOf(
         "Todos",
         "Generaciones de promociones",
         "Generaciones de notificaciones",
         "Por vencer",
-        )
+    )
 
 
 
-    LaunchedEffect(id_tienda, localidad) {
-        viewmodelGeneracionesIa.obtner_generaciones_IA(localidad, id_tienda)
+    LaunchedEffect(i.id_tienda, i.localidad_tienda) {
+        viewmodelGeneracionesIa.obtner_generaciones_IA(i.localidad_tienda, i.id_tienda)
     }
     ModalBottomSheet(
         onDismissRequest = { ondismis() },
@@ -256,6 +302,7 @@ fun ui_bottom_sheet_generaciones_IA(
                                     spacer_vertical(7.dp)
                                 }
 
+                                // 🟡 Caso: lista vacía
                                 if (lista_filtrada.isEmpty()) {
                                     item {
                                         Box(
@@ -270,11 +317,18 @@ fun ui_bottom_sheet_generaciones_IA(
                                             )
                                         }
                                     }
-                                } else {
-                                    items(
+                                }
+
+                                // 🟢 Caso: lista con datos
+                                else {
+                                    itemsIndexed(
                                         items = lista_filtrada,
-                                        key = { it.id_promo_noti_cread }) { i ->
+                                        key = { _, item -> item.id_promo_noti_cread }
+                                    ) { index, i ->
+
                                         val datos = obt_item_gen_IA(
+
+                                            id_generacion = i.id_promo_noti_cread,
                                             img_ = i.img_container,
                                             titulo_gen_IA = i.nombre_generacion,
                                             vencimiento = i.fin,
@@ -289,6 +343,7 @@ fun ui_bottom_sheet_generaciones_IA(
                                             ),
                                             lista_generaciones = i.datos_generaciones.generaciones
                                         )
+
                                         Box(
                                             modifier = Modifier.animateItem(
                                                 placementSpec = tween(
@@ -297,10 +352,13 @@ fun ui_bottom_sheet_generaciones_IA(
                                                 )
                                             )
                                         ) {
+
                                             item_generaciones_con_IA(
-                                                i.datos_generaciones.titulo_seleccionado_gen_IA,
-                                                i.datos_generaciones.descripcion_seleccionada_ge_IA,
+                                                i.nuevas_generaciones,
+                                                tituo_seleccionado = i.datos_generaciones.titulo_seleccionado_gen_IA,
+                                                descrpcion_seleccionada = i.datos_generaciones.descripcion_seleccionada_ge_IA,
                                                 i = datos,
+
                                                 usar_todas = { titulo, descripcion, whatsapp, compartir, tipo ->
                                                     usar_todas(
                                                         titulo,
@@ -310,38 +368,57 @@ fun ui_bottom_sheet_generaciones_IA(
                                                         tipo
                                                     )
                                                 },
+
                                                 usar_titulo_descripcion = { titulo, descripcion, tipo ->
-                                                    usar_titulo_descripcion(titulo, descripcion, tipo)
+                                                    usar_titulo_descripcion(
+                                                        titulo,
+                                                        descripcion,
+                                                        tipo
+                                                    )
                                                 },
-                                                whatsapp = { mejse, tipo ->
-                                                    usar_wsap(mejse, tipo)
+
+                                                whatsapp = { mensaje, tipo ->
+                                                    usar_wsap(mensaje, tipo)
                                                 },
-                                                compartir = { mejse, tipo ->
-                                                    usar_compartir(mejse, tipo)
-                                                }, { titulo, texto,tipo ->
+
+                                                compartir = { mensaje, tipo ->
+                                                    usar_compartir(mensaje, tipo)
+                                                },
+
+                                                mostrar_dialog_mejorar_vesiones = { titulo, texto, tipo, id_ ->
+                                                    id_seleccionado_gen = id_
                                                     mostar_dialog_mejorar_versiones = true
                                                     titulo_dialog_mejorar_version = titulo
                                                     texto_dialog_mejorar_version = texto
-                                                    tipo_seleccionado_promo_noti=tipo
+                                                    tipo_seleccionado_promo_noti = tipo
+                                                },
+
+                                                usar_nueva_generacion_generada = { titulo, texto ->
+                                                    usar_titulo_descripcion(
+                                                        titulo,
+                                                        texto,
+                                                        "publicacion"
+                                                    )
                                                 }
                                             )
                                         }
 
-
                                         spacer_vertical(10.dp)
                                     }
-
                                 }
 
                             }
 
+                            SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
+
 
                             if (mostar_dialog_mejorar_versiones) {
                                 dailog_generaciones_IA_versiones(
+                                    id_seleccionado_gen,
                                     i,
-                                    viewmodel_pantallas_promocionar,
+                                    viewmodelGeneracionesIa,
                                     titulo_dialog_mejorar_version,
-                                    texto_dialog_mejorar_version,tipo_seleccionado_promo_noti,
+                                    texto_dialog_mejorar_version, tipo_seleccionado_promo_noti,
                                     { mostar_dialog_mejorar_versiones = false })
                             }
                         }
@@ -365,13 +442,20 @@ fun ui_bottom_sheet_generaciones_IA(
 
 @Composable
 fun item_generaciones_con_IA(
-    tituo_seleccionado: String, descrpcion_seleccionada: String,
-    i: obt_item_gen_IA, usar_todas: (String, String, String, String, String) -> Unit,
+    nueva_generacion: nuevas_generaciones_con_IA,
+    tituo_seleccionado: String,
+    descrpcion_seleccionada: String, i: obt_item_gen_IA,
+    usar_todas: (String, String, String, String, String) -> Unit,
     usar_titulo_descripcion: (String, String, String) -> Unit,
     whatsapp: (String, String) -> Unit,
     compartir: (String, String) -> Unit,
-    mostrar_dialog_mejorar_vesiones: (String, String,String) -> Unit
+    mostrar_dialog_mejorar_vesiones: (String, String, String, String) -> Unit,
+    usar_nueva_generacion_generada: (String, String) -> Unit,
 ) {
+
+    var titulo_original by remember { mutableStateOf("") }
+    var marcar_original_seleccioand by remember { mutableStateOf(false) }
+
     val contex = LocalContext.current
     var tituloSeleccionado by remember { mutableStateOf(tituo_seleccionado) }
     var descripcionSeleccionada by remember { mutableStateOf(descrpcion_seleccionada) }
@@ -417,11 +501,28 @@ fun item_generaciones_con_IA(
             .clip(RoundedCornerShape(10.dp))
             .background(MaterialTheme.colorScheme.surface)
     ) {
+        val anchoAnimado by animateDpAsState(
+            targetValue = if (mostar_apartado_completo) LocalConfiguration.current.screenWidthDp.dp else 100.dp,
+            animationSpec = tween(
+                durationMillis = 450,
+                easing = FastOutSlowInEasing
+            ),
+            label = "anchoImagen"
+        )
+
+        val altoAnimado by animateDpAsState(
+            targetValue =if (mostar_apartado_completo) 150.dp else 100.dp,
+            animationSpec = tween(
+                durationMillis = 450,
+                easing = FastOutSlowInEasing
+            ),
+            label = "altoImagen"
+        )
+
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(9.dp),
             modifier = Modifier
-                .padding(end = 10.dp)
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() }) {
@@ -437,60 +538,66 @@ fun item_generaciones_con_IA(
                     .build(),
                 contentDescription = null,
                 modifier = Modifier
-                    .height(100.dp)
-                    .width(100.dp)
-                    .clip(RoundedCornerShape(5))
+                    .width(anchoAnimado)
+                    .height(altoAnimado)
+                    .clip(RoundedCornerShape(5.dp))
                     .clickable(
                         indication = null,
-                        interactionSource = remember { MutableInteractionSource() }) {
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        mostar_apartado_completo = !mostar_apartado_completo
                     },
                 contentScale = ContentScale.Crop
             )
-            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                val icono_promo_noti = if (i.tipo.equals("notificacion")) {
-                    R.drawable.campana_3d_webp
-                } else {
-                    R.drawable.promocio_iconn
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.AutoAwesome,
-                        contentDescription = "Mejorar con IA",
-                        tint = Color.White, modifier = Modifier.size(20.dp)
+
+            AnimatedVisibility (!mostar_apartado_completo, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.height(100.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(5.dp),modifier = Modifier.padding(start = 9.dp, top = 5.dp, bottom = 5.dp, end = 10.dp)) {
+                    val icono_promo_noti = if (i.tipo.equals("notificacion")) {
+                        R.drawable.campana_3d_webp
+                    } else {
+                        R.drawable.promocio_iconn
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = "Mejorar con IA",
+                            tint = Color.White, modifier = Modifier.size(20.dp)
+                        )
+                        texto_generico_one_line(
+                            i.titulo_gen_IA.capitalizeFirst(),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+                    Text(
+                        text = "${diasRestantes}",
+                        fontSize = 12.sp,
+                        color = backgroundColor
                     )
                     texto_generico_one_line(
-                        i.titulo_gen_IA.capitalizeFirst(),
+                        "Realizado: ${timestampAFechaLegible(i.inicio)}",
                         style = MaterialTheme.typography.bodyMedium
                     )
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        texto_generico_one_line(
+                            i.tipo.capitalizeFirst(),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Image(
+                            painter = painterResource(icono_promo_noti),
+                            contentDescription = "",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
 
-                Text(
-                    text = "${diasRestantes}",
-                    fontSize = 12.sp,
-                    color = backgroundColor
-                )
-                texto_generico_one_line(
-                    "Realizado: ${timestampAFechaLegible(i.inicio)}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    texto_generico_one_line(
-                        i.tipo.capitalizeFirst(),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Image(
-                        painter = painterResource(icono_promo_noti),
-                        contentDescription = "",
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
             }
         }
         AnimatedVisibility(mostar_apartado_completo) {
@@ -498,6 +605,54 @@ fun item_generaciones_con_IA(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.padding(10.dp)
             ) {
+                spacer_vertical(5.dp)
+                Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                    val icono_promo_noti = if (i.tipo.equals("notificacion")) {
+                        R.drawable.campana_3d_webp
+                    } else {
+                        R.drawable.promocio_iconn
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = "Mejorar con IA",
+                            tint = Color.White, modifier = Modifier.size(20.dp)
+                        )
+                        texto_generico_one_line(
+                            i.titulo_gen_IA.capitalizeFirst(),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+                    Text(
+                        text = "Dias restantes ${diasRestantes}",
+                        fontSize = 12.sp,
+                        color = backgroundColor
+                    )
+                    texto_generico_one_line(
+                        "Realizado : ${timestampAFechaLegible(i.inicio)}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        texto_generico_one_line(
+                            "Tipo : ${i.tipo.capitalizeFirst()}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Image(
+                            painter = painterResource(icono_promo_noti),
+                            contentDescription = "",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
                 spacer_vertical(5.dp)
                 texto_generico_one_line("Generacion de titulo y descripcion")
 
@@ -507,10 +662,14 @@ fun item_generaciones_con_IA(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
+
                         items(listaConOriginal) { item ->
+
                             val estaSeleccionado =
-                                item.titulo == tituloSeleccionado &&
-                                        item.descripcion == descripcionSeleccionada
+                                (item.titulo == tituloSeleccionado &&
+                                        item.descripcion == descripcionSeleccionada)
+
+
                             generaciones_IA(
                                 "generaciones",
                                 titulo_select = tituloSeleccionado,
@@ -523,8 +682,13 @@ fun item_generaciones_con_IA(
                                 seleccionado = { titulo, descripcion ->
                                     tituloSeleccionado = titulo
                                     descripcionSeleccionada = descripcion
-                                }, {}, { titulo, texto,tipo ->
-                                    mostrar_dialog_mejorar_vesiones(titulo, texto,i.tipo)
+                                }, {}, { titulo, texto, tipo ->
+                                    mostrar_dialog_mejorar_vesiones(
+                                        titulo,
+                                        texto,
+                                        i.tipo,
+                                        i.id_generacion
+                                    )
                                 }
                             )
                         }
@@ -536,6 +700,7 @@ fun item_generaciones_con_IA(
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         generaciones_IA(
+
                             "generaciones",
                             titulo_select = "",
                             descripcion_selet = "",
@@ -545,11 +710,17 @@ fun item_generaciones_con_IA(
                             descripcion = i.generacion_origini.descripcion,
                             tipo = "ORIGINAL",
                             seleccionado = { titulo, descripcion ->
-                            }, {}, { titulo, texto,tipo->
-                                mostrar_dialog_mejorar_vesiones(titulo, texto,i.tipo)
+                            }, {}, { titulo, texto, tipo ->
+                                mostrar_dialog_mejorar_vesiones(
+                                    titulo,
+                                    texto,
+                                    i.tipo,
+                                    i.titulo_gen_IA
+                                )
                             }
                         )
                         generaciones_IA(
+
                             "generaciones",
                             titulo_select = tituloSeleccionado,
                             descripcion_selet = descripcionSeleccionada,
@@ -562,25 +733,84 @@ fun item_generaciones_con_IA(
 
                             }, {
 
-                            }, { titulo, texto,tipo->
-                                mostrar_dialog_mejorar_vesiones(titulo, texto,i.tipo)
+                            }, { titulo, texto, tipo ->
+                                mostrar_dialog_mejorar_vesiones(
+                                    titulo,
+                                    texto,
+                                    i.tipo,
+                                    i.id_generacion
+                                )
                             }
                         )
                     }
                 }
 
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.AutoAwesome,
-                        contentDescription = "Mejorar con IA",
-                        tint = Color.Blue, modifier = Modifier.size(20.dp)
-                    )
-                    texto_generico_one_line("Nuevas generaciones")
+                AnimatedVisibility(nueva_generacion.titulo_nuevo.isNotEmpty() && nueva_generacion.descripcion_nueva.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+
+                        spacer_vertical(10.dp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = "Mejorar con IA",
+                                tint = Color.Blue, modifier = Modifier.size(20.dp)
+                            )
+                            texto_generico_one_line("Nueva generacion")
+                        }
+
+                        texto_generico_one_line_Expandible(
+                            "Realizado el : ${nueva_generacion.fecha_nueva_generacion}",
+                            style = MaterialTheme.typography.bodySmall,
+                            expandir = mostar_apartado_completo
+                        )
+
+                        TextoSubrayado(
+                            "Marcar original",
+                            MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.clickable {
+                                tituloSeleccionado = nueva_generacion.titulo_anterior
+                                descripcionSeleccionada = nueva_generacion.descripcion_anteriror
+                            },
+                            color_subrallado = MaterialTheme.colorScheme.primary
+                        )
+
+
+                        Column(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(9.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .padding(horizontal = 5.dp, vertical = 10.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            texto_generico_multilinea(
+                                nueva_generacion.titulo_nuevo,
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            texto_generico_multilinea(
+                                nueva_generacion.descripcion_nueva,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            BotonIA(
+                                texto = "Usar esta generación",
+                                onClick = {
+                                    usar_nueva_generacion_generada(
+                                        nueva_generacion.titulo_nuevo,
+                                        nueva_generacion.descripcion_nueva
+                                    )
+                                },
+                                icono = IconoIA.Vector(Icons.Default.AutoAwesome)
+                            )
+                        }
+
+
+                    }
                 }
+
+
 
 
 
@@ -617,7 +847,7 @@ fun item_generaciones_con_IA(
                             constantestextos_general.copiarTexto_portapapeles_compouse(
                                 i.generacion_wsap, contex
                             )
-                        }, { _, _ ,_-> })
+                        }, { _, _, _ -> })
 
                 }
 
@@ -642,6 +872,7 @@ fun item_generaciones_con_IA(
                     }
 
                     generaciones_IA(
+
                         "copiado",
                         tituloSeleccionado,
                         descripcionSeleccionada,
@@ -654,7 +885,7 @@ fun item_generaciones_con_IA(
                             constantestextos_general.copiarTexto_portapapeles_compouse(
                                 i.generacion_compartida, contex
                             )
-                        }, { _, _ ,_-> })
+                        }, { _, _, _ -> })
                 }
 
                 spacer_vertical(7.dp)
@@ -719,7 +950,7 @@ fun generaciones_IA(
     descripcion: String,
     tipo: String, seleccionado: (titulo: String, descripcion: String) -> Unit,
     copiar_texto: () -> Unit,
-    mostrar_dialog_mejorar_generacion: (String, String,String) -> Unit
+    mostrar_dialog_mejorar_generacion: (String, String, String) -> Unit
 ) {
 
     val titulo_finla = if (tipo.equals("notificacion")) titulo_select else titulo
@@ -741,6 +972,7 @@ fun generaciones_IA(
                 modifier = Modifier.matchParentSize()
             )
         }
+
 
         val soloTitulo = descripcion.isNotEmpty() && tipo.isEmpty() && titulo.isEmpty()
 
@@ -802,7 +1034,7 @@ fun generaciones_IA(
                             .clickable(
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() }) {
-                                mostrar_dialog_mejorar_generacion(titulo_finla, texto_final,tipo)
+                                mostrar_dialog_mejorar_generacion(titulo_finla, texto_final, tipo)
                             },
                         colorFilter = ColorFilter.tint(Color.White)
                     )
@@ -850,7 +1082,7 @@ fun TresBotonesPrimarios(
     whattsap: Boolean,
     usarWhatsapp: () -> Unit,
     compartir: Boolean,
-    usarCompartir: () -> Unit
+    usarCompartir: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -944,4 +1176,5 @@ fun BotonIA(
         }
     }
 }
+
 

@@ -475,6 +475,28 @@ fun texto_generico_one_line(
 }
 
 @Composable
+fun texto_generico_one_line_Expandible(
+    texto: String,
+    style: TextStyle = MaterialTheme.typography.titleMedium,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.onBackground,
+    expandir: Boolean = false
+) {
+    Log.d("expanire","$expandir")
+    FuenteControladaApp {
+        Text(
+            text = texto,
+            modifier = modifier,
+            style = style,
+            color = color,
+            maxLines = if (expandir) Int.MAX_VALUE else 1,
+            overflow = if (expandir) TextOverflow.Clip else TextOverflow.Ellipsis
+        )
+    }
+}
+
+
+@Composable
 fun texto_generico_multilinea(
     texto: String,
     style: TextStyle = MaterialTheme.typography.titleMedium,

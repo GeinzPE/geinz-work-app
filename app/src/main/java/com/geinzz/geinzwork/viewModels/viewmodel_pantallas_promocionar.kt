@@ -147,8 +147,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         }
     }
 
-
-    fun descartarCambios() {
+    fun descartarCambios(): Boolean {
         titulo = ""
         descripcion = ""
         uriImagen = null
@@ -159,7 +158,9 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         formato_notificacion = ""
         tipo_notificacion = ""
 
+        return true // Indica que se descartaron los cambios
     }
+
 
     private val _estadoRangoPrecio =
         MutableStateFlow(Res_precios())
@@ -239,7 +240,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
 
     fun mejorar_texto_con_promo_IA(
-        total_generaciones: Int,
         tipo_generacion: repo_pantallas_promocionar.TipoGeneracionIA, // 👈 enum directo
         saldo_tienda: Int,
         localidad_tienda: String,
@@ -261,7 +261,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                 }
 
                 val lista = insta_repo.generar_promociones_con_IA(
-                    total_generaciones,
                     tipo_generacion,
                     tituloUsuario,
                     descripcionUsuario,
@@ -301,6 +300,9 @@ class viewmodel_pantallas_promocionar : ViewModel() {
             }
         }
     }
+
+
+
 
     fun limpiar_resutlados_ia_promo() {
         _estado_promociones_ia.value = EstadoIA.Idle
@@ -889,6 +891,8 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         data class Success(val lista: List<OpcionPromocionIA>) : EstadoIA()
         data class Error(val mensaje: String) : EstadoIA()
     }
+
+
 
     sealed class ESstado_ia_msje_whatsap {
         object Idle : ESstado_ia_msje_whatsap()

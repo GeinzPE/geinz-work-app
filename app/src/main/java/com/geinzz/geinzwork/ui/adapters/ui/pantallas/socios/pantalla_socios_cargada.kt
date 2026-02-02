@@ -1768,8 +1768,6 @@ fun pantalla_carga_socios(
             )
             ui_bottom_sheet_generaciones_IA(
                 datos_tienda_params,
-                datos.id_tienda,
-                datos.localidad_tienda,
                 { mostra_bottom_sheet_historial_de_gen_IA =false },
                 datos.nombre,
                 usar_todas = { titulo, descripcion, wsap, compartir,tipo ->

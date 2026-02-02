@@ -22,12 +22,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,32 +41,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.algolia.search.dsl.ranking.DSLRanking
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.GeneracionIA
 import com.geinzz.geinzwork.data.model.OpcionPromocionIA
 import com.geinzz.geinzwork.data.model.datos_para_generacion_dialog_historial_IA
+import com.geinzz.geinzwork.data.model.dialog_generaciones_IA_promo_noti
 import com.geinzz.geinzwork.model.repo_pantallas_promocionar
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_aceptar_etc_dialog_general
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerra_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda_con_la_IA
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.FondoIAAnimado
+import com.geinzz.geinzwork.viewModels.viewmodel_generaciones_IA
 import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_promocionar
 import com.valentinilk.shimmer.shimmer
 
 @Composable
 fun dailog_generaciones_IA_versiones(
+    id_seleccionado:String,
     i: datos_para_generacion_dialog_historial_IA,
-    viewmodel_pantallas_promocionar:viewmodel_pantallas_promocionar,
+    viewmodelGeneracionesIa: viewmodel_generaciones_IA,
     titulo: String,
     texto: String,
     tipo: String,
     ondismis: () -> Unit
 ) {
     val context= LocalContext.current
-    var msje_texto_notificacion_generada by remember { mutableStateOf("Mejorar título y descripción con IA") }
+    var msje_texto_notificacion_generada by remember { mutableStateOf("Mejorar con IA") }
     var tipo_promp_seleccionado_IA by remember {
         mutableStateOf<repo_pantallas_promocionar.TipoGeneracionIA?>(null)
     }
@@ -76,7 +74,12 @@ fun dailog_generaciones_IA_versiones(
     var tipo_promp_seleccionado_IA_notificicaciones by remember {
         mutableStateOf<repo_pantallas_promocionar.TipoGeneracionIA?>(null)
     }
+    var resultadoIA by remember {
+        mutableStateOf<dialog_generaciones_IA_promo_noti?>(null)
+    }
 
+
+    val estado_textos_notificaciones_generadas by viewmodelGeneracionesIa.estado_promociones_ia.collectAsState()
 
     val lista_generacions_IA_proms = listOf(
         GeneracionIA(
@@ -147,15 +150,13 @@ fun dailog_generaciones_IA_versiones(
         )
     )
 
-    val estado_textos_notificaciones_generadas by viewmodel_pantallas_promocionar.estado_promociones_ia.collectAsState()
-
-
     LaunchedEffect(estado_textos_notificaciones_generadas) {
-        if (estado_textos_notificaciones_generadas is viewmodel_pantallas_promocionar.EstadoIA.Success) {
-            msje_texto_notificacion_generada = "Generar nuevamente"
-
+        if (estado_textos_notificaciones_generadas is viewmodel_generaciones_IA.EstadoIA_dialog_centrado.Success) {
+            ondismis()
         }
     }
+
+
 
     AlertDialog(
         onDismissRequest = { ondismis() },
@@ -191,7 +192,7 @@ fun dailog_generaciones_IA_versiones(
                 texto_generico_multilinea(titulo, style = MaterialTheme.typography.titleSmall)
                 spacer_vertical(5.dp)
                 texto_generico_multilinea(texto, style = MaterialTheme.typography.bodySmall)
-
+                    spacer_vertical(5.dp)
                 }
 
                 spacer_vertical(10.dp)
@@ -256,6 +257,7 @@ fun dailog_generaciones_IA_versiones(
                     }
 
                     if (!beneficiosSeleccionados.isNullOrEmpty()) {
+                        spacer_vertical(10.dp)
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -263,7 +265,7 @@ fun dailog_generaciones_IA_versiones(
                                 .clip(CircleShape)
                         ) {
                             val cargando =
-                                estado_textos_notificaciones_generadas is viewmodel_pantallas_promocionar.EstadoIA.Loading
+                                estado_textos_notificaciones_generadas is viewmodel_generaciones_IA.EstadoIA_dialog_centrado.Loading
                             val buttonColor by animateColorAsState(
                                 targetValue = if (cargando)
                                     Color.Black
@@ -282,7 +284,8 @@ fun dailog_generaciones_IA_versiones(
                                 onClick = {
                                     if (!cargando) {
                                         tipo_promp_seleccionado_IA?.let { tipoSeleccionado ->
-                                            viewmodel_pantallas_promocionar.mejorar_texto_con_promo_IA(
+                                            viewmodelGeneracionesIa.mejorar_texto_con_promo_IA(
+                                                id_seleccionado,
                                                 tipo_generacion = tipoSeleccionado, // ✅ seguro, no null
                                                 saldo_tienda = i.monedas_tienda,
                                                 localidad_tienda = i.localidad_tienda,
@@ -352,7 +355,7 @@ fun dailog_generaciones_IA_versiones(
                                         )
                                         spacer_horizonta(5.dp)
                                         texto_generico_one_line(
-                                            "30",
+                                            "15",
                                             style = MaterialTheme.typography.bodyMedium
                                         )
                                         spacer_horizonta(5.dp)
@@ -432,99 +435,6 @@ fun dailog_generaciones_IA_versiones(
                 }
                 spacer_vertical(10.dp)
 
-                val cargando =
-                    false
-                val buttonColor by animateColorAsState(
-                    targetValue = if (cargando)
-                        Color.Black
-                    else
-                        MaterialTheme.colorScheme.primary,
-                    label = "buttonColor"
-                )
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(40.dp)
-                        .clip(CircleShape)
-                ) {
-                    // 🔥 Fondo animado SOLO cuando no carga
-                    if (!cargando) {
-                        FondoIAAnimado(
-                            modifier = Modifier.matchParentSize()
-                        )
-                    }
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (cargando) buttonColor else Color.Transparent,
-                            disabledContainerColor = if (cargando) buttonColor else Color.Transparent,
-                            contentColor = Color.White,
-                            disabledContentColor = Color.White
-                        ),
-                        enabled = !cargando
-                    ) {
-                        if (cargando) {
-                            Box(
-                                modifier = Modifier
-                                    .height(20.dp)
-                                    .width(160.dp)
-                                    .shimmer(),
-                                contentAlignment = Alignment.Center
-
-                            ) {
-
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-
-                                    Spacer(modifier = Modifier.width(8.dp))
-
-                                    texto_generico_one_line(
-                                        "Generando contenido..",
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-
-                                }
-                            }
-                        } else {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    texto_generico_one_line(
-                                        "Volver a mejorar con IA",
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                    spacer_horizonta(5.dp)
-                                    Icon(
-                                        imageVector = Icons.Default.AutoAwesome,
-                                        contentDescription = "Mejorar con IA",
-                                        tint = Color.White
-                                    )
-                                    spacer_horizonta(5.dp)
-                                    texto_generico_one_line(
-                                        "20",
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                    spacer_horizonta(5.dp)
-                                    Image(
-                                        painter = painterResource(R.drawable.icon_monedas_3d),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-
-                                }
-
-                            }
-                        }
-                    }
-                }
             }
         }
     )

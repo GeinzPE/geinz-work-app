@@ -1,17 +1,29 @@
 package com.geinzz.geinzwork.model
 
+import android.util.Log
+import com.geinzz.geinzwork.data.model.NotificacionIA
+import com.geinzz.geinzwork.data.model.OpcionPromocionIA
 import com.geinzz.geinzwork.data.model.datos_gen_IA_Tiendas
 import com.geinzz.geinzwork.data.model.datos_generaciones_IA
+import com.geinzz.geinzwork.data.model.dialog_generaciones_IA_promo_noti
 import com.geinzz.geinzwork.data.model.historial_descuento
 import com.geinzz.geinzwork.data.model.historial_recargas
 import com.geinzz.geinzwork.data.model.lista_genereracione
 import com.geinzz.geinzwork.data.model.nuevas_generaciones_con_IA
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.timestampToFechaHora
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoAtencion_solo_una_generacion
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoInformativo_solo_una_generacion
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoVenta_solo_una_generacion
+import com.geinzz.geinzwork.model.repo_pantallas_promocionar.TipoGeneracionIA
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
 import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas
 import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas.generarIdRecarga
+import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.ai.ai
+import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -75,6 +87,16 @@ class repo_generaciones_IA {
                         )
                     }
 
+                    val nuevas_generaciones =
+                        genIA["nuevas_generaciones"] as? Map<*, *> ?: emptyMap<Any, Any>()
+                    val titulo_nueva_generacion = nuevas_generaciones["titulo"] as? String ?: ""
+                    val descripcion = nuevas_generaciones["descripcion"] as? String ?: ""
+                    val titulo_anterior = nuevas_generaciones["titulo_anterior"] as? String ?: ""
+                    val descripcion_anterior = nuevas_generaciones["descripcion_anterior"] as? String ?: ""
+                    val fecha_nueva_generacion =
+                        nuevas_generaciones["fecha_nueva_generacion"] as? Timestamp ?: Timestamp.now()
+
+                  val fecha_hora_realizado=  timestampToFechaHora(fecha_nueva_generacion)
                     listaFinal.add(
                         datos_gen_IA_Tiendas(
                             inicio = inicio,
@@ -96,16 +118,146 @@ class repo_generaciones_IA {
                                     seleccion["titulo"] as? String ?: "",
                                 descripcion_seleccionada_ge_IA =
                                     seleccion["descripcion"] as? String ?: ""
+                            ), nuevas_generaciones = nuevas_generaciones_con_IA(
+                                titulo_nuevo = titulo_nueva_generacion,
+                                descripcion_nueva = descripcion, fecha_hora_realizado,titulo_anterior,descripcion_anterior
                             )
                         )
                     )
                 }
 
-                // 📅 ordenar por fecha
                 trySend(listaFinal.sortedByDescending { it.fin.seconds })
             }
 
         awaitClose { listener.remove() }
+    }
+
+
+    fun generarPromptSegunTipoUnaGeneracion(
+        tipo: TipoGeneracionIA,
+        tituloUsuario: String,
+        descripcionUsuario: String,
+        nombreTienda: String,
+        localidad: String
+    ): String {
+        return when (tipo) {
+
+            TipoGeneracionIA.VENTA ->
+                generarPromptPromoVenta_solo_una_generacion(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+
+            TipoGeneracionIA.ATENCION ->
+                generarPromptPromoAtencion_solo_una_generacion(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+
+            TipoGeneracionIA.INFORMATIVO,
+            TipoGeneracionIA.URGENCIA,
+            TipoGeneracionIA.NOVEDAD,
+            TipoGeneracionIA.OPERATIVA,
+            TipoGeneracionIA.REPOSICION,
+            TipoGeneracionIA.CITAS,
+            TipoGeneracionIA.SERVICIOS ->
+                generarPromptPromoInformativo_solo_una_generacion(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+        }
+    }
+
+
+    suspend fun generar_promocion_con_IA(
+        id_promo_noti_gen: String,
+        tipo_generacion: TipoGeneracionIA,
+        tituloUsuario: String,
+        descripcionUsuario: String,
+        nombreTienda: String,
+        localidad: String,
+    ): dialog_generaciones_IA_promo_noti? {
+
+        return try {
+            val model = Firebase.ai(
+                backend = GenerativeBackend.googleAI()
+            ).generativeModel("gemini-2.5-flash")
+
+            val prompt = generarPromptSegunTipoUnaGeneracion(
+                tipo = tipo_generacion,
+                tituloUsuario = tituloUsuario,
+                descripcionUsuario = descripcionUsuario,
+                nombreTienda = nombreTienda,
+                localidad = localidad
+            )
+
+            val result = model.generateContent(prompt)
+            val texto = result.text ?: return null
+
+            parsearRespuestaIA(id_promo_noti_gen, texto)
+
+        } catch (e: Exception) {
+            Log.e("IA", "Error IA promociones: ${e.message}")
+            null
+        }
+    }
+
+
+    fun parsearRespuestaIA(
+        id_promo_noti_gen: String,
+        texto: String
+    ): dialog_generaciones_IA_promo_noti? {
+
+        val titulo = Regex("T:\\s*(.*)")
+            .find(texto)
+            ?.groupValues
+            ?.get(1)
+            ?.trim()
+
+        val descripcion = Regex("D:\\s*([\\s\\S]*)")
+            .find(texto)
+            ?.groupValues
+            ?.get(1)
+            ?.trim()
+
+        if (titulo.isNullOrBlank() || descripcion.isNullOrBlank()) {
+            return null
+        }
+
+        return dialog_generaciones_IA_promo_noti(
+            id_promo_noti_gen,
+            titulo = titulo,
+            descripcion = descripcion
+        )
+    }
+
+
+    suspend fun agregar_nuevas_generaciones(
+        titulo_anterior:String,descripcion_anterior:String,
+        id_tienda: String,
+        localidad: String,
+        titulo_nuevo: String,
+        texto_nuevo: String,
+        id_generacion: String
+    ) {
+        val ref = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(id_tienda)
+            .collection("gen_con_IA_historial")
+            .document(id_generacion)
+
+
+        val nuevasGeneraciones = hashMapOf(
+            "titulo" to titulo_nuevo,
+            "descripcion" to texto_nuevo,
+            "fecha_nueva_generacion" to Timestamp.now(),
+            "titulo_anterior" to titulo_anterior,
+            "descripcion_anterior" to descripcion_anterior
+        )
+
+        ref.update(
+            mapOf(
+                "generacions_con_IA.nuevas_generaciones" to nuevasGeneraciones,
+            )
+        ).await()
     }
 
 

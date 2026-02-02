@@ -948,7 +948,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                 },
                 text = {
                     texto_generico_multilinea(
-                        "Tienes datos sin guardar. ¿Deseas descartarlos?",
+                        "Tienes campos llenos. ¿Deseas descartarlos?",
                         style = MaterialTheme.typography.bodyMedium
                     )
 
