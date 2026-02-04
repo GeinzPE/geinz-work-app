@@ -3,6 +3,7 @@ package com.geinzz.geinzwork.model
 import android.annotation.SuppressLint
 import android.util.Log
 import com.geinzz.geinzwork.data.model.NotificacionIA
+import com.geinzz.geinzwork.data.model.NotificacionIA_dialog
 import com.geinzz.geinzwork.data.model.OpcionPromocionIA
 import com.geinzz.geinzwork.data.model.datos_gen_IA_Tiendas
 import com.geinzz.geinzwork.data.model.datos_generaciones_IA
@@ -16,7 +17,16 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expir
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoAtencion_solo_una_generacion
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoInformativo_solo_una_generacion
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoVenta_solo_una_generacion
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionAtencion
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionCita
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionNovedad
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionOperativa
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionReposicion
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionServicios
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionUrgencia
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionVenta
 import com.geinzz.geinzwork.model.repo_pantallas_promocionar.TipoGeneracionIA
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.acortarDescripcionNotificacion
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
 import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas
@@ -260,6 +270,114 @@ class repo_generaciones_IA {
                 "generacions_con_IA.nuevas_generaciones" to nuevasGeneraciones,
             )
         ).await()
+    }
+
+
+
+    suspend fun crear_notificacion_conIA_corta(
+        id_notificacion_promo:String,
+        tituloPublicacion: String,
+        descCorta: String,
+        tipoGeneracion: TipoGeneracionIA,  // <-- nuevo
+        onResultado: (NotificacionIA_dialog) -> Unit
+    ) {
+
+        val model = Firebase.ai(
+            backend = GenerativeBackend.googleAI()
+        ).generativeModel("gemini-2.5-flash")
+
+        val descripcion_acortada = acortarDescripcionNotificacion(descCorta)
+
+        try {
+            // Elegimos el prompt según el tipo
+            val prompt = when (tipoGeneracion) {
+                TipoGeneracionIA.VENTA -> promptNotificacionVenta(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+
+                TipoGeneracionIA.ATENCION -> promptNotificacionAtencion(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+
+                TipoGeneracionIA.URGENCIA -> promptNotificacionUrgencia(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+
+                TipoGeneracionIA.NOVEDAD -> promptNotificacionNovedad(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+
+                TipoGeneracionIA.INFORMATIVO -> promptNotificacionAtencion(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+
+                TipoGeneracionIA.OPERATIVA -> promptNotificacionOperativa(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+
+                TipoGeneracionIA.REPOSICION -> promptNotificacionReposicion(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+
+                TipoGeneracionIA.CITAS -> promptNotificacionCita(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+
+                TipoGeneracionIA.SERVICIOS -> promptNotificacionServicios(
+                    tituloPublicacion,
+                    descripcion_acortada
+                )
+            }
+
+            val inicio = System.currentTimeMillis()
+            val result = model.generateContent(prompt)
+            val textoGenerado = result.text ?: ""
+            val fin = System.currentTimeMillis()
+
+            Log.d("Gemini", "Tiempo: ${fin - inicio} ms")
+            Log.d("Gemini", "Resultado:\n$textoGenerado")
+
+            // 🔥 PARSEAR RESPUESTA
+            val notificacion = parsearRespuestaGemini(textoGenerado)
+
+            val datos_enviados= NotificacionIA_dialog(
+                id_promo_noti_gen =id_notificacion_promo,
+                titulo = notificacion.titulo,
+                descripcion = notificacion.descripcion
+            )
+
+            // 🔁 RETORNAR RESULTADO
+            onResultado(datos_enviados)
+
+        } catch (e: Exception) {
+            Log.e("Gemini", "Error IA: ${e.message}")
+        }
+
+    }
+
+    fun parsearRespuestaGemini(texto: String): NotificacionIA {
+        var titulo = ""
+        var descripcion = ""
+
+        texto.lines().forEach { linea ->
+            when {
+                linea.startsWith("T:") -> titulo = linea.removePrefix("T:").trim()
+
+                linea.startsWith("D:") -> descripcion = linea.removePrefix("D:").trim()
+            }
+        }
+
+        return NotificacionIA(
+            titulo = titulo, descripcion = descripcion
+        )
     }
 
 

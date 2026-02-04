@@ -81,6 +81,9 @@ fun dailog_generaciones_IA_versiones(
 
     val estado_textos_notificaciones_generadas by viewmodelGeneracionesIa.estado_promociones_ia.collectAsState()
 
+    val estado_notificaion_con_ia_corta by viewmodelGeneracionesIa.estado_notificaion_con_ia_corta.collectAsState()
+
+
     val lista_generacions_IA_proms = listOf(
         GeneracionIA(
             tipo = repo_pantallas_promocionar.TipoGeneracionIA.VENTA,
@@ -152,6 +155,12 @@ fun dailog_generaciones_IA_versiones(
 
     LaunchedEffect(estado_textos_notificaciones_generadas) {
         if (estado_textos_notificaciones_generadas is viewmodel_generaciones_IA.EstadoIA_dialog_centrado.Success) {
+            ondismis()
+        }
+    }
+
+    LaunchedEffect(estado_notificaion_con_ia_corta) {
+        if(estado_notificaion_con_ia_corta is viewmodel_generaciones_IA.EstadoIA_dialog_centrado.Success){
             ondismis()
         }
     }
@@ -380,8 +389,6 @@ fun dailog_generaciones_IA_versiones(
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-
-
                         items(lista_generacions_IA_notificaciones) { subcategoria ->
 
                             val seleccionado =
@@ -428,6 +435,118 @@ fun dailog_generaciones_IA_versiones(
                                         texto = beneficio,
                                         style = MaterialTheme.typography.bodySmall
                                     )
+                                }
+                            }
+                        }
+                    }
+                    if (!beneficiosSeleccionados.isNullOrEmpty()) {
+                        spacer_vertical(10.dp)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .clip(CircleShape)
+                        ) {
+                            val cargando =
+                                estado_notificaion_con_ia_corta is viewmodel_generaciones_IA.EstadoIA_dialog_centrado_notificaciones.Loading
+                            val buttonColor by animateColorAsState(
+                                targetValue = if (cargando)
+                                    Color.Black
+                                else
+                                    MaterialTheme.colorScheme.primary,
+                                label = "buttonColor"
+                            )
+                            // 🔥 Fondo animado SOLO cuando no carga
+                            if (!cargando) {
+                                FondoIAAnimado(
+                                    modifier = Modifier.matchParentSize()
+                                )
+
+                            }
+                            Button(
+                                onClick = {
+                                    if (!cargando) {
+
+                                    tipo_promp_seleccionado_IA_notificicaciones?.let { tipoSeleccionado ->
+
+                                        viewmodelGeneracionesIa.mejorar_mejorar_notificacion_con_IA_corta(
+                                            id_seleccionado,
+                                            tipo_select_IA = "Gen IA (Notificación - REGENERADO)",
+                                            tipoSeleccionado = tipoSeleccionado,
+                                            saldo_tienda = i.monedas_tienda,
+                                            localidad_tienda = i.localidad_tienda,
+                                            id_tienda = i.id_tienda,
+                                            nombre_tienda = i.nombre_tienda,
+                                            titulo_publicacion = titulo,
+                                            descripcion = texto
+                                        )
+                                    } ?: run {
+                                        // 🚨 null -> opcional: mostrar mensaje de error o toast
+                                        Toast.makeText(
+                                            context,
+                                            "Selecciona un tipo de generacion antes",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                    }
+                                },
+                                enabled = !cargando,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (cargando) buttonColor else Color.Transparent,
+                                    disabledContainerColor = if (cargando) buttonColor else Color.Transparent,
+                                    contentColor = Color.White,
+                                    disabledContentColor = Color.White
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                if (cargando) {
+                                    Box(
+                                        modifier = Modifier
+                                            .height(20.dp)
+                                            .width(160.dp)
+                                            .shimmer(), contentAlignment = Alignment.Center
+                                    ) {
+
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+
+                                            Spacer(modifier = Modifier.width(8.dp))
+
+                                            texto_generico_one_line(
+                                                "Generando contenido..",
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+
+                                        }
+                                    }
+                                } else {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        texto_generico_one_line(
+                                            msje_texto_notificacion_generada,
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                        spacer_horizonta(5.dp)
+                                        Icon(
+                                            imageVector = Icons.Default.AutoAwesome,
+                                            contentDescription = "Mejorar con IA",
+                                            tint = Color.White
+                                        )
+                                        spacer_horizonta(5.dp)
+                                        texto_generico_one_line(
+                                            "15",
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                        spacer_horizonta(5.dp)
+                                        Image(
+                                            painter = painterResource(R.drawable.icon_monedas_3d),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+
+                                    }
                                 }
                             }
                         }

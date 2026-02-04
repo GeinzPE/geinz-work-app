@@ -3,6 +3,8 @@ package com.geinzz.geinzwork.viewModels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geinzz.geinzwork.data.model.NotificacionIA
+import com.geinzz.geinzwork.data.model.NotificacionIA_dialog
 import com.geinzz.geinzwork.data.model.datos_gen_IA_Tiendas
 import com.geinzz.geinzwork.data.model.dialog_generaciones_IA_promo_noti
 import com.geinzz.geinzwork.data.model.historial_descuento
@@ -12,6 +14,7 @@ import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaD
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
 import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas
 import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_promocionar.EstadoIA
+import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_promocionar.EstadoIA_notifi_corta
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -35,6 +38,12 @@ class viewmodel_generaciones_IA : ViewModel() {
 
     val estado_promociones_ia: StateFlow<EstadoIA_dialog_centrado> =
         _estado_promociones_ia
+
+    private val _estado_notificacion_con_ia_corta =
+        MutableStateFlow<EstadoIA_dialog_centrado_notificaciones>(EstadoIA_dialog_centrado_notificaciones.Idle)
+
+    val estado_notificaion_con_ia_corta: StateFlow<EstadoIA_dialog_centrado_notificaciones> =
+        _estado_notificacion_con_ia_corta
 
 
     fun obtner_generaciones_IA(localida: String, id_tienda: String) {
@@ -167,6 +176,71 @@ class viewmodel_generaciones_IA : ViewModel() {
         _estado_promociones_ia.value=EstadoIA_dialog_centrado.Idle
     }
 
+
+    fun mejorar_mejorar_notificacion_con_IA_corta(
+        id_notificacion_promo:String,
+        tipo_select_IA: String,
+        tipoSeleccionado: repo_pantallas_promocionar.TipoGeneracionIA,
+        saldo_tienda: Int, localidad_tienda: String, id_tienda: String,
+        nombre_tienda: String,
+        titulo_publicacion: String,
+        descripcion: String
+    ) {
+        Log.d("titulo_publicacion", "$titulo_publicacion $descripcion")
+        viewModelScope.launch {
+
+            _estado_notificacion_con_ia_corta.value =
+                EstadoIA_dialog_centrado_notificaciones.Loading
+
+            try {
+                if (saldo_tienda < 20) {
+                    _estado_notificacion_con_ia_corta.value =
+                        EstadoIA_dialog_centrado_notificaciones.Error("saldo insuficiente")
+                    return@launch
+                }
+                insta_repo.crear_notificacion_conIA_corta(
+                    id_notificacion_promo,
+                    titulo_publicacion,
+                    descripcion, tipoSeleccionado,
+                ) { notificacionIA ->
+                    _estado_notificacion_con_ia_corta.value =
+                        EstadoIA_dialog_centrado_notificaciones.Success(notificacionIA)
+                    if (notificacionIA.titulo.isNotEmpty() && notificacionIA.descripcion.isNotEmpty()) {
+                        val historial_descuento = historial_descuento(
+                            tipo_transaccion = "descuento",
+                            fecha = obtenerFechaActual(),
+                            hora = obtenerHoraActual(),
+                            id_recarga = constantes_cobro_monedas.generarIdRecarga(),
+                            localidad_tienda = localidad_tienda,
+                            id_tienda = id_tienda,
+                            nombre_tienda = nombre_tienda,
+                            monto_descuento = "15",
+                            tipo = tipo_select_IA,
+                            precio_soles = constantes_cobro_monedas.calcular_precio_soles("15")
+                                .toString(), estado = "Aceptado", monto_restante = saldo_tienda - 15
+                        )
+                        viewmodel_recargas.restar_puntos_recarga(
+                            historial_descuento,
+                            "15",
+                            id_tienda,
+                            localidad_tienda
+                        )
+                    }
+                }
+
+            } catch (e: Exception) {
+                _estado_notificacion_con_ia_corta.value =
+                    EstadoIA_dialog_centrado_notificaciones.Error(
+                        e.message ?: "Error al generar la notificación con IA"
+                    )
+            }
+        }
+    }
+
+    fun resetear_Estado_notificacion_enviadad() {
+        _estado_notificacion_con_ia_corta.value = EstadoIA_dialog_centrado_notificaciones.Idle
+    }
+
     sealed class EstadoIA_dialog_centrado {
         object Idle : EstadoIA_dialog_centrado()
         object Loading : EstadoIA_dialog_centrado()
@@ -175,6 +249,15 @@ class viewmodel_generaciones_IA : ViewModel() {
 
         data class Error(val mensaje: String) : EstadoIA_dialog_centrado()
     }
+
+
+    sealed class EstadoIA_dialog_centrado_notificaciones {
+        object Idle : EstadoIA_dialog_centrado_notificaciones()
+        object Loading : EstadoIA_dialog_centrado_notificaciones()
+        data class Success(val txt_descripcion: NotificacionIA_dialog) : EstadoIA_dialog_centrado_notificaciones()
+        data class Error(val mensaje: String) : EstadoIA_dialog_centrado_notificaciones()
+    }
+
 
 
     sealed class EstadoGeneracionesIA {

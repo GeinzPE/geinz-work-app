@@ -430,8 +430,6 @@ fun pantalla_promocionar(
             )
         ) {
             viewmodel_pantalla_promocionar.titulo = predeterminado.titulo
-//            version_nombre_publicacion_original = predeterminado.titulo
-//            descripcion_publicacion_original = predeterminado.descripcion
             viewmodel_pantalla_promocionar.descripcion = predeterminado.descripcion
 
             if (predeterminado.whatsapp.isNotEmpty()) {
@@ -441,14 +439,13 @@ fun pantalla_promocionar(
             if (predeterminado.compartir.isNotEmpty()) {
                 compartir = true
             }
-        } else if (predeterminado.tipo_redirigido.equals("notificacion")) {
+        } else if (predeterminado.tipo_redirigido.equals("notificacion") || predeterminado.tipo_redirigido.equals("notificacion_sin_publicar")) {
             titulo_notificacion = predeterminado.titulo
             viewmodel_pantalla_promocionar.titulo_notificacion = predeterminado.titulo
             descripcion_notificacion = predeterminado.descripcion
             viewmodel_pantalla_promocionar.descripcion_notificacion = predeterminado.descripcion
             mensaje_whatsapp_de_publi_a_notificacion = predeterminado.whatsapp
         }
-
 
     }
 

@@ -79,6 +79,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.geinzz.geinzwork.data.model.IconoIA
+import com.geinzz.geinzwork.data.model.NotificacionIA
+import com.geinzz.geinzwork.data.model.NotificacionIA_dialog
 import com.geinzz.geinzwork.data.model.OpcionPromocionIA
 import com.geinzz.geinzwork.data.model.datos_generaciones_sin_publicaicones
 import com.geinzz.geinzwork.data.model.datos_para_generacion_dialog_historial_IA
@@ -134,16 +136,19 @@ fun ui_bottom_sheet_generaciones_IA(
     var resultadoIA by remember {
         mutableStateOf<dialog_generaciones_IA_promo_noti?>(null)
     }
+    var nueva_generacion_notificaciones by remember { mutableStateOf(NotificacionIA_dialog()) }
 
     val scope = rememberCoroutineScope()
 
-    val estado_textos_notificaciones_generadas by viewmodelGeneracionesIa.estado_promociones_ia.collectAsState()
+    val estado_textos_promociones_generadas by viewmodelGeneracionesIa.estado_promociones_ia.collectAsState()
+
+    val estado_textos_notificaciones_generad by viewmodelGeneracionesIa.estado_notificaion_con_ia_corta.collectAsState()
 
 
-    LaunchedEffect(estado_textos_notificaciones_generadas) {
-        if (estado_textos_notificaciones_generadas is viewmodel_generaciones_IA.EstadoIA_dialog_centrado.Success) {
+    LaunchedEffect(estado_textos_promociones_generadas) {
+        if (estado_textos_promociones_generadas is viewmodel_generaciones_IA.EstadoIA_dialog_centrado.Success) {
             resultadoIA =
-                (estado_textos_notificaciones_generadas as viewmodel_generaciones_IA.EstadoIA_dialog_centrado.Success).generacion
+                (estado_textos_promociones_generadas as viewmodel_generaciones_IA.EstadoIA_dialog_centrado.Success).generacion
             Log.d("desde_otro_sitio_Verinado", "$resultadoIA")
             resultadoIA?.let { resultado ->
                 viewmodelGeneracionesIa.agregar_nueva_generacion_remasterizada(
@@ -167,12 +172,44 @@ fun ui_bottom_sheet_generaciones_IA(
         }
     }
 
+    LaunchedEffect(estado_textos_notificaciones_generad) {
+        if (estado_textos_notificaciones_generad is viewmodel_generaciones_IA.EstadoIA_dialog_centrado_notificaciones.Success) {
+            nueva_generacion_notificaciones =
+                (estado_textos_notificaciones_generad as viewmodel_generaciones_IA.EstadoIA_dialog_centrado_notificaciones.Success).txt_descripcion
+            Log.d("desde_otro_sitio_Verinado", "${nueva_generacion_notificaciones.id_promo_noti_gen}")
+
+            Log.d("desde_otro_sitio_Verinado", "${nueva_generacion_notificaciones.titulo}")
+            Log.d("desde_otro_sitio_Verinado", "${nueva_generacion_notificaciones.id_promo_noti_gen}")
+
+                viewmodelGeneracionesIa.agregar_nueva_generacion_remasterizada(
+                    titulo_dialog_mejorar_version, texto_dialog_mejorar_version,
+                    i.id_tienda,
+                    i.localidad_tienda,
+                    nueva_generacion_notificaciones.titulo,
+                    nueva_generacion_notificaciones.descripcion,
+                    nueva_generacion_notificaciones.id_promo_noti_gen
+                )
+
+            scope.launch {
+                // Llama al SnackbarHostState para mostrar el mensaje
+                snackbarHostState.showSnackbar(
+                    message = "La nueva generación se creó correctamente.",
+
+                    duration = SnackbarDuration.Short
+                )
+            }
+            viewmodelGeneracionesIa.resetear_Estado_notificacion_enviadad()
+        }
+    }
+
+
 
     val lsita_fitlrado_opciones = listOf(
         "Todos",
         "Generaciones de promociones",
-        "Generaciones no publicadas",
+        "Generaciones no publicadas (promociones)",
         "Generaciones de notificaciones",
+        "Generaciones no publicadas (notificaciones)",
         "Por vencer",
     )
 
@@ -211,8 +248,12 @@ fun ui_bottom_sheet_generaciones_IA(
                             "Todos" -> {
                                 lista
                             }
-                            "Generaciones no publicadas" ->{
+                            "Generaciones no publicadas (promociones)" ->{
                                 lista.filter { it.tipo_realizado=="generacion_publicacion_sin_pulicar" }
+                            }
+
+                            "Generaciones no publicadas (notificaciones)" ->{
+                                lista.filter { it.tipo_realizado=="notificacion_sin_publicar" }
                             }
 
                             "Generaciones de promociones" -> {
@@ -690,6 +731,7 @@ fun item_generaciones_con_IA(
 
                         items(listaConOriginal) { item ->
 
+                            val original_tipo_ =if (item.titulo==i.generacion_origini.titulo) "ORIGINAL" else item.tipo
                             val estaSeleccionado =
                                 (item.titulo == tituloSeleccionado &&
                                         item.descripcion == descripcionSeleccionada)
@@ -703,7 +745,7 @@ fun item_generaciones_con_IA(
                                 width_auto = true,
                                 titulo = item.titulo,
                                 descripcion = item.descripcion,
-                                tipo = item.tipo,
+                                tipo = original_tipo_,
                                 seleccionado = { titulo, descripcion ->
                                     tituloSeleccionado = titulo
                                     descripcionSeleccionada = descripcion
@@ -725,7 +767,6 @@ fun item_generaciones_con_IA(
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         generaciones_IA(
-
                             "generaciones",
                             titulo_select = "",
                             descripcion_selet = "",
@@ -745,7 +786,6 @@ fun item_generaciones_con_IA(
                             }
                         )
                         generaciones_IA(
-
                             "generaciones",
                             titulo_select = tituloSeleccionado,
                             descripcion_selet = descripcionSeleccionada,
@@ -755,7 +795,6 @@ fun item_generaciones_con_IA(
                             descripcion = descripcionSeleccionada,
                             tipo = "GENERADO",
                             seleccionado = { titulo, descripcion ->
-
                             }, {
 
                             }, { titulo, texto, tipo ->

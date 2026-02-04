@@ -303,6 +303,12 @@ data class NotificacionIA(
     val descripcion: String
 )
 
+data class NotificacionIA_dialog(
+    val id_promo_noti_gen: String="",
+    val titulo: String="",
+    val descripcion: String=""
+)
+
 
 data class dialog_generaciones_IA_promo_noti(
     val id_promo_noti_gen: String,
