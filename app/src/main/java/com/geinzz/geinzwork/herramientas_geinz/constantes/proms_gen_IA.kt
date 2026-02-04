@@ -599,4 +599,20 @@ D:
 }
 
 
+fun generarPromptNombreGeneracionIA(
+    titulo: String,
+    descripcion: String
+): String {
+    return """
+Devuelve SOLO el nombre final.
+NO incluyas etiquetas como "Nombre:", ni comillas, ni explicaciones.
+Máximo 40 caracteres.
+Incluye exactamente 1 emoji relevante.
+Resume sin inventar.
+
+Título: $titulo
+Descripción: $descripcion
+""".trimIndent()
+}
+
 

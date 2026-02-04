@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios
 
 // Android
+import android.util.Log
 import android.widget.Space
 import android.graphics.Color as AndroidColor
 
@@ -41,10 +42,12 @@ object EstadisticasHistorialMonedas {
     @Composable
     fun GraficoBarrasVerticalInteractivo(
         conteoPorTipo: Map<String, Int>,
-        modifier: Modifier = Modifier.fillMaxWidth()
+        modifier: Modifier = Modifier.fillMaxWidth(),
+        onTipoSeleccionado: (String?,Int?) -> Unit  // 🔹 CALLBACK
     ) {
         val tipos = conteoPorTipo.keys.toList()
         val valores = conteoPorTipo.values.toList()
+
 
         val coloresVivos = listOf(
             Color(0xFF4CAF50), // Verde
@@ -115,16 +118,24 @@ object EstadisticasHistorialMonedas {
 
                         data = PieData(dataSet)
 
-                        // 🔹 SINCRONIZA selección con la leyenda
                         setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
                             override fun onValueSelected(e: Entry?, h: Highlight?) {
-                                selectedIndex.value = h?.x?.toInt() ?: -1
+                                val index = h?.x?.toInt() ?: -1
+                                selectedIndex.value = index
+
+                                val tipoSeleccionado = tipos.getOrNull(index)
+                                val cantidad = valores.getOrNull(index)
+
+                                // 🔹 Pasamos directamente al callback
+                                onTipoSeleccionado(tipoSeleccionado, cantidad)
                             }
 
                             override fun onNothingSelected() {
                                 selectedIndex.value = -1
+                                onTipoSeleccionado(null, null)
                             }
                         })
+
 
                         animateY(900)
                         invalidate()
@@ -135,6 +146,7 @@ object EstadisticasHistorialMonedas {
                     .height(300.dp)
             )
 
+            // 🔹 Leyenda como ya tenías
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -142,12 +154,10 @@ object EstadisticasHistorialMonedas {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 tipos.chunked(2).forEachIndexed { rowIndex, fila ->
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-
                         fila.forEachIndexed { colIndex, tipo ->
                             val index = rowIndex * 2 + colIndex
                             val activo = selectedIndex.value == -1 || selectedIndex.value == index
@@ -155,7 +165,7 @@ object EstadisticasHistorialMonedas {
                             Row(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(56.dp) // 🔹 ALTURA FIJA
+                                    .height(56.dp)
                                     .background(
                                         color = Color.White.copy(alpha = if (activo) 0.08f else 0.03f),
                                         shape = RoundedCornerShape(12.dp)
@@ -164,7 +174,6 @@ object EstadisticasHistorialMonedas {
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-
                                 Box(
                                     modifier = Modifier
                                         .size(14.dp)
@@ -181,22 +190,20 @@ object EstadisticasHistorialMonedas {
                                         .copy(alpha = if (activo) 1f else 0.3f),
                                     fontSize = 13.sp,
                                     maxLines = 2,
-                                    lineHeight = 16.sp, // 🔹 CONTROL VISUAL
+                                    lineHeight = 16.sp,
                                     textAlign = TextAlign.Start
                                 )
                             }
                         }
 
-                        // 🔹 Rellena si queda una sola card
                         if (fila.size == 1) {
                             Spacer(modifier = Modifier.weight(1f))
                         }
                     }
                 }
             }
-
-
         }
+
     }
 
     // 🔹 Helpers Color

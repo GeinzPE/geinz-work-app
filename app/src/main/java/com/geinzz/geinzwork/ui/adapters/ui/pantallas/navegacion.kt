@@ -659,7 +659,7 @@ fun nativationWrapper(
                 }
 
                 composable<login_scios> {
-                    login_socios(isConnected)
+                    login_socios(isConnected,"",navController)
                 }
 
                 composable<crear_cuenta_geinz> { navback ->
@@ -777,14 +777,14 @@ fun nativationWrapper(
                 }
 
                 composable("promocionar_ads") {
-                    login_socios(isConnected,"envio")
+                    login_socios(isConnected,"envio",navController)
                 }
                 composable("promocionar_rec") {
-                    login_socios(isConnected,"recargas")
+                    login_socios(isConnected,"recargas",navController)
                 }
 
                 composable("promocionar_rec") {
-                    login_socios(isConnected,"envio")
+                    login_socios(isConnected,"envio",navController)
                 }
                 composable ("promociones_nuevas"){
                     ui_promos_cerca_de_ti(

@@ -197,7 +197,7 @@ fun dailog_generaciones_IA_versiones(
 
                 spacer_vertical(10.dp)
 
-                if (tipo == "publicacion") {
+                if (tipo == "publicacion" || tipo == "generacion_publicacion_sin_pulicar") {
 
                     texto_generico_multilinea(
                         "Selecciona el tipo de contenido que quieres generar",

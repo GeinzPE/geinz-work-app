@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios
 
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -73,12 +74,15 @@ import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.OpcionPromocionIA
 import com.geinzz.geinzwork.data.model.cambiar_datos_pago_contacto
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
+import com.geinzz.geinzwork.data.model.datos_generaciones_sin_publicaicones
 import com.geinzz.geinzwork.data.model.datos_grafico
 import com.geinzz.geinzwork.data.model.datos_para_generacion_dialog_historial_IA
 import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.data.model.datos_tienda_fechas
+import com.geinzz.geinzwork.data.model.lista_genereracione
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
@@ -127,10 +131,10 @@ fun pantalla_carga_socios(
     datos: datos_tienda,
     isConnected: Boolean,
     id_registrado: (String) -> Unit,
-    navegarcrear_pùblicidad_todas:(String, String, String, String,String)-> Unit,
-    navegarcrear_pùblicidad_titulo_descripcion:(String, String,String)-> Unit,
-    navegarcrear_pùblicidad_wsap:(String,String)-> Unit,
-    navegarcrear_pùblicidad_compartiro:(String,String)-> Unit,
+    navegarcrear_pùblicidad_todas: (String, String, String, String, String, String?, i: datos_generaciones_sin_publicaicones) -> Unit,
+    navegarcrear_pùblicidad_titulo_descripcion: (String, String, String, String?, i:datos_generaciones_sin_publicaicones) -> Unit,
+    navegarcrear_pùblicidad_wsap: (String, String, String?) -> Unit,
+    navegarcrear_pùblicidad_compartiro: (String, String, String?) -> Unit,
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
     val viewmodel: viewmodel_eres_socio = viewModel()
@@ -1760,7 +1764,7 @@ fun pantalla_carga_socios(
         }
 
         if (mostra_bottom_sheet_historial_de_gen_IA) {
-            val datos_tienda_params=datos_para_generacion_dialog_historial_IA(
+            val datos_tienda_params = datos_para_generacion_dialog_historial_IA(
                 nombre_tienda = datos.nombre,
                 monedas_tienda = datos.saldo_disponible_tienda.toInt(),
                 localidad_tienda = datos.localidad_tienda,
@@ -1768,19 +1772,71 @@ fun pantalla_carga_socios(
             )
             ui_bottom_sheet_generaciones_IA(
                 datos_tienda_params,
-                { mostra_bottom_sheet_historial_de_gen_IA =false },
+                { mostra_bottom_sheet_historial_de_gen_IA = false },
                 datos.nombre,
-                usar_todas = { titulo, descripcion, wsap, compartir,tipo ->
-                    navegarcrear_pùblicidad_todas(titulo,descripcion,wsap,compartir,tipo)
+                usar_todas = { titulo, descripcion, wsap, compartir, tipo, id_generacion, datos_generaciones_sin_publicaicones ->
+                    Log.d("tipo_pbntenido1", "$tipo")
+                    if (tipo == "generacion_publicacion_sin_pulicar") {
+                        navegarcrear_pùblicidad_todas(
+                            titulo,
+                            descripcion,
+                            wsap,
+                            compartir,
+                            tipo,
+                            id_generacion,
+                            datos_generaciones_sin_publicaicones
+                        )
+                    } else {
+                        navegarcrear_pùblicidad_todas(
+                            titulo,
+                            descripcion,
+                            wsap,
+                            compartir,
+                            tipo,
+                            null,
+                            datos_generaciones_sin_publicaicones()
+                        )
+                    }
                 },
-                usar_titulo_descripcion = { titulo, descrpcion,tipo ->
-                    navegarcrear_pùblicidad_titulo_descripcion(titulo,descrpcion,tipo)
+                usar_titulo_descripcion = { titulo, descrpcion, tipo, id_generacion, datos_generaciones_sin_publicaicones ->
+                    Log.d("tipo_pbntenido2", "$tipo")
+                    if (tipo == "generacion_publicacion_sin_pulicar") {
+                        navegarcrear_pùblicidad_titulo_descripcion(
+                            titulo,
+                            descrpcion,
+                            tipo,
+                            id_generacion,
+                            datos_generaciones_sin_publicaicones
+                        )
+                    } else {
+                        navegarcrear_pùblicidad_titulo_descripcion(
+                            titulo,
+                            descrpcion,
+                            tipo,
+                            null,
+                            datos_generaciones_sin_publicaicones()
+                        )
+                    }
                 },
-                usar_wsap = { msje,tipo->
-                    navegarcrear_pùblicidad_wsap(msje,tipo)
+                usar_wsap = { msje, tipo, id_generacion ->
+                    Log.d("tipo_pbntenido3", "$tipo")
+                    if (tipo == "generacion_publicacion_sin_pulicar") {
+                        navegarcrear_pùblicidad_wsap(msje, tipo, id_generacion)
+
+                    } else {
+                        navegarcrear_pùblicidad_wsap(msje, tipo, null)
+
+                    }
                 },
-                usar_compartir = { msje,tipo->
-                    navegarcrear_pùblicidad_compartiro(msje,tipo)
+                usar_compartir = { msje, tipo, id_generacion ->
+                    Log.d("tipo_pbntenido4", "$tipo")
+                    if (tipo == "generacion_publicacion_sin_pulicar") {
+                        navegarcrear_pùblicidad_compartiro(msje, tipo, id_generacion)
+
+                    } else {
+
+                        navegarcrear_pùblicidad_compartiro(msje, tipo, null)
+                    }
                 }
             )
         }

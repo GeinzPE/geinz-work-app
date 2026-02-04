@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.model
 
+import android.annotation.SuppressLint
 import android.util.Log
 import com.geinzz.geinzwork.data.model.NotificacionIA
 import com.geinzz.geinzwork.data.model.OpcionPromocionIA
@@ -35,6 +36,7 @@ class repo_generaciones_IA {
     private val db = FirebaseFirestore.getInstance()
 
 
+    @SuppressLint("SuspiciousIndentation")
     fun obtener_generaciones_IA_realtime(
         id_tienda: String,
         localidad: String

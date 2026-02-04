@@ -162,10 +162,9 @@ class viewmodel_recargas : ViewModel() {
     ): List<historial_financiero> {
 
         val hoy = LocalDate.now()
-        val semanaActual = hoy.get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear())
-        val añoActual = hoy.year
+        val weekFields = WeekFields.of(Locale.getDefault())
 
-        return when (filtro) {
+        val listaFiltrada = when (filtro) {
 
             "Todos" -> lista
 
@@ -176,20 +175,11 @@ class viewmodel_recargas : ViewModel() {
             "Esta semana" -> lista.filter {
                 val fecha = historialFechaToLocalDate(it.fecha) ?: return@filter false
 
-                val hoy = LocalDate.now()
-                val weekFields = WeekFields.of(Locale.getDefault())
-
-                // Obtener lunes de la semana actual
                 val lunes = hoy.with(weekFields.dayOfWeek(), 1L)
-                // Obtener domingo de la semana actual
                 val domingo = hoy.with(weekFields.dayOfWeek(), 7L)
 
-                // Retorna true si la fecha está entre lunes y domingo
                 fecha in lunes..domingo
             }
-
-
-
 
             "Este mes" -> lista.filter {
                 val fecha = historialFechaToLocalDate(it.fecha) ?: return@filter false
@@ -214,8 +204,10 @@ class viewmodel_recargas : ViewModel() {
 
             else -> lista
         }
-    }
 
+        // 🔥 ORDENAR SIEMPRE: más reciente primero
+        return listaFiltrada.sortedByDescending { it.dateTime }
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun agruparHistorialPorFecha(
@@ -224,7 +216,10 @@ class viewmodel_recargas : ViewModel() {
 
         return lista
             .groupBy { it.fecha }
-            .toSortedMap(compareByDescending { it })
+            .toSortedMap(compareByDescending { fechaStr ->
+                // Convertimos string a LocalDate para ordenar correctamente
+                historialFechaToLocalDate(fechaStr) ?: LocalDate.MIN
+            })
     }
 
 

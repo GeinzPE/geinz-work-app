@@ -249,7 +249,6 @@ class repo_recargas {
         id_tienda: String,
         localidad: String
     ): List<historial_financiero> {
-
         return try {
             val snapshot = db
                 .collection("Tiendas")
@@ -261,16 +260,12 @@ class repo_recargas {
                 .await()
 
             snapshot.documents.mapNotNull { doc ->
-
                 val data = doc.data ?: return@mapNotNull null
 
                 val datosRecarga = data["datos_recarga"] as? Map<*, *>
                 val datosTienda = data["datos_tienda"] as? Map<*, *>
 
-
-                val timestamp = data?.get("timestamp") as? Timestamp
-                    ?: return@mapNotNull null
-
+                val timestamp = data["timestamp"] as? Timestamp ?: return@mapNotNull null
                 val dateTime = timestampToLocalDateTime(timestamp)
 
                 val tipoTransaccion = data["tipo_transacción"] as? String ?: ""
@@ -291,16 +286,18 @@ class repo_recargas {
                     monto_restante = datosRecarga?.get(
                         if (tipoTransaccion == "descuento") "monto_restante"
                         else "monto_anterior"
-                    ) as? Number ?: 0
+                    ) as? Number ?: 0,
+                    dateTime = dateTime // 🔥 Usado para ordenar
                 )
             }
-                // 🔥 ORDEN CORRECTO DESDE EL REPO
-                .sortedByDescending { it.fecha + it.hora }
+                // 🔥 ORDENADO CORRECTAMENTE: de más reciente a más antiguo
+                .sortedByDescending { it.dateTime }
 
         } catch (e: Exception) {
             emptyList()
         }
     }
+
 
 
     @RequiresApi(Build.VERSION_CODES.O)

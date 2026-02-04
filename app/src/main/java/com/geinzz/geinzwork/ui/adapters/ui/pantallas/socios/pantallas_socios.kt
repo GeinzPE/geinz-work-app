@@ -143,7 +143,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.navigation.NavHostController
 import com.geinzz.geinzwork.data.model.DatosPublicidadIA
+import com.geinzz.geinzwork.data.model.datos_generaciones_sin_publicaicones
 import com.geinzz.geinzwork.data.model.items_pantallas_promociones
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.firebaseAuth
 import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_promocionar
@@ -154,9 +156,10 @@ import com.google.firebase.auth.FirebaseAuth
 @OptIn(ExperimentalAnimationApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun login_socios(isConnected: Boolean, tipo_: String = "") {
+fun login_socios(isConnected: Boolean, tipo_: String = "", navController: NavHostController) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
+    val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     var id_registrado by remember { mutableStateOf("") }
     val viewmodel: viewmodel_eres_socio = viewModel()
@@ -242,9 +245,6 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
 
     var mostrarDialogoSalir by remember { mutableStateOf(false) }
     var pantallaDestino by remember { mutableStateOf("") }
-    var datosPublicidadIA by remember {
-        mutableStateOf(DatosPublicidadIA())
-    }
 
 
     fun intentarCambiarPantalla(nuevaPantalla: String) {
@@ -263,6 +263,26 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
 
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+
+        BackHandler {
+            if (
+                pantallaSeleccionada == "Promocionar" &&
+                viewmodel_pantalla_promocionar.hayCambiosSinGuardar()
+            ) {
+                pantallaDestino = "Inicio"
+                campoBloqueante =
+                    viewmodel_pantalla_promocionar.obtenerCampoModificado()
+                mostrarDialogoSalir = true
+
+            } else if (pantallaSeleccionada != "Inicio") {
+                pantallaSeleccionada = "Inicio"
+
+            } else {
+                navController.navigate("pantalla_principal") {
+                    popUpTo("pantalla_principal") { inclusive = true }
+                }
+            }
+        }
 
         Crossfade(
             targetState = when {
@@ -550,10 +570,8 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                 }
 
                 "contenido" -> {
-
-
-                    // Memoriza cada pantalla para que no se reconstruya completa al volver
                     val pantallaGeinz = remember(state_socio.value) {
+                        // Memoriza cada pantalla para que no se reconstruya completa al volver
                         @Composable {
                             when (val state = state_socio.value) {
                                 is viewmodel_eres_socio.carga_acces_socio.loading -> {
@@ -597,7 +615,6 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                     id_tienda = state.datos.id_tienda
                                     moneda_total_tienda =
                                         state.datos.saldo_disponible_tienda.toInt()
-
                                     pantalla_carga_socios(
                                         fecha_finalizado_flow = viewmodel.fecha_finalizar_panel_real_time,
                                         id_user = id_user,
@@ -606,42 +623,59 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                                         id_registrado = { valor ->
                                             id_registrado = valor
                                         },
-                                        navegarcrear_pùblicidad_titulo_descripcion = { titulo, descrpcion,tipo ->
+                                        navegarcrear_pùblicidad_titulo_descripcion = { titulo, descrpcion, tipo, id_generacion, datos_generaciones_sin_publicaicones ->
                                             pantallaSeleccionada = "Promocionar"
-                                            datosPublicidadIA = DatosPublicidadIA(
+                                            val datos = DatosPublicidadIA(
                                                 titulo = titulo,
                                                 descripcion = descrpcion,
                                                 whatsapp = "",
-                                                compartir = "",tipo
+                                                compartir = "",
+                                                tipo_redirigido = tipo,
+                                                id_generacion_sin_publicar = id_generacion,
+                                                datos_generaciones = datos_generaciones_sin_publicaicones
                                             )
+                                            viewmodel.setear_datos_datos_publicada_IA(datos)
                                         },
-                                        navegarcrear_pùblicidad_wsap = { mejse,tipo ->
+                                        navegarcrear_pùblicidad_wsap = { mejse, tipo, id_generacion ->
                                             pantallaSeleccionada = "Promocionar"
-                                            datosPublicidadIA = DatosPublicidadIA(
+                                            val datos = DatosPublicidadIA(
                                                 titulo = "",
                                                 descripcion = "",
                                                 whatsapp = mejse,
-                                                compartir = "",tipo
+                                                compartir = "",
+                                                tipo_redirigido = tipo,
+                                                id_generacion_sin_publicar = id_generacion,
+                                                datos_generaciones = datos_generaciones_sin_publicaicones(),
                                             )
+                                            viewmodel.setear_datos_datos_publicada_IA(datos)
                                         },
-                                        navegarcrear_pùblicidad_todas = { titulo, descripcion, wsap, compartir,tipo ->
+                                        navegarcrear_pùblicidad_todas = { titulo, descripcion, wsap, compartir, tipo, id_generacion, datos_generaciones_sin_publicaicones ->
                                             pantallaSeleccionada = "Promocionar"
-                                            datosPublicidadIA = DatosPublicidadIA(
+                                            val datos = DatosPublicidadIA(
                                                 titulo = titulo,
                                                 descripcion = descripcion,
                                                 whatsapp = wsap,
-                                                compartir = compartir,tipo
+                                                compartir = compartir,
+                                                tipo_redirigido = tipo,
+                                                id_generacion_sin_publicar = id_generacion,
+                                                datos_generaciones = datos_generaciones_sin_publicaicones
                                             )
+                                            viewmodel.setear_datos_datos_publicada_IA(datos)
                                         },
-                                        navegarcrear_pùblicidad_compartiro = { msje,tipo ->
+                                        navegarcrear_pùblicidad_compartiro = { msje, tipo, id_generacion ->
                                             pantallaSeleccionada = "Promocionar"
-                                            datosPublicidadIA = DatosPublicidadIA(
+                                            val datos = DatosPublicidadIA(
                                                 titulo = "",
                                                 descripcion = "",
                                                 whatsapp = "",
-                                                compartir = msje,tipo
+                                                compartir = msje,
+                                                tipo_redirigido = tipo,
+                                                id_generacion_sin_publicar = id_generacion,
+                                                datos_generaciones = datos_generaciones_sin_publicaicones()
                                             )
-                                        })
+                                            viewmodel.setear_datos_datos_publicada_IA(datos)
+                                        }
+                                    )
                                 }
 
                                 else -> {}
@@ -896,7 +930,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
 
                                     "Promocionar" -> {
                                         pantalla_promocionar(
-                                            datosPublicidadIA,
+
                                             viewmodel_pantalla_promocionar = viewmodel_pantalla_promocionar,
                                             viewmodel_socios = viewmodel,
                                             i = item_pantalla_promociones, ocultar_buttom_bar = {
@@ -960,6 +994,13 @@ fun login_socios(isConnected: Boolean, tipo_: String = "") {
                         mostrarDialogoSalir = false
                     }) {
                         Text("Sí")
+                        viewmodel.limpiar_datos_pasados_notificaciones_con_IA()
+                        viewmodel_pantalla_promocionar.resetear_Estado_notificacion_gnerado_ia()
+                        viewmodel.limpiarId()
+                        viewmodel.limpiar_datos_pasados_publcada_IA()
+                        viewmodel_pantalla_promocionar.limpiar_resutlados_ia_promo()
+                        viewmodel_pantalla_promocionar.reseteo_compartir()
+                        viewmodel_pantalla_promocionar.reseteo_wshap_promocion()
                     }
                 },
 

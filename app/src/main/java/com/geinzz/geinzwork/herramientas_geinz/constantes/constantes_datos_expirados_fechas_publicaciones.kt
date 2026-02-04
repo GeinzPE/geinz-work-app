@@ -15,6 +15,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import java.util.UUID
 import kotlin.math.max
 import kotlin.math.min
 
@@ -200,11 +201,15 @@ object constantes_datos_expirados_fechas_publicaciones {
     }
 
 
-    fun timestampEn30Dias(): Timestamp {
+    fun timestampEn30Dias(dias:Int): Timestamp {
         val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, 30)
+        calendar.add(Calendar.DAY_OF_YEAR, dias)
         return Timestamp(calendar.time)
     }
+
+
+
+
 
 
     fun timestampAFechaLegible(timestamp: Timestamp): String {

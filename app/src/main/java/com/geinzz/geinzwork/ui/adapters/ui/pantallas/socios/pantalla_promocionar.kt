@@ -141,9 +141,11 @@ import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.compartir_co
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
 import com.geinzz.geinzwork.data.model.datos_fecha_hora_tipo
+import com.geinzz.geinzwork.data.model.datos_notificacion
 import com.geinzz.geinzwork.data.model.datos_publicaciones_realizadas
 import com.geinzz.geinzwork.data.model.fechas_horas_promociones
 import com.geinzz.geinzwork.data.model.fechas_promociones
+import com.geinzz.geinzwork.data.model.generacion_primarios
 import com.geinzz.geinzwork.data.model.generaciones_con_ia
 import com.geinzz.geinzwork.data.model.generaciones_con_ia_notificaciones
 import com.geinzz.geinzwork.data.model.historial_descuento
@@ -151,6 +153,7 @@ import com.geinzz.geinzwork.data.model.horario_deseado
 import com.geinzz.geinzwork.data.model.img_contaier
 import com.geinzz.geinzwork.data.model.informacion_container
 import com.geinzz.geinzwork.data.model.items_pantallas_promociones
+import com.geinzz.geinzwork.data.model.lista_genereracione
 import com.geinzz.geinzwork.data.model.mensaje_predeterminado
 import com.geinzz.geinzwork.data.model.msjes_predeteminados_generales
 import com.geinzz.geinzwork.data.model.nombre_precio_notificaciones
@@ -224,15 +227,16 @@ import kotlin.plus
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun pantalla_promocionar(
-    predeterminado: DatosPublicidadIA,
     viewmodel_pantalla_promocionar: viewmodel_pantallas_promocionar,
     viewmodel_socios: viewmodel_eres_socio,
     i: items_pantallas_promociones,
-    ocultar_buttom_bar:()-> Unit,
-    mostrar_buttom_bar:()-> Unit
+    ocultar_buttom_bar: () -> Unit,
+    mostrar_buttom_bar: () -> Unit
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
+    val idPromo = viewmodel_socios.promocionId
+    val idnotificacion = viewmodel_socios.notificacion_ID
     var imagenSeleccionada by remember { mutableStateOf<ImagenReview?>(null) }
     var url_img_notificaion_seleccionada by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -241,6 +245,15 @@ fun pantalla_promocionar(
     var aceptoTerminos_promociones by rememberSaveable() { mutableStateOf(false) }
     var aceptoTerminos_notificaciones by rememberSaveable() { mutableStateOf(false) }
     var vista_previa_promo by remember { mutableStateOf(carta_promociones_geinz_vista_previa()) }
+    val predeterminado by viewmodel_socios.datos_publicidad_IA_params.collectAsState()
+    val predetermindao_notificaciones by viewmodel_socios.datos_notificaciones.collectAsState()
+    var id_publicacion_selecionada by rememberSaveable { mutableStateOf("") }
+    var tipo_notificacion_params_seleccionada by remember { mutableStateOf("") }
+    LaunchedEffect(predeterminado.id_generacion_sin_publicar) {
+        viewmodel_socios.iniciarPromo(predeterminado.id_generacion_sin_publicar)
+
+    }
+
 
     LaunchedEffect(estadoImagen) {
         if (estadoImagen is viewmodel_pantallas_promocionar.ImagenEstado.Exito) {
@@ -301,22 +314,11 @@ fun pantalla_promocionar(
 
     val maxFotos = 5
 
-    var nombre_publicacion by rememberSaveable {
-        mutableStateOf(
-            ""
-        )
-    }
-
-    var descripcion_publicacion by rememberSaveable {
-        mutableStateOf(
-           ""
-        )
-    }
 
     var version_nombre_publicacion_original by rememberSaveable { mutableStateOf("") }
     var descripcion_publicacion_original by rememberSaveable { mutableStateOf("") }
     var titulo_notificacion by rememberSaveable { mutableStateOf("") }
-    var titulo_notificacion_guardado by rememberSaveable { mutableStateOf("")}
+    var titulo_notificacion_guardado by rememberSaveable { mutableStateOf("") }
 
     var error_titulo_notificacion by remember { mutableStateOf(false) }
     var descripcion_notificacion by rememberSaveable { mutableStateOf("") }
@@ -326,7 +328,7 @@ fun pantalla_promocionar(
     var mensaje_whatsapp_de_publi_a_notificacion by remember { mutableStateOf("Hola, quiero mas informacion sobre lo que vi en ") }
 
     var error_texto_notificacion by remember { mutableStateOf(false) }
-    var id_publicacion_selecionada by rememberSaveable { mutableStateOf("") }
+
     var mostar_img_zoom by remember { mutableStateOf(false) }
     var imagenZoomSeleccionada by remember { mutableStateOf<String?>(null) }
     var contacto_directo by rememberSaveable { mutableStateOf(false) }
@@ -336,14 +338,12 @@ fun pantalla_promocionar(
     var horario_deseado by rememberSaveable { mutableStateOf(false) }
     var mensaje_perzonalizado by remember { mutableStateOf(true) }
     var mensaje_perzonalizado_compartir by remember { mutableStateOf(true) }
-//    var ubicacion by rememberSaveable { mutableStateOf(false) }
-//    var exclusivo by rememberSaveable { mutableStateOf(false) }
+
     var numero_publicaicon by rememberSaveable { mutableStateOf(i.numero_contacto_tienda) }
     val estadoPrecio by viewmodel_pantalla_promocionar.estadoRangoPrecio.collectAsState()
     var precio_detectado by remember { mutableStateOf("") }
     var rango_detectado by remember { mutableStateOf("") }
-    var rango_precio_detectadoo by remember { mutableStateOf("") }
-    var mostar_precios_y_rangos by remember { mutableStateOf(false) }
+
     var precio_seleccionado by remember { mutableStateOf<String?>(null) }
     var precio_seleccionado_detectados by remember { mutableStateOf(false) }
     val state by viewmodel_socios.subidaPromoState.collectAsState()
@@ -378,7 +378,9 @@ fun pantalla_promocionar(
     val estado_texto_whatsapp_con_ia_con_notificacion by viewmodel_pantalla_promocionar.estado_texto_whatsap_con_ia_notificacion.collectAsState()
     var estado_mejsem_whatsap_notificacion by remember { mutableStateOf("Mejorar mensaje con IA") }
 
-
+    var listaOpcionesIA by remember {
+        mutableStateOf<List<OpcionPromocionIA>>(emptyList())
+    }
     var hora_escrita by remember { mutableStateOf("0") }
     var total_monedas_por_hora by rememberSaveable { mutableStateOf("") }
     var errorfecha by rememberSaveable { mutableStateOf(false) }
@@ -405,33 +407,47 @@ fun pantalla_promocionar(
         nombre_precio_notificaciones("normal", 10),
     )
 
+    val seleccionInicial: OpcionPromocionIA? = predeterminado.datos_generaciones?.let { datos ->
+        // Buscamos en la lista de opciones IA si hay coincidencia con lo que ya vino seleccionado
+        datos.lista_obciones.orEmpty().find { it.titulo == datos.titulo_seleccionado && it.descripcion == datos.descripcion_seleccionada }
+    }
+
     LaunchedEffect(predeterminado) {
 
-        Log.d("estado_tipo",predeterminado.tipo_redirigido)
-        if(predeterminado.tipo_redirigido.equals("publicacion")){
-            nombre_publicacion=predeterminado.titulo
-            viewmodel_pantalla_promocionar.titulo=predeterminado.titulo
-            version_nombre_publicacion_original=predeterminado.titulo
-            descripcion_publicacion=predeterminado.descripcion
-            viewmodel_pantalla_promocionar.descripcion=predeterminado.descripcion
-            descripcion_publicacion_original=predeterminado.descripcion
-            if(predeterminado.whatsapp.isNotEmpty()){
-                contacto_directo=true
+        Log.d("estado_tipo", predeterminado.tipo_redirigido)
+        if (predeterminado.tipo_redirigido == "generacion_publicacion_sin_pulicar") {
+            predeterminado.datos_generaciones?.let { datos ->
+                version_nombre_publicacion_original = datos.titulo_original ?: ""
+                descripcion_publicacion_original = datos.descripcion_original ?: ""
+                listaOpcionesIA = datos.lista_obciones.orEmpty() // Si es null, asigna lista vacía
+
             }
 
-            if(predeterminado.compartir.isNotEmpty()){
-                compartir=true
-            }
-        }else if(predeterminado.tipo_redirigido.equals("notificacion")){
-            titulo_notificacion=predeterminado.titulo
-            viewmodel_pantalla_promocionar.titulo_notificacion=predeterminado.titulo
-
-            descripcion_notificacion=predeterminado.descripcion
-            viewmodel_pantalla_promocionar.descripcion_notificacion=predeterminado.descripcion
-            mensaje_whatsapp_de_publi_a_notificacion=predeterminado.whatsapp
         }
 
+        if (predeterminado.tipo_redirigido.equals("publicacion") || predeterminado.tipo_redirigido.equals(
+                "generacion_publicacion_sin_pulicar"
+            )
+        ) {
+            viewmodel_pantalla_promocionar.titulo = predeterminado.titulo
+//            version_nombre_publicacion_original = predeterminado.titulo
+//            descripcion_publicacion_original = predeterminado.descripcion
+            viewmodel_pantalla_promocionar.descripcion = predeterminado.descripcion
 
+            if (predeterminado.whatsapp.isNotEmpty()) {
+                contacto_directo = true
+            }
+
+            if (predeterminado.compartir.isNotEmpty()) {
+                compartir = true
+            }
+        } else if (predeterminado.tipo_redirigido.equals("notificacion")) {
+            titulo_notificacion = predeterminado.titulo
+            viewmodel_pantalla_promocionar.titulo_notificacion = predeterminado.titulo
+            descripcion_notificacion = predeterminado.descripcion
+            viewmodel_pantalla_promocionar.descripcion_notificacion = predeterminado.descripcion
+            mensaje_whatsapp_de_publi_a_notificacion = predeterminado.whatsapp
+        }
 
 
     }
@@ -592,11 +608,9 @@ fun pantalla_promocionar(
 
     var prioridad_selec by remember { mutableStateOf("") }
     var tipo_notificacion_seleccionada by remember { mutableStateOf("") }
-    var tipo_notificacion_params_seleccionada by remember { mutableStateOf("") }
     var opcionElegida by remember { mutableStateOf<OpcionPromocionIA?>(null) }
-    var listaOpcionesIA by remember {
-        mutableStateOf<List<OpcionPromocionIA>>(emptyList())
-    }
+
+
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
 
     val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
@@ -646,6 +660,7 @@ fun pantalla_promocionar(
     var mostrar_vista_previa_promos_cercanas by remember { mutableStateOf(false) }
     var mostrar_vista_previa_promos_cercanas_sin_clikear by remember { mutableStateOf(false) }
 
+
     LaunchedEffect(titulo_notificacion, descripcion_notificacion) {
         if ((titulo_notificacion + descripcion_notificacion).length < 5) return@LaunchedEffect
 
@@ -674,6 +689,13 @@ fun pantalla_promocionar(
             msj_perzonalizado_compartir_ia_bool = true
             mensaje_perzonalizado_txt_compartir =
                 (estado_texto_compatir_con_ia as viewmodel_pantallas_promocionar.ESstado_ia_msje_compartir.Success).txt_descripcion
+            viewmodel_socios.actualizarCompartir(
+                i.id_tienda,
+                i.localidad_tienda,
+                idPromo,
+                mensaje_perzonalizado_txt_compartir
+            )
+            viewmodel_socios.verificar_si_tiene_nueva_generacion(true)
         }
     }
 
@@ -684,8 +706,38 @@ fun pantalla_promocionar(
             texto_generar_nuevamente_whatsapp_ia = "Generar nuevamente"
             mensaje_perzonalizado_txt =
                 (estado_texto_whatsapp_con_ia as viewmodel_pantallas_promocionar.ESstado_ia_msje_whatsap.Success).txt_descripcion
+            viewmodel_socios.actualizarWhatsapp(
+                i.id_tienda,
+                i.localidad_tienda,
+                idPromo,
+                mensaje_perzonalizado_txt
+            )
+            viewmodel_socios.verificar_si_tiene_nueva_generacion(true)
         }
     }
+
+    LaunchedEffect(estado_textos_notificaciones_generadas) {
+        if (estado_textos_notificaciones_generadas is viewmodel_pantallas_promocionar.EstadoIA.Success) {
+            msje_texto_notificacion_generada = "Generar nuevamente"
+            listaOpcionesIA =
+                (estado_textos_notificaciones_generadas as viewmodel_pantallas_promocionar.EstadoIA.Success).lista
+            val dato_generaciones = generacion_primarios(
+                titulo_original = version_nombre_publicacion_original,
+                descripcion_original = descripcion_publicacion_original,
+                lista_generaciones = listaOpcionesIA,
+            )
+            viewmodel_socios.agregar_generacions_obligatorias_subidas(
+                i.localidad_tienda,
+                i.id_tienda,
+                dato_generaciones,
+                "generacion_publicacion_sin_pulicar", idPromo
+            )
+            viewmodel_socios.verificar_si_tiene_nueva_generacion(true)
+        }
+    }
+
+
+
 
 
     LaunchedEffect(estado_texto_whatsapp_con_ia_con_notificacion) {
@@ -694,18 +746,18 @@ fun pantalla_promocionar(
             estado_mejsem_whatsap_notificacion = "Generar nuevamente"
             mensaje_whatsapp_de_publi_a_notificacion =
                 (estado_texto_whatsapp_con_ia_con_notificacion as viewmodel_pantallas_promocionar.Estado_ia_mensaje_whatsap_notificaion.Success).txt_descripcion
+        viewmodel_socios.actualizarWhatsapp(
+            i.id_tienda,
+            i.localidad_tienda,
+            idnotificacion,
+            mensaje_whatsapp_de_publi_a_notificacion
+        )
+            viewmodel_pantalla_promocionar.resetear_Estado_notificacion_whatsap_gnerado_ia()
         }
     }
 
 
 
-    LaunchedEffect(estado_textos_notificaciones_generadas) {
-        if (estado_textos_notificaciones_generadas is viewmodel_pantallas_promocionar.EstadoIA.Success) {
-            msje_texto_notificacion_generada = "Generar nuevamente"
-            listaOpcionesIA =
-                (estado_textos_notificaciones_generadas as viewmodel_pantallas_promocionar.EstadoIA.Success).lista
-        }
-    }
 
     LaunchedEffect(estado_textos_notificacion_corta_generada) {
         if (estado_textos_notificacion_corta_generada is viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Success) {
@@ -715,7 +767,20 @@ fun pantalla_promocionar(
                 (estado_textos_notificacion_corta_generada as viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Success).txt_descripcion.titulo
             descripcion_notificacion =
                 (estado_textos_notificacion_corta_generada as viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Success).txt_descripcion.descripcion
-
+            val datos_generaciones=datos_notificacion(
+                titulo_original = viewmodel_pantalla_promocionar.titulo_notificacion,
+                descripcion_original = viewmodel_pantalla_promocionar.descripcion_notificacion,
+                titulo_select = titulo_notificacion,
+                descripcion_select = descripcion_notificacion,
+                id_generacion_sin_publicar = idnotificacion
+            )
+            viewmodel_socios.agregar_generacions_obligatorias_subidas_notificaciones(
+                i.localidad_tienda,
+                i.id_tienda,
+                datos_generaciones,
+                idnotificacion
+            )
+            viewmodel_pantalla_promocionar.resetear_Estado_notificacion_gnerado_ia()
         }
     }
 
@@ -739,7 +804,6 @@ fun pantalla_promocionar(
 
     LaunchedEffect(croppedUri) {
         croppedUri?.let { uriFinal ->
-
             // ✅ Buscar cuál imagen se estaba editando
             // Si quieres reemplazar la que estaba seleccionada
             val indexEditando = imagenes.indexOfFirst { it.isEditing } // ejemplo de flag
@@ -809,34 +873,40 @@ fun pantalla_promocionar(
                     id_tienda = i.id_tienda,
                     localidad = i.localidad_tienda
                 )
+                viewmodel_socios.verificar_si_tiene_nueva_generacion(false)
                 listaOpcionesIA = emptyList()
+
+
                 imagenes.clear()
                 viewmodel_socios.resetear_Estado_promo_subida()
-                val cambios_borrados= viewmodel_pantalla_promocionar.descartarCambios()
-                if(cambios_borrados){
-                    msj_estado_texto_compartir = "Mejorar mensaje con IA"
-                    texto_generar_nuevamente_whatsapp_ia = "Mejorar mensaje con IA"
-                    estado_mejsem_whatsap_notificacion = "Mejorar mensaje con IA"
-                    nombre_publicacion = ""
-                    descripcion_publicacion = ""
-                    contacto_directo = false
-                    horario_deseado = false
-                    turnoSeleccionado = null
-                    precio_detectado = ""
-                    compartir = false
-                    fecha_fin = ""
-                    hora_escrita = "0"
-                    tipo_promp_seleccionado_IA = null
-                    msj_perzonalizado_whatsapp_ia_bool = false
-                    msj_perzonalizado_compartir_ia_bool = false
-                    precio_encontrado = false
-                    mensaje_perzonalizado_compartir = false
-                    mensaje_perzonalizado = false
-                    msje_titulo_descripcion = false
-                    filtro_cercania = false
-                    mensaje_perzonalizado_txt = "Mira esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25"
-                    mensaje_perzonalizado_txt_compartir = "Hola, quiero esta oferta que vi Geinz:"
-                }
+                viewmodel_socios.limpiarId()
+                viewmodel_pantalla_promocionar.descartarCambios()
+                viewmodel_socios.limpiar_datos_pasados_publcada_IA()
+                msj_estado_texto_compartir = "Mejorar mensaje con IA"
+                texto_generar_nuevamente_whatsapp_ia = "Mejorar mensaje con IA"
+                estado_mejsem_whatsap_notificacion = "Mejorar mensaje con IA"
+                viewmodel_pantalla_promocionar.titulo = ""
+                viewmodel_pantalla_promocionar.descripcion = ""
+                contacto_directo = false
+                horario_deseado = false
+                turnoSeleccionado = null
+                precio_detectado = ""
+                compartir = false
+                fecha_fin = ""
+                hora_escrita = "0"
+                tipo_promp_seleccionado_IA = null
+                msj_perzonalizado_whatsapp_ia_bool = false
+                msj_perzonalizado_compartir_ia_bool = false
+                precio_encontrado = false
+                mensaje_perzonalizado_compartir = false
+                mensaje_perzonalizado = false
+                msje_titulo_descripcion = false
+                filtro_cercania = false
+                mensaje_perzonalizado_txt = "Mira esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25"
+                mensaje_perzonalizado_txt_compartir = "Hola, quiero esta oferta que vi Geinz:"
+
+                viewmodel_pantalla_promocionar.limpiar_precios()
+                rango_detectado = ""
                 viewmodel_pantalla_promocionar.limpiar_resutlados_ia_promo()
                 viewmodel_pantalla_promocionar.reseteo_compartir()
                 viewmodel_pantalla_promocionar.reseteo_wshap_promocion()
@@ -868,11 +938,13 @@ fun pantalla_promocionar(
                         duration = SnackbarDuration.Short
                     )
                 }
+
+                viewmodel_socios.limpiar_datos_pasados_notificaciones_con_IA()
                 mensaje_whatsapp_de_publi_a_notificacion =
                     "Hola, quiero mas informacion sobre lo que vi en "
                 titulo_notificacion = ""
-                titulo_notificacion_guardado=""
-                descripcion_notificacion_guardado=""
+                titulo_notificacion_guardado = ""
+                descripcion_notificacion_guardado = ""
                 descripcion_notificacion = ""
                 url_img_notificaion_seleccionada = ""
                 tipo_notificacion_params_seleccionada = ""
@@ -887,11 +959,11 @@ fun pantalla_promocionar(
                 id_img_notificacion = ""
                 viewmodel_pantalla_promocionar.resetear_Estado_promo_subida()
 
-                val cambios_borrados= viewmodel_pantalla_promocionar.descartarCambios()
-                if(cambios_borrados){
+                viewmodel_pantalla_promocionar.descartarCambios()
+
                     titulo_notificacion = ""
-                    titulo_notificacion_guardado=""
-                    descripcion_notificacion_guardado=""
+                    titulo_notificacion_guardado = ""
+                    descripcion_notificacion_guardado = ""
                     descripcion_notificacion = ""
                     url_img_notificaion_seleccionada = ""
                     tipo_notificacion_params_seleccionada = ""
@@ -904,8 +976,7 @@ fun pantalla_promocionar(
                     fechaCaducidad = obtenerFechaFinDosDias()
                     id_publicacion_selecionada = ""
                     id_img_notificacion = ""
-                }
-                viewmodel_pantalla_promocionar.resetear_Estado_notificacion_enviadad()
+                                viewmodel_pantalla_promocionar.resetear_Estado_notificacion_enviadad()
                 viewmodel_pantalla_promocionar.cambiar_estado_img_notifi_select()
                 viewmodel_pantalla_promocionar.reseteo_wshap_notificacion()
 
@@ -916,9 +987,9 @@ fun pantalla_promocionar(
             else -> {}
         }
     }
-    LaunchedEffect(nombre_publicacion) {
-        if (nombre_publicacion.isNotEmpty()) {
-            viewmodel_pantalla_promocionar.procesarPrecioPeru(nombre_publicacion)
+    LaunchedEffect(viewmodel_pantalla_promocionar.titulo) {
+        if (viewmodel_pantalla_promocionar.titulo.isNotEmpty()) {
+            viewmodel_pantalla_promocionar.procesarPrecioPeru(viewmodel_pantalla_promocionar.titulo)
         }
     }
 
@@ -957,8 +1028,8 @@ fun pantalla_promocionar(
     var precio_por_notificacion_general by remember { mutableStateOf(0) }
     val botonHabilitado by derivedStateOf {
         val horas = hora_escrita.toLongOrNull() ?: 0L // si está vacío o inválido, lo considera 0
-        nombre_publicacion.isNotEmpty() &&
-                descripcion_publicacion.isNotEmpty() &&
+        viewmodel_pantalla_promocionar.titulo.isNotEmpty() &&
+                viewmodel_pantalla_promocionar.descripcion.isNotEmpty() &&
                 ((seleccion.tipo == "horas" && horas > 0L) ||
                         (seleccion.tipo == "dias" && fecha_fin.isNotEmpty()))
     }
@@ -1065,17 +1136,16 @@ fun pantalla_promocionar(
                     )
                     spacer_vertical(10.dp)
                     MyOutlinedTextField_proco_raduis(
-                        value = nombre_publicacion,
+                        value = viewmodel_pantalla_promocionar.titulo,
                         onValueChange = { input ->
-                            viewmodel_pantalla_promocionar.titulo = input
                             if (input.length <= MAX_TITULO) {
-                                nombre_publicacion = input
+                                viewmodel_pantalla_promocionar.titulo = input
                                 version_nombre_publicacion_original = input
                             }
 
                             error_titulo_publicacion =
-                                nombre_publicacion.isNotEmpty() &&
-                                        nombre_publicacion.length < MIN_TITULO
+                                viewmodel_pantalla_promocionar.titulo.isNotEmpty() &&
+                                        viewmodel_pantalla_promocionar.titulo.length < MIN_TITULO
 
                         },
                         labelText = "Título de la publicación",
@@ -1086,10 +1156,9 @@ fun pantalla_promocionar(
                     spacer_vertical(10.dp)
                     Column(modifier = Modifier.animateContentSize()) {
                         OutlinedTextField(
-                            value = descripcion_publicacion,
+                            value = viewmodel_pantalla_promocionar.descripcion,
                             onValueChange = { it ->
                                 viewmodel_pantalla_promocionar.descripcion = it
-                                descripcion_publicacion = it
                                 descripcion_publicacion_original = it
                             },
                             textStyle = MaterialTheme.typography.bodyMedium,
@@ -1122,24 +1191,24 @@ fun pantalla_promocionar(
                                     descripcion = descripcion_publicacion_original,
                                     tipoIA = null // 👈 ORIGINAL
                                 ),
-                                opciones = listaOpcionesIA
-                            ) { seleccion ->
+                                opciones = listaOpcionesIA,seleccionInicial,
+                                { seleccion ->
 
-                                val esOriginal = seleccion.tipoIA == null
+                                    val esOriginal = seleccion.tipoIA == null
 
-                                msje_titulo_descripcion = !esOriginal
+                                    msje_titulo_descripcion = !esOriginal
 
-                                nombre_publicacion = seleccion.titulo
-                                descripcion_publicacion = seleccion.descripcion
-                            }
-
+                                    viewmodel_pantalla_promocionar.titulo = seleccion.titulo
+                                    viewmodel_pantalla_promocionar.descripcion = seleccion.descripcion
+                                }
+                            )
 
                             spacer_vertical(20.dp)
                         }
                     }
 
                     spacer_vertical(15.dp)
-                    if (nombre_publicacion.isNotEmpty() && descripcion_publicacion.isNotEmpty()) {
+                    if (viewmodel_pantalla_promocionar.titulo.isNotEmpty() && viewmodel_pantalla_promocionar.descripcion.isNotEmpty()) {
                         val cargando =
                             estado_textos_notificaciones_generadas is viewmodel_pantallas_promocionar.EstadoIA.Loading
                         val buttonColor by animateColorAsState(
@@ -1249,10 +1318,12 @@ fun pantalla_promocionar(
                                                         localidad_tienda = i.localidad_tienda,
                                                         id_tienda = i.id_tienda,
                                                         nombre_tienda = i.nombre_tienda,
-                                                        tituloUsuario = nombre_publicacion,
-                                                        descripcionUsuario = descripcion_publicacion,
+                                                        tituloUsuario = viewmodel_pantalla_promocionar.titulo,
+                                                        descripcionUsuario = viewmodel_pantalla_promocionar.descripcion,
                                                         nombreTienda = i.nombre_tienda,
-                                                        localidad = i.localidad_tienda,"30","Gen IA (Promociones X3)"
+                                                        localidad = i.localidad_tienda,
+                                                        "30",
+                                                        "Gen IA (Promociones X3)"
                                                     )
                                                     listaOpcionesIA = emptyList()
                                                 } ?: run {
@@ -1417,7 +1488,9 @@ fun pantalla_promocionar(
                                 txt_publicaciones(
                                     icon = R.drawable.texto_predetermiando,
                                     valor = mensaje_perzonalizado,
-                                    retorno = { it -> mensaje_perzonalizado = it },
+                                    retorno = { it_ts ->
+                                        mensaje_perzonalizado = it_ts
+                                    },
                                     titulo = "Mensaje perzonalizado whatsapp", false
                                 )
                                 if (mensaje_perzonalizado) {
@@ -1461,7 +1534,7 @@ fun pantalla_promocionar(
                                             MaterialTheme.colorScheme.primary,
                                         label = "buttonColor"
                                     )
-                                    if (nombre_publicacion.isNotEmpty() && descripcion_publicacion.isNotEmpty()) {
+                                    if (viewmodel_pantalla_promocionar.titulo.isNotEmpty() && viewmodel_pantalla_promocionar.descripcion.isNotEmpty()) {
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
@@ -1482,8 +1555,8 @@ fun pantalla_promocionar(
                                                             localidad_tienda = i.localidad_tienda,
                                                             id_tienda = i.id_tienda,
                                                             nombre_tienda = i.nombre_tienda,
-                                                            titulo_publicacion = nombre_publicacion,
-                                                            descripcion = descripcion_publicacion,
+                                                            titulo_publicacion = viewmodel_pantalla_promocionar.titulo,
+                                                            descripcion = viewmodel_pantalla_promocionar.descripcion,
                                                         )
                                                     }
                                                 },
@@ -1632,7 +1705,7 @@ fun pantalla_promocionar(
                                             MaterialTheme.colorScheme.primary,
                                         label = "buttonColor"
                                     )
-                                    if (nombre_publicacion.isNotEmpty() && descripcion_publicacion.isNotEmpty()) {
+                                    if (viewmodel_pantalla_promocionar.titulo.isNotEmpty() && viewmodel_pantalla_promocionar.descripcion.isNotEmpty()) {
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
@@ -1653,8 +1726,8 @@ fun pantalla_promocionar(
                                                             localidad_tienda = i.localidad_tienda,
                                                             id_tienda = i.id_tienda,
                                                             nombre_tienda = i.nombre_tienda,
-                                                            titulo_publicacion = nombre_publicacion,
-                                                            descripcion = descripcion_publicacion,
+                                                            titulo_publicacion = viewmodel_pantalla_promocionar.titulo,
+                                                            descripcion = viewmodel_pantalla_promocionar.descripcion,
                                                         )
                                                     }
                                                 },
@@ -2284,14 +2357,14 @@ fun pantalla_promocionar(
                             val fechafin = calcularTimestampFinal(hora_escrita, fecha_fin)
                             val timeporestante = tiempoRestante(fechafin)
                             mostrar_vista_previa_promos_cercanas_sin_clikear = true
-                            vista_previa_promo=carta_promociones_geinz_vista_previa(
-                                lista_img_uri=lista_uris,
-                                logo_img=i.img_tienda,
-                                nombre_tienda=i.nombre_tienda,
-                                titulo_publicacion=nombre_publicacion,
-                                dias_restantes=timeporestante,
-                                compartir=contacto_directo,
-                                contactar=compartir
+                            vista_previa_promo = carta_promociones_geinz_vista_previa(
+                                lista_img_uri = lista_uris,
+                                logo_img = i.img_tienda,
+                                nombre_tienda = i.nombre_tienda,
+                                titulo_publicacion = viewmodel_pantalla_promocionar.titulo,
+                                dias_restantes = timeporestante,
+                                compartir = contacto_directo,
+                                contactar = compartir
                             )
 
                         }, modifier = Modifier.fillMaxWidth()) {
@@ -2368,11 +2441,11 @@ fun pantalla_promocionar(
                                     img_container = img_contaier(),
                                     informacion = informacion_container(
                                         categoria = i.categoira_tienda,
-                                        descripcion = descripcion_publicacion,
-                                        id_promocion = generarIdFirebase(),
+                                        descripcion = viewmodel_pantalla_promocionar.descripcion,
+                                        id_promocion = idPromo,
                                         id_tienda = id_socio,
                                         nombre_tienda = i.nombre_tienda,
-                                        titulo = nombre_publicacion,
+                                        titulo = viewmodel_pantalla_promocionar.titulo,
                                         numero = numero_campo,
                                         compartir = compartir,
                                         contactar = contacto_directo,
@@ -2421,8 +2494,8 @@ fun pantalla_promocionar(
                                         descripcion_publicacion_original,
                                         lista_generaciones = listaOpcionesIA,
                                         generacion_selecionada = contenido_publicidad(
-                                            titulo = if (msje_titulo_descripcion) nombre_publicacion else "",
-                                            descripcion = if (msje_titulo_descripcion) descripcion_publicacion else ""
+                                            titulo = if (msje_titulo_descripcion) viewmodel_pantalla_promocionar.titulo else "",
+                                            descripcion = if (msje_titulo_descripcion) viewmodel_pantalla_promocionar.descripcion else ""
                                         ), generacion_wsap =
                                             if (msj_perzonalizado_whatsapp_ia_bool)
                                                 mensaje_perzonalizado_txt
@@ -2444,6 +2517,7 @@ fun pantalla_promocionar(
 
                                 )
                                 viewmodel_socios.subir_img_firestore_promociones(
+
                                     datos_publicacion,
                                     img_tienda = i.img_tienda,
                                     localidad = i.localidad_tienda,
@@ -2576,8 +2650,10 @@ fun pantalla_promocionar(
                                                 mensaje_whatsapp_de_publi_a_notificacion =
                                                     "Hola, quiero mas informacion sobre lo que vi en "
                                                 titulo_notificacion = ""
-                                                titulo_notificacion_guardado=""
-                                                descripcion_notificacion_guardado=""
+                                                titulo_notificacion_guardado = ""
+                                                viewmodel_pantalla_promocionar.titulo_notificacion=""
+                                                viewmodel_pantalla_promocionar.descripcion_notificacion=""
+                                                descripcion_notificacion_guardado = ""
                                                 descripcion_notificacion = ""
                                                 url_img_notificaion_seleccionada = ""
                                                 tipo_notificacion_params_seleccionada = ""
@@ -2590,10 +2666,13 @@ fun pantalla_promocionar(
                                                 precio_tipo_notificacion = 0
                                                 tipo_notificacion_params_seleccionada = ""
                                                 tipo_notificacion_seleccionada = ""
-
+viewmodel_socios.limpiar_id_selecionadanotificacion()
                                             } else {
                                                 // 🟢 SELECCIONAR
                                                 idSeleccionado = id
+
+                                                viewmodel_pantalla_promocionar.titulo_notificacion=titulo
+                                                viewmodel_pantalla_promocionar.descripcion_notificacion=descripcion
                                                 mensaje_whatsapp_de_publi_a_notificacion =
                                                     i.texto_whatsapp
                                                 url_img_notificaion_seleccionada = img
@@ -2610,7 +2689,7 @@ fun pantalla_promocionar(
                                                 val precio = tipo_notificacion_precio_nombre
                                                     .firstOrNull { it.tipo == tipo }
                                                     ?.precio ?: 0
-
+                                                viewmodel_socios.id_notifiacion_ge_IA_o_no(id,tipo)
                                                 tipo_notificacion_params_seleccionada = tipo
                                                 precio_tipo_notificacion = precio
                                                 fechaCaducidad = fecha_caducidad_timestamp
@@ -2689,6 +2768,7 @@ fun pantalla_promocionar(
                                     textoError = "selecciona tu tipo de notificacion",
                                     label = "selecciona tu tipo de notificacion"
                                 ) { tipo, precio ->
+                                    viewmodel_socios.id_notifiacion_ge_IA_o_no(idSeleccionado?:"",tipo)
                                     viewmodel_pantalla_promocionar.tipo_notificacion = tipo
                                     Log.d("precioestableico", "$precio")
                                     tipo_notificacion_params_seleccionada = tipo
@@ -2835,9 +2915,10 @@ fun pantalla_promocionar(
                                                                     titulo_publicacion = titulo_notificacion,
                                                                     descripcion = descripcion_notificacion
                                                                 )
-                                                                titulo_notificacion_guardado=titulo_notificacion
-                                                                descripcion_notificacion_guardado=descripcion_notificacion
-
+                                                                titulo_notificacion_guardado =
+                                                                    titulo_notificacion
+                                                                descripcion_notificacion_guardado =
+                                                                    descripcion_notificacion
 
 
                                                             } ?: run {
@@ -3361,27 +3442,11 @@ fun pantalla_promocionar(
                                         modifier = Modifier.fillMaxWidth(),
                                         enabled = aceptoTerminos_notificaciones,
                                         onClick = {
-                                            val id_creado_tipo = when {
-                                                id_publicacion_selecionada.isNotBlank() -> {
-                                                    generarIdImagen_nueve()
-                                                }
-
-                                                id_publicacion_selecionada.isBlank() &&
-                                                        tipo_notificacion_params_seleccionada == "informativas" -> {
-                                                    generarIdImagen_cinco()
-                                                }
-
-                                                else -> {
-                                                    generarIdImagen()
-                                                }
-                                            }
-
-
                                             val obj = obj_contador_notificaciones(
                                                 id_tienda = id_socio,
                                                 localida = i.localidad_tienda,
                                                 categoria = i.categoira_tienda,
-                                                idnotificacion = id_creado_tipo,
+                                                idnotificacion = idnotificacion,
                                                 fecha_enviada = obtenerFechaActual(),
                                                 precio_envio = 50,
                                                 parametros_notificacion = obj_parametros_notificacion(
@@ -3403,8 +3468,8 @@ fun pantalla_promocionar(
                                                 id_img_storage = id_img_notificacion,
                                                 fecha_caducidad = fechaCaducidad,
                                                 generaciones_con_ia_notificaciones = generaciones_con_ia_notificaciones(
-                                                    titulo_original=titulo_notificacion_guardado,
-                                                    descripcion_original=descripcion_notificacion_guardado,
+                                                    titulo_original = titulo_notificacion_guardado,
+                                                    descripcion_original = descripcion_notificacion_guardado,
                                                     generacion_selecionada = contenido_publicidad(
                                                         titulo = if (msj_perzonalizado_gen_notificacion) titulo_notificacion else "",
                                                         descripcion = if (msj_perzonalizado_gen_notificacion) descripcion_notificacion else ""
@@ -3503,20 +3568,23 @@ fun pantalla_promocionar(
 
             val lista_uris: List<Uri> = imagenes.mapNotNull { it.uri }
             desing_principal_promos_cerncas(
-                compartir,contacto_directo,
+                compartir, contacto_directo,
                 { mostrar_vista_previa_promos_cercanas = false },
                 lista_uris,
-                descripcion_publicacion,
-                nombre_publicacion,
+                viewmodel_pantalla_promocionar.descripcion,
+                viewmodel_pantalla_promocionar.titulo,
                 compartir_publicaiones
             )
         }
 
-        if(mostrar_vista_previa_promos_cercanas_sin_clikear){
+        if (mostrar_vista_previa_promos_cercanas_sin_clikear) {
 
-            DialogVistaPreviaPromocion (mostrar_vista_previa_promos_cercanas_sin_clikear,vista_previa_promo, {
-                mostrar_vista_previa_promos_cercanas_sin_clikear = false
-            })
+            DialogVistaPreviaPromocion(
+                mostrar_vista_previa_promos_cercanas_sin_clikear,
+                vista_previa_promo,
+                {
+                    mostrar_vista_previa_promos_cercanas_sin_clikear = false
+                })
 
         }
 
@@ -3634,9 +3702,8 @@ fun pantalla_promocionar(
 
         )
     }
-
-
 }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -4096,46 +4163,39 @@ fun acortarDescripcionNotificacion(
 fun SelectorOpcionesPromocionIA(
     original: OpcionPromocionIA,
     opciones: List<OpcionPromocionIA>,
+    seleccionInicial: OpcionPromocionIA? = null, // ← Nuevo parámetro
     onOpcionSeleccionada: (OpcionPromocionIA) -> Unit
 ) {
     if (opciones.isEmpty()) return
 
-    var seleccionIndex by rememberSaveable { mutableIntStateOf(0) }
-
+    // Creamos la lista final con la original al inicio
     val listaFinal = remember(original, opciones) {
         listOf(original) + opciones
     }
 
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        itemsIndexed(listaFinal) { index, opcion ->
+    // Determinar el index inicial según la opción recibida
+    var seleccionIndex by rememberSaveable {
+        mutableIntStateOf(
+            seleccionInicial?.let { listaFinal.indexOf(it) }?.takeIf { it >= 0 } ?: 0
+        )
+    }
 
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        itemsIndexed(listaFinal) { index, opcion ->
             val esOriginal = index == 0
             val seleccionado = seleccionIndex == index
 
             val colorAnimado by animateColorAsState(
                 targetValue = when {
-                    seleccionado && esOriginal ->
-                        MaterialTheme.colorScheme.secondaryContainer
-
-                    seleccionado && !esOriginal ->
-                        Color.Transparent // 👈 dejamos ver el fondo IA
-
-                    else ->
-                        MaterialTheme.colorScheme.surface
+                    seleccionado && esOriginal -> MaterialTheme.colorScheme.secondaryContainer
+                    seleccionado && !esOriginal -> Color.Transparent
+                    else -> MaterialTheme.colorScheme.surface
                 },
                 animationSpec = tween(300),
                 label = "colorCard"
             )
 
-            Box(
-                modifier = Modifier
-                    .width(300.dp)
-                    .height(250.dp)
-            ) {
-
-                // 🌈 FONDO IA SOLO SI ES IA Y ESTÁ SELECCIONADO
+            Box(modifier = Modifier.width(300.dp).height(250.dp)) {
                 if (seleccionado && !esOriginal) {
                     FondoIAAnimado(
                         modifier = Modifier
@@ -4151,18 +4211,14 @@ fun SelectorOpcionesPromocionIA(
                             seleccionIndex = index
                             onOpcionSeleccionada(opcion)
                         },
-                    colors = CardDefaults.cardColors(
-                        containerColor = colorAnimado
-                    ),
+                    colors = CardDefaults.cardColors(containerColor = colorAnimado),
                 ) {
-
                     Column(
                         modifier = Modifier
                             .padding(16.dp)
                             .verticalScroll(rememberScrollState())
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-
                             Text(
                                 text = if (esOriginal)
                                     "VERSIÓN ORIGINAL"
@@ -4198,7 +4254,6 @@ fun SelectorOpcionesPromocionIA(
                 }
             }
         }
-
     }
 }
 

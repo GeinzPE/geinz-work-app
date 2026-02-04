@@ -5,23 +5,26 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.identity.util.UUID
 import com.geinzz.geinzwork.data.model.DatosDemograficosUsuario
-import com.geinzz.geinzwork.data.model.NotificacionIA
+import com.geinzz.geinzwork.data.model.DatosPublicidadIA
 import com.geinzz.geinzwork.data.model.agregar_promociones
+import com.geinzz.geinzwork.data.model.contenido_publicidad
 import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
+import com.geinzz.geinzwork.data.model.datos_notificacion
 import com.geinzz.geinzwork.data.model.datos_publicaciones_realizadas
 import com.geinzz.geinzwork.data.model.datos_recarga
 import com.geinzz.geinzwork.data.model.datos_tienda
-import com.geinzz.geinzwork.data.model.fechas_promociones
+import com.geinzz.geinzwork.data.model.generacion_primarios
+import com.geinzz.geinzwork.data.model.generaciones_con_ia
+import com.geinzz.geinzwork.data.model.generaciones_con_ia_notificaciones
+import com.geinzz.geinzwork.data.model.generaciones_con_ia_notificaciones_solo_generaciones
 import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
 import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones
-import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.formatoFechaHora
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.timestampEn30Dias
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.normalizar
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenWebPSinRecorte
+import com.geinzz.geinzwork.herramientas_geinz.constantes.generarPromptNombreGeneracionIA
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.acortarDescripcionNotificacion
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaConDias
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.timeStampNumero
@@ -43,18 +46,13 @@ import kotlinx.coroutines.tasks.await
 import com.google.firebase.Timestamp
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
-import kotlinx.coroutines.suspendCancellableCoroutine
 
 
 import java.text.SimpleDateFormat
-import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.Period
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -67,6 +65,8 @@ import kotlin.math.floor
 
 class repo_eres_socio {
     private val db = FirebaseFirestore.getInstance()
+
+    private var genIAOriginal: generaciones_con_ia? = null
 
     private val db_sec: FirebaseFirestore by lazy {
         FirebaseSecundario.getFirestore()
@@ -1193,11 +1193,28 @@ class repo_eres_socio {
     }
 
     suspend fun crear_promocion(
+        datos_si_paso_IA: DatosPublicidadIA,
+        tuvi_nueva_genearcion: Boolean,
         lista_img_subida: List<String>,
         i: agregar_promociones,
         localidad: String
     ): Result<Unit> {
         return try {
+            val tieneDatos = datos_si_paso_IA.let { datos ->
+                datos.titulo.isNotBlank() ||
+                        datos.descripcion.isNotBlank() ||
+                        datos.whatsapp.isNotBlank() ||
+                        datos.compartir.isNotBlank() ||
+                        datos.tipo_redirigido.isNotBlank() ||
+                        datos.id_generacion_sin_publicar != null ||
+                        datos.datos_generaciones.let { gen ->
+                            gen.lista_obciones?.isNotEmpty() == true ||
+                                    !gen.titulo_original.isNullOrBlank() ||
+                                    !gen.descripcion_original.isNullOrBlank() ||
+                                    !gen.titulo_seleccionado.isNullOrBlank() ||
+                                    !gen.descripcion_seleccionada.isNullOrBlank()
+                        }}
+
             val ref = db.collection("Tiendas")
                 .document(localidad)
                 .collection("promos_ofertas")
@@ -1205,10 +1222,6 @@ class repo_eres_socio {
 
             val ref2 = db.collection("Tiendas").document(localidad).collection(localidad)
                 .document(i.informacion.id_tienda).collection("promociones_geinz")
-                .document(i.informacion.id_promocion)
-
-            val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
-                .document(i.informacion.id_tienda).collection("gen_con_IA_historial")
                 .document(i.informacion.id_promocion)
 
             val hashMap = hashMapOf<String, Any>(
@@ -1224,11 +1237,14 @@ class repo_eres_socio {
             )
 
             // 🤖 SOLO SI EXISTE IA
-            if (i.generaciones_con_ia != null) {
+            if (tuvi_nueva_genearcion) {
+                val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
+                    .document(i.informacion.id_tienda).collection("gen_con_IA_historial")
+                    .document(i.informacion.id_promocion)
                 val hashmpa_gen_con_IA = hashMapOf<String, Any>(
                     "fecha" to Timestamp.now(),
                     "img_container" to lista_img_subida.first(),
-                    "caudidad" to timestampEn30Dias(),
+                    "caudidad" to timestampEn30Dias(30),
                     "id_promo_o_noti" to i.informacion.id_promocion,
                     "tipo" to "publicacion",
                     "generacions_con_IA" to i.generaciones_con_ia
@@ -1246,6 +1262,19 @@ class repo_eres_socio {
                 }
 
                 gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
+            }else if(tieneDatos && !datos_si_paso_IA.id_generacion_sin_publicar.isNullOrBlank()) {
+                val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
+                    .document(i.informacion.id_tienda).collection("gen_con_IA_historial")
+                    .document(datos_si_paso_IA.id_generacion_sin_publicar)
+                val hashmpa_gen_con_IA = hashMapOf<String, Any>(
+                    "fecha" to Timestamp.now(),
+                    "img_container" to lista_img_subida.first(),
+                    "caudidad" to timestampEn30Dias(30),
+                    "tipo" to "publicacion",
+
+                )
+
+                gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
             }
 
             ref.set(hashMap, SetOptions.merge()).await()
@@ -1259,21 +1288,78 @@ class repo_eres_socio {
     }
 
 
-    fun generarPromptNombreGeneracionIA(
-        titulo: String,
-        descripcion: String
-    ): String {
-        return """
-Devuelve SOLO el nombre final.
-NO incluyas etiquetas como "Nombre:", ni comillas, ni explicaciones.
-Máximo 40 caracteres.
-Incluye exactamente 1 emoji relevante.
-Resume sin inventar.
+    suspend fun guaradar_generacion_normal_por_7_dias(
+        id_generacion:String,
+        localidad: String,
+        id_tienda: String,
+        i: generacion_primarios,
+        tipo: String
+    ) {
+        val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
+            .document(id_tienda).collection("gen_con_IA_historial")
+            .document(id_generacion)
+        val hashmpa_gen_con_IA = hashMapOf<String, Any>(
+            "fecha" to Timestamp.now(),
+            "img_container" to "",
+            "caudidad" to timestampEn30Dias(7),
+            "id_promo_o_noti" to id_generacion,
+            "tipo" to tipo,
+            "generacions_con_IA" to i
+        )
+        val descripcionAcortada = acortarDescripcionNotificacion(
+            i.descripcion_original
+        )
 
-Título: $titulo
-Descripción: $descripcion
-""".trimIndent()
+        val nombreGeneracion = crear_notificacion_conIA_corta(
+            i.titulo_original,
+            descripcionAcortada
+        )
+        nombreGeneracion.let {
+            hashmpa_gen_con_IA["nombre_generacion"] = it
+        }
+
+        gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
     }
+
+    suspend fun guaradar_generacion_normal_por_7_dias_notificaciones(
+        id_generacion:String,
+        localidad: String,
+        id_tienda: String,
+        i: datos_notificacion,
+    ) {
+        val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
+            .document(id_tienda).collection("gen_con_IA_historial")
+            .document(id_generacion)
+        val gen_seleccioada= contenido_publicidad(
+            titulo = i.titulo_select,
+            descripcion = i.descripcion_select
+        )
+        val datos_a_llenar= generaciones_con_ia_notificaciones_solo_generaciones(
+            i.titulo_original, i.descripcion_original, gen_seleccioada
+        )
+        val historialIAData = mutableMapOf<String, Any>(
+            "fecha" to Timestamp.now(),
+            "caudidad" to timestampEn30Dias(7),
+            "id_promo_o_noti" to i.id_generacion_sin_publicar,
+            "tipo" to "notificacion_sin_publicar",
+            "generacions_con_IA" to datos_a_llenar
+        )
+        val descripcionAcortada = acortarDescripcionNotificacion(
+            i.descripcion_select
+        )
+
+        val nombreGeneracion = crear_notificacion_conIA_corta(
+            i.titulo_select,
+            descripcionAcortada
+        )
+        nombreGeneracion.let {
+            historialIAData["nombre_generacion"] = it
+        }
+
+        gen_con_IA.set(historialIAData, SetOptions.merge()).await()
+    }
+
+
 
 
     suspend fun crear_notificacion_conIA_corta(
@@ -1313,7 +1399,6 @@ Descripción: $descripcion
 
 
     suspend fun agregarContadorNotificacion(
-
         usuarios: List<String>,
         i: obj_contador_notificaciones
     ) {
@@ -1409,42 +1494,42 @@ Descripción: $descripcion
             // ------------------------------------------------------------------
             // 🤖 IA OPCIONAL (CORRECTO)
             // ------------------------------------------------------------------
-if(i.generaciones_con_ia_notificaciones.titulo_original.isNotEmpty()){
-            val generacionSeleccionada =
-                i.generaciones_con_ia_notificaciones?.generacion_selecionada
+            if (i.generaciones_con_ia_notificaciones.titulo_original.isNotEmpty()) {
+                val generacionSeleccionada =
+                    i.generaciones_con_ia_notificaciones?.generacion_selecionada
 
-            val nombreGeneracion: String? =
-                if (
-                    generacionSeleccionada != null &&
-                    generacionSeleccionada.titulo.isNotBlank() &&
-                    generacionSeleccionada.descripcion.isNotBlank()
-                ) {
-                    val descripcionAcortada = acortarDescripcionNotificacion(
-                        generacionSeleccionada.descripcion
-                    )
+                val nombreGeneracion: String? =
+                    if (
+                        generacionSeleccionada != null &&
+                        generacionSeleccionada.titulo.isNotBlank() &&
+                        generacionSeleccionada.descripcion.isNotBlank()
+                    ) {
+                        val descripcionAcortada = acortarDescripcionNotificacion(
+                            generacionSeleccionada.descripcion
+                        )
 
-                    crear_notificacion_conIA_corta(
-                        generacionSeleccionada.titulo,
-                        descripcionAcortada
-                    )
-                } else {
-                    null
+                        crear_notificacion_conIA_corta(
+                            generacionSeleccionada.titulo,
+                            descripcionAcortada
+                        )
+                    } else {
+                        null
+                    }
+
+                val historialIAData = mutableMapOf<String, Any>(
+                    "fecha" to Timestamp.now(),
+                    "img_container" to i.parametros_notificacion.img_notifiacion,
+                    "caudidad" to timestampEn30Dias(30),
+                    "id_promo_o_noti" to i.idnotificacion,
+                    "tipo" to "notificacion",
+                    "generacions_con_IA" to i.generaciones_con_ia_notificaciones
+                )
+
+                nombreGeneracion?.let {
+                    historialIAData["nombre_generacion"] = it
                 }
-
-            val historialIAData = mutableMapOf<String, Any>(
-                "fecha" to Timestamp.now(),
-                "img_container" to i.parametros_notificacion.img_notifiacion,
-                "caudidad" to timestampEn30Dias(),
-                "id_promo_o_noti" to i.idnotificacion,
-                "tipo" to "notificacion",
-                "generacions_con_IA" to i.generaciones_con_ia_notificaciones
-            )
-
-            nombreGeneracion?.let {
-                historialIAData["nombre_generacion"] = it
+                historialIARef.set(historialIAData, SetOptions.merge()).await()
             }
-            historialIARef.set(historialIAData, SetOptions.merge()).await()
-}
 
             // ------------------------------------------------------------------
             // ✅ GUARDADO FINAL

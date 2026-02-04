@@ -194,6 +194,10 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         _estado_notificacion_con_ia_corta
 
 
+    fun resetear_Estado_notificacion_gnerado_ia(){
+        _estado_notificacion_con_ia_corta.value= EstadoIA_notifi_corta.Idle
+    }
+
     private val _estado_texto_whatsap_con_ia =
         MutableStateFlow<ESstado_ia_msje_whatsap>(ESstado_ia_msje_whatsap.Idle)
 
@@ -205,6 +209,10 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         MutableStateFlow<Estado_ia_mensaje_whatsap_notificaion>(
             Estado_ia_mensaje_whatsap_notificaion.Idle
         )
+    fun resetear_Estado_notificacion_whatsap_gnerado_ia(){
+        _estado_texto_whatsap_con_ia_notificacion.value= Estado_ia_mensaje_whatsap_notificaion.Idle
+    }
+
 
     val estado_texto_whatsap_con_ia_notificacion: StateFlow<Estado_ia_mensaje_whatsap_notificaion> =
         _estado_texto_whatsap_con_ia_notificacion
@@ -811,6 +819,10 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                 }
             }
         }
+    }
+
+    fun limpiar_precios(){
+        _estadoRangoPrecio.value = Res_precios(emptyList(), null, null)
     }
 
 

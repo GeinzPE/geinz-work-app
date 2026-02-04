@@ -13,6 +13,7 @@ import io.ktor.http.Url
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.net.URI
+import java.time.LocalDateTime
 
 data class datos_tienda(
     val id_tienda: String = "",
@@ -114,11 +115,24 @@ data class generaciones_con_ia(
     val generacion_compartir: String
 )
 
+data class generacion_primarios(
+    val titulo_original: String,
+    val descripcion_original: String,
+    val lista_generaciones: List<OpcionPromocionIA>,
+)
+
 data class generaciones_con_ia_notificaciones(
     val titulo_original: String,
     val descripcion_original: String,
     val generacion_selecionada: contenido_publicidad,
     val generacion_wsap: String,
+)
+
+data class generaciones_con_ia_notificaciones_solo_generaciones(
+    val titulo_original: String,
+    val descripcion_original: String,
+    val generacion_selecionada: contenido_publicidad,
+
 )
 
 data class contenido_publicidad(val titulo: String, val descripcion: String)
@@ -317,12 +331,12 @@ data class historial_financiero(
     val fecha: String,
     val nombre_tienda: String,
     val precio_soles: String,
-    val tipo_realziado: String,//recarga o descuento,
-    val tipo_transaccion: String, //generacion por ia o publicdad
+    val tipo_realziado: String,
+    val tipo_transaccion: String,
     val estodo: String,
-    val monto_restante: Number
+    val monto_restante: Number,
+    val dateTime: LocalDateTime // 🔥 Campo extra para ordenar
 )
-
 
 data class EstadisticasPromo(
     val vistas: Int = 0,
@@ -574,13 +588,35 @@ data class lista_genereracione(
     val descripcion: String
 )
 
+
 data class DatosPublicidadIA(
     val titulo: String = "",
     val descripcion: String = "",
     val whatsapp: String = "",
     val compartir: String = "",
-    val tipo_redirigido: String = ""
+    val tipo_redirigido: String = "",
+    val id_generacion_sin_publicar: String? =null,
+    val datos_generaciones:datos_generaciones_sin_publicaicones=datos_generaciones_sin_publicaicones()
 )
+
+data class datos_notificacion(
+    val titulo_original: String="",
+    val descripcion_original: String="",
+    val titulo_select: String="",
+    val descripcion_select:String="",
+    val id_generacion_sin_publicar: String=""
+)
+
+
+data class datos_generaciones_sin_publicaicones(
+    val lista_obciones: List<OpcionPromocionIA>?=null,
+    val titulo_original: String?=null,
+    val descripcion_original: String?=null,
+    val titulo_seleccionado: String?=null,
+    val descripcion_seleccionada:String?=null
+)
+
+
 
 sealed class IconoIA {
     data class Drawable(@DrawableRes val resId: Int) : IconoIA()

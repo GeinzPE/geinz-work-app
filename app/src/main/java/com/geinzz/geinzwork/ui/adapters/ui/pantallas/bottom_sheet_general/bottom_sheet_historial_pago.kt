@@ -106,6 +106,9 @@ fun bottom_sheet_historial_pago(
 
     val viewmodel_monedas: viewmodel_recargas = viewModel()
     val state by viewmodel_monedas.stateHistorial.collectAsState()
+    var tipoSeleccionado by remember { mutableStateOf<String?>(null) }
+    var cantidad_obtenida by remember { mutableStateOf<Int?>(null) }
+
 
     val lsita_fitlrado_opciones = listOf(
         "Todos",
@@ -345,7 +348,6 @@ fun bottom_sheet_historial_pago(
 
                                                     listaPorFecha.forEachIndexed { index, item ->
 
-// 🔹 Contar cuántos items hay por tipo_realzia
 
                                                         AnimatedVisibility(
                                                             visible = expanded,
@@ -387,21 +389,40 @@ fun bottom_sheet_historial_pago(
                                                         subCategoriaSeleccionada == "Este mes"
                                                     ) {
 
+
                                                         val conteoPorTipo: Map<String, Int> = listaPorFecha.groupingBy { it.tipo_transaccion }
                                                             .eachCount()
 
 
-                                                        EstadisticasHistorialMonedas.GraficoBarrasVerticalInteractivo(conteoPorTipo = conteoPorTipo)
+                                                        EstadisticasHistorialMonedas.GraficoBarrasVerticalInteractivo(
+                                                            conteoPorTipo = conteoPorTipo,
+                                                            onTipoSeleccionado = { tipo,cantidad ->
+                                                                Log.d("tipojjaa","$tipo $cantidad")
+                                                                tipoSeleccionado = tipo
+                                                                cantidad_obtenida=cantidad
+                                                            }
+                                                        )
                                                     }
 
 
-                                                    val totalMonedas = listaPorFecha
-                                                        .filter { it.tipo_realziado == "descuento" }
-                                                        .sumOf { it.monedas.toDouble() }
+                                                    // 🔹 Ahora puedes recalcular monedas o soles según el slice seleccionado
+                                                    val totalMonedas = if (tipoSeleccionado != null) {
+                                                        listaPorFecha
+                                                            .filter { it.tipo_transaccion == tipoSeleccionado }
+                                                            .sumOf { it.monedas.toDouble() }
+                                                    } else {
+                                                        listaPorFecha.sumOf { it.monedas.toDouble() }
+                                                    }
 
-                                                    val totalSoles = listaPorFecha
-                                                        .filter { it.tipo_realziado == "descuento" }
-                                                        .sumOf { it.precio_soles.toDoubleSeguro() }
+                                                    val totalSoles = if (tipoSeleccionado != null) {
+                                                        listaPorFecha
+                                                            .filter { it.tipo_transaccion == tipoSeleccionado }
+                                                            .sumOf { it.precio_soles.toDoubleSeguro() }
+                                                    } else {
+                                                        listaPorFecha.sumOf { it.precio_soles.toDoubleSeguro() }
+                                                    }
+
+
 
                                                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -416,6 +437,26 @@ fun bottom_sheet_historial_pago(
                                                                 .fillMaxWidth()
                                                                 .padding(16.dp)
                                                         ) {
+
+                                                            if(cantidad_obtenida!=null){
+                                                                Row(
+                                                                    modifier = Modifier.fillMaxWidth(),
+                                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                                ) {
+                                                                    texto_generico_one_line(
+                                                                        "Cantidad realizados",
+                                                                        style = MaterialTheme.typography.titleSmall
+                                                                    )
+
+                                                                    texto_generico_one_line(
+                                                                        "$cantidad_obtenida",
+                                                                        style = MaterialTheme.typography.titleSmall
+                                                                    )
+                                                                }
+                                                                Spacer(modifier = Modifier.height(4.dp))
+
+                                                            }
+
                                                             Row(
                                                                 modifier = Modifier.fillMaxWidth(),
                                                                 horizontalArrangement = Arrangement.SpaceBetween
