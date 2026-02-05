@@ -255,10 +255,11 @@ fun pantalla_promocionar(
     var idSeleccionado by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(predeterminado.id_generacion_sin_publicar) {
-        Log.d("nomralid","${predeterminado.id_generacion_sin_publicar}")
+        Log.d("nomralid", "${predeterminado.id_generacion_sin_publicar}")
         viewmodel_socios.iniciarPromo(predeterminado.id_generacion_sin_publicar)
-        viewmodel_socios.generarIdNotificacion(predeterminado.id_generacion_sin_publicar,
-           "",""
+        viewmodel_socios.generarIdNotificacion(
+            predeterminado.id_generacion_sin_publicar,
+            "", ""
         )
 
         if (predeterminado.tipo_redirigido == "notificacion_sin_publicar") {
@@ -276,7 +277,7 @@ fun pantalla_promocionar(
                         "TIPO_NOTI",
                         "ID longitud 9 → promociones y ofertas"
                     )
-                    idSeleccionado=predeterminado.id_generacion_sin_publicar
+                    idSeleccionado = predeterminado.id_generacion_sin_publicar
                 }
 
                 5 -> {
@@ -285,7 +286,7 @@ fun pantalla_promocionar(
                         "TIPO_NOTI",
                         "ID longitud 5 → informativas"
                     )
-                    idSeleccionado=predeterminado.id_generacion_sin_publicar
+                    idSeleccionado = predeterminado.id_generacion_sin_publicar
                 }
 
                 null -> {
@@ -540,7 +541,6 @@ fun pantalla_promocionar(
     }
 
 
-
     val lista_generacions_IA_proms = listOf(
         GeneracionIA(
             tipo = repo_pantallas_promocionar.TipoGeneracionIA.VENTA,
@@ -755,6 +755,15 @@ fun pantalla_promocionar(
                 mensaje_perzonalizado_txt_compartir
             )
             viewmodel_socios.verificar_si_tiene_nueva_generacion(true)
+        } else if (estado_texto_compatir_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_compartir.Error) {
+            val texto_error =
+                (estado_texto_compatir_con_ia as viewmodel_pantallas_promocionar.ESstado_ia_msje_compartir.Error).mensaje
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = texto_error,
+                    duration = SnackbarDuration.Short
+                )
+            }
         }
     }
 
@@ -772,6 +781,16 @@ fun pantalla_promocionar(
                 mensaje_perzonalizado_txt
             )
             viewmodel_socios.verificar_si_tiene_nueva_generacion(true)
+        } else if (estado_texto_whatsapp_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_whatsap.Error) {
+            val texto_error =
+                (estado_texto_whatsapp_con_ia as viewmodel_pantallas_promocionar.ESstado_ia_msje_whatsap.Error).mensaje
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = texto_error,
+                    duration = SnackbarDuration.Short
+                )
+            }
+
         }
     }
 
@@ -792,9 +811,17 @@ fun pantalla_promocionar(
                 "generacion_publicacion_sin_pulicar", idPromo
             )
             viewmodel_socios.verificar_si_tiene_nueva_generacion(true)
+        } else if (estado_textos_notificaciones_generadas is viewmodel_pantallas_promocionar.EstadoIA.Error) {
+            val texto_error =
+                (estado_textos_notificaciones_generadas as viewmodel_pantallas_promocionar.EstadoIA.Error).mensaje
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = texto_error,
+                    duration = SnackbarDuration.Short
+                )
+            }
         }
     }
-
 
 
 
@@ -812,6 +839,15 @@ fun pantalla_promocionar(
                 mensaje_whatsapp_de_publi_a_notificacion
             )
             viewmodel_pantalla_promocionar.resetear_Estado_notificacion_whatsap_gnerado_ia()
+        } else if (estado_texto_whatsapp_con_ia_con_notificacion is viewmodel_pantallas_promocionar.Estado_ia_mensaje_whatsap_notificaion.Error) {
+            val texto_error =
+                (estado_texto_whatsapp_con_ia_con_notificacion as viewmodel_pantallas_promocionar.Estado_ia_mensaje_whatsap_notificaion.Error).mensaje
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = texto_error,
+                    duration = SnackbarDuration.Short
+                )
+            }
         }
     }
 
@@ -827,16 +863,19 @@ fun pantalla_promocionar(
             descripcion_notificacion =
                 (estado_textos_notificacion_corta_generada as viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Success).txt_descripcion.descripcion
 
-            val tipo_generacion =  (estado_textos_notificacion_corta_generada as viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Success).txt_descripcion.tipo
+            val tipo_generacion =
+                (estado_textos_notificacion_corta_generada as viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Success).txt_descripcion.tipo
             val datos_generaciones = generacion_primarios(
-                titulo_original =viewmodel_pantalla_promocionar.titulo_notificacion,
+                titulo_original = viewmodel_pantalla_promocionar.titulo_notificacion,
                 descripcion_original = viewmodel_pantalla_promocionar.descripcion_notificacion,
                 lista_generaciones = listOf(
-                    OpcionPromocionIA (
+                    OpcionPromocionIA(
                         tipoIA = tipo_generacion,
                         titulo = titulo_notificacion,
                         descripcion = descripcion_notificacion
-                    )))
+                    )
+                )
+            )
             viewmodel_socios.agregar_generacions_obligatorias_subidas_notificaciones(
                 i.localidad_tienda,
                 i.id_tienda,
@@ -844,6 +883,15 @@ fun pantalla_promocionar(
                 idnotificacion
             )
             viewmodel_pantalla_promocionar.resetear_Estado_notificacion_gnerado_ia()
+        } else if (estado_textos_notificacion_corta_generada is viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Error) {
+            val texto_error =
+                (estado_textos_notificacion_corta_generada as viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Error).mensaje
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = texto_error,
+                    duration = SnackbarDuration.Short
+                )
+            }
         }
     }
 
@@ -939,7 +987,7 @@ fun pantalla_promocionar(
                 viewmodel_socios.verificar_si_tiene_nueva_generacion(false)
                 listaOpcionesIA = emptyList()
 
-
+                viewmodel_pantalla_promocionar.resetearEstadosPublicacion()
                 imagenes.clear()
                 viewmodel_socios.resetear_Estado_promo_subida()
                 viewmodel_socios.limpiarId()
@@ -970,9 +1018,9 @@ fun pantalla_promocionar(
 
                 viewmodel_pantalla_promocionar.limpiar_precios()
                 rango_detectado = ""
-                viewmodel_pantalla_promocionar.limpiar_resutlados_ia_promo()
-                viewmodel_pantalla_promocionar.reseteo_compartir()
-                viewmodel_pantalla_promocionar.reseteo_wshap_promocion()
+//                viewmodel_pantalla_promocionar.limpiar_resutlados_ia_promo()
+//                viewmodel_pantalla_promocionar.reseteo_compartir()
+//                viewmodel_pantalla_promocionar.reseteo_wshap_promocion()
 
 
             }
@@ -1038,10 +1086,10 @@ fun pantalla_promocionar(
                 fechaCaducidad = obtenerFechaFinDosDias()
                 id_publicacion_selecionada = ""
                 id_img_notificacion = ""
-                viewmodel_pantalla_promocionar.resetear_Estado_notificacion_enviadad()
+//                viewmodel_pantalla_promocionar.resetear_Estado_notificacion_enviadad()
                 viewmodel_pantalla_promocionar.cambiar_estado_img_notifi_select()
-                viewmodel_pantalla_promocionar.reseteo_wshap_notificacion()
-
+//                viewmodel_pantalla_promocionar.reseteo_wshap_notificacion()
+                viewmodel_pantalla_promocionar.resetearEstadosNotificacion()
                 msje_texto_notificacion_generada = "Mejorar con IA"
                 mnsje_estado_notificacion_generada = "Mejorar titulo y texto con IA"
             }
@@ -2756,7 +2804,11 @@ fun pantalla_promocionar(
                                                 val precio = tipo_notificacion_precio_nombre
                                                     .firstOrNull { it.tipo == tipo }
                                                     ?.precio ?: 0
-                                                viewmodel_socios.generarIdNotificacion(null,id, tipo)
+                                                viewmodel_socios.generarIdNotificacion(
+                                                    null,
+                                                    id,
+                                                    tipo
+                                                )
                                                 tipo_notificacion_params_seleccionada = tipo
                                                 precio_tipo_notificacion = precio
                                                 fechaCaducidad = fecha_caducidad_timestamp
@@ -2835,7 +2887,8 @@ fun pantalla_promocionar(
                                     textoError = "selecciona tu tipo de notificacion",
                                     label = "selecciona tu tipo de notificacion"
                                 ) { tipo, precio ->
-                                    viewmodel_socios.generarIdNotificacion(null,
+                                    viewmodel_socios.generarIdNotificacion(
+                                        null,
                                         idSeleccionado ?: "",
                                         tipo
                                     )
@@ -4265,9 +4318,11 @@ fun SelectorOpcionesPromocionIA(
                 label = "colorCard"
             )
 
-            Box(modifier = Modifier
-                .width(300.dp)
-                .height(250.dp)) {
+            Box(
+                modifier = Modifier
+                    .width(300.dp)
+                    .height(250.dp)
+            ) {
                 if (seleccionado && !esOriginal) {
                     FondoIAAnimado(
                         modifier = Modifier

@@ -995,12 +995,14 @@ fun login_socios(isConnected: Boolean, tipo_: String = "", navController: NavHos
                     }) {
                         Text("Sí")
                         viewmodel.limpiar_datos_pasados_notificaciones_con_IA()
-                        viewmodel_pantalla_promocionar.resetear_Estado_notificacion_gnerado_ia()
+//                        viewmodel_pantalla_promocionar.resetear_Estado_notificacion_gnerado_ia()
                         viewmodel.limpiarId()
                         viewmodel.limpiar_datos_pasados_publcada_IA()
-                        viewmodel_pantalla_promocionar.limpiar_resutlados_ia_promo()
-                        viewmodel_pantalla_promocionar.reseteo_compartir()
-                        viewmodel_pantalla_promocionar.reseteo_wshap_promocion()
+//                        viewmodel_pantalla_promocionar.limpiar_resutlados_ia_promo()
+//                        viewmodel_pantalla_promocionar.reseteo_compartir()
+//                        viewmodel_pantalla_promocionar.reseteo_wshap_promocion()
+                        viewmodel_pantalla_promocionar.resetearEstadosNotificacion()
+                        viewmodel_pantalla_promocionar.resetearEstadosPublicacion()
                     }
                 },
 

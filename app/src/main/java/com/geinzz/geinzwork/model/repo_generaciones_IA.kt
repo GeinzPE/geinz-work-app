@@ -268,12 +268,11 @@ class repo_generaciones_IA {
 
 
     suspend fun crear_notificacion_conIA_corta(
-        id_notificacion_promo:String,
+        id_notificacion_promo: String,
         tituloPublicacion: String,
         descCorta: String,
-        tipoGeneracion: TipoGeneracionIA,  // <-- nuevo
-        onResultado: (NotificacionIA_dialog) -> Unit
-    ) {
+        tipoGeneracion: TipoGeneracionIA
+    ): NotificacionIA_dialog {
 
         val model = Firebase.ai(
             backend = GenerativeBackend.googleAI()
@@ -282,48 +281,39 @@ class repo_generaciones_IA {
         val descripcion_acortada = acortarDescripcionNotificacion(descCorta)
 
         try {
-            // Elegimos el prompt según el tipo
             val prompt = when (tipoGeneracion) {
                 TipoGeneracionIA.VENTA -> promptNotificacionVenta(
                     tituloPublicacion,
                     descripcion_acortada
                 )
-
                 TipoGeneracionIA.ATENCION -> promptNotificacionAtencion(
                     tituloPublicacion,
                     descripcion_acortada
                 )
-
                 TipoGeneracionIA.URGENCIA -> promptNotificacionUrgencia(
                     tituloPublicacion,
                     descripcion_acortada
                 )
-
                 TipoGeneracionIA.NOVEDAD -> promptNotificacionNovedad(
                     tituloPublicacion,
                     descripcion_acortada
                 )
-
                 TipoGeneracionIA.INFORMATIVO -> promptNotificacionAtencion(
                     tituloPublicacion,
                     descripcion_acortada
                 )
-
                 TipoGeneracionIA.OPERATIVA -> promptNotificacionOperativa(
                     tituloPublicacion,
                     descripcion_acortada
                 )
-
                 TipoGeneracionIA.REPOSICION -> promptNotificacionReposicion(
                     tituloPublicacion,
                     descripcion_acortada
                 )
-
                 TipoGeneracionIA.CITAS -> promptNotificacionCita(
                     tituloPublicacion,
                     descripcion_acortada
                 )
-
                 TipoGeneracionIA.SERVICIOS -> promptNotificacionServicios(
                     tituloPublicacion,
                     descripcion_acortada
@@ -338,23 +328,23 @@ class repo_generaciones_IA {
             Log.d("Gemini", "Tiempo: ${fin - inicio} ms")
             Log.d("Gemini", "Resultado:\n$textoGenerado")
 
-            // 🔥 PARSEAR RESPUESTA
-            val notificacion = parsearRespuestaGemini(textoGenerado,tipoGeneracion)
+            val notificacion = parsearRespuestaGemini(
+                textoGenerado,
+                tipoGeneracion
+            )
 
-            val datos_enviados= NotificacionIA_dialog(
-                id_promo_noti_gen =id_notificacion_promo,
+            return NotificacionIA_dialog(
+                id_promo_noti_gen = id_notificacion_promo,
                 titulo = notificacion.titulo,
                 descripcion = notificacion.descripcion
             )
 
-            // 🔁 RETORNAR RESULTADO
-            onResultado(datos_enviados)
-
         } catch (e: Exception) {
             Log.e("Gemini", "Error IA: ${e.message}")
+            throw e // 🔥 importante para que el ViewModel lo capture
         }
-
     }
+
 
     fun parsearRespuestaGemini(texto: String, tipoGeneracion: TipoGeneracionIA): NotificacionIA {
         var titulo = ""

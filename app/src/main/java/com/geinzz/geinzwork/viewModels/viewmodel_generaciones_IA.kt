@@ -15,11 +15,13 @@ import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaD
 import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas
 import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_promocionar.EstadoIA
 import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_promocionar.EstadoIA_notifi_corta
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 
 class viewmodel_generaciones_IA : ViewModel() {
     val insta_repo = repo_generaciones_IA()
@@ -98,7 +100,7 @@ class viewmodel_generaciones_IA : ViewModel() {
     }
 
     fun mejorar_texto_con_promo_IA(
-        id_promo_noti_gen:String,
+        id_promo_noti_gen: String,
         tipo_generacion: repo_pantallas_promocionar.TipoGeneracionIA,
         saldo_tienda: Int,
         localidad_tienda: String,
@@ -116,20 +118,23 @@ class viewmodel_generaciones_IA : ViewModel() {
             _estado_promociones_ia.value = EstadoIA_dialog_centrado.Loading
 
             try {
+
                 if (saldo_tienda < 30) {
                     _estado_promociones_ia.value =
                         EstadoIA_dialog_centrado.Error("Saldo insuficiente")
                     return@launch
                 }
 
-                val resultado = insta_repo.generar_promocion_con_IA(
-                    id_promo_noti_gen = id_promo_noti_gen,
-                    tipo_generacion = tipo_generacion,
-                    tituloUsuario = tituloUsuario,
-                    descripcionUsuario = descripcionUsuario,
-                    nombreTienda = nombreTienda,
-                    localidad = localidad
-                )
+                val resultado = withTimeout(15_000) {
+                    insta_repo.generar_promocion_con_IA(
+                        id_promo_noti_gen = id_promo_noti_gen,
+                        tipo_generacion = tipo_generacion,
+                        tituloUsuario = tituloUsuario,
+                        descripcionUsuario = descripcionUsuario,
+                        nombreTienda = nombreTienda,
+                        localidad = localidad
+                    )
+                }
 
                 if (resultado != null) {
 
@@ -160,17 +165,26 @@ class viewmodel_generaciones_IA : ViewModel() {
                         localidad_tienda
                     )
 
+
                 } else {
                     _estado_promociones_ia.value =
                         EstadoIA_dialog_centrado.Error("No se pudo generar contenido")
                 }
 
+            } catch (e: TimeoutCancellationException) {
+
+
+                _estado_promociones_ia.value =
+                    EstadoIA_dialog_centrado.Error("La IA tardó demasiado. Intenta otra vez.")
+
             } catch (e: Exception) {
+
                 _estado_promociones_ia.value =
                     EstadoIA_dialog_centrado.Error("Error al generar con IA")
             }
         }
     }
+
 
     fun limpiar_Estado_nueva_generacion(){
         _estado_promociones_ia.value=EstadoIA_dialog_centrado.Idle
@@ -178,15 +192,18 @@ class viewmodel_generaciones_IA : ViewModel() {
 
 
     fun mejorar_mejorar_notificacion_con_IA_corta(
-        id_notificacion_promo:String,
+        id_notificacion_promo: String,
         tipo_select_IA: String,
         tipoSeleccionado: repo_pantallas_promocionar.TipoGeneracionIA,
-        saldo_tienda: Int, localidad_tienda: String, id_tienda: String,
+        saldo_tienda: Int,
+        localidad_tienda: String,
+        id_tienda: String,
         nombre_tienda: String,
         titulo_publicacion: String,
         descripcion: String
     ) {
         Log.d("titulo_publicacion", "$titulo_publicacion $descripcion")
+
         viewModelScope.launch {
 
             _estado_notificacion_con_ia_corta.value =
@@ -198,36 +215,54 @@ class viewmodel_generaciones_IA : ViewModel() {
                         EstadoIA_dialog_centrado_notificaciones.Error("saldo insuficiente")
                     return@launch
                 }
-                insta_repo.crear_notificacion_conIA_corta(
 
-                    id_notificacion_promo,
-                    titulo_publicacion,
-                    descripcion, tipoSeleccionado,
-                ) { notificacionIA ->
-                    _estado_notificacion_con_ia_corta.value =
-                        EstadoIA_dialog_centrado_notificaciones.Success(notificacionIA)
-                    if (notificacionIA.titulo.isNotEmpty() && notificacionIA.descripcion.isNotEmpty()) {
-                        val historial_descuento = historial_descuento(
-                            tipo_transaccion = "descuento",
-                            fecha = obtenerFechaActual(),
-                            hora = obtenerHoraActual(),
-                            id_recarga = constantes_cobro_monedas.generarIdRecarga(),
-                            localidad_tienda = localidad_tienda,
-                            id_tienda = id_tienda,
-                            nombre_tienda = nombre_tienda,
-                            monto_descuento = "15",
-                            tipo = tipo_select_IA,
-                            precio_soles = constantes_cobro_monedas.calcular_precio_soles("15")
-                                .toString(), estado = "Aceptado", monto_restante = saldo_tienda - 15
-                        )
-                        viewmodel_recargas.restar_puntos_recarga(
-                            historial_descuento,
-                            "15",
-                            id_tienda,
-                            localidad_tienda
-                        )
-                    }
+                // ⏱️ TIMEOUT REAL (10 segundos)
+                val notificacionIA = withTimeout(10_000) {
+                    insta_repo.crear_notificacion_conIA_corta(
+                        id_notificacion_promo,
+                        titulo_publicacion,
+                        descripcion,
+                        tipoSeleccionado
+                    )
                 }
+
+                _estado_notificacion_con_ia_corta.value =
+                    EstadoIA_dialog_centrado_notificaciones.Success(notificacionIA)
+
+                if (
+                    notificacionIA.titulo.isNotEmpty() &&
+                    notificacionIA.descripcion.isNotEmpty()
+                ) {
+                    val historial_descuento = historial_descuento(
+                        tipo_transaccion = "descuento",
+                        fecha = obtenerFechaActual(),
+                        hora = obtenerHoraActual(),
+                        id_recarga = constantes_cobro_monedas.generarIdRecarga(),
+                        localidad_tienda = localidad_tienda,
+                        id_tienda = id_tienda,
+                        nombre_tienda = nombre_tienda,
+                        monto_descuento = "15",
+                        tipo = tipo_select_IA,
+                        precio_soles = constantes_cobro_monedas
+                            .calcular_precio_soles("15")
+                            .toString(),
+                        estado = "Aceptado",
+                        monto_restante = saldo_tienda - 15
+                    )
+
+                    viewmodel_recargas.restar_puntos_recarga(
+                        historial_descuento,
+                        "15",
+                        id_tienda,
+                        localidad_tienda
+                    )
+                }
+
+            } catch (e: TimeoutCancellationException) {
+                _estado_notificacion_con_ia_corta.value =
+                    EstadoIA_dialog_centrado_notificaciones.Error(
+                        "La generación tardó demasiado, intenta otra vez"
+                    )
 
             } catch (e: Exception) {
                 _estado_notificacion_con_ia_corta.value =
@@ -237,6 +272,7 @@ class viewmodel_generaciones_IA : ViewModel() {
             }
         }
     }
+
 
     fun resetear_Estado_notificacion_enviadad() {
         _estado_notificacion_con_ia_corta.value = EstadoIA_dialog_centrado_notificaciones.Idle

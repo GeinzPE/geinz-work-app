@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 class viewmodel_pantallas_promocionar : ViewModel() {
     val palabrasBloqueadas = listOf(
@@ -247,8 +248,10 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         _estadoValidacion
 
 
+
+
     fun mejorar_texto_con_promo_IA(
-        tipo_generacion: repo_pantallas_promocionar.TipoGeneracionIA, // 👈 enum directo
+        tipo_generacion: repo_pantallas_promocionar.TipoGeneracionIA,
         saldo_tienda: Int,
         localidad_tienda: String,
         id_tienda: String,
@@ -257,28 +260,41 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         descripcionUsuario: String,
         nombreTienda: String,
         localidad: String,
-        total_cobrar:String,titulo_generacion_historial:String
+        total_cobrar: String,
+        titulo_generacion_historial: String
     ) {
         viewModelScope.launch {
             _estado_promociones_ia.value = EstadoIA.Loading
 
+            if (saldo_tienda < 30) {
+                _estado_promociones_ia.value =
+                    EstadoIA.Error("Saldo insuficiente para generar contenido")
+                return@launch
+            }
+
             try {
-                if (saldo_tienda < 30) {
-                    _estado_promociones_ia.value = EstadoIA.Error("Saldo insuficiente")
+                val lista = withTimeoutOrNull(30_000) {
+                    insta_repo.generar_promociones_con_IA(
+                        tipo_generacion,
+                        tituloUsuario,
+                        descripcionUsuario,
+                        nombreTienda,
+                        localidad
+                    )
+                }
+
+                if (lista == null) {
+
+                    _estado_promociones_ia.value = EstadoIA.Error(
+                        "Está tardando más de lo normal 😕 Intenta nuevamente o verifica tu conexión"
+                    )
                     return@launch
                 }
 
-                val lista = insta_repo.generar_promociones_con_IA(
-                    tipo_generacion,
-                    tituloUsuario,
-                    descripcionUsuario,
-                    nombreTienda,
-                    localidad
-                )
-
                 if (lista.isNotEmpty()) {
                     _estado_promociones_ia.value = EstadoIA.Success(lista)
-                    val historial_descuento = historial_descuento(
+
+                    val historial = historial_descuento(
                         tipo_transaccion = "descuento",
                         fecha = obtenerFechaActual(),
                         hora = obtenerHoraActual(),
@@ -288,26 +304,31 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                         nombre_tienda = nombre_tienda,
                         monto_descuento = total_cobrar,
                         tipo = titulo_generacion_historial,
-                        precio_soles = constantes_cobro_monedas.calcular_precio_soles(total_cobrar)
-                            .toString(), estado = "Aceptado", monto_restante = saldo_tienda - total_cobrar.toInt()
+                        precio_soles = constantes_cobro_monedas
+                            .calcular_precio_soles(total_cobrar)
+                            .toString(),
+                        estado = "Aceptado",
+                        monto_restante = saldo_tienda - total_cobrar.toInt()
                     )
+
                     viewmodel_recargas.restar_puntos_recarga(
-                        historial_descuento,
+                        historial,
                         total_cobrar,
                         id_tienda,
                         localidad_tienda
                     )
                 } else {
                     _estado_promociones_ia.value =
-                        EstadoIA.Error("No se pudo generar contenido")
+                        EstadoIA.Error("No se pudo generar contenido. Intenta otra vez.")
                 }
 
             } catch (e: Exception) {
                 _estado_promociones_ia.value =
-                    EstadoIA.Error("Error al generar con IA")
+                    EstadoIA.Error("Ocurrió un problema al generar el contenido 😕")
             }
         }
     }
+
 
 
 
@@ -401,30 +422,61 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     fun mejorar_mejorar_notificacion_con_IA_corta(
         tipo_select_IA: String,
         tipoSeleccionado: repo_pantallas_promocionar.TipoGeneracionIA,
-        saldo_tienda: Int, localidad_tienda: String, id_tienda: String,
+        saldo_tienda: Int,
+        localidad_tienda: String,
+        id_tienda: String,
         nombre_tienda: String,
         titulo_publicacion: String,
         descripcion: String
     ) {
         Log.d("titulo_publicacion", "$titulo_publicacion $descripcion")
+
         viewModelScope.launch {
 
             _estado_notificacion_con_ia_corta.value =
                 EstadoIA_notifi_corta.Loading
 
-            try {
-                if (saldo_tienda < 20) {
+            if (saldo_tienda < 20) {
+                _estado_notificacion_con_ia_corta.value =
+                    EstadoIA_notifi_corta.Error("saldo insuficiente")
+                return@launch
+            }
+
+            // 🔐 Control para evitar doble respuesta
+            var respondio = false
+
+            // ⏳ Timeout UX (30s)
+            val timeoutJob = launch {
+                delay(20_000)
+                if (!respondio) {
+                    respondio = true
                     _estado_notificacion_con_ia_corta.value =
-                        EstadoIA_notifi_corta.Error("saldo insuficiente")
-                    return@launch
+                        EstadoIA_notifi_corta.Error(
+                            "Está tardando más de lo normal ⏳\n" +
+                                    "Intenta nuevamente o revisa tu conexión"
+                        )
                 }
+            }
+
+            try {
                 insta_repo.crear_notificacion_conIA_corta(
                     titulo_publicacion,
-                    descripcion, tipoSeleccionado,
+                    descripcion,
+                    tipoSeleccionado,
                 ) { notificacionIA ->
+
+                    if (respondio) return@crear_notificacion_conIA_corta
+
+                    respondio = true
+                    timeoutJob.cancel()
+
                     _estado_notificacion_con_ia_corta.value =
                         EstadoIA_notifi_corta.Success(notificacionIA)
-                    if (notificacionIA.titulo.isNotEmpty() && notificacionIA.descripcion.isNotEmpty()) {
+
+                    if (
+                        notificacionIA.titulo.isNotEmpty() &&
+                        notificacionIA.descripcion.isNotEmpty()
+                    ) {
                         val historial_descuento = historial_descuento(
                             tipo_transaccion = "descuento",
                             fecha = obtenerFechaActual(),
@@ -435,9 +487,13 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                             nombre_tienda = nombre_tienda,
                             monto_descuento = "20",
                             tipo = tipo_select_IA,
-                            precio_soles = constantes_cobro_monedas.calcular_precio_soles("20")
-                                .toString(), estado = "Aceptado", monto_restante = saldo_tienda - 20
+                            precio_soles = constantes_cobro_monedas
+                                .calcular_precio_soles("20")
+                                .toString(),
+                            estado = "Aceptado",
+                            monto_restante = saldo_tienda - 20
                         )
+
                         viewmodel_recargas.restar_puntos_recarga(
                             historial_descuento,
                             "20",
@@ -448,13 +504,18 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                 }
 
             } catch (e: Exception) {
-                _estado_notificacion_con_ia_corta.value =
-                    EstadoIA_notifi_corta.Error(
-                        e.message ?: "Error al generar la notificación con IA"
-                    )
+                timeoutJob.cancel()
+                if (!respondio) {
+                    respondio = true
+                    _estado_notificacion_con_ia_corta.value =
+                        EstadoIA_notifi_corta.Error(
+                            e.message ?: "Error al generar la notificación con IA"
+                        )
+                }
             }
         }
     }
+
 
     fun resetear_Estado_notificacion_enviadad() {
         _estado_notificacion_con_ia_corta.value = EstadoIA_notifi_corta.Idle
@@ -470,12 +531,29 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         descripcion: String
     ) {
         viewModelScope.launch {
+
             _estado_texto_whatsap_con_ia.value =
                 ESstado_ia_msje_whatsap.Loading
+
             if (saldo_tienda < 10) {
                 _estado_texto_whatsap_con_ia.value =
                     ESstado_ia_msje_whatsap.Error("Saldo insuficiente")
                 return@launch
+            }
+
+            // 🔐 Evita doble respuesta
+            var respondio = false
+
+            // ⏳ Timeout UX (30s)
+            val timeoutJob = launch {
+                delay(20_000)
+                if (!respondio) {
+                    respondio = true
+                    _estado_texto_whatsap_con_ia.value =
+                        ESstado_ia_msje_whatsap.Error(
+                            "Está tardando más de lo normal ⏳ Intenta nuevamente o revisa tu conexión"
+                        )
+                }
             }
 
             try {
@@ -484,9 +562,16 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                     descripcion
                 ) { notificacionIA ->
 
+                    if (respondio) return@mejorar_texto_perzonalizado_whatsapp
+
+                    respondio = true
+                    timeoutJob.cancel()
+
                     if (notificacionIA.isBlank()) {
                         _estado_texto_whatsap_con_ia.value =
-                            ESstado_ia_msje_whatsap.Error("No se pudo generar el mensaje")
+                            ESstado_ia_msje_whatsap.Error(
+                                "No se pudo generar el mensaje"
+                            )
                         return@mejorar_texto_perzonalizado_whatsapp
                     }
 
@@ -517,14 +602,20 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                         localidad_tienda
                     )
                 }
+
             } catch (e: Exception) {
-                _estado_texto_whatsap_con_ia.value =
-                    ESstado_ia_msje_whatsap.Error(
-                        e.message ?: "Error al generar el mensaje"
-                    )
+                timeoutJob.cancel()
+                if (!respondio) {
+                    respondio = true
+                    _estado_texto_whatsap_con_ia.value =
+                        ESstado_ia_msje_whatsap.Error(
+                            "Error al generar el mensaje"
+                        )
+                }
             }
         }
     }
+
 
 
     fun mejorar_texto_perzonalizado_whatsapp_notificacion(
@@ -536,12 +627,29 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         descripcion: String
     ) {
         viewModelScope.launch {
+
             _estado_texto_whatsap_con_ia_notificacion.value =
                 Estado_ia_mensaje_whatsap_notificaion.Loading
+
             if (saldo_tienda < 10) {
                 _estado_texto_whatsap_con_ia_notificacion.value =
                     Estado_ia_mensaje_whatsap_notificaion.Error("Saldo insuficiente")
                 return@launch
+            }
+
+            // 🔐 CONTROL para evitar doble respuesta
+            var respondio = false
+
+            // ⏳ TIMEOUT UX (30s)
+            val timeoutJob = launch {
+                delay(30_000)
+                if (!respondio) {
+                    respondio = true
+                    _estado_texto_whatsap_con_ia_notificacion.value =
+                        Estado_ia_mensaje_whatsap_notificaion.Error(
+                            "Está tardando más de lo normal ⏳ Intenta nuevamente o revisa tu conexión"
+                        )
+                }
             }
 
             try {
@@ -550,9 +658,16 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                     descripcion
                 ) { notificacionIA ->
 
+                    if (respondio) return@mejorar_texto_perzonalizado_whatsapp
+
+                    respondio = true
+                    timeoutJob.cancel()
+
                     if (notificacionIA.isBlank()) {
                         _estado_texto_whatsap_con_ia_notificacion.value =
-                            Estado_ia_mensaje_whatsap_notificaion.Error("No se pudo generar el mensaje")
+                            Estado_ia_mensaje_whatsap_notificaion.Error(
+                                "No se pudo generar el mensaje"
+                            )
                         return@mejorar_texto_perzonalizado_whatsapp
                     }
 
@@ -583,14 +698,20 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                         localidad_tienda
                     )
                 }
+
             } catch (e: Exception) {
-                _estado_texto_whatsap_con_ia_notificacion.value =
-                    Estado_ia_mensaje_whatsap_notificaion.Error(
-                        e.message ?: "Error al generar el mensaje"
-                    )
+                timeoutJob.cancel()
+                if (!respondio) {
+                    respondio = true
+                    _estado_texto_whatsap_con_ia_notificacion.value =
+                        Estado_ia_mensaje_whatsap_notificaion.Error(
+                            e.message ?: "Error al generar el mensaje"
+                        )
+                }
             }
         }
     }
+
 
 
     fun mejorar_texto_perzonalizado_compatir(
@@ -602,6 +723,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         descripcion: String
     ) {
         viewModelScope.launch {
+
             _estado_texto_compartir_con_ia.value =
                 ESstado_ia_msje_compartir.Loading
 
@@ -611,15 +733,36 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                 return@launch
             }
 
+            var respondio = false
+
+            // ⏳ Timeout UX
+            val timeoutJob = launch {
+                delay(20_000)
+                if (!respondio) {
+                    respondio = true
+                    _estado_texto_compartir_con_ia.value =
+                        ESstado_ia_msje_compartir.Error(
+                            "Está tardando más de lo normal ⏳ Intenta nuevamente o revisa tu conexión"
+                        )
+                }
+            }
+
             try {
                 insta_repo.mejorar_texto_perzonalizado_compartir(
                     titulo_publicacion,
                     descripcion
                 ) { notificacionIA ->
 
+                    if (respondio) return@mejorar_texto_perzonalizado_compartir
+
+                    respondio = true
+                    timeoutJob.cancel()
+
                     if (notificacionIA.isBlank()) {
                         _estado_texto_compartir_con_ia.value =
-                            ESstado_ia_msje_compartir.Error("No se pudo generar el mensaje")
+                            ESstado_ia_msje_compartir.Error(
+                                "No se pudo generar el mensaje"
+                            )
                         return@mejorar_texto_perzonalizado_compartir
                     }
 
@@ -635,7 +778,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                         id_tienda = id_tienda,
                         nombre_tienda = nombre_tienda,
                         monto_descuento = "10",
-                        tipo = "Gen IA (Mensaje WhatsApp personalizado)",
+                        tipo = "Gen IA (Mensaje para compartir)",
                         precio_soles = constantes_cobro_monedas
                             .calcular_precio_soles("10")
                             .toString(),
@@ -650,14 +793,20 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                         localidad_tienda
                     )
                 }
+
             } catch (e: Exception) {
-                _estado_texto_compartir_con_ia.value =
-                    ESstado_ia_msje_compartir.Error(
-                        e.message ?: "Error al generar el mensaje"
-                    )
+                timeoutJob.cancel()
+                if (!respondio) {
+                    respondio = true
+                    _estado_texto_compartir_con_ia.value =
+                        ESstado_ia_msje_compartir.Error(
+                            "Error al generar el mensaje"
+                        )
+                }
             }
         }
     }
+
 
 
     fun calcularBloques(seguidores: Int): Int {
@@ -851,6 +1000,26 @@ class viewmodel_pantallas_promocionar : ViewModel() {
             else -> "Mayor a 10000"
         }
     }
+
+
+    fun resetearEstadosNotificacion() {
+        _estado_notificacion_con_ia_corta.value = EstadoIA_notifi_corta.Idle
+        _estado_texto_whatsap_con_ia_notificacion.value =
+            Estado_ia_mensaje_whatsap_notificaion.Idle
+        // agrega aquí otros estados de notificación
+    }
+
+    // 📝 PUBLICACIONES
+    fun resetearEstadosPublicacion() {
+        _estado_texto_whatsap_con_ia.value =
+            ESstado_ia_msje_whatsap.Idle
+        _estado_texto_compartir_con_ia.value =
+            ESstado_ia_msje_compartir.Idle
+
+        _estado_promociones_ia.value=EstadoIA.Idle
+        // agrega aquí otros estados de publicación
+    }
+
 
 
     fun validar_si_hay_datos_promocionar(
