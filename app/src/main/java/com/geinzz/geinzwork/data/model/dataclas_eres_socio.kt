@@ -653,3 +653,8 @@ data class datos_para_generacion_dialog_historial_IA(
     val localidad_tienda: String,
     val id_tienda: String
 )
+
+data class EstadoUI(
+    val texto: String,
+    val color: Color
+)

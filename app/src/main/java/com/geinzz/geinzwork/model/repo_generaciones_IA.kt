@@ -28,6 +28,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
+import com.google.firebase.ai.type.generationConfig
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -170,7 +171,6 @@ class repo_generaciones_IA {
         }
     }
 
-
     suspend fun generar_promocion_con_IA(
         id_promo_noti_gen: String,
         tipo_generacion: TipoGeneracionIA,
@@ -276,7 +276,13 @@ class repo_generaciones_IA {
 
         val model = Firebase.ai(
             backend = GenerativeBackend.googleAI()
-        ).generativeModel("gemini-2.5-flash")
+        ).generativeModel(
+            modelName = "gemini-2.5-flash",
+            generationConfig = generationConfig {
+                temperature = 0.4f
+                topP = 0.9f
+            }
+        )
 
         val descripcion_acortada = acortarDescripcionNotificacion(descCorta)
 

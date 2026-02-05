@@ -78,6 +78,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.geinzz.geinzwork.data.model.EstadoUI
 import com.geinzz.geinzwork.data.model.IconoIA
 import com.geinzz.geinzwork.data.model.NotificacionIA
 import com.geinzz.geinzwork.data.model.NotificacionIA_dialog
@@ -116,10 +117,10 @@ fun ui_bottom_sheet_generaciones_IA(
     i: datos_para_generacion_dialog_historial_IA,
     ondismis: () -> Unit,
     nombre_tienda: String,
-    usar_todas: (String, String, String, String, String,String, i:datos_generaciones_sin_publicaicones) -> Unit,
-    usar_titulo_descripcion: (String, String, String, String,i:datos_generaciones_sin_publicaicones) -> Unit,
-    usar_wsap: (String, String,String) -> Unit,
-    usar_compartir: (String, String,String) -> Unit
+    usar_todas: (String, String, String, String, String, String, i: datos_generaciones_sin_publicaicones) -> Unit,
+    usar_titulo_descripcion: (String, String, String, String, i: datos_generaciones_sin_publicaicones) -> Unit,
+    usar_wsap: (String, String, String) -> Unit,
+    usar_compartir: (String, String, String) -> Unit
 ) {
     val viewmodelGeneracionesIa: viewmodel_generaciones_IA = viewModel()
     val estaod_generaciones_IA by viewmodelGeneracionesIa.estado_generaciones_IA.collectAsState()
@@ -161,7 +162,6 @@ fun ui_bottom_sheet_generaciones_IA(
                 )
             }
             scope.launch {
-                // Llama al SnackbarHostState para mostrar el mensaje
                 snackbarHostState.showSnackbar(
                     message = "La nueva generación se creó correctamente.",
 
@@ -169,6 +169,17 @@ fun ui_bottom_sheet_generaciones_IA(
                 )
             }
             viewmodelGeneracionesIa.limpiar_Estado_nueva_generacion()
+        } else if (estado_textos_notificaciones_generad is viewmodel_generaciones_IA.EstadoIA_dialog_centrado_notificaciones.Error) {
+            val mejse_error =
+                (estado_textos_notificaciones_generad as viewmodel_generaciones_IA.EstadoIA_dialog_centrado_notificaciones.Error).mensaje
+            scope.launch {
+
+                snackbarHostState.showSnackbar(
+                    message = mejse_error,
+
+                    duration = SnackbarDuration.Short
+                )
+            }
         }
     }
 
@@ -176,19 +187,25 @@ fun ui_bottom_sheet_generaciones_IA(
         if (estado_textos_notificaciones_generad is viewmodel_generaciones_IA.EstadoIA_dialog_centrado_notificaciones.Success) {
             nueva_generacion_notificaciones =
                 (estado_textos_notificaciones_generad as viewmodel_generaciones_IA.EstadoIA_dialog_centrado_notificaciones.Success).txt_descripcion
-            Log.d("desde_otro_sitio_Verinado", "${nueva_generacion_notificaciones.id_promo_noti_gen}")
+            Log.d(
+                "desde_otro_sitio_Verinado",
+                "${nueva_generacion_notificaciones.id_promo_noti_gen}"
+            )
 
             Log.d("desde_otro_sitio_Verinado", "${nueva_generacion_notificaciones.titulo}")
-            Log.d("desde_otro_sitio_Verinado", "${nueva_generacion_notificaciones.id_promo_noti_gen}")
+            Log.d(
+                "desde_otro_sitio_Verinado",
+                "${nueva_generacion_notificaciones.id_promo_noti_gen}"
+            )
 
-                viewmodelGeneracionesIa.agregar_nueva_generacion_remasterizada(
-                    titulo_dialog_mejorar_version, texto_dialog_mejorar_version,
-                    i.id_tienda,
-                    i.localidad_tienda,
-                    nueva_generacion_notificaciones.titulo,
-                    nueva_generacion_notificaciones.descripcion,
-                    nueva_generacion_notificaciones.id_promo_noti_gen
-                )
+            viewmodelGeneracionesIa.agregar_nueva_generacion_remasterizada(
+                titulo_dialog_mejorar_version, texto_dialog_mejorar_version,
+                i.id_tienda,
+                i.localidad_tienda,
+                nueva_generacion_notificaciones.titulo,
+                nueva_generacion_notificaciones.descripcion,
+                nueva_generacion_notificaciones.id_promo_noti_gen
+            )
 
             scope.launch {
                 // Llama al SnackbarHostState para mostrar el mensaje
@@ -199,9 +216,19 @@ fun ui_bottom_sheet_generaciones_IA(
                 )
             }
             viewmodelGeneracionesIa.resetear_Estado_notificacion_enviadad()
+        } else if (estado_textos_notificaciones_generad is viewmodel_generaciones_IA.EstadoIA_dialog_centrado_notificaciones.Error) {
+            val mejse_error =
+                (estado_textos_notificaciones_generad as viewmodel_generaciones_IA.EstadoIA_dialog_centrado_notificaciones.Error).mensaje
+
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = mejse_error,
+
+                    duration = SnackbarDuration.Short
+                )
+            }
         }
     }
-
 
 
     val lsita_fitlrado_opciones = listOf(
@@ -248,12 +275,13 @@ fun ui_bottom_sheet_generaciones_IA(
                             "Todos" -> {
                                 lista
                             }
-                            "Generaciones no publicadas (promociones)" ->{
-                                lista.filter { it.tipo_realizado=="generacion_publicacion_sin_pulicar" }
+
+                            "Generaciones no publicadas (promociones)" -> {
+                                lista.filter { it.tipo_realizado == "generacion_publicacion_sin_pulicar" }
                             }
 
-                            "Generaciones no publicadas (notificaciones)" ->{
-                                lista.filter { it.tipo_realizado=="notificacion_sin_publicar" }
+                            "Generaciones no publicadas (notificaciones)" -> {
+                                lista.filter { it.tipo_realizado == "notificacion_sin_publicar" }
                             }
 
                             "Generaciones de promociones" -> {
@@ -408,30 +436,34 @@ fun ui_bottom_sheet_generaciones_IA(
                                                 descrpcion_seleccionada = i.datos_generaciones.descripcion_seleccionada_ge_IA,
                                                 i = datos,
 
-                                                usar_todas = { titulo, descripcion, whatsapp, compartir, tipo,id_generacion,datos_generaciones_sin_publicaicones ->
+                                                usar_todas = { titulo, descripcion, whatsapp, compartir, tipo, id_generacion, datos_generaciones_sin_publicaicones ->
                                                     usar_todas(
                                                         titulo,
                                                         descripcion,
                                                         whatsapp,
                                                         compartir,
-                                                        tipo,id_generacion,datos_generaciones_sin_publicaicones
+                                                        tipo,
+                                                        id_generacion,
+                                                        datos_generaciones_sin_publicaicones
                                                     )
                                                 },
 
-                                                usar_titulo_descripcion = { titulo, descripcion, tipo,id,id_generacion,datos_generaciones_sin_publicaicones ->
+                                                usar_titulo_descripcion = { titulo, descripcion, tipo, id, id_generacion, datos_generaciones_sin_publicaicones ->
                                                     usar_titulo_descripcion(
                                                         titulo,
                                                         descripcion,
-                                                        tipo,id_generacion,datos_generaciones_sin_publicaicones
+                                                        tipo,
+                                                        id_generacion,
+                                                        datos_generaciones_sin_publicaicones
                                                     )
                                                 },
 
-                                                whatsapp = { mensaje, tipo,id ->
-                                                    usar_wsap(mensaje, tipo,id)
+                                                whatsapp = { mensaje, tipo, id ->
+                                                    usar_wsap(mensaje, tipo, id)
                                                 },
 
-                                                compartir = { mensaje, tipo,id ->
-                                                    usar_compartir(mensaje, tipo,id)
+                                                compartir = { mensaje, tipo, id ->
+                                                    usar_compartir(mensaje, tipo, id)
                                                 },
 
                                                 mostrar_dialog_mejorar_vesiones = { titulo, texto, tipo, id_ ->
@@ -442,12 +474,14 @@ fun ui_bottom_sheet_generaciones_IA(
                                                     tipo_seleccionado_promo_noti = tipo
                                                 },
 
-                                                usar_nueva_generacion_generada = { titulo, texto,id,tipo ->
+                                                usar_nueva_generacion_generada = { titulo, texto, id, tipo ->
 
                                                     usar_titulo_descripcion(
                                                         titulo,
                                                         texto,
-                                                        tipo,id,datos_generaciones_sin_publicaicones(
+                                                        tipo,
+                                                        id,
+                                                        datos_generaciones_sin_publicaicones(
                                                             lista_obciones = null,
                                                             titulo_original = null,
                                                             descripcion_original = null,
@@ -483,10 +517,16 @@ fun ui_bottom_sheet_generaciones_IA(
                     }
 
                     is viewmodel_generaciones_IA.EstadoGeneracionesIA.Empty -> {
-                        Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center){
-                        texto_generico_one_line("No se encontraron generaciones realizadas")
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            texto_generico_one_line("No se encontraron generaciones realizadas")
                         }
                     }
+
                     is viewmodel_generaciones_IA.EstadoGeneracionesIA.Error -> {
                         Text((estaod_generaciones_IA as viewmodel_generaciones_IA.EstadoGeneracionesIA.Error).message)
                     }
@@ -505,12 +545,12 @@ fun item_generaciones_con_IA(
     nueva_generacion: nuevas_generaciones_con_IA,
     tituo_seleccionado: String,
     descrpcion_seleccionada: String, i: obt_item_gen_IA,
-    usar_todas: (String, String, String, String, String,String, i: datos_generaciones_sin_publicaicones) -> Unit,
-    usar_titulo_descripcion: (String, String, String, String, String, i:datos_generaciones_sin_publicaicones) -> Unit,
-    whatsapp: (String, String,String) -> Unit,
-    compartir: (String, String,String) -> Unit,
+    usar_todas: (String, String, String, String, String, String, i: datos_generaciones_sin_publicaicones) -> Unit,
+    usar_titulo_descripcion: (String, String, String, String, String, i: datos_generaciones_sin_publicaicones) -> Unit,
+    whatsapp: (String, String, String) -> Unit,
+    compartir: (String, String, String) -> Unit,
     mostrar_dialog_mejorar_vesiones: (String, String, String, String) -> Unit,
-    usar_nueva_generacion_generada: (String,String, String,String) -> Unit,
+    usar_nueva_generacion_generada: (String, String, String, String) -> Unit,
 ) {
 
 
@@ -558,18 +598,19 @@ fun item_generaciones_con_IA(
 
         else -> Color.Gray
     }
-    val icono_promo_noti = if (i.tipo=="notificacion") {
+    val icono_promo_noti = if (i.tipo == "notificacion") {
         R.drawable.campana_3d_webp
-    } else if(i.tipo=="publicacion"){
+    } else if (i.tipo == "publicacion") {
         R.drawable.promocio_iconn
-    }else if(i.tipo=="generacion_publicacion_sin_pulicar"){
+    } else if (i.tipo == "generacion_publicacion_sin_pulicar") {
         R.drawable.logo_geinz_500x500
-    }else{
+    } else {
         R.drawable.logo_para_qr
     }
     Column(
         modifier = Modifier
-            .fillMaxWidth().animateContentSize()
+            .fillMaxWidth()
+            .animateContentSize()
             .clip(RoundedCornerShape(10.dp))
             .background(MaterialTheme.colorScheme.surface)
     ) {
@@ -583,7 +624,7 @@ fun item_generaciones_con_IA(
         )
 
         val altoAnimado by animateDpAsState(
-            targetValue =if (mostar_apartado_completo) 150.dp else 100.dp,
+            targetValue = if (mostar_apartado_completo) 150.dp else 100.dp,
             animationSpec = tween(
                 durationMillis = 450,
                 easing = FastOutSlowInEasing
@@ -622,8 +663,21 @@ fun item_generaciones_con_IA(
                 contentScale = ContentScale.Crop
             )
 
-            AnimatedVisibility (!mostar_apartado_completo, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.height(100.dp)) {
-                Column(verticalArrangement = Arrangement.spacedBy(5.dp),modifier = Modifier.padding(start = 9.dp, top = 5.dp, bottom = 5.dp, end = 10.dp)) {
+            AnimatedVisibility(
+                !mostar_apartado_completo,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier.height(100.dp)
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                    modifier = Modifier.padding(
+                        start = 9.dp,
+                        top = 5.dp,
+                        bottom = 5.dp,
+                        end = 10.dp
+                    )
+                ) {
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -662,7 +716,9 @@ fun item_generaciones_con_IA(
                         Image(
                             painter = painterResource(icono_promo_noti),
                             contentDescription = "",
-                            modifier = Modifier.requiredSize(22.dp).padding(start = 5.dp)
+                            modifier = Modifier
+                                .requiredSize(22.dp)
+                                .padding(start = 5.dp)
                         )
                     }
 
@@ -717,11 +773,47 @@ fun item_generaciones_con_IA(
                             modifier = Modifier.size(20.dp)
                         )
                     }
-                }
 
-                spacer_vertical(5.dp)
+                        val estadoUI = when (i.id_generacion.length) {
+                            9 -> EstadoUI(
+                                "Notificación (promoción seleccionada)",
+                                Color(0xFF1E3A5F)
+                            )
+                            7 -> EstadoUI(
+                                "Notificación creada de 0 (promocion sin seleccionar)",
+                                Color(0xFF1F4D3A)
+                            )
+                            5 -> EstadoUI(
+                                "Notificación informativa",
+                                Color(0xFF3A3F5C)
+                            )
+                            else -> EstadoUI("", Color.Transparent)
+                        }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp), modifier = Modifier.clip(
+                            RoundedCornerShape(50.dp)).background(estadoUI.color).padding(10.dp)
+                    ) {
 
-                texto_generico_one_line("Generacion de titulo y descripcion")
+
+                        if (estadoUI.texto != "") {
+
+                        texto_generico_one_line(
+                            "Estado ",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+
+                            texto_generico_multilinea(
+                                estadoUI.texto,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                    }
+
+                    spacer_vertical(5.dp)
+
+                    texto_generico_one_line("Generacion de titulo y descripcion")
 
 
                     LazyRow(
@@ -731,11 +823,11 @@ fun item_generaciones_con_IA(
 
                         items(listaConOriginal) { item ->
 
-                            val original_tipo_ =if (item.titulo==i.generacion_origini.titulo) "ORIGINAL" else item.tipo
+                            val original_tipo_ =
+                                if (item.titulo == i.generacion_origini.titulo) "ORIGINAL" else item.tipo
                             val estaSeleccionado =
                                 (item.titulo == tituloSeleccionado &&
                                         item.descripcion == descripcionSeleccionada)
-
 
                             generaciones_IA(
                                 "generaciones",
@@ -761,11 +853,74 @@ fun item_generaciones_con_IA(
                         }
                     }
 
+                    AnimatedVisibility(nueva_generacion.titulo_nuevo.isNotEmpty() && nueva_generacion.descripcion_nueva.isNotEmpty()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
 
-                AnimatedVisibility(nueva_generacion.titulo_nuevo.isNotEmpty() && nueva_generacion.descripcion_nueva.isNotEmpty()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            spacer_vertical(10.dp)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(5.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AutoAwesome,
+                                    contentDescription = "Mejorar con IA",
+                                    tint = Color.Blue, modifier = Modifier.size(20.dp)
+                                )
+                                texto_generico_one_line("Nueva generacion")
+                            }
 
-                        spacer_vertical(10.dp)
+                            texto_generico_one_line_Expandible(
+                                "Realizado el : ${nueva_generacion.fecha_nueva_generacion}",
+                                style = MaterialTheme.typography.bodySmall,
+                                expandir = mostar_apartado_completo
+                            )
+
+                            TextoSubrayado(
+                                "Marcar original",
+                                MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.clickable {
+                                    tituloSeleccionado = nueva_generacion.titulo_anterior
+                                    descripcionSeleccionada = nueva_generacion.descripcion_anteriror
+                                },
+                                color_subrallado = MaterialTheme.colorScheme.primary
+                            )
+
+
+                            Column(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(9.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .padding(horizontal = 5.dp, vertical = 10.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                texto_generico_multilinea(
+                                    nueva_generacion.titulo_nuevo,
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                                texto_generico_multilinea(
+                                    nueva_generacion.descripcion_nueva,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                                BotonIA(
+                                    texto = "Usar esta generación",
+                                    onClick = {
+                                        usar_nueva_generacion_generada(
+                                            nueva_generacion.titulo_nuevo,
+                                            nueva_generacion.descripcion_nueva, i.id_generacion,
+                                            i.tipo,
+                                        )
+                                    },
+                                    icono = IconoIA.Vector(Icons.Default.AutoAwesome)
+                                )
+                            }
+
+
+                        }
+                    }
+
+
+                    if (i.generacion_wsap.isNotEmpty()) {
+                        spacer_vertical(7.dp)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(5.dp)
@@ -775,487 +930,426 @@ fun item_generaciones_con_IA(
                                 contentDescription = "Mejorar con IA",
                                 tint = Color.Blue, modifier = Modifier.size(20.dp)
                             )
-                            texto_generico_one_line("Nueva generacion")
+                            Image(
+                                painter = painterResource(R.drawable.whatsapp_icon),
+                                modifier = Modifier.size(20.dp),
+                                contentDescription = ""
+                            )
+                            texto_generico_one_line("Generacion de contacto por whatsapp")
                         }
+                        generaciones_IA(
+                            "copiado",
+                            tituloSeleccionado,
+                            descripcionSeleccionada,
+                            false,
+                            false,
+                            "",
+                            i.generacion_wsap,
+                            "",
+                            { _, _ -> }, {
+                                constantestextos_general.copiarTexto_portapapeles_compouse(
+                                    i.generacion_wsap, contex
+                                )
+                            }, { _, _, _ -> })
 
-                        texto_generico_one_line_Expandible(
-                            "Realizado el : ${nueva_generacion.fecha_nueva_generacion}",
-                            style = MaterialTheme.typography.bodySmall,
-                            expandir = mostar_apartado_completo
-                        )
-
-                        TextoSubrayado(
-                            "Marcar original",
-                            MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.clickable {
-                                tituloSeleccionado = nueva_generacion.titulo_anterior
-                                descripcionSeleccionada = nueva_generacion.descripcion_anteriror
-                            },
-                            color_subrallado = MaterialTheme.colorScheme.primary
-                        )
+                    }
 
 
-                        Column(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(9.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
-                                .padding(horizontal = 5.dp, vertical = 10.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                    if (i.generacion_compartida.isNotEmpty()) {
+                        spacer_vertical(7.dp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
-                            texto_generico_multilinea(
-                                nueva_generacion.titulo_nuevo,
-                                style = MaterialTheme.typography.titleSmall
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = "Mejorar con IA",
+                                tint = Color.Blue, modifier = Modifier.size(20.dp)
                             )
-                            texto_generico_multilinea(
-                                nueva_generacion.descripcion_nueva,
-                                style = MaterialTheme.typography.bodySmall
+                            Image(
+                                painter = painterResource(R.drawable.compartir_icon_rojo),
+                                modifier = Modifier.size(20.dp),
+                                contentDescription = ""
                             )
-                            BotonIA(
-                                texto = "Usar esta generación",
-                                onClick = {
-                                    usar_nueva_generacion_generada(
-                                        nueva_generacion.titulo_nuevo,
-                                        nueva_generacion.descripcion_nueva,i.id_generacion,
-                                        i.tipo,
+                            texto_generico_one_line("Generacion de compartidos")
+                        }
+
+                        generaciones_IA(
+                            "copiado",
+                            tituloSeleccionado,
+                            descripcionSeleccionada,
+                            false,
+                            false,
+                            "",
+                            i.generacion_compartida,
+                            "",
+                            { _, _ -> }, {
+                                constantestextos_general.copiarTexto_portapapeles_compouse(
+                                    i.generacion_compartida, contex
+                                )
+                            }, { _, _, _ -> })
+                    }
+
+
+
+
+                    if (hayAlgunaAccionDisponible) {
+
+                        spacer_vertical(7.dp)
+
+                        TresBotonesPrimarios(
+                            usar_todas_bool =
+                                tituloSeleccionado.isNotEmpty() &&
+                                        descripcionSeleccionada.isNotEmpty() &&
+                                        i.generacion_wsap.isNotEmpty() &&
+                                        i.generacion_compartida.isNotEmpty(),
+
+                            usarTodas = {
+                                val datos_genearcion_anterior =
+                                    datos_generaciones_sin_publicaicones(
+                                        lista_obciones = i.lista_generaciones.mapNotNull { item ->
+                                            val tipoEnum = try {
+                                                repo_pantallas_promocionar.TipoGeneracionIA.valueOf(
+                                                    item.tipo
+                                                )
+                                            } catch (e: IllegalArgumentException) {
+                                                null
+                                            }
+
+                                            tipoEnum?.let {
+                                                OpcionPromocionIA(
+                                                    tipoIA = it,
+                                                    titulo = item.titulo,
+                                                    descripcion = item.descripcion
+                                                )
+                                            }
+                                        },
+                                        titulo_original = i.generacion_origini.titulo,
+                                        descripcion_original = i.generacion_origini.descripcion,
+                                        titulo_seleccionado = tituloSeleccionado,
+                                        descripcion_seleccionada = descripcionSeleccionada
                                     )
-                                },
-                                icono = IconoIA.Vector(Icons.Default.AutoAwesome)
-                            )
-                        }
 
+                                usar_todas(
+                                    tituloSeleccionado,
+                                    descripcionSeleccionada,
+                                    i.generacion_wsap,
+                                    i.generacion_compartida,
+                                    i.tipo,
+                                    i.id_generacion,
+                                    datos_genearcion_anterior
+                                )
+                            },
 
-                    }
-                }
+                            titulo_descripcion =
+                                tituloSeleccionado.isNotEmpty() &&
+                                        descripcionSeleccionada.isNotEmpty(),
 
+                            usarTituloDescripcion = {
+                                val datos_genearcion_anterior =
+                                    datos_generaciones_sin_publicaicones(
+                                        lista_obciones = i.lista_generaciones.mapNotNull { item ->
+                                            val tipoEnum = try {
+                                                repo_pantallas_promocionar.TipoGeneracionIA.valueOf(
+                                                    item.tipo
+                                                )
+                                            } catch (e: IllegalArgumentException) {
+                                                null
+                                            }
 
+                                            tipoEnum?.let {
+                                                OpcionPromocionIA(
+                                                    tipoIA = it,
+                                                    titulo = item.titulo,
+                                                    descripcion = item.descripcion
+                                                )
+                                            }
+                                        },
+                                        titulo_original = i.generacion_origini.titulo,
+                                        descripcion_original = i.generacion_origini.descripcion,
+                                        titulo_seleccionado = tituloSeleccionado,
+                                        descripcion_seleccionada = descripcionSeleccionada
+                                    )
 
+                                usar_titulo_descripcion(
+                                    tituloSeleccionado,
+                                    descripcionSeleccionada,
+                                    i.tipo,
+                                    i.id_generacion,
+                                    i.id_generacion,
+                                    datos_genearcion_anterior
+                                )
+                            },
 
+                            whattsap = i.generacion_wsap.isNotEmpty(),
 
+                            usarWhatsapp = {
+                                whatsapp(i.generacion_wsap, i.tipo, i.id_generacion)
+                            },
 
+                            compartir = i.generacion_compartida.isNotEmpty(),
 
-                if (i.generacion_wsap.isNotEmpty()) {
-                    spacer_vertical(7.dp)
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AutoAwesome,
-                            contentDescription = "Mejorar con IA",
-                            tint = Color.Blue, modifier = Modifier.size(20.dp)
+                            usarCompartir = {
+                                compartir(i.generacion_compartida, i.tipo, i.id_generacion)
+                            }
                         )
-                        Image(
-                            painter = painterResource(R.drawable.whatsapp_icon),
-                            modifier = Modifier.size(20.dp),
-                            contentDescription = ""
-                        )
-                        texto_generico_one_line("Generacion de contacto por whatsapp")
-                    }
-                    generaciones_IA(
-                        "copiado",
-                        tituloSeleccionado,
-                        descripcionSeleccionada,
-                        false,
-                        false,
-                        "",
-                        i.generacion_wsap,
-                        "",
-                        { _, _ -> }, {
-                            constantestextos_general.copiarTexto_portapapeles_compouse(
-                                i.generacion_wsap, contex
-                            )
-                        }, { _, _, _ -> })
-
-                }
-
-
-                if (i.generacion_compartida.isNotEmpty()) {
-                    spacer_vertical(7.dp)
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AutoAwesome,
-                            contentDescription = "Mejorar con IA",
-                            tint = Color.Blue, modifier = Modifier.size(20.dp)
-                        )
-                        Image(
-                            painter = painterResource(R.drawable.compartir_icon_rojo),
-                            modifier = Modifier.size(20.dp),
-                            contentDescription = ""
-                        )
-                        texto_generico_one_line("Generacion de compartidos")
                     }
 
-                    generaciones_IA(
+                    spacer_vertical(5.dp)
 
-                        "copiado",
-                        tituloSeleccionado,
-                        descripcionSeleccionada,
-                        false,
-                        false,
-                        "",
-                        i.generacion_compartida,
-                        "",
-                        { _, _ -> }, {
-                            constantestextos_general.copiarTexto_portapapeles_compouse(
-                                i.generacion_compartida, contex
-                            )
-                        }, { _, _, _ -> })
                 }
 
-
-
-
-                if (hayAlgunaAccionDisponible) {
-
-                    spacer_vertical(7.dp)
-
-                    TresBotonesPrimarios(
-                        usar_todas_bool =
-                            tituloSeleccionado.isNotEmpty() &&
-                                    descripcionSeleccionada.isNotEmpty() &&
-                                    i.generacion_wsap.isNotEmpty() &&
-                                    i.generacion_compartida.isNotEmpty(),
-
-                        usarTodas = {
-                            val datos_genearcion_anterior = datos_generaciones_sin_publicaicones(
-                                lista_obciones = i.lista_generaciones.mapNotNull { item ->
-                                    val tipoEnum = try {
-                                        repo_pantallas_promocionar.TipoGeneracionIA.valueOf(item.tipo)
-                                    } catch (e: IllegalArgumentException) {
-                                        null
-                                    }
-
-                                    tipoEnum?.let {
-                                        OpcionPromocionIA(
-                                            tipoIA = it,
-                                            titulo = item.titulo,
-                                            descripcion = item.descripcion
-                                        )
-                                    }
-                                },
-                                titulo_original = i.generacion_origini.titulo,
-                                descripcion_original = i.generacion_origini.descripcion,
-                                titulo_seleccionado = tituloSeleccionado,
-                                descripcion_seleccionada = descripcionSeleccionada
-                            )
-
-                            usar_todas(
-                                tituloSeleccionado,
-                                descripcionSeleccionada,
-                                i.generacion_wsap,
-                                i.generacion_compartida,
-                                i.tipo,
-                                i.id_generacion,
-                                datos_genearcion_anterior
-                            )
-                        },
-
-                        titulo_descripcion =
-                            tituloSeleccionado.isNotEmpty() &&
-                                    descripcionSeleccionada.isNotEmpty(),
-
-                        usarTituloDescripcion = {
-                            val datos_genearcion_anterior = datos_generaciones_sin_publicaicones(
-                                lista_obciones = i.lista_generaciones.mapNotNull { item ->
-                                    val tipoEnum = try {
-                                        repo_pantallas_promocionar.TipoGeneracionIA.valueOf(item.tipo)
-                                    } catch (e: IllegalArgumentException) {
-                                        null
-                                    }
-
-                                    tipoEnum?.let {
-                                        OpcionPromocionIA(
-                                            tipoIA = it,
-                                            titulo = item.titulo,
-                                            descripcion = item.descripcion
-                                        )
-                                    }
-                                },
-                                titulo_original = i.generacion_origini.titulo,
-                                descripcion_original = i.generacion_origini.descripcion,
-                                titulo_seleccionado = tituloSeleccionado,
-                                descripcion_seleccionada = descripcionSeleccionada
-                            )
-
-                            usar_titulo_descripcion(
-                                tituloSeleccionado,
-                                descripcionSeleccionada,
-                                i.tipo,
-                                i.id_generacion,
-                                i.id_generacion,
-                                datos_genearcion_anterior
-                            )
-                        },
-
-                        whattsap = i.generacion_wsap.isNotEmpty(),
-
-                        usarWhatsapp = {
-                            whatsapp(i.generacion_wsap, i.tipo, i.id_generacion)
-                        },
-
-                        compartir = i.generacion_compartida.isNotEmpty(),
-
-                        usarCompartir = {
-                            compartir(i.generacion_compartida, i.tipo, i.id_generacion)
-                        }
-                    )
-                }
-
-                spacer_vertical(5.dp)
 
             }
-
-
         }
     }
 }
-fun stringToTipoGeneracionIA(tipo: String): repo_pantallas_promocionar.TipoGeneracionIA? {
-    return try {
-        repo_pantallas_promocionar.TipoGeneracionIA.valueOf(tipo) // Esto convierte "VENTA" -> TipoGeneracionIA.VENTA
-    } catch (e: IllegalArgumentException) {
-        null // En caso no exista el enum
-    }
-}
+
+//fun stringToTipoGeneracionIA(tipo: String): repo_pantallas_promocionar.TipoGeneracionIA? {
+//    return try {
+//        repo_pantallas_promocionar.TipoGeneracionIA.valueOf(tipo) // Esto convierte "VENTA" -> TipoGeneracionIA.VENTA
+//    } catch (e: IllegalArgumentException) {
+//        null // En caso no exista el enum
+//    }
+//}
 
 
-@Composable
-fun generaciones_IA(
-    tipo_clikeable: String,
-    titulo_select: String, descripcion_selet: String,
-    selecionado: Boolean,
-    width_auto: Boolean,
-    titulo: String,
-    descripcion: String,
-    tipo: String, seleccionado: (titulo: String, descripcion: String) -> Unit,
-    copiar_texto: () -> Unit,
-    mostrar_dialog_mejorar_generacion: (String, String, String) -> Unit
-) {
-
-    val titulo_finla = if (tipo.equals("notificacion")) titulo_select else titulo
-    val texto_final = if (tipo.equals("notificacion")) descripcion_selet else descripcion
-
-
-    Box(
-        modifier = Modifier
-            .then(
-                if (width_auto) Modifier.width(200.dp)
-                else Modifier.fillMaxWidth()
-            )
-            .clip(RoundedCornerShape(9.dp))
+    @Composable
+    fun generaciones_IA(
+        tipo_clikeable: String,
+        titulo_select: String,
+        descripcion_selet: String,
+        selecionado: Boolean,
+        width_auto: Boolean,
+        titulo: String,
+        descripcion: String,
+        tipo: String,
+        seleccionado: (titulo: String, descripcion: String) -> Unit,
+        copiar_texto: () -> Unit,
+        mostrar_dialog_mejorar_generacion: (String, String, String) -> Unit
     ) {
 
-        // 🌈 Fondo animado SOLO cuando está seleccionado
-        if (selecionado) {
-            FondoIAAnimado(
-                modifier = Modifier.matchParentSize()
-            )
-        }
+        val titulo_finla = if (tipo.equals("notificacion")) titulo_select else titulo
+        val texto_final = if (tipo.equals("notificacion")) descripcion_selet else descripcion
 
-
-        val soloTitulo = descripcion.isNotEmpty() && tipo.isEmpty() && titulo.isEmpty()
-
-        Column(
+        Box(
             modifier = Modifier
-                // Fondo normal SOLO si no está seleccionado
                 .then(
-                    if (!soloTitulo && !selecionado)
-                        Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
-                    else Modifier
+                    if (width_auto) Modifier.width(200.dp)
+                    else Modifier.fillMaxWidth()
                 )
-
-                .then(
-                    if (!soloTitulo && !selecionado)
-                        Modifier.clickable {
-                            seleccionado(titulo, descripcion)
-                        }
-                    else Modifier
-                )
-                .then(
-                    if (!soloTitulo)
-                        Modifier.padding(horizontal = 5.dp, vertical = 10.dp)
-                    else Modifier
-                )
-                .then(
-                    if (!soloTitulo)
-                        Modifier.height(110.dp)
-                    else Modifier
-                ),
-            verticalArrangement = Arrangement.spacedBy(5.dp)
+                .clip(RoundedCornerShape(9.dp))
         ) {
+            // 🌈 Fondo animado SOLO cuando está seleccionado
+            if (selecionado) {
+                FondoIAAnimado(
+                    modifier = Modifier.matchParentSize()
+                )
+            }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                if (tipo.isNotEmpty()) {
+            val soloTitulo = descripcion.isNotEmpty() && tipo.isEmpty() && titulo.isEmpty()
 
-                    texto_generico_one_line(
-                        tipo.capitalizeFirst(),
-                        style = MaterialTheme.typography.bodyMedium
+            Column(
+                modifier = Modifier
+                    // Fondo normal SOLO si no está seleccionado
+                    .then(
+                        if (!soloTitulo && !selecionado)
+                            Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
+                        else Modifier
                     )
 
-                    if (!tipo.equals("publicacion")) {
-                        Icon(
-                            imageVector = Icons.Default.AutoAwesome,
-                            contentDescription = "Mejorar con IA",
-                            tint = Color.Yellow,
+                    .then(
+                        if (!soloTitulo && !selecionado)
+                            Modifier.clickable {
+                                seleccionado(titulo, descripcion)
+                            }
+                        else Modifier
+                    )
+                    .then(
+                        if (!soloTitulo)
+                            Modifier.padding(horizontal = 5.dp, vertical = 10.dp)
+                        else Modifier
+                    )
+                    .then(
+                        if (!soloTitulo)
+                            Modifier.height(110.dp)
+                        else Modifier
+                    ),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    if (tipo.isNotEmpty()) {
+
+                        texto_generico_one_line(
+                            tipo.capitalizeFirst(),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+
+                        if (!tipo.equals("publicacion")) {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = "Mejorar con IA",
+                                tint = Color.Yellow,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Image(
+                            painter = painterResource(R.drawable.visibility_preview),
+                            contentDescription = "ver",
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }) {
+                                    mostrar_dialog_mejorar_generacion(
+                                        titulo_finla,
+                                        texto_final,
+                                        tipo
+                                    )
+                                },
+                            colorFilter = ColorFilter.tint(Color.White)
+                        )
+
+
+                    }
+                }
+
+                if (titulo_finla.isNotEmpty()) {
+                    texto_generico_one_line(
+                        titulo_finla,
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+
+                if (texto_final.isNotEmpty()) {
+                    text_expandible_wrapp(
+                        texto = texto_final,
+                        maxlines = 3,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.then(
+                            if (tipo_clikeable.equals("copiado"))
+                                Modifier.clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }) {
+                                    copiar_texto()
+                                }
+                            else Modifier
+                        ),
+                    )
+                }
+
+
+            }
+        }
+    }
+
+
+    @Composable
+    fun TresBotonesPrimarios(
+        usar_todas_bool: Boolean,
+        usarTodas: () -> Unit,
+        titulo_descripcion: Boolean,
+        usarTituloDescripcion: () -> Unit,
+        whattsap: Boolean,
+        usarWhatsapp: () -> Unit,
+        compartir: Boolean,
+        usarCompartir: () -> Unit,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (usar_todas_bool) {
+
+                BotonIA(
+                    "Usar todas",
+                    usarTodas,
+                    IconoIA.Vector(Icons.Default.SelectAll)
+                )
+            }
+
+            if (titulo_descripcion) {
+
+                BotonIA(
+                    "Usar título y descripción",
+                    usarTituloDescripcion,
+                    IconoIA.Vector(Icons.Default.AutoAwesome)
+                )
+            }
+            if (whattsap) {
+
+                BotonIA(
+                    "Usar generación de WhatsApp",
+                    usarWhatsapp,
+                    IconoIA.Drawable(R.drawable.whatsapp_icon)
+                )
+            }
+            if (compartir) {
+                BotonIA(
+                    "Usar generación de compartir",
+                    usarCompartir,
+                    IconoIA.Drawable(R.drawable.compartir_icon_rojo)
+                )
+            }
+
+        }
+    }
+
+
+    @Composable
+    fun BotonIA(
+        texto: String,
+        onClick: () -> Unit,
+        icono: IconoIA? = null
+    ) {
+        Button(
+            onClick = onClick,
+            shape = RoundedCornerShape(50),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White
+            )
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                texto_generico_one_line(
+                    texto,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                when (icono) {
+                    is IconoIA.Drawable -> {
+                        Image(
+                            painter = painterResource(icono.resId),
+                            contentDescription = null,
                             modifier = Modifier.size(20.dp)
                         )
                     }
-                    Spacer(modifier = Modifier.weight(1f))
 
-                    Image(
-                        painter = painterResource(R.drawable.visibility_preview),
-                        contentDescription = "ver",
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }) {
-                                mostrar_dialog_mejorar_generacion(titulo_finla, texto_final, tipo)
-                            },
-                        colorFilter = ColorFilter.tint(Color.White)
-                    )
+                    is IconoIA.Vector -> {
+                        Icon(
+                            imageVector = icono.imageVector,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
 
-
+                    null -> Unit
                 }
-            }
-
-            if (titulo_finla.isNotEmpty()) {
-                texto_generico_one_line(
-                    titulo_finla,
-                    style = MaterialTheme.typography.titleSmall
-                )
-            }
-
-            if (texto_final.isNotEmpty()) {
-                text_expandible_wrapp(
-                    texto = texto_final,
-                    maxlines = 3,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.then(
-                        if (tipo_clikeable.equals("copiado"))
-                            Modifier.clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }) {
-                                copiar_texto()
-                            }
-                        else Modifier
-                    ),
-                )
-            }
-
-
-        }
-    }
-}
-
-
-@Composable
-fun TresBotonesPrimarios(
-    usar_todas_bool: Boolean,
-    usarTodas: () -> Unit,
-    titulo_descripcion: Boolean,
-    usarTituloDescripcion: () -> Unit,
-    whattsap: Boolean,
-    usarWhatsapp: () -> Unit,
-    compartir: Boolean,
-    usarCompartir: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .horizontalScroll(rememberScrollState())
-  ,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (usar_todas_bool) {
-
-            BotonIA(
-                "Usar todas",
-                usarTodas,
-                IconoIA.Vector(Icons.Default.SelectAll)
-            )
-        }
-
-        if (titulo_descripcion) {
-
-            BotonIA(
-                "Usar título y descripción",
-                usarTituloDescripcion,
-                IconoIA.Vector(Icons.Default.AutoAwesome)
-            )
-        }
-        if (whattsap) {
-
-            BotonIA(
-                "Usar generación de WhatsApp",
-                usarWhatsapp,
-                IconoIA.Drawable(R.drawable.whatsapp_icon)
-            )
-        }
-        if (compartir) {
-            BotonIA(
-                "Usar generación de compartir",
-                usarCompartir,
-                IconoIA.Drawable(R.drawable.compartir_icon_rojo)
-            )
-        }
-
-    }
-}
-
-
-@Composable
-fun BotonIA(
-    texto: String,
-    onClick: () -> Unit,
-    icono: IconoIA? = null
-) {
-    Button(
-        onClick = onClick,
-        shape = RoundedCornerShape(50),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = Color.White
-        )
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            texto_generico_one_line(
-                texto,
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            when (icono) {
-                is IconoIA.Drawable -> {
-                    Image(
-                        painter = painterResource(icono.resId),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
-                is IconoIA.Vector -> {
-                    Icon(
-                        imageVector = icono.imageVector,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
-                null -> Unit
             }
         }
     }
-}
 
 

@@ -202,8 +202,6 @@ class viewmodel_generaciones_IA : ViewModel() {
         titulo_publicacion: String,
         descripcion: String
     ) {
-        Log.d("titulo_publicacion", "$titulo_publicacion $descripcion")
-
         viewModelScope.launch {
 
             _estado_notificacion_con_ia_corta.value =
@@ -216,8 +214,8 @@ class viewmodel_generaciones_IA : ViewModel() {
                     return@launch
                 }
 
-                // ⏱️ TIMEOUT REAL (10 segundos)
-                val notificacionIA = withTimeout(10_000) {
+
+                val notificacionIA = withTimeout(15_000) {
                     insta_repo.crear_notificacion_conIA_corta(
                         id_notificacion_promo,
                         titulo_publicacion,
@@ -226,8 +224,7 @@ class viewmodel_generaciones_IA : ViewModel() {
                     )
                 }
 
-                _estado_notificacion_con_ia_corta.value =
-                    EstadoIA_dialog_centrado_notificaciones.Success(notificacionIA)
+                _estado_notificacion_con_ia_corta.value = EstadoIA_dialog_centrado_notificaciones.Success(notificacionIA)
 
                 if (
                     notificacionIA.titulo.isNotEmpty() &&

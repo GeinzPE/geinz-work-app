@@ -153,18 +153,22 @@ fun dailog_generaciones_IA_versiones(
         )
     )
 
+
+
     LaunchedEffect(estado_textos_notificaciones_generadas) {
-        if (estado_textos_notificaciones_generadas is viewmodel_generaciones_IA.EstadoIA_dialog_centrado.Success) {
+        if (estado_textos_notificaciones_generadas
+                    is viewmodel_generaciones_IA.EstadoIA_dialog_centrado.Success) {
             ondismis()
         }
     }
+
 
     LaunchedEffect(estado_notificaion_con_ia_corta) {
-        if(estado_notificaion_con_ia_corta is viewmodel_generaciones_IA.EstadoIA_dialog_centrado.Success){
+        if(estado_notificaion_con_ia_corta
+                    is viewmodel_generaciones_IA.EstadoIA_dialog_centrado_notificaciones.Success){
             ondismis()
         }
     }
-
 
 
     AlertDialog(
@@ -196,7 +200,7 @@ fun dailog_generaciones_IA_versiones(
                 )
 
                 spacer_vertical(5.dp)
-                Column(modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(10.dp)) {
+                Column(modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(10.dp).fillMaxWidth()) {
                 spacer_vertical(5.dp)
                 texto_generico_multilinea(titulo, style = MaterialTheme.typography.titleSmall)
                 spacer_vertical(5.dp)
@@ -480,6 +484,7 @@ fun dailog_generaciones_IA_versiones(
                                             titulo_publicacion = titulo,
                                             descripcion = texto
                                         )
+
                                     } ?: run {
                                         // 🚨 null -> opcional: mostrar mensaje de error o toast
                                         Toast.makeText(

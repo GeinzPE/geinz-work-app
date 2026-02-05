@@ -280,6 +280,17 @@ fun pantalla_promocionar(
                     idSeleccionado = predeterminado.id_generacion_sin_publicar
                 }
 
+                7 -> {
+                    tipo_notificacion_params_seleccionada = "promociones y ofertas"
+                    Log.d(
+                        "TIPO_NOTI",
+                        "ID longitud 9 → promociones y ofertas"
+                    )
+                    idSeleccionado = predeterminado.id_generacion_sin_publicar
+                }
+
+
+
                 5 -> {
                     tipo_notificacion_params_seleccionada = "informativas"
                     Log.d(
@@ -508,7 +519,7 @@ fun pantalla_promocionar(
             viewmodel_pantalla_promocionar.titulo_notificacion = predeterminado.titulo
             descripcion_notificacion = predeterminado.descripcion
             viewmodel_pantalla_promocionar.descripcion_notificacion = predeterminado.descripcion
-            mensaje_whatsapp_de_publi_a_notificacion = predeterminado.whatsapp
+            mensaje_whatsapp_de_publi_a_notificacion = predeterminado.whatsapp ?:"Hola, quiero mas informacion sobre lo que vi en "
         }
 
     }
