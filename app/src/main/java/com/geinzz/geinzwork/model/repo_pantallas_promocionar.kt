@@ -5,13 +5,11 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.DatosDemograficosUsuario
 import com.geinzz.geinzwork.data.model.NotificacionIA
 import com.geinzz.geinzwork.data.model.OpcionPromocionIA
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenWebPSinRecorte
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptNotificacionOptimizado
-import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptNotificacionSeleccionada
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromocion_text_compartir
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptWhatsAppContacto
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionAtencion
@@ -28,13 +26,11 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPr
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoInformativo_solo_una_generacion
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoVenta
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoVenta_solo_una_generacion
-import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionVenta
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.acortarDescripcionNotificacion
 
 import com.google.firebase.Firebase
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
-import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -45,7 +41,6 @@ import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
-import java.util.UUID
 
 class repo_pantallas_promocionar {
 
@@ -344,7 +339,7 @@ class repo_pantallas_promocionar {
             Log.d("Gemini", "Resultado:\n$textoGenerado")
 
             // 🔥 PARSEAR RESPUESTA
-            val notificacion = parsearRespuestaGemini(textoGenerado)
+            val notificacion = parsearRespuestaGemini(textoGenerado,tipoGeneracion)
 
             // 🔁 RETORNAR RESULTADO
             onResultado(notificacion)
@@ -427,45 +422,45 @@ class repo_pantallas_promocionar {
     }
 
 
-    fun crear_notificacion_conIA(
-        scope: CoroutineScope,
-        tituloPublicacion: String,
-        descCorta: String,
-        nombreTienda: String,
-        localidad: String,
-        diasRestantes: Int,
-        onResultado: (NotificacionIA) -> Unit
-    ) {
-        scope.launch {
-
-            val model = Firebase.ai(
-                backend = GenerativeBackend.googleAI()
-            ).generativeModel("gemini-2.5-flash")
-
-            try {
-                val prompt = generarPromptNotificacionOptimizado(
-                    tituloPublicacion, descCorta, nombreTienda, localidad, diasRestantes
-                )
-
-                val inicio = System.currentTimeMillis()
-                val result = model.generateContent(prompt)
-                val textoGenerado = result.text ?: ""
-                val fin = System.currentTimeMillis()
-
-                Log.d("Gemini", "Tiempo: ${fin - inicio} ms")
-                Log.d("Gemini", "Resultado:\n$textoGenerado")
-
-                // 🔥 PARSEAR RESPUESTA
-                val notificacion = parsearRespuestaGemini(textoGenerado)
-
-                // 🔁 RETORNAR RESULTADO
-                onResultado(notificacion)
-
-            } catch (e: Exception) {
-                Log.e("Gemini", "Error IA: ${e.message}")
-            }
-        }
-    }
+//    fun crear_notificacion_conIA(
+//        scope: CoroutineScope,
+//        tituloPublicacion: String,
+//        descCorta: String,
+//        nombreTienda: String,
+//        localidad: String,
+//        diasRestantes: Int,
+//        onResultado: (NotificacionIA) -> Unit
+//    ) {
+//        scope.launch {
+//
+//            val model = Firebase.ai(
+//                backend = GenerativeBackend.googleAI()
+//            ).generativeModel("gemini-2.5-flash")
+//
+//            try {
+//                val prompt = generarPromptNotificacionOptimizado(
+//                    tituloPublicacion, descCorta, nombreTienda, localidad, diasRestantes
+//                )
+//
+//                val inicio = System.currentTimeMillis()
+//                val result = model.generateContent(prompt)
+//                val textoGenerado = result.text ?: ""
+//                val fin = System.currentTimeMillis()
+//
+//                Log.d("Gemini", "Tiempo: ${fin - inicio} ms")
+//                Log.d("Gemini", "Resultado:\n$textoGenerado")
+//
+//                // 🔥 PARSEAR RESPUESTA
+//                val notificacion = parsearRespuestaGemini(textoGenerado, tipoGeneracion)
+//
+//                // 🔁 RETORNAR RESULTADO
+//                onResultado(notificacion)
+//
+//            } catch (e: Exception) {
+//                Log.e("Gemini", "Error IA: ${e.message}")
+//            }
+//        }
+//    }
 
 
     fun parsearOpcionesIA(
@@ -508,7 +503,7 @@ class repo_pantallas_promocionar {
     }
 
 
-    fun parsearRespuestaGemini(texto: String): NotificacionIA {
+    fun parsearRespuestaGemini(texto: String, tipoGeneracion: TipoGeneracionIA): NotificacionIA {
         var titulo = ""
         var descripcion = ""
 
@@ -520,7 +515,7 @@ class repo_pantallas_promocionar {
             }
         }
 
-        return NotificacionIA(
+        return NotificacionIA(tipoGeneracion,
             titulo = titulo, descripcion = descripcion
         )
     }

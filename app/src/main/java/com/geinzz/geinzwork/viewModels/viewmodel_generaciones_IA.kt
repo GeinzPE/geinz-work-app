@@ -199,6 +199,7 @@ class viewmodel_generaciones_IA : ViewModel() {
                     return@launch
                 }
                 insta_repo.crear_notificacion_conIA_corta(
+
                     id_notificacion_promo,
                     titulo_publicacion,
                     descripcion, tipoSeleccionado,

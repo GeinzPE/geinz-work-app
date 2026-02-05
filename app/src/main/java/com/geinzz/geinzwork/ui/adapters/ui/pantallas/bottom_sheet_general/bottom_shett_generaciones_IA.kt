@@ -442,11 +442,12 @@ fun ui_bottom_sheet_generaciones_IA(
                                                     tipo_seleccionado_promo_noti = tipo
                                                 },
 
-                                                usar_nueva_generacion_generada = { titulo, texto,id ->
+                                                usar_nueva_generacion_generada = { titulo, texto,id,tipo ->
+
                                                     usar_titulo_descripcion(
                                                         titulo,
                                                         texto,
-                                                        "publicacion",id,datos_generaciones_sin_publicaicones(
+                                                        tipo,id,datos_generaciones_sin_publicaicones(
                                                             lista_obciones = null,
                                                             titulo_original = null,
                                                             descripcion_original = null,
@@ -509,7 +510,7 @@ fun item_generaciones_con_IA(
     whatsapp: (String, String,String) -> Unit,
     compartir: (String, String,String) -> Unit,
     mostrar_dialog_mejorar_vesiones: (String, String, String, String) -> Unit,
-    usar_nueva_generacion_generada: (String, String,String) -> Unit,
+    usar_nueva_generacion_generada: (String,String, String,String) -> Unit,
 ) {
 
 
@@ -722,7 +723,6 @@ fun item_generaciones_con_IA(
 
                 texto_generico_one_line("Generacion de titulo y descripcion")
 
-                if (i.tipo.equals("publicacion") || i.tipo.equals("generacion_publicacion_sin_pulicar")) {
 
                     LazyRow(
                         verticalAlignment = Alignment.CenterVertically,
@@ -760,54 +760,6 @@ fun item_generaciones_con_IA(
                             )
                         }
                     }
-                } else {
-
-                    Row(
-                        modifier = Modifier.horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        generaciones_IA(
-                            "generaciones",
-                            titulo_select = "",
-                            descripcion_selet = "",
-                            selecionado = false,
-                            width_auto = true,
-                            titulo = i.generacion_origini.titulo,
-                            descripcion = i.generacion_origini.descripcion,
-                            tipo = "ORIGINAL",
-                            seleccionado = { titulo, descripcion ->
-                            }, {}, { titulo, texto, tipo ->
-                                mostrar_dialog_mejorar_vesiones(
-                                    titulo,
-                                    texto,
-                                    i.tipo,
-                                    i.titulo_gen_IA,
-                                )
-                            }
-                        )
-                        generaciones_IA(
-                            "generaciones",
-                            titulo_select = tituloSeleccionado,
-                            descripcion_selet = descripcionSeleccionada,
-                            selecionado = true,
-                            width_auto = true,
-                            titulo = tituo_seleccionado,
-                            descripcion = descripcionSeleccionada,
-                            tipo = "GENERADO",
-                            seleccionado = { titulo, descripcion ->
-                            }, {
-
-                            }, { titulo, texto, tipo ->
-                                mostrar_dialog_mejorar_vesiones(
-                                    titulo,
-                                    texto,
-                                    i.tipo,
-                                    i.id_generacion
-                                )
-                            }
-                        )
-                    }
-                }
 
 
                 AnimatedVisibility(nueva_generacion.titulo_nuevo.isNotEmpty() && nueva_generacion.descripcion_nueva.isNotEmpty()) {
@@ -863,7 +815,8 @@ fun item_generaciones_con_IA(
                                 onClick = {
                                     usar_nueva_generacion_generada(
                                         nueva_generacion.titulo_nuevo,
-                                        nueva_generacion.descripcion_nueva,i.id_generacion
+                                        nueva_generacion.descripcion_nueva,i.id_generacion,
+                                        i.tipo,
                                     )
                                 },
                                 icono = IconoIA.Vector(Icons.Default.AutoAwesome)

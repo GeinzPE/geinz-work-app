@@ -299,6 +299,7 @@ data class recargar_monedas_tienda(
 )
 
 data class NotificacionIA(
+    val tipo: repo_pantallas_promocionar.TipoGeneracionIA,
     val titulo: String,
     val descripcion: String
 )
@@ -613,6 +614,14 @@ data class datos_notificacion(
     val id_generacion_sin_publicar: String=""
 )
 
+
+data class nuevas_notificaciones(
+    val titulo: String = "",
+    val descripcion: String = "",
+    val tipo_redirigido: String = "",
+    val id_generacion_sin_publicar: String = "",
+    val datos_generaciones:datos_generaciones_sin_publicaicones=datos_generaciones_sin_publicaicones()
+)
 
 data class datos_generaciones_sin_publicaicones(
     val lista_obciones: List<OpcionPromocionIA>?=null,

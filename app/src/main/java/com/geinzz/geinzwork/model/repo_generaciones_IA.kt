@@ -4,12 +4,9 @@ import android.annotation.SuppressLint
 import android.util.Log
 import com.geinzz.geinzwork.data.model.NotificacionIA
 import com.geinzz.geinzwork.data.model.NotificacionIA_dialog
-import com.geinzz.geinzwork.data.model.OpcionPromocionIA
 import com.geinzz.geinzwork.data.model.datos_gen_IA_Tiendas
 import com.geinzz.geinzwork.data.model.datos_generaciones_IA
 import com.geinzz.geinzwork.data.model.dialog_generaciones_IA_promo_noti
-import com.geinzz.geinzwork.data.model.historial_descuento
-import com.geinzz.geinzwork.data.model.historial_recargas
 import com.geinzz.geinzwork.data.model.lista_genereracione
 import com.geinzz.geinzwork.data.model.nuevas_generaciones_con_IA
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones
@@ -27,10 +24,6 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNot
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionVenta
 import com.geinzz.geinzwork.model.repo_pantallas_promocionar.TipoGeneracionIA
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.acortarDescripcionNotificacion
-import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
-import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
-import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas
-import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas.generarIdRecarga
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.ai.ai
@@ -346,7 +339,7 @@ class repo_generaciones_IA {
             Log.d("Gemini", "Resultado:\n$textoGenerado")
 
             // 🔥 PARSEAR RESPUESTA
-            val notificacion = parsearRespuestaGemini(textoGenerado)
+            val notificacion = parsearRespuestaGemini(textoGenerado,tipoGeneracion)
 
             val datos_enviados= NotificacionIA_dialog(
                 id_promo_noti_gen =id_notificacion_promo,
@@ -363,7 +356,7 @@ class repo_generaciones_IA {
 
     }
 
-    fun parsearRespuestaGemini(texto: String): NotificacionIA {
+    fun parsearRespuestaGemini(texto: String, tipoGeneracion: TipoGeneracionIA): NotificacionIA {
         var titulo = ""
         var descripcion = ""
 
@@ -375,7 +368,7 @@ class repo_generaciones_IA {
             }
         }
 
-        return NotificacionIA(
+        return NotificacionIA(tipoGeneracion,
             titulo = titulo, descripcion = descripcion
         )
     }

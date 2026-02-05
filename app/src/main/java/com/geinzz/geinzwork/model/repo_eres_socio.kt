@@ -18,6 +18,7 @@ import com.geinzz.geinzwork.data.model.generacion_primarios
 import com.geinzz.geinzwork.data.model.generaciones_con_ia
 import com.geinzz.geinzwork.data.model.generaciones_con_ia_notificaciones
 import com.geinzz.geinzwork.data.model.generaciones_con_ia_notificaciones_solo_generaciones
+import com.geinzz.geinzwork.data.model.nuevas_notificaciones
 import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
 import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones
@@ -1325,31 +1326,26 @@ class repo_eres_socio {
         id_generacion:String,
         localidad: String,
         id_tienda: String,
-        i: datos_notificacion,
+        i: generacion_primarios,
     ) {
+
         val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
             .document(id_tienda).collection("gen_con_IA_historial")
             .document(id_generacion)
-        val gen_seleccioada= contenido_publicidad(
-            titulo = i.titulo_select,
-            descripcion = i.descripcion_select
-        )
-        val datos_a_llenar= generaciones_con_ia_notificaciones_solo_generaciones(
-            i.titulo_original, i.descripcion_original, gen_seleccioada
-        )
+
         val historialIAData = mutableMapOf<String, Any>(
             "fecha" to Timestamp.now(),
             "caudidad" to timestampEn30Dias(7),
-            "id_promo_o_noti" to i.id_generacion_sin_publicar,
+            "id_promo_o_noti" to id_generacion,
             "tipo" to "notificacion_sin_publicar",
-            "generacions_con_IA" to datos_a_llenar
+            "generacions_con_IA" to i
         )
         val descripcionAcortada = acortarDescripcionNotificacion(
-            i.descripcion_select
+            i.titulo_original
         )
 
         val nombreGeneracion = crear_notificacion_conIA_corta(
-            i.titulo_select,
+            i.descripcion_original,
             descripcionAcortada
         )
         nombreGeneracion.let {

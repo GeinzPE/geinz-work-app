@@ -1776,7 +1776,7 @@ fun pantalla_carga_socios(
                 datos.nombre,
                 usar_todas = { titulo, descripcion, wsap, compartir, tipo, id_generacion, datos_generaciones_sin_publicaicones ->
                     Log.d("tipo_pbntenido1", "$tipo")
-                    if (tipo == "generacion_publicacion_sin_pulicar") {
+                    if (tipo == "generacion_publicacion_sin_pulicar" || tipo == "notificacion_sin_publicar") {
                         navegarcrear_pùblicidad_todas(
                             titulo,
                             descripcion,
@@ -1800,7 +1800,7 @@ fun pantalla_carga_socios(
                 },
                 usar_titulo_descripcion = { titulo, descrpcion, tipo, id_generacion, datos_generaciones_sin_publicaicones ->
                     Log.d("tipo_pbntenido2", "$tipo")
-                    if (tipo == "generacion_publicacion_sin_pulicar") {
+                    if (tipo == "generacion_publicacion_sin_pulicar" || tipo == "notificacion_sin_publicar") {
                         navegarcrear_pùblicidad_titulo_descripcion(
                             titulo,
                             descrpcion,
@@ -1820,7 +1820,7 @@ fun pantalla_carga_socios(
                 },
                 usar_wsap = { msje, tipo, id_generacion ->
                     Log.d("tipo_pbntenido3", "$tipo")
-                    if (tipo == "generacion_publicacion_sin_pulicar") {
+                    if (tipo == "generacion_publicacion_sin_pulicar" || tipo == "notificacion_sin_publicar") {
                         navegarcrear_pùblicidad_wsap(msje, tipo, id_generacion)
 
                     } else {
@@ -1830,7 +1830,7 @@ fun pantalla_carga_socios(
                 },
                 usar_compartir = { msje, tipo, id_generacion ->
                     Log.d("tipo_pbntenido4", "$tipo")
-                    if (tipo == "generacion_publicacion_sin_pulicar") {
+                    if (tipo == "generacion_publicacion_sin_pulicar" || tipo == "notificacion_sin_publicar") {
                         navegarcrear_pùblicidad_compartiro(msje, tipo, id_generacion)
 
                     } else {

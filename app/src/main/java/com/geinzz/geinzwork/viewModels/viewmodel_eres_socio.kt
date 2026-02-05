@@ -21,6 +21,7 @@ import com.geinzz.geinzwork.data.model.datos_recarga
 import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.data.model.generacion_primarios
 import com.geinzz.geinzwork.data.model.historial_descuento
+import com.geinzz.geinzwork.data.model.nuevas_notificaciones
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen_cinco
@@ -88,24 +89,45 @@ class viewmodel_eres_socio : ViewModel() {
     }
 
 
-    fun id_notifiacion_ge_IA_o_no(id_publicacion_selecionada:String,tipo_notificacion_params_seleccionada:String){
+    fun generarIdNotificacion(
+        idForzado: String?,
+        idPublicacion: String,
+        tipo: String
+    ) {
+
         notificacion_ID= when {
-            id_publicacion_selecionada.isNotBlank() -> {
-                generarIdImagen_nueve()  //nueve dijsitos
+            !idForzado.isNullOrBlank() -> {
+                Log.d("ID_NOTI", "Usando ID FORZADO: $idForzado")
+                idForzado
             }
 
-            id_publicacion_selecionada.isBlank() &&
-                    tipo_notificacion_params_seleccionada == "informativas" -> {
-                generarIdImagen_cinco() // 5 dijistos
+            idPublicacion.isNotBlank() -> {
+                val id = generarIdImagen_nueve()
+                Log.d("ID_NOTI", "Generado por publicación (9 dígitos): $id")
+                id
+            }
+
+            tipo == "informativas" -> {
+                val id = generarIdImagen_cinco()
+                Log.d("ID_NOTI", "Generado por tipo informativa (5 dígitos): $id")
+                id
             }
 
             else -> {
-                generarIdImagen()//7 djistos
+                val id = generarIdImagen()
+                Log.d("ID_NOTI", "Generado normal (7 dígitos): $id")
+                id
             }
         }
-        Log.d("ID_GENERAMODS","$notificacion_ID  $id_publicacion_selecionada $tipo_notificacion_params_seleccionada" ,)
+
+        Log.d(
+            "ID_NOTI_FINAL",
+            "ID_FINAL=$notificacion_ID | forzado=$idForzado | publicacion=$idPublicacion | tipo=$tipo"
+        )
+
 
     }
+
 
 
     fun iniciarPromo(idExterno: String?) {
@@ -765,7 +787,7 @@ class viewmodel_eres_socio : ViewModel() {
     fun agregar_generacions_obligatorias_subidas_notificaciones(
         localidad: String,
         id_tienda: String,
-        i: datos_notificacion,
+        i: generacion_primarios,
     id_generacion: String
     ) {
         viewModelScope.launch {
