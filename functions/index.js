@@ -9,6 +9,10 @@ const admin = require("firebase-admin");
 const algoliasearch = require("algoliasearch");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 
+
+const speech = require('@google-cloud/speech');
+const client_specth= new speech.SpeechClient();
+
 admin.initializeApp();
 
 // ==================== Algolia ====================
@@ -757,6 +761,48 @@ async function enviarNotificacionFCM_tienda({
     }
   }
 }
+
+
+
+
+exports.recognizeSpeech = onRequest(
+  { region: "us-central1" },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      return res.status(405).send("Método no permitido xd");
+    }
+
+    try {
+      const audioBytes = req.body.audio; // base64
+      if (!audioBytes) return res.status(400).send("Falta el audio");
+
+      const audio = { content: audioBytes };
+
+      const config = {
+        encoding: 'LINEAR16',
+        sampleRateHertz: 16000,
+        languageCode: 'es-PE',
+        useEnhanced: true,
+        model: 'default',
+        speechContexts: [
+          { phrases: ["creatina", "chifa", "pollo a la brasa"] }
+        ],
+      };
+
+      const request = { audio, config };
+      const [response] = await client_specth.recognize(request);
+
+      const transcription = response.results
+        .map(result => result.alternatives[0].transcript)
+        .join(' ');
+
+      res.json({ text: transcription });
+    } catch (err) {
+      console.error("Error recognizeSpeech:", err);
+      res.status(500).send(err.message);
+    }
+  }
+);
 
 /*
 
