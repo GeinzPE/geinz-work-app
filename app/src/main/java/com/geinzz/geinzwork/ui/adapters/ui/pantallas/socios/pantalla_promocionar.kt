@@ -94,6 +94,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -131,6 +132,7 @@ import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.ComodidadesAgregadas
 import com.geinzz.geinzwork.data.model.DatosPublicidadIA
 import com.geinzz.geinzwork.data.model.GeneracionIA
 import com.geinzz.geinzwork.data.model.OpcionPromocionIA
@@ -156,6 +158,7 @@ import com.geinzz.geinzwork.data.model.informacion_container
 import com.geinzz.geinzwork.data.model.items_pantallas_promociones
 import com.geinzz.geinzwork.data.model.lista_genereracione
 import com.geinzz.geinzwork.data.model.mensaje_predeterminado
+import com.geinzz.geinzwork.data.model.metodos_pagos_agregados_publiaciones
 import com.geinzz.geinzwork.data.model.msjes_predeteminados_generales
 import com.geinzz.geinzwork.data.model.nombre_precio_notificaciones
 import com.geinzz.geinzwork.data.model.nuevas_notificaciones
@@ -164,10 +167,13 @@ import com.geinzz.geinzwork.data.model.obj_parametros_notificacion
 import com.geinzz.geinzwork.data.model.obj_suspend_notificacion
 import com.geinzz.geinzwork.data.model.pantalla_horarios
 import com.geinzz.geinzwork.data.model.precio_rango_publicacion
+import com.geinzz.geinzwork.data.model.servicio_comodidad
 import com.geinzz.geinzwork.data.model.ubicacaion_container
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.obtenerFechaFinDosDias
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.tiempoRestante
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.normalizar
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.textoMetodoPago
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen_cinco
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen_nueve
@@ -290,7 +296,6 @@ fun pantalla_promocionar(
                 }
 
 
-
                 5 -> {
                     tipo_notificacion_params_seleccionada = "informativas"
                     Log.d(
@@ -407,6 +412,8 @@ fun pantalla_promocionar(
     var compartir by rememberSaveable { mutableStateOf(false) }
     var filtro_cercania by rememberSaveable { mutableStateOf(false) }
     var horario_deseado by rememberSaveable { mutableStateOf(false) }
+    var metodos_de_pago by rememberSaveable { mutableStateOf(false) }
+    var servicios_y_comodidades by rememberSaveable { mutableStateOf(false) }
     var mensaje_perzonalizado by remember { mutableStateOf(true) }
     var mensaje_perzonalizado_compartir by remember { mutableStateOf(true) }
 
@@ -519,7 +526,11 @@ fun pantalla_promocionar(
             viewmodel_pantalla_promocionar.titulo_notificacion = predeterminado.titulo
             descripcion_notificacion = predeterminado.descripcion
             viewmodel_pantalla_promocionar.descripcion_notificacion = predeterminado.descripcion
-            mensaje_whatsapp_de_publi_a_notificacion = predeterminado.whatsapp ?:"Hola, quiero mas informacion sobre lo que vi en "
+            mensaje_whatsapp_de_publi_a_notificacion =
+                predeterminado.whatsapp
+                    ?.takeIf { it.isNotBlank() }
+                    ?: "Hola, quiero más información sobre lo que vi en "
+
         }
 
     }
@@ -729,6 +740,56 @@ fun pantalla_promocionar(
     var mostrar_terminos_condiciones_promociones by remember { mutableStateOf(false) }
     var mostrar_vista_previa_promos_cercanas by remember { mutableStateOf(false) }
     var mostrar_vista_previa_promos_cercanas_sin_clikear by remember { mutableStateOf(false) }
+
+
+    //metodos de pago
+// Métodos de pago
+    var metodo_yape by rememberSaveable {
+        mutableStateOf(i.metodosPago.yape.enable)
+    }
+
+    var metodo_plin by rememberSaveable {
+        mutableStateOf(i.metodosPago.plin.enable)
+    }
+
+    var metodo_agora by rememberSaveable {
+        mutableStateOf(i.metodosPago.agora.enable)
+    }
+
+    var metodo_efectivo by rememberSaveable {
+        mutableStateOf(i.metodosPago.efectivo.enable)
+    }
+
+    var metodo_visa by rememberSaveable {
+        mutableStateOf(i.metodosPago.visa_mastercard.enable)
+    }
+
+    var metodo_mastercard by rememberSaveable {
+        mutableStateOf(i.metodosPago.visa_mastercard.enable)
+    }
+
+    val serviciosEstado = remember {
+        mutableStateMapOf(
+            "zona expandida" to false,
+            "Wifi" to false,
+            "servicios higenicos" to false,
+            "camaras de seguridad" to false,
+            "sala de espera" to false,
+            "sala de juegos" to false,
+            "mesa para niños" to false,
+            "ingreso con mascotas" to false,
+            "estacionamiento" to false,
+            "enchufe" to false,
+            "aire acondicionado" to false
+        )
+    }
+
+    LaunchedEffect(i.serviciosComodidades) {
+        i.serviciosComodidades.forEach { servicio ->
+            serviciosEstado[servicio.nombre] = servicio.estado
+        }
+    }
+
 
 
     LaunchedEffect(titulo_notificacion, descripcion_notificacion) {
@@ -997,7 +1058,8 @@ fun pantalla_promocionar(
                 )
                 viewmodel_socios.verificar_si_tiene_nueva_generacion(false)
                 listaOpcionesIA = emptyList()
-
+                metodos_de_pago=false
+                servicios_y_comodidades=false
                 viewmodel_pantalla_promocionar.resetearEstadosPublicacion()
                 imagenes.clear()
                 viewmodel_socios.resetear_Estado_promo_subida()
@@ -2044,13 +2106,17 @@ fun pantalla_promocionar(
                             MyOutlinedTextField_proco_raduis(
                                 value = precio_detectado,
                                 onValueChange = { input ->
-                                    precio_detectado = input
-                                    precio_seleccionado_detectados = input.isNotEmpty()
 
-                                    val precio = input.toDoubleOrNull()
+
+                                    val filteredInput = input.filter { it.isDigit() }
+
+                                    precio_detectado = filteredInput
+                                    precio_seleccionado_detectados = filteredInput.isNotEmpty()
+
+                                    val precio = filteredInput.toIntOrNull()
 
                                     when {
-                                        input.isBlank() -> {
+                                        filteredInput.isBlank() -> {
                                             error_precio = true
                                             texto_error_precio = "El precio no puede estar vacío"
                                         }
@@ -2060,7 +2126,7 @@ fun pantalla_promocionar(
                                             texto_error_precio = "Precio inválido"
                                         }
 
-                                        precio == 0.0 -> {
+                                        precio == 0 -> {
                                             error_precio = true
                                             texto_error_precio = "El precio no puede ser 0"
                                         }
@@ -2071,7 +2137,7 @@ fun pantalla_promocionar(
 
                                             // Solo si es válido
                                             viewmodel_pantalla_promocionar.actualizarRangoDesdePrecio(
-                                                precio
+                                                precio.toDouble()
                                             )
                                         }
                                     }
@@ -2083,11 +2149,12 @@ fun pantalla_promocionar(
                                 keyboardType = KeyboardType.Number
                             )
 
-
-                            // Mostrar rango
-                            estadoPrecio.rango?.let { rango ->
-                                rango_detectado = rango
-                                RangoVisual(rango)
+                            if (!error_precio) {
+                                // Mostrar rango
+                                estadoPrecio.rango?.let { rango ->
+                                    rango_detectado = rango
+                                    RangoVisual(rango)
+                                }
                             }
                         }
 
@@ -2146,6 +2213,170 @@ fun pantalla_promocionar(
                                 }
 
                             }
+                        }
+                    }
+
+
+                    Column(
+                        modifier = Modifier
+                            .animateContentSize()
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(MaterialTheme.colorScheme.surface)
+                            .padding(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        txt_publicaciones(
+                            R.drawable.pagos_geinz_publicaciones,
+                            metodos_de_pago,
+                            { it -> metodos_de_pago = it },
+                            "Metodos de pago (opcional)"
+                        )
+                        if (metodos_de_pago) {
+                            texto_generico_multilinea(
+                                "Selecciona el método de pago para que tu publicación esté mejor segmentada y llegue al público correcto.",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            spacer_vertical(5.dp)
+
+                            activar_desactivar_metodos_pago(
+                                R.drawable.yape_logo,
+                                "yape",
+                                metodo_yape,
+                                { valor ->
+                                    metodo_yape = valor
+
+                                })
+                            activar_desactivar_metodos_pago(
+                                R.drawable.logo_plin,
+                                "Plin",
+                                metodo_plin,
+                                { valor ->
+                                    metodo_plin = valor
+
+                                })
+                            activar_desactivar_metodos_pago(
+                                R.drawable.logo_agora,
+                                "Agora",
+                                metodo_agora,
+                                { valor ->
+                                    metodo_agora = valor
+
+                                })
+                            activar_desactivar_metodos_pago(
+                                R.drawable.efectivo_logo,
+                                "Efectivo",
+                                metodo_efectivo,
+                                { valor ->
+                                    metodo_efectivo = valor
+
+                                })
+                            activar_desactivar_metodos_pago(
+                                R.drawable.visa_logo,
+                                "Visa",
+                                metodo_visa,
+                                { valor ->
+                                    metodo_visa = valor
+
+                                })
+                            activar_desactivar_metodos_pago(
+                                R.drawable.master_car_logo,
+                                "Mastercard",
+                                metodo_mastercard,
+                                { valor ->
+                                    metodo_mastercard = valor
+
+                                })
+
+                        }
+                    }
+
+
+                    Column(
+                        modifier = Modifier
+                            .animateContentSize()
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(MaterialTheme.colorScheme.surface)
+                            .padding(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        txt_publicaciones(
+                            icon = R.drawable.comidades_geinz_publicaciones,
+                            valor = servicios_y_comodidades,
+                            retorno = { it -> servicios_y_comodidades = it },
+                            titulo = "Servicios y comodidad (opcional)"
+                        )
+                        if (servicios_y_comodidades) {
+                            texto_generico_multilinea(
+                                "Selecciona los servicios y comodidades que ofreces en tu negocio para segmentar mejor tu publicación y llegar al público adecuado.",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            spacer_vertical(5.dp)
+
+                            activar_desactivar_metodos_pago(
+                                R.drawable.icon_zona_expandida,
+                                "zona expandida",
+                                serviciosEstado["zona expandida"] == true
+                            ) { serviciosEstado["zona expandida"] = it }
+
+                            activar_desactivar_metodos_pago(
+                                R.drawable.icon_wifi,
+                                "Wifi",
+                                serviciosEstado["Wifi"] == true
+                            ) { serviciosEstado["Wifi"] = it }
+
+                            activar_desactivar_metodos_pago(
+                                R.drawable.icon_servicios_higenicos,
+                                "servicios higenicos",
+                                serviciosEstado["servicios higenicos"] == true
+                            ) { serviciosEstado["servicios higenicos"] = it }
+
+                            activar_desactivar_metodos_pago(
+                                R.drawable.icon_seguridad,
+                                "camaras de seguridad",
+                                serviciosEstado["camaras de seguridad"] == true
+                            ) { serviciosEstado["camaras de seguridad"] = it }
+
+                            activar_desactivar_metodos_pago(
+                                R.drawable.icon_sala_de_espera,
+                                "sala de espera",
+                                serviciosEstado["sala de espera"] == true
+                            ) { serviciosEstado["sala de espera"] = it }
+
+                            activar_desactivar_metodos_pago(
+                                R.drawable.icon_sala_para_ninos,
+                                "sala de juegos",
+                                serviciosEstado["sala de juegos"] == true
+                            ) { serviciosEstado["sala de juegos"] = it }
+
+                            activar_desactivar_metodos_pago(
+                                R.drawable.icon_mesa_para_ninos,
+                                "mesa para niños",
+                                serviciosEstado["mesa para niños"] == true
+                            ) { serviciosEstado["mesa para niños"] = it }
+
+                            activar_desactivar_metodos_pago(
+                                R.drawable.icon_ingreso_animales,
+                                "ingreso con mascotas",
+                                serviciosEstado["ingreso con mascotas"] == true
+                            ) { serviciosEstado["ingreso con mascotas"] = it }
+
+                            activar_desactivar_metodos_pago(
+                                R.drawable.icon_estacionamiento,
+                                "estacionamiento",
+                                serviciosEstado["estacionamiento"] == true
+                            ) { serviciosEstado["estacionamiento"] = it }
+
+                            activar_desactivar_metodos_pago(
+                                R.drawable.icon_enchufa,
+                                "enchufe",
+                                serviciosEstado["enchufe"] == true
+                            ) { serviciosEstado["enchufe"] = it }
+
+                            activar_desactivar_metodos_pago(
+                                R.drawable.icon_aire_acondicionado,
+                                "aire acondicionado",
+                                serviciosEstado["aire acondicionado"] == true
+                            ) { serviciosEstado["aire acondicionado"] = it }
+
+
                         }
                     }
 
@@ -2550,7 +2781,6 @@ fun pantalla_promocionar(
                                 mostrar_terminos_condiciones_promociones = true
                             }
                         )
-
                         Button(enabled = aceptoTerminos_promociones, onClick = {
                             if (monedas_tienda < monedas_costo_publicidad.toInt()) {
                                 Toast.makeText(context, "saldo insuficiente", Toast.LENGTH_SHORT)
@@ -2572,12 +2802,13 @@ fun pantalla_promocionar(
                                         compartir = compartir,
                                         contactar = contacto_directo,
                                     ),
-
                                     ubicacion = ubicacaion_container(
-                                        direccion = direccion_negocio,
-                                        lat = i.ubicacion.lat,
-                                        long = i.ubicacion.long,
-                                        referencia = referencia_negocio
+                                        direccion = direccion_negocio.takeIf { filtro_cercania }
+                                            ?: "",
+                                        lat = i.ubicacion.lat.takeIf { filtro_cercania } ?: 0.0,
+                                        long = i.ubicacion.long.takeIf { filtro_cercania } ?: 0.0,
+                                        referencia = referencia_negocio.takeIf { filtro_cercania }
+                                            ?: ""
                                     ),
                                     datos_hora_fecha = datos_fecha_hora_tipo(
                                         horas = fechas_horas_promociones(
@@ -2628,18 +2859,29 @@ fun pantalla_promocionar(
                                             else
                                                 ""
                                     ), precio_publicacion = precio_rango_publicacion(
-                                        precio = precio_detectado ?: "",
-                                        rango = rango_detectado ?: ""
+                                        precio = if (precio_encontrado) precio_detectado
+                                            ?: "" else "",
+                                        rango = if (precio_encontrado) rango_detectado ?: "" else ""
                                     ),
 
                                     horario_deseado = horario_deseado(
-                                        seleccion = turnoSeleccionado?.nombre ?: "",
-                                        horario = turnoSeleccionado?.horario_mostrado ?: ""
+                                        seleccion = if (horario_deseado) turnoSeleccionado?.nombre
+                                            ?: "" else "",
+                                        horario = if (horario_deseado) turnoSeleccionado?.horario_mostrado
+                                            ?: "" else ""
+                                    ), metodos_pagos = metodos_pagos_agregados_publiaciones(
+                                        yape = if (metodos_de_pago) metodo_yape else false,
+                                        plin = if (metodos_de_pago) metodo_plin else false,
+                                        agora = if (metodos_de_pago) metodo_agora else false,
+                                        efectivo = if (metodos_de_pago) metodo_efectivo else false,
+                                        visa = if (metodos_de_pago) metodo_visa else false,
+                                        mastercard = if (metodos_de_pago) metodo_mastercard else false
+                                    ),
+                                    servicios_comoidades = serviciosEstado.toComodidadesAgregadas(
+                                        servicios_y_comodidades
                                     )
-
                                 )
                                 viewmodel_socios.subir_img_firestore_promociones(
-
                                     datos_publicacion,
                                     img_tienda = i.img_tienda,
                                     localidad = i.localidad_tienda,
@@ -2765,7 +3007,6 @@ fun pantalla_promocionar(
                                             i = i,
                                             seleccionado = i.id == idSeleccionado
                                         ) { titulo, descripcion, id, img, fecha_caducidad_timestamp ->
-
                                             if (idSeleccionado == id) {
                                                 // 🔴 DESELECCIONAR
                                                 idSeleccionado = null
@@ -2780,7 +3021,6 @@ fun pantalla_promocionar(
                                                 descripcion_notificacion_guardado = ""
                                                 descripcion_notificacion = ""
                                                 url_img_notificaion_seleccionada = ""
-
                                                 prioridad_selec = ""
                                                 imagenSeleccionada = null
                                                 fechaCaducidad = obtenerFechaFinDosDias()
@@ -2794,7 +3034,6 @@ fun pantalla_promocionar(
                                             } else {
                                                 // 🟢 SELECCIONAR
                                                 idSeleccionado = id
-
                                                 viewmodel_pantalla_promocionar.titulo_notificacion =
                                                     titulo
                                                 viewmodel_pantalla_promocionar.descripcion_notificacion =
@@ -4969,6 +5208,66 @@ fun calcularTimestampFinal(
 
     return Timestamp(ahora.time)
 }
+
+@Composable
+fun activar_desactivar_metodos_pago(
+    logo: Int,
+    nombre_metodo: String,
+    enable: Boolean,
+    cambiar_valor: (Boolean) -> Unit
+) {
+    // ───────── HEADER ─────────
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(horizontal = 10.dp)
+    ) {
+
+        Image(
+            painter = painterResource(id = logo),
+            contentDescription = null,
+            modifier = Modifier
+                .size(45.dp)
+                .clip(CircleShape)
+        )
+
+        spacer_horizonta(10.dp)
+
+        textoMetodoPago(false, nombre_metodo.capitalizeFirst()) {
+//            if (enable) mostrarCampos = !mostrarCampos
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Switch(
+            checked = enable,
+            onCheckedChange = {
+                cambiar_valor(it)
+//                if (!it) mostrarCampos = false
+            }, colors = SwitchDefaults.colors(
+                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                uncheckedTrackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+            )
+        )
+    }
+}
+
+
+fun Map<String, Boolean>.toComodidadesAgregadas(esta_Activo: Boolean) =
+    ComodidadesAgregadas(
+        zonaExpandida = if (esta_Activo) this["zona expandida"] == true else false,
+        wifi = if (esta_Activo) this["Wifi"] == true else false,
+        serviciosHigienicos = if (esta_Activo) this["servicios higenicos"] == true else false,
+        camarasSeguridad = if (esta_Activo) this["camaras de seguridad"] == true else false,
+        salaEspera = if (esta_Activo) this["sala de espera"] == true else false,
+        salaJuegos = if (esta_Activo) this["sala de juegos"] == true else false,
+        mesaParaNinos = if (esta_Activo) this["mesa para niños"] == true else false,
+        ingresoConMascotas = if (esta_Activo) this["ingreso con mascotas"] == true else false,
+        estacionamiento = if (esta_Activo) this["estacionamiento"] == true else false,
+        enchufe = if (esta_Activo) this["enchufe"] == true else false,
+        aireAcondicionado = if (esta_Activo) this["aire acondicionado"] == true else false
+    )
 
 
 

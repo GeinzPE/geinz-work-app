@@ -22,3 +22,12 @@ data class dialog_seguridad_salud_algolia(
     val nombre:String,
     val img: String
 )
+data class EntidadNLP(
+    val key: String,        // "samu"
+    val alias: List<String> // ["samu", "ambulancia", "emergencia medica"]
+)
+data class RespuestaNLP(
+    val a: String, // acción
+    val t: String, // término
+    val c: String  // confianza
+)

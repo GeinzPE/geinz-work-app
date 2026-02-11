@@ -9,10 +9,9 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.model.repo_pantallas_promocionar
 import com.google.firebase.Timestamp
-import io.ktor.http.Url
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import java.net.URI
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class datos_tienda(
@@ -103,6 +102,32 @@ data class agregar_promociones(
     val generaciones_con_ia: generaciones_con_ia,
     val precio_publicacion: precio_rango_publicacion,
     val horario_deseado: horario_deseado,
+    val metodos_pagos:metodos_pagos_agregados_publiaciones,
+    val servicios_comoidades:ComodidadesAgregadas
+)
+
+data class metodos_pagos_agregados_publiaciones(
+    val yape: Boolean=false,
+    val plin: Boolean=false,
+    val agora: Boolean=false,
+    val efectivo: Boolean=false,
+    val visa: Boolean=false,
+    val mastercard: Boolean=false
+)
+
+
+data class ComodidadesAgregadas(
+    val zonaExpandida: Boolean = false,
+    val wifi: Boolean = false,
+    val serviciosHigienicos: Boolean = false,
+    val camarasSeguridad: Boolean = false,
+    val salaEspera: Boolean = false,
+    val salaJuegos: Boolean = false,
+    val mesaParaNinos: Boolean = false,
+    val ingresoConMascotas: Boolean = false,
+    val estacionamiento: Boolean = false,
+    val enchufe: Boolean = false,
+    val aireAcondicionado: Boolean = false
 )
 
 
@@ -133,7 +158,7 @@ data class generaciones_con_ia_notificaciones_solo_generaciones(
     val descripcion_original: String,
     val generacion_selecionada: contenido_publicidad,
 
-)
+    )
 
 data class contenido_publicidad(val titulo: String, val descripcion: String)
 
@@ -205,7 +230,8 @@ data class items_pantallas_promociones(
     val ubicacion: ubicacaion_container = ubicacaion_container(),
     val saldo: Number = 0,
     val id_tienda: String = "",
-
+    val metodosPago: modelo_pagos_tienda = modelo_pagos_tienda(),
+    val serviciosComodidades: List<servicio_comodidad> = emptyList(),
     )
 
 data class obj_contador_notificaciones(
@@ -305,9 +331,9 @@ data class NotificacionIA(
 )
 
 data class NotificacionIA_dialog(
-    val id_promo_noti_gen: String="",
-    val titulo: String="",
-    val descripcion: String=""
+    val id_promo_noti_gen: String = "",
+    val titulo: String = "",
+    val descripcion: String = ""
 )
 
 
@@ -394,7 +420,9 @@ data class obtener_datos_promociones(
     val mensaje_predeterminado: msjes_predeteminados_generales,
     val rango_publicacion: String,
     val precio_publicacion: String,
-    val horaio_publicacion: String
+    val horaio_publicacion: String,
+    val metodos_pagos:metodos_pagos_agregados_publiaciones,
+    val servicios_comoidades:ComodidadesAgregadas
 )
 
 
@@ -556,13 +584,15 @@ data class carta_promociones_geinz_vista_previa(
 
 data class datos_gen_IA_Tiendas(
     val inicio: Timestamp,
-    val fin: Timestamp,
+    val fin: Timestamp?,
     val id_promo_noti_cread: String,
     val img_container: String,
     val nombre_generacion: String,
     val tipo_realizado: String,
     val datos_generaciones: datos_generaciones_IA,
-    val nuevas_generaciones: nuevas_generaciones_con_IA
+    val nuevas_generaciones: nuevas_generaciones_con_IA,
+    val terminos: List<String>,
+    val fecha_normal: LocalDate
 )
 
 data class datos_generaciones_IA(
@@ -580,7 +610,7 @@ data class obt_item_gen_IA(
     val id_generacion: String,
     val img_: String,
     val titulo_gen_IA: String,
-    val vencimiento: Timestamp,
+    val vencimiento: Timestamp?,
     val inicio: Timestamp,
     val tipo: String,
     val generacion_wsap: String,
@@ -602,16 +632,16 @@ data class DatosPublicidadIA(
     val whatsapp: String = "",
     val compartir: String = "",
     val tipo_redirigido: String = "",
-    val id_generacion_sin_publicar: String? =null,
-    val datos_generaciones:datos_generaciones_sin_publicaicones=datos_generaciones_sin_publicaicones()
+    val id_generacion_sin_publicar: String? = null,
+    val datos_generaciones: datos_generaciones_sin_publicaicones = datos_generaciones_sin_publicaicones()
 )
 
 data class datos_notificacion(
-    val titulo_original: String="",
-    val descripcion_original: String="",
-    val titulo_select: String="",
-    val descripcion_select:String="",
-    val id_generacion_sin_publicar: String=""
+    val titulo_original: String = "",
+    val descripcion_original: String = "",
+    val titulo_select: String = "",
+    val descripcion_select: String = "",
+    val id_generacion_sin_publicar: String = ""
 )
 
 
@@ -620,17 +650,16 @@ data class nuevas_notificaciones(
     val descripcion: String = "",
     val tipo_redirigido: String = "",
     val id_generacion_sin_publicar: String = "",
-    val datos_generaciones:datos_generaciones_sin_publicaicones=datos_generaciones_sin_publicaicones()
+    val datos_generaciones: datos_generaciones_sin_publicaicones = datos_generaciones_sin_publicaicones()
 )
 
 data class datos_generaciones_sin_publicaicones(
-    val lista_obciones: List<OpcionPromocionIA>?=null,
-    val titulo_original: String?=null,
-    val descripcion_original: String?=null,
-    val titulo_seleccionado: String?=null,
-    val descripcion_seleccionada:String?=null
+    val lista_obciones: List<OpcionPromocionIA>? = null,
+    val titulo_original: String? = null,
+    val descripcion_original: String? = null,
+    val titulo_seleccionado: String? = null,
+    val descripcion_seleccionada: String? = null
 )
-
 
 
 sealed class IconoIA {
@@ -655,6 +684,8 @@ data class datos_para_generacion_dialog_historial_IA(
 )
 
 data class EstadoUI(
+    val valor: Int,   // 👈 ESTE es el número que quieres retornar
     val texto: String,
     val color: Color
 )
+

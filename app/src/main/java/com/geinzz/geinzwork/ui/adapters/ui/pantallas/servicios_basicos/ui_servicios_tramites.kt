@@ -87,7 +87,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_ayudanos_a_creccer
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad.filtrado_texfiel
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
@@ -257,7 +256,9 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String,iduser:Stri
                     cabezero_servicios_tramites(localida)
                     spacer_vertical(10.dp)
 
-                    filtrado_texfiel(valor_filtrado) { valor_filtrado = it }
+//                    filtrado_texfiel(valor_filtrado,{ valor_filtrado = it },{
+////                        viewmode_servicios_tramite.mostar_lista_completa()
+//                    })
 
                     spacer_vertical(10.dp)
 

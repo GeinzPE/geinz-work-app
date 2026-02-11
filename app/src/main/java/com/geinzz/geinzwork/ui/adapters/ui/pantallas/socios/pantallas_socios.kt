@@ -5,20 +5,13 @@ import android.content.Context
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.togetherWith
-import androidx.compose.animation.with
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -33,19 +26,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.OpenInFull
-import androidx.compose.material.icons.filled.Undo
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -57,7 +41,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,60 +65,30 @@ import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.data_store.data_store_localidad.set_id_socio
 import com.geinzz.geinzwork.data_store.data_store_localidad.set_localidad_tienda_soscio
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales
-import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandible_wrap_socio_atrubitos
-import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandibles_wrapp_socio_contacto_tienda
-import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandibles_wrapp_socio_geinzz
-import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandibles_wrapp_socio_geinzz_datos_tienda
-import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandibles_wrapp_socio_metodos_pago_tienda
-import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandido_wrap_socio_atributos
-import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.subir_foto_perfil_algolia_normal
-import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.subir_storage_perfil_img
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
-import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
-import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_mostar_leyendas_graficos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialogo_cerrar_seccion_teinda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.opciones_localida
-import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.DiaHoy
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.obtenerDiasYColor
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Scaffold
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.BoxFotosTipos
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.BtnSoporte
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.carga_inicial
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.estadisticas_aplicables
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.with
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.material.Badge
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.ColorFilter
@@ -181,7 +134,8 @@ fun login_socios(isConnected: Boolean, tipo_: String = "", navController: NavHos
         .collectAsState(initial = "")
     var ingresar_correo by remember { mutableStateOf(false) }
     var correo_electronico_cuenta_user by remember { mutableStateOf("") }
-    var item_pantalla_promociones by remember { mutableStateOf(items_pantallas_promociones()) }
+    var item_pantalla_promociones by remember { mutableStateOf(items_pantallas_promociones()
+    ) }
     var pantallaSeleccionada by remember { mutableStateOf("Inicio") }
     val viewmodel_pantalla_promocionar: viewmodel_pantallas_promocionar = viewModel()
     val mostarr_bundel_recientes by viewmodel_pantalla_promocionar.estado_envio_recientes.collectAsState()
@@ -606,7 +560,9 @@ fun login_socios(isConnected: Boolean, tipo_: String = "", navController: NavHos
                                             state.datos.subcategorias_tienda,
                                             state.datos.ubicacion,
                                             state.datos.saldo_disponible_tienda,
-                                            state.datos.id_tienda
+                                            state.datos.id_tienda,
+                                            state.datos.metodos_pago,
+                                            state.datos.servicios_comodidades
 
                                         )
                                     }

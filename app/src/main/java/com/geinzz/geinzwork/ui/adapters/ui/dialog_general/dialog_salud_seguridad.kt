@@ -54,58 +54,59 @@ fun dialog_llamada_urgencias(lista_numeros: List<String>, tipo: String, ondimiss
         confirmButton = {},
         dismissButton = {},
         title = {
-            FuenteControladaApp{
-            texto_generico_one_line("Números de emergencia") }
-            },
-        text = {
-            FuenteControladaApp{
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                texto_generico_multilinea(
-                    "En caso de emergencia, comunícate de inmediato con los servicios de seguridad y salud.Puedes llamar o ir a whatsApp directamente tocando el ícono de teléfono o copiar el número que necesites.",
-                    MaterialTheme.typography.bodyMedium
-                )
-
-                lista_numeros.forEach { i ->
-                    box_llamada_whatsap(
-                        i, tipo,
-                        click_icon = {
-                            if (tipo.equals("whatsapp")) {
-                                val uri = Uri.parse(
-                                    "https://api.whatsapp.com/send?phone=${"+51 $i"}&text=${
-                                        URLEncoder.encode(
-                                            "",
-                                            "UTF-8"
-                                        )
-                                    }"
-                                )
-                                val intent = Intent(Intent.ACTION_VIEW, uri)
-                                try {
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    Toast.makeText(
-                                        context,
-                                        "no se pudo abrir whatsapp",
-                                        Toast.LENGTH_LONG
-                                    )
-                                        .show()
-                                }
-                            } else if (tipo.equals("llamada")) {
-                                if (ContextCompat.checkSelfPermission(
-                                        context,
-                                        Manifest.permission.CALL_PHONE
-                                    ) != PackageManager.PERMISSION_GRANTED
-                                ) {
-                                    call_dialog_permise = true
-                                    numero_llamada = i
-                                } else {
-                                    makePhoneCall(context, i)
-                                }
-                            }
-                        },
-                        click_copiar = { copiarTexto_portapapeles_compouse(i, context) })
-
-                }
+            FuenteControladaApp {
+                texto_generico_one_line("Números de emergencia")
             }
+        },
+        text = {
+            FuenteControladaApp {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    texto_generico_multilinea(
+                        "En caso de emergencia, comunícate de inmediato con los servicios de seguridad y salud.Puedes llamar o ir a whatsApp directamente tocando el ícono de teléfono o copiar el número que necesites.",
+                        MaterialTheme.typography.bodyMedium
+                    )
+
+                    lista_numeros.forEach { i ->
+                        box_llamada_whatsap(
+                            i, tipo,
+                            click_icon = {
+                                if (tipo.equals("whatsapp")) {
+                                    val uri = Uri.parse(
+                                        "https://api.whatsapp.com/send?phone=${"+51 $i"}&text=${
+                                            URLEncoder.encode(
+                                                "",
+                                                "UTF-8"
+                                            )
+                                        }"
+                                    )
+                                    val intent = Intent(Intent.ACTION_VIEW, uri)
+                                    try {
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        Toast.makeText(
+                                            context,
+                                            "no se pudo abrir whatsapp",
+                                            Toast.LENGTH_LONG
+                                        )
+                                            .show()
+                                    }
+                                } else if (tipo.equals("llamada")) {
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.CALL_PHONE
+                                        ) != PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        call_dialog_permise = true
+                                        numero_llamada = i
+                                    } else {
+                                        makePhoneCall(context, i)
+                                    }
+                                }
+                            },
+                            click_copiar = { copiarTexto_portapapeles_compouse(i, context) })
+
+                    }
+                }
             }
         },
         shape = RoundedCornerShape(20.dp),
@@ -133,37 +134,40 @@ fun box_llamada_whatsap(
     click_icon: () -> Unit,
     click_copiar: () -> Unit
 ) {
-    FuenteControladaApp{
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
-        texto_generico_one_line(
-            numero,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f)
-        )
-        Row() {
-            Image(
-                painter = painterResource(if (tipo.equals("whatsapp")) R.drawable.whatsapp_icon else R.drawable.llamada_icon),
-                contentDescription = "", modifier = Modifier
-                    .size(25.dp)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) { click_icon() }
+    FuenteControladaApp {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(vertical = 8.dp)
+        ) {
+            texto_generico_one_line(
+                numero,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f)
             )
-            spacer_horizonta(10.dp)
-            Image(
-                painter = painterResource(R.drawable.baseline_content_copy_24),
-                contentDescription = "",
-                modifier = Modifier
-                    .size(25.dp)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) { click_copiar() },
-                colorFilter = ColorFilter.tint(Color.White)
-            )
+            Row() {
+                Image(
+                    painter = painterResource(if (tipo.equals("whatsapp")) R.drawable.whatsapp_icon else R.drawable.llamada_icon),
+                    contentDescription = "", modifier = Modifier
+                        .size(25.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { click_icon() }
+                )
+                spacer_horizonta(10.dp)
+                Image(
+                    painter = painterResource(R.drawable.baseline_content_copy_24),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .size(25.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { click_copiar() },
+                    colorFilter = ColorFilter.tint(Color.White)
+                )
+            }
         }
-    }
     }
 
 }

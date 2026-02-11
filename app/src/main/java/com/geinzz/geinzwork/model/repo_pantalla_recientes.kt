@@ -4,6 +4,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.geinzz.geinzwork.data.model.CerrarAnuncioEstadisticas
+import com.geinzz.geinzwork.data.model.ComodidadesAgregadas
 import com.geinzz.geinzwork.data.model.EstadisticaAccion
 import com.geinzz.geinzwork.data.model.EstadisticasEvento
 import com.geinzz.geinzwork.data.model.EstadisticasPromoGenerales
@@ -13,6 +14,7 @@ import com.geinzz.geinzwork.data.model.TiempoPorDia
 import com.geinzz.geinzwork.data.model.TotalEstadistica
 import com.geinzz.geinzwork.data.model.datos_de_notificacion
 import com.geinzz.geinzwork.data.model.mensaje_predeterminado
+import com.geinzz.geinzwork.data.model.metodos_pagos_agregados_publiaciones
 import com.geinzz.geinzwork.data.model.msjes_predeteminados_generales
 import com.geinzz.geinzwork.data.model.notificaciones
 import com.geinzz.geinzwork.data.model.obtener_datos_promociones
@@ -88,7 +90,7 @@ class repo_pantalla_recientes {
 
 //                val tiempo = timestampFin?.let { tiempoRestante(it) } ?: "Expirado"
                 val tiempo = timestampFin?.let {
-                    constantes_datos_expirados_fechas_publicaciones.tiempoRestante(
+                    tiempoRestante(
                         it
                     )
                 } ?: "Expirado"
@@ -217,6 +219,10 @@ class repo_pantalla_recientes {
             val descripcion = info["descripcion"] as? String ?: ""
             val numero = info["numero"] as? String ?: ""
 
+            val metodos_pagos =data["pagos"]as? Map<*, *> ?: emptyMap<Any, Any>()
+
+            val comodidades =data["comodidades"]as? Map<*, *> ?: emptyMap<Any, Any>()
+
             val fechaInicioTs = ((if (tipoHoraDias == "horas") horasMap else diasMap)
                 ["timestamp_inicio"] as? Timestamp) ?: Timestamp.now()
 
@@ -237,6 +243,7 @@ class repo_pantalla_recientes {
             val whatsappMap =
                 mensajeMap["whatsapp"] as? Map<*, *> ?: emptyMap<Any, Any>()
 
+
             val mensajesPredeterminados = msjes_predeteminados_generales(
                 compartir = mensaje_predeterminado(
                     msje_predermindo = compartirMap["msje_predermindo"] as? String ?: "",
@@ -246,6 +253,30 @@ class repo_pantalla_recientes {
                     msje_predermindo = whatsappMap["msje_predermindo"] as? String ?: "",
                     activo_o_no = whatsappMap["activo_o_no"] as? Boolean ?: false
                 )
+            )
+
+
+            val obtener_metodos_pagos=metodos_pagos_agregados_publiaciones(
+                yape = metodos_pagos["yape"] as? Boolean?:false,
+                plin = metodos_pagos["plin"] as? Boolean?:false,
+                agora = metodos_pagos["yape"] as? Boolean?:false,
+                efectivo = metodos_pagos["efectivo"] as? Boolean?:false,
+                visa = metodos_pagos["visa"] as? Boolean?:false,
+                mastercard = metodos_pagos["mastercard"] as? Boolean?:false
+            )
+
+            val obtener_comodidades=ComodidadesAgregadas(
+                zonaExpandida =  comodidades["zona_expandida"] as? Boolean?:false,
+                wifi =  comodidades["true"] as? Boolean?:false,
+                serviciosHigienicos =  comodidades["servicios_higienicos"] as? Boolean?:false,
+                camarasSeguridad =  comodidades["camaras_seguridad"] as? Boolean?:false,
+                salaEspera =  comodidades["sala_espera"] as? Boolean?:false,
+                salaJuegos =  comodidades["sala_juegos"] as? Boolean?:false,
+                mesaParaNinos =  comodidades["mesa_para_ninos"] as? Boolean?:false,
+                ingresoConMascotas =  comodidades["ingreso_con_mascotas"] as? Boolean?:false,
+                estacionamiento =  comodidades["estacionamiento"] as? Boolean?:false,
+                enchufe =  comodidades["enchufe"] as? Boolean?:false,
+                aireAcondicionado =  comodidades["aire_acondicionado"] as? Boolean?:false,
             )
 
             val tiempoPromo = calcularTiempoPromo(
@@ -283,7 +314,7 @@ class repo_pantalla_recientes {
                 mensaje_predeterminado = mensajesPredeterminados,
                 rango_establecido,
                 precio_publicacio,
-                horario_publicacion
+                horario_publicacion,obtener_metodos_pagos,obtener_comodidades
             )
 
         } catch (e: Exception) {

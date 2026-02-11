@@ -242,10 +242,9 @@ fun datos_teindas() {
         if (latitud.isNotEmpty() && longitud.isNotEmpty()) {
             mostar_geo = latitud.isNotEmpty() && longitud.isNotEmpty()
             direccion = viewmodel_agregar_datos.obtenerDireccion(lat_, lng_, context) ?: ""
-
-
         }
     }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()

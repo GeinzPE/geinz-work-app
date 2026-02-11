@@ -1,15 +1,19 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.provider.Settings
+import android.media.AudioFormat
+import android.media.AudioRecord
+import android.media.MediaRecorder
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -37,6 +41,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,9 +60,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,6 +77,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
@@ -83,10 +93,10 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_llamada_urgencias
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
-import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.requestCallPermission
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.TypewriterText
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_alerta_llamada
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.centrado_hori_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
@@ -96,6 +106,15 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud.carga_seguidad
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import kotlin.math.max
+import kotlin.math.pow
 
 private val REQUEST_CALL_PHONE = 1
 
@@ -111,7 +130,7 @@ fun ui_salud_seguirdad(
     val lista_filtrado = listOf<String>("Todos", "salud", "seguridad")
     val lista_seguridad_salud by viewmode_segurirdad_Salud._datos_lugares.observeAsState(emptyList())
     val context = LocalContext.current
-
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var lista_mostrar by rememberSaveable { mutableStateOf<List<dataclass_seguridad>>(emptyList()) }
     var lista_base_seguridad by rememberSaveable { mutableStateOf(emptyList<dataclass_seguridad>()) }
     var valor_filtrado by rememberSaveable { mutableStateOf("") }
@@ -119,25 +138,46 @@ fun ui_salud_seguirdad(
     val state_seguridad =
         viewmode_segurirdad_Salud.state_lista_filtradad.collectAsState(carga_seguidad.loading).value
     val mostrar_carga_salud_seguridad by viewmode_segurirdad_Salud.mostrar_carga_salud_seguridad.collectAsState()
-
+    val datos_cloud_TTs by viewmode_segurirdad_Salud.datosCloudTts.collectAsState()
     var isLoading by remember { mutableStateOf(false) }
     var error_empity by remember { mutableStateOf(false) }
     var texto_error_empity by remember { mutableStateOf("") }
     var yaInicializado by remember { mutableStateOf(false) }
 
+    val autoseleccion_filtrado by viewmode_segurirdad_Salud.categoira_filtrado_realziado.collectAsState()
+    val autoseleccion_filtrado_solo_texto by viewmode_segurirdad_Salud.categoira_solo_texto_realizado.collectAsState()
+
+
+    LaunchedEffect(autoseleccion_filtrado) {
+        if (autoseleccion_filtrado.isNotEmpty()) {
+            chip_selecionado = autoseleccion_filtrado
+        }
+    }
+
     LaunchedEffect(chip_selecionado) {
-        if (yaInicializado && lista_seguridad_salud.isNotEmpty() && chip_selecionado != "Todos") {
-            viewmode_segurirdad_Salud.filtrar_lugares(chip_selecionado)
-        } else {
-            viewmode_segurirdad_Salud.lista_base_completa(chip_selecionado)
+        if (!autoseleccion_filtrado_solo_texto) {
+            if (yaInicializado && lista_seguridad_salud.isNotEmpty() && chip_selecionado != "Todos") {
+                viewmode_segurirdad_Salud.filtrar_lugares(chip_selecionado)
+            } else {
+                viewmode_segurirdad_Salud.lista_base_completa(chip_selecionado)
+            }
+        }
+    }
+
+    LaunchedEffect(datos_cloud_TTs) {
+        if (datos_cloud_TTs.isNotEmpty()) {
+            // Aquí ya puedes reproducir el audio
+            viewmode_segurirdad_Salud.reproducirMP3(context, datos_cloud_TTs)
         }
     }
     LaunchedEffect(valor_filtrado) {
-        viewmode_segurirdad_Salud.filtrar_nombre_categoria(
-            nombre = valor_filtrado,
-            categoria = chip_selecionado,
-            lista = lista_base_seguridad
-        )
+//        viewmode_segurirdad_Salud.filtrar_nombre_categoria(
+//            nombre = valor_filtrado,
+//            categoria = chip_selecionado,
+//            lista = lista_base_seguridad
+//        )
+
+
     }
 
     // Llama servicios iniciales
@@ -150,6 +190,9 @@ fun ui_salud_seguirdad(
             yaInicializado = true
             lista_base_seguridad = lista_seguridad_salud
             viewmode_segurirdad_Salud.lugares_iniciales(lista_seguridad_salud)
+            // 🔥 EXTRAER SOLO LOS NOMBRES
+
+
         }
     }
 
@@ -206,12 +249,17 @@ fun ui_salud_seguirdad(
             modifier = Modifier.padding(10.dp)
         ) {
             item {
-                Row(horizontalArrangement = Arrangement.Center , verticalAlignment = Alignment.CenterVertically) {
-                texto_generico_multilinea(
-                    "Salud y Seguridad Pública",
-                    style = MaterialTheme.typography.banerGeinzWork,
-                    modifier = Modifier.padding(end = 10.dp).weight(1f)
-                )
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    texto_generico_multilinea(
+                        "Salud y Seguridad Pública",
+                        style = MaterialTheme.typography.banerGeinzWork,
+                        modifier = Modifier
+                            .padding(end = 10.dp)
+                            .weight(1f)
+                    )
 
                     Box(
                         modifier = Modifier,
@@ -221,12 +269,21 @@ fun ui_salud_seguirdad(
                                 .padding(8.dp)
                                 .size(35.dp)
                                 .clip(CircleShape)
-                                .background(Color.Gray.copy(alpha = 0.5f)).clickable{
-                                    compartir_pantalla_completa("nemg","Encuentra los números de emergencia de forma rápida y segura cuando más lo necesites.",context)
+                                .background(Color.Gray.copy(alpha = 0.5f))
+                                .clickable {
+                                    compartir_pantalla_completa(
+                                        "nemg",
+                                        "Encuentra los números de emergencia de forma rápida y segura cuando más lo necesites.",
+                                        context
+                                    )
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Image(painterResource(R.drawable.comparir_icon), modifier = Modifier.size(16.dp), contentDescription = null)
+                            Image(
+                                painterResource(R.drawable.comparir_icon),
+                                modifier = Modifier.size(16.dp),
+                                contentDescription = null
+                            )
                         }
                     }
 
@@ -255,17 +312,31 @@ fun ui_salud_seguirdad(
                                 bottom = (paddingAnim - 5.dp).coerceAtLeast(0.dp)
                             )
                     ) {
-                        filtrado_texfiel(valor_filtrado) { valor_filtrado = it }
+                        FiltradoTextField(
+                            fusedLocationClient,
+                            viewmodelSeguridadSalud = viewmode_segurirdad_Salud,
+                            onValueChange = {
+                                valor_filtrado = it
+                                viewmode_segurirdad_Salud.preguntar_gemini(
+                                    valor_filtrado,
+                                    context,
+                                    fusedLocationClient
+                                )
+                            },
+                            regresarListaCompleta = {
+                                viewmode_segurirdad_Salud.retornar_lista_comppleta()
+                                chip_selecionado = "Todos"
+                            })
                         spacer_vertical(10.dp)
                         chips_filtrado(
-                            tienePermisoLlamada,
-                            context,
-                            chip_selecionado,
-                            lista_filtrado,
-                            { i ->
+                            tienePermisoLlamada1 = tienePermisoLlamada,
+                            context = context,
+                            selecionado_chip = chip_selecionado,
+                            lista_filtrado = lista_filtrado,
+                            selecionado_fun = { i ->
                                 chip_selecionado = i
                             },
-                            {
+                            select_alerta = {
                                 bottom_sheet_llamda = true
                             })
                     }
@@ -284,7 +355,8 @@ fun ui_salud_seguirdad(
                         isLoading = false
                         error_empity = false
                         Box(modifier = Modifier.padding(8.dp)) {
-                            carta_salud_cuidad(id_user,
+                            carta_salud_cuidad(
+                                id_user,
                                 viewmode_segurirdad_Salud,
                                 i,
                                 abrir_mapa = { la, lo ->
@@ -454,49 +526,442 @@ fun chips_filtrado(
 }
 
 @Composable
-fun filtrado_texfiel(texto: String, onValueChange: (String) -> Unit) {
-    var icono_borrar by remember { mutableStateOf(false) }
+fun FiltradoTextField(
+    fusedLocationClient: FusedLocationProviderClient,
+    viewmodelSeguridadSalud: viewmode_seguridad_salud,
+    onValueChange: (String) -> Unit,
+    regresarListaCompleta: () -> Unit
+) {
 
-    OutlinedTextField(
-        value = texto,
-        onValueChange = { it ->
-            icono_borrar = it.isNotBlank()
-            onValueChange(it)
-        },
-        leadingIcon = {
-            Icon(
-                painter = painterResource(R.drawable.buscar_icon),
-                contentDescription = "buscar",
-                modifier = Modifier.size(18.dp)
+    var mostar_micro by remember { mutableStateOf(true) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var estadoMic by remember { mutableStateOf(viewmode_seguridad_salud.EstadoMic.IDLE) }
+    var ocultar_borrado by remember { mutableStateOf(false) }
+
+    var textoBuscar by remember { mutableStateOf("") }
+    var grabando by remember { mutableStateOf(false) }
+    var cargandoVoz by remember { mutableStateOf(false) }
+    var huboVoz by remember { mutableStateOf(false) }
+
+    var amplitudes by remember { mutableStateOf(listOf(0f, 0f, 0f)) }
+    var audioData by remember { mutableStateOf(ByteArray(0)) }
+
+    val SILENCE_THRESHOLD = 0.02f
+    val SILENCE_TIME_MS = 5000L
+    var silencioInicio by remember { mutableStateOf<Long?>(null) }
+
+    val titulo_mostrado_IA by viewmodelSeguridadSalud.titulo_mostrado.collectAsState()
+    val descripcion_mostrado_IA by viewmodelSeguridadSalud.texto_mostrado.collectAsState()
+    var mostrar_respuesIA by remember { mutableStateOf(false) }
+    var detener_grabacion_btn by remember { mutableStateOf(false) }
+
+    val estadoBusqueda by viewmodelSeguridadSalud.estadoBusqueda
+    val micPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            estadoMic = viewmode_seguridad_salud.EstadoMic.GRABANDO
+        } else {
+            Toast.makeText(context, "Permiso de micrófono denegado", Toast.LENGTH_SHORT).show()
+            estadoMic = viewmode_seguridad_salud.EstadoMic.IDLE
+        }
+    }
+
+
+    var escuchando by remember { mutableStateOf(false) }
+
+    LaunchedEffect(titulo_mostrado_IA, descripcion_mostrado_IA) {
+        if (titulo_mostrado_IA.isNotEmpty() && descripcion_mostrado_IA.isNotEmpty()) {
+            mostrar_respuesIA = true
+        } else {
+            mostrar_respuesIA = true
+        }
+    }
+
+    LaunchedEffect(estadoMic) {
+        if (estadoMic != viewmode_seguridad_salud.EstadoMic.GRABANDO) return@LaunchedEffect
+
+        grabando = true
+        huboVoz = false
+        audioData = ByteArray(0)
+        silencioInicio = null
+
+        withContext(Dispatchers.IO) {
+            val sampleRate = 16000
+            val minBuffer = AudioRecord.getMinBufferSize(
+                sampleRate,
+                AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT
             )
-        }, trailingIcon = {
-            if (icono_borrar) {
-                IconButton(onClick = {
-                    onValueChange("")
-                    icono_borrar = false
-                }) {
-                    Icon(
-                        painter = painterResource(R.drawable.vector_eliminar_texto_texfiel),
-                        contentDescription = "borrar",
-                        modifier = Modifier.size(18.dp)
+
+            val recorder = AudioRecord(
+                MediaRecorder.AudioSource.MIC,
+                sampleRate,
+                AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT,
+                minBuffer
+            )
+
+            if (recorder.state != AudioRecord.STATE_INITIALIZED) {
+                Log.e("AUDIO", "AudioRecord no inicializado")
+                estadoMic = viewmode_seguridad_salud.EstadoMic.IDLE
+                return@withContext
+            }
+
+            val buffer = ByteArray(minBuffer)
+            val stream = ByteArrayOutputStream()
+
+            try {
+                recorder.startRecording()
+
+                while (grabando && estadoMic == viewmode_seguridad_salud.EstadoMic.GRABANDO) {
+                    val read = recorder.read(buffer, 0, buffer.size)
+                    if (read > 0) {
+                        stream.write(buffer, 0, read)
+                        huboVoz = true
+                        var sum = 0.0
+                        var samples = 0
+                        for (i in 0 until read step 2) {
+                            val low = buffer[i].toInt() and 0xFF
+                            val high = buffer[i + 1].toInt()
+                            val sample = (high shl 8) or low
+                            sum += sample * sample
+                            samples++
+                        }
+
+                        val rms =
+                            kotlin.math.sqrt(sum / samples).toFloat() / 32768f
+
+                        val visualAmp =
+                            (rms * 28f).coerceIn(0f, 0.85f).pow(0.7f)
+
+                        withContext(Dispatchers.Main) {
+                            amplitudes = amplitudes
+                                .map { it * 0.85f }
+                                .mapIndexed { i, old ->
+                                    val factor = listOf(
+                                        1f, 0.85f, 0.7f, 0.9f, 0.75f
+                                    )[i]
+                                    max(old, visualAmp * factor)
+                                }
+
+                        }
+                    }
+
+
+
+                    delay(16)
+                }
+            } finally {
+                recorder.stop()
+                recorder.release()
+                audioData = stream.toByteArray()
+            }
+        }
+    }
+
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
+    ) {
+
+        OutlinedTextField(
+            value = textoBuscar,
+            onValueChange = {
+                textoBuscar = it
+                if (it.isEmpty()) {
+                    regresarListaCompleta()
+                    mostar_micro = true
+                    ocultar_borrado = false
+                } else {
+                    mostar_micro = false
+                    ocultar_borrado = true
+                }
+            },
+            placeholder = { Text("¿Qué buscas?") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(50),
+            leadingIcon = {
+                Box(
+                    modifier = Modifier.size(28.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (mostar_micro) {
+                        Crossfade(targetState = estadoMic) { estado ->
+                            when (estado) {
+
+                                viewmode_seguridad_salud.EstadoMic.IDLE -> {
+                                    detener_grabacion_btn = false
+                                    IconButton(
+                                        onClick = {
+
+                                            if (ContextCompat.checkSelfPermission(
+                                                    context,
+                                                    Manifest.permission.RECORD_AUDIO
+                                                ) == PackageManager.PERMISSION_GRANTED
+                                            ) {
+                                                estadoMic =
+                                                    viewmode_seguridad_salud.EstadoMic.GRABANDO
+                                            } else {
+                                                micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                            }
+
+                                        }
+                                    ) {
+                                        Icon(Icons.Default.Mic, contentDescription = "Hablar")
+                                    }
+                                }
+
+                                viewmode_seguridad_salud.EstadoMic.GRABANDO -> {
+                                    detener_grabacion_btn = true
+                                    MicVisualizerGoogle(
+                                        amplitudes = amplitudes,
+                                        modifier = Modifier.clickable {
+                                            if (!huboVoz) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "No se detectó voz",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                estadoMic = viewmode_seguridad_salud.EstadoMic.IDLE
+                                                return@clickable
+                                            }
+
+                                            // ✅ Hubo voz → enviar
+                                            estadoMic = viewmode_seguridad_salud.EstadoMic.ENVIANDO
+                                            cargandoVoz = true
+
+                                            scope.launch(Dispatchers.IO) {
+                                                var intentos = 0
+                                                while (audioData.isEmpty() && intentos < 40) {
+                                                    delay(50)
+                                                    intentos++
+                                                }
+
+                                                if (audioData.isEmpty()) {
+                                                    withContext(Dispatchers.Main) {
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Error grabando audio",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                        estadoMic =
+                                                            viewmode_seguridad_salud.EstadoMic.IDLE
+                                                    }
+                                                    return@launch
+                                                }
+                                                try {
+                                                    val texto =
+                                                        viewmodelSeguridadSalud.tranformar_texto_a_voz(
+                                                            audioData
+                                                        )
+                                                    withContext(Dispatchers.Main) {
+                                                        textoBuscar = texto
+                                                        onValueChange(texto)
+                                                        estadoMic =
+                                                            viewmode_seguridad_salud.EstadoMic.IDLE
+                                                    }
+                                                } finally {
+                                                    withContext(Dispatchers.Main) {
+                                                        cargandoVoz = false
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    )
+                                }
+
+                                viewmode_seguridad_salud.EstadoMic.ENVIANDO -> {
+                                    detener_grabacion_btn = false
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+
+                                else -> {}
+                            }
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier.size(28.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Crossfade(targetState = estadoBusqueda) { estado ->
+                                when (estado) {
+                                    viewmode_seguridad_salud.Estado_busqueda.IDLE -> {
+                                        IconButton(
+                                            onClick = {
+                                                // Cambiar a CARGANDO para mostrar ProgressBar
+                                                viewmodelSeguridadSalud.cambiar_Estado_carga()
+
+                                                // Ejecutar búsqueda en background
+                                                scope.launch(Dispatchers.IO) {
+                                                    try {
+                                                        viewmodelSeguridadSalud.preguntar_gemini(
+                                                            textoBuscar,
+                                                            context,
+                                                            fusedLocationClient
+                                                        )
+                                                    } finally {
+                                                        // Una vez terminado, volver a IDLE en el hilo principal
+                                                        withContext(Dispatchers.Main) {
+//                                                            estadoBusqueda = viewmode_seguridad_salud.Estado_busqueda.IDLE
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Search,
+                                                contentDescription = "Buscar"
+                                            )
+                                        }
+                                    }
+
+                                    viewmode_seguridad_salud.Estado_busqueda.BUSCANDO -> {
+                                        // Si quieres, aquí podrías mostrar otra animación mientras se procesa algo
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(20.dp),
+                                            strokeWidth = 2.dp
+                                        )
+                                    }
+
+                                    viewmode_seguridad_salud.Estado_busqueda.CARGANDO -> {
+                                        // Mostrar ProgressBar mientras se ejecuta la búsqueda
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(20.dp),
+                                            strokeWidth = 2.dp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+            },
+
+            trailingIcon = {
+                Box(
+                    modifier = Modifier.size(28.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (ocultar_borrado) {
+                        IconButton(
+                            onClick = {
+                                textoBuscar = ""
+                                mostar_micro = true
+                                ocultar_borrado = false
+                                regresarListaCompleta()
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Hablar", tint = Color.Gray
+                            )
+                        }
+                    }
+
+                    if (detener_grabacion_btn) {
+                        IconButton(
+                            onClick = {
+
+//
+//                                    // 🔹 Detener realmente el AudioRecord
+//                                    recorder?.stop()
+//                                    recorder?.release()
+//                                    recorder = null
+//                                    audioData.clear()
+//                                    withContext(Dispatchers.Main) {
+//                                        estadoMic = viewmode_seguridad_salud.EstadoMic.IDLE
+//                                        Toast.makeText(context, "Grabación detenida", Toast.LENGTH_SHORT).show()
+//                                    }
+//                                    return@launch
+
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Stop,
+                                contentDescription = "Hablar", tint = Color.Gray
+                            )
+                        }
+                    }
+                }
+            }
+        )
+        if (mostrar_respuesIA) {
+            TypewriterText(descripcion_mostrado_IA)
+        }
+
+
+    }
+}
+
+
+@Composable
+fun MicVisualizerGoogle(
+    amplitudes: List<Float>,
+    modifier: Modifier = Modifier
+) {
+    val colors = listOf(
+        Color(0xFF4285F4), // Azul
+        Color(0xFFEA4335), // Rojo
+        Color(0xFFFBBC05)  // Amarillo
+    )
+
+    Box(
+        modifier = modifier
+            .size(28.dp)
+            .clip(CircleShape)
+            .background(Color(0xFF313131)), // gris suave Google
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            amplitudes.take(3).forEachIndexed { index, amp ->
+
+                val animatedHeight by animateFloatAsState(
+                    targetValue = amp.coerceIn(0.1f, 1f),
+                    animationSpec = tween(
+                        durationMillis = 120,
+                        easing = FastOutSlowInEasing
+                    ),
+                    label = "micBar"
+                )
+
+                Box(
+                    modifier = Modifier
+                        .width(3.dp)
+                        .height(15.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(Color(0xFFE0E0E0))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(animatedHeight)
+                            .align(Alignment.BottomCenter)
+                            .background(
+                                colors[index % colors.size],
+                                RoundedCornerShape(50)
+                            )
                     )
                 }
             }
-        }, placeholder = {
-            Text(
-                text = "Que buscas?",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
-            )
-        }, modifier = Modifier
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(50)
-    )
+        }
+    }
 }
+
 
 @Composable
 fun carta_salud_cuidad(
-    id_user:String,
+    id_user: String,
     viewmode_segurirdad_Salud: viewmode_seguridad_salud,
     i: dataclass_seguridad,
     abrir_mapa: (latitud: Double, longitud: Double) -> Unit
@@ -587,7 +1052,8 @@ fun carta_salud_cuidad(
                         R.drawable.vector_ruta_icon,
                         fondo = MaterialTheme.colorScheme.primary
                     ) {
-                        constantes_lista_localidades.abrir_google_maps(id_user,"emergencia","","",
+                        constantes_lista_localidades.abrir_google_maps(
+                            id_user, "emergencia", "", "",
                             context = context,
                             i.latidud, i.longitud
                         ) { mostrar_dialog ->
@@ -628,6 +1094,7 @@ fun carta_salud_cuidad(
         }
     }
 }
+
 
 @Composable
 fun BtnCirculares(

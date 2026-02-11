@@ -9,9 +9,12 @@ const admin = require("firebase-admin");
 const algoliasearch = require("algoliasearch");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 
+const speech = require("@google-cloud/speech");
 
-const speech = require('@google-cloud/speech');
-const client_specth= new speech.SpeechClient();
+const client_specth = new speech.SpeechClient();
+
+const textToSpeech = require("@google-cloud/text-to-speech");
+const ttsClient = new textToSpeech.TextToSpeechClient();
 
 admin.initializeApp();
 
@@ -401,9 +404,8 @@ exports.eliminarPromocionesExpiradasCadaMinuto = onSchedule(
     }
 
     console.log(`✅ Total promociones procesadas: ${eliminadas}`);
-  }
+  },
 );
-
 
 async function copiarSubcolecciones(origenRef, destinoRef) {
   const colecciones = await origenRef.listCollections();
@@ -436,7 +438,6 @@ async function borrarSubcolecciones(docRef) {
     }
   }
 }
-
 
 exports.verificarMinimoSeguidores = onDocumentCreated(
   "Tiendas/{localidad}/{localidad}/{idTienda}/seguidores/{idUsuario}",
@@ -762,9 +763,6 @@ async function enviarNotificacionFCM_tienda({
   }
 }
 
-
-
-
 exports.recognizeSpeech = onRequest(
   { region: "us-central1" },
   async (req, res) => {
@@ -779,13 +777,13 @@ exports.recognizeSpeech = onRequest(
       const audio = { content: audioBytes };
 
       const config = {
-        encoding: 'LINEAR16',
+        encoding: "LINEAR16",
         sampleRateHertz: 16000,
-        languageCode: 'es-PE',
+        languageCode: "es-PE",
         useEnhanced: true,
-        model: 'default',
+        model: "default",
         speechContexts: [
-          { phrases: ["creatina", "chifa", "pollo a la brasa"] }
+          { phrases: ["creatina", "chifa", "pollo a la brasa"] },
         ],
       };
 
@@ -793,13 +791,68 @@ exports.recognizeSpeech = onRequest(
       const [response] = await client_specth.recognize(request);
 
       const transcription = response.results
-        .map(result => result.alternatives[0].transcript)
-        .join(' ');
+        .map((result) => result.alternatives[0].transcript)
+        .join(" ");
 
       res.json({ text: transcription });
     } catch (err) {
       console.error("Error recognizeSpeech:", err);
       res.status(500).send(err.message);
+    }
+  },
+);
+
+exports.textToSpeechIA = onRequest(
+  { region: "us-central1" },
+  async (req, res) => {
+    try {
+      if (req.method !== "POST") {
+        return res.status(405).send("Método no permitido");
+      }
+
+      const { texto } = req.body;
+      if (!texto) return res.status(400).send("Falta texto");
+
+      // 🔹 Limpiar texto (quitar emojis y símbolos raros)
+      const textoLimpio = String(texto)
+        .replace(/[\u{1F600}-\u{1F6FF}]/gu, "")
+        .replace(/[\u{2700}-\u{27BF}]/gu, "");
+
+      if (textoLimpio.length === 0) return res.status(400).send("Texto inválido");
+
+      // 🔹 Dividir texto en trozos de 5000 caracteres (limite API)
+      const CHUNK_SIZE = 4500; // un poco menos de 5000 para seguridad
+      const chunks = [];
+      for (let i = 0; i < textoLimpio.length; i += CHUNK_SIZE) {
+        chunks.push(textoLimpio.slice(i, i + CHUNK_SIZE));
+      }
+
+      // 🔹 Generar audio para cada trozo y concatenar
+      let audioFinal = Buffer.alloc(0);
+
+      for (const chunk of chunks) {
+        const request = {
+          input: { text: chunk },
+          voice: {
+            languageCode: "es-US",
+            name: "es-US-Standard-B", // rápido y natural
+          },
+          audioConfig: {
+            audioEncoding: "MP3",
+            speakingRate: 1.0,
+          },
+        };
+
+        const [response] = await ttsClient.synthesizeSpeech(request);
+        audioFinal = Buffer.concat([audioFinal, response.audioContent]);
+      }
+
+      res.set("Content-Type", "audio/mpeg");
+      res.send(audioFinal);
+
+    } catch (error) {
+      console.error("❌ Error TTS:", error.code, error.message);
+      res.status(500).send(error.message);
     }
   }
 );

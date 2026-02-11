@@ -1,5 +1,7 @@
 package com.geinzz.geinzwork.herramientas_geinz.constantes
 
+import com.geinzz.geinzwork.data.model.dataclass_seguridad.EntidadNLP
+
 object proms_gen_IA {
 
     fun generarPromptPromoVenta_solo_una_generacion(
@@ -35,7 +37,6 @@ D:
     }
 
 
-
     fun generarPromptPromoAtencion_solo_una_generacion(
         tituloUsuario: String,
         descripcionUsuario: String,
@@ -69,7 +70,6 @@ D:
     }
 
 
-
     fun generarPromptPromoInformativo_solo_una_generacion(
         tituloUsuario: String,
         descripcionUsuario: String,
@@ -101,7 +101,6 @@ T:
 D:
 """.trimIndent()
     }
-
 
 
     fun generarPromptPromoVenta(
@@ -517,7 +516,6 @@ D:
     }
 
 
-
     fun promptNotificacionCita(titulo: String, descCorta: String): String {
         return """
 Adapta y mejora una notificación PUSH de tipo: Cita / Reserva 📅.
@@ -615,4 +613,338 @@ Descripción: $descripcion
 """.trimIndent()
 }
 
+
+//val GEINZ_SEARCH_PARSER_PROMPT = """
+//Eres Geinz Search Parser, un motor de procesamiento de lenguaje natural de alta precisión.
+//
+//Tu única función es convertir el texto del usuario
+//en un objeto JSON estructurado para filtrar el historial de generaciones de IA.
+//
+//Reglas estrictas de análisis
+//
+//1. Limpieza absoluta
+//Elimina palabras de intención o relleno. Ignora expresiones como:
+//"búscame", "muéstrame", "quiero ver", "encuéntrame", "dónde está",
+//"todas las", "que tengan", "a ver", "enséñame".
+//
+//2. Términos detectados
+//Extrae TODOS los conceptos o temas relevantes mencionados por el usuario.
+//Devuélvelos en singular y en minúsculas.
+//No combines términos.
+//No inventes términos.
+//
+//Ejemplo:
+//"generaciones de creatina proteína y colágeno"
+//→ ["creatina", "proteína", "colágeno"]
+//
+//3. Precio (si aplica)
+//Si se menciona un monto (ej. "20 soles", "50"), extrae solo el número entero.
+//Si no se menciona, usa null.
+//
+//4. Tiempo
+//Detecta referencias temporales como:
+//"hoy", "ayer", "esta semana", "este mes", "este año",
+//o fechas explícitas como "07/06/2016", "febrero 2017".
+//
+//Devuélvelas como texto literal.
+//Si no hay referencia temporal, usa null.
+//
+//5. Prioridad fija
+//Si el usuario menciona que algo es "fijo", "guardado", "permanente" o equivalente,
+//establece prioridad_fija en true. Caso contrario, false.
+//
+//Formato de salida obligatorio
+//
+//Devuelve SIEMPRE este objeto JSON:
+//
+//{
+//  "terminos": [],
+//  "precio": null,
+//  "tiempo": null,
+//  "prioridad_fija": false
+//}
+//
+//Reglas finales
+//- Responde únicamente con JSON válido
+//- No saludes
+//- No expliques
+//- No agregues texto adicional
+//- No uses Markdown ni bloques de código
+//""".trimIndent()
+
+fun String?.clean(): String? =
+    this?.takeIf { it.isNotBlank() && it.lowercase() != "null" }
+
+
+fun procesaro_por_vos(
+    nombreDelNegocio: String,
+    cantidad: Int,
+    terminos: List<String>,
+    tiempo: String?,
+    precio: String?,
+    prioridad: String?,
+    tipo: String?
+): String {
+
+    // --- Construcción flexible de la descripción ---
+    val partesBusqueda = mutableListOf<String>()
+
+    if (terminos.isNotEmpty()) {
+        partesBusqueda.add(terminos.joinToString(", "))
+    }
+
+    tiempo.clean()?.let {
+        partesBusqueda.add(it)
+    }
+
+    precio.clean()?.let {
+        partesBusqueda.add("con un precio $it")
+    }
+
+    val descripcionBusqueda =
+        if (partesBusqueda.isEmpty()) ""
+        else partesBusqueda.joinToString(" ")
+
+    val textoTipo = tipo.clean() ?: "resultados"
+
+    val textoPrioridad = when (prioridad.clean()?.lowercase()) {
+        "guardado", "permanente" -> " que tienes guardado"
+        else -> ""
+    }
+
+    val ayudasFinales = if (cantidad == 0) {
+        listOf(
+            "Puedo intentar la búsqueda con otros criterios.",
+            "La búsqueda se puede ajustar en cualquier momento.",
+            "Hay otras formas de encontrar lo que buscas.",
+            "Puedo seguir ayudándote con otra opción."
+        )
+    } else {
+        listOf(
+            "Puedo ayudarte a ajustar los resultados.",
+            "Los filtros se pueden modificar si lo necesitas.",
+            "Hay más opciones disponibles para explorar.",
+            "Puedo seguir asistiendo con esta búsqueda."
+        )
+    }.random()
+
+
+    // --- Respuesta principal ---
+    val respuestaPrincipal = when {
+        cantidad == 0 -> listOf(
+            "No encontré $textoTipo $descripcionBusqueda en $nombreDelNegocio.",
+            "No hay resultados disponibles con esos criterios en $nombreDelNegocio.",
+            "No obtuve coincidencias esta vez en $nombreDelNegocio.",
+            "No se encontraron resultados para esa búsqueda."
+        ).random()
+
+        cantidad in 1..20 -> listOf(
+            "Encontré $cantidad $textoTipo $descripcionBusqueda en $nombreDelNegocio.",
+            "Tengo $cantidad $textoTipo listos para mostrar.",
+            "Estos son los $cantidad $textoTipo disponibles.",
+            "Ya preparé los $cantidad $textoTipo para que los revises."
+        ).random()
+
+        cantidad > 20 -> listOf(
+            "Encontré varios $textoTipo $descripcionBusqueda en $nombreDelNegocio.",
+            "Hay una cantidad considerable de $textoTipo disponibles.",
+            "Tengo muchos resultados listos para mostrar.",
+            "Encontré múltiples opciones para esta búsqueda."
+        ).random()
+
+        else -> listOf(
+            "Aquí tienes los $textoTipo $descripcionBusqueda en $nombreDelNegocio.",
+            "$nombreDelNegocio, estos son los $textoTipo que encontré para ti.",
+            "Ya dejé listos los resultados para que los revises con calma."
+        ).random()
+    }
+
+    // --- Resultado final (respuesta + ayuda) ---
+    return "$respuestaPrincipal $ayudasFinales"
+}
+
+//fun procesarBusquedaConIA_promp(textoUsuario: String): String {
+//
+//    return """
+//Eres Geinz Search Parser, un motor de procesamiento de lenguaje natural de alta precisión.
+//
+//Tu única función es convertir el texto del usuario
+//en un objeto JSON estructurado para filtrar el historial de generaciones de IA.
+//
+//Reglas estrictas de análisis
+//
+//1. Limpieza absoluta
+//Elimina palabras de intención, verbos de acción y relleno. Ignora expresiones como:
+//"búscame", "muéstrame", "quiero ver", "encuéntrame", "dónde está",
+//"todas las", "que tengan", "a ver", "enséñame", "resultados", "mostrar", "realicé".
+//
+//2. Términos detectados
+//Extrae SOLO conceptos o temas relevantes para un historial de IA.
+//- Devuélvelos en singular y en minúsculas.
+//- No combines términos.
+//- No inventes términos.
+//- No incluyas números, fechas o palabras genéricas.
+//
+//Ejemplo:
+//"generaciones de creatina proteína y colágeno"
+//→ ["creatina", "proteína", "colágeno"]
+//
+//3. Precio
+//Si se menciona un monto (ej. "20 soles", "50"), extrae solo el número entero como texto.
+//Si no se menciona, devuelve el valor JSON nulo literal: null (NO "null")
+//
+//4. Tiempo
+//Detecta referencias temporales explícitas:
+//- Relativas: "hoy", "ayer", "esta semana", "este mes", "este año", etc.
+//- Absolutas: "dd/mm/yyyy", "yyyy-mm-dd", meses y años escritos.
+//Devuelve el valor JSON nulo literal: null si no se detecta nada.
+//
+//5. Prioridad
+//Si el usuario menciona que algo es "guardado", "fijo", "permanente" o equivalente,
+//devuelve ese texto literal en el campo prioridad.
+//Si no se menciona, devuelve null literal.
+//
+//6. Tipo de historial
+//Detecta si el usuario se refiere explícitamente a alguno de estos tipos:
+//- "publicacion"
+//- "notificacion"
+//- "generacion_publicacion_sin_pulicar"
+//- "notificacion_sin_publicar"
+//
+//Devuelve SOLO uno de esos valores como texto.
+//Si el usuario no especifica el tipo, devuelve null literal.
+//
+//Formato de salida obligatorio
+//
+//Devuelve SIEMPRE este objeto JSON:
+//
+//{
+//  "terminos": [],
+//  "precio": null,
+//  "tiempo": null,
+//  "prioridad": null,
+//  "tipo": null
+//}
+//
+//Reglas finales
+//- Responde únicamente con JSON válido
+//- No saludes
+//- No expliques
+//- No agregues texto adicional
+//- No uses comillas para null
+//- Usa null solo cuando el usuario NO haya mencionado explícitamente ese dato
+//- No completes campos por suposición
+//
+//Texto del usuario:
+//"$textoUsuario"
+//""".trimIndent()
+//}
+fun procesarBusquedaConIA_promp(textoUsuario: String): String {
+
+    return """
+Eres Geinz Search Parser, un motor de NLP.
+
+Convierte el texto del usuario en un JSON para filtrar historial de IA:
+
+1. Limpieza
+Elimina verbos de acción y palabras de relleno como: "búscame", "muéstrame", "quiero ver", "encuéntrame", "a ver", "enséñame", "mostrar", "realicé".
+
+2. Términos
+Extrae SOLO conceptos relevantes, en singular y minúscula. No combines términos, no inventes, no incluyas números, fechas o palabras genéricas.
+Ejemplo: "generaciones de creatina proteína" → ["creatina","proteína"] 
+
+3. Días restantes
+Detecta menciones futuras de días que quedan: "quedan 5 días", "hasta 3 días", "menos de 5 días", "más de 5 días".  
+- Devuelve **solo el número entero**, sin comparadores ni palabras.  
+- Ejemplo: "quedan 5 días" → "5", "más de 10 días" → "10".  
+- Ignora tiempo pasado: "hace 2 días", "5 días atrás". Devuelve null si no hay.
+
+4. Tiempo
+Detecta referencias temporales pasadas o relativas: "hoy", "ayer", "esta semana", fechas. Devuelve null si no hay.
+
+5. Prioridad
+Si menciona "guardado", "fijo", "permanente", devuelve el texto. Si no, null.
+
+6. Tipo
+Detecta uno de: "publicacion", "notificacion", "generacion_publicacion_sin_pulicar", "notificacion_sin_publicar". Si no, null.
+
+JSON obligatorio:
+
+{
+  "terminos": [],
+  "dias_restantes": null,
+  "tiempo": null,
+  "prioridad": null,
+  "tipo": null
+}
+
+Reglas finales
+- Responde solo con JSON válido, sin explicaciones ni saludos.
+- Usa null literal si no hay dato.
+- No completes campos por suposición.
+
+Texto del usuario:
+"$textoUsuario"
+""".trimIndent()
+}
+
+
+
+fun extraer_terminos_para_GenIA(textos: String): String {
+    return """
+        Eres un extractor de términos clave para búsquedas y filtrado. 
+        Analiza el siguiente texto y devuelve únicamente las palabras más importantes, únicas y representativas en formato JSON:
+
+        Texto:
+        "$textos"
+    """.trimIndent()
+}
+
+//fun construirPromptNLP(textoUsuario: String): String {
+//    return """
+//Eres un extractor NLP.
+//Extrae la intención y el término clave del texto.
+//Acciones posibles:
+//- llamar
+//- buscar
+//- whatsapp
+//- ruta
+//- info
+//- distancia
+//Reglas:
+//- No expliques nada
+//- No inventes
+//- Devuelve SOLO JSON válido
+//- Si no es claro usa "desconocido"
+//- Normaliza el término clave eliminando artículos y mayúsculas
+//Formato:
+//{"a":"","t":"","c":"a|m|b"}
+//Texto:
+//$textoUsuario
+//""".trim()
+//}
+fun construirPromptNLP(textoUsuario: String): String {
+    return """
+Eres un extractor NLP. Devuelve SOLO un objeto JSON con intención y término clave.
+
+### Acciones (campo "a"):
+- llamar, whatsapp, dar_numero, buscar, ruta, info, distancia, desconocido
+
+### Reglas:
+- "t" (término clave): minúsculas, sin artículos ni preposiciones innecesarias
+- "c" (confianza): "a" (alta), "m" (media), "b" (baja)
+- Si el texto es ambiguo o no encaja, usa acción "desconocido"
+- No expliques nada, no inventes
+
+### Ejemplos:
+- "Quiero ir a la comisaría central" -> {"a":"ruta","t":"comisaría","c":"a"}
+- "Dime el teléfono del hospital regional" -> {"a":"dar_numero","t":"hospital","c":"a"
+- "Hola qué tal" -> {"a":"desconocido","t":"","c":"b"}
+
+### Texto de Usuario:
+"$textoUsuario"
+
+Respuesta (JSON):
+""".trim()
+}
 

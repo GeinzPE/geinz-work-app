@@ -181,6 +181,29 @@ fun bottom_sheet_datos_promos_noti(
                     val datos =
                         (estado_datos as viewmodel_pantallas_recientes.EstadoDatosPromocion.Success).datos
                     val estadisticas = datos.estadisticas
+                    val metodosPagoIcons = listOfNotNull(
+                        if (datos.metodos_pagos.yape) R.drawable.yape_logo else null,
+                        if (datos.metodos_pagos.plin) R.drawable.logo_plin else null,
+                        if (datos.metodos_pagos.agora) R.drawable.logo_agora else null,
+                        if (datos.metodos_pagos.efectivo) R.drawable.efectivo_logo else null,
+                        if (datos.metodos_pagos.visa) R.drawable.visa_logo else null,
+                        if (datos.metodos_pagos.mastercard) R.drawable.master_car_logo else null
+                    )
+
+                    val comodidadesIcons = listOfNotNull(
+                        if (datos.servicios_comoidades.zonaExpandida) R.drawable.icon_zona_expandida else null,
+                        if (datos.servicios_comoidades.wifi) R.drawable.icon_wifi else null,
+                        if (datos.servicios_comoidades.serviciosHigienicos) R.drawable.icon_servicios_higenicos else null,
+                        if (datos.servicios_comoidades.camarasSeguridad) R.drawable.icon_seguridad else null,
+                        if (datos.servicios_comoidades.salaEspera) R.drawable.icon_sala_de_espera else null,
+                        if (datos.servicios_comoidades.salaJuegos) R.drawable.icon_sala_para_ninos else null,
+                        if (datos.servicios_comoidades.mesaParaNinos) R.drawable.icon_mesa_para_ninos else null,
+                        if (datos.servicios_comoidades.ingresoConMascotas) R.drawable.icon_ingreso_animales else null,
+                        if (datos.servicios_comoidades.estacionamiento) R.drawable.icon_estacionamiento else null,
+                        if (datos.servicios_comoidades.enchufe) R.drawable.icon_enchufa else null,
+                        if (datos.servicios_comoidades.aireAcondicionado) R.drawable.icon_aire_acondicionado else null
+                    )
+
 
                     val totalClick = estadisticas?.click?.total ?: 0
                     val totalVistas = estadisticas?.vistas?.total ?: 0
@@ -341,7 +364,7 @@ fun bottom_sheet_datos_promos_noti(
                                     if (datos.precio_publicacion.isNotEmpty()) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             texto_generico_one_line(
-                                                "Reango de precio",
+                                                "Rango de precio",
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
                                             Spacer(modifier = Modifier.weight(1f))
@@ -350,27 +373,50 @@ fun bottom_sheet_datos_promos_noti(
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
                                         }
-
                                     }
 
 
 
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        texto_generico_one_line(
+                                            "Pagos",
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+
+                                        Spacer(modifier = Modifier.weight(1f))
+
+                                        metodosPagoIcons.forEach { icon ->
+                                            Image(
+                                                painter = painterResource(icon),
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .size(25.dp)
+                                                    .clip(CircleShape)
+                                                    .padding(start = 6.dp)
+                                            )
+                                        }
+                                    }
 
 
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        texto_generico_one_line(
+                                            "Comodidades",
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
 
+                                        Spacer(modifier = Modifier.weight(1f))
 
-
-
-
-
-
-
-
-
-
-
-
-
+                                        comodidadesIcons.forEach { icon ->
+                                            Image(
+                                                painter = painterResource(icon),
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .size(25.dp)
+                                                    .clip(CircleShape)
+                                                    .padding(start = 6.dp)
+                                            )
+                                        }
+                                    }
 
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         texto_generico_one_line(

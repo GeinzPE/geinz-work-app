@@ -1,7 +1,9 @@
 package com.geinzz.geinzwork.model
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.geinzz.geinzwork.data.model.NotificacionIA
 import com.geinzz.geinzwork.data.model.NotificacionIA_dialog
 import com.geinzz.geinzwork.data.model.datos_gen_IA_Tiendas
@@ -11,6 +13,7 @@ import com.geinzz.geinzwork.data.model.lista_genereracione
 import com.geinzz.geinzwork.data.model.nuevas_generaciones_con_IA
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.timestampToFechaHora
+import com.geinzz.geinzwork.herramientas_geinz.constantes.procesarBusquedaConIA_promp
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoAtencion_solo_una_generacion
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoInformativo_solo_una_generacion
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoVenta_solo_una_generacion
@@ -29,17 +32,28 @@ import com.google.firebase.Timestamp
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.ai.type.generationConfig
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.IOException
+import java.time.ZoneId
 
 class repo_generaciones_IA {
 
     private val db = FirebaseFirestore.getInstance()
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("SuspiciousIndentation")
     fun obtener_generaciones_IA_realtime(
         id_tienda: String,
@@ -69,15 +83,23 @@ class repo_generaciones_IA {
                     val data = doc.data ?: continue
 
                     val inicio = data["fecha"] as? Timestamp ?: continue
-                    val fin = data["caudidad"] as? Timestamp ?: continue
+                    val esPermanente = data["permanente"] as? Boolean
+                    val fin = data["caudidad"] as? Timestamp
 
-                    // ⏱️ validar expiración
-                    val tiempo =
-                        constantes_datos_expirados_fechas_publicaciones.tiempoRestante(fin)
+                    // 🚫 Si no existe NI permanente NI caducidad → NO mostrar
+                    if (esPermanente == null && fin == null) continue
 
-                    if (tiempo == "Expirado") continue
+                    // ⏱️ Validar expiración SOLO si NO es permanente
+                    if (esPermanente != true && fin != null) {
+                        val tiempo =
+                            constantes_datos_expirados_fechas_publicaciones
+                                .tiempoRestante(fin)
 
-                    val genIA = data["generacions_con_IA"] as? Map<*, *> ?: emptyMap<Any, Any>()
+                        if (tiempo == "Expirado") continue
+                    }
+
+                    val genIA =
+                        data["generacions_con_IA"] as? Map<*, *> ?: emptyMap<Any, Any>()
 
                     val seleccion =
                         genIA["generacion_selecionada"] as? Map<*, *> ?: emptyMap<Any, Any>()
@@ -95,48 +117,68 @@ class repo_generaciones_IA {
 
                     val nuevas_generaciones =
                         genIA["nuevas_generaciones"] as? Map<*, *> ?: emptyMap<Any, Any>()
-                    val titulo_nueva_generacion = nuevas_generaciones["titulo"] as? String ?: ""
-                    val descripcion = nuevas_generaciones["descripcion"] as? String ?: ""
-                    val titulo_anterior = nuevas_generaciones["titulo_anterior"] as? String ?: ""
-                    val descripcion_anterior = nuevas_generaciones["descripcion_anterior"] as? String ?: ""
-                    val fecha_nueva_generacion =
-                        nuevas_generaciones["fecha_nueva_generacion"] as? Timestamp ?: Timestamp.now()
 
-                  val fecha_hora_realizado=  timestampToFechaHora(fecha_nueva_generacion)
+                    val fechaNueva =
+                        nuevas_generaciones["fecha_nueva_generacion"] as? Timestamp
+                            ?: Timestamp.now()
+                    val terminos =
+                        data["terminos"] as? List<String>
+                            ?: emptyList()
+
+                    val fechaHoraRealizado = timestampToFechaHora(fechaNueva)
+
                     listaFinal.add(
                         datos_gen_IA_Tiendas(
                             inicio = inicio,
-                            fin = fin,
+                            fin = fin ,
                             id_promo_noti_cread = data["id_promo_o_noti"] as? String ?: "",
                             img_container = data["img_container"] as? String ?: "",
                             nombre_generacion = data["nombre_generacion"] as? String ?: "",
                             tipo_realizado = data["tipo"] as? String ?: "",
                             datos_generaciones = datos_generaciones_IA(
                                 titulo_original = genIA["titulo_original"] as? String ?: "",
-                                descripcion_original = genIA["descripcion_original"] as? String
-                                    ?: "",
+                                descripcion_original =
+                                    genIA["descripcion_original"] as? String ?: "",
                                 tipo_generacion_IA = data["tipo"] as? String ?: "",
                                 generacion_wsap = genIA["generacion_wsap"] as? String ?: "",
-                                generacion_compartir = genIA["generacion_compartir"] as? String
-                                    ?: "",
+                                generacion_compartir =
+                                    genIA["generacion_compartir"] as? String ?: "",
                                 generaciones = listaGeneraciones,
                                 titulo_seleccionado_gen_IA =
                                     seleccion["titulo"] as? String ?: "",
                                 descripcion_seleccionada_ge_IA =
                                     seleccion["descripcion"] as? String ?: ""
-                            ), nuevas_generaciones = nuevas_generaciones_con_IA(
-                                titulo_nuevo = titulo_nueva_generacion,
-                                descripcion_nueva = descripcion, fecha_hora_realizado,titulo_anterior,descripcion_anterior
-                            )
+                            ),
+                            nuevas_generaciones = nuevas_generaciones_con_IA(
+                                titulo_nuevo =
+                                    nuevas_generaciones["titulo"] as? String ?: "",
+                                descripcion_nueva =
+                                    nuevas_generaciones["descripcion"] as? String ?: "",
+                                fecha_nueva_generacion = fechaHoraRealizado,
+                                titulo_anterior =
+                                    nuevas_generaciones["titulo_anterior"] as? String ?: "",
+                                descripcion_anteriror =
+                                    nuevas_generaciones["descripcion_anterior"] as? String ?: ""
+                            ),terminos,
+                            fecha_normal = inicio.toDate() // <-- Aquí convertimos a LocalDate
+                                .toInstant()
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
                         )
                     )
                 }
 
-                trySend(listaFinal.sortedByDescending { it.fin.seconds })
+                trySend(
+                    listaFinal.sortedWith(
+                        compareByDescending<datos_gen_IA_Tiendas> { it.fin == null }
+                            .thenByDescending { it.inicio.seconds }
+                    )
+                )
             }
 
         awaitClose { listener.remove() }
     }
+
 
 
     fun generarPromptSegunTipoUnaGeneracion(
@@ -368,6 +410,81 @@ class repo_generaciones_IA {
             titulo = titulo, descripcion = descripcion
         )
     }
+
+
+    suspend fun guardar_como_permanente(
+        id_generacion: String,
+        id_tienda: String,
+        localidad: String
+    ): Boolean {
+        return try {
+            val ref = db.collection("Tiendas")
+                .document(localidad)
+                .collection(localidad)
+                .document(id_tienda)
+                .collection("gen_con_IA_historial")
+                .document(id_generacion)
+
+            val data = mapOf(
+                "permanente" to true,
+                "caudidad" to FieldValue.delete()
+            )
+
+            ref.set(data, SetOptions.merge()).await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+
+    suspend fun cloudTTS(texto: String): ByteArray =
+        withContext(Dispatchers.IO) {
+
+            val json = """
+        {
+          "texto": "$texto"
+        }
+        """.trimIndent()
+
+            val body = json.toRequestBody("application/json".toMediaType())
+
+            val request = Request.Builder()
+                .url("https://us-central1-geinzworkapp.cloudfunctions.net/textToSpeechIA")
+                .post(body)
+                .build()
+
+            val client = OkHttpClient()
+
+            val response = client.newCall(request).execute() // ✅ ahora sí
+
+            if (!response.isSuccessful) {
+                throw IOException("Error TTS: ${response.code}")
+            }
+
+            response.body?.bytes()
+                ?: throw IOException("Audio vacío")
+        }
+
+
+
+    suspend fun procesarBusquedaConIA(textoUsuario: String): String? {
+        return try {
+            val model = Firebase.ai(
+                backend = GenerativeBackend.googleAI()
+            ).generativeModel("gemini-2.5-flash")
+
+            val promptFinal = procesarBusquedaConIA_promp(textoUsuario)
+
+            val result = model.generateContent(promptFinal)
+            result.text
+
+        } catch (e: Exception) {
+            Log.e("IA_SEARCH", "Error IA Search Parser: ${e.message}")
+            null
+        }
+    }
+
 
 
 }

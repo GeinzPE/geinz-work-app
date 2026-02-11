@@ -1405,7 +1405,7 @@ object constantes_expandibles_generales {
 
                 spacer_horizonta(10.dp)
 
-                textoMetodoPago(nombre_metodo.capitalizeFirst()) {
+                textoMetodoPago(true,nombre_metodo.capitalizeFirst()) {
                     if (enable) mostrarCampos = !mostrarCampos
                 }
 
@@ -1661,6 +1661,7 @@ object constantes_expandibles_generales {
                 spacer_horizonta(10.dp)
 
                 textoMetodoPago(
+                    true,
                     nombre_metodo = nombre_metodo.capitalizeFirst(),
                     onClick = {
                         if (enable) mostrarCampos = !mostrarCampos
@@ -1813,6 +1814,7 @@ object constantes_expandibles_generales {
 
     @Composable
     fun textoMetodoPago(
+        mostrara_subrallado: Boolean,
         nombre_metodo: String,
         onClick: (() -> Unit)? = null
     ) {
@@ -1828,11 +1830,11 @@ object constantes_expandibles_generales {
             nombre_metodo.capitalizeFirst(),
             style = MaterialTheme.typography.bodyMedium.copy(
 
-                textDecoration = if (esInteractivo)
+                textDecoration = if (esInteractivo && mostrara_subrallado)
                     TextDecoration.Underline
                 else
                     TextDecoration.None
-            ), color = if (esInteractivo)
+            ), color = if (esInteractivo && mostrara_subrallado)
                 MaterialTheme.colorScheme.primary
             else
                 Color.White,

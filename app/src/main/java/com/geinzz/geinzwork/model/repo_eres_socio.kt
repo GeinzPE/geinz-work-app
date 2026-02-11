@@ -25,6 +25,7 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expir
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.timestampEn30Dias
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.normalizar
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenWebPSinRecorte
+import com.geinzz.geinzwork.herramientas_geinz.constantes.extraer_terminos_para_GenIA
 import com.geinzz.geinzwork.herramientas_geinz.constantes.generarPromptNombreGeneracionIA
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.acortarDescripcionNotificacion
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaConDias
@@ -65,6 +66,31 @@ import kotlin.math.floor
 @RequiresApi(Build.VERSION_CODES.O)
 
 class repo_eres_socio {
+    val stopWords = setOf(
+        "el","la","los","las","un","una","unos","unas",
+        "de","del","y","o","en","con","para","por","a","que",
+        "es","al","se","lo","su","como","más","pero","si",
+        "tu","te","mira","ven","pruebalo","disfruta","descubre",
+        "haz","pedido","ahora","hoy","solo","tan","este","esta",
+        "oferta","increible","imperdible"
+    )
+
+    val stopWordsExtendido = stopWords + setOf(
+        "nuevo","solo","oferta","hoy","ahora","descubre","pruebalo","ven"
+    )
+
+    val normalizacion = mapOf(
+        "llevarte" to "llevar",
+        "lleva" to "llevar",
+        "llevo" to "llevar",
+        "obtén" to "obtener",
+        "consigue" to "obtener",
+        "aprovecha" to "obtener"
+    )
+
+
+
+
     private val db = FirebaseFirestore.getInstance()
 
     private var genIAOriginal: generaciones_con_ia? = null
@@ -1225,6 +1251,30 @@ class repo_eres_socio {
                 .document(i.informacion.id_tienda).collection("promociones_geinz")
                 .document(i.informacion.id_promocion)
 
+
+            val hasmap_metodos_pago = hashMapOf<String, Any>(
+                "yape" to i.metodos_pagos.yape,
+                "plin" to i.metodos_pagos.plin,
+                "agora" to i.metodos_pagos.agora,
+                "efectivo" to i.metodos_pagos.efectivo,
+                "visa" to i.metodos_pagos.visa,
+                "mastercard" to i.metodos_pagos.mastercard,
+            )
+
+            val hashmap_comodidades = hashMapOf<String, Any>(
+                "zona_expandida" to i.servicios_comoidades.zonaExpandida,
+                "wifi" to i.servicios_comoidades.wifi,
+                "servicios_higienicos" to i.servicios_comoidades.serviciosHigienicos,
+                "camaras_seguridad" to i.servicios_comoidades.camarasSeguridad,
+                "sala_espera" to i.servicios_comoidades.salaEspera,
+                "sala_juegos" to i.servicios_comoidades.salaJuegos,
+                "mesa_para_ninos" to i.servicios_comoidades.mesaParaNinos,
+                "ingreso_con_mascotas" to i.servicios_comoidades.ingresoConMascotas,
+                "estacionamiento" to i.servicios_comoidades.estacionamiento,
+                "enchufe" to i.servicios_comoidades.enchufe,
+                "aire_acondicionado" to i.servicios_comoidades.aireAcondicionado
+            )
+
             val hashMap = hashMapOf<String, Any>(
                 "estado" to i.estado,
                 "tipo_hora_dias" to i.formato_fecha_hora,
@@ -1234,7 +1284,14 @@ class repo_eres_socio {
                 "mensaje_predeterminado" to i.mensaje_predeterminado,
                 "horario_publicacion" to i.horario_deseado.seleccion,
                 "precio_publicacion" to i.precio_publicacion.precio,
-                "rango_establecido" to i.precio_publicacion.rango
+                "rango_establecido" to i.precio_publicacion.rango,
+                "pagos" to i.metodos_pagos,
+                "pagos" to hasmap_metodos_pago,
+                "comodidades" to hashmap_comodidades,
+                "tiene_wifi" to i.servicios_comoidades.wifi,
+                "tiene_estacionamiento" to i.servicios_comoidades.estacionamiento,
+                "acepta_yape" to i.metodos_pagos.yape,
+                "acepta_efectivo" to i.metodos_pagos.efectivo
             )
 
             // 🤖 SOLO SI EXISTE IA
@@ -1318,17 +1375,58 @@ class repo_eres_socio {
         nombreGeneracion.let {
             hashmpa_gen_con_IA["nombre_generacion"] = it
         }
+        val textosParaTerminos = mutableListOf<String>()
+        textosParaTerminos.add(i.titulo_original)
+        textosParaTerminos.add(i.descripcion_original)
+        i.lista_generaciones.forEach { opcion ->
+            textosParaTerminos.add(opcion.titulo ?: "")
+            textosParaTerminos.add(opcion.descripcion ?: "")
+        }
+        val textoCompacto = combinarTextosRelevantes(
+            titulos = textosParaTerminos.filterIndexed { index, _ -> index % 2 == 0 }, // títulos
+            descripciones = textosParaTerminos.filterIndexed { index, _ -> index % 2 != 0 } // descripciones
+        )
+
+        val terminos = extraerTerminosLocal(textoCompacto) // función local que devuelve List<String>
+        hashmpa_gen_con_IA["terminos"] = terminos
 
         gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
     }
 
+
+//    suspend fun extraer_terminos_genIA(texto: String): List<String> {
+//        // Inicializar modelo de Gemini
+//        val model = Firebase.ai(
+//            backend = GenerativeBackend.googleAI()
+//        ).generativeModel("gemini-2.5-flash")
+//
+//        return try {
+//            // Generar prompt
+//            val prompt = extraer_terminos_para_GenIA(texto)
+//
+//            // Llamar a Gemini
+//            val result = model.generateContent(prompt)
+//
+//            // Gemini usualmente devuelve el texto como string, parseamos JSON
+//            val jsonString = result.text // ajusta según el SDK, normalmente .text
+//            val jsonObject = JSONObject(jsonString)
+//
+//            // Devolver lista de términos
+//            val terminosJson = jsonObject.getJSONArray("terminos")
+//            List(terminosJson.length()) { i -> terminosJson.getString(i) }
+//
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            emptyList()
+//        }
+//    }
+
     suspend fun guaradar_generacion_normal_por_7_dias_notificaciones(
-        id_generacion:String,
+        id_generacion: String,
         localidad: String,
         id_tienda: String,
-        i: generacion_primarios,
+        i: generacion_primarios
     ) {
-
         val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
             .document(id_tienda).collection("gen_con_IA_historial")
             .document(id_generacion)
@@ -1340,20 +1438,30 @@ class repo_eres_socio {
             "tipo" to "notificacion_sin_publicar",
             "generacions_con_IA" to i
         )
-        val descripcionAcortada = acortarDescripcionNotificacion(
-            i.titulo_original
-        )
 
+        // Acortar descripción para título corto
+        val descripcionAcortada = acortarDescripcionNotificacion(i.titulo_original)
+
+        // Crear nombre corto de generación
         val nombreGeneracion = crear_notificacion_conIA_corta(
             i.descripcion_original,
             descripcionAcortada
         )
-        nombreGeneracion.let {
-            historialIAData["nombre_generacion"] = it
-        }
+        historialIAData["nombre_generacion"] = nombreGeneracion
 
+        // 🔹 Extraer términos Super Saiyajin
+        val titulos = listOf(i.titulo_original) + i.lista_generaciones.mapNotNull { it.titulo }
+        val descripciones = listOf(i.descripcion_original) + i.lista_generaciones.mapNotNull { it.descripcion }
+
+        val textoCompacto = combinarTextosRelevantes(titulos, descripciones)
+        val terminos = extraerTerminosLocal(textoCompacto) // lista de términos únicos, normalizados
+
+        historialIAData["terminos"] = terminos
+
+        // Guardar en Firestore
         gen_con_IA.set(historialIAData, SetOptions.merge()).await()
     }
+
 
 
 
@@ -1836,11 +1944,7 @@ class repo_eres_socio {
     }
 
 
-    fun obtenerFechaFinDosDias(): Timestamp {
-        val cal = Calendar.getInstance()
-        cal.add(Calendar.DAY_OF_MONTH, 2) // sumamos 2 días
-        return Timestamp(cal.time)
-    }
+
 
     fun tiempoRestante(timestampFin: Long): String {
         val ahoraMs = System.currentTimeMillis()
@@ -1869,4 +1973,56 @@ class repo_eres_socio {
     }
 
 
+    fun acortarTextoRelevante(texto: String, maxLength: Int): String {
+        val palabras = texto.lowercase()
+            .replace(Regex("[^\\w\\s/áéíóúñ]"), "")
+            .split(" ")
+            .filter { it.isNotBlank() }
+            .map { it.replace("s/", "") } // normalizar precios
+
+        val palabrasFiltradas = palabras.filter { it !in stopWords }
+
+        val resultado = StringBuilder()
+        for (palabra in palabrasFiltradas) {
+            if (resultado.length + palabra.length + 1 > maxLength) break
+            if (resultado.isNotEmpty()) resultado.append(" ")
+            resultado.append(palabra)
+        }
+
+        return if (resultado.isEmpty()) palabras.takeWhile { it.length <= maxLength }.joinToString(" ") else resultado.toString()
+    }
+
+    // 2️⃣ Combinar títulos y descripciones
+    fun combinarTextosRelevantes(
+        titulos: List<String>,
+        descripciones: List<String>,
+        maxTitulo: Int = 50,
+        maxDescripcion: Int = 65
+    ): String {
+        val titulosAcortados = titulos.map { acortarTextoRelevante(it, maxTitulo) }
+        val descripcionesAcortadas = descripciones.map { acortarTextoRelevante(it, maxDescripcion) }
+
+        return (titulosAcortados + descripcionesAcortadas).joinToString(" ")
+    }
+
+    // 3️⃣ Extraer términos local “Super Saiyajin”
+    fun extraerTerminosLocal(texto: String): List<String> {
+        val palabras = texto.lowercase()
+            .replace(Regex("[^\\w\\s/áéíóúñ]"), "")
+            .split(Regex("\\s+"))
+            .map {
+                it.replace("s/", "")
+                    .replace("á","a")
+                    .replace("é","e")
+                    .replace("í","i")
+                    .replace("ó","o")
+                    .replace("ú","u")
+                    .replace("ñ","n")
+            }
+
+        val palabrasFiltradas = palabras.filter { it.isNotBlank() && it !in stopWords }
+        val palabrasNormalizadas = palabrasFiltradas.map { normalizacion[it] ?: it }
+
+        return palabrasNormalizadas.distinct()
+    }
 }
