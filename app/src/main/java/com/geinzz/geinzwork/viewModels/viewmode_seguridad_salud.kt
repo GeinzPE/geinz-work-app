@@ -446,8 +446,32 @@ class viewmode_seguridad_salud : ViewModel() {
             }
 
             "desconocido" ->  {
-                cloudTTS("Losiento no entendi lo que me trataste de decir")
-                texto_mostrado.value = "Losiento no entendi lo que me trataste de decir"
+                // 🔥 1. Si el texto parece emergencia
+                if (esEmergenciaTexto) {
+
+                    val entidadPorEvento = resolverPorEventos(texto_origina)
+
+                    if (entidadPorEvento != null) {
+                        Log.d("NLP_DEBUG2", "Emergencia detectada por eventos → ${entidadPorEvento.key}")
+
+                        val numero = retornar_numero_llamada(
+                            lista_general_original_inmutable.value,
+                            entidadPorEvento.key
+                        )
+
+                        numero?.let {
+                            cloudTTS("Parece una emergencia. Llamando a ${entidadPorEvento.key}")
+                            makePhoneCall(context, it)
+                            estadoBusqueda.value = Estado_busqueda.IDLE
+                            return
+                        }
+                    }
+                }
+
+                // ❌ Si realmente no hay nada
+                cloudTTS("Lo siento no entendí lo que me trataste de decir")
+                texto_mostrado.value = "Lo siento no entendí lo que me trataste de decir"
+                estadoBusqueda.value = Estado_busqueda.IDLE
             }
 
 
@@ -460,10 +484,6 @@ class viewmode_seguridad_salud : ViewModel() {
                 estadoBusqueda.value = Estado_busqueda.IDLE
             }
         }
-    }
-
-    fun mensajeFallbackEmergencia(): String {
-        return "Tranquilo. Si estás en una emergencia, mantén la calma. Puedes decirme por ejemplo: llama a la policía, samu ,hospital o bomberos."
     }
 
 
@@ -482,6 +502,48 @@ class viewmode_seguridad_salud : ViewModel() {
             else ->
                 "Llama al 105 Policía, 116 Bomberos o 106 SAMU"
         }
+    }
+
+    fun resolverPorEventos(
+        texto: String,
+        lista: List<Entidad>
+    ): Entidad? {
+
+        val textoNormalizado = normalizar(texto)
+
+        val prioridades = listOf(
+            "samu",
+            "bomberos",
+            "comisaría pnp barranca",
+            "depincri barranca",
+            "serenazgo barranca",
+            "hospital de barranca"
+        )
+
+        var mejorEntidad: Entidad? = null
+        var maxCoincidencias = 0
+
+        for (entidad in lista) {
+
+            val coincidencias = entidad.eventos.count { evento ->
+                textoNormalizado.contains(evento)
+            }
+
+            if (coincidencias > maxCoincidencias) {
+                maxCoincidencias = coincidencias
+                mejorEntidad = entidad
+            }
+        }
+
+        if (mejorEntidad != null) {
+            // aplicar prioridad si hay empate
+            return lista
+                .filter { it == mejorEntidad }
+                .sortedBy { prioridades.indexOf(it.key.lowercase()) }
+                .firstOrNull()
+        }
+
+        return null
     }
 
 
@@ -568,13 +630,6 @@ class viewmode_seguridad_salud : ViewModel() {
         val llamadas = formatearNumerosConAlYNumeros(entidad.numero_llamada)
         Log.d("GENERAR_CONTACTO", "Números de llamada formateados:${formatearParaTTS(llamadas)}")
         var mensaje =""
-//        val plantillas = listOf(
-//            "Hola, puedes llamar a ${entidad.nombre_} ${formatearParaTTS(llamadas)}",
-//            "Si quieres contactar a ${entidad.nombre_}, llama ${formatearParaTTS(llamadas)}",
-//            "Necesitas hablar con ${entidad.nombre_}? ${formatearParaTTS(llamadas)}",
-//            "Para comunicarte con ${entidad.nombre_}, usa ${formatearParaTTS(llamadas)}",
-//            "Marca a ${entidad.nombre_} ${formatearParaTTS(llamadas)}"
-//        )
         if (ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.CALL_PHONE

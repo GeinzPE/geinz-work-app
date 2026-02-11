@@ -925,26 +925,34 @@ fun extraer_terminos_para_GenIA(textos: String): String {
 //}
 fun construirPromptNLP(textoUsuario: String): String {
     return """
-Eres un extractor NLP. Devuelve SOLO un objeto JSON con intención y término clave.
+Eres un extractor NLP de emergencias.
+Devuelve SOLO un objeto JSON válido.
 
-### Acciones (campo "a"):
-- llamar, whatsapp, dar_numero, buscar, ruta, info, distancia, desconocido
+Campos obligatorios:
+"a": llamar, whatsapp, dar_numero, buscar, ruta, info, distancia, desconocido
+"t": término clave en minúsculas
+"g": salud, seguridad u otro
+"c": a (alta), m (media), b (baja)
 
-### Reglas:
-- "t" (término clave): minúsculas, sin artículos ni preposiciones innecesarias
-- "c" (confianza): "a" (alta), "m" (media), "b" (baja)
-- Si el texto es ambiguo o no encaja, usa acción "desconocido"
-- No expliques nada, no inventes
+Reglas:
+- Si no hay acción clara, usa "desconocido"
+- No agregues texto fuera del JSON
+- No expliques nada
 
-### Ejemplos:
-- "Quiero ir a la comisaría central" -> {"a":"ruta","t":"comisaría","c":"a"}
-- "Dime el teléfono del hospital regional" -> {"a":"dar_numero","t":"hospital","c":"a"
-- "Hola qué tal" -> {"a":"desconocido","t":"","c":"b"}
+Ejemplos:
+"Quiero ir a la comisaría central"
+{"a":"ruta","t":"comisaría","g":"seguridad","c":"a"}
 
-### Texto de Usuario:
+"Dime el teléfono del hospital regional"
+{"a":"dar_numero","t":"hospital","g":"salud","c":"a"}
+
+"Hola qué tal"
+{"a":"desconocido","t":"","g":"otro","c":"b"}
+
+Texto:
 "$textoUsuario"
 
-Respuesta (JSON):
-""".trim()
+JSON:
+""".trimIndent()
 }
 
