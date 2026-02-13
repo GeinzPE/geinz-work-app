@@ -1,18 +1,17 @@
 package com.geinzz.geinzwork.viewModels
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Location
 import android.media.MediaPlayer
 import android.net.Uri
-import android.os.Looper
 import android.util.Base64
 import android.util.Log
-import android.os.Handler
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.IntentSenderRequest
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.ActivityCompat
@@ -29,12 +28,9 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.REQUEST_CALL_PHONE
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isInternetAvailable
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
+import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.Priority
-import com.google.android.gms.maps.model.LatLng
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -76,6 +72,13 @@ class viewmode_seguridad_salud : ViewModel() {
     var estadoBusqueda = mutableStateOf(Estado_busqueda.IDLE)
         private set
 
+    var nombre_user =MutableStateFlow("")
+
+    fun nombre_user (nombre:String){
+        nombre_user.value=nombre
+    }
+
+
     var titulo_mostrado = MutableStateFlow("")
     val texto_mostrado = MutableStateFlow("")
     val mostar_crear_ruta_btn = MutableStateFlow(false)
@@ -91,6 +94,33 @@ class viewmode_seguridad_salud : ViewModel() {
     val datosCloudTts: StateFlow<ByteArray> = _datosCloudTts
 
     private val _ubicacionUsuario = MutableStateFlow<String>("")
+    val callDialogPermise = MutableStateFlow(Pair(false, ""))
+
+    val _mostrar_micro = MutableStateFlow(true)
+
+
+    fun cabiar_valor_mostara_micro(valor: Boolean) {
+        _mostrar_micro.value = valor
+    }
+
+
+    fun limpiarEstado() {
+
+        titulo_mostrado.value = ""
+        texto_mostrado.value = ""
+
+        estadoBusqueda.value = Estado_busqueda.IDLE
+        _datosCloudTts.value = ByteArray(0)
+
+        callDialogPermise.value = Pair(false, "")
+
+        categoira_filtrado_realziado.value = "Todos"
+        categoira_solo_texto_realizado.value = false
+    }
+
+    fun cambiar_estado_valor_calldialog() {
+        callDialogPermise.value = Pair(false, "")
+    }
 
 
     fun cambiar_Estado_carga() {
@@ -216,13 +246,21 @@ class viewmode_seguridad_salud : ViewModel() {
     fun preguntar_gemini(
         texto: String,
         context: Context,
-        fusedLocationClient: FusedLocationProviderClient
+        fusedLocationClient: FusedLocationProviderClient,
+        launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>,
+        permisoLauncher: ManagedActivityResultLauncher<String, Boolean>
     ) {
         viewModelScope.launch {
             try {
                 val respues = instancia.extraerConGemini(texto)
                 Log.d("GEMINI", respues ?: "respuesta nula")
-                procesarRespuestaGemini(respues ?: "", context, texto, fusedLocationClient)
+                procesarRespuestaGemini(
+                    respues ?: "",
+                    context,
+                    texto,
+                    fusedLocationClient,
+                    launcher, permisoLauncher
+                )
             } catch (e: Exception) {
                 Log.d("GEMINI", "$e")
             }
@@ -249,7 +287,9 @@ class viewmode_seguridad_salud : ViewModel() {
         raw: String,
         context: Context,
         texto_origina: String,
-        fusedLocationClient: FusedLocationProviderClient
+        fusedLocationClient: FusedLocationProviderClient,
+        launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>,
+        permisoLauncher: ManagedActivityResultLauncher<String, Boolean>
     ) {
         if (raw != "") {
 
@@ -260,7 +300,14 @@ class viewmode_seguridad_salud : ViewModel() {
                 Log.e("NLP", "JSON inválido")
                 return
             }
-            clasificarAccionDebug(respuesta, context, texto_origina, fusedLocationClient)
+            clasificarAccionDebug(
+                respuesta,
+                context,
+                texto_origina,
+                launcher,
+                fusedLocationClient,
+                permisoLauncher
+            )
         }
     }
 
@@ -269,17 +316,20 @@ class viewmode_seguridad_salud : ViewModel() {
         r: RespuestaNLP,
         context: Context,
         texto_origina: String,
-        fusedLocationClient: FusedLocationProviderClient
+        launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>,
+        fusedLocationClient: FusedLocationProviderClient,
+        permisoLauncher: ManagedActivityResultLauncher<String, Boolean>
     ) {
         Log.d("NLP_DEBUG2", "Respuesta completa → $r")
         Log.d("NLP_DEBUG2", "Acción → ${r.a}")
         Log.d("NLP_DEBUG2", "Término → ${r.t}")
         Log.d("NLP_DEBUG2", "Confianza → ${r.c}")
+        Log.d("NLP_DEBUG2", "es_salud_o_seguridad → ${r.g}")
         Log.d("NLP_DEBUG2", "$texto_origina")
 
         // Resolvemos el término usando la lista de entidades del ViewModel
 
-        val esEmergenciaTexto = esEmergencia(texto_origina)
+//        val esEmergenciaTexto = esEmergencia(texto_origina)
 
         val entidad = resolverEntidad(r.t, _lista_entidades.value)
         if (entidad != null) {
@@ -294,18 +344,21 @@ class viewmode_seguridad_salud : ViewModel() {
             "asistencia" -> Log.d("NLP_DEBUG2", "Detectado: ASISTENCIA / EMERGENCIA")
             "info" -> {
                 Log.d("NLP_DEBUG2", "Detectado: INFO sobre '${entidad?.key ?: r.t}'")
-                retornarInformacion(
+                val respuesta = retornarInformacion(
                     lista_general_original_inmutable.value,
                     entidad?.key ?: r.t,
                     texto_origina
                 )
                 estadoBusqueda.value = Estado_busqueda.IDLE
-
+                _mostrar_micro.value = true
+                verificarGPS(context, launcher)
+                cloudTTS(respuesta)
+                texto_mostrado.value = respuesta
             }
 
             "ruta" -> {
                 Log.d("NLP_DEBUG2", "Detectado: RUTA hacia '${entidad?.key ?: r.t}'")
-                cloudTTS("Creando ruta hacia ${entidad?.key ?: r.t}")
+
                 retornar_cordenadas(
                     lista_general_original_inmutable.value,
                     entidad?.key ?: r.t
@@ -316,40 +369,50 @@ class viewmode_seguridad_salud : ViewModel() {
                         "", "emergencia", "", "",
                         context = context,
                         lat, lng
-                    ) {
+                    ) { sin_permisos ->
+                        if (sin_permisos) {
+                            verificarGPS(context, launcher)
+                            cloudTTS("Activa tu ubicacion para poder crearte una ruta hacia ${entidad?.key ?: r.t}")
+                            titulo_mostrado.value = "Activa tus permisos"
+                            texto_mostrado.value =
+                                "Activa tu ubicacion para poder crearte una ruta hacia ${entidad?.key ?: r.t}"
+                        } else {
+                            cloudTTS("Creando ruta hacia ${entidad?.key ?: r.t}")
+                            titulo_mostrado.value = "Creando ruta"
+                            texto_mostrado.value = "Creando ruta hacia ${entidad?.key ?: r.t}"
+                        }
                     }
                 } ?: run {
                     // Si no se encontró la entidad
-                    println("No se encontraron coordenadas")
+                    cloudTTS("Losiento no entendi lo que me quiziste decir")
                 }
                 estadoBusqueda.value = Estado_busqueda.IDLE
+                _mostrar_micro.value = true
             }
 
             "llamar" -> {
-                // 🔥 EMERGENCIA detectada aunque NO haya entidad
-                if (esEmergenciaTexto && entidad == null) {
-                    val mensaje = numerosPorEmergencia(texto_origina)
-                    Log.d("NLP_DEBUG2", "Emergencia detectada por similitud")
-                    cloudTTS(mensaje)
-                    estadoBusqueda.value = Estado_busqueda.IDLE
-                    return
-                }
 
                 // 📞 Llamada normal
                 if (entidad != null) {
                     val texto = generarTextoLLamada(
                         context,
                         lista_general_original_inmutable.value,
-                        entidad.key
+                        entidad.key, { numero ->
+                            callDialogPermise.value = Pair(true, numero)
+                        }
                     )
+                    titulo_mostrado.value = "Aqui tienes tus resultados"
+                    texto_mostrado.value = "Llamando a ${entidad.key} "
                     cloudTTS(texto)
                     estadoBusqueda.value = Estado_busqueda.IDLE
+                    _mostrar_micro.value = true
                     return
                 }
 
 
                 cloudTTS("¿A quién deseas llamar?")
                 estadoBusqueda.value = Estado_busqueda.IDLE
+                _mostrar_micro.value = true
             }
 
             "whatsapp" -> {
@@ -361,25 +424,25 @@ class viewmode_seguridad_salud : ViewModel() {
                     println("Número seleccionado: $it")
                     abrir_whattsapp(context, it, "")
                     estadoBusqueda.value = Estado_busqueda.IDLE
+                    _mostrar_micro.value = true
                 } ?: run {
                     println("No se encontró número de WhatsApp")
+
+                    cloudTTS("No se encontró número de WhatsApp ${entidad?.key ?: r.t} ")
                     estadoBusqueda.value = Estado_busqueda.IDLE
+                    _mostrar_micro.value = true
                 }
 
+                cloudTTS("Abriendo Whattsapp")
+                titulo_mostrado.value = "Abriendo Whattsapp"
+                texto_mostrado.value = "Abriendo Whattsapp"
                 Log.d("NLP_DEBUG2", "Detectado: WHATSAPP a '${entidad?.key ?: r.t}'")
 //                val texto=generarTextoContacto(lista_general_original_inmutable.value,entidad?.key ?: r.t)
-                cloudTTS("Abriendo Whattsapp")
                 estadoBusqueda.value = Estado_busqueda.IDLE
+                _mostrar_micro.value = true
             }
 
             "dar_numero" -> {
-
-                if (esEmergenciaTexto && entidad == null) {
-                    val mensaje = numerosPorEmergencia(texto_origina)
-                    cloudTTS(mensaje)
-                    estadoBusqueda.value = Estado_busqueda.IDLE
-                    return
-                }
 
                 if (entidad != null) {
                     val numero = retornar_numero_whatsapp(
@@ -387,11 +450,12 @@ class viewmode_seguridad_salud : ViewModel() {
                         entidad.key
                     )
                     numero?.let {
-                        cloudTTS("claro el número de ${entidad.key} es $it")
+                        cloudTTS("claro el número de ${entidad.key} es ${formatearParaTTS(it)}")
                         titulo_mostrado.value = "Aqui tienes tus resultados"
                         texto_mostrado.value = "claro el número de ${entidad.key} es $it"
                     } ?: cloudTTS("No se encontró el número")
                     estadoBusqueda.value = Estado_busqueda.IDLE
+                    _mostrar_micro.value = true
                     return
                 }
 
@@ -399,6 +463,7 @@ class viewmode_seguridad_salud : ViewModel() {
 
                 texto_mostrado.value = "¿De qué institución necesitas el número?"
                 estadoBusqueda.value = Estado_busqueda.IDLE
+                _mostrar_micro.value = true
             }
 
             "buscar" -> {
@@ -429,49 +494,90 @@ class viewmode_seguridad_salud : ViewModel() {
                 }
 
                 estadoBusqueda.value = Estado_busqueda.IDLE
+                _mostrar_micro.value = true
             }
 
             "distancia" -> {
                 Log.d("NLP_DEBUG2", "distancia  '${entidad?.key ?: r.t}'")
                 viewModelScope.launch {
+
+                    // 1️⃣ Verificar permiso de ubicación
+                    if (ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+
+                        texto_mostrado.value =
+                            "Para calcular la distancia necesito acceder a tu ubicación actual 📍"
+
+                        cloudTTS(
+                            "Necesito permiso de ubicación para calcular la distancia hacia ${entidad?.key ?: r.t}"
+                        )
+
+                        permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                        estadoBusqueda.value = Estado_busqueda.IDLE
+                        _mostrar_micro.value = true
+                        return@launch
+                    }
+
+                    // 2️⃣ Verificar si el GPS está activado
+                    if (!verificarUbiActiva(context)) {
+
+                        texto_mostrado.value =
+                            "Tu ubicación está desactivada. Actívala para poder calcular la distancia 📡"
+
+                        cloudTTS(
+                            "Activa tu ubicación para calcular la distancia hacia ${entidad?.key ?: r.t}"
+                        )
+
+                        verificarGPS(context, launcher)
+                        estadoBusqueda.value = Estado_busqueda.IDLE
+                        _mostrar_micro.value = true
+                        return@launch
+                    }
+
+                    // 3️⃣ Todo correcto → calcular distancia
                     val distancia = ver_distancia_lugar(
                         fusedLocationClient,
                         lista_general_original_inmutable.value,
                         r.t
                     )
-                    texto_mostrado.value = "${distancia}"
+
+                    texto_mostrado.value = distancia
                     estadoBusqueda.value = Estado_busqueda.IDLE
-                    cloudTTS("${distancia} ")
+                    _mostrar_micro.value = true
+                    cloudTTS(distancia)
                 }
             }
 
-            "desconocido" ->  {
-                // 🔥 1. Si el texto parece emergencia
-                if (esEmergenciaTexto) {
+            "desconocido" -> {
 
-                    val entidadPorEvento = resolverPorEventos(texto_origina)
+                if (r.g == "otro") {
 
-                    if (entidadPorEvento != null) {
-                        Log.d("NLP_DEBUG2", "Emergencia detectada por eventos → ${entidadPorEvento.key}")
+                    cloudTTS("No entendí tu solicitud. ¿Podrías repetirlo?")
+                    texto_mostrado.value = "No entendí tu solicitud."
 
-                        val numero = retornar_numero_llamada(
+                } else {
+
+                    val (mensaje, listaResultado) =
+                        resolverPorTexto(
+                            texto_origina,
                             lista_general_original_inmutable.value,
-                            entidadPorEvento.key
+                            r.g
                         )
 
-                        numero?.let {
-                            cloudTTS("Parece una emergencia. Llamando a ${entidadPorEvento.key}")
-                            makePhoneCall(context, it)
-                            estadoBusqueda.value = Estado_busqueda.IDLE
-                            return
-                        }
+                    cloudTTS(mensaje)
+                    titulo_mostrado.value = mensaje
+                    texto_mostrado.value = mensaje
+                    listaResultado?.let {
+                    _state_lista_filtrada.value = carga_seguidad.succes(it)
                     }
+
                 }
 
-                // ❌ Si realmente no hay nada
-                cloudTTS("Lo siento no entendí lo que me trataste de decir")
-                texto_mostrado.value = "Lo siento no entendí lo que me trataste de decir"
                 estadoBusqueda.value = Estado_busqueda.IDLE
+                _mostrar_micro.value = true
             }
 
 
@@ -482,52 +588,104 @@ class viewmode_seguridad_salud : ViewModel() {
                     "No pude encontrar exactamente lo que buscabas, pero mantén la calma. Recuerda que Geinz siempre está contigo ante cualquier emergencia."
 
                 estadoBusqueda.value = Estado_busqueda.IDLE
+                _mostrar_micro.value = true
             }
         }
     }
 
+    fun tieneSimilitud(
+        token: String,
+        etiqueta: String,
+        minCoincidencias: Int = 4
+    ): Boolean {
 
-    fun numerosPorEmergencia(texto: String): String {
-        val t = texto.lowercase()
-        return when {
-            listOf("fuego", "incendio").any { it in t } ->
-                "Llama al 116 Bomberos"
+        val t = token.lowercase()
+        val e = etiqueta.lowercase()
 
-            listOf("dolor", "se cayó", "me siento mal", "sangre").any { it in t } ->
-                "Llama al 106 SAMU"
+        // Match directo completo
+        if (t.contains(e) || e.contains(t)) return true
 
-            listOf("robo", "asalt", "me siguen").any { it in t } ->
-                "Llama al 105 Policía"
+        if (e.length >= minCoincidencias) {
+            val raizEtiqueta = e.take(minCoincidencias)
 
-            else ->
-                "Llama al 105 Policía, 116 Bomberos o 106 SAMU"
+            // Detecta raíz dentro del token
+            if (t.contains(raizEtiqueta)) return true
         }
+
+        if (t.length >= minCoincidencias) {
+            val raizToken = t.take(minCoincidencias)
+
+            if (e.contains(raizToken)) return true
+        }
+
+        return false
     }
 
-    fun resolverPorEventos(
+    fun resolverPorTexto(
         texto: String,
-        lista: List<Entidad>
-    ): Entidad? {
+        value: List<dataclass_seguridad>,
+        g: String
+    ): Pair<String, List<dataclass_seguridad>?> {
 
-        val textoNormalizado = normalizar(texto)
+        Log.d("NLP_FLOW", "==============================")
+        Log.d("NLP_FLOW", "Texto original: $texto")
+        Log.d("NLP_FLOW", "Categoría solicitada: $g")
+        Log.d("NLP_FLOW", "Total lista original: ${value.size}")
 
-        val prioridades = listOf(
-            "samu",
-            "bomberos",
-            "comisaría pnp barranca",
-            "depincri barranca",
-            "serenazgo barranca",
-            "hospital de barranca"
-        )
+        val listaFiltrada = value.filter {
+            it.categoria.equals(g, ignoreCase = true)
+        }
 
-        var mejorEntidad: Entidad? = null
+        Log.d("NLP_FLOW", "Total listaFiltrada por categoria: ${listaFiltrada.size}")
+
+        if (listaFiltrada.isEmpty()) {
+            Log.d("NLP_FLOW", "❌ No hay entidades con esa categoría")
+            return Pair("Mantén la calma", null)
+        }
+
+        val textoLimpio = texto.lowercase()
+            .replace(Regex("[^a-záéíóúñ ]"), "")
+
+        val tokens = textoLimpio
+            .split("\\s+".toRegex())
+            .filter { it.length > 2 }
+
+        Log.d("NLP_FLOW", "Texto limpio: $textoLimpio")
+        Log.d("NLP_FLOW", "Tokens detectados: $tokens")
+
+        var mejorEntidad: dataclass_seguridad? = null
         var maxCoincidencias = 0
 
-        for (entidad in lista) {
+        for (entidad in listaFiltrada) {
 
-            val coincidencias = entidad.eventos.count { evento ->
-                textoNormalizado.contains(evento)
+            var coincidencias = 0
+
+            Log.d("MATCH_DEBUG", "----- Analizando entidad: ${entidad.nombre_} -----")
+
+            for (etiqueta in entidad.etiquetas_categorias) {
+
+                for (token in tokens) {
+
+                    Log.d(
+                        "MATCH_DEBUG",
+                        "Comparando token='$token' con etiqueta='$etiqueta'"
+                    )
+
+                    if (tieneSimilitud(token, etiqueta, 4)) {
+                        coincidencias++
+                        Log.d(
+                            "MATCH_DEBUG",
+                            "✔ MATCH en ${entidad.nombre_} con etiqueta '$etiqueta'"
+                        )
+                        break
+                    }
+                }
             }
+
+            Log.d(
+                "MATCH_RESULT",
+                "Entidad: ${entidad.nombre_} | Coincidencias: $coincidencias"
+            )
 
             if (coincidencias > maxCoincidencias) {
                 maxCoincidencias = coincidencias
@@ -535,15 +693,113 @@ class viewmode_seguridad_salud : ViewModel() {
             }
         }
 
-        if (mejorEntidad != null) {
-            // aplicar prioridad si hay empate
-            return lista
-                .filter { it == mejorEntidad }
-                .sortedBy { prioridades.indexOf(it.key.lowercase()) }
-                .firstOrNull()
+        Log.d("NLP_DEBUG_RESUMEN", """
+        Texto: $texto
+        Categoria: $g
+        Tokens: $tokens
+        ListaFiltradaSize: ${listaFiltrada.size}
+        MejorEntidad: ${mejorEntidad?.nombre_}
+        MaxCoincidencias: $maxCoincidencias
+    """.trimIndent())
+
+        return if (mejorEntidad != null && maxCoincidencias > 0) {
+
+            Log.d("NLP_DEBUG_FINAL", "✔ ENTIDAD SELECCIONADA: ${mejorEntidad.nombre_}")
+            Log.d("NLP_DEBUG_FINAL", "✔ Coincidencias finales: $maxCoincidencias")
+
+            val mensaje = obtenerMensajeCalmaUI(mejorEntidad.nombre_, value)
+
+            val resultadoLista = listOf(mejorEntidad)
+
+            Log.d("NLP_DEBUG_FINAL", "✔ Lista retornada size: ${resultadoLista.size}")
+
+            Pair(mensaje, resultadoLista)
+
+        } else {
+
+            Log.d("NLP_DEBUG_FINAL", "❌ No hubo entidad válida")
+            Log.d("NLP_DEBUG_FINAL", "maxCoincidencias: $maxCoincidencias")
+
+            Pair(
+                "Todo estará bien. necesito algo mas de informacion de tu caso",
+                null
+            )
+        }
+    }
+
+
+
+
+    fun obtenerMensajeCalmaUI(
+        nombreEntidad: String,
+        value: List<dataclass_seguridad>
+    ): String {
+
+        val entidad = value.firstOrNull {
+            it.nombre_.contains(nombreEntidad, ignoreCase = true)
         }
 
-        return null
+        val numerosLlamada = entidad?.numero_llamada ?: emptyList()
+        val numerosWhatsapp = entidad?.numero_whatsapp ?: emptyList()
+
+        val bloqueContacto = buildString {
+
+            if (numerosLlamada.isNotEmpty()) {
+
+                append(" Llama al ")
+
+                append(
+                    numerosLlamada.joinToString(" o al ")
+                )
+
+                append(".")
+            }
+
+            if (numerosWhatsapp.isNotEmpty()) {
+
+                if (numerosLlamada.isNotEmpty()) {
+                    append(" También puedes escribir por WhatsApp al ")
+                } else {
+                    append(" Escríbeles por WhatsApp al ")
+                }
+
+                append(
+                    numerosWhatsapp.joinToString(" o al ")
+                )
+
+                append(".")
+            }
+
+            if (numerosLlamada.isEmpty() && numerosWhatsapp.isEmpty()) {
+                append(".")
+            }
+        }
+
+
+        val mensajesBase = listOf(
+            "${nombre_user.value}, estoy aquí contigo. Mantén la calma y contacta a $nombreEntidad.$bloqueContacto",
+
+            "Respira despacio, ${nombre_user.value}. La ayuda está cerca con $nombreEntidad.$bloqueContacto",
+
+            "${nombre_user.value}, no estás solo. $nombreEntidad puede asistirte ahora mismo.$bloqueContacto",
+
+            "Mantén la serenidad, ${nombre_user.value}. $nombreEntidad está para ayudarte.$bloqueContacto",
+
+            "Tranquilo, ${nombre_user.value}. Estás haciendo lo correcto. Contacta a $nombreEntidad.$bloqueContacto",
+
+            "${nombre_user.value}, la ayuda está disponible. $nombreEntidad puede intervenir.$bloqueContacto",
+
+            "Respira profundo, ${nombre_user.value}. $nombreEntidad puede atender esta situación.$bloqueContacto",
+
+            "Estoy contigo, ${nombre_user.value}. Busca apoyo en $nombreEntidad.$bloqueContacto",
+
+            "${nombre_user.value}, no entres en pánico. $nombreEntidad puede ayudarte.$bloqueContacto",
+
+            "${nombre_user.value}, la asistencia está cerca. Contacta a $nombreEntidad.$bloqueContacto"
+        )
+
+
+        return mensajesBase.random()
     }
 
 
@@ -611,7 +867,12 @@ class viewmode_seguridad_salud : ViewModel() {
     }
 
 
-    fun generarTextoLLamada(context: Context,lista: List<dataclass_seguridad>, nombreBuscado: String): String {
+    fun generarTextoLLamada(
+        context: Context,
+        lista: List<dataclass_seguridad>,
+        nombreBuscado: String,
+        activar_permiso_llamada: (numero: String) -> Unit
+    ): String {
         Log.d("GENERAR_CONTACTO", "Buscando entidad para: '$nombreBuscado'")
 
 //        val entidad = lista.firstOrNull {
@@ -629,15 +890,16 @@ class viewmode_seguridad_salud : ViewModel() {
 
         val llamadas = formatearNumerosConAlYNumeros(entidad.numero_llamada)
         Log.d("GENERAR_CONTACTO", "Números de llamada formateados:${formatearParaTTS(llamadas)}")
-        var mensaje =""
+        var mensaje = ""
         if (ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.CALL_PHONE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            mensaje="Neecsitas activar el permiso"
+            mensaje = "Por favor activa el permiso para realizar las llamadas"
+            activar_permiso_llamada(entidad.numero_llamada.first())
         } else {
-            mensaje="LLamando"
+            mensaje = "LLamando a $nombreBuscado"
             makePhoneCall(context, entidad.numero_llamada.first())
         }
 
@@ -735,34 +997,51 @@ class viewmode_seguridad_salud : ViewModel() {
         lista: List<dataclass_seguridad>,
         nombreBuscado: String,
         textoUsuario: String
-    ) {
-        // Buscamos la entidad en la lista original
+    ): String {
+
+        // Buscamos la entidad
         val entidad = lista.firstOrNull {
             it.nombre_.contains(nombreBuscado, ignoreCase = true)
         }
 
         if (entidad == null) {
-            cloudTTS("No se encontró información para '$nombreBuscado'")
-            return
+            return "No se encontró información para '$nombreBuscado'."
         }
 
         // Detectamos qué tipo de info quiere el usuario
         val tipoInfo = detectarTipoInfo(textoUsuario)
 
-        // Construimos el mensaje según el tipo
-        val mensaje = when (tipoInfo) {
-            "direccion" -> "La dirección de ${entidad.nombre_} es: ${entidad.direccion ?: "no disponible"} y alguna referencia es: ${entidad.referencia ?: "no disponible"}"
-            "telefono" -> "Puedes comunicarte al teléfono ${entidad.numero_llamada.joinToString(", ")}"
-            "horario" -> "El horario de atención de ${entidad.nombre_} es: ${
-                horario_atencion(
-                    entidad.nombre_
-                )
-            }"
+        // Construimos el mensaje
+        return when (tipoInfo) {
 
-            else -> "Aquí te damos información sobre ${entidad.nombre_}"
+            "direccion" -> {
+                val direccion = entidad.direccion ?: "no disponible"
+                val referencia = entidad.referencia ?: "no disponible"
+                "La dirección de ${entidad.nombre_} es: $direccion. Referencia: $referencia."
+            }
+
+            "telefono" -> {
+                if (entidad.numero_llamada.isNotEmpty()) {
+                    "Puedes comunicarte con ${entidad.nombre_} al ${
+                        entidad.numero_llamada.joinToString(
+                            ", "
+                        )
+                    }."
+                } else {
+                    "El teléfono de ${entidad.nombre_} no está disponible."
+                }
+            }
+
+            "horario" -> {
+                "El horario de atención de ${entidad.nombre_} es: ${
+                    horario_atencion(entidad.nombre_)
+                }."
+            }
+
+            else -> {
+                "Aquí tienes información sobre ${entidad.nombre_}."
+            }
         }
-
-        cloudTTS(mensaje)
     }
 
 
@@ -782,12 +1061,28 @@ class viewmode_seguridad_salud : ViewModel() {
     }
 
     fun formatearParaTTS(numero: String): String {
+
+        val mapa = mapOf(
+            '0' to "cero",
+            '1' to "uno",
+            '2' to "dos",
+            '3' to "tres",
+            '4' to "cuatro",
+            '5' to "cinco",
+            '6' to "seis",
+            '7' to "siete",
+            '8' to "ocho",
+            '9' to "nueve"
+        )
+
         val soloDigitos = numero.filter { it.isDigit() }
 
-        // Separamos cada dígito con un espacio para que TTS los lea individualmente
-        val formateado = soloDigitos.toCharArray().joinToString(" ")
+        val formateado = soloDigitos
+            .mapNotNull { mapa[it] }
+            .joinToString(" ")
 
         Log.d("FORMATEAR_TTS", "Número formateado para TTS: $formateado")
+
         return formateado
     }
 
@@ -1031,7 +1326,10 @@ class viewmode_seguridad_salud : ViewModel() {
 
         // Validamos que el lugar tenga coordenadas válidas
         if (lat_lugar == 0.0 || lng_lugar == 0.0) {
-            Log.d("VER_DISTANCIA", "⚠️ La entidad '${lugar.nombre_}' no tiene ubicación física registrada.")
+            Log.d(
+                "VER_DISTANCIA",
+                "⚠️ La entidad '${lugar.nombre_}' no tiene ubicación física registrada."
+            )
             return "Esta entidad '${lugar.nombre_}' no cuenta con ubicación física, solo se puede acceder directamente."
         }
 
@@ -1105,6 +1403,7 @@ class viewmode_seguridad_salud : ViewModel() {
             else -> "<1 minutos"
         }
     }
+
     fun requestCallPermission(llamar: Boolean = true, context: Context, phoneNumber: String = "") {
         if (ContextCompat.checkSelfPermission(
                 context,

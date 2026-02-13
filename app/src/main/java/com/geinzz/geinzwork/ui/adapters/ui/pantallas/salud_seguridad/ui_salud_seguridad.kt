@@ -9,11 +9,15 @@ import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -28,6 +32,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,6 +48,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Stop
@@ -52,8 +59,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -66,12 +73,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -87,16 +96,18 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_compartir.compartir_pantalla_completa
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TypewriterText
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_llamada_urgencias
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi_activa
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubicacion_activa
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permisos_llamadas
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.requestCallPermission
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.TypewriterText
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_alerta_llamada
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.centrado_hori_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
@@ -119,7 +130,7 @@ import kotlin.math.pow
 private val REQUEST_CALL_PHONE = 1
 
 @Composable
-fun ui_salud_seguirdad(
+fun ui_salud_seguirdad(nombre_user:String,
     id_user: String,
     viewmode_segurirdad_Salud: viewmode_seguridad_salud,
     localida: String,
@@ -143,9 +154,17 @@ fun ui_salud_seguirdad(
     var error_empity by remember { mutableStateOf(false) }
     var texto_error_empity by remember { mutableStateOf("") }
     var yaInicializado by remember { mutableStateOf(false) }
-
+    val dialogo_contacto by viewmode_segurirdad_Salud.callDialogPermise.collectAsState()
     val autoseleccion_filtrado by viewmode_segurirdad_Salud.categoira_filtrado_realziado.collectAsState()
     val autoseleccion_filtrado_solo_texto by viewmode_segurirdad_Salud.categoira_solo_texto_realizado.collectAsState()
+
+
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewmode_segurirdad_Salud.limpiarEstado()
+        }
+    }
 
 
     LaunchedEffect(autoseleccion_filtrado) {
@@ -182,6 +201,7 @@ fun ui_salud_seguirdad(
 
     // Llama servicios iniciales
     LaunchedEffect(Unit) {
+        viewmode_segurirdad_Salud.nombre_user(nombre_user)
         viewmode_segurirdad_Salud.obtener_servicios(localida, context)
     }
 
@@ -235,6 +255,29 @@ fun ui_salud_seguirdad(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         tienePermisoLlamada = isGranted
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            Log.d("GPS", "✅ El usuario activó el GPS")
+
+        } else {
+            Log.d("GPS", "❌ El usuario canceló el diálogo de ubicación")
+
+        }
+    }
+
+    // Launcher para pedir permiso
+    val permisoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            Log.d("GPS", "✅ El usuario activó el GPS")
+        } else {
+            Toast.makeText(context, "Se necesita permiso de ubicación", Toast.LENGTH_SHORT).show()
+        }
     }
 
     Box(
@@ -313,6 +356,8 @@ fun ui_salud_seguirdad(
                             )
                     ) {
                         FiltradoTextField(
+                            permisoLauncher,
+                            launcher,
                             fusedLocationClient,
                             viewmodelSeguridadSalud = viewmode_segurirdad_Salud,
                             onValueChange = {
@@ -320,7 +365,7 @@ fun ui_salud_seguirdad(
                                 viewmode_segurirdad_Salud.preguntar_gemini(
                                     valor_filtrado,
                                     context,
-                                    fusedLocationClient
+                                    fusedLocationClient, launcher, permisoLauncher
                                 )
                             },
                             regresarListaCompleta = {
@@ -464,6 +509,13 @@ fun ui_salud_seguirdad(
                     requestPermissionLauncher.launch(android.Manifest.permission.CALL_PHONE)
                 })
         }
+        if (dialogo_contacto.first) {
+            permisos_llamadas(aceptar_permisos = {
+                requestCallPermission(context = context, phoneNumber = dialogo_contacto.second)
+            }, ondimis = {
+                viewmode_segurirdad_Salud.cambiar_estado_valor_calldialog()
+            })
+        }
 
     }
 }
@@ -527,13 +579,20 @@ fun chips_filtrado(
 
 @Composable
 fun FiltradoTextField(
+
+    permisoLauncher: ManagedActivityResultLauncher<String, Boolean>,
+    launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>,
     fusedLocationClient: FusedLocationProviderClient,
     viewmodelSeguridadSalud: viewmode_seguridad_salud,
     onValueChange: (String) -> Unit,
     regresarListaCompleta: () -> Unit
 ) {
 
-    var mostar_micro by remember { mutableStateOf(true) }
+    val focusManager = LocalFocusManager.current
+
+    var expandido by remember { mutableStateOf(true) }
+
+    var mostar_micro = viewmodelSeguridadSalud._mostrar_micro.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var estadoMic by remember { mutableStateOf(viewmode_seguridad_salud.EstadoMic.IDLE) }
@@ -548,7 +607,7 @@ fun FiltradoTextField(
     var audioData by remember { mutableStateOf(ByteArray(0)) }
 
     val SILENCE_THRESHOLD = 0.02f
-    val SILENCE_TIME_MS = 5000L
+    val SILENCE_TIME_MS = 1200L
     var silencioInicio by remember { mutableStateOf<Long?>(null) }
 
     val titulo_mostrado_IA by viewmodelSeguridadSalud.titulo_mostrado.collectAsState()
@@ -569,14 +628,10 @@ fun FiltradoTextField(
     }
 
 
-    var escuchando by remember { mutableStateOf(false) }
+    LaunchedEffect(descripcion_mostrado_IA) {
+        Log.d("titutofitra", "$titulo_mostrado_IA $descripcion_mostrado_IA")
 
-    LaunchedEffect(titulo_mostrado_IA, descripcion_mostrado_IA) {
-        if (titulo_mostrado_IA.isNotEmpty() && descripcion_mostrado_IA.isNotEmpty()) {
-            mostrar_respuesIA = true
-        } else {
-            mostrar_respuesIA = true
-        }
+        mostrar_respuesIA = descripcion_mostrado_IA.isNotBlank()
     }
 
     LaunchedEffect(estadoMic) {
@@ -617,11 +672,14 @@ fun FiltradoTextField(
 
                 while (grabando && estadoMic == viewmode_seguridad_salud.EstadoMic.GRABANDO) {
                     val read = recorder.read(buffer, 0, buffer.size)
+
                     if (read > 0) {
+
                         stream.write(buffer, 0, read)
-                        huboVoz = true
+
                         var sum = 0.0
                         var samples = 0
+
                         for (i in 0 until read step 2) {
                             val low = buffer[i].toInt() and 0xFF
                             val high = buffer[i + 1].toInt()
@@ -630,8 +688,7 @@ fun FiltradoTextField(
                             samples++
                         }
 
-                        val rms =
-                            kotlin.math.sqrt(sum / samples).toFloat() / 32768f
+                        val rms = kotlin.math.sqrt(sum / samples).toFloat() / 32768f
 
                         val visualAmp =
                             (rms * 28f).coerceIn(0f, 0.85f).pow(0.7f)
@@ -640,17 +697,83 @@ fun FiltradoTextField(
                             amplitudes = amplitudes
                                 .map { it * 0.85f }
                                 .mapIndexed { i, old ->
-                                    val factor = listOf(
-                                        1f, 0.85f, 0.7f, 0.9f, 0.75f
-                                    )[i]
+                                    val factor = listOf(1f, 0.85f, 0.7f)[i]
                                     max(old, visualAmp * factor)
                                 }
+                        }
 
+                        // 🔥 DETECCIÓN DE SILENCIO REAL
+                        if (rms > SILENCE_THRESHOLD) {
+                            huboVoz = true
+                            silencioInicio = null
+                        } else {
+                            if (silencioInicio == null) {
+                                silencioInicio = System.currentTimeMillis()
+                            } else {
+                                val silencioActual =
+                                    System.currentTimeMillis() - silencioInicio!!
+
+                                if (silencioActual > SILENCE_TIME_MS) {
+
+                                    // 🔥 Si nunca habló → cancelar
+                                    if (!huboVoz) {
+                                        withContext(Dispatchers.Main) {
+                                            estadoMic = viewmode_seguridad_salud.EstadoMic.IDLE
+                                            Toast.makeText(
+                                                context,
+                                                "No se detectó voz",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    } else {
+                                        // 🔥 Si habló y luego silencio → enviar
+                                        withContext(Dispatchers.Main) {
+                                            estadoMic = viewmode_seguridad_salud.EstadoMic.ENVIANDO
+                                            cargandoVoz = true
+                                            scope.launch(Dispatchers.IO) {
+                                                var intentos = 0
+                                                while (audioData.isEmpty() && intentos < 40) {
+                                                    delay(50)
+                                                    intentos++
+                                                }
+
+                                                if (audioData.isEmpty()) {
+                                                    withContext(Dispatchers.Main) {
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Error grabando audio",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                        estadoMic =
+                                                            viewmode_seguridad_salud.EstadoMic.IDLE
+                                                    }
+                                                    return@launch
+                                                }
+                                                try {
+                                                    val texto =
+                                                        viewmodelSeguridadSalud.tranformar_texto_a_voz(
+                                                            audioData
+                                                        )
+                                                    withContext(Dispatchers.Main) {
+                                                        textoBuscar = texto
+                                                        onValueChange(texto)
+                                                        estadoMic =
+                                                            viewmode_seguridad_salud.EstadoMic.IDLE
+                                                    }
+                                                } finally {
+                                                    withContext(Dispatchers.Main) {
+                                                        cargandoVoz = false
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    grabando = false
+                                }
+                            }
                         }
                     }
-
-
-
                     delay(16)
                 }
             } finally {
@@ -665,6 +788,7 @@ fun FiltradoTextField(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .animateContentSize()
             .padding(vertical = 16.dp)
     ) {
 
@@ -674,22 +798,32 @@ fun FiltradoTextField(
                 textoBuscar = it
                 if (it.isEmpty()) {
                     regresarListaCompleta()
-                    mostar_micro = true
+
+                    viewmodelSeguridadSalud.cabiar_valor_mostara_micro(true)
                     ocultar_borrado = false
                 } else {
-                    mostar_micro = false
+
+                    viewmodelSeguridadSalud.cabiar_valor_mostara_micro(false)
+
                     ocultar_borrado = true
                 }
             },
             placeholder = { Text("¿Qué buscas?") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { focusState ->
+                    if (focusState.isFocused) {
+
+                        viewmodelSeguridadSalud.cabiar_valor_mostara_micro(false)
+                    }
+                },
             shape = RoundedCornerShape(50),
             leadingIcon = {
                 Box(
                     modifier = Modifier.size(28.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (mostar_micro) {
+                    if (mostar_micro.value) {
                         Crossfade(targetState = estadoMic) { estado ->
                             when (estado) {
 
@@ -697,7 +831,7 @@ fun FiltradoTextField(
                                     detener_grabacion_btn = false
                                     IconButton(
                                         onClick = {
-
+                                            focusManager.clearFocus()
                                             if (ContextCompat.checkSelfPermission(
                                                     context,
                                                     Manifest.permission.RECORD_AUDIO
@@ -794,24 +928,38 @@ fun FiltradoTextField(
                                 when (estado) {
                                     viewmode_seguridad_salud.Estado_busqueda.IDLE -> {
                                         IconButton(
-                                            onClick = {
-                                                // Cambiar a CARGANDO para mostrar ProgressBar
-                                                viewmodelSeguridadSalud.cambiar_Estado_carga()
 
-                                                // Ejecutar búsqueda en background
-                                                scope.launch(Dispatchers.IO) {
-                                                    try {
-                                                        viewmodelSeguridadSalud.preguntar_gemini(
-                                                            textoBuscar,
-                                                            context,
-                                                            fusedLocationClient
-                                                        )
-                                                    } finally {
-                                                        // Una vez terminado, volver a IDLE en el hilo principal
-                                                        withContext(Dispatchers.Main) {
+                                            onClick = {
+                                                if (textoBuscar.isNotEmpty()) {
+
+                                                    focusManager.clearFocus()
+                                                    // Cambiar a CARGANDO para mostrar ProgressBar
+                                                    viewmodelSeguridadSalud.cambiar_Estado_carga()
+
+                                                    // Ejecutar búsqueda en background
+                                                    scope.launch(Dispatchers.IO) {
+                                                        try {
+                                                            viewmodelSeguridadSalud.preguntar_gemini(
+                                                                textoBuscar,
+                                                                context,
+                                                                fusedLocationClient,
+                                                                launcher,
+                                                                permisoLauncher
+                                                            )
+                                                        } finally {
+                                                            // Una vez terminado, volver a IDLE en el hilo principal
+                                                            withContext(Dispatchers.Main) {
 //                                                            estadoBusqueda = viewmode_seguridad_salud.Estado_busqueda.IDLE
+                                                            }
                                                         }
                                                     }
+                                                } else {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Escribe o di algo",
+                                                        Toast.LENGTH_SHORT
+                                                    )
+                                                        .show()
                                                 }
                                             }
                                         ) {
@@ -853,8 +1001,11 @@ fun FiltradoTextField(
                     if (ocultar_borrado) {
                         IconButton(
                             onClick = {
+                                focusManager.clearFocus()
                                 textoBuscar = ""
-                                mostar_micro = true
+
+                                viewmodelSeguridadSalud.cabiar_valor_mostara_micro(true)
+
                                 ocultar_borrado = false
                                 regresarListaCompleta()
                             }
@@ -869,32 +1020,93 @@ fun FiltradoTextField(
                     if (detener_grabacion_btn) {
                         IconButton(
                             onClick = {
+                                focusManager.clearFocus()
 
-//
-//                                    // 🔹 Detener realmente el AudioRecord
-//                                    recorder?.stop()
-//                                    recorder?.release()
-//                                    recorder = null
-//                                    audioData.clear()
-//                                    withContext(Dispatchers.Main) {
-//                                        estadoMic = viewmode_seguridad_salud.EstadoMic.IDLE
-//                                        Toast.makeText(context, "Grabación detenida", Toast.LENGTH_SHORT).show()
-//                                    }
-//                                    return@launch
+                                // 🔥 SOLO romper el loop
+                                grabando = false
+                                estadoMic = viewmode_seguridad_salud.EstadoMic.IDLE
 
+                                // 🔥 Limpiar estados visuales
+                                audioData = ByteArray(0)
+                                amplitudes = listOf(0f, 0f, 0f)
+                                huboVoz = false
+                                detener_grabacion_btn = false
+                                cargandoVoz = false
+
+                                Toast.makeText(
+                                    context,
+                                    "Grabación cancelada",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Stop,
-                                contentDescription = "Hablar", tint = Color.Gray
+                                contentDescription = "Detener",
+                                tint = Color.Gray
                             )
                         }
                     }
+
                 }
             }
         )
+        spacer_vertical(10.dp)
+
         if (mostrar_respuesIA) {
-            TypewriterText(descripcion_mostrado_IA)
+
+
+            Column(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(12.dp)
+            ) {
+
+                // 🔹 Fila superior: Texto pequeño + icono
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_geinz_500x500),
+                        contentDescription = "Logo IA",
+                        modifier = Modifier
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }) {
+                                viewmodelSeguridadSalud.cloudTTS(descripcion_mostrado_IA)
+                            }
+                            .size(35.dp)
+                    )
+                    spacer_horizonta(5.dp)
+                    Text(
+                        text = "Geinz",
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    IconButton(
+                        onClick = { expandido = !expandido }
+                    ) {
+                        Icon(
+                            imageVector = if (expandido)
+                                Icons.Default.KeyboardArrowUp
+                            else
+                                Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Expandir"
+                        )
+                    }
+                }
+
+                // 🔹 Contenido expandible
+                if (expandido) {
+                    TypewriterText(descripcion_mostrado_IA)
+                }
+            }
+
+
         }
 
 

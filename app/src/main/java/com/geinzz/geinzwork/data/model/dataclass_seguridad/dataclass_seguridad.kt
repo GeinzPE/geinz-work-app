@@ -13,7 +13,8 @@ data class dataclass_seguridad(
     val longitud: Double=0.0,
     val referencia: String="",
     val img_ref:String="",
-    val categoria:String=""
+    val categoria:String="",
+    val etiquetas_categorias: List<String>
 ): Parcelable
 
 data class dialog_seguridad_salud_algolia(
@@ -29,5 +30,6 @@ data class EntidadNLP(
 data class RespuestaNLP(
     val a: String, // acción
     val t: String, // término
-    val c: String  // confianza
+    val c: String,  // confianza
+    val g:String,
 )

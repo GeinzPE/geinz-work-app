@@ -110,6 +110,7 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expir
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.timestampAFechaLegible
 import com.geinzz.geinzwork.model.repo_pantallas_promocionar
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoSubrayado
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TypewriterText
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -2092,30 +2093,6 @@ fun EstadoChip(
 ////    val tts = rememberTextToSpeech()
 //
 //}
-
-
-@Composable
-fun TypewriterText(
-    text: String,
-    modifier: Modifier = Modifier,
-    speed: Long = 50L
-) {
-    var displayText by remember { mutableStateOf("") }
-
-    LaunchedEffect(text) {
-        displayText = ""
-        for (i in text.indices) {
-            displayText += text[i]
-            delay(speed)
-        }
-    }
-
-    Text(
-        text = displayText,
-        modifier = modifier,
-        style = MaterialTheme.typography.bodyMedium
-    )
-}
 
 
 @Composable

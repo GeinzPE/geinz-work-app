@@ -34,6 +34,7 @@ import kotlin.system.measureTimeMillis
 
 class repo_seguridad_salud {
     val db = FirebaseFirestore.getInstance()
+
     data class UbicacionResult(val latLng: LatLng, val callback: LocationCallback)
 
     suspend fun obtener_servicios_salud(localdad: String): List<dataclass_seguridad> {
@@ -65,6 +66,8 @@ class repo_seguridad_salud {
                 val llamada = numero_contacto["llamada"] as? List<String> ?: emptyList()
                 val whatsapp = numero_contacto["whatsapp"] as? List<String> ?: emptyList()
 
+                val etiquetas_permitidas = data?.get("tags_evento") as? List<String> ?: emptyList()
+
                 val servicios = dataclass_seguridad(
                     nombre_ = data?.get("nombre") as? String ?: "",
                     direccion = ubicacion["direccion"] as? String ?: "",
@@ -74,7 +77,7 @@ class repo_seguridad_salud {
                     latidud = latitud,
                     longitud = longitud,
                     referencia = referencia,
-                    categoria = categoria
+                    categoria = categoria, etiquetas_categorias = etiquetas_permitidas
                 )
 
                 Log.d("DEBUG_SERVICIOS", "Objeto creado: $servicios")
@@ -126,7 +129,8 @@ class repo_seguridad_salud {
 
                 if (ref.exists()) {
                     val data = ref.data
-                    val numeros_contactos = data?.get("numeros_contactos") as? Map<String, Any> ?: emptyMap()
+                    val numeros_contactos =
+                        data?.get("numeros_contactos") as? Map<String, Any> ?: emptyMap()
                     lista_whatsapp = numeros_contactos["whatsapp"] as? List<String> ?: emptyList()
                     lista_llamada = numeros_contactos["llamada"] as? List<String> ?: emptyList()
                 }
@@ -157,10 +161,10 @@ class repo_seguridad_salud {
         cantidad: Int,
         terminos: List<String>,
         tiempo: String?,
-        precio:String?,prioridad:String?,tipo:String?
+        precio: String?, prioridad: String?, tipo: String?
     ): String? {
         return try {
-            procesaro_por_vos(nombre_negocio, cantidad, terminos, tiempo,precio,prioridad,tipo)
+            procesaro_por_vos(nombre_negocio, cantidad, terminos, tiempo, precio, prioridad, tipo)
         } catch (e: Exception) {
             Log.e("IA_VOZ", "Error generando mensaje de voz", e)
             null
@@ -216,6 +220,7 @@ class repo_seguridad_salud {
             else -> "${(distancia / 1000).roundToDecimal(1)} km" // más de 10 km → 1 decimal
         }
     }
+
     fun distanciaEnMetros(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
         val radioTierra = 6371000.0
         val lat1Rad = Math.toRadians(lat1)
@@ -258,12 +263,13 @@ class repo_seguridad_salud {
             // Timeout de 10 seg
             Handler(Looper.getMainLooper()).postDelayed({
                 if (!cont.isCompleted) {
-                    cont.resume(LatLng(0.0,0.0)) {}
+                    cont.resume(LatLng(0.0, 0.0)) {}
                     fusedLocationClient.removeLocationUpdates(callback)
                 }
             }, 10000)
         }
     }
+
     @SuppressLint("MissingPermission")
     suspend fun obtenerUbicacionUsuarioCancelable(
         fusedLocationClient: FusedLocationProviderClient
@@ -292,14 +298,13 @@ class repo_seguridad_salud {
         }, 10000)
     }
 
-    fun cancelarUbicacion(fusedLocationClient: FusedLocationProviderClient, callback: LocationCallback) {
+    fun cancelarUbicacion(
+        fusedLocationClient: FusedLocationProviderClient,
+        callback: LocationCallback
+    ) {
         fusedLocationClient.removeLocationUpdates(callback)
         Log.d("VER_DISTANCIA", "❌ Cancelada la obtención de ubicación")
     }
-
-
-
-
 
 
 }

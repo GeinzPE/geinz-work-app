@@ -923,36 +923,63 @@ fun extraer_terminos_para_GenIA(textos: String): String {
 //$textoUsuario
 //""".trim()
 //}
+//fun construirPromptNLP(textoUsuario: String): String {
+//    return """
+//Eres un extractor NLP de emergencias.
+//Devuelve SOLO un objeto JSON válido.
+//
+//Campos obligatorios:
+//"a": llamar, whatsapp, dar_numero, buscar, ruta, info, distancia, desconocido
+//"t": término clave en minúsculas
+//"g": salud, seguridad u otro
+//"c": a (alta), m (media), b (baja)
+//
+//Reglas:
+//- Si no hay acción clara, usa "desconocido"
+//- No agregues texto fuera del JSON
+//- No expliques nada
+//
+//Ejemplos:
+//"Quiero ir a la comisaría central"
+//{"a":"ruta","t":"comisaría","g":"seguridad","c":"a"}
+//
+//"Dime el teléfono del hospital regional"
+//{"a":"dar_numero","t":"hospital","g":"salud","c":"a"}
+//
+//"Hola qué tal"
+//{"a":"desconocido","t":"","g":"otro","c":"b"}
+//
+//Texto:
+//"$textoUsuario"
+//
+//JSON:
+//""".trimIndent()
+//}
+
 fun construirPromptNLP(textoUsuario: String): String {
     return """
 Eres un extractor NLP de emergencias.
-Devuelve SOLO un objeto JSON válido.
+Responde SOLO JSON válido.
 
-Campos obligatorios:
-"a": llamar, whatsapp, dar_numero, buscar, ruta, info, distancia, desconocido
-"t": término clave en minúsculas
-"g": salud, seguridad u otro
+Formato:
+{"a":"","t":"","g":"","c":""}
+
+Campos:
+"a": ruta, dar_numero, llamar, whatsapp, info, distancia, buscar, desconocido
+"t": término clave normalizado en minúsculas sin artículos
+"g": salud, seguridad, otro
 "c": a (alta), m (media), b (baja)
 
 Reglas:
-- Si no hay acción clara, usa "desconocido"
-- No agregues texto fuera del JSON
-- No expliques nada
+- Si solo reporta un hecho → "a":"desconocido"
+- Si es saludo o no se entiende → {"a":"desconocido","t":"","g":"otro","c":"b"}
+- No expliques nada.
+- No agregues texto fuera del JSON.
 
-Ejemplos:
-"Quiero ir a la comisaría central"
-{"a":"ruta","t":"comisaría","g":"seguridad","c":"a"}
+Ejemplo:
+"Me robaron el celular"
+{"a":"desconocido","t":"robo","g":"seguridad","c":"a"}
 
-"Dime el teléfono del hospital regional"
-{"a":"dar_numero","t":"hospital","g":"salud","c":"a"}
-
-"Hola qué tal"
-{"a":"desconocido","t":"","g":"otro","c":"b"}
-
-Texto:
-"$textoUsuario"
-
-JSON:
+Texto: "$textoUsuario"
 """.trimIndent()
 }
-

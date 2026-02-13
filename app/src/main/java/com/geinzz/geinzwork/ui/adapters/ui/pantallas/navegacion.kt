@@ -158,9 +158,15 @@ fun nativationWrapper(
 
                 is UiAction.AbrirPerfil -> TODO()
                 is UiAction.Abrir_pantalla_promos_cecanas -> {
-                    id_promo_params=action.id_promocion
-                    navController.navigate(promociones_y_ofertas(action.localida_tienda,id_promo_params))
+                    id_promo_params = action.id_promocion
+                    navController.navigate(
+                        promociones_y_ofertas(
+                            action.localida_tienda,
+                            id_promo_params
+                        )
+                    )
                 }
+
                 is UiAction.ReviewPrivada -> TODO()
                 is UiAction.ReviewPublica -> TODO()
                 is UiAction.Ruta -> TODO()
@@ -287,7 +293,6 @@ fun nativationWrapper(
 //                Log.e("TOKENS", "🔥 Error al obtener tokens", e)
 //            }
 //    }
-
 
 
     LaunchedEffect(currentRoute) {
@@ -433,9 +438,9 @@ fun nativationWrapper(
                         listener_seguridad = { localida ->
                             navController.navigate(ui_salud_seguridad(localida))
                         },
-                        listner_sevicios_tramites = { localidad,id ->
+                        listner_sevicios_tramites = { localidad, id ->
 //                            navController.navigate(ui_servicios_tramites(localidad))
-                            navController.navigate(promociones_y_ofertas(localidad,id))
+                            navController.navigate(promociones_y_ofertas(localidad, id))
 
                         },
                         abrir_guardar_datos = {
@@ -444,7 +449,7 @@ fun nativationWrapper(
 //                                                        "Mira ese nuevo negocio en geinz notificacion de prueva ",
 //                                                        "Encuentralo a unos pasos cerca de ti "
 //                                                    )
-                                           navController.navigate(ui_agregar_lugares)
+                            navController.navigate(ui_agregar_lugares)
                             //                            pasar_teindas_nuevas()
 
                         },
@@ -455,7 +460,10 @@ fun nativationWrapper(
                         iniciar_seccion = { navController.navigate("login_principal") },
                         crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
-                        }, abir_butom_Var = {isvisble_buttomvar=true}, cerrar_buttom_var = {isvisble_buttomvar=false},{
+                        },
+                        abir_butom_Var = { isvisble_buttomvar = true },
+                        cerrar_buttom_var = { isvisble_buttomvar = false },
+                        {
                             navController.navigate("pantalla_principal") {
                                 popUpTo("pantalla_principal") {
                                     inclusive = true
@@ -589,7 +597,7 @@ fun nativationWrapper(
                         })
                 }
 
-                composable<promociones_y_ofertas> {navback ->
+                composable<promociones_y_ofertas> { navback ->
                     val datos = navback.toRoute<promociones_y_ofertas>()
                     ui_promos_cerca_de_ti(
                         "clik_directo",
@@ -601,14 +609,16 @@ fun nativationWrapper(
                         },
                         crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
-                        }, onBack = {
+                        },
+                        onBack = {
                             navController.navigate("pantalla_principal") {
                                 popUpTo("pantalla_principal") {
                                     inclusive = true
                                 }
                                 launchSingleTop = true
                             }
-                        }, )
+                        },
+                    )
                 }
 
                 composable<map_perzonalizado> { navback ->
@@ -659,7 +669,7 @@ fun nativationWrapper(
                 }
 
                 composable<login_scios> {
-                    login_socios(isConnected,"",navController)
+                    login_socios(isConnected, "", navController)
                 }
 
                 composable<crear_cuenta_geinz> { navback ->
@@ -673,7 +683,8 @@ fun nativationWrapper(
 
                 composable<ui_salud_seguridad> { navback ->
                     val salud_Seguridad = navback.toRoute<ui_salud_seguridad>()
-                    ui_salud_seguirdad(     id_respado_user,
+                    ui_salud_seguirdad(
+                        datos_user?.nombre ?: "", id_respado_user,
                         viewmode_segurirdad_Salud,
                         localida = salud_Seguridad.localidad,
                         abrir_mapa = { latitud, longitud ->
@@ -688,7 +699,7 @@ fun nativationWrapper(
 
                 composable<ui_servicios_tramites> { navback ->
                     val servicio = navback.toRoute<ui_servicios_tramites>()
-                    ui_servicio_tramite(isConnected, servicio.localidad,id_respado_user)
+                    ui_servicio_tramite(isConnected, servicio.localidad, id_respado_user)
                 }
 
                 composable(
@@ -755,7 +766,9 @@ fun nativationWrapper(
                 }
 
                 composable("salud_y_seguridad") {
-                    ui_salud_seguirdad(     id_respado_user,
+                    ui_salud_seguirdad(
+                        datos_user?.nombre ?: "",
+                        id_respado_user,
                         viewmode_segurirdad_Salud,
                         localida = "barranca",
                         abrir_mapa = { latitud, longitud ->
@@ -773,20 +786,20 @@ fun nativationWrapper(
                         iniciar_normal = { navController.navigate("login_principal") })
                 }
                 composable("servicios_y_tramites") {
-                    ui_servicio_tramite(isConnected, "barranca",id_respado_user)
+                    ui_servicio_tramite(isConnected, "barranca", id_respado_user)
                 }
 
                 composable("promocionar_ads") {
-                    login_socios(isConnected,"envio",navController)
+                    login_socios(isConnected, "envio", navController)
                 }
                 composable("promocionar_rec") {
-                    login_socios(isConnected,"recargas",navController)
+                    login_socios(isConnected, "recargas", navController)
                 }
 
                 composable("promocionar_rec") {
-                    login_socios(isConnected,"envio",navController)
+                    login_socios(isConnected, "envio", navController)
                 }
-                composable ("promociones_nuevas"){
+                composable("promociones_nuevas") {
                     ui_promos_cerca_de_ti(
                         "promociones_nuevas",
                         id_promo_params,
@@ -797,7 +810,7 @@ fun nativationWrapper(
                         },
                         crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
-                        },{
+                        }, {
                             navController.navigate("pantalla_principal") {
                                 popUpTo("pantalla_principal") {
                                     inclusive = true
