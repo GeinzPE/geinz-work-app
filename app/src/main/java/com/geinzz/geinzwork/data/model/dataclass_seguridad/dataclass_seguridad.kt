@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.data.model.dataclass_seguridad
 
 import android.os.Parcelable
+import com.google.firebase.Timestamp
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -14,7 +15,8 @@ data class dataclass_seguridad(
     val referencia: String="",
     val img_ref:String="",
     val categoria:String="",
-    val etiquetas_categorias: List<String>
+    val etiqutas_emergencias: List<String>,
+    val etiquetas_no_urgente: List<String>
 ): Parcelable
 
 data class dialog_seguridad_salud_algolia(
@@ -33,3 +35,12 @@ data class RespuestaNLP(
     val c: String,  // confianza
     val g:String,
 )
+
+data class FrasePendiente(
+    val texto: String,
+    val accion :String,
+    val termino:String,
+    val salud_o_sec:String,
+    val categoriazacion:String
+)
+

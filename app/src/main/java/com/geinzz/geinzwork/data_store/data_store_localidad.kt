@@ -7,14 +7,20 @@ import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.geinzz.geinzwork.data.model.dataclass_seguridad.FrasePendiente
+import com.google.common.reflect.TypeToken
+import com.google.firebase.Timestamp
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import org.json.JSONArray
 import java.io.IOException
+import kotlin.text.set
 
 val Context.dataStore by preferencesDataStore(name = "settings")
 
@@ -43,6 +49,66 @@ object data_store_localidad {
     private val KEY_ID_SOCIO = stringPreferencesKey("id_key_socio")
 
     private val LOCALIDAD_SOCIO_TIENDA =stringPreferencesKey("localidad_tienda_socio")
+
+    val FRASES_KEY = stringPreferencesKey("frases_pendientes")
+
+    val APERTURA_APARTADO_KEY = intPreferencesKey("apertura_apartado")
+
+
+    suspend fun resetearContador(context: Context) {
+        context.dataStore.edit { prefs ->
+            prefs[APERTURA_APARTADO_KEY] = 0
+        }
+    }
+    suspend fun limpiarFrasesLocales(context: Context) {
+        context.dataStore.edit { prefs ->
+            prefs.remove(FRASES_KEY)
+        }
+    }
+
+
+    suspend fun incrementarAperturaApartado(context: Context) {
+        context.dataStore.edit { prefs ->
+            val actual = prefs[APERTURA_APARTADO_KEY] ?: 0
+            prefs[APERTURA_APARTADO_KEY] = actual + 1
+        }
+    }
+
+    suspend fun obtenerCantidadAperturas(context: Context): Int {
+        val prefs = context.dataStore.data.first()
+        return prefs[APERTURA_APARTADO_KEY] ?: 0
+    }
+
+
+    suspend fun obtenerFrases(context: Context): List<FrasePendiente> {
+
+        val prefs = context.dataStore.data.first()
+        val json = prefs[FRASES_KEY] ?: return emptyList()
+
+        val type = object : TypeToken<List<FrasePendiente>>() {}.type
+        return Gson().fromJson(json, type)
+    }
+
+    suspend fun guardarFraseNoReconocida(context: Context, i:FrasePendiente) {
+
+        val nuevaFrase = FrasePendiente(
+            texto = i.texto,
+            accion = i.accion,
+            termino = i.termino,
+            salud_o_sec = i.salud_o_sec,
+            categoriazacion = i.categoriazacion
+        )
+
+        val listaActual = obtenerFrases(context).toMutableList()
+        listaActual.add(nuevaFrase)
+
+        val json = Gson().toJson(listaActual)
+
+        context.dataStore.edit { prefs ->
+            prefs[FRASES_KEY] = json
+        }
+    }
+
 
 
     suspend fun set_id_socio(context: Context, id: String) {

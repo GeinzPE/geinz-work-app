@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -19,6 +20,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,20 +38,68 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.model.repo_seguridad_salud
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.utils.constantes.constantes.constantestextos_general.copiarTexto_portapapeles_compouse
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
+import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
+import com.google.android.gms.location.FusedLocationProviderClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.net.URLEncoder
 
 
 val REQUEST_CALL_PHONE = 1
 
 @Composable
-fun dialog_llamada_urgencias(lista_numeros: List<String>, tipo: String, ondimiss: () -> Unit) {
+fun dialog_llamada_urgencias(
+    fusedLocationClient: FusedLocationProviderClient,
+    viewmodeSeguridadSalud: viewmode_seguridad_salud,
+    lista_numeros: List<String>,
+    tipo: String,
+    ondimiss: () -> Unit
+) {
     val context = LocalContext.current
     var call_dialog_permise by rememberSaveable { mutableStateOf(false) }
     var numero_llamada by rememberSaveable { mutableStateOf("") }
+    val repo_seguridad__salud = repo_seguridad_salud()
+    val es_una_emergencia_conctactar by viewmodeSeguridadSalud.es_una_emergegecia.collectAsState()
+    var texto_emergencia by remember { mutableStateOf("") }
+
+//    LaunchedEffect(es_una_emergencia_conctactar) {
+//
+//        if (es_una_emergencia_conctactar) {
+//
+//            val datosConCallback =
+//                repo_seguridad__salud.obtenerUbicacionUsuarioCancelable(fusedLocationClient)
+//
+//            val datos = datosConCallback.latLng
+//
+//            Log.d("VER_DISTANCIA", "Lat=${datos.latitude}, Lng=${datos.longitude}")
+//
+//            repo_seguridad__salud.cancelarUbicacion(
+//                fusedLocationClient,
+//                datosConCallback.callback
+//            )
+//
+//            // 🔥 Construimos el link real con coordenadas dinámicas
+//            val linkUbicacion =
+//                "https://www.google.com/maps/dir/?api=1&destination=${datos.latitude},${datos.longitude}"
+//
+//            texto_emergencia = """
+//🚨 EMERGENCIA REAL 🚨
+//Me encuentro en esta ubicación:
+//$linkUbicacion
+//
+//Necesito apoyo rápidamente.
+//Geinz
+//""".trimIndent()
+//
+//        }
+//    }
+
     AlertDialog(
         onDismissRequest = { ondimiss() },
         confirmButton = {},
@@ -71,24 +122,53 @@ fun dialog_llamada_urgencias(lista_numeros: List<String>, tipo: String, ondimiss
                             i, tipo,
                             click_icon = {
                                 if (tipo.equals("whatsapp")) {
-                                    val uri = Uri.parse(
-                                        "https://api.whatsapp.com/send?phone=${"+51 $i"}&text=${
-                                            URLEncoder.encode(
-                                                "",
-                                                "UTF-8"
+
+                                    CoroutineScope(Dispatchers.Main).launch {
+
+                                        if (es_una_emergencia_conctactar) {
+
+                                            val datosConCallback =
+                                                repo_seguridad__salud.obtenerUbicacionUsuarioCancelable(
+                                                    fusedLocationClient
+                                                )
+
+                                            val datos = datosConCallback.latLng
+
+                                            repo_seguridad__salud.cancelarUbicacion(
+                                                fusedLocationClient,
+                                                datosConCallback.callback
                                             )
-                                        }"
-                                    )
-                                    val intent = Intent(Intent.ACTION_VIEW, uri)
-                                    try {
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        Toast.makeText(
-                                            context,
-                                            "no se pudo abrir whatsapp",
-                                            Toast.LENGTH_LONG
-                                        )
-                                            .show()
+
+                                            val linkUbicacion =
+                                                "https://www.google.com/maps/dir/?api=1&destination=${datos.latitude},${datos.longitude}"
+
+                                            val mensajeFinal = """
+🚨 EMERGENCIA REAL 🚨
+Me encuentro en esta ubicación:
+$linkUbicacion
+
+Necesito apoyo rápidamente.
+Geinz
+""".trimIndent()
+
+                                            val uri = Uri.parse(
+                                                "https://api.whatsapp.com/send?phone=+51937659216&text=${
+                                                    URLEncoder.encode(mensajeFinal, "UTF-8")
+                                                }"
+                                            )
+
+                                            val intent = Intent(Intent.ACTION_VIEW, uri)
+                                            context.startActivity(intent)
+
+                                        } else {
+                                            // 🔥 Solo abre WhatsApp sin texto
+                                            val uri = Uri.parse(
+                                                "https://api.whatsapp.com/send?phone=+51937659216"
+                                            )
+
+                                            val intent = Intent(Intent.ACTION_VIEW, uri)
+                                            context.startActivity(intent)
+                                        }
                                     }
                                 } else if (tipo.equals("llamada")) {
                                     if (ContextCompat.checkSelfPermission(

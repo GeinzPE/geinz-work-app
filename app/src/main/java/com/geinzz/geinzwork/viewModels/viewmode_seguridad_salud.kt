@@ -21,8 +21,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.EntidadNLP
+import com.geinzz.geinzwork.data.model.dataclass_seguridad.FrasePendiente
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.RespuestaNLP
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
+import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.data_store.data_store_localidad.incrementarAperturaApartado
+import com.geinzz.geinzwork.data_store.data_store_localidad.limpiarFrasesLocales
+import com.geinzz.geinzwork.data_store.data_store_localidad.obtenerCantidadAperturas
+import com.geinzz.geinzwork.data_store.data_store_localidad.obtenerFrases
+import com.geinzz.geinzwork.data_store.data_store_localidad.resetearContador
 import com.geinzz.geinzwork.model.repo_seguridad_salud
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.REQUEST_CALL_PHONE
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
@@ -31,6 +38,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.firebase.Timestamp
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -72,10 +80,12 @@ class viewmode_seguridad_salud : ViewModel() {
     var estadoBusqueda = mutableStateOf(Estado_busqueda.IDLE)
         private set
 
-    var nombre_user =MutableStateFlow("")
+    val es_una_emergegecia = MutableStateFlow(false)
 
-    fun nombre_user (nombre:String){
-        nombre_user.value=nombre
+    var nombre_user = MutableStateFlow("")
+
+    fun nombre_user(nombre: String) {
+        nombre_user.value = nombre
     }
 
 
@@ -383,8 +393,19 @@ class viewmode_seguridad_salud : ViewModel() {
                         }
                     }
                 } ?: run {
-                    // Si no se encontró la entidad
-                    cloudTTS("Losiento no entendi lo que me quiziste decir")
+                    val (mensaje, listaResultado) =
+                        resolverPorTexto(
+                            texto_origina,
+                            lista_general_original_inmutable.value,
+                            r.g
+                        )
+
+                    cloudTTS(mensaje)
+                    titulo_mostrado.value = mensaje
+                    texto_mostrado.value = mensaje
+                    listaResultado?.let {
+                        _state_lista_filtrada.value = carga_seguidad.succes(it)
+                    }
                 }
                 estadoBusqueda.value = Estado_busqueda.IDLE
                 _mostrar_micro.value = true
@@ -407,6 +428,21 @@ class viewmode_seguridad_salud : ViewModel() {
                     estadoBusqueda.value = Estado_busqueda.IDLE
                     _mostrar_micro.value = true
                     return
+                } else {
+                    es_una_emergegecia.value = true
+                    val (mensaje, listaResultado) =
+                        resolverPorTexto(
+                            texto_origina,
+                            lista_general_original_inmutable.value,
+                            r.g
+                        )
+
+                    cloudTTS(mensaje)
+                    titulo_mostrado.value = mensaje
+                    texto_mostrado.value = mensaje
+                    listaResultado?.let {
+                        _state_lista_filtrada.value = carga_seguidad.succes(it)
+                    }
                 }
 
 
@@ -429,6 +465,19 @@ class viewmode_seguridad_salud : ViewModel() {
                     println("No se encontró número de WhatsApp")
 
                     cloudTTS("No se encontró número de WhatsApp ${entidad?.key ?: r.t} ")
+                    viewModelScope.launch {
+                        val datos_a_enviar = FrasePendiente(
+                            texto = texto_origina,
+                            accion = r.a,
+                            termino = r.t,
+                            salud_o_sec = r.g,
+                            categoriazacion = r.c
+                        )
+                        data_store_localidad.guardarFraseNoReconocida(
+                            context,
+                            datos_a_enviar
+                        )
+                    }
                     estadoBusqueda.value = Estado_busqueda.IDLE
                     _mostrar_micro.value = true
                 }
@@ -437,7 +486,6 @@ class viewmode_seguridad_salud : ViewModel() {
                 titulo_mostrado.value = "Abriendo Whattsapp"
                 texto_mostrado.value = "Abriendo Whattsapp"
                 Log.d("NLP_DEBUG2", "Detectado: WHATSAPP a '${entidad?.key ?: r.t}'")
-//                val texto=generarTextoContacto(lista_general_original_inmutable.value,entidad?.key ?: r.t)
                 estadoBusqueda.value = Estado_busqueda.IDLE
                 _mostrar_micro.value = true
             }
@@ -454,16 +502,44 @@ class viewmode_seguridad_salud : ViewModel() {
                         titulo_mostrado.value = "Aqui tienes tus resultados"
                         texto_mostrado.value = "claro el número de ${entidad.key} es $it"
                     } ?: cloudTTS("No se encontró el número")
+                    viewModelScope.launch {
+                        val datos_a_enviar = FrasePendiente(
+                            texto = texto_origina,
+                            accion = r.a,
+                            termino = r.t,
+                            salud_o_sec = r.g,
+                            categoriazacion = r.c
+                        )
+                        data_store_localidad.guardarFraseNoReconocida(
+                            context,
+                            datos_a_enviar
+                        )
+                    }
                     estadoBusqueda.value = Estado_busqueda.IDLE
                     _mostrar_micro.value = true
                     return
+                }else{
+                    val (mensaje, listaResultado) =
+                        resolverPorTexto(
+                            texto_origina,
+                            lista_general_original_inmutable.value,
+                            r.g
+                        )
+
+                    cloudTTS(mensaje)
+                    titulo_mostrado.value = mensaje
+                    texto_mostrado.value = mensaje
+                    listaResultado?.let {
+                        _state_lista_filtrada.value = carga_seguidad.succes(it)
+                    }
+                    estadoBusqueda.value = Estado_busqueda.IDLE
+                    _mostrar_micro.value = true
                 }
 
-                cloudTTS("¿De qué institución necesitas el número?")
+//                cloudTTS("¿De qué institución necesitas el número?")
 
-                texto_mostrado.value = "¿De qué institución necesitas el número?"
-                estadoBusqueda.value = Estado_busqueda.IDLE
-                _mostrar_micro.value = true
+//                texto_mostrado.value = "¿De qué institución necesitas el número?"
+
             }
 
             "buscar" -> {
@@ -482,6 +558,19 @@ class viewmode_seguridad_salud : ViewModel() {
                     _state_lista_filtrada.value =
                         carga_seguidad.empity("No se encontraron resultados para ${r.t}")
                     cloudTTS("No se encontraron resultados para ${r.t}")
+                    viewModelScope.launch {
+                        val datos_a_enviar = FrasePendiente(
+                            texto = texto_origina,
+                            accion = r.a,
+                            termino = r.t,
+                            salud_o_sec = r.g,
+                            categoriazacion = r.c
+                        )
+                        data_store_localidad.guardarFraseNoReconocida(
+                            context,
+                            datos_a_enviar
+                        )
+                    }
                     texto_mostrado.value = "No se encontraron resultados para ${r.t} :("
                 }
 
@@ -554,24 +643,52 @@ class viewmode_seguridad_salud : ViewModel() {
             "desconocido" -> {
 
                 if (r.g == "otro") {
-
+                    es_una_emergegecia.value = false
                     cloudTTS("No entendí tu solicitud. ¿Podrías repetirlo?")
+                    viewModelScope.launch {
+                        val datos_a_enviar = FrasePendiente(
+                            texto = texto_origina,
+                            accion = r.a,
+                            termino = r.t,
+                            salud_o_sec = r.g,
+                            categoriazacion = r.c
+                        )
+                        data_store_localidad.guardarFraseNoReconocida(
+                            context,
+                            datos_a_enviar
+                        )
+                    }
                     texto_mostrado.value = "No entendí tu solicitud."
 
                 } else {
-
+                    es_una_emergegecia.value = true
                     val (mensaje, listaResultado) =
                         resolverPorTexto(
                             texto_origina,
                             lista_general_original_inmutable.value,
                             r.g
                         )
+                    if (listaResultado.isNullOrEmpty()) {
+                        viewModelScope.launch {
+                            val datos_a_enviar = FrasePendiente(
+                                texto = texto_origina,
+                                accion = r.a,
+                                termino = r.t,
+                                salud_o_sec = r.g,
+                                categoriazacion = r.c
+                            )
+                            data_store_localidad.guardarFraseNoReconocida(
+                                context,
+                                datos_a_enviar
+                            )
+                        }
+                    }
 
                     cloudTTS(mensaje)
                     titulo_mostrado.value = mensaje
                     texto_mostrado.value = mensaje
                     listaResultado?.let {
-                    _state_lista_filtrada.value = carga_seguidad.succes(it)
+                        _state_lista_filtrada.value = carga_seguidad.succes(it)
                     }
 
                 }
@@ -593,32 +710,9 @@ class viewmode_seguridad_salud : ViewModel() {
         }
     }
 
-    fun tieneSimilitud(
-        token: String,
-        etiqueta: String,
-        minCoincidencias: Int = 4
-    ): Boolean {
-
-        val t = token.lowercase()
-        val e = etiqueta.lowercase()
-
-        // Match directo completo
-        if (t.contains(e) || e.contains(t)) return true
-
-        if (e.length >= minCoincidencias) {
-            val raizEtiqueta = e.take(minCoincidencias)
-
-            // Detecta raíz dentro del token
-            if (t.contains(raizEtiqueta)) return true
-        }
-
-        if (t.length >= minCoincidencias) {
-            val raizToken = t.take(minCoincidencias)
-
-            if (e.contains(raizToken)) return true
-        }
-
-        return false
+    fun esEmergencia(texto: String, categoria: String, lista: List<dataclass_seguridad>): Boolean {
+        val (_, listaResultado) = resolverPorTexto(texto, lista, categoria)
+        return !listaResultado.isNullOrEmpty()
     }
 
     fun resolverPorTexto(
@@ -662,7 +756,7 @@ class viewmode_seguridad_salud : ViewModel() {
 
             Log.d("MATCH_DEBUG", "----- Analizando entidad: ${entidad.nombre_} -----")
 
-            for (etiqueta in entidad.etiquetas_categorias) {
+            for (etiqueta in entidad.etiqutas_emergencias) {
 
                 for (token in tokens) {
 
@@ -693,14 +787,16 @@ class viewmode_seguridad_salud : ViewModel() {
             }
         }
 
-        Log.d("NLP_DEBUG_RESUMEN", """
+        Log.d(
+            "NLP_DEBUG_RESUMEN", """
         Texto: $texto
         Categoria: $g
         Tokens: $tokens
         ListaFiltradaSize: ${listaFiltrada.size}
         MejorEntidad: ${mejorEntidad?.nombre_}
         MaxCoincidencias: $maxCoincidencias
-    """.trimIndent())
+    """.trimIndent()
+        )
 
         return if (mejorEntidad != null && maxCoincidencias > 0) {
 
@@ -728,6 +824,33 @@ class viewmode_seguridad_salud : ViewModel() {
     }
 
 
+    fun tieneSimilitud(
+        token: String,
+        etiqueta: String,
+        minCoincidencias: Int = 4
+    ): Boolean {
+
+        val t = token.lowercase()
+        val e = etiqueta.lowercase()
+
+        // Match directo completo
+        if (t.contains(e) || e.contains(t)) return true
+
+        if (e.length >= minCoincidencias) {
+            val raizEtiqueta = e.take(minCoincidencias)
+
+            // Detecta raíz dentro del token
+            if (t.contains(raizEtiqueta)) return true
+        }
+
+        if (t.length >= minCoincidencias) {
+            val raizToken = t.take(minCoincidencias)
+
+            if (e.contains(raizToken)) return true
+        }
+
+        return false
+    }
 
 
     fun obtenerMensajeCalmaUI(
@@ -1407,12 +1530,12 @@ class viewmode_seguridad_salud : ViewModel() {
     fun requestCallPermission(llamar: Boolean = true, context: Context, phoneNumber: String = "") {
         if (ContextCompat.checkSelfPermission(
                 context,
-                android.Manifest.permission.CALL_PHONE
+                Manifest.permission.CALL_PHONE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(
                 context as Activity,
-                arrayOf(android.Manifest.permission.CALL_PHONE),
+                arrayOf(Manifest.permission.CALL_PHONE),
                 REQUEST_CALL_PHONE
             )
         } else {
@@ -1427,7 +1550,7 @@ class viewmode_seguridad_salud : ViewModel() {
         callIntent.data = Uri.parse("tel:$phoneNumber")
         if (ActivityCompat.checkSelfPermission(
                 context,
-                android.Manifest.permission.CALL_PHONE
+                Manifest.permission.CALL_PHONE
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             context.startActivity(callIntent)
@@ -1436,6 +1559,66 @@ class viewmode_seguridad_salud : ViewModel() {
         }
     }
 
+    fun controlarEntrenamiento(context: Context) {
+
+        viewModelScope.launch {
+
+            Log.d("ENTRENAMIENTO_DEBUG", "🚀 Iniciando controlarEntrenamiento")
+
+            // 1️⃣ Incrementar
+            Log.d("ENTRENAMIENTO_DEBUG", "📈 Incrementando contador...")
+            incrementarAperturaApartado(context)
+
+            // 2️⃣ Obtener valor actualizado
+            val veces = obtenerCantidadAperturas(context)
+            Log.d("ENTRENAMIENTO_DEBUG", "🔢 Cantidad de aperturas actuales: $veces")
+
+            if (veces >= 5) {
+
+                Log.d("ENTRENAMIENTO_DEBUG", "✅ Se alcanzó el límite de 5 aperturas")
+
+                val lista = obtenerFrases(context)
+                Log.d("ENTRENAMIENTO_DEBUG", "📦 Frases obtenidas: ${lista.size}")
+
+                if (lista.isNotEmpty()) {
+
+                    Log.d(
+                        "ENTRENAMIENTO_DEBUG",
+                        "📤 Enviando lista a guardar_lista_entrenamiento..."
+                    )
+                    Log.d("ENTRENAMIENTO_DEBUG", "📝 Contenido de lista: $lista")
+
+                    instancia.guardar_lista_entrenamiento(lista)
+
+                    Log.d("ENTRENAMIENTO_DEBUG", "♻️ Reseteando contador...")
+                    resetearContador(context)
+
+                    Log.d("ENTRENAMIENTO_DEBUG", "🧹 Limpiando frases locales...")
+                    limpiarFrasesLocales(context)
+
+                    Log.d(
+                        "ENTRENAMIENTO_DEBUG",
+                        "🎉 Proceso de entrenamiento completado correctamente"
+                    )
+
+                } else {
+                    resetearContador(context)
+                    Log.d(
+                        "ENTRENAMIENTO_DEBUG",
+                        "⚠️ La lista de frases está vacía, no se enviará nada"
+                    )
+                }
+
+            } else {
+                Log.d(
+                    "ENTRENAMIENTO_DEBUG",
+                    "⛔ Aún no se alcanza el mínimo requerido (5). Faltan: ${5 - veces}"
+                )
+            }
+
+            Log.d("ENTRENAMIENTO_DEBUG", "🏁 Fin de controlarEntrenamiento")
+        }
+    }
 
     enum class EstadoMic {
         IDLE,        // mic normal

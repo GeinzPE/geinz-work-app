@@ -94,6 +94,7 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
+import com.geinzz.geinzwork.data_store.data_store_localidad.incrementarAperturaApartado
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_compartir.compartir_pantalla_completa
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TypewriterText
@@ -163,6 +164,8 @@ fun ui_salud_seguirdad(nombre_user:String,
     DisposableEffect(Unit) {
         onDispose {
             viewmode_segurirdad_Salud.limpiarEstado()
+
+
         }
     }
 
@@ -203,6 +206,8 @@ fun ui_salud_seguirdad(nombre_user:String,
     LaunchedEffect(Unit) {
         viewmode_segurirdad_Salud.nombre_user(nombre_user)
         viewmode_segurirdad_Salud.obtener_servicios(localida, context)
+
+        viewmode_segurirdad_Salud.controlarEntrenamiento(context)
     }
 
     LaunchedEffect(lista_seguridad_salud) {
@@ -404,6 +409,7 @@ fun ui_salud_seguirdad(nombre_user:String,
                                 id_user,
                                 viewmode_segurirdad_Salud,
                                 i,
+                                fusedLocationClient,
                                 abrir_mapa = { la, lo ->
                                     viewmode_segurirdad_Salud.setCoordenadas(la, lo)
                                     abrir_mapa(la, lo)
@@ -1176,6 +1182,7 @@ fun carta_salud_cuidad(
     id_user: String,
     viewmode_segurirdad_Salud: viewmode_seguridad_salud,
     i: dataclass_seguridad,
+    fusedLocationClient: FusedLocationProviderClient,
     abrir_mapa: (latitud: Double, longitud: Double) -> Unit
 ) {
     val context = LocalContext.current
@@ -1301,7 +1308,7 @@ fun carta_salud_cuidad(
             abrir_maps = { constantes.abrirGoogleMaps(context, i.direccion) })
     }
     if (dialogo_contacto) {
-        dialog_llamada_urgencias(lista_numero, icono_dialogo) {
+        dialog_llamada_urgencias(fusedLocationClient,viewmode_segurirdad_Salud,lista_numero, icono_dialogo) {
             dialogo_contacto = false
         }
     }

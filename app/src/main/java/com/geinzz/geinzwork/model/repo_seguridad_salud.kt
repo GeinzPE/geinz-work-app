@@ -1,11 +1,13 @@
 package com.geinzz.geinzwork.model
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Base64
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import com.geinzz.geinzwork.data.model.dataclass_seguridad.FrasePendiente
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
 import com.geinzz.geinzwork.herramientas_geinz.constantes.construirPromptNLP
 import com.geinzz.geinzwork.herramientas_geinz.constantes.procesaro_por_vos
@@ -66,7 +68,8 @@ class repo_seguridad_salud {
                 val llamada = numero_contacto["llamada"] as? List<String> ?: emptyList()
                 val whatsapp = numero_contacto["whatsapp"] as? List<String> ?: emptyList()
 
-                val etiquetas_permitidas = data?.get("tags_evento") as? List<String> ?: emptyList()
+                val tag_eventos_emerge = data?.get("tag_eventos_emerge") as? List<String> ?: emptyList()
+                val tag_no_urgentes = data?.get("tag_no_urgentes") as? List<String> ?: emptyList()
 
                 val servicios = dataclass_seguridad(
                     nombre_ = data?.get("nombre") as? String ?: "",
@@ -77,7 +80,7 @@ class repo_seguridad_salud {
                     latidud = latitud,
                     longitud = longitud,
                     referencia = referencia,
-                    categoria = categoria, etiquetas_categorias = etiquetas_permitidas
+                    categoria = categoria, etiqutas_emergencias = tag_eventos_emerge,etiquetas_no_urgente=tag_no_urgentes
                 )
 
                 Log.d("DEBUG_SERVICIOS", "Objeto creado: $servicios")
@@ -95,7 +98,6 @@ class repo_seguridad_salud {
 
 
     fun atencion_24h(i: String): String {
-
         return when (i) {
             "Divpol Barranca" -> "Atencion 24horas (física)"
             "Comisaría PNP Barranca" -> "Atencion 24horas (física)"
@@ -304,6 +306,15 @@ class repo_seguridad_salud {
     ) {
         fusedLocationClient.removeLocationUpdates(callback)
         Log.d("VER_DISTANCIA", "❌ Cancelada la obtención de ubicación")
+    }
+
+    suspend fun guardar_lista_entrenamiento(lista: List<FrasePendiente>) {
+
+        val ref = db.collection("Entrenamiento_seguridad")
+
+        lista.forEach { frase ->
+            ref.add(frase)
+        }
     }
 
 
