@@ -38,7 +38,8 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -87,6 +88,23 @@ class viewmode_seguridad_salud : ViewModel() {
     fun nombre_user(nombre: String) {
         nombre_user.value = nombre
     }
+//    val mostrar_busqueda_por_NLP=MutableStateFlow(false)
+
+
+    fun agregar_mas_tags_cateogira(id: String, lista: List<String>) {
+
+        val db = FirebaseFirestore.getInstance()
+            .collection("Tiendas")
+            .document("salud_seguridad")
+            .collection("barranca")
+            .document(id)
+
+        db.update(
+            "tag_eventos_emerge",
+            FieldValue.arrayUnion(*lista.toTypedArray())
+        )
+    }
+
 
 
     var titulo_mostrado = MutableStateFlow("")
@@ -147,19 +165,27 @@ class viewmode_seguridad_salud : ViewModel() {
             _state_lista_filtrada.value = carga_seguidad.loading
             delay(2000)
             try {
-                if (!isInternetAvailable(context)) {
-                    _mostrar_carga_salud_seguridad.value = false
-                    _state_lista_filtrada.value = carga_seguidad.error("Sin conexión a internet 😕")
-                    return@launch
-                }
+//                if (!isInternetAvailable(context)) {
+//                    _mostrar_carga_salud_seguridad.value = false
+//                    _state_lista_filtrada.value = carga_seguidad.error("Sin conexión a internet 😕")
+//                    return@launch
+//                    mostrar_busqueda_por_NLP.value=false
+//                }else{
+//                    mostrar_busqueda_por_NLP.value=true
+//                }
                 val respuesta = instancia.obtener_servicios_salud(localidad)
                 datos_lugares.value = respuesta
                 lista_general_original_inmutable.value = respuesta
                 if (respuesta.isNotEmpty()) {
                     _mostrar_carga_salud_seguridad.value = false
                     _state_lista_filtrada.value = carga_seguidad.succes(respuesta)
-                    generarEntidadesNLP(respuesta)
-
+//                    generarEntidadesNLP(respuesta)
+                    _lista_entidades.value = respuesta.map { i ->
+                        EntidadNLP(
+                            key = i.nombre_,
+                            alias = i.key_alias
+                        )
+                    }
                 } else {
                     delay(300)
                     _mostrar_carga_salud_seguridad.value = false
@@ -630,8 +656,19 @@ class viewmode_seguridad_salud : ViewModel() {
                     val distancia = ver_distancia_lugar(
                         fusedLocationClient,
                         lista_general_original_inmutable.value,
+                        _lista_entidades.value,
                         r.t
                     )
+
+                    val lista_filtada =
+                        filtrarPorAlias(
+                            value1 = _lista_entidades.value,
+                            value = lista_general_original_inmutable.value,
+                            nombreBuscado = r.t
+                        )
+                    lista_filtada?.let {
+                        _state_lista_filtrada.value = carga_seguidad.succes(it)
+                    }
 
                     texto_mostrado.value = distancia
                     estadoBusqueda.value = Estado_busqueda.IDLE
@@ -687,6 +724,7 @@ class viewmode_seguridad_salud : ViewModel() {
                     cloudTTS(mensaje)
                     titulo_mostrado.value = mensaje
                     texto_mostrado.value = mensaje
+
                     listaResultado?.let {
                         _state_lista_filtrada.value = carga_seguidad.succes(it)
                     }
@@ -710,10 +748,67 @@ class viewmode_seguridad_salud : ViewModel() {
         }
     }
 
-    fun esEmergencia(texto: String, categoria: String, lista: List<dataclass_seguridad>): Boolean {
-        val (_, listaResultado) = resolverPorTexto(texto, lista, categoria)
-        return !listaResultado.isNullOrEmpty()
+
+    fun filtrarPorAlias(
+        value1: List<EntidadNLP>,
+        value: List<dataclass_seguridad>,
+        nombreBuscado: String
+    ): List<dataclass_seguridad>? {
+
+        Log.d("MATCH_DEBUG", "==============================")
+        Log.d("MATCH_DEBUG", "Nombre buscado: $nombreBuscado")
+
+        val nombreNormalizado = normalizar(nombreBuscado)
+
+        var keyEncontrada: String? = null
+
+        // 🔎 1. Buscar qué alias hace match
+        for (entidadNLP in value1) {
+
+            val aliasNormalizados = entidadNLP.alias.map { normalizar(it) }
+
+            for (alias in aliasNormalizados) {
+
+                Log.d("MATCH_DEBUG", "Comparando '$nombreNormalizado' con alias '$alias'")
+
+                if (nombreNormalizado.contains(alias)) {
+
+                    Log.d("MATCH_DEBUG", "✔ MATCH EN ALIAS: $alias")
+                    keyEncontrada = entidadNLP.key
+                    break
+                }
+            }
+
+            if (keyEncontrada != null) break
+        }
+
+        // ❌ Si no hubo match
+        if (keyEncontrada == null) {
+            Log.d("MATCH_DEBUG", "❌ No hubo match por alias")
+            return null
+        }
+
+        Log.d("MATCH_DEBUG", "Key encontrada: $keyEncontrada")
+
+        val keyNormalizada = normalizar(keyEncontrada!!)
+
+        val listaFiltrada = value.filter {
+            normalizar(it.nombre_).contains(keyNormalizada)
+        }
+
+        Log.d("MATCH_DEBUG", "Total entidades filtradas: ${listaFiltrada.size}")
+
+        return if (listaFiltrada.isNotEmpty()) {
+            listaFiltrada
+        } else {
+            Log.d("MATCH_DEBUG", "❌ No se encontró entidad real con esa key")
+            value
+        }
     }
+
+
+
+
 
     fun resolverPorTexto(
         texto: String,
@@ -900,27 +995,38 @@ class viewmode_seguridad_salud : ViewModel() {
 
 
         val mensajesBase = listOf(
-            "${nombre_user.value}, estoy aquí contigo. Mantén la calma y contacta a $nombreEntidad.$bloqueContacto",
 
-            "Respira despacio, ${nombre_user.value}. La ayuda está cerca con $nombreEntidad.$bloqueContacto",
+            "${nombre_user.value}, mantén la calma. $nombreEntidad está listo para ayudarte.$bloqueContacto",
 
-            "${nombre_user.value}, no estás solo. $nombreEntidad puede asistirte ahora mismo.$bloqueContacto",
+            "${nombre_user.value}, respira y actúa con tranquilidad. $nombreEntidad puede asistirte.$bloqueContacto",
 
-            "Mantén la serenidad, ${nombre_user.value}. $nombreEntidad está para ayudarte.$bloqueContacto",
+            "Confía, ${nombre_user.value}. $nombreEntidad está preparado para atenderte.$bloqueContacto",
 
-            "Tranquilo, ${nombre_user.value}. Estás haciendo lo correcto. Contacta a $nombreEntidad.$bloqueContacto",
+            "${nombre_user.value}, estás haciendo lo correcto. Comunícate con $nombreEntidad.$bloqueContacto",
 
-            "${nombre_user.value}, la ayuda está disponible. $nombreEntidad puede intervenir.$bloqueContacto",
+            "Todo va a estar bien, ${nombre_user.value}. $nombreEntidad puede intervenir.$bloqueContacto",
 
-            "Respira profundo, ${nombre_user.value}. $nombreEntidad puede atender esta situación.$bloqueContacto",
+            "${nombre_user.value}, mantente firme. $nombreEntidad puede brindarte apoyo.$bloqueContacto",
 
-            "Estoy contigo, ${nombre_user.value}. Busca apoyo en $nombreEntidad.$bloqueContacto",
+            "No pierdas la calma, ${nombre_user.value}. Contacta ahora a $nombreEntidad.$bloqueContacto",
 
-            "${nombre_user.value}, no entres en pánico. $nombreEntidad puede ayudarte.$bloqueContacto",
+            "${nombre_user.value}, la situación puede manejarse. $nombreEntidad está disponible.$bloqueContacto",
 
-            "${nombre_user.value}, la asistencia está cerca. Contacta a $nombreEntidad.$bloqueContacto"
+            "Con serenidad, ${nombre_user.value}. $nombreEntidad puede ayudarte en este momento.$bloqueContacto",
+
+            "${nombre_user.value}, actúa con tranquilidad. $nombreEntidad está para apoyarte.$bloqueContacto",
+
+            "Estoy contigo, ${nombre_user.value}. $nombreEntidad puede atender tu caso.$bloqueContacto",
+
+            "${nombre_user.value}, busca apoyo inmediato en $nombreEntidad.$bloqueContacto",
+
+            "Mantén el control, ${nombre_user.value}. $nombreEntidad puede asistirte.$bloqueContacto",
+
+            "${nombre_user.value}, no estás desprotegido. $nombreEntidad puede ayudarte.$bloqueContacto",
+
+            "Respira con calma, ${nombre_user.value}. La ayuda de $nombreEntidad está disponible.$bloqueContacto"
+
         )
-
 
         return mensajesBase.random()
     }
@@ -960,12 +1066,17 @@ class viewmode_seguridad_salud : ViewModel() {
     ): List<dataclass_seguridad> {
 
         val busqNormalizado = normalizar(textoBusqueda)
+        Log.d("NLP_DEBUG", "Texto de búsqueda normalizado: $busqNormalizado")
 
         // 🔥 CASO ESPECIAL: seguridad o salud
         if (busqNormalizado == "seguridad" || busqNormalizado == "salud") {
-            return entidades1.filter { dat ->
-                normalizar(dat.categoria) == busqNormalizado
+            val filtradoEspecial = entidades1.filter { dat ->
+                val catNormalizada = normalizar(dat.categoria)
+                Log.d("NLP_DEBUG", "Comparando categoría '${dat.categoria}' -> '$catNormalizada' con $busqNormalizado")
+                catNormalizada == busqNormalizado
             }
+            Log.d("NLP_DEBUG", "Resultado caso especial: ${filtradoEspecial.map { it.nombre_ }}")
+            return filtradoEspecial
         }
 
         // -----------------------------------------
@@ -975,19 +1086,34 @@ class viewmode_seguridad_salud : ViewModel() {
         val entidadesCoincidentes = entidades.filter { entidad ->
             val keyNormalizada = normalizar(entidad.key)
             val aliasNormalizados = entidad.alias.map { normalizar(it) }
-
-            keyNormalizada.contains(busqNormalizado) ||
+            val coincide = keyNormalizada.contains(busqNormalizado) ||
                     aliasNormalizados.any { it.contains(busqNormalizado) }
+
+            Log.d(
+                "NLP_DEBUG",
+                "Entidad: ${entidad.key}, keyNormalizada: $keyNormalizada, aliasNormalizados: $aliasNormalizados, coincide: $coincide"
+            )
+
+            coincide
         }
+
+        Log.d("NLP_DEBUG", "Entidades coincidentes: ${entidadesCoincidentes.map { it.key }}")
 
         val keysCoincidentes = entidadesCoincidentes.map { it.key }
+        Log.d("NLP_DEBUG", "Keys coincidentes: $keysCoincidentes")
 
-        return entidades1.filter { dat ->
-            keysCoincidentes.any {
+        val resultado = entidades1.filter { dat ->
+            val encontrado = keysCoincidentes.any {
                 dat.nombre_.contains(it, ignoreCase = true)
             }
+            Log.d("NLP_DEBUG", "Dat: ${dat.nombre_}, encontrado: $encontrado")
+            encontrado
         }
+
+        Log.d("NLP_DEBUG", "Resultado final filtrado: ${resultado.map { it.nombre_ }}")
+        return resultado
     }
+
 
 
     fun generarTextoLLamada(
@@ -1433,87 +1559,118 @@ class viewmode_seguridad_salud : ViewModel() {
     suspend fun ver_distancia_lugar(
         fusedLocationClient: FusedLocationProviderClient,
         value: List<dataclass_seguridad>,
+        valueAlias: List<EntidadNLP>,
         t: String
     ): String {
-        Log.d("VER_DISTANCIA", "🔍 Buscando coincidencia para: '$t' en la lista de lugares")
 
-        // Buscamos el lugar que coincida
-        val lugar = value.firstOrNull { it.nombre_.contains(t, ignoreCase = true) }
+        Log.d("VER_DISTANCIA", "===================================")
+        Log.d("VER_DISTANCIA", "🔍 Buscando coincidencia para: '$t'")
+
+        val terminoNormalizado = normalizar(t)
+
+        // 🔎 1. Buscar key por alias
+        var keyEncontrada: String? = null
+
+        for (entidadNLP in valueAlias) {
+
+            val aliasNormalizados = entidadNLP.alias.map { normalizar(it) }
+
+            if (aliasNormalizados.any { terminoNormalizado.contains(it) }) {
+                keyEncontrada = entidadNLP.key
+                Log.d("VER_DISTANCIA", "✔ Alias match → key encontrada: $keyEncontrada")
+                break
+            }
+        }
+
+        // 🔎 2. Buscar lugar real por nombre o por key
+        val lugar = value.firstOrNull {
+
+            val nombreNormalizado = normalizar(it.nombre_)
+
+            nombreNormalizado.contains(terminoNormalizado) ||
+                    (keyEncontrada != null && nombreNormalizado.contains(normalizar(keyEncontrada!!)))
+        }
+
         if (lugar == null) {
-            Log.d("VER_DISTANCIA", "❌ No se encontró ningún lugar que coincida con '$t'.")
+            Log.d("VER_DISTANCIA", "❌ No se encontró ningún lugar")
             return "Lo siento, no pude calcular la distancia en este momento 😔"
         }
 
-        val lat_lugar = lugar.latidud
-        val lng_lugar = lugar.longitud
+        Log.d("VER_DISTANCIA", "✅ Lugar encontrado: ${lugar.nombre_}")
+        Log.d("VER_DISTANCIA", "   Lat: ${lugar.latidud}, Lng: ${lugar.longitud}")
 
-        // Validamos que el lugar tenga coordenadas válidas
-        if (lat_lugar == 0.0 || lng_lugar == 0.0) {
-            Log.d(
-                "VER_DISTANCIA",
-                "⚠️ La entidad '${lugar.nombre_}' no tiene ubicación física registrada."
-            )
-            return "Esta entidad '${lugar.nombre_}' no cuenta con ubicación física, solo se puede acceder directamente."
+        val latLugar = lugar.latidud
+        val lngLugar = lugar.longitud
+
+        if (latLugar == 0.0 || lngLugar == 0.0) {
+            Log.d("VER_DISTANCIA", "⚠️ La entidad no tiene coordenadas válidas")
+            return "Esta entidad '${lugar.nombre_}' no cuenta con ubicación física registrada."
         }
 
-        Log.d("VER_DISTANCIA", "✅ Lugar encontrado: ${lugar.nombre_}")
-        Log.d("VER_DISTANCIA", "   Lat: $lat_lugar, Lng: $lng_lugar")
-
         return try {
+
             Log.d("VER_DISTANCIA", "🌐 Obteniendo ubicación del usuario...")
 
-            // Obtenemos la ubicación junto con el callback
-            val datosConCallback = instancia.obtenerUbicacionUsuarioCancelable(fusedLocationClient)
+            val datosConCallback =
+                instancia.obtenerUbicacionUsuarioCancelable(fusedLocationClient)
+
             val datos = datosConCallback.latLng
 
-            Log.d("VER_DISTANCIA", "📍 Ubicación del usuario obtenida")
-            Log.d("VER_DISTANCIA", "   Lat=${datos.latitude}, Lng=${datos.longitude}")
+            Log.d("VER_DISTANCIA", "📍 Ubicación usuario → Lat=${datos.latitude}, Lng=${datos.longitude}")
 
-            // Cancelamos la obtención de ubicación para no seguir recibiendo updates
-            instancia.cancelarUbicacion(fusedLocationClient, datosConCallback.callback)
-            Log.d("VER_DISTANCIA", "❌ Cancelada la obtención de ubicación")
-
-            // Validamos ubicación
-            if (datos.latitude == 0.0 || datos.longitude == 0.0) {
-                Log.d("VER_DISTANCIA", "⚠️ No se pudo obtener ubicación física del usuario")
-                return "No se pudo obtener tu ubicación actual para calcular la distancia 😔"
-            }
-
-            // Distancia pura en metros
-            val recorrido_puro = instancia.distanciaEnMetros(
-                datos.latitude,
-                datos.longitude,
-                lat_lugar,
-                lng_lugar
+            instancia.cancelarUbicacion(
+                fusedLocationClient,
+                datosConCallback.callback
             )
 
-            // Distancia bonita
+            Log.d("VER_DISTANCIA", "❌ Cancelada la obtención de ubicación")
+
+            if (datos.latitude == 0.0 || datos.longitude == 0.0) {
+                Log.d("VER_DISTANCIA", "⚠️ Ubicación usuario inválida")
+                return "No se pudo obtener tu ubicación actual 😔"
+            }
+
+            // 📏 Distancia en metros
+            val distanciaMetros = instancia.distanciaEnMetros(
+                datos.latitude,
+                datos.longitude,
+                latLugar,
+                lngLugar
+            )
+
+            // 📐 Distancia bonita
             val distanciaBonita = instancia.calcularDistanciaBonita(
                 datos.latitude,
                 datos.longitude,
-                lat_lugar,
-                lng_lugar
+                latLugar,
+                lngLugar
             )
+
             Log.d("VER_DISTANCIA", "📏 Distancia calculada: $distanciaBonita")
 
-            // Estimación de tiempo
-            val tiempoPie = estimarTiempo(recorrido_puro, 1.4)
-            val tiempoBici = estimarTiempo(recorrido_puro, 3.0)
-            val tiempoAuto = estimarTiempo(recorrido_puro, 8.3)
+            // ⏱ Estimaciones de tiempo
+            val tiempoPie = estimarTiempo(distanciaMetros, 1.4)   // velocidad promedio caminando (m/s)
+            val tiempoBici = estimarTiempo(distanciaMetros, 3.0)  // velocidad promedio en bici (m/s)
+            val tiempoMoto = estimarTiempo(distanciaMetros, 6.0)  // velocidad promedio en moto (m/s)
+            val tiempoAuto = estimarTiempo(distanciaMetros, 8.0)  // velocidad promedio en auto (m/s)
+            val tiempoCorriendo = estimarTiempo(distanciaMetros, 2.5) // corriendo ligero (m/s)
 
-            Log.d("VER_DISTANCIA", "⏱ Tiempo estimado a pie: $tiempoPie")
-            Log.d("VER_DISTANCIA", "⏱ Tiempo estimado en bici: $tiempoBici")
-            Log.d("VER_DISTANCIA", "⏱ Tiempo estimado en auto: $tiempoAuto")
+            Log.d("VER_DISTANCIA", "⏱ Tiempo a pie: $tiempoPie")
+            Log.d("VER_DISTANCIA", "⏱ Tiempo en bici: $tiempoBici")
+            Log.d("VER_DISTANCIA", "⏱ Tiempo en auto: $tiempoAuto")
 
-            // Texto final
-            "Estás aproximadamente a $distanciaBonita ($tiempoPie a pie, $tiempoBici en bici, $tiempoAuto en auto, dependiendo del tráfico) de ${lugar.nombre_}"
+            "Estás aproximadamente a $distanciaBonita de ${lugar.nombre_}. " +
+                    "Tiempo estimado: $tiempoPie a pie, $tiempoBici en bici, $tiempoMoto en moto, $tiempoAuto en auto, $tiempoCorriendo corriendo" +
+                    "O también puedes crear una ruta hacia ${lugar.nombre_} tocando aquí."
+
 
         } catch (e: Exception) {
-            Log.d("VER_DISTANCIA", "⚠️ Error al obtener ubicación o calcular distancia: $e")
-            "Lo siento, tuve un error al calcular la distancia 😔"
-        }
 
+            Log.d("VER_DISTANCIA", "⚠️ Error al calcular distancia: $e")
+            "Lo siento, ocurrió un error al calcular la distancia 😔"
+        }
     }
+
 
 
     fun estimarTiempo(distanciaMetros: Double, velocidadMS: Double): String {

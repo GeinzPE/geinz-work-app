@@ -3,10 +3,16 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad
 import android.Manifest
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
@@ -97,7 +103,6 @@ import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
 import com.geinzz.geinzwork.data_store.data_store_localidad.incrementarAperturaApartado
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_compartir.compartir_pantalla_completa
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TypewriterText
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -115,6 +120,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isInternetAvailable
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud.carga_seguidad
@@ -128,10 +134,26 @@ import java.io.ByteArrayOutputStream
 import kotlin.math.max
 import kotlin.math.pow
 
+
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
+import com.geinzz.geinzwork.model.repo_seguridad_salud
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TypewriterClickableText
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.enviarMensajeEmergencia
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.makePhoneCall
+import java.net.URLEncoder
+
+
 private val REQUEST_CALL_PHONE = 1
 
 @Composable
-fun ui_salud_seguirdad(nombre_user:String,
+fun ui_salud_seguirdad(
+    nombre_user: String,
     id_user: String,
     viewmode_segurirdad_Salud: viewmode_seguridad_salud,
     localida: String,
@@ -139,6 +161,9 @@ fun ui_salud_seguirdad(nombre_user:String,
 ) {
 
 
+    var mostrar_busqueda_por_NL by remember { mutableStateOf(false) }
+var mostar_dialog_permiso_llamada by remember { mutableStateOf(false) }
+    var numero_dialogo_permiso_llamda by remember { mutableStateOf("") }
     val lista_filtrado = listOf<String>("Todos", "salud", "seguridad")
     val lista_seguridad_salud by viewmode_segurirdad_Salud._datos_lugares.observeAsState(emptyList())
     val context = LocalContext.current
@@ -158,7 +183,11 @@ fun ui_salud_seguirdad(nombre_user:String,
     val dialogo_contacto by viewmode_segurirdad_Salud.callDialogPermise.collectAsState()
     val autoseleccion_filtrado by viewmode_segurirdad_Salud.categoira_filtrado_realziado.collectAsState()
     val autoseleccion_filtrado_solo_texto by viewmode_segurirdad_Salud.categoira_solo_texto_realizado.collectAsState()
+    val isInternetAvailable by rememberInternetState()
 
+    LaunchedEffect(isInternetAvailable) {
+        mostrar_busqueda_por_NL = isInternetAvailable
+    }
 
 
     DisposableEffect(Unit) {
@@ -201,6 +230,7 @@ fun ui_salud_seguirdad(nombre_user:String,
 
 
     }
+
 
     // Llama servicios iniciales
     LaunchedEffect(Unit) {
@@ -360,24 +390,29 @@ fun ui_salud_seguirdad(nombre_user:String,
                                 bottom = (paddingAnim - 5.dp).coerceAtLeast(0.dp)
                             )
                     ) {
-                        FiltradoTextField(
-                            permisoLauncher,
-                            launcher,
-                            fusedLocationClient,
-                            viewmodelSeguridadSalud = viewmode_segurirdad_Salud,
-                            onValueChange = {
-                                valor_filtrado = it
-                                viewmode_segurirdad_Salud.preguntar_gemini(
-                                    valor_filtrado,
-                                    context,
-                                    fusedLocationClient, launcher, permisoLauncher
-                                )
-                            },
-                            regresarListaCompleta = {
-                                viewmode_segurirdad_Salud.retornar_lista_comppleta()
-                                chip_selecionado = "Todos"
-                            })
-                        spacer_vertical(10.dp)
+                        if (mostrar_busqueda_por_NL) {
+                            FiltradoTextField(
+                                permisoLauncher,
+                                launcher,
+                                fusedLocationClient,
+                                viewmodelSeguridadSalud = viewmode_segurirdad_Salud,
+                                onValueChange = {
+                                    valor_filtrado = it
+                                    viewmode_segurirdad_Salud.preguntar_gemini(
+                                        valor_filtrado,
+                                        context,
+                                        fusedLocationClient, launcher, permisoLauncher
+                                    )
+                                },
+                                regresarListaCompleta = {
+                                    viewmode_segurirdad_Salud.retornar_lista_comppleta()
+                                    chip_selecionado = "Todos"
+                                },{numero->
+                                    mostar_dialog_permiso_llamada=true
+                                    numero_dialogo_permiso_llamda=numero
+                                })
+                            spacer_vertical(10.dp)
+                        }
                         chips_filtrado(
                             tienePermisoLlamada1 = tienePermisoLlamada,
                             context = context,
@@ -515,12 +550,21 @@ fun ui_salud_seguirdad(nombre_user:String,
                     requestPermissionLauncher.launch(android.Manifest.permission.CALL_PHONE)
                 })
         }
-        if (dialogo_contacto.first) {
-            permisos_llamadas(aceptar_permisos = {
-                requestCallPermission(context = context, phoneNumber = dialogo_contacto.second)
-            }, ondimis = {
-                viewmode_segurirdad_Salud.cambiar_estado_valor_calldialog()
-            })
+        val numeroALlamar = when {
+            dialogo_contacto.first -> dialogo_contacto.second
+            mostar_dialog_permiso_llamada -> numero_dialogo_permiso_llamda
+            else -> null
+        }
+
+        numeroALlamar?.let { numero ->
+            permisos_llamadas(
+                aceptar_permisos = {
+                    requestCallPermission(context = context, phoneNumber = numero)
+                },
+                ondimis = {
+                    viewmode_segurirdad_Salud.cambiar_estado_valor_calldialog()
+                }
+            )
         }
 
     }
@@ -585,18 +629,20 @@ fun chips_filtrado(
 
 @Composable
 fun FiltradoTextField(
-
     permisoLauncher: ManagedActivityResultLauncher<String, Boolean>,
     launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>,
     fusedLocationClient: FusedLocationProviderClient,
     viewmodelSeguridadSalud: viewmode_seguridad_salud,
     onValueChange: (String) -> Unit,
-    regresarListaCompleta: () -> Unit
+    regresarListaCompleta: () -> Unit,
+    call_dialog_permise:(String)-> Unit
 ) {
 
     val focusManager = LocalFocusManager.current
-
+    var call_dialog_permise by rememberSaveable { mutableStateOf(false) }
+    var numero_llamada by rememberSaveable { mutableStateOf("") }
     var expandido by remember { mutableStateOf(true) }
+    val repo= repo_seguridad_salud()
 
     var mostar_micro = viewmodelSeguridadSalud._mostrar_micro.collectAsState()
     val context = LocalContext.current
@@ -804,17 +850,20 @@ fun FiltradoTextField(
                 textoBuscar = it
                 if (it.isEmpty()) {
                     regresarListaCompleta()
-
                     viewmodelSeguridadSalud.cabiar_valor_mostara_micro(true)
                     ocultar_borrado = false
+                    mostrar_respuesIA = false
                 } else {
-
                     viewmodelSeguridadSalud.cabiar_valor_mostara_micro(false)
-
                     ocultar_borrado = true
                 }
             },
-            placeholder = { Text("¿Qué buscas?") },
+            placeholder = {
+                texto_generico_one_line(
+                    "¿Qué buscas?",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .onFocusChanged { focusState ->
@@ -832,7 +881,6 @@ fun FiltradoTextField(
                     if (mostar_micro.value) {
                         Crossfade(targetState = estadoMic) { estado ->
                             when (estado) {
-
                                 viewmode_seguridad_salud.EstadoMic.IDLE -> {
                                     detener_grabacion_btn = false
                                     IconButton(
@@ -998,7 +1046,6 @@ fun FiltradoTextField(
                 }
 
             },
-
             trailingIcon = {
                 Box(
                     modifier = Modifier.size(28.dp),
@@ -1011,7 +1058,7 @@ fun FiltradoTextField(
                                 textoBuscar = ""
 
                                 viewmodelSeguridadSalud.cabiar_valor_mostara_micro(true)
-
+                                mostrar_respuesIA = false
                                 ocultar_borrado = false
                                 regresarListaCompleta()
                             }
@@ -1060,8 +1107,6 @@ fun FiltradoTextField(
         spacer_vertical(10.dp)
 
         if (mostrar_respuesIA) {
-
-
             Column(
                 modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
@@ -1108,7 +1153,45 @@ fun FiltradoTextField(
 
                 // 🔹 Contenido expandible
                 if (expandido) {
-                    TypewriterText(descripcion_mostrado_IA)
+                    TypewriterClickableText(
+                        descripcion_mostrado_IA, onClickRuta = {
+//                            constantes_lista_localidades.abrir_google_maps(
+//                                "", "emergencia", "", "",
+//                                context = context,
+//                                i.latidud, i.longitud
+//                            ) { mostrar_dialog ->
+//                                dialogo_activar_ubicacion = mostrar_dialog
+//                            }
+                        },
+                        onClickTelefono = { numero, tipo ->
+                            if (tipo == "LLAMADA") {
+                                if (ContextCompat.checkSelfPermission(
+                                        context,
+                                        Manifest.permission.CALL_PHONE
+                                    ) != PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    call_dialog_permise (numero)
+
+                                } else {
+                                    makePhoneCall(context, numero)
+                                }
+                            } else if (tipo == "WHATSAPP") {
+                                enviarMensajeEmergencia(
+                                    fusedLocationClient,
+                                    repo,
+                                    onMensajeListo = { msj ->
+                                        abrir_whattsapp(
+                                            "",
+                                            tipo = "",
+                                            id_tienda = "",
+                                            localidad_tienda = "",
+                                            context = context,
+                                            numero ="937659216",
+                                            mensajePredefinido = msj
+                                        )
+                                    })
+                            }
+                        })
                 }
             }
 
@@ -1308,7 +1391,12 @@ fun carta_salud_cuidad(
             abrir_maps = { constantes.abrirGoogleMaps(context, i.direccion) })
     }
     if (dialogo_contacto) {
-        dialog_llamada_urgencias(fusedLocationClient,viewmode_segurirdad_Salud,lista_numero, icono_dialogo) {
+        dialog_llamada_urgencias(
+            fusedLocationClient,
+            viewmode_segurirdad_Salud,
+            lista_numero,
+            icono_dialogo
+        ) {
             dialogo_contacto = false
         }
     }
@@ -1348,4 +1436,40 @@ fun BtnCirculares(
             )
         }
     }
+}
+
+@Composable
+fun rememberInternetState(): State<Boolean> {
+
+    val context = LocalContext.current
+    val connectivityManager =
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+    val internetState = remember { mutableStateOf(false) }
+
+    DisposableEffect(Unit) {
+
+        val callback = object : ConnectivityManager.NetworkCallback() {
+
+            override fun onAvailable(network: Network) {
+                internetState.value = true
+            }
+
+            override fun onLost(network: Network) {
+                internetState.value = false
+            }
+        }
+
+        val request = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+
+        connectivityManager.registerNetworkCallback(request, callback)
+
+        onDispose {
+            connectivityManager.unregisterNetworkCallback(callback)
+        }
+    }
+
+    return internetState
 }

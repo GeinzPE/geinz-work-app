@@ -68,8 +68,10 @@ class repo_seguridad_salud {
                 val llamada = numero_contacto["llamada"] as? List<String> ?: emptyList()
                 val whatsapp = numero_contacto["whatsapp"] as? List<String> ?: emptyList()
 
-                val tag_eventos_emerge = data?.get("tag_eventos_emerge") as? List<String> ?: emptyList()
+                val tag_eventos_emerge =
+                    data?.get("tag_eventos_emerge") as? List<String> ?: emptyList()
                 val tag_no_urgentes = data?.get("tag_no_urgentes") as? List<String> ?: emptyList()
+                val key_alias = data?.get("alias_key") as? List<String> ?: emptyList()
 
                 val servicios = dataclass_seguridad(
                     nombre_ = data?.get("nombre") as? String ?: "",
@@ -80,7 +82,10 @@ class repo_seguridad_salud {
                     latidud = latitud,
                     longitud = longitud,
                     referencia = referencia,
-                    categoria = categoria, etiqutas_emergencias = tag_eventos_emerge,etiquetas_no_urgente=tag_no_urgentes
+                    categoria = categoria,
+                    etiqutas_emergencias = tag_eventos_emerge,
+                    etiquetas_no_urgente = tag_no_urgentes,
+                    key_alias = key_alias
                 )
 
                 Log.d("DEBUG_SERVICIOS", "Objeto creado: $servicios")

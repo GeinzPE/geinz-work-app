@@ -38,6 +38,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.msjes_predeteminados_generales
+import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.repo_seguridad_salud
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -127,38 +129,22 @@ fun dialog_llamada_urgencias(
 
                                         if (es_una_emergencia_conctactar) {
 
-                                            val datosConCallback =
-                                                repo_seguridad__salud.obtenerUbicacionUsuarioCancelable(
-                                                    fusedLocationClient
-                                                )
-
-                                            val datos = datosConCallback.latLng
-
-                                            repo_seguridad__salud.cancelarUbicacion(
+                                            enviarMensajeEmergencia(
                                                 fusedLocationClient,
-                                                datosConCallback.callback
-                                            )
+                                                repo_seguridad__salud,
+                                                onMensajeListo = { msj ->
+                                                    abrir_whattsapp(
+                                                        "",
+                                                        tipo = "",
+                                                        id_tienda = "",
+                                                        localidad_tienda = "",
+                                                        context = context,
+                                                        numero ="937659216",
+                                                        mensajePredefinido = msj
+                                                    )
 
-                                            val linkUbicacion =
-                                                "https://www.google.com/maps/dir/?api=1&destination=${datos.latitude},${datos.longitude}"
+                                                })
 
-                                            val mensajeFinal = """
-🚨 EMERGENCIA REAL 🚨
-Me encuentro en esta ubicación:
-$linkUbicacion
-
-Necesito apoyo rápidamente.
-Geinz
-""".trimIndent()
-
-                                            val uri = Uri.parse(
-                                                "https://api.whatsapp.com/send?phone=+51937659216&text=${
-                                                    URLEncoder.encode(mensajeFinal, "UTF-8")
-                                                }"
-                                            )
-
-                                            val intent = Intent(Intent.ACTION_VIEW, uri)
-                                            context.startActivity(intent)
 
                                         } else {
                                             // 🔥 Solo abre WhatsApp sin texto
@@ -204,6 +190,43 @@ Geinz
         }, ondimis = {
             call_dialog_permise = false
         })
+    }
+}
+
+fun enviarMensajeEmergencia(
+    fusedLocationClient: FusedLocationProviderClient,
+    repo_seguridad__salud: repo_seguridad_salud, // tu repo que maneja ubicación
+    onMensajeListo: (String) -> Unit
+) {
+    CoroutineScope(Dispatchers.Main).launch {
+        try {
+            // Obtener ubicación
+            val datosConCallback =
+                repo_seguridad__salud.obtenerUbicacionUsuarioCancelable(fusedLocationClient)
+            val datos = datosConCallback.latLng
+
+            // Cancelar la actualización de ubicación
+            repo_seguridad__salud.cancelarUbicacion(fusedLocationClient, datosConCallback.callback)
+
+            // Generar link de Google Maps
+            val linkUbicacion =
+                "https://www.google.com/maps/dir/?api=1&destination=${datos.latitude},${datos.longitude}"
+
+            // Armar mensaje final
+            val mensajeFinal = """
+                🚨 EMERGENCIA REAL 🚨
+                Me encuentro en esta ubicación:
+                $linkUbicacion
+                Necesito apoyo rápidamente.
+                Geinz
+            """.trimIndent()
+
+            // Retornar mensaje
+            onMensajeListo(mensajeFinal)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            onMensajeListo("No se pudo obtener la ubicación. ❌")
+        }
     }
 }
 
@@ -270,7 +293,7 @@ fun requestCallPermission(llamar: Boolean = true, context: Context, phoneNumber:
     }
 }
 
-private fun makePhoneCall(context: Context, phoneNumber: String) {
+fun makePhoneCall(context: Context, phoneNumber: String) {
     val callIntent = Intent(Intent.ACTION_CALL)
     callIntent.data = Uri.parse("tel:$phoneNumber")
     if (ActivityCompat.checkSelfPermission(

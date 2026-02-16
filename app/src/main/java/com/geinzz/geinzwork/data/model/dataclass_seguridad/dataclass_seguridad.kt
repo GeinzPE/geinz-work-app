@@ -16,7 +16,8 @@ data class dataclass_seguridad(
     val img_ref:String="",
     val categoria:String="",
     val etiqutas_emergencias: List<String>,
-    val etiquetas_no_urgente: List<String>
+    val etiquetas_no_urgente: List<String>,
+    val key_alias: List<String>
 ): Parcelable
 
 data class dialog_seguridad_salud_algolia(
