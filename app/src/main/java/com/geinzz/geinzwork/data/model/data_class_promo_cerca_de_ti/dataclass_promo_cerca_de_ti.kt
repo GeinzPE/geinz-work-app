@@ -23,8 +23,11 @@ data class dataclass_promociones_cerca_de_ti(
     val dias_restantes: String = "",
     val estadisticas: estadisticas_publiccaciones = estadisticas_publiccaciones(),
     val texto_msje_whatsapp: msjes_predeteminados_generales = msjes_predeteminados_generales(),
-    val fecha_fin: Timestamp=Timestamp.now(),
-    val estado_publicacion:String=""
+    val fecha_fin: Timestamp = Timestamp.now(),
+    val estado_publicacion: String = "",
+    val comodidades: Map<String, Boolean> = emptyMap(),
+    val pagos: Map<String, Boolean> = emptyMap(),
+    val rango: String = "", val precio: String = ""
 )
 
 data class estadisticas_publiccaciones(
@@ -67,4 +70,12 @@ data class compartir_contacto_pulicaciones(
     val dias_restantes: String = "",
     val logo_img: String = "",
     val nombre_tienda: String = ""
+)
+
+data class RespuestaGemini(
+    val principal: String? = null,
+    val atributos: List<String> = emptyList(),
+    val precio: Double? = null,
+    val metodo_pago: List<String> = emptyList(),
+    val comodidades: List<String> = emptyList()
 )

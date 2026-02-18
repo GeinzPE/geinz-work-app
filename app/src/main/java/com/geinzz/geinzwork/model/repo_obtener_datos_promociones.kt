@@ -329,7 +329,10 @@ class repo_obtener_datos_promociones {
         val datos_hora_fecha = datos.get("datos_hora_fecha") as? Map<*, *> ?: emptyMap<String, Any>()
         val horasMap = datos_hora_fecha["horas"] as? Map<*, *> ?: emptyMap<String, Any>()
         val diasMap = datos_hora_fecha["dias"] as? Map<*, *> ?: emptyMap<String, Any>()
-
+        val comodidades_filtro =datos.get("comodidades") as? Map<String, Boolean> ?:emptyMap()
+        val pagos =datos.get("pagos") as? Map<String, Boolean> ?:emptyMap()
+        val rango_precio =datos.get("rango_establecido") as?String?:""
+        val precio =datos.get("precio_publicacion") as?String?:""
         val timestampFin = when (tipo_hora_dias) {
             "horas" -> (horasMap["timestamp_fin"] as? Timestamp)
             "dias" -> (diasMap["timestamp_fin"]  as? Timestamp)
@@ -368,7 +371,7 @@ class repo_obtener_datos_promociones {
             texto_msje_whatsapp = msjes_predeteminados_generales(
                 compartir = mensaje_predeterminado(msje_predermindo = compartir_msj, activo_o_no = compartir_msj_bool),
                 whatsapp = mensaje_predeterminado(msje_predermindo = wsap_msj, activo_o_no = wsap_msj_bool)
-            ),fecha_fin=timestampFin?: Timestamp.now(),estado
+            ),fecha_fin=timestampFin?: Timestamp.now(),estado,comodidades_filtro,pagos,rango_precio,precio
         )
     }
 

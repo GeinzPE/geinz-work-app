@@ -684,6 +684,7 @@ fun nativationWrapper(
                 composable<ui_salud_seguridad> { navback ->
                     val salud_Seguridad = navback.toRoute<ui_salud_seguridad>()
                     ui_salud_seguirdad(
+                        isConnected,
                         datos_user?.nombre ?: "", id_respado_user,
                         viewmode_segurirdad_Salud,
                         localida = salud_Seguridad.localidad,
@@ -767,6 +768,7 @@ fun nativationWrapper(
 
                 composable("salud_y_seguridad") {
                     ui_salud_seguirdad(
+                        isConnected,
                         datos_user?.nombre ?: "",
                         id_respado_user,
                         viewmode_segurirdad_Salud,

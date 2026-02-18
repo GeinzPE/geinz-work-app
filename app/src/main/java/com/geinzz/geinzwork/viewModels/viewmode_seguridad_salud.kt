@@ -64,8 +64,8 @@ class viewmode_seguridad_salud : ViewModel() {
 
     private val _coordenadasSeleccionadas = MutableLiveData<Pair<Double, Double>?>()
 
-    private val _listaFiltrada = MutableStateFlow<List<dataclass_seguridad>>(emptyList())
-    val lista_filtrada: StateFlow<List<dataclass_seguridad>> = _listaFiltrada
+    private val _datos_filtrado = MutableStateFlow<dataclass_seguridad>(dataclass_seguridad())
+    val datos_filtrado: StateFlow<dataclass_seguridad> = _datos_filtrado
 
     private val _state_lista_filtrada = MutableStateFlow<carga_seguidad>(carga_seguidad.loading)
     val state_lista_filtradad: StateFlow<carga_seguidad> = _state_lista_filtrada
@@ -104,7 +104,6 @@ class viewmode_seguridad_salud : ViewModel() {
             FieldValue.arrayUnion(*lista.toTypedArray())
         )
     }
-
 
 
     var titulo_mostrado = MutableStateFlow("")
@@ -347,6 +346,13 @@ class viewmode_seguridad_salud : ViewModel() {
         }
     }
 
+    fun cambiar_estado_Sin_internet(){
+        _state_lista_filtrada.value = carga_seguidad.succes(lista_general_original_inmutable.value)
+        estadoBusqueda.value = Estado_busqueda.IDLE
+        texto_mostrado.value=""
+        titulo_mostrado.value=""
+    }
+
 
     fun clasificarAccionDebug(
         r: RespuestaNLP,
@@ -377,7 +383,7 @@ class viewmode_seguridad_salud : ViewModel() {
 
         // Ahora hacemos debug de la acción
         when (r.a) {
-            "asistencia" -> Log.d("NLP_DEBUG2", "Detectado: ASISTENCIA / EMERGENCIA")
+
             "info" -> {
                 Log.d("NLP_DEBUG2", "Detectado: INFO sobre '${entidad?.key ?: r.t}'")
                 val respuesta = retornarInformacion(
@@ -390,6 +396,15 @@ class viewmode_seguridad_salud : ViewModel() {
                 verificarGPS(context, launcher)
                 cloudTTS(respuesta)
                 texto_mostrado.value = respuesta
+                val lista_filtada =
+                    filtrarPorAlias(
+                        value1 = _lista_entidades.value,
+                        value = lista_general_original_inmutable.value,
+                        nombreBuscado = r.t
+                    )
+                lista_filtada?.let {
+                    _state_lista_filtrada.value = carga_seguidad.succes(it)
+                }
             }
 
             "ruta" -> {
@@ -517,17 +532,17 @@ class viewmode_seguridad_salud : ViewModel() {
             }
 
             "dar_numero" -> {
-
                 if (entidad != null) {
-                    val numero = retornar_numero_whatsapp(
+                    val numero = retornar_todo_los_numeros(
                         lista_general_original_inmutable.value,
                         entidad.key
                     )
-                    numero?.let {
-                        cloudTTS("claro el número de ${entidad.key} es ${formatearParaTTS(it)}")
-                        titulo_mostrado.value = "Aqui tienes tus resultados"
-                        texto_mostrado.value = "claro el número de ${entidad.key} es $it"
-                    } ?: cloudTTS("No se encontró el número")
+
+
+                    cloudTTS(numero)
+                    titulo_mostrado.value = "Aqui tienes tus resultados"
+                    texto_mostrado.value = numero
+
                     viewModelScope.launch {
                         val datos_a_enviar = FrasePendiente(
                             texto = texto_origina,
@@ -544,7 +559,7 @@ class viewmode_seguridad_salud : ViewModel() {
                     estadoBusqueda.value = Estado_busqueda.IDLE
                     _mostrar_micro.value = true
                     return
-                }else{
+                } else {
                     val (mensaje, listaResultado) =
                         resolverPorTexto(
                             texto_origina,
@@ -666,8 +681,24 @@ class viewmode_seguridad_salud : ViewModel() {
                             value = lista_general_original_inmutable.value,
                             nombreBuscado = r.t
                         )
-                    lista_filtada?.let {
+                    lista_filtada?.let { it ->
                         _state_lista_filtrada.value = carga_seguidad.succes(it)
+                        lista_filtada.firstOrNull()?.let { item ->
+                            _datos_filtrado.value = dataclass_seguridad(
+                                nombre_ = item.nombre_,
+                                direccion = item.direccion,
+                                numero_llamada = item.numero_llamada,
+                                numero_whatsapp = item.numero_whatsapp,
+                                latidud = item.latidud,
+                                longitud = item.longitud,
+                                referencia = item.referencia,
+                                img_ref = item.img_ref,
+                                categoria = item.categoria,
+                                etiqutas_emergencias = item.etiqutas_emergencias,
+                                etiquetas_no_urgente = item.etiquetas_no_urgente,
+                                key_alias = item.key_alias
+                            )
+                        }
                     }
 
                     texto_mostrado.value = distancia
@@ -805,9 +836,6 @@ class viewmode_seguridad_salud : ViewModel() {
             value
         }
     }
-
-
-
 
 
     fun resolverPorTexto(
@@ -1072,7 +1100,10 @@ class viewmode_seguridad_salud : ViewModel() {
         if (busqNormalizado == "seguridad" || busqNormalizado == "salud") {
             val filtradoEspecial = entidades1.filter { dat ->
                 val catNormalizada = normalizar(dat.categoria)
-                Log.d("NLP_DEBUG", "Comparando categoría '${dat.categoria}' -> '$catNormalizada' con $busqNormalizado")
+                Log.d(
+                    "NLP_DEBUG",
+                    "Comparando categoría '${dat.categoria}' -> '$catNormalizada' con $busqNormalizado"
+                )
                 catNormalizada == busqNormalizado
             }
             Log.d("NLP_DEBUG", "Resultado caso especial: ${filtradoEspecial.map { it.nombre_ }}")
@@ -1113,7 +1144,6 @@ class viewmode_seguridad_salud : ViewModel() {
         Log.d("NLP_DEBUG", "Resultado final filtrado: ${resultado.map { it.nombre_ }}")
         return resultado
     }
-
 
 
     fun generarTextoLLamada(
@@ -1196,6 +1226,42 @@ class viewmode_seguridad_salud : ViewModel() {
             null
         }
     }
+
+    fun retornar_todo_los_numeros(
+        lista: List<dataclass_seguridad>,
+        nombreBuscado: String
+    ): String {
+        val entidad = lista.firstOrNull {
+            it.nombre_.contains(nombreBuscado, ignoreCase = true)
+        }
+
+        return if (entidad != null) {
+            val nombre = entidad.nombre_
+            val numerosLlamada = entidad.numero_llamada // List<String>?
+            val numerosWhatsapp = entidad.numero_whatsapp // List<String>?
+
+            val contactos = mutableListOf<String>()
+
+            // Agregamos todos los números de llamada si existen
+            numerosLlamada?.forEach { num ->
+                if (num.isNotBlank()) contactos.add("llamada al $num")
+            }
+
+            // Agregamos todos los números de WhatsApp si existen
+            numerosWhatsapp?.forEach { num ->
+                if (num.isNotBlank()) contactos.add("WhatsApp al $num")
+            }
+
+            if (contactos.isNotEmpty()) {
+                "Aquí tienes los números de $nombre: ${contactos.joinToString(" o ")}."
+            } else {
+                "No hay número de contacto disponible para $nombre."
+            }
+        } else {
+            "No se encontró ninguna entidad con el nombre '$nombreBuscado'."
+        }
+    }
+
 
     fun detectarTipoInfo(texto: String): String {
         val t = texto.lowercase().trim()
@@ -1616,7 +1682,10 @@ class viewmode_seguridad_salud : ViewModel() {
 
             val datos = datosConCallback.latLng
 
-            Log.d("VER_DISTANCIA", "📍 Ubicación usuario → Lat=${datos.latitude}, Lng=${datos.longitude}")
+            Log.d(
+                "VER_DISTANCIA",
+                "📍 Ubicación usuario → Lat=${datos.latitude}, Lng=${datos.longitude}"
+            )
 
             instancia.cancelarUbicacion(
                 fusedLocationClient,
@@ -1649,10 +1718,14 @@ class viewmode_seguridad_salud : ViewModel() {
             Log.d("VER_DISTANCIA", "📏 Distancia calculada: $distanciaBonita")
 
             // ⏱ Estimaciones de tiempo
-            val tiempoPie = estimarTiempo(distanciaMetros, 1.4)   // velocidad promedio caminando (m/s)
-            val tiempoBici = estimarTiempo(distanciaMetros, 3.0)  // velocidad promedio en bici (m/s)
-            val tiempoMoto = estimarTiempo(distanciaMetros, 6.0)  // velocidad promedio en moto (m/s)
-            val tiempoAuto = estimarTiempo(distanciaMetros, 8.0)  // velocidad promedio en auto (m/s)
+            val tiempoPie =
+                estimarTiempo(distanciaMetros, 1.4)   // velocidad promedio caminando (m/s)
+            val tiempoBici =
+                estimarTiempo(distanciaMetros, 3.0)  // velocidad promedio en bici (m/s)
+            val tiempoMoto =
+                estimarTiempo(distanciaMetros, 6.0)  // velocidad promedio en moto (m/s)
+            val tiempoAuto =
+                estimarTiempo(distanciaMetros, 8.0)  // velocidad promedio en auto (m/s)
             val tiempoCorriendo = estimarTiempo(distanciaMetros, 2.5) // corriendo ligero (m/s)
 
             Log.d("VER_DISTANCIA", "⏱ Tiempo a pie: $tiempoPie")
@@ -1660,8 +1733,7 @@ class viewmode_seguridad_salud : ViewModel() {
             Log.d("VER_DISTANCIA", "⏱ Tiempo en auto: $tiempoAuto")
 
             "Estás aproximadamente a $distanciaBonita de ${lugar.nombre_}. " +
-                    "Tiempo estimado: $tiempoPie a pie, $tiempoBici en bici, $tiempoMoto en moto, $tiempoAuto en auto, $tiempoCorriendo corriendo" +
-                    "O también puedes crear una ruta hacia ${lugar.nombre_} tocando aquí."
+                    "Tiempo estimado: $tiempoPie a pie, $tiempoBici en bici, $tiempoMoto en moto, $tiempoAuto en auto, $tiempoCorriendo corriendo O también puedes crear una ruta hacia ${lugar.nombre_} tocando aquí."
 
 
         } catch (e: Exception) {
@@ -1670,7 +1742,6 @@ class viewmode_seguridad_salud : ViewModel() {
             "Lo siento, ocurrió un error al calcular la distancia 😔"
         }
     }
-
 
 
     fun estimarTiempo(distanciaMetros: Double, velocidadMS: Double): String {

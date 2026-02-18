@@ -889,7 +889,6 @@ Texto del usuario:
 }
 
 
-
 fun extraer_terminos_para_GenIA(textos: String): String {
     return """
         Eres un extractor de términos clave para búsquedas y filtrado. 
@@ -956,29 +955,79 @@ fun extraer_terminos_para_GenIA(textos: String): String {
 //""".trimIndent()
 //}
 
+//fun construirPromptNLP(textoUsuario: String): String {
+//    return """
+//Eres un extractor NLP de emergencias.
+//Responde SOLO JSON válido.
+//
+//Formato:
+//{"a":"","t":"","g":"","c":""}
+//
+//Campos:
+//"a": ruta, dar_numero, llamar, whatsapp, info, distancia, buscar, desconocido
+//"t": término clave del texto normalizado en minúsculas sin artículos sin diminutivo ni cambios bruscos
+//"g": salud, seguridad, otro
+//"c": a (alta), m (media), b (baja)
+//
+//Reglas:
+//- Si solo reporta un hecho → "a":"desconocido"
+//- Si es saludo o no se entiende → {"a":"desconocido","t":"","g":"otro","c":"b"}
+//- No expliques nada.
+//- No agregues texto fuera del JSON.
+//
+//Ejemplo:
+//-"Me robaron el celular"
+//{"a":"desconocido","t":"robo","g":"seguridad","c":"a"}
+//-"quiero ver los poli"
+//{"a":"buscar","t":"polica","g":"seguridad","c":"m"}
+//
+//Texto: "$textoUsuario"
+//""".trimIndent()
+//}
+
 fun construirPromptNLP(textoUsuario: String): String {
     return """
-Eres un extractor NLP de emergencias.
-Responde SOLO JSON válido.
-
-Formato:
+Extractor NLP de emergencias.
+Responde SOLO JSON:
 {"a":"","t":"","g":"","c":""}
 
-Campos:
-"a": ruta, dar_numero, llamar, whatsapp, info, distancia, buscar, desconocido
-"t": término clave normalizado en minúsculas sin artículos
-"g": salud, seguridad, otro
-"c": a (alta), m (media), b (baja)
+a: ruta, dar_numero, llamar, whatsapp, info, distancia, buscar, desconocido
+t: palabra clave en minúsculas sin artículos ni plural
+g: salud, seguridad, otro
+c: a, m, b
 
 Reglas:
-- Si solo reporta un hecho → "a":"desconocido"
-- Si es saludo o no se entiende → {"a":"desconocido","t":"","g":"otro","c":"b"}
-- No expliques nada.
-- No agregues texto fuera del JSON.
+1) Corrige errores ortográficos leves.
+2) Si reporta incidente o síntoma → a:"desconocido".
+3) Si pide mostrar, ver, buscar o solo categoría → a:"buscar".
+4) Número → dar_numero | Llamar → llamar | Distancia → distancia | Cómo llegar → ruta | Cómo info → informacion,horario etc.
+5) Delito/policía → seguridad | Síntoma/hospital → salud.
+6) Emergencia grave → c:"a" | Incidente no crítico → c:"m" | Navegación → c:"b".
+7) Si no se entiende → {"a":"desconocido","t":"","g":"otro","c":"b"}.
 
-Ejemplo:
-"Me robaron el celular"
-{"a":"desconocido","t":"robo","g":"seguridad","c":"a"}
+Texto: "$textoUsuario"
+""".trimIndent()
+}
+
+
+fun construir_promp_NLP_depromo_y_oferta(textoUsuario:String): String {
+    return """
+    Eres un extractor de datos categoría comida.
+    Extrae producto principal (sin cantidades), atributos, precio, método de pago y comodidades.
+    No inventes datos. Si no aparece:
+    - precio: null
+    - listas: []
+
+    Diminutivos en forma normal.
+
+    Método_pago solo puede ser:
+    yape (si dice "llave"), plin (si dice "link"), efectivo, agora, visa, mastercard.
+
+    Comodidades solo si aparecen o se parecen:
+    wifi, zona_expandida, servicio_higienico, camaras_de_seguridad, sala_de_espera, mesa_para_niños, estacionamiento, enchufe, aire_acondicionado, ingreso_mascotas.
+
+    Responde solo JSON:
+    {"principal":"string","atributos":[],"precio":number|null,"metodo_pago":[],"comodidades":[]}
 
 Texto: "$textoUsuario"
 """.trimIndent()

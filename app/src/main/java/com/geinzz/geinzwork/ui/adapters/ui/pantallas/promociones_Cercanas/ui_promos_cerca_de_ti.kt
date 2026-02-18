@@ -1,12 +1,15 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.promociones_Cercanas
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -34,9 +37,16 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -54,6 +64,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -61,6 +72,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -68,6 +80,7 @@ import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.RespuestaGemini
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.tiendas_con_mas_de_una_promo
@@ -86,27 +99,33 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad.MicVisualizerGoogle
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
+import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.geinzz.geinzwork.viewModels.viewmodel_datos_promociones
 import com.geinzz.geinzwork.viewModels.viewmodel_promos_cercanas
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ui_promos_cerca_de_ti(
-    flag_identificador:String,
+    flag_identificador: String,
     activar_promo_params: String,
     localidad: String,
     verificar_intener: Boolean,
     iniciar_seccion: () -> Unit,
     crear_cuenta: () -> Unit, onBack: () -> Unit
 ) {
-    Log.d("flag_psada","$flag_identificador")
+    Log.d("flag_psada", "$flag_identificador")
     val context = LocalContext.current
     val firebaseAuth = FirebaseAuth.getInstance()
-    Log.d("daots","$activar_promo_params  $localidad $")
+    Log.d("daots", "$activar_promo_params  $localidad $")
     val uid_respald_user by data_store_localidad
         .get_uid_user(context)
         .collectAsState(initial = firebaseAuth.uid.orEmpty())
@@ -116,11 +135,51 @@ fun ui_promos_cerca_de_ti(
 
     val estado by viewModel.estadoPromos.collectAsState()
     var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
+
+    val respuesta_gemini_NLP by viewModel.respuesta_gemini.collectAsState()
+
+    var mostar_respuesta_gemini by remember(respuesta_gemini_NLP) {
+        mutableStateOf(respuesta_gemini_NLP != null)
+    }
+
+
     var mostrar_zoom_img by remember { mutableStateOf(false) }
     var lista_img by remember {
         mutableStateOf<List<String>>(emptyList())
     }
     var mostrar_bottom_shet_registrate by remember { mutableStateOf(false) }
+
+    var lista_filtrados_pagos = listOf("yape", "plin", "visa", "mastercard", "efectivo", "agora")
+    var rango_precios = listOf(
+        "0 - 10",
+        "10 - 20",
+        "20 - 30",
+        "30 - 50",
+        "50 - 80",
+        "80 - 120",
+        "120 - 200",
+        "200 - 350",
+        "350 - 500",
+        "500 - 1000",
+        "1000 - 2500",
+        "2500 - 5000",
+        "5000 - 10000",
+        "Más de 10000"
+    )
+    var lista_comodidades = listOf(
+        "wifi",
+        "zona_expandida",
+        "servicios_higienicos",
+        "servicios igenicos",
+        "camaras_seguridad",
+        "sala_espera",
+        "sala_juegos",
+        "mesa_para_ninos",
+        "estacionamiento",
+        "enchufe",
+        "aire_acondicionado",
+        "ingreso_con_mascotas"
+    )
 
 
     var index_galeria_img by remember { mutableStateOf(0) }
@@ -137,14 +196,18 @@ fun ui_promos_cerca_de_ti(
     var nombre_tienda by remember { mutableStateOf("") }
     var img_tienda by remember { mutableStateOf("") }
     var dias_restantes by remember { mutableStateOf("") }
-
     var promoSeleccionada by remember { mutableStateOf<obj_completo?>(null) }
+
+    val comodidad_selet by viewModel.comodidadesSeleccionadas.collectAsState()
+    val metodo_pago by viewModel.metodosPagoSeleccionados.collectAsState()
+    val rango_precio by viewModel.rangoPrecioSeleccionado.collectAsState()
 
     var promoSeleccionada_unica by remember {
         mutableStateOf<dataclass_promociones_cerca_de_ti?>(
             null
         )
     }
+    var valor_a_buscar by remember { mutableStateOf("") }
 
     var indexImagenSeleccionada by remember { mutableStateOf(0) }
 
@@ -192,6 +255,41 @@ fun ui_promos_cerca_de_ti(
         )
     }
 
+    LaunchedEffect(respuesta_gemini_NLP) {
+        respuesta_gemini_NLP?.let {
+            val respuesta = RespuestaGemini(
+                principal = it.principal,
+                atributos = it.atributos,
+                precio = it.precio,
+                metodo_pago = it.metodo_pago,
+                comodidades = it.comodidades
+            )
+            viewModel.setComodidadesDesdeLista(respuesta.comodidades)
+            viewModel.setPagosDesdeLista(respuesta.metodo_pago)
+            val rangoPrecio = respuesta.precio?.let { precio ->
+                when (precio) {
+                    in 0.0..10.0 -> "0 - 10"
+                    in 10.01..20.0 -> "10 - 20"
+                    in 20.01..30.0 -> "20 - 30"
+                    in 30.01..50.0 -> "30 - 50"
+                    in 50.01..80.0 -> "50 - 80"
+                    in 80.01..120.0 -> "80 - 120"
+                    in 120.01..200.0 -> "120 - 200"
+                    in 200.01..350.0 -> "200 - 350"
+                    in 350.01..500.0 -> "350 - 500"
+                    in 500.01..1000.0 -> "500 - 1000"
+                    in 1000.01..2500.0 -> "1000 - 2500"
+                    in 2500.01..5000.0 -> "2500 - 5000"
+                    else -> "Sin rango"
+                }
+            } ?: "Sin precio" // si precio es null
+            viewModel.setearRangoPrecio(rangoPrecio)
+
+            Log.d("datos_entrantes", "$respuesta")
+        }
+    }
+
+
 
 
     LaunchedEffect(datos_promo_parametros) {
@@ -199,7 +297,10 @@ fun ui_promos_cerca_de_ti(
         Log.d("PROMO_FLOW", "▶ LaunchedEffect datos_promo_parametros")
 
         if (activar_promo_params.isEmpty()) {
-            Log.w("PROMO_FLOW", "⛔ Se ignora datos_promo_parametros porque activar_promo_params está vacío")
+            Log.w(
+                "PROMO_FLOW",
+                "⛔ Se ignora datos_promo_parametros porque activar_promo_params está vacío"
+            )
             return@LaunchedEffect
         }
 
@@ -207,11 +308,12 @@ fun ui_promos_cerca_de_ti(
 
         val idPromo =
             datos_promo_parametros.informacion_publcacion.id_promocion
-        val estado_publicaicones= datos_promo_parametros.estado_publicacion
+        val estado_publicaicones = datos_promo_parametros.estado_publicacion
 
         if (estado_publicaicones.equals("pausado", ignoreCase = true)) {
             promoExpirada = true
-            texto_snackbar = "Esta publicación no está disponible en este momento. Inténtalo más tarde."
+            texto_snackbar =
+                "Esta publicación no está disponible en este momento. Inténtalo más tarde."
             return@LaunchedEffect
         }
 
@@ -221,7 +323,7 @@ fun ui_promos_cerca_de_ti(
         if (idPromo.isEmpty()) {
             Log.e("PROMO_FLOW", "❌ idPromo vacío → promo NO existe")
             promoExpirada = true
-            texto_snackbar="Este contenido ya no está disponible"
+            texto_snackbar = "Este contenido ya no está disponible"
 
             return@LaunchedEffect
         }
@@ -229,7 +331,10 @@ fun ui_promos_cerca_de_ti(
         // ⏱️ VALIDAR EXPIRACIÓN
         val expirada = promoEstaExpirada(datos_promo_parametros.fecha_fin)
 
-        Log.d("PROMO_FLOW", "⏱ Fecha fin = ${datos_promo_parametros.fecha_fin} | Expirada = $expirada")
+        Log.d(
+            "PROMO_FLOW",
+            "⏱ Fecha fin = ${datos_promo_parametros.fecha_fin} | Expirada = $expirada"
+        )
 
         if (expirada) {
             Log.e("PROMO_FLOW", "⛔ Promo EXPIRADA")
@@ -283,7 +388,7 @@ fun ui_promos_cerca_de_ti(
     }
 
     LaunchedEffect(localidad) {
-        viewModel.obtener_promociones("barranca","Todos")
+        viewModel.obtener_promociones("barranca", "Todos")
     }
     LaunchedEffect(show_bottom_sheeet) {
         if (show_bottom_sheeet) {
@@ -301,12 +406,17 @@ fun ui_promos_cerca_de_ti(
     }
     var primeraVez by remember { mutableStateOf(true) }
 
-    LaunchedEffect(subCategoriaSeleccionada) {
+    LaunchedEffect(
+        subCategoriaSeleccionada,
+        comodidad_selet,
+        metodo_pago,
+        rango_precio
+    ) {
         if (primeraVez) {
             primeraVez = false
             return@LaunchedEffect
         }
-        viewModel.filtrar_promociones(subCategoriaSeleccionada)
+        viewModel.filtrarPromociones(subCategoriaSeleccionada)
     }
     Box(
         modifier = Modifier
@@ -354,194 +464,276 @@ fun ui_promos_cerca_de_ti(
                 val tiendasConMasDeUnaPromo: List<tiendas_con_mas_de_una_promo> = promos
                     .flatMap { it.lista_tiendas_con_mas_promo }
                     .distinctBy { it.id } // eliminamos duplicados por id
-                Box(modifier = Modifier.fillMaxSize()){
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
-                    modifier = Modifier.padding(vertical = 5.dp)
-                ) {
-                    item {
-                        Column(modifier = Modifier.padding(horizontal = 10.dp)) {
-                            texto_generico_multilinea(
-                                "Promos y ofertas cerca de ti",
-                                style = MaterialTheme.typography.banerGeinzWork
-                            )
-                            spacer_vertical(5.dp)
-                            texto_generico_multilinea(
-                                "Descubre descuentos, promociones especiales y ofertas exclusivas de negocios cercanos.",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-
-                        }
-                    }
-                    val subcategorias = listOf("Todos") + promos
-                        .flatMap { categorias }
-                        .distinct()
-                    item {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            contentPadding = PaddingValues(horizontal = 10.dp)
-                        ) {
-                            items(subcategorias) { subcategoria ->
-                                val seleccionado = subCategoriaSeleccionada == subcategoria
-                                chisp_filtrado_busqueda(
-                                    carta_selecionada = seleccionado,
-                                    filtrado = subcategoria.capitalizeFirst(),
-                                    btn_visible = false,
-                                    clik_card = {
-                                        subCategoriaSeleccionada = subcategoria
-                                        tiendaSeleccionada=null
-                                        if (subcategoria != "Todos") {
-
-                                        }
-                                    },
-                                    onClick_delete = {}
+                Box(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(20.dp),
+                        modifier = Modifier.padding(vertical = 5.dp)
+                    ) {
+                        item {
+                            Column(modifier = Modifier.padding(horizontal = 10.dp)) {
+                                texto_generico_multilinea(
+                                    "Promos y ofertas cerca de ti",
+                                    style = MaterialTheme.typography.banerGeinzWork
                                 )
+                                spacer_vertical(5.dp)
+                                texto_generico_multilinea(
+                                    "Descubre descuentos, promociones especiales y ofertas exclusivas de negocios cercanos.",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+
                             }
                         }
-                    }
+                        val subcategorias = listOf("Todos") + promos
+                            .flatMap { categorias }
+                            .distinct()
 
-                    item {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(15.dp),
-                            contentPadding = PaddingValues(horizontal = 10.dp)
-                        ) {
-                            items(tiendasConMasDeUnaPromo) { tienda ->
-                                estilo_ig_header(
-                                    i = tienda,
-                                    seleccionada = tienda.id == tiendaSeleccionada,
-                                    img_clikeada = { id ->
-
-                                        tiendaSeleccionada =
-                                            if (tiendaSeleccionada == id) {
-                                                null // 🔥 deselecciona
-                                            } else {
-                                                id   // 🔥 selecciona
-                                            }
-
-                                        subCategoriaSeleccionada = "Todos"
-
-                                        if (tiendaSeleccionada != null) {
-                                            viewModel.filtrar_promociones_por_id(tiendaSeleccionada!!)
-                                        } else {
-                                            viewModel.mostrarTodasLasPromociones()
+                        item {
+                            OutlinedTextField(
+                                value = valor_a_buscar,
+                                onValueChange = {
+                                    valor_a_buscar = it
+                                },
+                                placeholder = {
+                                    texto_generico_one_line(
+                                        "¿Qué buscas?",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                shape = RoundedCornerShape(50),
+                                leadingIcon = {
+                                    IconButton(
+                                        onClick = {
                                         }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Clear,
+                                            contentDescription = "Hablar", tint = Color.Gray
+                                        )
                                     }
-                                )
+                                },
+                                trailingIcon = {
+                                    IconButton(
+                                        onClick = {
+                                            viewModel.procesar_NLP(valor_a_buscar)
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Search,
+                                            contentDescription = "Hablar", tint = Color.Gray
+                                        )
+                                    }
+                                }
+                            )
+                            respuesta_gemini_NLP?.let { respuesta ->
+                                texto_generico_multilinea(respuesta.toString())
+                            }
+
+
+                        }
+                        item {
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp)
+                            ) {
+                                items(subcategorias) { subcategoria ->
+                                    val seleccionado = subCategoriaSeleccionada == subcategoria
+                                    chisp_filtrado_busqueda(
+                                        carta_selecionada = seleccionado,
+                                        filtrado = subcategoria.capitalizeFirst(),
+                                        btn_visible = false,
+                                        clik_card = {
+                                            subCategoriaSeleccionada = subcategoria
+                                            tiendaSeleccionada = null
+                                            if (subcategoria != "Todos") {
+
+                                            }
+                                        },
+                                        onClick_delete = {}
+                                    )
+                                }
                             }
                         }
-                    }
 
+                        item {
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp)
+                            ) {
+                                items(lista_filtrados_pagos) { subcategoria ->
 
-                    items(
-                        items = promos,
-                        key = { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion + it.hashCode()}
-                    ) { item ->
+                                    val seleccionado = metodo_pago.contains(subcategoria)
 
-                        val index = promos.indexOfFirst {
-                            it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion ==
-                                    item.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion
+                                    chisp_filtrado_busqueda(
+                                        carta_selecionada = seleccionado,
+                                        filtrado = subcategoria.capitalizeFirst(),
+                                        btn_visible = false,
+                                        clik_card = {
+                                            viewModel.toggleMetodoPago(subcategoria)
+                                        },
+                                        onClick_delete = {}
+                                    )
+                                }
+                            }
+                        }
+
+                        item {
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp)
+                            ) {
+                                items(rango_precios) { subcategoria ->
+                                    val seleccionado = rango_precio == subcategoria
+                                    chisp_filtrado_busqueda(
+                                        carta_selecionada = seleccionado,
+                                        filtrado = subcategoria.capitalizeFirst(),
+                                        btn_visible = false,
+                                        clik_card = {
+                                            viewModel.setearRangoPrecio(subcategoria)
+                                        },
+                                        onClick_delete = {}
+                                    )
+                                }
+                            }
                         }
 
 
-                        carta_promocion_geinz(
-                            i = item.dataclass_promociones_cerca_de_ti,
-                            img_clikeble = { id_promo, listaimg, select ->
-                                if (uid_respald_user.isNotEmpty()) {
-                                    Log.d("mostramosooom", "$id_promo ${listaimg.size} $select")
-                                    promoSeleccionada = item
-                                    // ✅ Usar el index calculado
-                                    promoSeleccionada_unica = item.dataclass_promociones_cerca_de_ti
-                                    indexImagenSeleccionada = select
-                                    mostrar_zoom_img = true
-                                    lista_img = listaimg
-                                    index_galeria_img = select
-                                    titulo_poromo =
-                                        item.dataclass_promociones_cerca_de_ti.informacion_publcacion.titulo
-                                    descripcion =
-                                        item.dataclass_promociones_cerca_de_ti.informacion_publcacion.descripcion
-                                    nombre_tienda =
-                                        item.dataclass_promociones_cerca_de_ti.informacion_publcacion.nombre_tienda
-                                    img_tienda = item.dataclass_promociones_cerca_de_ti.img.logo_img
-                                    dias_restantes =
-                                        item.dataclass_promociones_cerca_de_ti.dias_restantes
 
-                                    viewModel.agregar_estadisticas_publicacion(
-                                        "click",
-                                        id_promo,
-                                        localidad, uid_respald_user
+                        item {
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp)
+                            ) {
+                                items(lista_comodidades) { subcategoria ->
+
+                                    val seleccionado = comodidad_selet.contains(subcategoria)
+
+                                    chisp_filtrado_busqueda(
+                                        carta_selecionada = seleccionado,
+                                        filtrado = subcategoria.capitalizeFirst(),
+                                        btn_visible = false,
+                                        clik_card = {
+                                            viewModel.togleRango_select(subcategoria)
+                                        },
+                                        onClick_delete = {}
                                     )
-
-                                } else {
-                                    mostrar_bottom_shet_registrate = true
-
                                 }
-                            },
-                            share_promo = { id_tienda, id, categoria ->
-                                compartir_hosting_promo(
-                                    viewModel,
-                                    item.dataclass_promociones_cerca_de_ti.texto_msje_whatsapp.compartir.msje_predermindo,
-                                    uid_respald_user,
-                                    id_tienda,
-                                    context,
-                                    localidad,
-                                    id,
-                                    categoria
-                                )
-                                viewModel.agregar_estadisticas_publicacion(
-                                    "compartidos",
-                                    id,
-                                    localidad, uid_respald_user
-                                )
-                            },
-                            whatsap_promo = { id, id_tienda, categoira ->
-                                if (uid_respald_user.isNotEmpty()) {
-                                    abrir_whattsapp(
-                                        uid_respald_user,
-                                        "promocion",
-                                        "",
-                                        "",
-                                        context,
-                                        item.dataclass_promociones_cerca_de_ti
-                                            .informacion_publcacion.numero,
-                                        "${item.dataclass_promociones_cerca_de_ti.texto_msje_whatsapp.whatsapp.msje_predermindo}" +
-                                                "https://geinzworkapp.web.app/share?" +
-                                                "t=prms" +
-                                                "&l=$localidad" +
-                                                "&pi=$id"
+                            }
+                        }
 
+
+                        items(
+                            items = promos,
+                            key = { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion + it.hashCode() }
+                        ) { item ->
+
+                            val index = promos.indexOfFirst {
+                                it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion ==
+                                        item.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion
+                            }
+
+
+                            carta_promocion_geinz(
+                                i = item.dataclass_promociones_cerca_de_ti,
+                                img_clikeble = { id_promo, listaimg, select ->
+                                    if (uid_respald_user.isNotEmpty()) {
+                                        Log.d("mostramosooom", "$id_promo ${listaimg.size} $select")
+                                        promoSeleccionada = item
+                                        // ✅ Usar el index calculado
+                                        promoSeleccionada_unica =
+                                            item.dataclass_promociones_cerca_de_ti
+                                        indexImagenSeleccionada = select
+                                        mostrar_zoom_img = true
+                                        lista_img = listaimg
+                                        index_galeria_img = select
+                                        titulo_poromo =
+                                            item.dataclass_promociones_cerca_de_ti.informacion_publcacion.titulo
+                                        descripcion =
+                                            item.dataclass_promociones_cerca_de_ti.informacion_publcacion.descripcion
+                                        nombre_tienda =
+                                            item.dataclass_promociones_cerca_de_ti.informacion_publcacion.nombre_tienda
+                                        img_tienda =
+                                            item.dataclass_promociones_cerca_de_ti.img.logo_img
+                                        dias_restantes =
+                                            item.dataclass_promociones_cerca_de_ti.dias_restantes
+
+                                        viewModel.agregar_estadisticas_publicacion(
+                                            "click",
+                                            id_promo,
+                                            localidad, uid_respald_user
+                                        )
+
+                                    } else {
+                                        mostrar_bottom_shet_registrate = true
+
+                                    }
+                                },
+                                share_promo = { id_tienda, id, categoria ->
+                                    compartir_hosting_promo(
+                                        viewModel,
+                                        item.dataclass_promociones_cerca_de_ti.texto_msje_whatsapp.compartir.msje_predermindo,
+                                        uid_respald_user,
+                                        id_tienda,
+                                        context,
+                                        localidad,
+                                        id,
+                                        categoria
                                     )
                                     viewModel.agregar_estadisticas_publicacion(
-                                        "whatsapp",
+                                        "compartidos",
                                         id,
                                         localidad, uid_respald_user
                                     )
-                                } else {
-                                    mostrar_bottom_shet_registrate = true
-                                }
+                                },
+                                whatsap_promo = { id, id_tienda, categoira ->
+                                    if (uid_respald_user.isNotEmpty()) {
+                                        abrir_whattsapp(
+                                            uid_respald_user,
+                                            "promocion",
+                                            "",
+                                            "",
+                                            context,
+                                            item.dataclass_promociones_cerca_de_ti
+                                                .informacion_publcacion.numero,
+                                            "${item.dataclass_promociones_cerca_de_ti.texto_msje_whatsapp.whatsapp.msje_predermindo}" +
+                                                    "https://geinzworkapp.web.app/share?" +
+                                                    "t=prms" +
+                                                    "&l=$localidad" +
+                                                    "&pi=$id"
 
-                            },
-                            mostrar_perfil = { id, id_promo ->
-                                if (uid_respald_user.isNotEmpty()) {
-                                    viewModel.agregar_estadisticas_publicacion(
-                                        "click_perfil",
-                                        id_promo,
-                                        localidad, uid_respald_user
-                                    )
-                                    show_bottom_sheeet = true
-                                    id_tienda_select = id
-                                } else {
-                                    mostrar_bottom_shet_registrate = true
+                                        )
+                                        viewModel.agregar_estadisticas_publicacion(
+                                            "whatsapp",
+                                            id,
+                                            localidad, uid_respald_user
+                                        )
+                                    } else {
+                                        mostrar_bottom_shet_registrate = true
+                                    }
+
+                                },
+                                mostrar_perfil = { id, id_promo ->
+                                    if (uid_respald_user.isNotEmpty()) {
+                                        viewModel.agregar_estadisticas_publicacion(
+                                            "click_perfil",
+                                            id_promo,
+                                            localidad, uid_respald_user
+                                        )
+                                        show_bottom_sheeet = true
+                                        id_tienda_select = id
+                                    } else {
+                                        mostrar_bottom_shet_registrate = true
+                                    }
                                 }
-                            }
-                        )
+                            )
+
+                        }
 
                     }
-
-                }
                     SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
 
                 }
-
 
 
 //                if (mostrar_zoom_img && promoSeleccionada != null) {
@@ -604,7 +796,7 @@ fun carta_promocion_geinz(
     whatsap_promo: (String, id_tienda: String, categoira: String) -> Unit,
     mostrar_perfil: (String, id_promo: String) -> Unit
 ) {
-    val context=LocalContext.current
+    val context = LocalContext.current
     var diasRestantes by remember(i.informacion_publcacion.id_promocion) {
         mutableStateOf(
             constantes_datos_expirados_fechas_publicaciones
@@ -640,7 +832,7 @@ fun carta_promocion_geinz(
             GaleriaHorizontalInstagram(
                 imagenes = i.img.lista_img,
                 modifier = Modifier.fillMaxSize(), img_clikeble_valor = { select ->
-                    img_clikeble(i.informacion_publcacion.id_promocion, i   .img.lista_img, select)
+                    img_clikeble(i.informacion_publcacion.id_promocion, i.img.lista_img, select)
                 }, long_listatener = {
                     Log.d("LONG_PRESS", "Long press en la galería")
                 })

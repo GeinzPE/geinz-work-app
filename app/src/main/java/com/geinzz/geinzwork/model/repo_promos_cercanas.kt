@@ -14,8 +14,12 @@ import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.tiendas_con_
 import com.geinzz.geinzwork.data.model.mensaje_predeterminado
 import com.geinzz.geinzwork.data.model.msjes_predeteminados_generales
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.tiempoRestante
+import com.geinzz.geinzwork.herramientas_geinz.constantes.construirPromptNLP
+import com.geinzz.geinzwork.herramientas_geinz.constantes.construir_promp_NLP_depromo_y_oferta
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.ai.ai
+import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -27,17 +31,27 @@ import java.time.Period
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Calendar
 import kotlin.math.ceil
 import kotlin.math.floor
 
 class repo_promos_cercanas {
     val db = FirebaseFirestore.getInstance()
 
+
+    suspend fun extraer_con_gemini(texto_user:String): String?{
+        val model = Firebase.ai(
+            backend = GenerativeBackend.googleAI()
+        ).generativeModel("gemini-2.5-flash")
+        val prompt= construir_promp_NLP_depromo_y_oferta(texto_user)
+        val result = model.generateContent(prompt)
+        return result.text
+    }
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun obtener_promos(
         tipo_seleccionado: String,
         localidad: String,
-        tiendaSeleccionada1: String?
+        tiendaSeleccionada1: String?,
     ): List<obj_completo> {
 
         Log.d("PROMOS_DEBUG", "▶ obtener_promos | tipo=$tipo_seleccionado | localidad=$localidad")
@@ -122,6 +136,20 @@ class repo_promos_cercanas {
                     doc.get("datos_hora_fecha") as? Map<*, *> ?: emptyMap<String, Any>()
                 val horasMap = datos_hora_fecha["horas"] as? Map<*, *> ?: emptyMap<String, Any>()
                 val diasMap = datos_hora_fecha["dias"] as? Map<*, *> ?: emptyMap<String, Any>()
+                val horario_de_publicacion =doc.get("horario_publicacion") as? String?:""
+                val horarioActual = verificar_horairo_cel().trim()
+                val horarioPublicacion = horario_de_publicacion.trim()
+
+                if (
+                    horarioPublicacion.isNotEmpty() &&
+                    horarioPublicacion != "Todo el día" &&
+                    horarioPublicacion != horarioActual
+                ) {
+                    Log.d("PROMO_ITEM", "⛔ DESCARTADA por horario: $horarioPublicacion != $horarioActual")
+                    return@mapNotNull null
+                }
+
+
 
                 val timestampFin = when (tipo_hora_dias) {
                     "horas" -> horasMap["timestamp_fin"] as? Timestamp
@@ -148,6 +176,11 @@ class repo_promos_cercanas {
                     mensaje_predeterminado["compartir"] as? Map<*, *> ?: emptyMap<String, Any>()
                 val whatsapp =
                     mensaje_predeterminado["whatsapp"] as? Map<*, *> ?: emptyMap<String, Any>()
+
+                val comodidades_filtro =doc.get("comodidades") as? Map<String, Boolean> ?:emptyMap()
+                val pagos =doc.get("pagos") as? Map<String, Boolean> ?:emptyMap()
+                val rango_precio =doc.get("rango_establecido") as?String?:""
+                val precio =doc.get("precio_publicacion") as?String?:""
 
                 val msje_compartir = compartir["msje_predermindo"] as? String ?: ""
                 val msje_whatsapp = whatsapp["msje_predermindo"] as? String ?: ""
@@ -187,7 +220,7 @@ class repo_promos_cercanas {
                     estadisticas = estadisticas_publiccaciones(),
                     texto_msje_whatsapp = informacion.msjes_predeteminados_generales,
                     timestampFin ?: Timestamp.now(),
-                    estado
+                    estado,comodidades_filtro,pagos,rango_precio,precio
                 )
 
                 obj_completo(
@@ -231,6 +264,16 @@ class repo_promos_cercanas {
         )
     }
 
+
+    fun verificar_horairo_cel():String{
+        val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val horario = when (hora) {
+            in 6..11 -> "Mañana"
+            in 12..18 -> "Tarde"
+            else -> "Noche"
+        }
+        return horario
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun agregar_contador_estadisticas_publicacion(

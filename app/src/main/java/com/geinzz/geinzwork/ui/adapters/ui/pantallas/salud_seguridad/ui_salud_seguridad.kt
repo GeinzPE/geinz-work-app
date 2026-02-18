@@ -153,6 +153,7 @@ private val REQUEST_CALL_PHONE = 1
 
 @Composable
 fun ui_salud_seguirdad(
+    is_conect: Boolean,
     nombre_user: String,
     id_user: String,
     viewmode_segurirdad_Salud: viewmode_seguridad_salud,
@@ -162,7 +163,7 @@ fun ui_salud_seguirdad(
 
 
     var mostrar_busqueda_por_NL by remember { mutableStateOf(false) }
-var mostar_dialog_permiso_llamada by remember { mutableStateOf(false) }
+    var mostar_dialog_permiso_llamada by remember { mutableStateOf(false) }
     var numero_dialogo_permiso_llamda by remember { mutableStateOf("") }
     val lista_filtrado = listOf<String>("Todos", "salud", "seguridad")
     val lista_seguridad_salud by viewmode_segurirdad_Salud._datos_lugares.observeAsState(emptyList())
@@ -183,10 +184,13 @@ var mostar_dialog_permiso_llamada by remember { mutableStateOf(false) }
     val dialogo_contacto by viewmode_segurirdad_Salud.callDialogPermise.collectAsState()
     val autoseleccion_filtrado by viewmode_segurirdad_Salud.categoira_filtrado_realziado.collectAsState()
     val autoseleccion_filtrado_solo_texto by viewmode_segurirdad_Salud.categoira_solo_texto_realizado.collectAsState()
-    val isInternetAvailable by rememberInternetState()
 
-    LaunchedEffect(isInternetAvailable) {
-        mostrar_busqueda_por_NL = isInternetAvailable
+
+    LaunchedEffect(is_conect) {
+        mostrar_busqueda_por_NL = is_conect
+        if (!is_conect) {
+            viewmode_segurirdad_Salud.cambiar_estado_Sin_internet()
+        }
     }
 
 
@@ -383,6 +387,7 @@ var mostar_dialog_permiso_llamada by remember { mutableStateOf(false) }
                 ) {
                     Column(
                         modifier = Modifier
+                            .animateContentSize()
                             .fillMaxWidth()
                             .padding(
                                 start = paddingAnim,
@@ -407,9 +412,9 @@ var mostar_dialog_permiso_llamada by remember { mutableStateOf(false) }
                                 regresarListaCompleta = {
                                     viewmode_segurirdad_Salud.retornar_lista_comppleta()
                                     chip_selecionado = "Todos"
-                                },{numero->
-                                    mostar_dialog_permiso_llamada=true
-                                    numero_dialogo_permiso_llamda=numero
+                                }, { numero ->
+                                    mostar_dialog_permiso_llamada = true
+                                    numero_dialogo_permiso_llamda = numero
                                 })
                             spacer_vertical(10.dp)
                         }
@@ -635,14 +640,14 @@ fun FiltradoTextField(
     viewmodelSeguridadSalud: viewmode_seguridad_salud,
     onValueChange: (String) -> Unit,
     regresarListaCompleta: () -> Unit,
-    call_dialog_permise:(String)-> Unit
+    call_dialog_permise: (String) -> Unit
 ) {
 
     val focusManager = LocalFocusManager.current
     var call_dialog_permise by rememberSaveable { mutableStateOf(false) }
     var numero_llamada by rememberSaveable { mutableStateOf("") }
     var expandido by remember { mutableStateOf(true) }
-    val repo= repo_seguridad_salud()
+    val repo = repo_seguridad_salud()
 
     var mostar_micro = viewmodelSeguridadSalud._mostrar_micro.collectAsState()
     val context = LocalContext.current
@@ -1105,13 +1110,12 @@ fun FiltradoTextField(
             }
         )
         spacer_vertical(10.dp)
-
         if (mostrar_respuesIA) {
             Column(
                 modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(12.dp)
             ) {
 
@@ -1154,14 +1158,15 @@ fun FiltradoTextField(
                 // 🔹 Contenido expandible
                 if (expandido) {
                     TypewriterClickableText(
-                        descripcion_mostrado_IA, onClickRuta = {
-//                            constantes_lista_localidades.abrir_google_maps(
-//                                "", "emergencia", "", "",
-//                                context = context,
-//                                i.latidud, i.longitud
-//                            ) { mostrar_dialog ->
+                        viewmodelSeguridadSalud,
+                        descripcion_mostrado_IA, onClickRuta = { lat, lng ->
+                            constantes_lista_localidades.abrir_google_maps(
+                                "", "emergencia", "", "",
+                                context = context,
+                                lat, lng
+                            ) { mostrar_dialog ->
 //                                dialogo_activar_ubicacion = mostrar_dialog
-//                            }
+                            }
                         },
                         onClickTelefono = { numero, tipo ->
                             if (tipo == "LLAMADA") {
@@ -1170,7 +1175,7 @@ fun FiltradoTextField(
                                         Manifest.permission.CALL_PHONE
                                     ) != PackageManager.PERMISSION_GRANTED
                                 ) {
-                                    call_dialog_permise (numero)
+                                    call_dialog_permise(numero)
 
                                 } else {
                                     makePhoneCall(context, numero)
@@ -1186,7 +1191,7 @@ fun FiltradoTextField(
                                             id_tienda = "",
                                             localidad_tienda = "",
                                             context = context,
-                                            numero ="937659216",
+                                            numero = "937659216",
                                             mensajePredefinido = msj
                                         )
                                     })
@@ -1197,7 +1202,6 @@ fun FiltradoTextField(
 
 
         }
-
 
     }
 }
