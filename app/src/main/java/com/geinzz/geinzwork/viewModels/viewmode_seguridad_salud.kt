@@ -85,9 +85,13 @@ class viewmode_seguridad_salud : ViewModel() {
 
     var nombre_user = MutableStateFlow("")
 
+    private val _mensajeTTS = MutableStateFlow<String?>(null)
+    val mensajeTTS: StateFlow<String?> = _mensajeTTS
+
     fun nombre_user(nombre: String) {
         nombre_user.value = nombre
     }
+    private var mediaPlayer: MediaPlayer? = null
 //    val mostrar_busqueda_por_NLP=MutableStateFlow(false)
 
 
@@ -336,12 +340,12 @@ class viewmode_seguridad_salud : ViewModel() {
                 return
             }
             clasificarAccionDebug(
-                respuesta,
-                context,
-                texto_origina,
-                launcher,
-                fusedLocationClient,
-                permisoLauncher
+                r = respuesta,
+                context = context,
+                texto_origina = texto_origina,
+                launcher = launcher,
+                fusedLocationClient = fusedLocationClient,
+                permisoLauncher = permisoLauncher
             )
         }
     }
@@ -381,30 +385,59 @@ class viewmode_seguridad_salud : ViewModel() {
         }
 
 
+
+
         // Ahora hacemos debug de la acción
         when (r.a) {
 
             "info" -> {
-                Log.d("NLP_DEBUG2", "Detectado: INFO sobre '${entidad?.key ?: r.t}'")
+
+                val terminos = r.t
+                    .lowercase()
+                    .split(" ")
+                    .filter { it.isNotBlank() }
+
+                // Palabras que NO son entidad
+                val palabrasInfo = listOf(
+                    "horario",
+                    "direccion",
+                    "dirección",
+                    "telefono",
+                    "teléfono",
+                    "numero",
+                    "número",
+                    "correo"
+                )
+
+                val terminoEntidad = terminos
+                    .filterNot { it in palabrasInfo }
+                    .joinToString(" ")
+
+                val tipoInfo = terminos
+                    .firstOrNull { it in palabrasInfo }
+
+                Log.d("DEBUG_NLP", "Entidad limpia: $terminoEntidad")
+                Log.d("DEBUG_NLP", "Tipo info detectado: $tipoInfo")
+
+                val lista_filtrada = filtrarPorAlias(
+                    value1 = _lista_entidades.value,
+                    value = lista_general_original_inmutable.value,
+                    nombreBuscado = terminoEntidad
+                )
+
+                if (lista_filtrada.isNullOrEmpty()) {
+                    texto_mostrado.value = "No encontré esa entidad registrada."
+                    return
+                }
+
                 val respuesta = retornarInformacion(
                     lista_general_original_inmutable.value,
-                    entidad?.key ?: r.t,
-                    texto_origina
+                    terminoEntidad,
+                    tipoInfo ?: texto_origina
                 )
-                estadoBusqueda.value = Estado_busqueda.IDLE
-                _mostrar_micro.value = true
-                verificarGPS(context, launcher)
-                cloudTTS(respuesta)
+
+                _mensajeTTS.value = respuesta
                 texto_mostrado.value = respuesta
-                val lista_filtada =
-                    filtrarPorAlias(
-                        value1 = _lista_entidades.value,
-                        value = lista_general_original_inmutable.value,
-                        nombreBuscado = r.t
-                    )
-                lista_filtada?.let {
-                    _state_lista_filtrada.value = carga_seguidad.succes(it)
-                }
             }
 
             "ruta" -> {
@@ -423,12 +456,12 @@ class viewmode_seguridad_salud : ViewModel() {
                     ) { sin_permisos ->
                         if (sin_permisos) {
                             verificarGPS(context, launcher)
-                            cloudTTS("Activa tu ubicacion para poder crearte una ruta hacia ${entidad?.key ?: r.t}")
+                            _mensajeTTS.value="Activa tu ubicacion para poder crearte una ruta hacia ${entidad?.key ?: r.t}"
                             titulo_mostrado.value = "Activa tus permisos"
                             texto_mostrado.value =
                                 "Activa tu ubicacion para poder crearte una ruta hacia ${entidad?.key ?: r.t}"
                         } else {
-                            cloudTTS("Creando ruta hacia ${entidad?.key ?: r.t}")
+                            _mensajeTTS.value="Creando ruta hacia ${entidad?.key ?: r.t}"
                             titulo_mostrado.value = "Creando ruta"
                             texto_mostrado.value = "Creando ruta hacia ${entidad?.key ?: r.t}"
                         }
@@ -436,12 +469,12 @@ class viewmode_seguridad_salud : ViewModel() {
                 } ?: run {
                     val (mensaje, listaResultado) =
                         resolverPorTexto(
-                            texto_origina,
+                            r.t,
                             lista_general_original_inmutable.value,
                             r.g
                         )
 
-                    cloudTTS(mensaje)
+                    _mensajeTTS.value=mensaje
                     titulo_mostrado.value = mensaje
                     texto_mostrado.value = mensaje
                     listaResultado?.let {
@@ -465,7 +498,7 @@ class viewmode_seguridad_salud : ViewModel() {
                     )
                     titulo_mostrado.value = "Aqui tienes tus resultados"
                     texto_mostrado.value = "Llamando a ${entidad.key} "
-                    cloudTTS(texto)
+                    _mensajeTTS.value=texto
                     estadoBusqueda.value = Estado_busqueda.IDLE
                     _mostrar_micro.value = true
                     return
@@ -473,12 +506,12 @@ class viewmode_seguridad_salud : ViewModel() {
                     es_una_emergegecia.value = true
                     val (mensaje, listaResultado) =
                         resolverPorTexto(
-                            texto_origina,
+                            r.t,
                             lista_general_original_inmutable.value,
                             r.g
                         )
 
-                    cloudTTS(mensaje)
+                    _mensajeTTS.value=mensaje
                     titulo_mostrado.value = mensaje
                     texto_mostrado.value = mensaje
                     listaResultado?.let {
@@ -487,7 +520,7 @@ class viewmode_seguridad_salud : ViewModel() {
                 }
 
 
-                cloudTTS("¿A quién deseas llamar?")
+                _mensajeTTS.value="¿A quién deseas llamar?"
                 estadoBusqueda.value = Estado_busqueda.IDLE
                 _mostrar_micro.value = true
             }
@@ -505,7 +538,7 @@ class viewmode_seguridad_salud : ViewModel() {
                 } ?: run {
                     println("No se encontró número de WhatsApp")
 
-                    cloudTTS("No se encontró número de WhatsApp ${entidad?.key ?: r.t} ")
+                    _mensajeTTS.value="No se encontró número de WhatsApp ${entidad?.key ?: r.t} "
                     viewModelScope.launch {
                         val datos_a_enviar = FrasePendiente(
                             texto = texto_origina,
@@ -523,7 +556,7 @@ class viewmode_seguridad_salud : ViewModel() {
                     _mostrar_micro.value = true
                 }
 
-                cloudTTS("Abriendo Whattsapp")
+                _mensajeTTS.value="Abriendo Whattsapp"
                 titulo_mostrado.value = "Abriendo Whattsapp"
                 texto_mostrado.value = "Abriendo Whattsapp"
                 Log.d("NLP_DEBUG2", "Detectado: WHATSAPP a '${entidad?.key ?: r.t}'")
@@ -538,11 +571,9 @@ class viewmode_seguridad_salud : ViewModel() {
                         entidad.key
                     )
 
-
-                    cloudTTS(numero)
                     titulo_mostrado.value = "Aqui tienes tus resultados"
                     texto_mostrado.value = numero
-
+                    cloudTTS(numero)
                     viewModelScope.launch {
                         val datos_a_enviar = FrasePendiente(
                             texto = texto_origina,
@@ -551,6 +582,7 @@ class viewmode_seguridad_salud : ViewModel() {
                             salud_o_sec = r.g,
                             categoriazacion = r.c
                         )
+
                         data_store_localidad.guardarFraseNoReconocida(
                             context,
                             datos_a_enviar
@@ -558,16 +590,16 @@ class viewmode_seguridad_salud : ViewModel() {
                     }
                     estadoBusqueda.value = Estado_busqueda.IDLE
                     _mostrar_micro.value = true
+
                     return
                 } else {
                     val (mensaje, listaResultado) =
                         resolverPorTexto(
-                            texto_origina,
+                            r.t,
                             lista_general_original_inmutable.value,
                             r.g
                         )
-
-                    cloudTTS(mensaje)
+                    _mensajeTTS.value=mensaje
                     titulo_mostrado.value = mensaje
                     texto_mostrado.value = mensaje
                     listaResultado?.let {
@@ -576,10 +608,6 @@ class viewmode_seguridad_salud : ViewModel() {
                     estadoBusqueda.value = Estado_busqueda.IDLE
                     _mostrar_micro.value = true
                 }
-
-//                cloudTTS("¿De qué institución necesitas el número?")
-
-//                texto_mostrado.value = "¿De qué institución necesitas el número?"
 
             }
 
@@ -593,12 +621,12 @@ class viewmode_seguridad_salud : ViewModel() {
                 )
                 if (resultadosFiltrados.isNotEmpty()) {
                     _state_lista_filtrada.value = carga_seguidad.succes(resultadosFiltrados)
-                    cloudTTS("Resultados filtrados para ${entidad?.key ?: r.t}")
+                    _mensajeTTS.value="Resultados filtrados para ${entidad?.key ?: r.t}"
                     texto_mostrado.value = "Resultados filtrados para ${entidad?.key ?: r.t}"
                 } else {
                     _state_lista_filtrada.value =
                         carga_seguidad.empity("No se encontraron resultados para ${r.t}")
-                    cloudTTS("No se encontraron resultados para ${r.t}")
+                    _mensajeTTS.value="No se encontraron resultados para ${r.t}"
                     viewModelScope.launch {
                         val datos_a_enviar = FrasePendiente(
                             texto = texto_origina,
@@ -641,9 +669,9 @@ class viewmode_seguridad_salud : ViewModel() {
                         texto_mostrado.value =
                             "Para calcular la distancia necesito acceder a tu ubicación actual 📍"
 
-                        cloudTTS(
+                        _mensajeTTS.value=
                             "Necesito permiso de ubicación para calcular la distancia hacia ${entidad?.key ?: r.t}"
-                        )
+
 
                         permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                         estadoBusqueda.value = Estado_busqueda.IDLE
@@ -657,9 +685,8 @@ class viewmode_seguridad_salud : ViewModel() {
                         texto_mostrado.value =
                             "Tu ubicación está desactivada. Actívala para poder calcular la distancia 📡"
 
-                        cloudTTS(
-                            "Activa tu ubicación para calcular la distancia hacia ${entidad?.key ?: r.t}"
-                        )
+                        _mensajeTTS.value= "Activa tu ubicación para calcular la distancia hacia ${entidad?.key ?: r.t}"
+
 
                         verificarGPS(context, launcher)
                         estadoBusqueda.value = Estado_busqueda.IDLE
@@ -704,7 +731,7 @@ class viewmode_seguridad_salud : ViewModel() {
                     texto_mostrado.value = distancia
                     estadoBusqueda.value = Estado_busqueda.IDLE
                     _mostrar_micro.value = true
-                    cloudTTS(distancia)
+                    _mensajeTTS.value=distancia
                 }
             }
 
@@ -712,7 +739,7 @@ class viewmode_seguridad_salud : ViewModel() {
 
                 if (r.g == "otro") {
                     es_una_emergegecia.value = false
-                    cloudTTS("No entendí tu solicitud. ¿Podrías repetirlo?")
+                    _mensajeTTS.value="No entendí tu solicitud. ¿Podrías repetirlo?"
                     viewModelScope.launch {
                         val datos_a_enviar = FrasePendiente(
                             texto = texto_origina,
@@ -732,7 +759,7 @@ class viewmode_seguridad_salud : ViewModel() {
                     es_una_emergegecia.value = true
                     val (mensaje, listaResultado) =
                         resolverPorTexto(
-                            texto_origina,
+                            r.t,
                             lista_general_original_inmutable.value,
                             r.g
                         )
@@ -752,7 +779,7 @@ class viewmode_seguridad_salud : ViewModel() {
                         }
                     }
 
-                    cloudTTS(mensaje)
+                    _mensajeTTS.value=mensaje
                     titulo_mostrado.value = mensaje
                     texto_mostrado.value = mensaje
 
@@ -769,13 +796,17 @@ class viewmode_seguridad_salud : ViewModel() {
 
             else -> {
                 Log.w("NLP_DEBUG2", "Acción no soportada: ${r.a}")
-                cloudTTS("No pude encontrar exactamente lo que buscabas, pero mantén la calma. Recuerda que Geinz siempre está contigo ante cualquier emergencia.")
+                _mensajeTTS.value="No pude encontrar exactamente lo que buscabas, pero mantén la calma. Recuerda que Geinz siempre está contigo ante cualquier emergencia."
                 texto_mostrado.value =
                     "No pude encontrar exactamente lo que buscabas, pero mantén la calma. Recuerda que Geinz siempre está contigo ante cualquier emergencia."
 
                 estadoBusqueda.value = Estado_busqueda.IDLE
                 _mostrar_micro.value = true
             }
+        }
+
+        _mensajeTTS.value?.let {
+            cloudTTS(it)
         }
     }
 
@@ -1437,39 +1468,45 @@ class viewmode_seguridad_salud : ViewModel() {
 
     fun reproducirMP3(context: Context, audioBytes: ByteArray) {
         try {
-            // Verificar que haya datos
+
             if (audioBytes.isEmpty()) {
-                Log.e("TTS", "Audio vacío, no se puede reproducir")
+                Log.e("TTS", "Audio vacío")
                 return
             }
 
-            // Crear archivo temporal
+            // 🔥 PONLO AQUÍ
+            Log.d("TTS_SIZE", "Bytes recibidos: ${audioBytes.size}")
+
             val tempFile = File.createTempFile("tts_", ".mp3", context.cacheDir)
             tempFile.writeBytes(audioBytes)
 
-            // Configurar MediaPlayer
-            val mediaPlayer = MediaPlayer()
-            mediaPlayer.setDataSource(tempFile.absolutePath)
-            mediaPlayer.prepare()
-            mediaPlayer.start()
+            mediaPlayer = MediaPlayer().apply {
+                setDataSource(tempFile.absolutePath)
+                prepare()
+                start()
 
-            // Liberar y borrar archivo cuando termine
-            mediaPlayer.setOnCompletionListener {
-                it.release()
-                tempFile.delete()
-            }
+                setOnCompletionListener {
+                    it.release()
+                    tempFile.delete()
+                    mediaPlayer = null
+                }
 
-            // También liberar si hay error
-            mediaPlayer.setOnErrorListener { mp, what, extra ->
-                Log.e("TTS", "Error en MediaPlayer: $what / $extra")
-                mp.release()
-                tempFile.delete()
-                true
+                setOnErrorListener { mp, what, extra ->
+                    Log.e("TTS", "Error en MediaPlayer: $what / $extra")
+                    mp.release()
+                    tempFile.delete()
+                    mediaPlayer = null
+                    true
+                }
             }
 
         } catch (e: Exception) {
             Log.e("TTS", "Error reproduciendo MP3", e)
         }
+    }
+
+    fun limpiarAudio() {
+        _datosCloudTts.value = ByteArray(0)
     }
 
     fun cloudTTS(texto: String) {

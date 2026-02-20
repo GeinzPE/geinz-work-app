@@ -38,6 +38,7 @@ class repo_seguridad_salud {
     val db = FirebaseFirestore.getInstance()
 
     data class UbicacionResult(val latLng: LatLng, val callback: LocationCallback)
+    private val client = OkHttpClient()
 
     suspend fun obtener_servicios_salud(localdad: String): List<dataclass_seguridad> {
         val lista = mutableListOf<dataclass_seguridad>()
@@ -194,7 +195,8 @@ class repo_seguridad_salud {
                 .post(body)
                 .build()
 
-            val client = OkHttpClient()
+
+
 
             val response = client.newCall(request).execute() // ✅ ahora sí
 

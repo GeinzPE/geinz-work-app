@@ -25,6 +25,8 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expir
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.timestampEn30Dias
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.normalizar
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenWebPSinRecorte
+import com.geinzz.geinzwork.herramientas_geinz.constantes.construirPromptNLP
+import com.geinzz.geinzwork.herramientas_geinz.constantes.construir_prompt_NLP_para_busqueda
 import com.geinzz.geinzwork.herramientas_geinz.constantes.extraer_terminos_para_GenIA
 import com.geinzz.geinzwork.herramientas_geinz.constantes.generarPromptNombreGeneracionIA
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.acortarDescripcionNotificacion
@@ -48,6 +50,7 @@ import kotlinx.coroutines.tasks.await
 import com.google.firebase.Timestamp
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
+import kotlinx.serialization.json.Json
 
 
 import java.text.SimpleDateFormat
@@ -1252,6 +1255,7 @@ class repo_eres_socio {
                 .document(i.informacion.id_promocion)
 
 
+
             val hasmap_metodos_pago = hashMapOf<String, Any>(
                 "yape" to i.metodos_pagos.yape,
                 "plin" to i.metodos_pagos.plin,
@@ -1275,6 +1279,7 @@ class repo_eres_socio {
                 "aire_acondicionado" to i.servicios_comoidades.aireAcondicionado
             )
 
+            val array_extraido=extraer_datos_de_texto_completo(i.informacion.titulo+i.informacion.descripcion,i.informacion.categoria)
             val hashMap = hashMapOf<String, Any>(
                 "estado" to i.estado,
                 "tipo_hora_dias" to i.formato_fecha_hora,
@@ -1291,7 +1296,9 @@ class repo_eres_socio {
                 "tiene_wifi" to i.servicios_comoidades.wifi,
                 "tiene_estacionamiento" to i.servicios_comoidades.estacionamiento,
                 "acepta_yape" to i.metodos_pagos.yape,
-                "acepta_efectivo" to i.metodos_pagos.efectivo
+                "acepta_efectivo" to i.metodos_pagos.efectivo,
+                "terminos_clave" to array_extraido
+
             )
 
             // 🤖 SOLO SI EXISTE IA
@@ -1335,6 +1342,8 @@ class repo_eres_socio {
                 gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
             }
 
+
+
             ref.set(hashMap, SetOptions.merge()).await()
             ref2.set(hashMap, SetOptions.merge()).await()
 
@@ -1342,6 +1351,80 @@ class repo_eres_socio {
         } catch (e: Exception) {
             Log.e("CREAR_PROMO", "Error al crear promoción", e)
             Result.failure(e)
+        }
+    }
+
+    suspend fun extraer_datos_de_texto_completo(
+        texto: String,
+        categoria_tienda: String
+    ): List<String> {
+
+        val model = Firebase.ai(
+            backend = GenerativeBackend.googleAI()
+        ).generativeModel("gemini-2.5-flash")
+
+        val prompt = construir_prompt_NLP_para_busqueda(texto, categoria_tienda)
+
+        return try {
+
+            val result = model.generateContent(prompt)
+            val raw = result.text?.trim().orEmpty()
+
+            Log.d("NLP_FLOW", "==============================")
+            Log.d("NLP_FLOW", "Respuesta cruda:")
+            Log.d("NLP_FLOW", raw)
+
+            if (raw.isBlank()) {
+                Log.d("NLP_FLOW", "Respuesta vacía → retorna emptyList()")
+                return emptyList()
+            }
+
+            // 🔥 1️⃣ Intentar parseo directo
+            try {
+                val lista = Json.decodeFromString<List<String>>(raw)
+                Log.d("NLP_FLOW", "Parseo directo OK")
+                Log.d("NLP_FLOW", "Resultado final: $lista")
+                return lista
+            } catch (_: Exception) {
+                Log.d("NLP_FLOW", "Parseo directo falló")
+            }
+
+            // 🔥 2️⃣ Intentar extraer entre [ ]
+            val cleaned = raw
+                .substringAfter("[", "")
+                .substringBeforeLast("]", "")
+                .let { if (it.isNotBlank()) "[$it]" else "" }
+
+            if (cleaned.isNotBlank()) {
+                try {
+                    val lista = Json.decodeFromString<List<String>>(cleaned)
+                    Log.d("NLP_FLOW", "Parseo con limpieza OK")
+                    Log.d("NLP_FLOW", "Resultado final: $lista")
+                    return lista
+                } catch (_: Exception) {
+                    Log.d("NLP_FLOW", "Parseo con limpieza falló")
+                }
+            }
+
+            // 🔥 3️⃣ Último recurso
+            val listaFinal = raw
+                .replace("```json", "")
+                .replace("```", "")
+                .replace("[", "")
+                .replace("]", "")
+                .split(",")
+                .map { it.replace("\"", "").trim() }
+                .filter { it.isNotBlank() }
+
+            Log.d("NLP_FLOW", "Fallback por separación manual")
+            Log.d("NLP_FLOW", "Resultado final: $listaFinal")
+
+            listaFinal
+
+        } catch (e: Exception) {
+            Log.e("NLP_FLOW", "Error general en extracción")
+            e.printStackTrace()
+            emptyList()
         }
     }
 

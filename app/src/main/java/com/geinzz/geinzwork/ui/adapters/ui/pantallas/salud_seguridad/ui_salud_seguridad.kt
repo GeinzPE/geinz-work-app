@@ -3,7 +3,6 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad
 import android.Manifest
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
@@ -12,7 +11,6 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
@@ -38,7 +36,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -100,7 +97,6 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
-import com.geinzz.geinzwork.data_store.data_store_localidad.incrementarAperturaApartado
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_compartir.compartir_pantalla_completa
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
@@ -120,7 +116,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isInternetAvailable
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud.carga_seguidad
@@ -135,18 +130,14 @@ import kotlin.math.max
 import kotlin.math.pow
 
 
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.focus.FocusManager
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.repo_seguridad_salud
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TypewriterClickableText
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_compartir_ubicacion_con_entidad_salud
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.enviarMensajeEmergencia
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.makePhoneCall
-import java.net.URLEncoder
 
 
 private val REQUEST_CALL_PHONE = 1
@@ -185,7 +176,7 @@ fun ui_salud_seguirdad(
     val autoseleccion_filtrado by viewmode_segurirdad_Salud.categoira_filtrado_realziado.collectAsState()
     val autoseleccion_filtrado_solo_texto by viewmode_segurirdad_Salud.categoira_solo_texto_realizado.collectAsState()
 
-
+    val focusManager = LocalFocusManager.current
     LaunchedEffect(is_conect) {
         mostrar_busqueda_por_NL = is_conect
         if (!is_conect) {
@@ -221,8 +212,8 @@ fun ui_salud_seguirdad(
 
     LaunchedEffect(datos_cloud_TTs) {
         if (datos_cloud_TTs.isNotEmpty()) {
-            // Aquí ya puedes reproducir el audio
             viewmode_segurirdad_Salud.reproducirMP3(context, datos_cloud_TTs)
+            viewmode_segurirdad_Salud.limpiarAudio()
         }
     }
     LaunchedEffect(valor_filtrado) {
@@ -323,7 +314,12 @@ fun ui_salud_seguirdad(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                focusManager.clearFocus()
+            }
     ) {
         LazyColumn(
             state = listState,
@@ -397,6 +393,7 @@ fun ui_salud_seguirdad(
                     ) {
                         if (mostrar_busqueda_por_NL) {
                             FiltradoTextField(
+                                focusManager,
                                 permisoLauncher,
                                 launcher,
                                 fusedLocationClient,
@@ -446,14 +443,15 @@ fun ui_salud_seguirdad(
                         error_empity = false
                         Box(modifier = Modifier.padding(8.dp)) {
                             carta_salud_cuidad(
-                                id_user,
-                                viewmode_segurirdad_Salud,
-                                i,
-                                fusedLocationClient,
+                                id_user = id_user,
+                                viewmode_segurirdad_Salud = viewmode_segurirdad_Salud,
+                                i = i,
+                                fusedLocationClient = fusedLocationClient,
                                 abrir_mapa = { la, lo ->
                                     viewmode_segurirdad_Salud.setCoordenadas(la, lo)
                                     abrir_mapa(la, lo)
-                                })
+                                }, permisoLauncher = permisoLauncher
+                            )
                         }
                     }
                 }
@@ -634,6 +632,7 @@ fun chips_filtrado(
 
 @Composable
 fun FiltradoTextField(
+    focusManager: FocusManager,
     permisoLauncher: ManagedActivityResultLauncher<String, Boolean>,
     launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>,
     fusedLocationClient: FusedLocationProviderClient,
@@ -643,7 +642,7 @@ fun FiltradoTextField(
     call_dialog_permise: (String) -> Unit
 ) {
 
-    val focusManager = LocalFocusManager.current
+
     var call_dialog_permise by rememberSaveable { mutableStateOf(false) }
     var numero_llamada by rememberSaveable { mutableStateOf("") }
     var expandido by remember { mutableStateOf(true) }
@@ -847,6 +846,7 @@ fun FiltradoTextField(
             .fillMaxWidth()
             .animateContentSize()
             .padding(vertical = 16.dp)
+
     ) {
 
         OutlinedTextField(
@@ -865,16 +865,20 @@ fun FiltradoTextField(
             },
             placeholder = {
                 texto_generico_one_line(
-                    "¿Qué buscas?",
-                    style = MaterialTheme.typography.bodyMedium
+                    "Dime tu emergencia",
+                    style = MaterialTheme.typography.bodyMedium, color = Color.Gray
                 )
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .onFocusChanged { focusState ->
                     if (focusState.isFocused) {
-
                         viewmodelSeguridadSalud.cabiar_valor_mostara_micro(false)
+                        if(textoBuscar.isNotEmpty()){
+                            ocultar_borrado = true
+                        }
+                    }else{
+
                     }
                 },
             shape = RoundedCornerShape(50),
@@ -1109,8 +1113,9 @@ fun FiltradoTextField(
                 }
             }
         )
-        spacer_vertical(10.dp)
+
         if (mostrar_respuesIA) {
+            spacer_vertical(10.dp)
             Column(
                 modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
@@ -1119,7 +1124,7 @@ fun FiltradoTextField(
                     .padding(12.dp)
             ) {
 
-                // 🔹 Fila superior: Texto pequeño + icono
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -1270,7 +1275,9 @@ fun carta_salud_cuidad(
     viewmode_segurirdad_Salud: viewmode_seguridad_salud,
     i: dataclass_seguridad,
     fusedLocationClient: FusedLocationProviderClient,
-    abrir_mapa: (latitud: Double, longitud: Double) -> Unit
+    abrir_mapa: (latitud: Double, longitud: Double) -> Unit,
+    permisoLauncher: ManagedActivityResultLauncher<String, Boolean>
+
 ) {
     val context = LocalContext.current
     var dialogo_activar_ubicacion by rememberSaveable { mutableStateOf(false) }
@@ -1280,6 +1287,7 @@ fun carta_salud_cuidad(
     var lista_numero by remember { mutableStateOf(listOf<String>()) }
     var icono_dialogo by remember { mutableStateOf("") }
     var dialog_sin_lat_log by remember { mutableStateOf(false) }
+    var mostar_dialog_convesacional_entidad by remember { mutableStateOf(false) }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
@@ -1396,13 +1404,27 @@ fun carta_salud_cuidad(
     }
     if (dialogo_contacto) {
         dialog_llamada_urgencias(
-            fusedLocationClient,
-            viewmode_segurirdad_Salud,
-            lista_numero,
-            icono_dialogo
-        ) {
-            dialogo_contacto = false
-        }
+            i.img_ref,
+            i.nombre_,
+            launcher_dialog_ubicacion = launcher,
+            permision_obtener_cordenadas = permisoLauncher,
+            fusedLocationClient = fusedLocationClient,
+            viewmodeSeguridadSalud = viewmode_segurirdad_Salud,
+            lista_numeros = lista_numero,
+            tipo = icono_dialogo
+        , {
+                dialogo_contacto = false
+            },{
+                mostar_dialog_convesacional_entidad=true
+            })
+    }
+
+    if(mostar_dialog_convesacional_entidad){
+        dialog_compartir_ubicacion_con_entidad_salud(
+            ondismis = {mostar_dialog_convesacional_entidad=false},
+            entidad = i.nombre_,
+            img_entidad = i.img_ref
+        )
     }
 }
 

@@ -362,7 +362,7 @@ fun bottom_sheet_tiendas_filtradas(
             }
         }
     }
-var qr_generado_tienda by remember { mutableStateOf("") }
+    var qr_generado_tienda by remember { mutableStateOf("") }
     LaunchedEffect(tiendas_filtradas.id_tienda, latitud, longitud) {
         qr_generado_tienda=retornar_id_Tienda_lugar(tiendas_filtradas.id_tienda, latitud, longitud)
 
@@ -504,14 +504,14 @@ var qr_generado_tienda by remember { mutableStateOf("") }
                         }
                         item {
                             if(tiendas_filtradas.comodidades.isNotEmpty()){
-                            expandible_comidades_aforo(
-                                tiendas_filtradas.nombre_tienda,
-                                tiendas_filtradas.comodidades,
-                                tiendas_filtradas.aforo,
-                                modifier = Modifier.padding(horizontal = 10.dp),
-                                expandido = expander_comidades_aforo,
-                            ) { expander_comidades_aforo = !expander_comidades_aforo }
-                            spacer_vertical(10.dp)
+                                expandible_comidades_aforo(
+                                    tiendas_filtradas.nombre_tienda,
+                                    tiendas_filtradas.comodidades,
+                                    tiendas_filtradas.aforo,
+                                    modifier = Modifier.padding(horizontal = 10.dp),
+                                    expandido = expander_comidades_aforo,
+                                ) { expander_comidades_aforo = !expander_comidades_aforo }
+                                spacer_vertical(10.dp)
                             }
                         }
                         item {
@@ -626,22 +626,22 @@ var qr_generado_tienda by remember { mutableStateOf("") }
 //                            }
                         }
 
-                        item {
-                            spacer_vertical(20.dp)
-                            Box(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                texto_generico_one_line(
-                                    "Última actualización: ${
-                                        convertir_timesTAmp_fecha(
-                                            tiendas_filtradas.timestamp
-                                        )
-                                    }", style = MaterialTheme.typography.bodyMedium
-                                )
-
-                            }
-                        }
+//                        item {
+//                            spacer_vertical(20.dp)
+//                            Box(
+//                                modifier = Modifier.fillMaxWidth(),
+//                                contentAlignment = Alignment.Center
+//                            ) {
+//                                texto_generico_one_line(
+//                                    "Última actualización: ${
+//                                        convertir_timesTAmp_fecha(
+//                                            tiendas_filtradas.timestamp
+//                                        )
+//                                    }", style = MaterialTheme.typography.bodyMedium
+//                                )
+//
+//                            }
+//                        }
                         item {
                             spacer_vertical(20.dp)
 
@@ -772,65 +772,65 @@ fun cabezero_tiendas(
         ) {
 
 
-                // 🔹 CARD PERFIL
-                Card(
-                    modifier = Modifier
-                        .width(280.dp)
-                        .clip(RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.background
-                    ),
-                    elevation = CardDefaults.cardElevation(4.dp)
-                ) {
-                    perfil_img_zooom(id_user,
-                        categoritienda, localidad, id_tienda, nombreTienda,
-                        distanciaUsuarioTienda = distanciaUsuarioTienda,
-                        triggerAnimacion = triggerAnimacion,
-                        modifier = Modifier.fillMaxWidth(),
-                        img_tienda_perfil = img_tienda_perfil,
-                        expandido = { expdir_img = !expdir_img },
-                        mostrarDialogozoom = { mostrarDialogozoom = true },
-                        resetear_estado_lott = resetear_estado_loo
-                    )
-                }
+            // 🔹 CARD PERFIL
+            Card(
+                modifier = Modifier
+                    .width(280.dp)
+                    .clip(RoundedCornerShape(16.dp)),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                perfil_img_zooom(id_user,
+                    categoritienda, localidad, id_tienda, nombreTienda,
+                    distanciaUsuarioTienda = distanciaUsuarioTienda,
+                    triggerAnimacion = triggerAnimacion,
+                    modifier = Modifier.fillMaxWidth(),
+                    img_tienda_perfil = img_tienda_perfil,
+                    expandido = { expdir_img = !expdir_img },
+                    mostrarDialogozoom = { mostrarDialogozoom = true },
+                    resetear_estado_lott = resetear_estado_loo
+                )
+            }
 
 
-                // 🔹 COLLAGE (ocupa lo que necesite)
-                if (lista_img.lista_ambiernte.isNotEmpty()) {
-                    CollageGoogleMapsStyle_sin_scroll(
-                        id_user = id_user,
-                        categoria = categoritienda,
-                        it = compartir_promocion(),
-                        tag = "ambiente",
-                        aspectRatio = 1.1f,
-                        imagenes = lista_img.lista_ambiernte
-                    )
-                }
+            // 🔹 COLLAGE (ocupa lo que necesite)
+            if (lista_img.lista_ambiernte.isNotEmpty()) {
+                CollageGoogleMapsStyle_sin_scroll(
+                    id_user = id_user,
+                    categoria = categoritienda,
+                    it = compartir_promocion(),
+                    tag = "ambiente",
+                    aspectRatio = 1.1f,
+                    imagenes = lista_img.lista_ambiernte
+                )
+            }
 
 
-                       // 🔹 COLLAGE (ocupa lo que necesite)
-                if (lista_img.lista_productos.isNotEmpty()) {
-                    CollageGoogleMapsStyle_sin_scroll(
-                        id_user = id_user,
-                        categoria = categoritienda,
-                        it = compartir_promocion(),
-                        tag = "productos",
-                        aspectRatio = 1.1f,
-                        imagenes = lista_img.lista_productos
-                    )
-                }
+            // 🔹 COLLAGE (ocupa lo que necesite)
+            if (lista_img.lista_productos.isNotEmpty()) {
+                CollageGoogleMapsStyle_sin_scroll(
+                    id_user = id_user,
+                    categoria = categoritienda,
+                    it = compartir_promocion(),
+                    tag = "productos",
+                    aspectRatio = 1.1f,
+                    imagenes = lista_img.lista_productos
+                )
+            }
 
 
-                // 🔹 COLLAGE (ocupa lo que necesite)
-                if (lista_img.lista_promociones.isNotEmpty()) {
-                    CollageGoogleMapsStyle_sin_scroll_promociones(
-                        id_user = id_user,
-                        it = compartir_promocion(nombre_tienda,id_tienda,localidad, URLEncoder.encode(categoritienda, "UTF-8"),numero_tienda),
-                        tag = "promociones",
-                        aspectRatio = 1.1f,
-                        imagenes = lista_img.lista_promociones
-                    )
-                }
+            // 🔹 COLLAGE (ocupa lo que necesite)
+            if (lista_img.lista_promociones.isNotEmpty()) {
+                CollageGoogleMapsStyle_sin_scroll_promociones(
+                    id_user = id_user,
+                    it = compartir_promocion(nombre_tienda,id_tienda,localidad, URLEncoder.encode(categoritienda, "UTF-8"),numero_tienda),
+                    tag = "promociones",
+                    aspectRatio = 1.1f,
+                    imagenes = lista_img.lista_promociones
+                )
+            }
 
 
         }
@@ -1072,7 +1072,7 @@ fun perfil_cabezero(
                 viewModelFiltros.setear_color(color)
             })
         spacer_vertical(5.dp)
-    TextoCopiable(id_tienda)
+        TextoCopiable(id_tienda)
         text_expandible_wrapp(
             texto = "${categoritienda.capitalizeFirst()}",
             style = MaterialTheme.typography.bodyMedium
@@ -1835,7 +1835,7 @@ fun expandible_comidades_aforo(
             expandibles_wrapp(
                 "Comodidades y aforo",
                 iconRes = null,
-                  Icons.Filled.Wifi,
+                Icons.Filled.Wifi,
                 expandido,
                 onClickExpand
             )
@@ -1883,42 +1883,42 @@ fun AforoCard(
     modifier: Modifier = Modifier
 ) {
     Box(modifier= Modifier.padding(10.dp)) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(Color(0xFF1976D2), RoundedCornerShape(8.dp)) // azul con bordes redondeados
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Título
-        Text(
-            text = "AFORO",
-            style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // Subtítulo
-        Text(
-            text = "CAPACIDAD MÁXIMA",
-            style = MaterialTheme.typography.bodyMedium.copy(color = Color.White)
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Valor
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(6.dp))
-                .background(Color.White)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+        Column(
+            modifier = modifier
+                .fillMaxWidth()
+                .background(Color(0xFF1976D2), RoundedCornerShape(8.dp)) // azul con bordes redondeados
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Título
             Text(
-                text = "$capacidadMax personas",
-                style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black)
+                text = "AFORO",
+                style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
             )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Subtítulo
+            Text(
+                text = "CAPACIDAD MÁXIMA",
+                style = MaterialTheme.typography.bodyMedium.copy(color = Color.White)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Valor
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(Color.White)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = "$capacidadMax personas",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black)
+                )
+            }
         }
-    }
     }
 }
 
@@ -2195,6 +2195,5 @@ fun compartirLugarFirebaseHosttiendas(
         Toast.makeText(context, "Error al compartir el lugar", Toast.LENGTH_SHORT).show()
     }
 }
-
 
 

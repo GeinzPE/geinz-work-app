@@ -298,7 +298,6 @@ class repo_obtener_datos_promociones {
         val estado = datos["estado"] as? String ?: "expirado"
 
         if (estado != "activo") {
-
             return dataclass_promociones_cerca_de_ti()
         }
 
@@ -321,6 +320,7 @@ class repo_obtener_datos_promociones {
         val compartir = informacion?.get("compartir") as? Boolean ?: false
         val contactar = informacion?.get("contactar") as? Boolean ?: false
         val numero = informacion?.get("numero") as? String ?: ""
+        val terminos_clave=datos.get("terminos_clave") as? List<String> ?: emptyList()
 
         val compartir_msj_bool = compartir_msje?.get("activo_o_no") as? Boolean ?: false
         val compartir_msj = compartir_msje?.get("msje_predermindo") as? String ?: ""
@@ -371,7 +371,7 @@ class repo_obtener_datos_promociones {
             texto_msje_whatsapp = msjes_predeteminados_generales(
                 compartir = mensaje_predeterminado(msje_predermindo = compartir_msj, activo_o_no = compartir_msj_bool),
                 whatsapp = mensaje_predeterminado(msje_predermindo = wsap_msj, activo_o_no = wsap_msj_bool)
-            ),fecha_fin=timestampFin?: Timestamp.now(),estado,comodidades_filtro,pagos,rango_precio,precio
+            ),fecha_fin=timestampFin?: Timestamp.now(),estado,comodidades_filtro,pagos,rango_precio,precio,terminos_clave
         )
     }
 

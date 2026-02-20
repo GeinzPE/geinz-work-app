@@ -39,14 +39,16 @@ class repo_promos_cercanas {
     val db = FirebaseFirestore.getInstance()
 
 
-    suspend fun extraer_con_gemini(texto_user:String): String?{
+    suspend fun extraer_con_gemini(texto_user:String,categoria_select:String): String?{
         val model = Firebase.ai(
             backend = GenerativeBackend.googleAI()
         ).generativeModel("gemini-2.5-flash")
-        val prompt= construir_promp_NLP_depromo_y_oferta(texto_user)
+        val prompt= construir_promp_NLP_depromo_y_oferta(texto_user,categoria_select)
         val result = model.generateContent(prompt)
         return result.text
     }
+
+
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun obtener_promos(
         tipo_seleccionado: String,
@@ -168,7 +170,7 @@ class repo_promos_cercanas {
                 }
 
                 Log.d("PROMO_ITEM", "✅ PROMO VÁLIDA")
-
+                val terminos_clave=doc.get("terminos_clave") as? List<String> ?: emptyList()
                 val imgMap = doc.get("img_container") as? Map<*, *> ?: emptyMap<String, Any>()
                 val mensaje_predeterminado =
                     doc.get("mensaje_predeterminado") as? Map<*, *> ?: emptyMap<String, Any>()
@@ -184,6 +186,7 @@ class repo_promos_cercanas {
 
                 val msje_compartir = compartir["msje_predermindo"] as? String ?: ""
                 val msje_whatsapp = whatsapp["msje_predermindo"] as? String ?: ""
+
 
                 val informacion = informacion_publcacion(
                     descripcion = infoMap["descripcion"] as? String ?: "",
@@ -220,7 +223,7 @@ class repo_promos_cercanas {
                     estadisticas = estadisticas_publiccaciones(),
                     texto_msje_whatsapp = informacion.msjes_predeteminados_generales,
                     timestampFin ?: Timestamp.now(),
-                    estado,comodidades_filtro,pagos,rango_precio,precio
+                    estado,comodidades_filtro,pagos,rango_precio,precio,terminos_clave
                 )
 
                 obj_completo(

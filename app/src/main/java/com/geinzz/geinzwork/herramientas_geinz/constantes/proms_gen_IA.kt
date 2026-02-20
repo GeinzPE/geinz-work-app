@@ -955,35 +955,35 @@ fun extraer_terminos_para_GenIA(textos: String): String {
 //""".trimIndent()
 //}
 
-//fun construirPromptNLP(textoUsuario: String): String {
-//    return """
-//Eres un extractor NLP de emergencias.
-//Responde SOLO JSON válido.
-//
-//Formato:
-//{"a":"","t":"","g":"","c":""}
-//
-//Campos:
-//"a": ruta, dar_numero, llamar, whatsapp, info, distancia, buscar, desconocido
-//"t": término clave del texto normalizado en minúsculas sin artículos sin diminutivo ni cambios bruscos
-//"g": salud, seguridad, otro
-//"c": a (alta), m (media), b (baja)
-//
-//Reglas:
-//- Si solo reporta un hecho → "a":"desconocido"
-//- Si es saludo o no se entiende → {"a":"desconocido","t":"","g":"otro","c":"b"}
-//- No expliques nada.
-//- No agregues texto fuera del JSON.
-//
-//Ejemplo:
-//-"Me robaron el celular"
-//{"a":"desconocido","t":"robo","g":"seguridad","c":"a"}
-//-"quiero ver los poli"
-//{"a":"buscar","t":"polica","g":"seguridad","c":"m"}
-//
-//Texto: "$textoUsuario"
-//""".trimIndent()
-//}
+fun construirPromptNL2P(textoUsuario: String): String {
+    return """
+Eres un extractor NLP de emergencias.
+Responde SOLO JSON válido.
+
+Formato:
+{"a":"","t":"","g":"","c":""}
+
+Campos:
+"a": ruta, dar_numero, llamar, whatsapp, info, distancia, buscar, desconocido
+"t": término clave del texto normalizado en minúsculas sin artículos sin diminutivo ni cambios bruscos
+"g": salud, seguridad, otro
+"c": a (alta), m (media), b (baja)
+
+Reglas:
+- Si solo reporta un hecho → "a":"desconocido"
+- Si es saludo o no se entiende → {"a":"desconocido","t":"","g":"otro","c":"b"}
+- No expliques nada.
+- No agregues texto fuera del JSON.
+
+Ejemplo:
+-"Me robaron el celular"
+{"a":"desconocido","t":"robo","g":"seguridad","c":"a"}
+-"quiero ver los poli"
+{"a":"buscar","t":"polica","g":"seguridad","c":"m"}
+
+Texto: "$textoUsuario"
+""".trimIndent()
+}
 
 fun construirPromptNLP(textoUsuario: String): String {
     return """
@@ -999,20 +999,21 @@ c: a, m, b
 Reglas:
 1) Corrige errores ortográficos leves.
 2) Si reporta incidente o síntoma → a:"desconocido".
-3) Si pide mostrar, ver, buscar o solo categoría → a:"buscar".
-4) Número → dar_numero | Llamar → llamar | Distancia → distancia | Cómo llegar → ruta | Cómo info → informacion,horario etc.
-5) Delito/policía → seguridad | Síntoma/hospital → salud.
-6) Emergencia grave → c:"a" | Incidente no crítico → c:"m" | Navegación → c:"b".
-7) Si no se entiende → {"a":"desconocido","t":"","g":"otro","c":"b"}.
+3) Si pide mostrar, ver o explorar entidades → a:"buscar".
+4) Si pide horario, direccion, telefono, numero u otro dato específico → a:"info".
+5) numero explícito → dar_numero | llamar explícitamente → llamar | distancia → distancia | como llegar → ruta.
+6) Delito → seguridad | Síntoma → salud.
+7) Emergencia grave → c:"a" | Incidente no crítico → c:"m" | Navegación → c:"b".
+8) Si no se entiende → {"a":"desconocido","t":"","g":"otro","c":"b"}.
 
 Texto: "$textoUsuario"
 """.trimIndent()
 }
 
 
-fun construir_promp_NLP_depromo_y_oferta(textoUsuario:String): String {
+fun construir_promp_NLP_depromo_y_oferta(textoUsuario:String,categoira_selec:String): String {
     return """
-    Eres un extractor de datos categoría comida.
+    Eres un extractor de datos categoría $categoira_selec.
     Extrae producto principal (sin cantidades), atributos, precio, método de pago y comodidades.
     No inventes datos. Si no aparece:
     - precio: null
@@ -1024,11 +1025,32 @@ fun construir_promp_NLP_depromo_y_oferta(textoUsuario:String): String {
     yape (si dice "llave"), plin (si dice "link"), efectivo, agora, visa, mastercard.
 
     Comodidades solo si aparecen o se parecen:
-    wifi, zona_expandida, servicio_higienico, camaras_de_seguridad, sala_de_espera, mesa_para_niños, estacionamiento, enchufe, aire_acondicionado, ingreso_mascotas.
+    wifi, zona_expandida, servicios_higienicos, camaras_de_seguridad, sala_de_espera, mesa_para_niños, estacionamiento, enchufe, aire_acondicionado, ingreso_mascotas.
 
     Responde solo JSON:
     {"principal":"string","atributos":[],"precio":number|null,"metodo_pago":[],"comodidades":[]}
 
 Texto: "$textoUsuario"
 """.trimIndent()
+}
+
+fun construir_prompt_NLP_para_busqueda(textoUsuario: String, categoria: String): String {
+    return """
+    Extrae términos de búsqueda del siguiente texto en categoría $categoria.
+    
+    Reglas:
+    - Solo productos, cantidades, marcas y precios que aparezcan literalmente en el texto.
+    - No inventes términos.
+    - No agregues explicaciones.
+    - No agregues texto adicional.
+    - No uses markdown.
+    - No nombre del negocio 
+    - No ubicacion
+    - Todo en minuscula y evita diminutivos
+    
+    La respuesta debe ser únicamente un arreglo de strings.
+    Debe empezar con [ y terminar con ] NO AGREGES MAS TEXTO SOLO EL ARRAY.
+    
+    Texto: "$textoUsuario"
+    """.trimIndent()
 }

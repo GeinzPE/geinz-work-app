@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.EstadisticasPromo
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.PromoConMatch
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.RespuestaGemini
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
@@ -49,6 +50,13 @@ class viewmodel_promos_cercanas : ViewModel() {
     private var paginaActual = 0
     private val bloque = 5
     private var cargando = false
+
+
+    private val _porcentajesMatch =
+        MutableStateFlow<Map<String, Int>>(emptyMap())
+
+    val porcentajesMatch: StateFlow<Map<String, Int>> =
+        _porcentajesMatch
 
 
     private val _comodidadesSeleccionadas =
@@ -108,14 +116,10 @@ class viewmodel_promos_cercanas : ViewModel() {
     private val _rangoPrecioSeleccionado = MutableStateFlow<String?>(null)
     val rangoPrecioSeleccionado: StateFlow<String?> = _rangoPrecioSeleccionado
 
-    fun setearRangoPrecio(rango: String) {
-        _rangoPrecioSeleccionado.value =
-            if (_rangoPrecioSeleccionado.value == rango) {
-                null   // si lo vuelve a tocar, se deselecciona
-            } else {
-                rango
-            }
+    fun setearRangoPrecioDesdeNLP(rango: String?) {
+        _rangoPrecioSeleccionado.value = rango
     }
+
 
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -254,7 +258,11 @@ class viewmodel_promos_cercanas : ViewModel() {
         }
     }
 
-    fun filtrarPromociones(categoria: String) {
+    fun filtrarPromociones(
+        categoria: String,
+        terminoNLP: String?,
+        atributosNLP: List<String?>
+    ) {
 
         val base = listaCompleta.value
 
@@ -262,14 +270,20 @@ class viewmodel_promos_cercanas : ViewModel() {
         val comodidades = comodidadesSeleccionadas.value
         val rangoPrecio = rangoPrecioSeleccionado.value
 
-        Log.d("FILTRO_DEBUG", "========== FILTRANDO ==========")
-        Log.d("FILTRO_DEBUG", "Categoria: $categoria")
-        Log.d("FILTRO_DEBUG", "Metodos: $metodoPago")
-        Log.d("FILTRO_DEBUG", "Comodidades: $comodidades")
-        Log.d("FILTRO_DEBUG", "Rango precio: $rangoPrecio")
-        Log.d("FILTRO_DEBUG", "Total base: ${base.size}")
+        val listaUsuario = buildList {
+            terminoNLP?.let { termino ->
+                normalizar(termino)
+                    .split(" ")
+                    .filter { it.length > 2 }
+                    .forEach { add(it) }
+            }
 
-        val filtrada = base.filter { obj ->
+            atributosNLP.filterNotNull().forEach {
+                add(normalizar(it))
+            }
+        }
+
+        val filtradaConScore = base.mapNotNull { obj ->
 
             val data = obj.dataclass_promociones_cerca_de_ti
 
@@ -282,7 +296,7 @@ class viewmodel_promos_cercanas : ViewModel() {
                     .any { it.trim().equals(categoria, ignoreCase = true) }
             }
 
-            // ✅ 2. MÉTODOS DE PAGO (OR interno)
+            // ✅ 2. MÉTODOS DE PAGO
             val cumpleMetodoPago = if (metodoPago.isEmpty()) {
                 true
             } else {
@@ -291,7 +305,7 @@ class viewmodel_promos_cercanas : ViewModel() {
                 }
             }
 
-            // ✅ 3. COMODIDADES (OR interno)
+            // ✅ 3. COMODIDADES
             val cumpleComodidades = if (comodidades.isEmpty()) {
                 true
             } else {
@@ -304,45 +318,106 @@ class viewmodel_promos_cercanas : ViewModel() {
             val cumplePrecio = if (rangoPrecio.isNullOrEmpty()) {
                 true
             } else {
-                val precio = data.precio.toDoubleOrNull() ?: return@filter false
+                val precio = data.precio.toDoubleOrNull()
 
-                when (rangoPrecio) {
-                    "0 - 10" -> precio in 0.0..10.0
-                    "10 - 20" -> precio in 10.0..20.0
-                    "20 - 30" -> precio in 20.0..30.0
-                    "30 - 50" -> precio in 30.0..50.0
-                    "50 - 80" -> precio in 50.0..80.0
-                    "80 - 120" -> precio in 80.0..120.0
-                    "120 - 200" -> precio in 120.0..200.0
-                    "200 - 350" -> precio in 200.0..350.0
-                    "350 - 500" -> precio in 350.0..500.0
-                    "500 - 1000" -> precio in 500.0..1000.0
-                    "1000 - 2500" -> precio in 1000.0..2500.0
-                    "2500 - 5000" -> precio in 2500.0..5000.0
-                    "Mayor a 5000" -> precio > 5000.0
-                    else -> true
+                if (precio == null) {
+                    false
+                } else {
+                    when (rangoPrecio) {
+                        "0 - 10" -> precio in 0.0..10.0
+                        "10 - 20" -> precio in 10.0..20.0
+                        "20 - 30" -> precio in 20.0..30.0
+                        "30 - 50" -> precio in 30.0..50.0
+                        "50 - 80" -> precio in 50.0..80.0
+                        "80 - 120" -> precio in 80.0..120.0
+                        "120 - 200" -> precio in 120.0..200.0
+                        "200 - 350" -> precio in 200.0..350.0
+                        "350 - 500" -> precio in 350.0..500.0
+                        "500 - 1000" -> precio in 500.0..1000.0
+                        "1000 - 2500" -> precio in 1000.0..2500.0
+                        "2500 - 5000" -> precio in 2500.0..5000.0
+                        "Mayor a 5000" -> precio > 5000.0
+                        else -> true
+                    }
                 }
-
             }
 
-            // ✅ ENTRE GRUPOS ES AND
-            cumpleCategoria &&
-                    cumpleMetodoPago &&
-                    cumpleComodidades &&
-                    cumplePrecio
+            // ✅ 5. NLP + SCORE
+            // ✅ 5. NLP + SCORE
+
+            val scoreNLP = if (listaUsuario.isEmpty()) {
+                1.0
+            } else {
+                calcularCoincidencia(listaUsuario, data.terminos_clave)
+            }
+
+            val cumpleNLP = listaUsuario.isEmpty() || scoreNLP >= 0.4
+
+            if (
+                cumpleCategoria &&
+                cumpleMetodoPago &&
+                cumpleComodidades &&
+                cumplePrecio &&
+                cumpleNLP
+            ) {
+
+                val porcentaje = if (listaUsuario.isEmpty()) {
+                    100
+                } else {
+                    (scoreNLP * 100).toInt()
+                }
+
+                // 🔥 LOG COMPLETO DEBUG
+                Log.d("DEBUG_MATCH", "----------------------------")
+                Log.d("DEBUG_MATCH", "Promo: ${data.informacion_publcacion.titulo}")
+                Log.d("DEBUG_MATCH", "Usuario términos: $listaUsuario")
+                Log.d("DEBUG_MATCH", "Promo términos: ${data.terminos_clave}")
+                Log.d("DEBUG_MATCH", "Score decimal: $scoreNLP")
+                Log.d("DEBUG_MATCH", "Porcentaje final: $porcentaje%")
+                Log.d("DEBUG_MATCH", "----------------------------")
+
+                Pair(obj, porcentaje)
+
+            } else {
+                null
+            }
+
+
+        }.sortedByDescending { it.second }
+
+        // 🔥 Construimos lista limpia + mapa %
+        val mapaPorcentajes = mutableMapOf<String, Int>()
+
+        val soloPromos = filtradaConScore.map { pair ->
+
+            val promo = pair.first
+            val porcentaje = pair.second
+
+            val id = promo.dataclass_promociones_cerca_de_ti
+                .informacion_publcacion.id_promocion
+
+            mapaPorcentajes[id] = porcentaje
+
+            // 🔥 LOG DEL %
+            Log.d(
+                "MATCH_NLP",
+                "Promo: ${promo.dataclass_promociones_cerca_de_ti.informacion_publcacion.titulo} -> $porcentaje%"
+            )
+
+            promo
         }
 
-        listaFiltrada.value = filtrada
-
+        // ✅ Actualizamos estados
+        listaFiltrada.value = soloPromos
+        _porcentajesMatch.value = mapaPorcentajes
         _estadoPromos.value =
-//            if (filtrada.isEmpty()) {
-//             estado_carga_promociones.empty("No hay promociones con esos filtros")
-//            } else {
-            estado_carga_promociones.succes(filtrada)
-//            }
-
-        Log.d("FILTRO_DEBUG", "Total filtrados: ${filtrada.size}")
+            estado_carga_promociones.succes(soloPromos)
     }
+
+
+
+
+
 
 
     fun filtrar_promociones_por_id(id: String) {
@@ -390,10 +465,11 @@ class viewmodel_promos_cercanas : ViewModel() {
         }
     }
 
-    fun procesar_NLP(texto: String) {
+
+    fun procesar_NLP(texto: String,categoria:String) {
         viewModelScope.launch {
             try {
-                val respuesta_NLP = repo.extraer_con_gemini(texto)
+                val respuesta_NLP = repo.extraer_con_gemini(texto,categoria)
 
                 if (!respuesta_NLP.isNullOrEmpty()) {
 
@@ -423,6 +499,64 @@ class viewmodel_promos_cercanas : ViewModel() {
             }
         }
     }
+
+    fun normalizar(texto: String): String {
+        return texto
+            .lowercase()
+            .trim()
+    }
+
+
+//    fun fiiltrar_por_termino_y_atributos(
+//        termino: String?,
+//        atributo: List<String?>
+//    ) {
+//
+//        viewModelScope.launch {
+//
+//            val listaUsuario = buildList {
+//                termino?.let { add(normalizar(it)) }
+//                atributo.filterNotNull().forEach {
+//                    add(normalizar(it))
+//                }
+//            }
+//
+//            val resultado = listaCompleta.value
+//                .map { promo ->
+//                    val score = calcularCoincidencia(
+//                        listaUsuario,
+//                        promo.dataclass_promociones_cerca_de_ti.terminos_clave
+//                    )
+//                    promo to score
+//                }
+//                .filter { it.second >= 0.4 } // mínimo 40%
+//                .sortedByDescending { it.second }
+//                .map { it.first }
+//
+//            // Aquí actualizas tu StateFlow de resultados
+//            // _listaFiltrada.value = resultado
+//        }
+//    }
+
+
+    fun calcularCoincidencia(
+        usuario: List<String>,
+        promo: List<String>
+    ): Double {
+
+        if (usuario.isEmpty()) return 0.0
+
+        val promoNormalizada = promo.map { normalizar(it) }
+
+        val coincidencias = usuario.count { terminoUser ->
+            promoNormalizada.any { terminoPromo ->
+                terminoPromo.contains(terminoUser)
+            }
+        }
+
+        return coincidencias.toDouble() / usuario.size.toDouble()
+    }
+
 
 
 

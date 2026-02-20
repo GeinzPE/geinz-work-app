@@ -1,15 +1,12 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.promociones_Cercanas
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -39,9 +36,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,7 +59,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -72,7 +66,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -99,18 +92,12 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad.MicVisualizerGoogle
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
-import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.geinzz.geinzwork.viewModels.viewmodel_datos_promociones
 import com.geinzz.geinzwork.viewModels.viewmodel_promos_cercanas
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -170,7 +157,6 @@ fun ui_promos_cerca_de_ti(
         "wifi",
         "zona_expandida",
         "servicios_higienicos",
-        "servicios igenicos",
         "camaras_seguridad",
         "sala_espera",
         "sala_juegos",
@@ -229,6 +215,11 @@ fun ui_promos_cerca_de_ti(
     var texto_snackbar by remember { mutableStateOf("") }
     var snackbarMostrado by remember { mutableStateOf(false) }
 
+    var terminoNLP by remember { mutableStateOf<String?>(null) }
+    var atributosNLP by remember { mutableStateOf<List<String?>>(emptyList()) }
+
+
+    val porcentajes by viewModel.porcentajesMatch.collectAsState()
 
     var cargaFinalizada by remember { mutableStateOf(false) }
     LaunchedEffect(activar_promo_params) {
@@ -264,8 +255,11 @@ fun ui_promos_cerca_de_ti(
                 metodo_pago = it.metodo_pago,
                 comodidades = it.comodidades
             )
+            terminoNLP=respuesta.principal
+            atributosNLP=respuesta.atributos
             viewModel.setComodidadesDesdeLista(respuesta.comodidades)
             viewModel.setPagosDesdeLista(respuesta.metodo_pago)
+//            viewModel.fiiltrar_por_termino_y_atributos(respuesta.principal,respuesta.atributos)
             val rangoPrecio = respuesta.precio?.let { precio ->
                 when (precio) {
                     in 0.0..10.0 -> "0 - 10"
@@ -283,7 +277,7 @@ fun ui_promos_cerca_de_ti(
                     else -> "Sin rango"
                 }
             } ?: "Sin precio" // si precio es null
-            viewModel.setearRangoPrecio(rangoPrecio)
+            viewModel.setearRangoPrecioDesdeNLP(rangoPrecio)
 
             Log.d("datos_entrantes", "$respuesta")
         }
@@ -416,7 +410,7 @@ fun ui_promos_cerca_de_ti(
             primeraVez = false
             return@LaunchedEffect
         }
-        viewModel.filtrarPromociones(subCategoriaSeleccionada)
+        viewModel.filtrarPromociones(subCategoriaSeleccionada,terminoNLP,atributosNLP)
     }
     Box(
         modifier = Modifier
@@ -459,11 +453,13 @@ fun ui_promos_cerca_de_ti(
 
             // ---------- SUCCESS ----------
             is viewmodel_promos_cercanas.estado_carga_promociones.succes -> {
+
                 val promos =
                     (estado as viewmodel_promos_cercanas.estado_carga_promociones.succes).items
                 val tiendasConMasDeUnaPromo: List<tiendas_con_mas_de_una_promo> = promos
                     .flatMap { it.lista_tiendas_con_mas_promo }
                     .distinctBy { it.id } // eliminamos duplicados por id
+
                 Box(modifier = Modifier.fillMaxSize()) {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -516,7 +512,7 @@ fun ui_promos_cerca_de_ti(
                                 trailingIcon = {
                                     IconButton(
                                         onClick = {
-                                            viewModel.procesar_NLP(valor_a_buscar)
+                                            viewModel.procesar_NLP(valor_a_buscar,subCategoriaSeleccionada)
                                         }
                                     ) {
                                         Icon(
@@ -590,7 +586,7 @@ fun ui_promos_cerca_de_ti(
                                         filtrado = subcategoria.capitalizeFirst(),
                                         btn_visible = false,
                                         clik_card = {
-                                            viewModel.setearRangoPrecio(subcategoria)
+                                            viewModel.setearRangoPrecioDesdeNLP(subcategoria)
                                         },
                                         onClick_delete = {}
                                     )
@@ -627,7 +623,10 @@ fun ui_promos_cerca_de_ti(
                             items = promos,
                             key = { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion + it.hashCode() }
                         ) { item ->
+                            val idPromo = item.dataclass_promociones_cerca_de_ti
+                                .informacion_publcacion.id_promocion
 
+                            val porcentajeMatch = porcentajes[idPromo] ?: 0
                             val index = promos.indexOfFirst {
                                 it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion ==
                                         item.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion
@@ -635,6 +634,7 @@ fun ui_promos_cerca_de_ti(
 
 
                             carta_promocion_geinz(
+                                porcentajeMatch,
                                 i = item.dataclass_promociones_cerca_de_ti,
                                 img_clikeble = { id_promo, listaimg, select ->
                                     if (uid_respald_user.isNotEmpty()) {
@@ -790,6 +790,7 @@ fun ui_promos_cerca_de_ti(
 
 @Composable
 fun carta_promocion_geinz(
+    porcentajeMatch: Int,
     i: dataclass_promociones_cerca_de_ti,
     img_clikeble: (id: String, lista: List<String>, Int) -> Unit,
     share_promo: (String, String, String) -> Unit,
@@ -836,6 +837,7 @@ fun carta_promocion_geinz(
                 }, long_listatener = {
                     Log.d("LONG_PRESS", "Long press en la galería")
                 })
+            texto_generico_one_line("provavilidad de $porcentajeMatch", color = Color.Black)
         }
 
         Row(

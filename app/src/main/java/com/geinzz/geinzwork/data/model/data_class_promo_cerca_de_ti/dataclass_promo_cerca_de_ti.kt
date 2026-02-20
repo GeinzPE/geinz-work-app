@@ -27,7 +27,8 @@ data class dataclass_promociones_cerca_de_ti(
     val estado_publicacion: String = "",
     val comodidades: Map<String, Boolean> = emptyMap(),
     val pagos: Map<String, Boolean> = emptyMap(),
-    val rango: String = "", val precio: String = ""
+    val rango: String = "", val precio: String = "",
+    val terminos_clave : List<String> =emptyList()
 )
 
 data class estadisticas_publiccaciones(
@@ -79,3 +80,9 @@ data class RespuestaGemini(
     val metodo_pago: List<String> = emptyList(),
     val comodidades: List<String> = emptyList()
 )
+
+data class PromoConMatch(
+    val promo: obj_completo,
+    val porcentaje: Int
+)
+
