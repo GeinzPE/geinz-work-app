@@ -160,6 +160,8 @@ data class HorarioAtencion_box(
 ): Parcelable
 
 
+data class img_con_texto(val img: Int,val texto:String)
+
 //
 //data class modelo_tienda_temporal(
 //    val nombre_tienda: String="",
