@@ -8,6 +8,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -49,6 +50,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -269,22 +271,28 @@ fun ui_promos_cerca_de_ti(
             activar_promo_params
         )
     }
+    var mostrar_carga_Respuesta_gemini by remember { mutableStateOf(false) }
+    var mostrar_lupa_busqueda by remember { mutableStateOf(true) }
 
     LaunchedEffect(respuesta_gemini_NLP) {
-        when (respuesta_gemini_NLP){
-            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.empty ->{
+        when (respuesta_gemini_NLP) {
+            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.empty -> {
 
             }
-            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.error ->{}
+
+            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.error -> {}
             is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.loading -> {
+                mostrar_carga_Respuesta_gemini = true
+                mostrar_lupa_busqueda = false
 
             }
+
             is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes -> {
-
-                val respuesta = (respuesta_gemini_NLP as viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes).items
-
+                val respuesta =
+                    (respuesta_gemini_NLP as viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes).items
                 if (respuesta != null) {
-
+                    mostrar_lupa_busqueda = true
+                    mostrar_carga_Respuesta_gemini = false
                     terminoNLP = respuesta.principal
                     atributosNLP = respuesta.atributos
 
@@ -314,6 +322,7 @@ fun ui_promos_cerca_de_ti(
                     Log.d("datos_entrantes", "$respuesta")
                 }
             }
+
             null -> {}
             else -> {}
         }
@@ -557,16 +566,33 @@ fun ui_promos_cerca_de_ti(
                                     trailingIcon = {
                                         IconButton(
                                             onClick = {
-                                                viewModel.procesar_NLP(
-                                                    valor_a_buscar,
-                                                    subCategoriaSeleccionada
-                                                )
+                                                if (mostrar_lupa_busqueda) {
+                                                    viewModel.procesar_NLP(
+                                                        valor_a_buscar,
+                                                        subCategoriaSeleccionada
+                                                    )
+                                                }
                                             }
                                         ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Search,
-                                                contentDescription = "Hablar", tint = Color.Gray
-                                            )
+
+                                            AnimatedContent(
+                                                targetState = mostrar_carga_Respuesta_gemini,
+                                                label = "icon_animation"
+                                            ) { cargando ->
+
+                                                if (cargando) {
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(24.dp),
+                                                        strokeWidth = 2.dp
+                                                    )
+                                                } else {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Search,
+                                                        contentDescription = "Buscar",
+                                                        tint = Color.Gray
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 )
