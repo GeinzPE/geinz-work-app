@@ -85,4 +85,3 @@ data class PromoConMatch(
     val promo: obj_completo,
     val porcentaje: Int
 )
-

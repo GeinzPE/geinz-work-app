@@ -1025,7 +1025,7 @@ fun construir_promp_NLP_depromo_y_oferta(textoUsuario:String,categoira_selec:Str
     yape (si dice "llave"), plin (si dice "link"), efectivo, agora, visa, mastercard.
 
     Comodidades solo si aparecen o se parecen:
-    wifi, zona_expandida, servicios_higienicos, camaras_de_seguridad, sala_de_espera, mesa_para_niños, estacionamiento, enchufe, aire_acondicionado, ingreso_mascotas.
+    wifi, zona_expandida, servicios_higienicos, camaras_de_seguridad, sala_de_espera,sala_juegos, mesa_para_ninos, estacionamiento, enchufe, aire_acondicionado, ingreso_mascotas.
 
     Responde solo JSON:
     {"principal":"string","atributos":[],"precio":number|null,"metodo_pago":[],"comodidades":[]}

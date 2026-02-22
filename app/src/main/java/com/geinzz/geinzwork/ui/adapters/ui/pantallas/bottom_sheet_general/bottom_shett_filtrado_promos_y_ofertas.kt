@@ -26,6 +26,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -62,6 +63,18 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
 
     var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
     val categorias by viewModel._categoriasDisponibles.collectAsState()
+
+    val obtener_datos_respuesta_gemini by viewModel.respuesta_gemini.collectAsState()
+    var listaData by remember { mutableStateOf<List<String>>(emptyList()) }
+
+    LaunchedEffect(obtener_datos_respuesta_gemini) {
+        obtener_datos_respuesta_gemini?.let { i ->
+            listaData = buildList {
+                i.principal?.let { add(it) }   // agrega principal si no es null
+                addAll(i.atributos)            // agrega los atributos
+            }
+        }
+    }
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
@@ -91,14 +104,14 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
             img_con_texto(R.drawable.icon_wifi, "wifi"),
             img_con_texto(R.drawable.icon_zona_expandida, "zona_expandida"),
             img_con_texto(R.drawable.icon_servicios_higenicos, "servicios_higienicos"),
-            img_con_texto(R.drawable.icon_seguridad, "camaras_seguridad"),
-            img_con_texto(R.drawable.icon_sala_de_espera, "sala_espera"),
+            img_con_texto(R.drawable.icon_seguridad, "camaras_de_seguridad"),
+            img_con_texto(R.drawable.icon_sala_de_espera, "sala_de_espera"),
             img_con_texto(R.drawable.icon_sala_para_ninos, "sala_juegos"),
             img_con_texto(R.drawable.icon_mesa_para_ninos, "mesa_para_ninos"),
             img_con_texto(R.drawable.icon_estacionamiento, "estacionamiento"),
             img_con_texto(R.drawable.icon_enchufa, "enchufe"),
             img_con_texto(R.drawable.icon_aire_acondicionado, "aire_acondicionado"),
-            img_con_texto(R.drawable.icon_ingreso_animales, "ingreso_con_mascotas"),
+            img_con_texto(R.drawable.icon_ingreso_animales, "ingreso_mascotas"),
         )
     }
 
@@ -157,6 +170,28 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
 //                                }
 //                            }
 //                }
+                if (listaData.isNotEmpty()) {
+                    item {
+                        texto_generico_one_line("Resultados de tu busqueda")
+                        spacer_vertical(10.dp)
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(listaData) { i ->
+                                val seleccionado = rango_precio == i
+                                chisp_filtrado_busqueda(
+                                    carta_selecionada = false,
+                                    filtrado = i.capitalizeFirst(),
+                                    btn_visible = false,
+                                    clik_card = {
+
+                                    },
+                                    onClick_delete = {}
+                                )
+                            }
+                        }
+                    }
+                }
 
                 item {
                     texto_generico_one_line("Rangos de Precio")
@@ -169,7 +204,7 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                             chisp_filtrado_busqueda(
                                 carta_selecionada = seleccionado,
                                 filtrado = subcategoria.capitalizeFirst(),
-                                btn_visible = false,
+                                btn_visible = true,
                                 clik_card = {
                                     viewModel.setearRangoPrecioDesdeNLP(subcategoria)
                                 },

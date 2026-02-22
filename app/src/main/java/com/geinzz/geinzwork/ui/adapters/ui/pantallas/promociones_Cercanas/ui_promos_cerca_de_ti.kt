@@ -8,8 +8,11 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,6 +31,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -146,6 +150,14 @@ fun ui_promos_cerca_de_ti(
     val comodidad_selet by viewModel.comodidadesSeleccionadas.collectAsState()
     val metodo_pago by viewModel.metodosPagoSeleccionados.collectAsState()
     val rango_precio by viewModel.rangoPrecioSeleccionado.collectAsState()
+
+    LaunchedEffect(rango_precio) {
+        if (rango_precio != null) {
+            Log.d("rango_precio_select", "$rango_precio")
+        }
+    }
+
+
     val lista_filtrados_pagos = remember {
         listOf(
             img_con_texto(R.drawable.yape_logo, "yape"),
@@ -259,40 +271,52 @@ fun ui_promos_cerca_de_ti(
     }
 
     LaunchedEffect(respuesta_gemini_NLP) {
-        respuesta_gemini_NLP?.let {
-            val respuesta = RespuestaGemini(
-                principal = it.principal,
-                atributos = it.atributos,
-                precio = it.precio,
-                metodo_pago = it.metodo_pago,
-                comodidades = it.comodidades
-            )
-            terminoNLP = respuesta.principal
-            atributosNLP = respuesta.atributos
-            viewModel.setComodidadesDesdeLista(respuesta.comodidades)
-            viewModel.setPagosDesdeLista(respuesta.metodo_pago)
-//            viewModel.fiiltrar_por_termino_y_atributos(respuesta.principal,respuesta.atributos)
-            val rangoPrecio = respuesta.precio?.let { precio ->
-                when (precio) {
-                    in 0.0..10.0 -> "0 - 10"
-                    in 10.01..20.0 -> "10 - 20"
-                    in 20.01..30.0 -> "20 - 30"
-                    in 30.01..50.0 -> "30 - 50"
-                    in 50.01..80.0 -> "50 - 80"
-                    in 80.01..120.0 -> "80 - 120"
-                    in 120.01..200.0 -> "120 - 200"
-                    in 200.01..350.0 -> "200 - 350"
-                    in 350.01..500.0 -> "350 - 500"
-                    in 500.01..1000.0 -> "500 - 1000"
-                    in 1000.01..2500.0 -> "1000 - 2500"
-                    in 2500.01..5000.0 -> "2500 - 5000"
-                    else -> "Sin rango"
-                }
-            } ?: "Sin precio" // si precio es null
-            viewModel.setearRangoPrecioDesdeNLP(rangoPrecio)
+        when (respuesta_gemini_NLP){
+            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.empty ->{
 
-            Log.d("datos_entrantes", "$respuesta")
+            }
+            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.error ->{}
+            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.loading -> {
+
+            }
+            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes ->{
+                val datos=(respuesta_gemini_NLP is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes).
+                val respuesta = RespuestaGemini(
+                    principal = it.principal,
+                    atributos = it.atributos,
+                    precio = it.precio,
+                    metodo_pago = it.metodo_pago,
+                    comodidades = it.comodidades
+                )
+                terminoNLP = respuesta.principal
+                atributosNLP = respuesta.atributos
+                viewModel.setComodidadesDesdeLista(respuesta.comodidades)
+                viewModel.setPagosDesdeLista(respuesta.metodo_pago)
+//            viewModel.fiiltrar_por_termino_y_atributos(respuesta.principal,respuesta.atributos)
+                val rangoPrecio = respuesta.precio?.let { precio ->
+                    when (precio) {
+                        in 0.0..10.0 -> "0 - 10"
+                        in 10.01..20.0 -> "10 - 20"
+                        in 20.01..30.0 -> "20 - 30"
+                        in 30.01..50.0 -> "30 - 50"
+                        in 50.01..80.0 -> "50 - 80"
+                        in 80.01..120.0 -> "80 - 120"
+                        in 120.01..200.0 -> "120 - 200"
+                        in 200.01..350.0 -> "200 - 350"
+                        in 350.01..500.0 -> "350 - 500"
+                        in 500.01..1000.0 -> "500 - 1000"
+                        in 1000.01..2500.0 -> "1000 - 2500"
+                        in 2500.01..5000.0 -> "2500 - 5000"
+                        else -> "Sin rango"
+                    }
+                } ?: "Sin precio"
+                viewModel.setearRangoPrecioDesdeNLP(rangoPrecio)
+
+                Log.d("datos_entrantes", "$respuesta")
+            }
+            null -> TODO()
         }
+
     }
 
 
@@ -504,6 +528,9 @@ fun ui_promos_cerca_de_ti(
                                     value = valor_a_buscar,
                                     onValueChange = {
                                         valor_a_buscar = it
+                                        if (valor_a_buscar.isEmpty()) {
+                                            viewModel.resetear_respuesta_de_gemini()
+                                        }
                                     },
                                     placeholder = {
                                         texto_generico_one_line(
@@ -542,9 +569,10 @@ fun ui_promos_cerca_de_ti(
                                         }
                                     }
                                 )
-                                respuesta_gemini_NLP?.let { respuesta ->
-                                    texto_generico_multilinea(respuesta.toString())
-                                }
+
+//                                respuesta_gemini_NLP?.let { respuesta ->
+//                                    texto_generico_multilinea(respuesta.toString())
+//                                }
                             }
                         }
 
@@ -552,7 +580,7 @@ fun ui_promos_cerca_de_ti(
 
                             val itemFiltros = tiendas_con_mas_de_una_promo(
                                 id = "FILTROS_GENERALES",
-                                nombre_tienda = "Filtros",
+                                nombre_tienda = "Buscar",
                                 logo_img = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0"
                             )
                             LazyRow(
@@ -563,13 +591,40 @@ fun ui_promos_cerca_de_ti(
 
                                 // 🔥 Nuevo item de filtros generales
                                 item {
+                                    val condicion =
+                                        rango_precio != null || listaSeleccionada.isNotEmpty() || lista_comodidades_Select.isNotEmpty()
                                     estilo_ig_header(
+                                        "FILTROS_GENERALES",
+                                        condicion,
                                         i = itemFiltros,
                                         seleccionada = tiendaSeleccionada == "FILTROS_GENERALES",
                                         img_clikeada = { id ->
                                             mostar_bottom_sheet_datos = true
                                         }
                                     )
+                                }
+
+                                if (rango_precio != null && !rango_precio.equals("Sin precio")) {
+                                    item {
+                                        Surface(
+                                            shape = RoundedCornerShape(28.dp),
+                                            color = MaterialTheme.colorScheme.surface
+                                        ) {
+                                            Column(
+                                                modifier = Modifier
+                                                    .padding(horizontal = 16.dp)
+                                                    .height(99.dp),
+                                                horizontalAlignment = Alignment.CenterHorizontally
+                                            ) {
+                                                Spacer(modifier = Modifier.height(7.dp))
+                                                rango_precio?.let { i ->
+                                                    estilo_para_metodo_de_pago(i, { des ->
+                                                        viewModel.setearRangoPrecioDesdeNLP(null)
+                                                    })
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
 
                                 // 🔹 Si hay métodos seleccionados → mostrar esos
@@ -656,11 +711,13 @@ fun ui_promos_cerca_de_ti(
                                     }
                                 }
 
-                                if (listaSeleccionada.isEmpty() && lista_comodidades_Select.isEmpty()) {
+                                if (listaSeleccionada.isEmpty() && lista_comodidades_Select.isEmpty() && rango_precio == null) {
 
                                     // 🔹 Si no hay filtros → mostrar tiendas
                                     items(tiendasConMasDeUnaPromo) { tienda ->
                                         estilo_ig_header(
+                                            "",
+                                            false,
                                             i = tienda,
                                             seleccionada = tienda.id == tiendaSeleccionada,
                                             img_clikeada = { id ->
@@ -1267,6 +1324,8 @@ fun compartir_hosting_promo(
 
 @Composable
 fun estilo_ig_header(
+    termino_condicion: String,
+    condicon: Boolean,
     i: tiendas_con_mas_de_una_promo,
     seleccionada: Boolean,
     img_clikeada: (String) -> Unit
@@ -1325,6 +1384,27 @@ fun estilo_ig_header(
                         img_clikeada(i.id)
                     }
             )
+            this@Column.AnimatedVisibility(
+                condicon && termino_condicion.equals("FILTROS_GENERALES"),
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier
+                    .padding(end = 10.dp)
+                    .align(Alignment.BottomEnd)
+            ) {
+                Box(
+                    modifier = Modifier
+
+                        .size(18.dp)
+                        .clip(CircleShape)
+                        .background(Color.Green)
+
+                )
+
+
+            }
+
+
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -1336,6 +1416,40 @@ fun estilo_ig_header(
     }
 }
 
+@Composable
+fun estilo_para_metodo_de_pago(rango_select: String, deseleccionar: (String) -> Unit) {
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.widthIn(min = 80.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .height(55.dp)
+                .widthIn(min = 55.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary)
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }) {
+                    deseleccionar(rango_select)
+                }, contentAlignment = Alignment.Center
+        ) {
+            texto_generico_one_line(
+                rango_select,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(horizontal = 10.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+
+        texto_generico_one_line(
+            "Precio seleccionado",
+            style = MaterialTheme.typography.bodySmall
+        )
+
+    }
+
+}
 
 @Composable
 fun estilo_chips_circular_Select(
@@ -1354,7 +1468,6 @@ fun estilo_chips_circular_Select(
             contentAlignment = Alignment.Center
         ) {
 
-            // 🔹 Imagen circular
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(datos.img)
@@ -1376,5 +1489,4 @@ fun estilo_chips_circular_Select(
         }
     }
 }
-
 

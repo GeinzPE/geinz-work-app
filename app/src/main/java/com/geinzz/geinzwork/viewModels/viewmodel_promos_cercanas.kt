@@ -43,14 +43,18 @@ class viewmodel_promos_cercanas : ViewModel() {
     val promosCargadas: StateFlow<List<dataclass_promociones_cerca_de_ti>> = _promosCargadas
 
 
-    private val _respuesta_gemini = MutableStateFlow<RespuestaGemini?>(null)
-    val respuesta_gemini: StateFlow<RespuestaGemini?> = _respuesta_gemini
+    private val _respuesta_gemini = MutableStateFlow<estado_Carga_respuesta_gemini?>(null)
+    val respuesta_gemini: StateFlow<estado_Carga_respuesta_gemini?> = _respuesta_gemini
 
 
     private var paginaActual = 0
     private val bloque = 5
     private var cargando = false
 
+
+    fun resetear_respuesta_de_gemini() {
+        _respuesta_gemini.value = null
+    }
 
     private val _porcentajesMatch =
         MutableStateFlow<Map<String, Int>>(emptyMap())
@@ -107,7 +111,6 @@ class viewmodel_promos_cercanas : ViewModel() {
     }
 
 
-
     fun limpiarMetodosPago() {
         _metodosPagoSeleccionados.value = emptySet()
     }
@@ -117,9 +120,13 @@ class viewmodel_promos_cercanas : ViewModel() {
     val rangoPrecioSeleccionado: StateFlow<String?> = _rangoPrecioSeleccionado
 
     fun setearRangoPrecioDesdeNLP(rango: String?) {
-        _rangoPrecioSeleccionado.value = rango
+        _rangoPrecioSeleccionado.value =
+            if (_rangoPrecioSeleccionado.value == rango) {
+                null
+            } else {
+                rango
+            }
     }
-
 
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -415,11 +422,6 @@ class viewmodel_promos_cercanas : ViewModel() {
     }
 
 
-
-
-
-
-
     fun filtrar_promociones_por_id(id: String) {
         val base = listaCompleta.value
 
@@ -466,10 +468,11 @@ class viewmodel_promos_cercanas : ViewModel() {
     }
 
 
-    fun procesar_NLP(texto: String,categoria:String) {
+    fun procesar_NLP(texto: String, categoria: String) {
         viewModelScope.launch {
+            _respuesta_gemini.value = estado_Carga_respuesta_gemini.loading
             try {
-                val respuesta_NLP = repo.extraer_con_gemini(texto,categoria)
+                val respuesta_NLP = repo.extraer_con_gemini(texto, categoria)
 
                 if (!respuesta_NLP.isNullOrEmpty()) {
 
@@ -482,20 +485,20 @@ class viewmodel_promos_cercanas : ViewModel() {
                         val gson = Gson()
                         val objeto = gson.fromJson(limpio, RespuestaGemini::class.java)
                         Log.d("NLP_OBJETO", objeto.toString())
-
-                        _respuesta_gemini.value = objeto
+                        _respuesta_gemini.value = estado_Carga_respuesta_gemini.succes(objeto)
 
                     } else {
-                        _respuesta_gemini.value = RespuestaGemini(principal = "no entendí nada")
+                        _respuesta_gemini.value =
+                            estado_Carga_respuesta_gemini.empty("no entendí nada")
                     }
 
                 } else {
-                    _respuesta_gemini.value = RespuestaGemini(principal = "no entendí nada")
+                    _respuesta_gemini.value = estado_Carga_respuesta_gemini.empty("no entendí nada")
                 }
 
             } catch (e: Exception) {
                 Log.e("NLP_ERROR", "Error parseando JSON", e)
-                _respuesta_gemini.value = RespuestaGemini(principal = "error procesando")
+                _respuesta_gemini.value = estado_Carga_respuesta_gemini.error("se produjo un error")
             }
         }
     }
@@ -558,7 +561,13 @@ class viewmodel_promos_cercanas : ViewModel() {
     }
 
 
-
+    sealed class estado_Carga_respuesta_gemini {
+        object loading : estado_Carga_respuesta_gemini()
+        data class succes(val items: RespuestaGemini?) : estado_Carga_respuesta_gemini()
+        data class error(val texto_error: String) : estado_Carga_respuesta_gemini()
+        data class empty(val text_vacio: String) : estado_Carga_respuesta_gemini()
+        object idle : estado_Carga_respuesta_gemini()
+    }
 
 
     sealed class estado_carga_promociones {
