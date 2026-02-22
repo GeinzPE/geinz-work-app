@@ -279,42 +279,43 @@ fun ui_promos_cerca_de_ti(
             is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.loading -> {
 
             }
-            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes ->{
-                val datos=(respuesta_gemini_NLP is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes).
-                val respuesta = RespuestaGemini(
-                    principal = it.principal,
-                    atributos = it.atributos,
-                    precio = it.precio,
-                    metodo_pago = it.metodo_pago,
-                    comodidades = it.comodidades
-                )
-                terminoNLP = respuesta.principal
-                atributosNLP = respuesta.atributos
-                viewModel.setComodidadesDesdeLista(respuesta.comodidades)
-                viewModel.setPagosDesdeLista(respuesta.metodo_pago)
-//            viewModel.fiiltrar_por_termino_y_atributos(respuesta.principal,respuesta.atributos)
-                val rangoPrecio = respuesta.precio?.let { precio ->
-                    when (precio) {
-                        in 0.0..10.0 -> "0 - 10"
-                        in 10.01..20.0 -> "10 - 20"
-                        in 20.01..30.0 -> "20 - 30"
-                        in 30.01..50.0 -> "30 - 50"
-                        in 50.01..80.0 -> "50 - 80"
-                        in 80.01..120.0 -> "80 - 120"
-                        in 120.01..200.0 -> "120 - 200"
-                        in 200.01..350.0 -> "200 - 350"
-                        in 350.01..500.0 -> "350 - 500"
-                        in 500.01..1000.0 -> "500 - 1000"
-                        in 1000.01..2500.0 -> "1000 - 2500"
-                        in 2500.01..5000.0 -> "2500 - 5000"
-                        else -> "Sin rango"
-                    }
-                } ?: "Sin precio"
-                viewModel.setearRangoPrecioDesdeNLP(rangoPrecio)
+            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes -> {
 
-                Log.d("datos_entrantes", "$respuesta")
+                val respuesta = (respuesta_gemini_NLP as viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes).items
+
+                if (respuesta != null) {
+
+                    terminoNLP = respuesta.principal
+                    atributosNLP = respuesta.atributos
+
+                    viewModel.setComodidadesDesdeLista(respuesta.comodidades)
+                    viewModel.setPagosDesdeLista(respuesta.metodo_pago)
+
+                    val rangoPrecio = respuesta.precio?.let { precio ->
+                        when (precio) {
+                            in 0.0..10.0 -> "0 - 10"
+                            in 10.01..20.0 -> "10 - 20"
+                            in 20.01..30.0 -> "20 - 30"
+                            in 30.01..50.0 -> "30 - 50"
+                            in 50.01..80.0 -> "50 - 80"
+                            in 80.01..120.0 -> "80 - 120"
+                            in 120.01..200.0 -> "120 - 200"
+                            in 200.01..350.0 -> "200 - 350"
+                            in 350.01..500.0 -> "350 - 500"
+                            in 500.01..1000.0 -> "500 - 1000"
+                            in 1000.01..2500.0 -> "1000 - 2500"
+                            in 2500.01..5000.0 -> "2500 - 5000"
+                            else -> "Sin rango"
+                        }
+                    } ?: "Sin precio"
+
+                    viewModel.setearRangoPrecioDesdeNLP(rangoPrecio)
+
+                    Log.d("datos_entrantes", "$respuesta")
+                }
             }
-            null -> TODO()
+            null -> {}
+            else -> {}
         }
 
     }

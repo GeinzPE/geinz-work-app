@@ -68,11 +68,20 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
     var listaData by remember { mutableStateOf<List<String>>(emptyList()) }
 
     LaunchedEffect(obtener_datos_respuesta_gemini) {
-        obtener_datos_respuesta_gemini?.let { i ->
-            listaData = buildList {
-                i.principal?.let { add(it) }   // agrega principal si no es null
-                addAll(i.atributos)            // agrega los atributos
+
+        listaData = when (val estado = obtener_datos_respuesta_gemini) {
+
+            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes -> {
+
+                estado.items?.run {
+                    buildList {
+                        principal?.let(::add)
+                        addAll(atributos)
+                    }
+                } ?: emptyList()
             }
+
+            else -> emptyList()
         }
     }
     val sheetState = rememberModalBottomSheetState(
