@@ -10,6 +10,8 @@ import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -72,6 +74,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -152,7 +155,9 @@ fun ui_promos_cerca_de_ti(
     val comodidad_selet by viewModel.comodidadesSeleccionadas.collectAsState()
     val metodo_pago by viewModel.metodosPagoSeleccionados.collectAsState()
     val rango_precio by viewModel.rangoPrecioSeleccionado.collectAsState()
-
+    val lista_resultados_gemini by viewModel.listaResultados.collectAsState()
+    var limpiar_campo_de_busqueda by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
     LaunchedEffect(rango_precio) {
         if (rango_precio != null) {
             Log.d("rango_precio_select", "$rango_precio")
@@ -291,8 +296,11 @@ fun ui_promos_cerca_de_ti(
                 val respuesta =
                     (respuesta_gemini_NLP as viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes).items
                 if (respuesta != null) {
+                    viewModel.guardar_texto_user_buscado(valor_a_buscar)
+                    limpiar_campo_de_busqueda = true
                     mostrar_lupa_busqueda = true
                     mostrar_carga_Respuesta_gemini = false
+                    focusManager.clearFocus()
                     terminoNLP = respuesta.principal
                     atributosNLP = respuesta.atributos
 
@@ -447,16 +455,46 @@ fun ui_promos_cerca_de_ti(
     var primeraVez by remember { mutableStateOf(true) }
 
     LaunchedEffect(
+        lista_resultados_gemini,
         subCategoriaSeleccionada,
         comodidad_selet,
         metodo_pago,
         rango_precio
     ) {
+        Log.d("FILTRO_DEBUG", "lista_resultados_gemini vacío: ${lista_resultados_gemini.isEmpty()}")
+        Log.d("FILTRO_DEBUG", "comodidad_selet vacío: ${comodidad_selet.isEmpty()}")
+        Log.d("FILTRO_DEBUG", "metodo_pago vacío: ${metodo_pago.isEmpty()}")
+        Log.d("FILTRO_DEBUG", "rango_precio es null: ${rango_precio == null}")
+
         if (primeraVez) {
             primeraVez = false
             return@LaunchedEffect
         }
-        viewModel.filtrarPromociones(subCategoriaSeleccionada, terminoNLP, atributosNLP)
+
+        val sinFiltros =
+            lista_resultados_gemini.isEmpty() &&
+                    comodidad_selet.isEmpty() &&
+                    metodo_pago.isEmpty()
+
+        if (sinFiltros) {
+            Log.d("FILTRO_DEBUG", "SIN FILTROS → cargando todo")
+            viewModel.retornar_lista_nuevamente()
+            return@LaunchedEffect
+        }
+
+        Log.d("FILTRO_DEBUG", "Con filtros → llamando filtrarPromociones")
+
+        viewModel.filtrarPromociones(
+            subCategoriaSeleccionada,
+            terminoNLP,
+            atributosNLP
+        )
+    }
+
+    LaunchedEffect(limpiar_campo_de_busqueda) {
+        if (limpiar_campo_de_busqueda) {
+            valor_a_buscar = ""
+        }
     }
     Box(
         modifier = Modifier
@@ -611,6 +649,7 @@ fun ui_promos_cerca_de_ti(
                                 logo_img = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0"
                             )
                             LazyRow(
+                                modifier = Modifier.animateContentSize(),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 contentPadding = PaddingValues(horizontal = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically
@@ -618,17 +657,35 @@ fun ui_promos_cerca_de_ti(
 
                                 // 🔥 Nuevo item de filtros generales
                                 item {
+
+                                        // 🔹 Logueamos que no hay tienda seleccionada
+                                        Log.d("DEBUG_FILTROS", "No hay tienda seleccionada, mostrando FILTROS_GENERALES")
+
                                     val condicion =
-                                        rango_precio != null || listaSeleccionada.isNotEmpty() || lista_comodidades_Select.isNotEmpty()
-                                    estilo_ig_header(
-                                        "FILTROS_GENERALES",
-                                        condicion,
-                                        i = itemFiltros,
-                                        seleccionada = tiendaSeleccionada == "FILTROS_GENERALES",
-                                        img_clikeada = { id ->
-                                            mostar_bottom_sheet_datos = true
-                                        }
-                                    )
+                                        (rango_precio != null && rango_precio != "Sin precio") ||
+                                                listaSeleccionada.isNotEmpty() ||
+                                                lista_comodidades_Select.isNotEmpty() ||
+                                                lista_resultados_gemini.isNotEmpty()
+
+                                        // 🔹 Logueamos el estado de cada filtro
+                                        Log.d("DEBUG_FILTROS", "Rango precio activo: ${rango_precio}")
+                                        Log.d("DEBUG_FILTROS", "Métodos seleccionados: ${listaSeleccionada.isNotEmpty()}")
+                                        Log.d("DEBUG_FILTROS", "Comodidades seleccionadas: ${lista_comodidades_Select.isNotEmpty()}")
+                                        Log.d("DEBUG_FILTROS", "Resultados Gemini: ${lista_resultados_gemini.isNotEmpty()}")
+                                        Log.d("DEBUG_FILTROS", "Condición general: $condicion")
+
+                                        estilo_ig_header(
+                                            "FILTROS_GENERALES",
+                                            condicion,
+                                            i = itemFiltros,
+                                            seleccionada = false,
+                                            img_clikeada = { id ->
+                                                // 🔹 Logueamos el click en la imagen del header
+                                                Log.d("DEBUG_FILTROS", "Click en FILTROS_GENERALES, id: $id")
+                                                mostar_bottom_sheet_datos = true
+                                            }
+                                        )
+
                                 }
 
                                 if (rango_precio != null && !rango_precio.equals("Sin precio")) {
@@ -738,8 +795,11 @@ fun ui_promos_cerca_de_ti(
                                     }
                                 }
 
-                                if (listaSeleccionada.isEmpty() && lista_comodidades_Select.isEmpty() && rango_precio == null) {
-
+                                if (listaSeleccionada.isEmpty() &&
+                                    lista_comodidades_Select.isEmpty() &&
+                                    (rango_precio == null || rango_precio == "Sin precio") &&
+                                    lista_resultados_gemini.isEmpty()
+                                ){
                                     // 🔹 Si no hay filtros → mostrar tiendas
                                     items(tiendasConMasDeUnaPromo) { tienda ->
                                         estilo_ig_header(
@@ -748,9 +808,15 @@ fun ui_promos_cerca_de_ti(
                                             i = tienda,
                                             seleccionada = tienda.id == tiendaSeleccionada,
                                             img_clikeada = { id ->
-                                                tiendaSeleccionada = id
-                                                subCategoriaSeleccionada = "Todos"
-                                                viewModel.filtrar_promociones_por_id(id)
+                                                if (tiendaSeleccionada == id) {
+                                                    // 🔥 Si ya está seleccionada → deseleccionar
+                                                    tiendaSeleccionada = null
+//                                                    viewModel.limpiar_filtro_promociones()
+                                                } else {
+                                                    // 🔥 Si no está seleccionada → seleccionar
+                                                    tiendaSeleccionada = id
+                                                    viewModel.filtrar_promociones_por_id(id)
+                                                }
                                             }
                                         )
                                     }
@@ -852,7 +918,7 @@ fun ui_promos_cerca_de_ti(
 
                         items(
                             items = promos,
-                            key = { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion + it.hashCode() }
+                            key = { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
                         ) { item ->
                             val idPromo = item.dataclass_promociones_cerca_de_ti
                                 .informacion_publcacion.id_promocion
@@ -862,105 +928,113 @@ fun ui_promos_cerca_de_ti(
                                 it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion ==
                                         item.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion
                             }
-
-
-                            carta_promocion_geinz(
-                                porcentajeMatch,
-                                i = item.dataclass_promociones_cerca_de_ti,
-                                img_clikeble = { id_promo, listaimg, select ->
-                                    if (uid_respald_user.isNotEmpty()) {
-                                        Log.d(
-                                            "mostramosooom",
-                                            "$id_promo ${listaimg.size} $select"
-                                        )
-                                        promoSeleccionada = item
-                                        // ✅ Usar el index calculado
-                                        promoSeleccionada_unica =
-                                            item.dataclass_promociones_cerca_de_ti
-                                        indexImagenSeleccionada = select
-                                        mostrar_zoom_img = true
-                                        lista_img = listaimg
-                                        index_galeria_img = select
-                                        titulo_poromo =
-                                            item.dataclass_promociones_cerca_de_ti.informacion_publcacion.titulo
-                                        descripcion =
-                                            item.dataclass_promociones_cerca_de_ti.informacion_publcacion.descripcion
-                                        nombre_tienda =
-                                            item.dataclass_promociones_cerca_de_ti.informacion_publcacion.nombre_tienda
-                                        img_tienda =
-                                            item.dataclass_promociones_cerca_de_ti.img.logo_img
-                                        dias_restantes =
-                                            item.dataclass_promociones_cerca_de_ti.dias_restantes
-
-                                        viewModel.agregar_estadisticas_publicacion(
-                                            "click",
-                                            id_promo,
-                                            localidad, uid_respald_user
-                                        )
-
-                                    } else {
-                                        mostrar_bottom_shet_registrate = true
-
-                                    }
-                                },
-                                share_promo = { id_tienda, id, categoria ->
-                                    compartir_hosting_promo(
-                                        viewModel,
-                                        item.dataclass_promociones_cerca_de_ti.texto_msje_whatsapp.compartir.msje_predermindo,
-                                        uid_respald_user,
-                                        id_tienda,
-                                        context,
-                                        localidad,
-                                        id,
-                                        categoria
+                            Box(
+                                modifier = Modifier.animateItem(
+                                    placementSpec = tween(
+                                        durationMillis = 350,
+                                        easing = FastOutSlowInEasing
                                     )
-                                    viewModel.agregar_estadisticas_publicacion(
-                                        "compartidos",
-                                        id,
-                                        localidad, uid_respald_user
-                                    )
-                                },
-                                whatsap_promo = { id, id_tienda, categoira ->
-                                    if (uid_respald_user.isNotEmpty()) {
-                                        abrir_whattsapp(
+                                )
+                            ) {
+                                carta_promocion_geinz(
+                                    porcentajeMatch,
+                                    i = item.dataclass_promociones_cerca_de_ti,
+                                    img_clikeble = { id_promo, listaimg, select ->
+                                        if (uid_respald_user.isNotEmpty()) {
+                                            Log.d(
+                                                "mostramosooom",
+                                                "$id_promo ${listaimg.size} $select"
+                                            )
+                                            promoSeleccionada = item
+                                            // ✅ Usar el index calculado
+                                            promoSeleccionada_unica =
+                                                item.dataclass_promociones_cerca_de_ti
+                                            indexImagenSeleccionada = select
+                                            mostrar_zoom_img = true
+                                            lista_img = listaimg
+                                            index_galeria_img = select
+                                            titulo_poromo =
+                                                item.dataclass_promociones_cerca_de_ti.informacion_publcacion.titulo
+                                            descripcion =
+                                                item.dataclass_promociones_cerca_de_ti.informacion_publcacion.descripcion
+                                            nombre_tienda =
+                                                item.dataclass_promociones_cerca_de_ti.informacion_publcacion.nombre_tienda
+                                            img_tienda =
+                                                item.dataclass_promociones_cerca_de_ti.img.logo_img
+                                            dias_restantes =
+                                                item.dataclass_promociones_cerca_de_ti.dias_restantes
+
+                                            viewModel.agregar_estadisticas_publicacion(
+                                                "click",
+                                                id_promo,
+                                                localidad, uid_respald_user
+                                            )
+
+                                        } else {
+                                            mostrar_bottom_shet_registrate = true
+
+                                        }
+                                    },
+                                    share_promo = { id_tienda, id, categoria ->
+                                        compartir_hosting_promo(
+                                            viewModel,
+                                            item.dataclass_promociones_cerca_de_ti.texto_msje_whatsapp.compartir.msje_predermindo,
                                             uid_respald_user,
-                                            "promocion",
-                                            "",
-                                            "",
+                                            id_tienda,
                                             context,
-                                            item.dataclass_promociones_cerca_de_ti
-                                                .informacion_publcacion.numero,
-                                            "${item.dataclass_promociones_cerca_de_ti.texto_msje_whatsapp.whatsapp.msje_predermindo}" +
-                                                    "https://geinzworkapp.web.app/share?" +
-                                                    "t=prms" +
-                                                    "&l=$localidad" +
-                                                    "&pi=$id"
-
+                                            localidad,
+                                            id,
+                                            categoria
                                         )
                                         viewModel.agregar_estadisticas_publicacion(
-                                            "whatsapp",
+                                            "compartidos",
                                             id,
                                             localidad, uid_respald_user
                                         )
-                                    } else {
-                                        mostrar_bottom_shet_registrate = true
-                                    }
+                                    },
+                                    whatsap_promo = { id, id_tienda, categoira ->
+                                        if (uid_respald_user.isNotEmpty()) {
+                                            abrir_whattsapp(
+                                                uid_respald_user,
+                                                "promocion",
+                                                "",
+                                                "",
+                                                context,
+                                                item.dataclass_promociones_cerca_de_ti
+                                                    .informacion_publcacion.numero,
+                                                "${item.dataclass_promociones_cerca_de_ti.texto_msje_whatsapp.whatsapp.msje_predermindo}" +
+                                                        "https://geinzworkapp.web.app/share?" +
+                                                        "t=prms" +
+                                                        "&l=$localidad" +
+                                                        "&pi=$id"
 
-                                },
-                                mostrar_perfil = { id, id_promo ->
-                                    if (uid_respald_user.isNotEmpty()) {
-                                        viewModel.agregar_estadisticas_publicacion(
-                                            "click_perfil",
-                                            id_promo,
-                                            localidad, uid_respald_user
-                                        )
-                                        show_bottom_sheeet = true
-                                        id_tienda_select = id
-                                    } else {
-                                        mostrar_bottom_shet_registrate = true
+                                            )
+                                            viewModel.agregar_estadisticas_publicacion(
+                                                "whatsapp",
+                                                id,
+                                                localidad, uid_respald_user
+                                            )
+                                        } else {
+                                            mostrar_bottom_shet_registrate = true
+                                        }
+
+                                    },
+                                    mostrar_perfil = { id, id_promo ->
+                                        if (uid_respald_user.isNotEmpty()) {
+                                            viewModel.agregar_estadisticas_publicacion(
+                                                "click_perfil",
+                                                id_promo,
+                                                localidad, uid_respald_user
+                                            )
+                                            show_bottom_sheeet = true
+                                            id_tienda_select = id
+                                        } else {
+                                            mostrar_bottom_shet_registrate = true
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
+
 
                         }
 
@@ -976,6 +1050,9 @@ fun ui_promos_cerca_de_ti(
                         rango_precio,
                         viewModel,
                         {
+                            mostar_bottom_sheet_datos = false
+                        }, { txt ->
+                            valor_a_buscar = txt
                             mostar_bottom_sheet_datos = false
                         })
                 }
@@ -1421,17 +1498,11 @@ fun estilo_ig_header(
             ) {
                 Box(
                     modifier = Modifier
-
                         .size(18.dp)
                         .clip(CircleShape)
-                        .background(Color.Green)
-
+                        .background(Color(0xFF2E7D32))
                 )
-
-
             }
-
-
         }
 
         Spacer(modifier = Modifier.height(8.dp))

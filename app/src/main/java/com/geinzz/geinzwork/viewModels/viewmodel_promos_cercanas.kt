@@ -46,6 +46,20 @@ class viewmodel_promos_cercanas : ViewModel() {
     private val _respuesta_gemini = MutableStateFlow<estado_Carga_respuesta_gemini?>(null)
     val respuesta_gemini: StateFlow<estado_Carga_respuesta_gemini?> = _respuesta_gemini
 
+    private val _listaResultados = MutableStateFlow<List<String>>(emptyList())
+    val listaResultados: StateFlow<List<String>> = _listaResultados
+
+    val texto_usser_buscado =MutableStateFlow("")
+
+    fun guardar_texto_user_buscado (txt:String){
+        texto_usser_buscado.value=txt
+    }
+
+
+
+    fun eliminarItem(item: String) {
+        _listaResultados.value = _listaResultados.value - item
+    }
 
     private var paginaActual = 0
     private val bloque = 5
@@ -221,6 +235,9 @@ class viewmodel_promos_cercanas : ViewModel() {
         }
     }
 
+    fun retornar_lista_nuevamente(){
+        _estadoPromos.value = estado_carga_promociones.succes( listaCompleta.value)
+    }
     @RequiresApi(Build.VERSION_CODES.O)
     fun obtener_promociones(
         localidad: String,
@@ -486,6 +503,16 @@ class viewmodel_promos_cercanas : ViewModel() {
                         val objeto = gson.fromJson(limpio, RespuestaGemini::class.java)
                         Log.d("NLP_OBJETO", objeto.toString())
                         _respuesta_gemini.value = estado_Carga_respuesta_gemini.succes(objeto)
+
+                        _respuesta_gemini.value?.let { estado ->
+                            if (estado is estado_Carga_respuesta_gemini.succes) {
+                                _listaResultados.value = buildList {
+                                    estado.items?.principal?.let { add(it) }
+                                    estado.items?.atributos?.let { addAll(it) }
+                                }
+                            }
+                        }
+
 
                     } else {
                         _respuesta_gemini.value =

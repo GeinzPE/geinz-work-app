@@ -1,15 +1,23 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -19,7 +27,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
@@ -49,7 +63,10 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.viewModels.viewmodel_promos_cercanas
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_close_gris
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,32 +75,19 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
     comodidad_selet: Set<String>, metodo_pago: Set<String>,
     rango_precio: String?,
     viewModel: viewmodel_promos_cercanas,
-    onClose: () -> Unit
+    onClose: () -> Unit,onAutocompletar:(String)-> Unit
 ) {
+    var expandido by remember { mutableStateOf(true) }
 
     var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
     val categorias by viewModel._categoriasDisponibles.collectAsState()
 
     val obtener_datos_respuesta_gemini by viewModel.respuesta_gemini.collectAsState()
-    var listaData by remember { mutableStateOf<List<String>>(emptyList()) }
+    val listaData by viewModel.listaResultados.collectAsState()
 
-    LaunchedEffect(obtener_datos_respuesta_gemini) {
+    val texto_ser_guardado by viewModel.texto_usser_buscado.collectAsState()
 
-        listaData = when (val estado = obtener_datos_respuesta_gemini) {
 
-            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes -> {
-
-                estado.items?.run {
-                    buildList {
-                        principal?.let(::add)
-                        addAll(atributos)
-                    }
-                } ?: emptyList()
-            }
-
-            else -> emptyList()
-        }
-    }
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
@@ -152,6 +156,63 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                     )
                     spacer_vertical(10.dp)
                 }
+                item {
+                    if (texto_ser_guardado.isNotEmpty()) {
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.surface)
+                                .padding(12.dp)
+                        ) {
+
+                            // 🔹 Texto clickable arriba derecha
+
+                            Column {
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.logo_geinz_500x500),
+                                        contentDescription = "Logo IA",
+                                        modifier = Modifier
+                                            .clickable(
+                                                indication = null,
+                                                interactionSource = remember { MutableInteractionSource() }) {
+                                            }
+                                            .size(35.dp)
+                                    )
+                                    spacer_horizonta(5.dp)
+                                    Text(
+                                        text = "Geinz",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    Text(
+                                        text = "Repetir búsqueda",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.clickable {
+                                            onAutocompletar(texto_ser_guardado)
+                                        }
+                                    )
+                                }
+                                spacer_vertical(8.dp)
+
+                                texto_generico_multilinea(
+                                    texto_ser_guardado.capitalizeFirst(),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+
+                                spacer_vertical(10.dp)
+                            }
+                        }
+                    }
+                }
 //                item {
 //                    val subcategorias = listOf("Todos") + promos
 //                        .flatMap { categorias }
@@ -188,14 +249,15 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                         ) {
                             items(listaData) { i ->
                                 val seleccionado = rango_precio == i
-                                chisp_filtrado_busqueda(
+                                chisp_filtrado_busqueda_resultados_busqueda(
+                                    "resultado",
                                     carta_selecionada = false,
                                     filtrado = i.capitalizeFirst(),
-                                    btn_visible = false,
-                                    clik_card = {
-
-                                    },
-                                    onClick_delete = {}
+                                    btn_visible = true,
+                                    clik_card = {},
+                                    onClick_delete = {
+                                        viewModel.eliminarItem(i)
+                                    }
                                 )
                             }
                         }
@@ -210,10 +272,11 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                     ) {
                         items(rango_precios) { subcategoria ->
                             val seleccionado = rango_precio == subcategoria
-                            chisp_filtrado_busqueda(
+                            chisp_filtrado_busqueda_resultados_busqueda(
+                                "precio",
                                 carta_selecionada = seleccionado,
                                 filtrado = subcategoria.capitalizeFirst(),
-                                btn_visible = true,
+                                btn_visible = false,
                                 clik_card = {
                                     viewModel.setearRangoPrecioDesdeNLP(subcategoria)
                                 },
@@ -334,4 +397,78 @@ fun RadioCheckingMetodos(
             }
         }
     }
+}
+
+
+@Composable
+fun chisp_filtrado_busqueda_resultados_busqueda(
+    tipo: String,
+    carta_selecionada: Boolean,
+    filtrado: String,
+    btn_visible: Boolean = true,
+    clik_card: () -> Unit,
+    onClick_delete: () -> Unit,
+    color_invertido: Boolean = false,
+    alto: Dp = 45.dp,
+) {
+
+    val color_chips by animateColorAsState(
+        targetValue = if (!carta_selecionada) if (tipo == "precio") {
+            MaterialTheme.colorScheme.surfaceVariant
+        } else {
+            MaterialTheme.colorScheme.primary
+        }
+        else Color.White, animationSpec = tween(
+            durationMillis = 500, easing = LinearOutSlowInEasing
+        ), label = ""
+    )
+
+    val color_invertido_chips by animateColorAsState(
+        targetValue = if (!carta_selecionada) {
+            MaterialTheme.colorScheme.surfaceVariant
+        } else {
+            if (tipo == "precio") {
+                Color.Gray
+            } else {
+                MaterialTheme.colorScheme.primary
+            }
+        }
+    )
+
+
+    val color_text = if (!carta_selecionada) Color.White else Color.Black
+    val color_text_ivnertido =
+        if (color_invertido && !carta_selecionada) Color.Black else Color.White
+
+    Row(
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(if (!color_invertido) color_chips else color_invertido_chips)
+            .height(alto)
+            .padding(horizontal = 15.dp, vertical = 10.dp)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }) { clik_card() },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        texto_generico_one_line(
+            filtrado.capitalizeFirst(),
+            color = if (!color_invertido) color_text else color_text_ivnertido,
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        if (btn_visible) {
+            spacer_horizonta(7.dp)
+            btn_close_gris(
+                imageVector = Icons.Default.Close,
+                onClick = { onClick_delete() },
+                size_container = 20.dp,
+                size_icon = 15.dp,
+                tint_icon = if (!carta_selecionada) Color.White else Color.Black
+            )
+        }
+
+
+    }
+
 }

@@ -441,7 +441,12 @@ fun ui_salud_seguirdad(
                     items(lista) { i ->
                         isLoading = false
                         error_empity = false
-                        Box(modifier = Modifier.padding(8.dp)) {
+                        Box(modifier = Modifier.padding(8.dp).animateItem(
+                            placementSpec = tween(
+                                durationMillis = 350,
+                                easing = FastOutSlowInEasing
+                            )
+                        )) {
                             carta_salud_cuidad(
                                 id_user = id_user,
                                 viewmode_segurirdad_Salud = viewmode_segurirdad_Salud,
@@ -1123,8 +1128,6 @@ fun FiltradoTextField(
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(12.dp)
             ) {
-
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically

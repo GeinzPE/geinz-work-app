@@ -978,7 +978,7 @@ fun ui_bottom_sheet_generaciones_IA(
 
 
 
-
+//animacion de la ptamadre a la firme lo ahce suabe esta mamada
                                         Box(
                                             modifier = Modifier.animateItem(
                                                 placementSpec = tween(
