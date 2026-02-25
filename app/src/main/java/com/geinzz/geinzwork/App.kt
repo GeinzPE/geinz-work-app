@@ -18,6 +18,8 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+// 🔹 Inficializa Mapbox de forma segura usando BuildConfig
         MapboxOptions.accessToken = BuildConfig.MAPBOX_ACCESS_TOKEN
 
         // 🔹 Inicializa Firebase principal

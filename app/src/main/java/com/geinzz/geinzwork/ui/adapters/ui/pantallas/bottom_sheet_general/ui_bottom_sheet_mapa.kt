@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -64,12 +65,16 @@ import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
+import com.mapbox.geojson.Point
+import com.mapbox.maps.CameraOptions
+import com.mapbox.maps.plugin.animation.flyTo
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 
 
 @OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("MissingPermission")
 @Composable
 fun bottom_sheet_mapa(
     lista_categiras_filtrado_tiendas_Cercanas: List<String>,
@@ -78,7 +83,7 @@ fun bottom_sheet_mapa(
     seleccionadoId: String,
     lat_user: Double,
     log_user: Double,
-    cameraPositionState: CameraPositionState,
+    mapboxMap: com.mapbox.maps.MapboxMap,
     tipo: String,
     lista_filtrada_turismo: List<lugares_cercanos>,
     lista: List<tiendas_por_categoria>,
@@ -129,7 +134,7 @@ fun bottom_sheet_mapa(
                             teindas_cercanas_fitrada = estadoFiltro,
                             tipo = "turismo",
                             seleccionadoId = seleccionadoId,
-                            cameraPositionState = cameraPositionState,
+                            mapboxMap = mapboxMap,
                             lista = lista_filtrada_turismo,
                             getId = { it.id_tienda },
                             getLat = { it.latitud },
@@ -174,7 +179,7 @@ fun bottom_sheet_mapa(
                             teindas_cercanas_fitrada = TiendasCercanasFiltrada(),
                             tipo = "tiendas",
                             seleccionadoId = seleccionadoId,
-                            cameraPositionState = cameraPositionState,
+                            mapboxMap = mapboxMap,
                             lista = lista,
                             getId = { it.id_tienda },
                             getLat = { it.latitud },
@@ -225,7 +230,7 @@ fun <T> listado_items(
     teindas_cercanas_fitrada: TiendasCercanasFiltrada,
     tipo: String,
     seleccionadoId: String,
-    cameraPositionState: CameraPositionState,
+    mapboxMap: com.mapbox.maps.MapboxMap,
     lista: List<T>,
     getId: (T) -> String,
     getLat: (T) -> Double,
@@ -445,12 +450,19 @@ fun <T> listado_items(
                     seleccionado = (seleccionadoId == getId(item))
                 ) { id, lat, log ->
                     val nuevaUbicacion = LatLng(lat, log)
+
                     selecionado(item)
                     scope.launch {
-                        cameraPositionState.animate(
-                            CameraUpdateFactory.newLatLngZoom(nuevaUbicacion, 16f),
-                            1000
+                        mapboxMap.flyTo(
+                            CameraOptions.Builder()
+                                .center(Point.fromLngLat(log, lat))
+                                .zoom(16.0)
+                                .build()
                         )
+//                        cameraPositionState.animate(
+//                            CameraUpdateFactory.newLatLngZoom(nuevaUbicacion, 16f),
+//                            1000
+//                        )
                     }
                 }
             }

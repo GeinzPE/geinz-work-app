@@ -91,7 +91,7 @@ fun pantalla_lugares_turisticos(
     viewmodelMapa: viewmodel_mapa_personalizado,
     localidad_selecionada: String,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
-    abrir_mapa: (String) -> Unit,
+    abrir_mapa: (String, String, Double, Double) -> Unit,
     crear_cuenta: () -> Unit,
     navigation_regresar: () -> Unit,
     iniciar_seccion: () -> Unit
@@ -140,12 +140,12 @@ fun pantalla_lugares_turisticos(
                 Log.d("LaunchedEffect_ID", "Llamando a obtener_datos_lugares_turisticos()")
 
                 // Llamada a la función en ViewModel
-val datos_lugar_brca= viewmodelMapa.obtener_datos_lugares_turisticos(
-    id,
-    "barranca"
-)
+                val datos_lugar_brca = viewmodelMapa.obtener_datos_lugares_turisticos(
+                    id,
+                    "barranca"
+                )
                 viewmodelMapa.setObjetoSeleccionado(datos_lugar_brca)
-                objdatos_luga_turistico=datos_lugar_brca
+                objdatos_luga_turistico = datos_lugar_brca
                 viewmodelMapa.setBottomSheetVisible(true)
 
                 // Log del estado después de la llamada
@@ -230,12 +230,15 @@ val datos_lugar_brca= viewmodelMapa.obtener_datos_lugares_turisticos(
 //                        style = MaterialTheme.typography.banerGeinzWork,
 //                        modifier = Modifier.padding(end = 20.dp)
 //                    )
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center){
-                    Text(
-                        text = "Lugares en ${localidad_selecionada.capitalizeFirst()}",
-                        fontFamily = baners_geinz_work,
-                        fontSize = 30.sp, modifier = Modifier.weight(1f)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Lugares en ${localidad_selecionada.capitalizeFirst()}",
+                            fontFamily = baners_geinz_work,
+                            fontSize = 30.sp, modifier = Modifier.weight(1f)
+                        )
                         Box(
                             modifier = Modifier,
                         ) {
@@ -244,12 +247,21 @@ val datos_lugar_brca= viewmodelMapa.obtener_datos_lugares_turisticos(
                                     .padding(8.dp)
                                     .size(35.dp)
                                     .clip(CircleShape)
-                                    .background(Color.Gray.copy(alpha = 0.5f)).clickable{
-                                        compartir_pantalla_completa("lgtr","Conoce los lugares mas atractivos de $localidad_selecionada",context)
+                                    .background(Color.Gray.copy(alpha = 0.5f))
+                                    .clickable {
+                                        compartir_pantalla_completa(
+                                            "lgtr",
+                                            "Conoce los lugares mas atractivos de $localidad_selecionada",
+                                            context
+                                        )
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Image(painterResource(R.drawable.comparir_icon), modifier = Modifier.size(16.dp), contentDescription = null)
+                                Image(
+                                    painterResource(R.drawable.comparir_icon),
+                                    modifier = Modifier.size(16.dp),
+                                    contentDescription = null
+                                )
                             }
                         }
                     }
@@ -351,7 +363,7 @@ val datos_lugar_brca= viewmodelMapa.obtener_datos_lugares_turisticos(
                             img = item.img_principal,
                             lugar = item,
                             abrir_mapa = { tipo ->
-                                abrir_mapa(tipo)
+                                abrir_mapa(tipo, item.img_principal, item.latitud, item.longitud)
                             },
                             crear_cuenta = { crear_cuenta() },
                             iniciar_seccion = { iniciar_seccion() },
@@ -429,7 +441,12 @@ val datos_lugar_brca= viewmodelMapa.obtener_datos_lugares_turisticos(
                     viewmodelMapa.setBottomSheetVisible(false)
                 },
                 ver_mapa = {
-                    abrir_mapa("turismo")
+                    abrir_mapa(
+                        "turismo",
+                        objdatos_luga_turistico.img_principal,
+                        objdatos_luga_turistico.latitud,
+                        objdatos_luga_turistico.longitud
+                    )
                 }, iniciar_seccion = { iniciar_seccion() }, crear_cuenta = { crear_cuenta() }
             )
         }

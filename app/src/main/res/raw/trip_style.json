@@ -1,0 +1,96 @@
+{
+  "version": 8,
+  "name": "Geinz Dark Premium",
+  "sources": {
+    "mapbox": {
+      "type": "vector",
+      "url": "mapbox://mapbox.mapbox-streets-v8"
+    }
+  },
+  "layers": [
+
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#1B2028"
+      }
+    },
+
+    {
+      "id": "water",
+      "type": "fill",
+      "source": "mapbox",
+      "source-layer": "water",
+      "paint": {
+        "fill-color": "#203047"
+      }
+    },
+
+    {
+      "id": "landuse-park",
+      "type": "fill",
+      "source": "mapbox",
+      "source-layer": "landuse",
+      "filter": ["==", "class", "park"],
+      "paint": {
+        "fill-color": "#3B5147"
+      }
+    },
+
+    {
+      "id": "road",
+      "type": "line",
+      "source": "mapbox",
+      "source-layer": "road",
+      "paint": {
+        "line-color": "#454B56",
+        "line-width": 1.2
+      }
+    },
+
+    {
+      "id": "road-highway",
+      "type": "line",
+      "source": "mapbox",
+      "source-layer": "road",
+      "filter": ["==", "class", "motorway"],
+      "paint": {
+        "line-color": "#5A5F6A",
+        "line-width": 2.2
+      }
+    },
+
+    {
+      "id": "road-label",
+      "type": "symbol",
+      "source": "mapbox",
+      "source-layer": "road",
+      "layout": {
+        "text-field": ["get", "name"],
+        "text-size": 12
+      },
+      "paint": {
+        "text-color": "#F0F2F5",
+        "text-halo-color": "#2E333B",
+        "text-halo-width": 1
+      }
+    },
+
+    {
+      "id": "place-label",
+      "type": "symbol",
+      "source": "mapbox",
+      "source-layer": "place_label",
+      "layout": {
+        "text-field": ["get", "name"],
+        "text-size": 14
+      },
+      "paint": {
+        "text-color": "#CACDD1",
+        "text-halo-color": "#2E333B",
+        "text-halo-width": 1
+      }
+    }
+  ]
+}
