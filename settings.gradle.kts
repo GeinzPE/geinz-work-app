@@ -18,10 +18,16 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url = uri("https://jitpack.io") }
+
+        // ✅ JitPack (para TouchImageView, MPAndroidChart, PhotoView, uCrop)
+        maven("https://jitpack.io")
+
+        // ✅ Mapbox
+        maven("https://api.mapbox.com/downloads/v2/releases/maven")
+
+        // opcional
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
     }
-
 }
 
 rootProject.name = "GeinzWork"

@@ -1,4 +1,5 @@
 import org.gradle.kotlin.dsl.implementation
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.androidApplication)
@@ -11,11 +12,18 @@ plugins {
     id("kotlin-parcelize")
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.0"
 }
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
 
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+
+val mapboxToken = localProperties.getProperty("MAPBOX_ACCESS_TOKEN")
+    ?: throw GradleException("MAPBOX_ACCESS_TOKEN not found in local.properties")
 android {
     namespace = "com.geinzz.geinzwork"
     compileSdk = 35
-
 
     defaultConfig {
         applicationId = "com.geinzz.geinzwork"
@@ -23,8 +31,12 @@ android {
         targetSdk = 35
         versionCode = 54
         versionName = "1.40.1"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField(
+            "String",
+            "MAPBOX_ACCESS_TOKEN",
+            "\"$mapboxToken\""
+        )
     }
 
     buildTypes {
@@ -51,6 +63,7 @@ android {
     buildFeatures {
         viewBinding = true
         compose = true
+        buildConfig = true
 
     }
     packaging {
@@ -203,14 +216,12 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
 
 
-        implementation("io.github.dautovicharis:charts-android:2.0.1")
-    implementation("com.mapbox.maps:android:11.0.0")
+    implementation("io.github.dautovicharis:charts-android:2.0.1")
+    implementation("com.mapbox.maps:android:11.18.2")
+    implementation("com.mapbox.extension:maps-compose-ndk27:11.18.2")
+
     implementation(libs.androidx.foundation)
 //    implementation("com.github.SmartToolFactory:Compose-Cropper:1.2.3")
-
-
-
-
 
 
 }

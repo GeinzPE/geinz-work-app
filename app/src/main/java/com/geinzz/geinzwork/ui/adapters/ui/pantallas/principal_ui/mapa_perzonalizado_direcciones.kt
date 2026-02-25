@@ -837,26 +837,26 @@ fun MyGoogle_maps(id_user:String,
         }
 
         if (show_botoom_sheet) {
-            bottom_sheet_mapa(
-                lista_categiras_filtrado_tiendas_Cercanas,
-                viewmodel_lugares_turisticos,
-                estado,
-                seleccionadoId = seleccionadoId ?: "",
-                lat_user = lat_user,
-                log_user = log_user,
-                cameraPositionState = cameraPositionState,
-                tipo = tipo,
-                lista_filtrada_turismo = lista_tiendas_cecanas_turismo,
-                lista = lista_filtrada_tiendas,
-                onclose = {
-                    show_botoom_sheet = false
-                },
-                selecionado_id = { seleccionadoIds ->
-                    seleccionadoId = seleccionadoIds
-                }, datos_selecionado_retornar = { datos ->
-                    lister_marker = datos
-                    show_dialog_datos_lugares = true
-                })
+//            bottom_sheet_mapa(
+//                lista_categiras_filtrado_tiendas_Cercanas,
+//                viewmodel_lugares_turisticos,
+//                estado,
+//                seleccionadoId = seleccionadoId ?: "",
+//                lat_user = lat_user,
+//                log_user = log_user,
+//                cameraPositionState = cameraPositionState,
+//                tipo = tipo,
+//                lista_filtrada_turismo = lista_tiendas_cecanas_turismo,
+//                lista = lista_filtrada_tiendas,
+//                onclose = {
+//                    show_botoom_sheet = false
+//                },
+//                selecionado_id = { seleccionadoIds ->
+//                    seleccionadoId = seleccionadoIds
+//                }, datos_selecionado_retornar = { datos ->
+//                    lister_marker = datos
+//                    show_dialog_datos_lugares = true
+//                })
         }
 
         AnimatedVisibility(
@@ -865,8 +865,6 @@ fun MyGoogle_maps(id_user:String,
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
-
-
             dialogo_lugar_tienda(
                 horario_box1 = horarios[lister_marker.id] ?: HorarioDia_box(),
                 viewmodelMapa = viewmodelMapa,

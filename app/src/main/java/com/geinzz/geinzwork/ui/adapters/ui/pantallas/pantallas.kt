@@ -26,7 +26,7 @@ object login_scios
 data class mostrar_tiendas(val nombre_user: String, val localidad: String)
 
 @Serializable
-data class map_perzonalizado(val tipo: String,val localidad: String)
+data class map_perzonalizado(val tipo: String,val localidad: String,val nombre: String?,val latitud: Double?,val lng: Double?)
 
 @Serializable
 data class ui_salud_seguridad(val localidad: String)
@@ -40,4 +40,8 @@ data class ui_servicios_tramites(val localidad: String)
 
 @Serializable
 data class nuevos_negocios_geinz(val localidad: String)
+
+
+@Serializable
+object map_box
 

@@ -449,7 +449,8 @@ fun nativationWrapper(
 //                                                        "Mira ese nuevo negocio en geinz notificacion de prueva ",
 //                                                        "Encuentralo a unos pasos cerca de ti "
 //                                                    )
-                            navController.navigate(ui_agregar_lugares)
+//                            navController.navigate(ui_agregar_lugares)
+                            navController.navigate(map_box)
                             //                            pasar_teindas_nuevas()
 
                         },
@@ -510,7 +511,7 @@ fun nativationWrapper(
                         }, crear_cuenta_geinz = {
                             navController.navigate(crear_cuenta_geinz("crear"))
                         }, abrir_mapa = { tipo ->
-                            navController.navigate(map_perzonalizado(tipo, "barranca"))
+                            navController.navigate(map_perzonalizado(tipo, "barranca",null,null,null))
                         }, crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
                         }, iniciar_seccion = {
@@ -586,8 +587,8 @@ fun nativationWrapper(
                         viewmodelMapa = viewmodelMapa,
                         localidad_selecionada = datos_lugares_turisticos.localidad,
                         viewmodel_lugares_turisticos = viewModelLugares,
-                        abrir_mapa = { tipo ->
-                            navController.navigate(map_perzonalizado(tipo, "barranca"))
+                        abrir_mapa = { tipo,nombre_lugar,lat,lng ->
+                            navController.navigate(map_perzonalizado(tipo, "barranca",nombre_lugar,lat,lng))
                         }, crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
                         }, navigation_regresar = {
@@ -623,16 +624,28 @@ fun nativationWrapper(
 
                 composable<map_perzonalizado> { navback ->
                     val direcciones = navback.toRoute<map_perzonalizado>()
-                    pantalla_mapa_perzonalizado(
+//                    pantalla_mapa_perzonalizado(
+//                        id_respado_user,
+//                        verificar_intener = isConnected,
+//                        viewmodelMapa = viewmodelMapa,
+//                        viewmode_segurirdad_Salud = viewmode_segurirdad_Salud,
+//                        viewModel_filtrado_tiendas = viewModel_filtrado_tiendas,
+//                        viewmodel_lugares_turisticos = viewModelLugares,
+//                        tipo = direcciones.tipo,
+//                        localidad = direcciones.localidad
+//                    )
+                    SimpleMapDark(
+                        direcciones.nombre,direcciones.latitud,direcciones.lng,
+                        viewmodelMapa,
+                        direcciones.localidad,
                         id_respado_user,
-                        verificar_intener = isConnected,
-                        viewmodelMapa = viewmodelMapa,
-                        viewmode_segurirdad_Salud = viewmode_segurirdad_Salud,
-                        viewModel_filtrado_tiendas = viewModel_filtrado_tiendas,
-                        viewmodel_lugares_turisticos = viewModelLugares,
-                        tipo = direcciones.tipo,
-                        localidad = direcciones.localidad
+                        direcciones.tipo,
+                        isConnected,
+                        viewModelLugares,
+                        viewModel_filtrado_tiendas,
+                        viewmode_segurirdad_Salud
                     )
+
                 }
 
                 composable<screen_filtrado> { navBackStackEntry ->
@@ -651,7 +664,7 @@ fun nativationWrapper(
                         },
                         abrir_mapa = { tipo, localidad ->
                             if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
-                                navController.navigate(map_perzonalizado(tipo, localidad))
+                                navController.navigate(map_perzonalizado(tipo, localidad,null,null,null))
                             } else {
                                 bottom_sheet_iniciar_seccion = true
                             }
@@ -689,7 +702,7 @@ fun nativationWrapper(
                         viewmode_segurirdad_Salud,
                         localida = salud_Seguridad.localidad,
                         abrir_mapa = { latitud, longitud ->
-                            navController.navigate(map_perzonalizado("seguridad", ""))
+                            navController.navigate(map_perzonalizado("seguridad", "",null,null,null))
 
                         })
                 }
@@ -698,6 +711,17 @@ fun nativationWrapper(
                     datos_teindas()
                 }
 
+                composable<map_box> {
+//                    SimpleMapDark(
+//                        "barranca",
+//                        id_respado_user,
+//                        "",
+//                        isConnected,
+//                        viewModelLugares,
+//                        viewModel_filtrado_tiendas,
+//                        viewmode_segurirdad_Salud
+//                    )
+                }
                 composable<ui_servicios_tramites> { navback ->
                     val servicio = navback.toRoute<ui_servicios_tramites>()
                     ui_servicio_tramite(isConnected, servicio.localidad, id_respado_user)
@@ -732,7 +756,7 @@ fun nativationWrapper(
                         },
                         abrir_mapa = { tipo, loc ->
                             if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
-                                navController.navigate(map_perzonalizado(tipo, loc))
+                                navController.navigate(map_perzonalizado(tipo, loc,null,null,null))
                             } else {
                                 bottom_sheet_iniciar_seccion = true
                             }
@@ -757,8 +781,8 @@ fun nativationWrapper(
                         viewmodelMapa,
                         "barranca",
                         viewModelLugares,
-                        abrir_mapa = { tipo ->
-                            navController.navigate(map_perzonalizado(tipo, "barranca"))
+                        abrir_mapa = { tipo,nombre,lat,lng ->
+                            navController.navigate(map_perzonalizado(tipo, "barranca",nombre,lat,lng))
                         },
                         crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
                         navigation_regresar = { navController.popBackStack() },
@@ -774,7 +798,7 @@ fun nativationWrapper(
                         viewmode_segurirdad_Salud,
                         localida = "barranca",
                         abrir_mapa = { latitud, longitud ->
-                            navController.navigate(map_perzonalizado("seguridad", ""))
+                            navController.navigate(map_perzonalizado("seguridad", "",null,null,null))
 
                         })
                 }
@@ -836,8 +860,8 @@ fun nativationWrapper(
                         viewmodelMapa = viewmodelMapa,
                         localidad_selecionada = localidad,
                         viewmodel_lugares_turisticos = viewModelLugares,
-                        abrir_mapa = { tipo ->
-                            navController.navigate(map_perzonalizado(tipo, "barranca"))
+                        abrir_mapa = { tipo,nombre,lat,lng ->
+                            navController.navigate(map_perzonalizado(tipo, "barranca",nombre,lat,lng))
                         },
                         crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
                         navigation_regresar = { navController.popBackStack() },
