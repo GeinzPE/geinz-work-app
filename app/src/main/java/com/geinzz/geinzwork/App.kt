@@ -9,6 +9,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.firestoreSettings
+import com.mapbox.common.MapboxOptions
 
 class App : Application() {
 
@@ -17,7 +18,8 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
-
+// 🔹 Inicializa Mapbox de forma segura usando BuildConfig
+        MapboxOptions.accessToken = BuildConfig.MAPBOX_ACCESS_TOKEN
         // 🔹 Inicializa Firebase principal
         FirebaseApp.initializeApp(this)
 
