@@ -1250,16 +1250,32 @@ fun dialogo_lugar_tienda(
     var estadoColor by remember { mutableStateOf(Color.Red) }
     val context = LocalContext.current
     val gpsActivo by rememberGpsActivo(context)
-    val distancia by remember(lat_user, log_user, dataclass_map.latitud, dataclass_map.longitud) {
+    val distancia by remember(
+        lat_user,
+        log_user,
+        dataclass_map.latitud,
+        dataclass_map.longitud
+    ) {
         derivedStateOf {
-            verificarDistanciaFormateada(
+
+            Log.d("DISTANCIA_DEBUG", "📍 lat_user: $lat_user")
+            Log.d("DISTANCIA_DEBUG", "📍 log_user: $log_user")
+            Log.d("DISTANCIA_DEBUG", "🏪 lat_tienda: ${dataclass_map.latitud}")
+            Log.d("DISTANCIA_DEBUG", "🏪 log_tienda: ${dataclass_map.longitud}")
+
+            val resultado = verificarDistanciaFormateada(
                 lat_user,
                 log_user,
                 dataclass_map.latitud,
                 dataclass_map.longitud
             )
+
+            Log.d("DISTANCIA_DEBUG", "📏 Distancia calculada: $resultado")
+
+            resultado
         }
     }
+
 
     val estadoKM by viewmodelMapa.estadoLocation.collectAsState(initial = false)
     val esta_cerca_tienda by viewmodelMapa.estaCercaTienda.collectAsState(initial = false)

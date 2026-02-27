@@ -402,10 +402,9 @@ fun card_img_container(
     var mostar_filtrado_categorias by remember { mutableStateOf(false) }
     var expandedItemId by remember { mutableStateOf<String?>(null) }
     var nueva_busqueda by remember { mutableStateOf(10.0f) }
-    var sub_categoria_selecionada by remember { mutableStateOf("Todos") }
+    var sub_categoria_selecionada by remember { mutableStateOf("") }
 //    val nueva_busqueda by viewmodel_turismo.estado_categoria_filtrada.collectAsState()
 //    val sub_categoria_selecionada by viewmodel_turismo.estado_radio_filtrada.collectAsState()
-//
     var id_tienda_parms by remember { mutableStateOf("") }
     var localidad_tienda by remember { mutableStateOf("") }
     var lista_string_filtrado_tiendas by remember { mutableStateOf(emptyList<String>()) }
@@ -428,6 +427,7 @@ fun card_img_container(
     }
 
     LaunchedEffect(sub_categoria_selecionada) {
+
         viewmodel_turismo.actualizarCategoria(sub_categoria_selecionada)
     }
 
@@ -528,6 +528,7 @@ fun card_img_container(
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.weight(1f)
                     )
+                    if(sub_categoria_selecionada.isNotEmpty()){
                     texto_generico_one_line(
                         "ver en mapa",
                         style = MaterialTheme.typography.bodyMedium,
@@ -560,6 +561,7 @@ fun card_img_container(
 
                         }
                     )
+                    }
                 }
 
                 spacer_vertical(10.dp)
@@ -759,7 +761,7 @@ fun card_img_container(
                         viewmodel_turismo.actualizarCategorias(state.lista_categorias)
                         viewmodel_turismo.actualizarListaCompleta(state.lista_completa_lugares)
                         Log.d("listassssssss", "${state.lista_categorias}")
-                        val lista_subcat = listOf("Todos") + state.lista_categorias
+                        val lista_subcat = state.lista_categorias
                         lista_string_filtrado_tiendas = lista_subcat
 
                         Column {

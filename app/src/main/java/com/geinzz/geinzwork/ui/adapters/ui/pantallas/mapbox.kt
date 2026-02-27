@@ -1,9 +1,12 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
+import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.graphics.*
 import android.os.Build
+import android.os.Looper
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,8 +36,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -42,6 +47,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -61,6 +67,8 @@ import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openTiktok
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openWebLink
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_crear_ruta_lugares
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.permisos_llamadas
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.requestCallPermission
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_mapa
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
@@ -68,6 +76,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.MarkerIcon
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.dialogo_lugar_tienda
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.actualizarUbicacion
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isLocationEnabled
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
@@ -75,11 +84,17 @@ import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
+import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.Point
@@ -97,6 +112,7 @@ import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.flyTo
 import com.mapbox.bindgen.Value
 import com.mapbox.geojson.Polygon
+import com.mapbox.maps.MapView
 import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.get
 import com.mapbox.maps.extension.style.layers.generated.circleLayer
@@ -114,13 +130,22 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
 import com.mapbox.maps.plugin.Plugin
+import com.mapbox.maps.plugin.animation.easeTo
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotation
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager
+import com.mapbox.maps.plugin.delegates.listeners.OnCameraChangeListener
+import com.mapbox.maps.plugin.gestures.OnMoveListener
+import com.mapbox.maps.plugin.gestures.gestures
+import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.scalebar.ScaleBarPlugin
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlin.text.get
 
 @RequiresApi(Build.VERSION_CODES.O)
+@SuppressLint("MissingPermission")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SimpleMapDark(
@@ -148,9 +173,7 @@ fun SimpleMapDark(
     val pointAnnotationManager = remember { mutableStateOf<PointAnnotationManager?>(null) }
 
 
-
-val radio by viewmodel_lugares_turisticos.estado_radio_filtrada.collectAsState()
-
+    val radio by viewmodel_lugares_turisticos.estado_radio_filtrada.collectAsState()
 
     val coordenadas by viewmode_segurirdad_Salud.coordenadasSeleccionadas.observeAsState()
     var latitud_luga_seg by remember { mutableStateOf(0.0) }
@@ -179,6 +202,8 @@ val radio by viewmodel_lugares_turisticos.estado_radio_filtrada.collectAsState()
         long_luga_seg = lon
     }
     val tick by viewModel_filtrado_tiendas.tick.collectAsState()
+    val annotationsById = remember { mutableMapOf<String, PointAnnotation>() }
+    var selectedAnnotation by remember { mutableStateOf<PointAnnotation?>(null) }
 
     var lister_marker by remember { mutableStateOf(dataclass_map()) }
     var dialog_Crear_ruta by remember { mutableStateOf(false) }
@@ -204,6 +229,54 @@ val radio by viewmodel_lugares_turisticos.estado_radio_filtrada.collectAsState()
     val seguirUbicacion = remember { mutableStateOf(false) }
     val animatingMap = remember { mutableStateOf(false) }
     val horarios by viewModel_filtrado_tiendas.horariosTiendas_real.collectAsState()
+
+    fun animarTamano(
+        annotation: PointAnnotation,
+        desde: Double,
+        hasta: Double
+    ) {
+        val animator = ValueAnimator.ofFloat(desde.toFloat(), hasta.toFloat())
+        animator.duration = 250 // duración en milisegundos
+
+        animator.addUpdateListener { animation ->
+            val valor = animation.animatedValue as Float
+            annotation.iconSize = valor.toDouble()
+            pointAnnotationManager.value?.update(annotation)
+        }
+
+        animator.start()
+    }
+
+    fun seleccionarMarkerPorId(id: String) {
+
+        val nuevo = annotationsById[id] ?: return
+
+        selectedAnnotation?.let { anterior ->
+            animarTamano(anterior, anterior.iconSize ?: 1.3, 0.9)
+            anterior.iconOpacity = 0.6
+            pointAnnotationManager.value?.update(anterior)
+        }
+
+        animarTamano(nuevo, nuevo.iconSize ?: 0.9, 1.3)
+        nuevo.iconOpacity = 1.0
+        pointAnnotationManager.value?.update(nuevo)
+
+        selectedAnnotation = nuevo
+    }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            isLocationEnabled = isLocationEnabled(context)
+            delay(5000L)
+        }
+    }
+    if (isLocationEnabled) {
+        viewmodelMapa.actualziar_estado(true)
+
+    } else {
+        viewmodelMapa.actualziar_estado(false)
+    }
+
     LaunchedEffect(lister_marker.id) {
 
         if (lister_marker.id.isBlank()) return@LaunchedEffect
@@ -228,63 +301,17 @@ val radio by viewmodel_lugares_turisticos.estado_radio_filtrada.collectAsState()
     }
 
 
-    val puntosConUrl = listOf(
-        Pair(
-            Point.fromLngLat(-77.7667, -10.7500),
-            "https://media.vogue.es/photos/67a1d09224f9ecac2d3bedbf/master/w_1600,c_limit/GettyImages-2197380006.jpg"
-        ),
-        Pair(
-            Point.fromLngLat(-77.7670, -10.7510),
-            "https://thumbs.dreamstime.com/b/muchacha-desnuda-37896255.jpg?w=576"
-        ),
-        Pair(
-            Point.fromLngLat(-77.7655, -10.7490),
-            "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2F493105890_1278138107646292_7031335631669242350_n.webp?alt=media&token=6644c900-dcf5-45ea-915c-28294e5ced7b"
-        ),
-        Pair(
-            Point.fromLngLat(-77.7680, -10.7520),
-            "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2F340538431_653402486797112_8710458272500109046_n.png?alt=media&token=6cc7d3cc-db65-4b5a-b0ee-356aadeca9cf"
-        ),
-        Pair(
-            Point.fromLngLat(-77.7640, -10.7480),
-            "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2Fmifarma.webp?alt=media&token=e5276f0d-0de3-49a6-ac1a-afdee7a7a529"
-        ),
-        Pair(
-            Point.fromLngLat(-77.7660, -10.7475),
-            "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2Fmifarma.webp?alt=media&token=e5276f0d-0de3-49a6-ac1a-afdee7a7a529"
-        ),
-        Pair(
-            Point.fromLngLat(-77.7675, -10.7485),
-            "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2F358716995_673088711520708_8894220654871531935_n.webp?alt=media&token=c31870d4-b33e-4c8d-b10e-1e1a6ada47ca"
-        ),
-//        Pair(Point.fromLngLat(-77.7650, -10.7515), "https://example.com/icon8.png"),
-//        Pair(Point.fromLngLat(-77.7685, -10.7495), "https://example.com/icon9.png"),
-    )
-
-    val features = FeatureCollection.fromFeatures(
-        puntosConUrl.mapIndexed { index, (point, _) ->
-            Feature.fromGeometry(point).apply { addStringProperty("icon", "icon_$index") }
-        }
-    )
 
     viewModel_filtrado_tiendas.repo_filtrado.escucharHorarioDeTiendaUnica(
         idTiendaBuscada = lister_marker.id,
         localidad = "barranca"
     )
 
-    val fabColor by animateColorAsState(
-        targetValue = if (seguirUbicacion.value) MaterialTheme.colorScheme.primary else Color(
-            0xFF9C7BFF
-        ),
-        animationSpec = tween(
-            durationMillis = 300 // 0.3 segundos, suave pero rápido
-        )
-    )
 
     val snackbarHostState = remember { SnackbarHostState() }
     val managerLauncher = remember { mutableStateOf<PointAnnotationManager?>(null) }
 
-
+    var primeraCargaCamara by remember { mutableStateOf(true) }
 
     val defaultLocation_barranca = Point.fromLngLat(-77.76088112286742, -10.751480371828691)
     val defaultLocation_paramonga = Point.fromLngLat(-77.81957068618482, -10.678480703018984)
@@ -323,39 +350,19 @@ val radio by viewmodel_lugares_turisticos.estado_radio_filtrada.collectAsState()
         }
     }
 
-    LaunchedEffect(lat_lugar_directo, lng_lugar_directo) {
-
-        val punto = if (lat_lugar_directo != null && lng_lugar_directo != null) {
-            Point.fromLngLat(lng_lugar_directo, lat_lugar_directo)
-        } else {
-            localidad_default
-        }
-
-        mapboxMapInstance?.flyTo(
-            CameraOptions.Builder()
-                .center(punto)
-                .zoom(16.0)
-                .build(),
-            MapAnimationOptions.Builder()
-                .duration(1500)
-                .build()
-        )
-    }
 
     LaunchedEffect(lista_tiendas_cecanas_turismo, pointAnnotationManager.value) {
 
         val manager = pointAnnotationManager.value ?: return@LaunchedEffect
         val mapboxMap = mapboxMapInstance ?: return@LaunchedEffect
-
         if (lista_tiendas_cecanas_turismo.isEmpty()) return@LaunchedEffect
 
         manager.deleteAll()
+        annotationsById.clear()
+        selectedAnnotation = null
 
-        // 🔥 1️⃣ Descargar imágenes en paralelo FUERA del style
         val results = coroutineScope {
-
             lista_tiendas_cecanas_turismo.map { tienda ->
-
                 async(Dispatchers.IO) {
 
                     val imageUrl = tienda.logo_tienda
@@ -365,8 +372,7 @@ val radio by viewmodel_lugares_turisticos.estado_radio_filtrada.collectAsState()
 
                     if (bitmap == null) {
                         bitmap = loadBitmapFromUrl(imageUrl, context)
-                            .toCircularBitmap(120)
-
+                            .toCircularBitmap(sizePx = 120)
                         imageCache[imageUrl] = bitmap
                     }
 
@@ -375,10 +381,7 @@ val radio by viewmodel_lugares_turisticos.estado_radio_filtrada.collectAsState()
             }.awaitAll()
         }
 
-        // 🔥 2️⃣ Ahora sí toca el style en el hilo principal
         mapboxMap.getStyle { style ->
-
-            val options = mutableListOf<PointAnnotationOptions>()
 
             for ((tienda, imageId, bitmap) in results) {
 
@@ -386,20 +389,31 @@ val radio by viewmodel_lugares_turisticos.estado_radio_filtrada.collectAsState()
                     style.addImage(imageId, bitmap)
                 }
 
-                options.add(
-                    PointAnnotationOptions()
-                        .withPoint(
-                            Point.fromLngLat(
-                                tienda.longitud,
-                                tienda.latitud
-                            )
+                val option = PointAnnotationOptions()
+                    .withPoint(
+                        Point.fromLngLat(
+                            tienda.longitud,
+                            tienda.latitud
                         )
-                        .withIconImage(imageId)
-                        .withIconSize(0.8)
-                )
-            }
+                    )
+                    .withIconImage(imageId)
+                    .withIconSize(0.9)
+                    .withIconOpacity(0.6)
 
-            manager.create(options)
+                val annotation = manager.create(option)
+
+                annotationsById[tienda.id_tienda] = annotation
+            }
+            if (seleccionadoId == null && lista_tiendas_cecanas_turismo.isNotEmpty()) {
+                seleccionadoId = lista_tiendas_cecanas_turismo.first().id_tienda
+            }
+        }
+    }
+
+    LaunchedEffect(seleccionadoId) {
+
+        seleccionadoId?.let { id ->
+            seleccionarMarkerPorId(id)
         }
     }
 
@@ -462,24 +476,125 @@ val radio by viewmodel_lugares_turisticos.estado_radio_filtrada.collectAsState()
             localidad_default
         }
 
-        mapboxMap.flyTo(
-            CameraOptions.Builder()
-                .center(punto)
-                .zoom(16.0)
-                .build(),
-            MapAnimationOptions.Builder()
-                .duration(1500)
-                .build()
+        if (primeraCargaCamara) {
+
+            mapboxMap.setCamera(
+                CameraOptions.Builder()
+                    .center(punto)
+                    .zoom(16.0)
+                    .build()
+            )
+
+            primeraCargaCamara = false
+        } else {
+
+            mapboxMap.flyTo(
+                CameraOptions.Builder()
+                    .center(punto)
+                    .zoom(16.0)
+                    .build(),
+                MapAnimationOptions.Builder()
+                    .duration(1500)
+                    .build()
+            )
+        }
+    }
+
+
+    val fabColor by animateColorAsState(
+        targetValue = if (seguirUbicacion.value) MaterialTheme.colorScheme.primary else Color(
+            0xFF9C7BFF
+        ),
+        animationSpec = tween(
+            durationMillis = 300 // 0.3 segundos, suave pero rápido
+        )
+    )
+    val mapViewState = remember { mutableStateOf<MapView?>(null) }
+    val mapView = mapViewState.value
+
+    LaunchedEffect(seguirUbicacion.value) {
+        if (seguirUbicacion.value) {
+            mapboxMapInstance?.setCamera(
+                CameraOptions.Builder()
+                    .zoom(16.0)
+                    .build()
+            )
+        }
+        val mensaje = if (seguirUbicacion.value) {
+            "Seguimiento automático activado"
+
+        } else {
+            "Seguimiento automático desactivado"
+        }
+
+        snackbarHostState.showSnackbar(
+            message = mensaje,
+            duration = SnackbarDuration.Short
         )
     }
+    val seguirActual by rememberUpdatedState(seguirUbicacion.value)
+
+    DisposableEffect(mapView) {
+
+        if (mapView == null) return@DisposableEffect onDispose { }
+
+        val locationPlugin = mapView.location
+        val gesturesPlugin = mapView.gestures
+        val mapboxMap = mapView.getMapboxMap()
+
+        val locationListener = OnIndicatorPositionChangedListener { point ->
+            if (show_dialog_datos_lugares) {
+                lat_user = point.latitude()
+                log_user = point.longitude()
+            }
+
+            if (!seguirActual) return@OnIndicatorPositionChangedListener
+
+            val puntoUsuario = Point.fromLngLat(
+                point.longitude(),
+                point.latitude()
+            )
+
+            mapboxMap.easeTo(
+                CameraOptions.Builder()
+                    .center(puntoUsuario)
+                    .build(),
+                MapAnimationOptions.Builder()
+                    .duration(500)
+                    .build()
+            )
+        }
+        val moveListener = object : OnMoveListener {
+            override fun onMoveBegin(detector: MoveGestureDetector) {
+                if (seguirUbicacion.value) {
+                    seguirUbicacion.value = false
+                }
+            }
+
+            override fun onMove(detector: MoveGestureDetector): Boolean = false
+            override fun onMoveEnd(detector: MoveGestureDetector) {}
+        }
+
+        locationPlugin.addOnIndicatorPositionChangedListener(locationListener)
+        gesturesPlugin.addOnMoveListener(moveListener)
+
+        onDispose {
+            locationPlugin.removeOnIndicatorPositionChangedListener(locationListener)
+            gesturesPlugin.removeOnMoveListener(moveListener)
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
 
-        MapboxMap(modifier = Modifier.fillMaxSize()) {
+        MapboxMap(modifier = Modifier.fillMaxSize(), scaleBar = { }) {
 
-            MapStyle("mapbox://styles/mapbox/dark-v11")
-
+            MapStyle("mapbox://styles/benjaminlopez/cmm3v8k35002c01s8fgun4mas")
             MapEffect(Unit) { mapView ->
+
+                val locationPlugin = mapView.location
                 val mapboxMap = mapView.getMapboxMap()
+                val gesturesPlugin = mapView.gestures
+                mapViewState.value = mapView
                 mapboxMapInstance = mapboxMap
 
                 mapView.getPlugin<ScaleBarPlugin>(
@@ -549,33 +664,39 @@ val radio by viewmodel_lugares_turisticos.estado_radio_filtrada.collectAsState()
 
                         style.addLayer(
                             fillLayer("launcher_circle_layer", "launcher_circle_source") {
-                                fillColor("#FF0000")
+
                                 fillOpacity(0.2)
                             }
                         )
                         styleReady = true // ✅ aquí sí
                     }
                 }
+
+
             }
 
         }
-
         FloatingActionButton(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(16.dp),
+            modifier = Modifier.padding(10.dp),
+            containerColor = fabColor,
+            contentColor = Color.White,
             onClick = {
                 if (verificarUbiActiva(context)) {
                     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                         location?.let {
                             val userPoint = Point.fromLngLat(it.longitude, it.latitude)
                             coroutineScope.launch {
-                                mapboxMapInstance?.flyTo(
+                                mapboxMapInstance?.easeTo(
                                     CameraOptions.Builder()
                                         .center(userPoint)
                                         .zoom(16.0)
+                                        .build(),
+                                    MapAnimationOptions.Builder()
+                                        .duration(800)
                                         .build()
                                 )
+                                seguirUbicacion.value = true
+                                animatingMap.value = false
                             }
                         }
                     }
@@ -586,7 +707,6 @@ val radio by viewmodel_lugares_turisticos.estado_radio_filtrada.collectAsState()
         ) {
             Icon(Icons.Default.MyLocation, contentDescription = "Mi ubicación")
         }
-
 
         AnimatedVisibility(
             visible = (!show_botoom_sheet && !boxVisible) && show_dialog_datos_lugares,
@@ -799,10 +919,6 @@ val radio by viewmodel_lugares_turisticos.estado_radio_filtrada.collectAsState()
 
                                 )
                         }
-//                        cameraPositionState.animate(
-//                            CameraUpdateFactory.newLatLngZoom(LatLng(lat, log), 18f),
-//                            1000
-//                        )
                     }
                 },
                 retornar_id_select = { id_tienda_lugar, color ->
@@ -1104,7 +1220,7 @@ val radio by viewmodel_lugares_turisticos.estado_radio_filtrada.collectAsState()
                 )
             }
         }
-        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
+
 
         if (show_bottom_sheet_datos_tienda_lugares) {
             bottom_sheet_tiendas_filtradas(
@@ -1143,6 +1259,15 @@ val radio by viewmodel_lugares_turisticos.estado_radio_filtrada.collectAsState()
                     show_dialog_datos_lugares = false
                 })
         }
+        if (call_dialog_permise) {
+            permisos_llamadas(aceptar_permisos = {
+                requestCallPermission(context = context, phoneNumber = numero_llamada)
+            }, ondimis = {
+                call_dialog_permise = false
+            })
+        }
+
+        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
     }
 
 
@@ -1210,3 +1335,4 @@ fun createCirclePolygon(center: Point, radiusMeters: Double, points: Int = 64): 
 
     return Polygon.fromLngLats(listOf(coordinates))
 }
+

@@ -350,10 +350,7 @@ fun <T> listado_items(
                             spacer_vertical(10.dp)
 
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                                val listaConTodos =
-                                    if ("Todos" in lista_categiras_filtrado_tiendas_Cercanas) lista_categiras_filtrado_tiendas_Cercanas else listOf(
-                                        "Todos"
-                                    ) + lista_categiras_filtrado_tiendas_Cercanas
+                                val listaConTodos = lista_categiras_filtrado_tiendas_Cercanas
                                 items(listaConTodos) { i ->
                                     val selecionado = sub_categoria_selecionada == i
                                     chisp_filtrado_busqueda(
