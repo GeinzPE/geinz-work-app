@@ -203,24 +203,6 @@ fun pantalla_principal(
         .collectAsState(initial = null)
 
     val localidad_defaul = ultimaLocalidad ?: "barranca"
-    LaunchedEffect(datos_principales_user.localida) {
-
-        Log.d("LUGARES_NUEVOS", "LaunchedEffect ejecutado")
-
-        if (datos_principales_user.localida.isNotEmpty()) {
-
-            Log.d(
-                "LUGARES_NUEVOS",
-                "Localidad detectada: ${datos_principales_user.localida}"
-            )
-
-            viewModel_filtado_tiendas
-                .obtener_lugaresnuevos(localidad_defaul)
-
-        } else {
-            Log.w("LUGARES_NUEVOS", "Localidad vacía, no se ejecuta la consulta")
-        }
-    }
 
     var datos_lista by remember { mutableStateOf(listOf<dataclass_cat_sub>()) }
     val _categorias_tiendas by viewModel_cordenadas._sub_cat_tiendas.observeAsState(emptyList())
@@ -229,17 +211,6 @@ fun pantalla_principal(
 
     var mostrarDialog by remember { mutableStateOf(false) }
 
-
-    LaunchedEffect(promo) {
-        mostrarDialog = promo != null
-        Log.d("dialogamoistra", "$promo")
-    }
-
-    LaunchedEffect(_categorias_tiendas) {
-        if (_categorias_tiendas.isNotEmpty()) {
-            datos_lista = _categorias_tiendas
-        }
-    }
 
     val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(
         emptyList()
@@ -256,18 +227,12 @@ fun pantalla_principal(
     var datos_tienda by remember(estados_carga_widget.dia_hoy) { mutableStateOf(widget_tienda()) }
 
 
-    LaunchedEffect(estados_carga_widget) {
-        datos_tienda = estados_carga_widget
-    }
 
     val url_turistico_aleatoria = rememberSaveable(urls_turistico.hashCode()) {
         urls_turistico.randomOrNull() ?: ""
     }
     var mostrar_widget_tienda by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        viewModel_cordenadas.verificar_vesion_actulizacion(context)
-    }
 
     val listState = rememberLazyListState()
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
@@ -282,38 +247,11 @@ fun pantalla_principal(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
-        if (listState.firstVisibleItemIndex >= stickyHeaderIndex && !toastShown) {
-            toastShown = true
-        } else if (listState.firstVisibleItemIndex < stickyHeaderIndex) {
-            toastShown = false
-        }
-    }
-
     val esAniversarioHoy by vm_fotos_salud.es_aniversario_hoy.collectAsState()
     var mostrar_bottom_sheet_lugares by remember { mutableStateOf(false) }
     var id_tienda_select by remember { mutableStateOf("") }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     val datosTienda by viewModel_filtado_tiendas._datos_tienda.observeAsState()
-    LaunchedEffect(localidad_defaul) {
-        vm_fotos_salud.esaniversario_hoy(localidad_defaul)
-    }
-
-    LaunchedEffect(mostrar_bottom_sheet_lugares) {
-        if (mostrar_bottom_sheet_lugares) {
-            viewModel_filtado_tiendas.obtener_campos_tiendas_por_id(
-                localidad_defaul,
-                id_tienda_select
-            )
-        }
-    }
-
-    LaunchedEffect(datosTienda) {
-        if (!datosTienda.isNullOrEmpty()) {
-            dataclass_tienda_seleccionada =
-                datosTienda!!.first()
-        }
-    }
 
 
     val dialgo_notificacion by data_store_localidad.getNotificacion(context)
@@ -326,15 +264,6 @@ fun pantalla_principal(
     var favoritoEstado by remember { mutableStateOf(false) }
     var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
     var texto_falta_registra by remember { mutableStateOf("") }
-
-    LaunchedEffect(uid_respald_user) {
-        if (uid_respald_user.isNotEmpty()) {
-            id_respado_user = uid_respald_user
-            Log.d("UID_DataStore", "✅ Recuperado UID válido desde DataStore: $id_respado_user")
-        } else {
-            id_respado_user = ""
-        }
-    }
 
     val tick by viewModel_filtado_tiendas.tick.collectAsState()
 
@@ -365,31 +294,6 @@ fun pantalla_principal(
     var dejar_seguir_localidad by remember { mutableStateOf("") }
 
     val viewmodel_recargas: viewmodel_recargas = viewModel()
-    LaunchedEffect(ud_tienda_shader, estados_carga_widget) {
-        if (ud_tienda_shader != "") {
-            mostrar_widget_tienda = true
-            viewModel_filtado_tiendas.calcularHorarioParaTienda(
-                ud_tienda_shader,
-                datos_tienda.horario_tiendaMap
-            )
-        } else {
-            mostrar_widget_tienda = false
-        }
-    }
-
-
-    LaunchedEffect(horarioHoy) {
-        if (horarioHoy.bloques.isNotEmpty()) {
-            bloques_hoy = constantes_horas.obtenerBloquesDeHoy(
-                datos_tienda.dia_hoy,
-                datos_tienda.horario_tiendaMap
-            )
-
-            horas_trabajo = constantes_horas.calcularHorasDiaLegible(horarioHoy)
-            Log.d("horastrabajo", horarioHoy.toString())
-        }
-    }
-
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -410,6 +314,131 @@ fun pantalla_principal(
         } else {
             Log.d("dialgo_notificacion", "Permiso denegado")
 
+        }
+    }
+
+    if (!dialogo_notifi_ret) {
+        permiso_primario_notifi(
+            clik_si = {
+                scope.launch {
+                    sendNotificacion(context, true)
+                    guarar_dialogo_notifi(context, true)
+                }
+                Log.d("clikeamos", "si")
+
+            },
+            clik_no = {
+                scope.launch {
+                    sendNotificacion(context, false)
+                    guarar_dialogo_notifi(context, true)
+                }
+                Log.d("clikeamos", "no")
+            },
+            ondimis = {
+                scope.launch {
+                    guarar_dialogo_notifi(context, true)
+                }
+                Log.d("clikeamos", "ocultamos")
+            }
+        )
+    }
+
+    LaunchedEffect(uid_respald_user) {
+        if (uid_respald_user.isNotEmpty()) {
+            id_respado_user = uid_respald_user
+            Log.d("UID_DataStore", "✅ Recuperado UID válido desde DataStore: $id_respado_user")
+        } else {
+            id_respado_user = ""
+        }
+    }
+
+    LaunchedEffect(estados_carga_widget) {
+        datos_tienda = estados_carga_widget
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel_cordenadas.verificar_vesion_actulizacion(context)
+    }
+
+    LaunchedEffect(datos_principales_user.localida) {
+
+        Log.d("LUGARES_NUEVOS", "LaunchedEffect ejecutado")
+
+        if (datos_principales_user.localida.isNotEmpty()) {
+
+            Log.d(
+                "LUGARES_NUEVOS",
+                "Localidad detectada: ${datos_principales_user.localida}"
+            )
+
+            viewModel_filtado_tiendas
+                .obtener_lugaresnuevos(localidad_defaul)
+
+        } else {
+            Log.w("LUGARES_NUEVOS", "Localidad vacía, no se ejecuta la consulta")
+        }
+    }
+
+    LaunchedEffect(promo) {
+        mostrarDialog = promo != null
+        Log.d("dialogamoistra", "$promo")
+    }
+
+    LaunchedEffect(_categorias_tiendas) {
+        if (_categorias_tiendas.isNotEmpty()) {
+            datos_lista = _categorias_tiendas
+        }
+    }
+
+    LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
+        if (listState.firstVisibleItemIndex >= stickyHeaderIndex && !toastShown) {
+            toastShown = true
+        } else if (listState.firstVisibleItemIndex < stickyHeaderIndex) {
+            toastShown = false
+        }
+    }
+
+    LaunchedEffect(localidad_defaul) {
+        vm_fotos_salud.esaniversario_hoy(localidad_defaul)
+    }
+
+    LaunchedEffect(mostrar_bottom_sheet_lugares) {
+        if (mostrar_bottom_sheet_lugares) {
+            viewModel_filtado_tiendas.obtener_campos_tiendas_por_id(
+                localidad_defaul,
+                id_tienda_select
+            )
+        }
+    }
+
+    LaunchedEffect(datosTienda) {
+        if (!datosTienda.isNullOrEmpty()) {
+            dataclass_tienda_seleccionada =
+                datosTienda!!.first()
+        }
+    }
+
+    LaunchedEffect(ud_tienda_shader, estados_carga_widget) {
+        if (ud_tienda_shader != "") {
+            mostrar_widget_tienda = true
+            viewModel_filtado_tiendas.calcularHorarioParaTienda(
+                ud_tienda_shader,
+                datos_tienda.horario_tiendaMap
+            )
+        } else {
+            mostrar_widget_tienda = false
+        }
+    }
+
+    LaunchedEffect(horarioHoy) {
+        if (horarioHoy.bloques.isNotEmpty()) {
+            bloques_hoy = constantes_horas.obtenerBloquesDeHoy(
+                datos_tienda.dia_hoy,
+                datos_tienda.horario_tiendaMap
+            )
+
+            horas_trabajo = constantes_horas.calcularHorasDiaLegible(horarioHoy)
+            Log.d("horastrabajo", horarioHoy.toString())
         }
     }
 
@@ -441,36 +470,6 @@ fun pantalla_principal(
         }
     }
 
-    if (!dialogo_notifi_ret) {
-        permiso_primario_notifi(
-            clik_si = {
-                scope.launch {
-                    sendNotificacion(context, true)
-                    guarar_dialogo_notifi(context, true)
-                }
-                Log.d("clikeamos", "si")
-
-            },
-            clik_no = {
-                scope.launch {
-                    sendNotificacion(context, false)
-                    guarar_dialogo_notifi(context, true)
-                }
-                Log.d("clikeamos", "no")
-            },
-            ondimis = {
-                scope.launch {
-                    guarar_dialogo_notifi(context, true)
-                }
-                Log.d("clikeamos", "ocultamos")
-            }
-        )
-    }
-
-
-
-
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -480,7 +479,7 @@ fun pantalla_principal(
         LazyColumn(
             state = listState,
             modifier = Modifier
-                .widthIn(max = 700.dp) // 🔥 este controla el ancho real
+                .widthIn(max = 700.dp)
                 .fillMaxHeight()
                 .padding(start = 12.dp, end = 12.dp, top = 10.dp)
         ) {
@@ -492,11 +491,13 @@ fun pantalla_principal(
                     datos_principales_user.img_perfil
                 )
             }
+
             stickyHeader() {
                 ColumnContenedorComun {
                     texFiel_fake(listner_busqueda, toastShown)
                 }
             }
+
             item {
                 spacer_vertical(10.dp)
                 filtrado_localidades(
@@ -506,6 +507,7 @@ fun pantalla_principal(
                     }, {})
                 spacer_vertical(20.dp)
             }
+
             item {
                 spacer_vertical(10.dp)
                 apartado_explora_cat(
@@ -521,11 +523,11 @@ fun pantalla_principal(
 
                 spacer_vertical(20.dp)
             }
+
             item {
                 if (mostrar_widget_tienda && isConnected) {
                     spacer_vertical(10.dp)
                     baner_widget_tienda_geinz_baner(
-
                         viewmodel_recargas,
                         switchActivo, motivo_cierre,
                         context = context,
@@ -576,6 +578,7 @@ fun pantalla_principal(
                     spacer_vertical(20.dp)
                 }
             }
+
             item {
                 if (!mostrar_widget_tienda) {
                     spacer_vertical(20.dp)
@@ -583,6 +586,7 @@ fun pantalla_principal(
                     spacer_vertical(20.dp)
                 }
             }
+
             item {
                 spacer_vertical(20.dp)
                 titulo_referenciales_geinz_work(
@@ -636,12 +640,14 @@ fun pantalla_principal(
                 }
                 spacer_vertical(20.dp)
             }
+
             item {
                 if (mostrar_widget_tienda) {
                     baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul,"") }
                     spacer_vertical(20.dp)
                 }
             }
+
             item {
 
                 rutas_turismo(
@@ -654,6 +660,7 @@ fun pantalla_principal(
                 }
                 spacer_vertical(20.dp)
             }
+
             item {
                 spacer_vertical(10.dp)
                 rutas_turismo(
@@ -666,6 +673,7 @@ fun pantalla_principal(
                 }
                 spacer_vertical(20.dp)
             }
+
             item {
                 spacer_vertical(10.dp)
                 baner_registra_tu_negocio(snackbarHostState, scope, isConnected) {
@@ -696,7 +704,7 @@ fun pantalla_principal(
                         )
                     )
                 )
-                .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
+                .graphicsLayer { alpha = alphaAnim }
         )
 
         promo?.let { p ->
@@ -743,6 +751,7 @@ fun pantalla_principal(
                 { mostar_bottom_sheet_ayuda_geinz = false }, viewModel_filtado_tiendas
             )
         }
+
         if (mostrar_bottom_sheet_lugares) {
             if (isConnected) {
                 bottom_sheet_tiendas_filtradas(
@@ -754,6 +763,7 @@ fun pantalla_principal(
                 }
             }
         }
+
         if (mostar_dialog_dejar_seguir) {
             dialog_eliminar_favoritos(
                 viewModelFiltros = viewModel_filtado_tiendas,
@@ -784,6 +794,7 @@ fun pantalla_principal(
                 texto_bottom_Sheet = texto_falta_registra
             )
         }
+
         SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
 
     }
@@ -1390,27 +1401,6 @@ fun carga_progres_categoria(anchoAnimado: Dp, alturaFija: Dp) {
     }
 }
 
-//@Preview(
-//    showBackground = true,
-//    backgroundColor = 0xFFFFFFFF
-//
-//)
-//@Composable
-//fun Preview_nuevos_lugares_agregados() {
-//
-//    nuevos_lugares_agregados(
-//        nombre_tienda = "Ciudad Sagrada de Caral",
-//        img = "https://xxxjay.com/images/2023/02/13/galeriajovencitasdesnuda-0.jpg",
-//        cateogria_tienda = "Turismo",
-//        lista_categorias = listOf(
-//            "Turismo",
-//            "Cultura",
-//            "Historia",
-//            "Arqueología"
-//        )
-//    )
-//
-//}
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun nuevos_lugares_agregados_fun(

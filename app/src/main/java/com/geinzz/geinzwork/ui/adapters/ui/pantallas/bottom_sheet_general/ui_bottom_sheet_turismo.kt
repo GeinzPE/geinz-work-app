@@ -403,12 +403,9 @@ fun card_img_container(
     var expandedItemId by remember { mutableStateOf<String?>(null) }
     var nueva_busqueda by remember { mutableStateOf(10.0f) }
     var sub_categoria_selecionada by remember { mutableStateOf("") }
-//    val nueva_busqueda by viewmodel_turismo.estado_categoria_filtrada.collectAsState()
-//    val sub_categoria_selecionada by viewmodel_turismo.estado_radio_filtrada.collectAsState()
     var id_tienda_parms by remember { mutableStateOf("") }
     var localidad_tienda by remember { mutableStateOf("") }
     var lista_string_filtrado_tiendas by remember { mutableStateOf(emptyList<String>()) }
-
     var lugares_turisticos_filtrados by remember { mutableStateOf(emptyList<lugares_cercanos>()) }
     val snackbarHostState = remember { SnackbarHostState() }
     var scope = rememberCoroutineScope()

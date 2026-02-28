@@ -875,11 +875,7 @@ class repo_filtrado_tiendas {
                 if (img.isNullOrBlank()) return@mapNotNull null
 
                 val nombre = data["nombre_tienda"] as? String
-                val horario_tienda =data["horario_atencion"] as? Map<String, Any>
-                val horario_casteado=horario_tienda.to_horario_atencion_box_dia()
-                val ubicaion=data["ubicacion"] as? Map<String, Any>
-                val lat_=ubicaion?.get("latitud")as? Number ?:0
-                val lng=ubicaion?.get("longitud")as? Number ?:0
+
                 if (nombre.isNullOrBlank()) return@mapNotNull null
 
                 nuevos_lugares_agregados(
@@ -888,8 +884,6 @@ class repo_filtrado_tiendas {
                     img = img,
                     nombre_tienda = nombre,
                     categoria = data["categoria"] as? String ?: "",
-                    lista_categoria = data["lista_subcateogira"] as? List<String> ?: emptyList(),
-                    horario_tienda_box = horario_casteado, lat = lat_.toDouble(), lng = lng.toDouble()
                 )
             }
             // ❌ evita repetir Inkafarma, Mifarma, etc.

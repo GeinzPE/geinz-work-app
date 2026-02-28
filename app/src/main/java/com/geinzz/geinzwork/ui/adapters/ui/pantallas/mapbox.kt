@@ -4,10 +4,12 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.location.Location
 import android.graphics.*
 import android.os.Build
 import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -32,12 +34,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -229,7 +233,7 @@ fun SimpleMapDark(
     val seguirUbicacion = remember { mutableStateOf(false) }
     val animatingMap = remember { mutableStateOf(false) }
     val horarios by viewModel_filtrado_tiendas.horariosTiendas_real.collectAsState()
-
+    var modo3D by remember { mutableStateOf(false) }
     fun animarTamano(
         annotation: PointAnnotation,
         desde: Double,
@@ -262,6 +266,22 @@ fun SimpleMapDark(
         pointAnnotationManager.value?.update(nuevo)
 
         selectedAnnotation = nuevo
+    }
+
+
+
+    fun cambiarModoMapa() {
+
+        val pitchValue = if (modo3D) 45.0 else 0.0
+
+        mapboxMapInstance?.easeTo(
+            CameraOptions.Builder()
+                .pitch(pitchValue)
+                .build(),
+            MapAnimationOptions.Builder()
+                .duration(600)
+                .build()
+        )
     }
 
     LaunchedEffect(Unit) {
@@ -511,18 +531,39 @@ fun SimpleMapDark(
     )
     val mapViewState = remember { mutableStateOf<MapView?>(null) }
     val mapView = mapViewState.value
-
+    var ultimaLat: Double? = null
+    var ultimaLng: Double? = null
+    var lastPoint: Point? = null
+    var lastTime: Long? = null
     LaunchedEffect(seguirUbicacion.value) {
+
         if (seguirUbicacion.value) {
-            mapboxMapInstance?.setCamera(
-                CameraOptions.Builder()
-                    .zoom(16.0)
-                    .build()
-            )
+
+             ultimaLat = lat_user
+
+            ultimaLng = log_user
+
+            if (ultimaLat != null && ultimaLng != null) {
+
+                val puntoUsuario = Point.fromLngLat(
+                    ultimaLng,
+                    ultimaLat
+                )
+
+                mapboxMapInstance?.easeTo(
+                    CameraOptions.Builder()
+                        .center(puntoUsuario)
+                        .zoom(16.0)
+                        .build(),
+                    MapAnimationOptions.Builder()
+                        .duration(800)
+                        .build()
+                )
+            }
         }
+
         val mensaje = if (seguirUbicacion.value) {
             "Seguimiento automático activado"
-
         } else {
             "Seguimiento automático desactivado"
         }
@@ -532,7 +573,6 @@ fun SimpleMapDark(
             duration = SnackbarDuration.Short
         )
     }
-    val seguirActual by rememberUpdatedState(seguirUbicacion.value)
 
     DisposableEffect(mapView) {
 
@@ -542,31 +582,67 @@ fun SimpleMapDark(
         val gesturesPlugin = mapView.gestures
         val mapboxMap = mapView.getMapboxMap()
 
+        mapboxMapInstance = mapboxMap
+
         val locationListener = OnIndicatorPositionChangedListener { point ->
-            if (show_dialog_datos_lugares) {
-                lat_user = point.latitude()
-                log_user = point.longitude()
+
+            val lat = point.latitude()
+            val lng = point.longitude()
+            val currentTime = System.currentTimeMillis()
+            val currentPoint = Point.fromLngLat(lng, lat)
+
+//            if (lastPoint != null && lastTime != null) {
+//
+//                val results = FloatArray(1)
+//
+//                Location.distanceBetween(
+//                    lastPoint!!.latitude(),
+//                    lastPoint!!.longitude(),
+//                    lat,
+//                    lng,
+//                    results
+//                )
+//
+//                val distanceMeters = results[0]
+//                val timeSeconds = (currentTime - lastTime!!) / 1000f
+//
+//                if (timeSeconds > 0) {
+//                    val speedMps = distanceMeters / timeSeconds
+//                    val speedKmh = speedMps * 3.6f
+//
+//                    Toast.makeText(context, "Velocidad: $speedKmh km/h", Toast.LENGTH_SHORT).show()
+//
+//                }
+//            }
+
+            lastPoint = currentPoint
+            lastTime = currentTime
+            // 🚫 Ignorar coordenadas inválidas
+            if (lat == 0.0 && lng == 0.0) {
+                return@OnIndicatorPositionChangedListener
             }
 
-            if (!seguirActual) return@OnIndicatorPositionChangedListener
+            lat_user = lat
+            log_user = lng
 
-            val puntoUsuario = Point.fromLngLat(
-                point.longitude(),
-                point.latitude()
-            )
+            if (!seguirUbicacion.value) return@OnIndicatorPositionChangedListener
 
-            mapboxMap.easeTo(
+            val puntoUsuario = Point.fromLngLat(lng, lat)
+
+            // 🔥 Movimiento fluido sin animación constante
+            mapboxMap.setCamera(
                 CameraOptions.Builder()
                     .center(puntoUsuario)
-                    .build(),
-                MapAnimationOptions.Builder()
-                    .duration(500)
+                    .zoom(16.0)
                     .build()
             )
         }
+
         val moveListener = object : OnMoveListener {
+
             override fun onMoveBegin(detector: MoveGestureDetector) {
-                if (seguirUbicacion.value) {
+                // Solo desactivar si el usuario realmente toca el mapa
+                if (detector.pointersCount > 0) {
                     seguirUbicacion.value = false
                 }
             }
@@ -576,6 +652,7 @@ fun SimpleMapDark(
         }
 
         locationPlugin.addOnIndicatorPositionChangedListener(locationListener)
+
         gesturesPlugin.addOnMoveListener(moveListener)
 
         onDispose {
@@ -675,6 +752,17 @@ fun SimpleMapDark(
 
             }
 
+        }
+        Button(
+            onClick = {
+                modo3D = !modo3D
+                cambiarModoMapa()
+            },
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp)
+        ) {
+            Text(if (modo3D) "2D" else "3D")
         }
         FloatingActionButton(
             modifier = Modifier.padding(10.dp),
@@ -872,6 +960,7 @@ fun SimpleMapDark(
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
+
             dialogo_lugar_tienda(
                 horario_box1 = horarios[lister_marker.id] ?: HorarioDia_box(),
                 viewmodelMapa = viewmodelMapa,

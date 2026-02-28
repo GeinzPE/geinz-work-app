@@ -147,10 +147,6 @@ data class nuevos_lugares_agregados(
     val img: String = "",
     val nombre_tienda: String = "",
     val categoria: String = "",
-    val lista_categoria: List<String> = emptyList(),
-    val horario_tienda_box: HorarioAtencion_box = HorarioAtencion_box(),
-    val lat: Double,
-    val lng: Double
 )
 
 data class crear_qr_rutas(
