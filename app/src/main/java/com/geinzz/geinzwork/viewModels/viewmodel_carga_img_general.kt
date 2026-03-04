@@ -15,10 +15,14 @@ import com.geinzz.geinzwork.data_store.data_store_localidad.obtenerUrlsCarga
 import com.geinzz.geinzwork.data_store.data_store_localidad.obtenerUrlsCarga_turismo
 import com.geinzz.geinzwork.model.repo_carga_img_general
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
 @RequiresApi(Build.VERSION_CODES.O)
 class viewmodel_carga_img_general(
@@ -67,20 +71,41 @@ class viewmodel_carga_img_general(
     private fun cargarUrls() {
         viewModelScope.launch {
             try {
+
+                Log.d("IMG_DEBUG", "🔄 Iniciando carga de URLs")
+
                 val locales = obtenerUrlsCarga(context)
+                Log.d("IMG_DEBUG", "📦 URLs locales encontradas: ${locales.size}")
+                locales.forEachIndexed { index, url ->
+                    Log.d("IMG_URL", "[$index] $url")
+                }
 
                 if (locales.isNotEmpty()) {
+
+                    Log.d("IMG_DEBUG", "✅ Usando URLs locales")
                     _urlsCarga.value = locales
+
                 } else {
+
+                    Log.d("IMG_DEBUG", "☁️ No hay locales, consultando Firebase...")
+
                     val desdeFirebase = repo.obtenerUrlsCarga()
+                    Log.d("IMG_DEBUG", "🔥 URLs desde Firebase: ${desdeFirebase.size}")
 
                     if (desdeFirebase.isNotEmpty()) {
+
+                        Log.d("IMG_DEBUG", "💾 Guardando URLs en almacenamiento local")
                         guardarUrlsCarga(context, desdeFirebase)
+
                         _urlsCarga.value = desdeFirebase
+
+                    } else {
+                        Log.d("IMG_DEBUG", "⚠️ Firebase no devolvió URLs")
                     }
                 }
+
             } catch (e: Exception) {
-                Log.d("img_error", "error al obtenr la img")
+                Log.e("IMG_ERROR", "❌ Error al obtener las imágenes", e)
             }
         }
     }
@@ -103,6 +128,26 @@ class viewmodel_carga_img_general(
             } catch (e: Exception) {
                 Log.d("img_error", "error al obtenr la img")
             }
+        }
+    }
+
+    private val urlsEnProceso = mutableSetOf<String>()
+
+    fun eliminarUrlInvalida(url: String) {
+        if (urlsEnProceso.contains(url)) return
+
+        urlsEnProceso.add(url)
+
+        viewModelScope.launch {
+            val actuales = _urlsCarga.value.toMutableList()
+
+            if (actuales.remove(url)) {
+                guardarUrlsCarga(context, actuales)
+                _urlsCarga.value = actuales
+                Log.d("IMG_CLEAN", "🧹 URL eliminada: $url")
+            }
+
+            urlsEnProceso.remove(url)
         }
     }
 

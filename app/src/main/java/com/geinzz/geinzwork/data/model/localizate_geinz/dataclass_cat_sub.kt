@@ -10,5 +10,12 @@ data class dataclass_cat_sub(
 data class dataclass_cat_sub_lista_cat(
     val nombre_cat: String = "",
     val lista_subcategorias: List<String> = emptyList(),
+)
 
+data class BannerItem(
+    val id:String,
+    val titulo: String,
+    val descripcion: String,
+    val imagen: Int,
+    val onClick: () -> Unit
 )

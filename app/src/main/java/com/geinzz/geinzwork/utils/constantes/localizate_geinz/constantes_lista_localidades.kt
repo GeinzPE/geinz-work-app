@@ -124,11 +124,7 @@ object constantes_lista_localidades {
         dataclass_localidad_escudos("Supe".lowercase(), R.drawable.escudo_supe),
         dataclass_localidad_escudos("Pativilca".lowercase(), R.drawable.escudo_pativilca)
     )
-    val lista_turismo_bottom_sheet = listOf(
-        botom_shet_turismobtn("Ir al lugar", Icons.Filled.Place, true),
-        botom_shet_turismobtn("ver en mapa", Icons.Filled.Map, false),
-        botom_shet_turismobtn("compartir", Icons.Filled.Share, true)
-    )
+
     val cat_sub_seguirar_salud = listOf("seguridad", "salud")
     val categorias_defaul = listOf(
         "comida y restaurantes",
@@ -2036,7 +2032,7 @@ object constantes_lista_localidades {
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             if(tipo=="tienda"){
-            repo_socios.agregar_contador("llamada",id_tienda,localidad,id_user)
+                repo_socios.agregar_contador("llamada",id_tienda,localidad,id_user)
             }
             context.startActivity(callIntent)
         } else {

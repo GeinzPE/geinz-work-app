@@ -1656,35 +1656,35 @@ fun pantalla_carga_socios(
                         )
                     }
 
-                    spacer_vertical(10.dp)
-
-                    Button(
-                        onClick = {
-                            mostra_bottom_sheet_historial_de_gen_IA = true
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        shape = CircleShape,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(5.dp)
-                        ) {
-
-                            texto_generico_one_line(
-                                "Historial de generaciones con IA",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(vertical = 6.dp)
-                            )
-                            Icon(
-                                imageVector = Icons.Default.AutoAwesome,
-                                contentDescription = "IA", tint = Color.White
-                            )
-                        }
-                    }
+//                    spacer_vertical(10.dp)
+//
+//                    Button(
+//                        onClick = {
+//                            mostra_bottom_sheet_historial_de_gen_IA = true
+//                        },
+//                        modifier = Modifier
+//                            .fillMaxWidth(),
+//                        shape = CircleShape,
+//                        colors = ButtonDefaults.buttonColors(
+//                            containerColor = MaterialTheme.colorScheme.primary
+//                        )
+//                    ) {
+//                        Row(
+//                            verticalAlignment = Alignment.CenterVertically,
+//                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+//                        ) {
+//
+//                            texto_generico_one_line(
+//                                "Historial de generaciones con IA",
+//                                style = MaterialTheme.typography.bodyMedium,
+//                                modifier = Modifier.padding(vertical = 6.dp)
+//                            )
+//                            Icon(
+//                                imageVector = Icons.Default.AutoAwesome,
+//                                contentDescription = "IA", tint = Color.White
+//                            )
+//                        }
+//                    }
 
                     spacer_vertical(20.dp)
 

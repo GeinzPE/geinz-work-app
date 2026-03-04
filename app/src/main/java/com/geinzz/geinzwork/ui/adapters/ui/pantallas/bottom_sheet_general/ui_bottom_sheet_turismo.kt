@@ -144,7 +144,6 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.data_redes_tiendas
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.lista_turismo_bottom_sheet
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
@@ -163,6 +162,10 @@ import kotlin.math.roundToInt
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Share
 import com.bumptech.glide.Glide
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatRadioFromSlider
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatearDistanciaDouble
@@ -185,7 +188,7 @@ fun bottom_sheet_lugares_turisticos(
     crear_cuenta: () -> Unit
 ) {
 
-    Log.d("pasmaoedatos_xetardiaspod","${datos.latitud} ${datos.longitud}")
+    Log.d("pasmaoedatos_xetardiaspod", "${datos.latitud} ${datos.longitud}")
     val firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
@@ -239,8 +242,13 @@ fun bottom_sheet_lugares_turisticos(
         viewmodelMap.setObjetoSeleccionado(datos)
     }
     LaunchedEffect(datos.latitud, datos.longitud) {
-        if(datos.latitud!=0.0 && datos.longitud!=0.0){
-            viewmodel_turismo.obtener_tiendas_cercanas(datos.latitud, datos.longitud, 10.0, "barranca")
+        if (datos.latitud != 0.0 && datos.longitud != 0.0) {
+            viewmodel_turismo.obtener_tiendas_cercanas(
+                datos.latitud,
+                datos.longitud,
+                10.0,
+                "barranca"
+            )
 
         }
     }
@@ -387,7 +395,16 @@ fun card_img_container(
     ver_mapa: (List<lugares_cercanos>) -> Unit,
     mostrar_login_seccion_bottom_sheet: () -> Unit
 ) {
-
+    var sub_categoria_selecionada by remember { mutableStateOf("") }
+    val lista_turismo_bottom_sheet = listOf(
+        botom_shet_turismobtn("Ir al lugar", Icons.Filled.Place, true),
+        botom_shet_turismobtn(
+            "ver en mapa",
+            Icons.Filled.Map,
+            if (sub_categoria_selecionada.isNotEmpty()) true else false
+        ),
+        botom_shet_turismobtn("compartir", Icons.Filled.Share, true)
+    )
     val firebaseAuth = FirebaseAuth.getInstance()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -402,7 +419,6 @@ fun card_img_container(
     var mostar_filtrado_categorias by remember { mutableStateOf(false) }
     var expandedItemId by remember { mutableStateOf<String?>(null) }
     var nueva_busqueda by remember { mutableStateOf(10.0f) }
-    var sub_categoria_selecionada by remember { mutableStateOf("") }
     var id_tienda_parms by remember { mutableStateOf("") }
     var localidad_tienda by remember { mutableStateOf("") }
     var lista_string_filtrado_tiendas by remember { mutableStateOf(emptyList<String>()) }
@@ -483,9 +499,14 @@ fun card_img_container(
             )
             abierto_flag(datos.subcategoria_filtrado)
             spacer_vertical(10.dp)
-            CollageGoogleMapsStyle(id_respado_user,aspectRatio = 1.1f, with = 360.dp, imagenes = datos.lista_img)
+            CollageGoogleMapsStyle(
+                id_respado_user,
+                aspectRatio = 1.1f,
+                with = 360.dp,
+                imagenes = datos.lista_img
+            )
             spacer_vertical(10.dp)
-            chips_filtrado(lista_turismo_bottom_sheet) { i ->
+            chips_filtrado(lista_turismo_bottom_sheet,{ i ->
                 when (i) {
                     "Ir al lugar" -> {
                         tipo_creacion_ruta = "turismo"
@@ -495,19 +516,46 @@ fun card_img_container(
                     }
 
                     "ver en mapa" -> {
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                message = "Funcionalidad en desarrollo. Disponible próximamente",
-                                duration = SnackbarDuration.Short
-                            )
+
+                        if (ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.ACCESS_FINE_LOCATION
+                            ) == PackageManager.PERMISSION_GRANTED
+                        ) {
+                            if (lugares_turisticos_filtrados.isNotEmpty()) {
+                                if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
+                                    ver_mapa(lugares_turisticos_filtrados)
+                                    viewmodel_turismo.actualizarRadio(nueva_busqueda.toDouble())
+                                    viewmodel_turismo.actualizar_lat_lugar(datos.latitud)
+                                    viewmodel_turismo.actualizar_lng_lugar(datos.longitud)
+                                } else {
+                                    mostrar_login_seccion_bottom_sheet()
+                                }
+                            } else {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "No se encontraron lugares cercanos",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                        } else {
+                            permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                         }
                     }
 
                     "compartir" -> {
-                        compartir_link_tienda(context,datos)
+                        compartir_link_tienda(context, datos)
                     }
                 }
-            }
+            },{
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = "Selecciona una categoria para ver en el mapa",
+                        duration = SnackbarDuration.Short
+                    )
+                }
+            })
             spacer_vertical(10.dp)
             Column(
                 modifier = Modifier
@@ -525,40 +573,7 @@ fun card_img_container(
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.weight(1f)
                     )
-                    if(sub_categoria_selecionada.isNotEmpty()){
-                    texto_generico_one_line(
-                        "ver en mapa",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable {
-                            if (ContextCompat.checkSelfPermission(
-                                    context,
-                                    Manifest.permission.ACCESS_FINE_LOCATION
-                                ) == PackageManager.PERMISSION_GRANTED
-                            ) {
-                                if (lugares_turisticos_filtrados.isNotEmpty()) {
-                                    if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
-                                        ver_mapa(lugares_turisticos_filtrados)
-                                        viewmodel_turismo.actualizarRadio(nueva_busqueda.toDouble())
-                                        viewmodel_turismo.actualizar_lat_lugar(datos.latitud)
-                                        viewmodel_turismo.actualizar_lng_lugar(datos.longitud)
-                                    } else {
-                                        mostrar_login_seccion_bottom_sheet()
-                                    }
-                                } else {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(
-                                            message = "No se encontraron lugares cercanos",
-                                            duration = SnackbarDuration.Short
-                                        )
-                                    }
-                                }
-                            } else {
-                                permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                            }
 
-                        }
-                    )
-                    }
                 }
 
                 spacer_vertical(10.dp)
@@ -820,7 +835,7 @@ fun card_img_container(
                                                         context,
                                                         i.valor,
                                                         item.id_tienda,
-                                                        item.localidad_tienda,id_respado_user
+                                                        item.localidad_tienda, id_respado_user
                                                     )
                                                 }
 
@@ -830,7 +845,7 @@ fun card_img_container(
                                                         context,
                                                         i.valor,
                                                         item.id_tienda,
-                                                        item.localidad_tienda,id_respado_user
+                                                        item.localidad_tienda, id_respado_user
                                                     )
                                                 }
 
@@ -840,7 +855,7 @@ fun card_img_container(
                                                         context,
                                                         i.valor,
                                                         item.id_tienda,
-                                                        item.localidad_tienda,id_respado_user
+                                                        item.localidad_tienda, id_respado_user
                                                     )
                                                 }
 
@@ -849,7 +864,7 @@ fun card_img_container(
                                                         context,
                                                         i.valor,
                                                         item.id_tienda,
-                                                        item.localidad_tienda,id_respado_user
+                                                        item.localidad_tienda, id_respado_user
                                                     )
                                                 }
 
@@ -883,7 +898,8 @@ fun card_img_container(
         dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->
             dialog_Crear_ruta = false
             if (crear_ruta && verificarUbiActiva(context)) {
-                constantes_lista_localidades.abrir_google_maps(id_respado_user,
+                constantes_lista_localidades.abrir_google_maps(
+                    id_respado_user,
                     tipo_creacion_ruta, id_tienda_parms, localidad_tienda,
                     context, lat_tienda, long_tienda,
                 ) { dialogo ->
@@ -921,7 +937,8 @@ fun compartirLugarFirebaseHost(context: Context, datos: lugares_turisticos) {
     }
 
     val imageUrl = datos.lista_img[0]
-    val linkLugar = "https://geinzworkapp.web.app/lugar?localidad=${"barranca"}&idLugar=${datos.id_lugar_turistico}"
+    val linkLugar =
+        "https://geinzworkapp.web.app/lugar?localidad=${"barranca"}&idLugar=${datos.id_lugar_turistico}"
 
 
     CoroutineScope(Dispatchers.IO).launch {
@@ -951,7 +968,10 @@ fun compartirLugarFirebaseHost(context: Context, datos: lugares_turisticos) {
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "image/*"
                 putExtra(Intent.EXTRA_STREAM, contentUri)
-                putExtra(Intent.EXTRA_TEXT, "¡Mira este lugar turístico: ${datos.titulo}!\nDescúbrelo aquí: $linkLugar")
+                putExtra(
+                    Intent.EXTRA_TEXT,
+                    "¡Mira este lugar turístico: ${datos.titulo}!\nDescúbrelo aquí: $linkLugar"
+                )
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
 
@@ -977,7 +997,7 @@ fun compartir_link_tienda(
     val link = "https://geinzworkapp.web.app/share?" +
             "t=tu" +
             "&id=${URLEncoder.encode(datos.id_lugar_turistico, "UTF-8")}" +
-            "&l=${URLEncoder.encode("barranca", "UTF-8")}"+
+            "&l=${URLEncoder.encode("barranca", "UTF-8")}" +
             "&c=${"lugares_turisticos"}"
 
     val texto = "¡Mira ${datos.titulo} en Geinz! 🔥\n$link"
@@ -1301,7 +1321,12 @@ fun item_cercanos(
 
 
 @Composable
-fun chips_filtrado(list: List<botom_shet_turismobtn>, item_clikeado: (String) -> Unit) {
+fun chips_filtrado(
+    list: List<botom_shet_turismobtn>,
+    item_clikeado: (String) -> Unit,
+    error_clikero: () -> Unit
+) {
+
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -1310,18 +1335,28 @@ fun chips_filtrado(list: List<botom_shet_turismobtn>, item_clikeado: (String) ->
         ),
     ) {
         items(list) { i ->
-            val enable_color =
-                if (i.enable) MaterialTheme.colorScheme.primary else Color(0xFF4F4F4F)
+            val enableColor by animateColorAsState(
+                targetValue = if (i.enable)
+                    MaterialTheme.colorScheme.primary
+                else
+                    Color(0xFF4F4F4F),
+                label = ""
+            )
+
             Row(
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(enable_color)
+                    .background(enableColor)
                     .height(45.dp)
                     .padding(horizontal = 15.dp, vertical = 10.dp)
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }) {
-                        item_clikeado(i.txt)
+                        if (i.enable) {
+                            item_clikeado(i.txt)
+                        } else {
+                            error_clikero()
+                        }
                     }, verticalAlignment = Alignment.CenterVertically
             ) {
 

@@ -734,25 +734,23 @@ fun TextoSubrayado(
 
 @Composable
 fun rutas_turismo(
-    img_baner: String, texto_button: String, texto_baner: String, clik_button: () -> Unit
+    img_baner: String, texto_button: String, texto_baner: String, clik_button: () -> Unit,eliminarerr:(String)-> Unit
 ) {
     spacer_vertical(10.dp)
     Box() {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current).data(img_baner)
-
-                .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
-                .placeholder(R.drawable.cargando_img_categorias)
-                .error(R.drawable.cargando_img_categorias).build(),
-            contentDescription = null,
+        ImagenSuave(
+            url = img_baner,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(500.dp)
-                .clip(RoundedCornerShape(5))
+                .clip(RoundedCornerShape(5.dp))
                 .clickable(
                     indication = null,
-                    interactionSource = remember { MutableInteractionSource() }) { clik_button() },
-            contentScale = ContentScale.Crop
+                    interactionSource = remember { MutableInteractionSource() }
+                ) { clik_button() },
+            eliminarerr = {img->
+                eliminarerr(img)
+            }
         )
 
         Box(
@@ -778,6 +776,49 @@ fun rutas_turismo(
             texto_button,
             texto_baner
         ) { clik_button() }
+    }
+}
+
+
+@Composable
+fun ImagenSuave(
+    url: String,
+    modifier: Modifier = Modifier,
+    eliminarerr: (String) -> Unit
+) {
+    var isLoaded by remember { mutableStateOf(false) }
+
+    val alphaAnim by animateFloatAsState(
+        targetValue = if (isLoaded) 1f else 0f,
+        animationSpec = tween(durationMillis = 500),
+        label = ""
+    )
+
+    Box(modifier = modifier) {
+
+        // Placeholder
+        if (!isLoaded) {
+            Image(
+                painter = painterResource(R.drawable.cargando_img_categorias),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
+
+        // Imagen real
+        AsyncImage(
+            model = url,
+            contentDescription = null,
+            onSuccess = { isLoaded = true },
+            onError = {
+                eliminarerr(url)
+            },
+            modifier = Modifier
+                .matchParentSize()
+                .alpha(alphaAnim),
+            contentScale = ContentScale.Crop
+        )
     }
 }
 
@@ -1597,7 +1638,7 @@ fun ShadowBottomPantallas(listState: LazyListState, modifier: Modifier = Modifie
 
 
 @Composable
-fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
+fun baner_servicios_basicos_(texto1:String,descripcion:String,img:Int,listener_servicios: () -> Unit) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
@@ -1621,7 +1662,7 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
             ) {
                 Column {
                     Text(
-                        text = "Servicios esenciales y trámites",
+                        text = texto1,
                         color = Color.White,
                         fontFamily = baners_geinz_work,
                         fontSize = 20.sp,
@@ -1633,7 +1674,7 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
                     spacer_vertical(10.dp)
 
                     texto_generico_multilinea(
-                        "Encuentra fácilmente todos los servicios y entidades esenciales",
+                        descripcion,
                         style = MaterialTheme.typography.bodyMedium,
                         Color = Color.White
                     )
@@ -1673,7 +1714,7 @@ fun baner_servicios_basicos_(listener_servicios: () -> Unit) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED)
-                        .data(R.drawable.servicios_basicos).build(),
+                        .data(img).build(),
 
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
@@ -2399,7 +2440,7 @@ fun baner_registra_tu_negocio(
             ) {
                 Column {
                     Text(
-                        text = "¿Quieres ser socio de Geinz?",
+                        text = "¿Quieres ser parte de Geinz?",
                         color = Color.White,
                         fontFamily = baners_geinz_work,
                         fontSize = 20.sp,

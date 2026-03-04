@@ -126,6 +126,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.text.TextStyle
 import androidx.core.content.ContextCompat
 import coil3.request.CachePolicy
+import com.geinzz.geinzwork.data.model.localizate_geinz.BannerItem
 
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.nuevos_lugares_agregados
@@ -175,12 +176,15 @@ fun pantalla_principal(
     ver_lugares: (String) -> Unit,
     listner_busqueda: () -> Unit,
     listener_seguridad: (String) -> Unit,
-    listner_sevicios_tramites: (String,String) -> Unit,
+    listner_sevicios_tramites: (String, String) -> Unit,
     abrir_guardar_datos: () -> Unit,
     mostrar_panel_geinz: () -> Unit,
     mostar_nuevos_lugares_geinz: (String) -> Unit,
     iniciar_seccion: () -> Unit,
-    crear_cuenta: () -> Unit, abir_butom_Var: () -> Unit, cerrar_buttom_var: () -> Unit,onback_preset:()-> Unit,
+    crear_cuenta: () -> Unit,
+    abir_butom_Var: () -> Unit,
+    cerrar_buttom_var: () -> Unit,
+    onback_preset: () -> Unit,
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -219,7 +223,7 @@ fun pantalla_principal(
     val actulizacionE_stado_play by viewModel_cordenadas.estado_version_PS.collectAsState()
     val urls by vm_fotos_salud.urlsCarga.collectAsState()
     val urls_turistico by vm_fotos_salud.urlsCarga_turistico.collectAsState()
-    val urlAleatoria = rememberSaveable(urls.hashCode()) {
+    val urlAleatoria = remember(urls.hashCode()) {
         urls.randomOrNull() ?: ""
     }
 
@@ -227,8 +231,7 @@ fun pantalla_principal(
     var datos_tienda by remember(estados_carga_widget.dia_hoy) { mutableStateOf(widget_tienda()) }
 
 
-
-    val url_turistico_aleatoria = rememberSaveable(urls_turistico.hashCode()) {
+    val url_turistico_aleatoria = remember(urls_turistico.hashCode()) {
         urls_turistico.randomOrNull() ?: ""
     }
     var mostrar_widget_tienda by remember { mutableStateOf(false) }
@@ -470,6 +473,33 @@ fun pantalla_principal(
         }
     }
 
+    val banners = listOf(
+
+        BannerItem(
+            id = "1",
+            titulo = "Buscas una casa cerca?",
+            descripcion = "Encuentra la casa de tus sueños en ${localidadSeleccionada.value} aqui en Geinz",
+            imagen = R.drawable.logo_geinz_500x500,
+            onClick = { listner_sevicios_tramites(localidad_defaul, "") }
+        ),
+
+        BannerItem(
+            id = "2",
+            titulo = "Servicios esenciales y trámites",
+            descripcion = "Encuentra fácilmente todos los servicios y entidades esenciales",
+            imagen = R.drawable.servicios_basicos,
+            onClick = { listner_sevicios_tramites(localidad_defaul, "") }
+        ),
+
+        BannerItem(
+            id = "3",
+            titulo = "¿Quieres ser parte de Geinz?",
+            descripcion = "Llega a más clientes potenciales y aumenta tu presencia digital.",
+            imagen = R.drawable.geinz_baner,
+            onClick = { listner_sevicios_tramites(localidad_defaul, "") }
+        )
+
+    )
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -481,7 +511,8 @@ fun pantalla_principal(
             modifier = Modifier
                 .widthIn(max = 700.dp)
                 .fillMaxHeight()
-                .padding(start = 12.dp, end = 12.dp, top = 10.dp)
+                .padding(start = 12.dp, end = 12.dp, top = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
                 nombre_texto_img_perfil(
@@ -578,14 +609,52 @@ fun pantalla_principal(
                     spacer_vertical(20.dp)
                 }
             }
-
             item {
-                if (!mostrar_widget_tienda) {
-                    spacer_vertical(20.dp)
-                    baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul,"") }
-                    spacer_vertical(20.dp)
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(7.dp)
+                ) {
+
+                    items(
+                        items = banners,
+                        key = { banner -> banner.id } // 🔥 AQUÍ LA KEY
+                    ) { banner ->
+
+                        Box(
+                            modifier = Modifier.fillParentMaxWidth()
+                        ) {
+                            baner_servicios_basicos_(
+                                texto1 = banner.titulo,
+                                descripcion = banner.descripcion,
+                                img = banner.imagen,
+                                listener_servicios = banner.onClick
+                            )
+                        }
+
+                    }
                 }
             }
+//            item {
+//                spacer_vertical(20.dp)
+//                baner_servicios_basicos_(
+//                    "Buscas una casa cerca?",
+//                    "Encuentra la casa de tus sueños en ${localidadSeleccionada.value} aqui en Geinz",
+//                    R.drawable.logo_geinz_500x500,
+//                    { listner_sevicios_tramites(localidad_defaul, "") })
+//                spacer_vertical(20.dp)
+//            }
+//
+//            item {
+//                if (!mostrar_widget_tienda) {
+//                    spacer_vertical(20.dp)
+//                    baner_servicios_basicos_(
+//                        "Servicios esenciales y trámites",
+//                        "Encuentra fácilmente todos los servicios y entidades esenciales",
+//                        R.drawable.servicios_basicos,
+//                        { listner_sevicios_tramites(localidad_defaul, "") })
+//                    spacer_vertical(20.dp)
+//                }
+//            }
 
             item {
                 spacer_vertical(20.dp)
@@ -600,8 +669,8 @@ fun pantalla_principal(
                 ) {
                     items(nuevas_tiendas_agregadas, key = { it.id_tienda }) { items ->
                         nuevos_lugares_agregados_fun(
-                            id_user = id_respado_user,
-                            localida_user = localidad_defaul,
+//                            id_user = id_respado_user,
+//                            localida_user = localidad_defaul,
                             viewModelFiltros = viewModel_filtado_tiendas,
                             verificar_interner = isConnected,
                             item = items,
@@ -624,40 +693,44 @@ fun pantalla_principal(
                                     }
                                 }
                             },
-                            dialog_sin_registrao = {
-                                bottom_sheet_iniciar_seccion = true
-                                texto_falta_registra = "Regístrate para agregar a tus favoritos"
-                            }, { localidad, id, nombre, estado ->
-                                if (estado) {
-                                    mostar_dialog_dejar_seguir = true
-                                    dejar_seguir_nombre = nombre
-                                    dejar_seguir_id = id
-                                    dejar_seguir_localidad = localidad
-                                }
-                            }
+//                            dialog_sin_registrao = {
+//                                bottom_sheet_iniciar_seccion = true
+//                                texto_falta_registra = "Regístrate para agregar a tus favoritos"
+//                            }, { localidad, id, nombre, estado ->
+//                                if (estado) {
+//                                    mostar_dialog_dejar_seguir = true
+//                                    dejar_seguir_nombre = nombre
+//                                    dejar_seguir_id = id
+//                                    dejar_seguir_localidad = localidad
+//                                }
+//                            }
                         )
                     }
                 }
                 spacer_vertical(20.dp)
             }
 
-            item {
-                if (mostrar_widget_tienda) {
-                    baner_servicios_basicos_ { listner_sevicios_tramites(localidad_defaul,"") }
-                    spacer_vertical(20.dp)
-                }
-            }
+//            item {
+//                if (mostrar_widget_tienda) {
+//                    baner_servicios_basicos_(
+//                        "Servicios esenciales y trámites",
+//                        "Encuentra fácilmente todos los servicios y entidades esenciales",
+//                        R.drawable.servicios_basicos,
+//                        { listner_sevicios_tramites(localidad_defaul, "") })
+//                    spacer_vertical(20.dp)
+//                }
+//            }
 
             item {
 
                 rutas_turismo(
                     url_turistico_aleatoria ?: "",
                     "ver lugares",
-                    "Descubre lugares en ${localidad_defaul}"
-
-                ) {
-                    ver_lugares(localidad_defaul)
-                }
+                    "Descubre lugares en ${localidad_defaul}", {
+                        ver_lugares(localidad_defaul)
+                    }, { img_eliminar ->
+                        vm_fotos_salud.eliminarUrlInvalida(img_eliminar)
+                    })
                 spacer_vertical(20.dp)
             }
 
@@ -666,30 +739,30 @@ fun pantalla_principal(
                 rutas_turismo(
                     urlAleatoria ?: "",
                     "Contactar",
-                    "Salud y seguridad Pública"
-
-                ) {
-                    listener_seguridad(localidad_defaul)
-                }
+                    "Salud y seguridad Pública", {
+                        listener_seguridad(localidad_defaul)
+                    }, { img_eliminar ->
+                        vm_fotos_salud.eliminarUrlInvalida(img_eliminar)
+                    })
                 spacer_vertical(20.dp)
             }
 
-            item {
-                spacer_vertical(10.dp)
-                baner_registra_tu_negocio(snackbarHostState, scope, isConnected) {
-                    if (isConnected) {
-                        mostar_bottom_sheet_ayuda_geinz = true
-                    } else {
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                message = "Verifica tu conexión a internet y vuelvelo a intentar",
-                                duration = SnackbarDuration.Short
-                            )
-                        }
-                    }
-                }
-                spacer_vertical(30.dp)
-            }
+//            item {
+//                spacer_vertical(10.dp)
+//                baner_registra_tu_negocio(snackbarHostState, scope, isConnected) {
+//                    if (isConnected) {
+//                        mostar_bottom_sheet_ayuda_geinz = true
+//                    } else {
+//                        scope.launch {
+//                            snackbarHostState.showSnackbar(
+//                                message = "Verifica tu conexión a internet y vuelvelo a intentar",
+//                                duration = SnackbarDuration.Short
+//                            )
+//                        }
+//                    }
+//                }
+//                spacer_vertical(30.dp)
+//            }
         }
         Box(
             modifier = Modifier
@@ -726,10 +799,13 @@ fun pantalla_principal(
                         deepLinkVM.clearPromo()
                         abir_butom_Var()
 
-                    }, crear_cuenta = { crear_cuenta() },
-                    iniciar_seccion = { iniciar_seccion() },{onback_preset()},{it_promo_select,localidad_pasada->
+                    },
+                    crear_cuenta = { crear_cuenta() },
+                    iniciar_seccion = { iniciar_seccion() },
+                    { onback_preset() },
+                    { it_promo_select, localidad_pasada ->
                         idPromoSeleccionada = it_promo_select
-                        localidad_promo_seleccionada=localidad_pasada
+                        localidad_promo_seleccionada = localidad_pasada
                         navegarAPromo = true
                         mostrarDialog = false
                         deepLinkVM.clearPromo()
@@ -740,7 +816,7 @@ fun pantalla_principal(
         }
 
         if (navegarAPromo) {
-          listner_sevicios_tramites(localidad_promo_seleccionada,idPromoSeleccionada)
+            listner_sevicios_tramites(localidad_promo_seleccionada, idPromoSeleccionada)
 
         }
 
@@ -1404,14 +1480,14 @@ fun carga_progres_categoria(anchoAnimado: Dp, alturaFija: Dp) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun nuevos_lugares_agregados_fun(
-    id_user: String,
-    localida_user: String,
+//    id_user: String,
+//    localida_user: String,
     viewModelFiltros: viewModel_filtado_tiendas,
     verificar_interner: Boolean,
     item: nuevos_lugares_agregados,
     mostrar_datos: (String) -> Unit,
-    dialog_sin_registrao: () -> Unit,
-    dialog_estado_fv_btn: (localidad: String, id: String, nombre: String, estado_btn: Boolean) -> Unit
+//    dialog_sin_registrao: () -> Unit,
+//    dialog_estado_fv_btn: (localidad: String, id: String, nombre: String, estado_btn: Boolean) -> Unit
 ) {
 
     // 🔹 Mapa global de favoritos (por id)
@@ -1420,15 +1496,15 @@ fun nuevos_lugares_agregados_fun(
     // 🔹 Estado REAL de este item
     val favoritoLocal = mapaFavoritos[item.id_tienda] ?: false
 
-    // 🔹 Verificar favorito SOLO para este item
-    LaunchedEffect(id_user, item.id_tienda) {
-        if (id_user.isNotEmpty()) {
-            viewModelFiltros.verificar_existe_favoritoMap(
-                id_user,
-                item.id_tienda
-            )
-        }
-    }
+//    // 🔹 Verificar favorito SOLO para este item
+//    LaunchedEffect(id_user, item.id_tienda) {
+//        if (id_user.isNotEmpty()) {
+//            viewModelFiltros.verificar_existe_favoritoMap(
+//                id_user,
+//                item.id_tienda
+//            )
+//        }
+//    }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(5.dp),
@@ -1463,37 +1539,37 @@ fun nuevos_lugares_agregados_fun(
                     .padding(10.dp)
             ) {
 
-                btn_listener_fv_externo(
-                    select = favoritoLocal,
-                    listener = { nuevoEstado ->
-
-                        if (nuevoEstado) {
-                            // ❤️ QUIERE GUARDAR
-                            if (id_user.isNotEmpty()) {
-                                viewModelFiltros.guardar_tienda_favorita_por_id(
-                                    localida_user,
-                                    id_user,
-                                    item.id_tienda
-                                )
-                            } else {
-                                // 🚫 NO LOGUEADO
-                                dialog_sin_registrao()
-                            }
-
-                        } else {
-                            // ❌ QUITAR FAVORITO → SOLO CON DIÁLOGO
-                            dialog_estado_fv_btn(
-                                item.localidad_tienda,
-                                item.id_tienda,
-                                item.nombre_tienda,
-                                true
-                            )
-                        }
-                    },
-                    modifier = Modifier,
-                    size_btn = 40.dp,
-                    size_icon = 20.dp
-                )
+//                btn_listener_fv_externo(
+//                    select = favoritoLocal,
+//                    listener = { nuevoEstado ->
+//
+//                        if (nuevoEstado) {
+//                            // ❤️ QUIERE GUARDAR
+//                            if (id_user.isNotEmpty()) {
+//                                viewModelFiltros.guardar_tienda_favorita_por_id(
+//                                    localida_user,
+//                                    id_user,
+//                                    item.id_tienda
+//                                )
+//                            } else {
+//                                // 🚫 NO LOGUEADO
+//                                dialog_sin_registrao()
+//                            }
+//
+//                        } else {
+//                            // ❌ QUITAR FAVORITO → SOLO CON DIÁLOGO
+//                            dialog_estado_fv_btn(
+//                                item.localidad_tienda,
+//                                item.id_tienda,
+//                                item.nombre_tienda,
+//                                true
+//                            )
+//                        }
+//                    },
+//                    modifier = Modifier,
+//                    size_btn = 40.dp,
+//                    size_icon = 20.dp
+//                )
             }
 //            Box(
 //
@@ -1529,5 +1605,4 @@ fun nuevos_lugares_agregados_fun(
 
     }
 }
-
 
