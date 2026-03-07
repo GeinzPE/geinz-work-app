@@ -461,7 +461,14 @@ fun card_img_container(
     ) { granted ->
         if (granted) {
             if (lugares_turisticos_filtrados.isNotEmpty()) {
-                ver_mapa(lugares_turisticos_filtrados)
+                if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
+                    ver_mapa(lugares_turisticos_filtrados)
+                    viewmodel_turismo.actualizarRadio(nueva_busqueda.toDouble())
+                    viewmodel_turismo.actualizar_lat_lugar(datos.latitud)
+                    viewmodel_turismo.actualizar_lng_lugar(datos.longitud)
+                } else {
+                    mostrar_login_seccion_bottom_sheet()
+                }
             } else {
                 scope.launch {
                     snackbarHostState.showSnackbar(

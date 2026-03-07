@@ -122,8 +122,10 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.actualizarUbicacion
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.bitmapDescriptorFromDrawable
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularDistanciaMetros
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.data_redes_tiendas
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatearDistancia
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isGpsActivo
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isLocationEnabled
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
@@ -859,296 +861,296 @@ fun MyGoogle_maps(id_user:String,
 //                })
         }
 
-        AnimatedVisibility(
-            visible = show_dialog_datos_lugares,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier.align(Alignment.BottomCenter)
-        ) {
-            dialogo_lugar_tienda(
-                horario_box1 = horarios[lister_marker.id] ?: HorarioDia_box(),
-                viewmodelMapa = viewmodelMapa,
-                lat_user = lat_user, log_user = log_user,
-                time = tick,
-                dataclass_map = lister_marker,
-                cerra_dialog = {
-                    show_dialog_datos_lugares = false
-                    mostar_bottom_sheet = true
-                },
-                limpiar = {
-                    seleccionadoId = ""
-                },
-                crear_ruta = { id, lat, log ->
-                    latitud = lat
-                    longitud = log
-                    id_tienda = id
-                    dialog_Crear_ruta = true
-                },
-                actualizar = {
-                    actualizarUbicacion(context, fusedLocationClient) { lat, log ->
-                        lat_user = lat
-                        log_user = log
-                        lister_marker = lister_marker.copy(
-                            my_latitud = lat,
-                            my_longitud = log
-                        )
-                    }
-                },
-                boxVisible = boxVisible,
-                onBoxVisibleChange = {
-                    Log.d("visible", it.toString())
-                    boxVisible = it
-                },
-                centrar_camara = { lat, log ->
-                    scope.launch {
-                        cameraPositionState.animate(
-                            CameraUpdateFactory.newLatLngZoom(LatLng(lat, log), 18f),
-                            1000
-                        )
-                    }
-                },
-                retornar_id_select = { id_tienda_lugar, color ->
-                    color_referencia = color
-                    id_lugar_tienda_select = id_tienda_lugar
-                    show_bottom_sheet_datos_tienda_lugares = true
-                },
-                onclick_iconos = { id, datos ->
-                    when (datos.nombre_red) {
-                        "llamar" -> {
-                            llamar(id_user,"tienda", id, localidad, context, datos.valor, {
-                                call_dialog_permise = true
-                                numero_llamada = datos.valor
-                            })
-                        }
-
-                        "whatsapp" -> {
-                            abrir_whattsapp(id_user,"tienda", id, localidad, context, datos.valor)
-                        }
-
-                        "tiktok" -> {
-                            openTiktok(
-                                "Tienda",
-                                context = context,
-                                username = datos.valor,
-                                id_tienda = id,
-                                localidad_tienda = localidad,id_user
-                            )
-                        }
-
-                        "facebook" -> {
-                            Log.d("    datos.valor", "${datos.valor}")
-                            openFacebook(
-                                "Tienda",
-                                context = context,
-                                pageUrl = datos.valor,
-                                id_tienda = id,
-                                localidad_tienda = localidad,id_user
-                            )
-                        }
-
-                        "instagram" -> {
-                            Log.d("    datos.valor", "${datos.valor}")
-                            openInstagram(
-                                "Tienda",
-                                context = context,
-                                url = datos.valor,
-                                id_tienda = id,
-                                localidad_tienda = localidad,id_user
-                            )
-                        }
-
-                        "Web" -> {
-                            openWebLink(
-                                context = context,
-                                url = datos.valor,
-                                id_tienda = id,
-                                localidad_tienda = localidad,id_user
-                            )
-                        }
-
-                    }
-                },
-                mostrar_lista = {
-                    show_botoom_sheet = true
-                },
-                move_derecha = {
-                    when (tipo) {
-                        "turismo" -> {
-                            if (lista_tiendas_cecanas_turismo.isNotEmpty()) {
-                                if (currentIndex_turismo != -1) {
-                                    // Mover al elemento anterior (hacia la derecha)
-                                    val anterior =
-                                        if (currentIndex_turismo - 1 < 0) lista_tiendas_cecanas_turismo.lastIndex else currentIndex_turismo - 1
-                                    val tienda = lista_tiendas_cecanas_turismo[anterior]
-
-                                    lister_marker = dataclass_map(
-                                        img = tienda.logo_tienda,
-                                        nombre = tienda.nombre_tienda,
-                                        tag = tienda.lista_subcategoiras,
-                                        my_latitud = lat_user,
-                                        my_longitud = log_user,
-                                        latitud = tienda.latitud,
-                                        longitud = tienda.longitud,
-                                        id = tienda.id_tienda,
-                                        categoria = "",
-                                        direccion = tienda.direccion,
-                                        referencia = tienda.referencia,
-                                        contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_box,
-                                        localidad = tienda.localidad_tienda
-                                    )
-
-                                    seleccionadoId = tienda.id_tienda
-                                    currentIndex_turismo = anterior // 🔹 Actualiza el índice
-
-                                    scope.launch {
-                                        cameraPositionState.animate(
-                                            CameraUpdateFactory.newLatLngZoom(
-                                                LatLng(tienda.latitud, tienda.longitud), 16f
-                                            ),
-                                            1000
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        "tiendas" -> {
-
-                            if (lista_filtrada_tiendas.isNotEmpty()) {
-                                if (currentIndex != -1) {
-                                    // Mover al elemento anterior (hacia la derecha)
-                                    val anterior =
-                                        if (currentIndex - 1 < 0) lista_filtrada_tiendas.lastIndex else currentIndex - 1
-                                    val tienda = lista_filtrada_tiendas[anterior]
-
-                                    lister_marker = dataclass_map(
-                                        img = tienda.logo_tienda,
-                                        nombre = tienda.nombre_tienda,
-                                        tag = tienda.lista_subcategoiras,
-                                        my_latitud = lat_user,
-                                        my_longitud = log_user,
-                                        latitud = tienda.latitud,
-                                        longitud = tienda.longitud,
-                                        id = tienda.id_tienda,
-                                        categoria = "",
-                                        direccion = tienda.direccion,
-                                        referencia = tienda.referencia,
-                                        contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_tienda_box,
-                                        localidad = tienda.localidad_tienda
-                                    )
-
-                                    seleccionadoId = tienda.id_tienda
-                                    currentIndex = anterior // 🔹 Actualiza el índice
-
-                                    scope.launch {
-                                        cameraPositionState.animate(
-                                            CameraUpdateFactory.newLatLngZoom(
-                                                LatLng(tienda.latitud, tienda.longitud), 16f
-                                            ),
-                                            1000
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        else -> {}
-                    }
-
-                },
-                move_izquierda = {
-                    when (tipo) {
-                        "turismo" -> {
-                            if (lista_tiendas_cecanas_turismo.isNotEmpty()) {
-                                if (currentIndex_turismo != -1) {
-                                    // Mover al siguiente elemento (hacia la izquierda)
-                                    val siguiente =
-                                        (currentIndex_turismo + 1) % lista_tiendas_cecanas_turismo.size
-                                    val tienda = lista_tiendas_cecanas_turismo[siguiente]
-                                    lister_marker = dataclass_map(
-                                        img = tienda.logo_tienda,
-                                        nombre = tienda.nombre_tienda,
-                                        tag = tienda.lista_subcategoiras,
-                                        my_latitud = lat_user,
-                                        my_longitud = log_user,
-                                        latitud = tienda.latitud,
-                                        longitud = tienda.longitud,
-                                        id = tienda.id_tienda,
-                                        categoria = "",
-                                        direccion = tienda.direccion,
-                                        referencia = tienda.referencia,
-                                        contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_box,
-                                        localidad = tienda.localidad_tienda
-                                    )
-
-                                    seleccionadoId = tienda.id_tienda
-                                    currentIndex_turismo = siguiente // 🔹 Actualiza el índice
-
-                                    scope.launch {
-                                        cameraPositionState.animate(
-                                            CameraUpdateFactory.newLatLngZoom(
-                                                LatLng(tienda.latitud, tienda.longitud), 16f
-                                            ),
-                                            1000
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        "tiendas" -> {
-                            if (lista_filtrada_tiendas.isNotEmpty()) {
-                                if (currentIndex != -1) {
-                                    // Mover al siguiente elemento (hacia la izquierda)
-                                    val siguiente = (currentIndex + 1) % lista_filtrada_tiendas.size
-                                    val tienda = lista_filtrada_tiendas[siguiente]
-
-                                    lister_marker = dataclass_map(
-                                        img = tienda.logo_tienda,
-                                        nombre = tienda.nombre_tienda,
-                                        tag = tienda.lista_subcategoiras,
-                                        my_latitud = lat_user,
-                                        my_longitud = log_user,
-                                        latitud = tienda.latitud,
-                                        longitud = tienda.longitud,
-                                        id = tienda.id_tienda,
-                                        categoria = "",
-                                        direccion = tienda.direccion,
-                                        referencia = tienda.referencia,
-                                        contacto_tienda = tienda.contacto_tienda,
-                                        metodos_pago_tienda = tienda.metodos_pago_tienda,
-                                        horario_box = tienda.horario_tienda_box,
-                                        localidad = tienda.localidad_tienda
-                                    )
-
-                                    seleccionadoId = tienda.id_tienda
-                                    currentIndex = siguiente // 🔹 Actualiza el índice
-
-                                    scope.launch {
-                                        cameraPositionState.animate(
-                                            CameraUpdateFactory.newLatLngZoom(
-                                                LatLng(tienda.latitud, tienda.longitud), 16f
-                                            ),
-                                            1000
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        else -> {}
-                    }
-
-
-                }
-            )
-        }
+//        AnimatedVisibility(
+//            visible = show_dialog_datos_lugares,
+//            enter = fadeIn(),
+//            exit = fadeOut(),
+//            modifier = Modifier.align(Alignment.BottomCenter)
+//        ) {
+//            dialogo_lugar_tienda(
+//                horario_box1 = horarios[lister_marker.id] ?: HorarioDia_box(),
+//                viewmodelMapa = viewmodelMapa,
+//                lat_user = lat_user, log_user = log_user,
+//                time = tick,
+//                dataclass_map = lister_marker,
+//                cerra_dialog = {
+//                    show_dialog_datos_lugares = false
+//                    mostar_bottom_sheet = true
+//                },
+//                limpiar = {
+//                    seleccionadoId = ""
+//                },
+//                crear_ruta = { id, lat, log ->
+//                    latitud = lat
+//                    longitud = log
+//                    id_tienda = id
+//                    dialog_Crear_ruta = true
+//                },
+//                actualizar = {
+//                    actualizarUbicacion(context, fusedLocationClient) { lat, log ->
+//                        lat_user = lat
+//                        log_user = log
+//                        lister_marker = lister_marker.copy(
+//                            my_latitud = lat,
+//                            my_longitud = log
+//                        )
+//                    }
+//                },
+//                boxVisible = boxVisible,
+//                onBoxVisibleChange = {
+//                    Log.d("visible", it.toString())
+//                    boxVisible = it
+//                },
+//                centrar_camara = { lat, log ->
+//                    scope.launch {
+//                        cameraPositionState.animate(
+//                            CameraUpdateFactory.newLatLngZoom(LatLng(lat, log), 18f),
+//                            1000
+//                        )
+//                    }
+//                },
+//                retornar_id_select = { id_tienda_lugar, color ->
+//                    color_referencia = color
+//                    id_lugar_tienda_select = id_tienda_lugar
+//                    show_bottom_sheet_datos_tienda_lugares = true
+//                },
+//                onclick_iconos = { id, datos ->
+//                    when (datos.nombre_red) {
+//                        "llamar" -> {
+//                            llamar(id_user,"tienda", id, localidad, context, datos.valor, {
+//                                call_dialog_permise = true
+//                                numero_llamada = datos.valor
+//                            })
+//                        }
+//
+//                        "whatsapp" -> {
+//                            abrir_whattsapp(id_user,"tienda", id, localidad, context, datos.valor)
+//                        }
+//
+//                        "tiktok" -> {
+//                            openTiktok(
+//                                "Tienda",
+//                                context = context,
+//                                username = datos.valor,
+//                                id_tienda = id,
+//                                localidad_tienda = localidad,id_user
+//                            )
+//                        }
+//
+//                        "facebook" -> {
+//                            Log.d("    datos.valor", "${datos.valor}")
+//                            openFacebook(
+//                                "Tienda",
+//                                context = context,
+//                                pageUrl = datos.valor,
+//                                id_tienda = id,
+//                                localidad_tienda = localidad,id_user
+//                            )
+//                        }
+//
+//                        "instagram" -> {
+//                            Log.d("    datos.valor", "${datos.valor}")
+//                            openInstagram(
+//                                "Tienda",
+//                                context = context,
+//                                url = datos.valor,
+//                                id_tienda = id,
+//                                localidad_tienda = localidad,id_user
+//                            )
+//                        }
+//
+//                        "Web" -> {
+//                            openWebLink(
+//                                context = context,
+//                                url = datos.valor,
+//                                id_tienda = id,
+//                                localidad_tienda = localidad,id_user
+//                            )
+//                        }
+//
+//                    }
+//                },
+//                mostrar_lista = {
+//                    show_botoom_sheet = true
+//                },
+//                move_derecha = {
+//                    when (tipo) {
+//                        "turismo" -> {
+//                            if (lista_tiendas_cecanas_turismo.isNotEmpty()) {
+//                                if (currentIndex_turismo != -1) {
+//                                    // Mover al elemento anterior (hacia la derecha)
+//                                    val anterior =
+//                                        if (currentIndex_turismo - 1 < 0) lista_tiendas_cecanas_turismo.lastIndex else currentIndex_turismo - 1
+//                                    val tienda = lista_tiendas_cecanas_turismo[anterior]
+//
+//                                    lister_marker = dataclass_map(
+//                                        img = tienda.logo_tienda,
+//                                        nombre = tienda.nombre_tienda,
+//                                        tag = tienda.lista_subcategoiras,
+//                                        my_latitud = lat_user,
+//                                        my_longitud = log_user,
+//                                        latitud = tienda.latitud,
+//                                        longitud = tienda.longitud,
+//                                        id = tienda.id_tienda,
+//                                        categoria = "",
+//                                        direccion = tienda.direccion,
+//                                        referencia = tienda.referencia,
+//                                        contacto_tienda = tienda.contacto_tienda,
+//                                        metodos_pago_tienda = tienda.metodos_pago_tienda,
+//                                        horario_box = tienda.horario_box,
+//                                        localidad = tienda.localidad_tienda
+//                                    )
+//
+//                                    seleccionadoId = tienda.id_tienda
+//                                    currentIndex_turismo = anterior // 🔹 Actualiza el índice
+//
+//                                    scope.launch {
+//                                        cameraPositionState.animate(
+//                                            CameraUpdateFactory.newLatLngZoom(
+//                                                LatLng(tienda.latitud, tienda.longitud), 16f
+//                                            ),
+//                                            1000
+//                                        )
+//                                    }
+//                                }
+//                            }
+//                        }
+//
+//                        "tiendas" -> {
+//
+//                            if (lista_filtrada_tiendas.isNotEmpty()) {
+//                                if (currentIndex != -1) {
+//                                    // Mover al elemento anterior (hacia la derecha)
+//                                    val anterior =
+//                                        if (currentIndex - 1 < 0) lista_filtrada_tiendas.lastIndex else currentIndex - 1
+//                                    val tienda = lista_filtrada_tiendas[anterior]
+//
+//                                    lister_marker = dataclass_map(
+//                                        img = tienda.logo_tienda,
+//                                        nombre = tienda.nombre_tienda,
+//                                        tag = tienda.lista_subcategoiras,
+//                                        my_latitud = lat_user,
+//                                        my_longitud = log_user,
+//                                        latitud = tienda.latitud,
+//                                        longitud = tienda.longitud,
+//                                        id = tienda.id_tienda,
+//                                        categoria = "",
+//                                        direccion = tienda.direccion,
+//                                        referencia = tienda.referencia,
+//                                        contacto_tienda = tienda.contacto_tienda,
+//                                        metodos_pago_tienda = tienda.metodos_pago_tienda,
+//                                        horario_box = tienda.horario_tienda_box,
+//                                        localidad = tienda.localidad_tienda
+//                                    )
+//
+//                                    seleccionadoId = tienda.id_tienda
+//                                    currentIndex = anterior // 🔹 Actualiza el índice
+//
+//                                    scope.launch {
+//                                        cameraPositionState.animate(
+//                                            CameraUpdateFactory.newLatLngZoom(
+//                                                LatLng(tienda.latitud, tienda.longitud), 16f
+//                                            ),
+//                                            1000
+//                                        )
+//                                    }
+//                                }
+//                            }
+//                        }
+//
+//                        else -> {}
+//                    }
+//
+//                },
+//                move_izquierda = {
+//                    when (tipo) {
+//                        "turismo" -> {
+//                            if (lista_tiendas_cecanas_turismo.isNotEmpty()) {
+//                                if (currentIndex_turismo != -1) {
+//                                    // Mover al siguiente elemento (hacia la izquierda)
+//                                    val siguiente =
+//                                        (currentIndex_turismo + 1) % lista_tiendas_cecanas_turismo.size
+//                                    val tienda = lista_tiendas_cecanas_turismo[siguiente]
+//                                    lister_marker = dataclass_map(
+//                                        img = tienda.logo_tienda,
+//                                        nombre = tienda.nombre_tienda,
+//                                        tag = tienda.lista_subcategoiras,
+//                                        my_latitud = lat_user,
+//                                        my_longitud = log_user,
+//                                        latitud = tienda.latitud,
+//                                        longitud = tienda.longitud,
+//                                        id = tienda.id_tienda,
+//                                        categoria = "",
+//                                        direccion = tienda.direccion,
+//                                        referencia = tienda.referencia,
+//                                        contacto_tienda = tienda.contacto_tienda,
+//                                        metodos_pago_tienda = tienda.metodos_pago_tienda,
+//                                        horario_box = tienda.horario_box,
+//                                        localidad = tienda.localidad_tienda
+//                                    )
+//
+//                                    seleccionadoId = tienda.id_tienda
+//                                    currentIndex_turismo = siguiente // 🔹 Actualiza el índice
+//
+//                                    scope.launch {
+//                                        cameraPositionState.animate(
+//                                            CameraUpdateFactory.newLatLngZoom(
+//                                                LatLng(tienda.latitud, tienda.longitud), 16f
+//                                            ),
+//                                            1000
+//                                        )
+//                                    }
+//                                }
+//                            }
+//                        }
+//
+//                        "tiendas" -> {
+//                            if (lista_filtrada_tiendas.isNotEmpty()) {
+//                                if (currentIndex != -1) {
+//                                    // Mover al siguiente elemento (hacia la izquierda)
+//                                    val siguiente = (currentIndex + 1) % lista_filtrada_tiendas.size
+//                                    val tienda = lista_filtrada_tiendas[siguiente]
+//
+//                                    lister_marker = dataclass_map(
+//                                        img = tienda.logo_tienda,
+//                                        nombre = tienda.nombre_tienda,
+//                                        tag = tienda.lista_subcategoiras,
+//                                        my_latitud = lat_user,
+//                                        my_longitud = log_user,
+//                                        latitud = tienda.latitud,
+//                                        longitud = tienda.longitud,
+//                                        id = tienda.id_tienda,
+//                                        categoria = "",
+//                                        direccion = tienda.direccion,
+//                                        referencia = tienda.referencia,
+//                                        contacto_tienda = tienda.contacto_tienda,
+//                                        metodos_pago_tienda = tienda.metodos_pago_tienda,
+//                                        horario_box = tienda.horario_tienda_box,
+//                                        localidad = tienda.localidad_tienda
+//                                    )
+//
+//                                    seleccionadoId = tienda.id_tienda
+//                                    currentIndex = siguiente // 🔹 Actualiza el índice
+//
+//                                    scope.launch {
+//                                        cameraPositionState.animate(
+//                                            CameraUpdateFactory.newLatLngZoom(
+//                                                LatLng(tienda.latitud, tienda.longitud), 16f
+//                                            ),
+//                                            1000
+//                                        )
+//                                    }
+//                                }
+//                            }
+//                        }
+//
+//                        else -> {}
+//                    }
+//
+//
+//                }
+//            )
+//        }
         AnimatedVisibility(
             visible = (mostar_bottom_sheet && !show_dialog_datos_lugares) || seleccionadoId.isNullOrEmpty(),
             modifier = Modifier.align(Alignment.BottomCenter)
@@ -1243,38 +1245,29 @@ fun dialogo_lugar_tienda(
     onclick_iconos: (String, data_redes_tiendas) -> Unit,
     mostrar_lista: () -> Unit,
     move_izquierda: () -> Unit,
-    move_derecha: () -> Unit
+    move_derecha: () -> Unit,
 ) {
 
     val tick = time
     var estadoColor by remember { mutableStateOf(Color.Red) }
     val context = LocalContext.current
     val gpsActivo by rememberGpsActivo(context)
-    val distancia by remember(
+    val distanciaMetros by remember(
         lat_user,
         log_user,
         dataclass_map.latitud,
         dataclass_map.longitud
     ) {
         derivedStateOf {
-
-            Log.d("DISTANCIA_DEBUG", "📍 lat_user: $lat_user")
-            Log.d("DISTANCIA_DEBUG", "📍 log_user: $log_user")
-            Log.d("DISTANCIA_DEBUG", "🏪 lat_tienda: ${dataclass_map.latitud}")
-            Log.d("DISTANCIA_DEBUG", "🏪 log_tienda: ${dataclass_map.longitud}")
-
-            val resultado = verificarDistanciaFormateada(
+            calcularDistanciaMetros(
                 lat_user,
                 log_user,
                 dataclass_map.latitud,
                 dataclass_map.longitud
             )
-
-            Log.d("DISTANCIA_DEBUG", "📏 Distancia calculada: $resultado")
-
-            resultado
         }
     }
+    val distanciaTexto = formatearDistancia(distanciaMetros)
 
 
     val estadoKM by viewmodelMapa.estadoLocation.collectAsState(initial = false)
@@ -1503,7 +1496,7 @@ fun dialogo_lugar_tienda(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             texto_generico_one_line(
-                                "A $distancia",
+                                "A $distanciaTexto",
                                 MaterialTheme.typography.bodyMedium,
                             )
                             spacer_horizonta(5.dp)
@@ -1880,7 +1873,7 @@ fun dialogo_lugar_tienda(
         if (dialogo_distancia) {
             dialog_distancia_map_km_m(
                 dataclass_map.id,
-                distancia,
+                distanciaTexto,
                 horarioSeguro,
                 dataclass_map.img, dataclass_map.nombre,
                 tick,

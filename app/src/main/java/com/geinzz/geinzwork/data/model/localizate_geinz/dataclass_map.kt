@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.data.model.localizate_geinz
 
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 
 data class dataclass_map(
@@ -20,3 +21,6 @@ data class dataclass_map(
     val horario_box:HorarioAtencion_box =HorarioAtencion_box(),
     val localidad:String="",
 )
+
+
+data class iconos_creaciones_rutas(val tipo: String,val icono: ImageVector)

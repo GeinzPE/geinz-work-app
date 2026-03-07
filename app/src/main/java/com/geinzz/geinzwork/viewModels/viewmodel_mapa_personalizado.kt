@@ -1,5 +1,7 @@
 package com.geinzz.geinzwork.viewModels
 
+import android.content.Context
+import android.media.MediaPlayer
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -8,10 +10,12 @@ import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.model.repo_lugares_turisticos
 import com.geinzz.geinzwork.model.repo_principal_geinz_work
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.pow
@@ -24,9 +28,12 @@ class viewmodel_mapa_personalizado : ViewModel() {
 
     private val _estadoLocation = MutableStateFlow(false) // mutable interno
     val estadoLocation: StateFlow<Boolean> = _estadoLocation   // público inmutable
-
+    private var mediaPlayer: MediaPlayer? = null
     private val lugares_turisiticos = MutableLiveData<List<lugares_turisticos>>()
     val _lugares_turisticos: LiveData<List<lugares_turisticos>> get() = lugares_turisiticos
+
+    private val _datosCloudTts = MutableStateFlow(ByteArray(0))
+    val datosCloudTts: StateFlow<ByteArray> = _datosCloudTts
 
     private var todosLosLugares = emptyList<lugares_turisticos>()
     private val _listaFiltrada = MutableStateFlow<List<lugares_turisticos>>(emptyList())
@@ -35,7 +42,7 @@ class viewmodel_mapa_personalizado : ViewModel() {
     private val _estadoBottomSheet = MutableStateFlow(false)
     val estadoBottomSheet = _estadoBottomSheet.asStateFlow()
 
-    private val _objetoSeleccionado=MutableStateFlow(lugares_turisticos())
+    private val _objetoSeleccionado = MutableStateFlow(lugares_turisticos())
     val objetoSeleccionado = _objetoSeleccionado.asStateFlow()
 
 
@@ -43,24 +50,26 @@ class viewmodel_mapa_personalizado : ViewModel() {
     val estaCercaTienda = _estaCercaTienda.asStateFlow()
 
     fun setBottomSheetVisible(visible: Boolean) {
-        Log.d("pasdamgfasg","$visible")
+        Log.d("pasdamgfasg", "$visible")
         _estadoBottomSheet.value = visible
     }
+
     fun setObjetoSeleccionado(objeto: lugares_turisticos) {
         _objetoSeleccionado.value = objeto
     }
 
-    private var ultima_lat_user=0.0
-    private var ultima_lon_user=0.0
+    private var ultima_lat_user = 0.0
+    private var ultima_lon_user = 0.0
 
-    private var lat_tienda: Double?=null
-    private var lon_tienda: Double?=null
+    private var lat_tienda: Double? = null
+    private var lon_tienda: Double? = null
 
 
-    fun setTienda_selecionada(lat:Double,lon: Double){
-        lat_tienda=lat
-        lon_tienda=lon
+    fun setTienda_selecionada(lat: Double, lon: Double) {
+        lat_tienda = lat
+        lon_tienda = lon
     }
+
     fun limpiarCoordenadas() {
         lat_tienda = 0.0
         lon_tienda = 0.0
@@ -68,10 +77,11 @@ class viewmodel_mapa_personalizado : ViewModel() {
     }
 
 
-    fun actualizar_ubicacion(lat_user: Double,lon_user: Double){
-        Log.d("llamos_a","fucnion")
-        val distacia_cambio=calcularDistancia(lat_user,lon_user,ultima_lat_user,ultima_lon_user)
-        if(distacia_cambio<2)return
+    fun actualizar_ubicacion(lat_user: Double, lon_user: Double) {
+        Log.d("llamos_a", "fucnion")
+        val distacia_cambio =
+            calcularDistancia(lat_user, lon_user, ultima_lat_user, ultima_lon_user)
+        if (distacia_cambio < 2) return
         ultima_lat_user = lat_user
         ultima_lat_user = lon_user
 
@@ -96,8 +106,8 @@ class viewmodel_mapa_personalizado : ViewModel() {
         return R * c
     }
 
-    fun actualziar_estado (valor: Boolean){
-        _estadoLocation.value=valor
+    fun actualziar_estado(valor: Boolean) {
+        _estadoLocation.value = valor
     }
 
 //    fun lugares_turisticos(localidad: String) {
@@ -121,7 +131,6 @@ class viewmodel_mapa_personalizado : ViewModel() {
     }
 
 
-
     fun todos_lugares(lista: List<lugares_turisticos>) {
         todosLosLugares = lista
         _listaFiltrada.value = lista
@@ -134,6 +143,59 @@ class viewmodel_mapa_personalizado : ViewModel() {
             todosLosLugares.filter { it.subcategoria_filtrado.contains(subcategoria) }
         }
 
+    }
+
+    fun limpiarAudio() {
+        _datosCloudTts.value = ByteArray(0)
+    }
+
+
+    fun crear_texto__para_tts(texto: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _datosCloudTts.value = repo_lugares.cloudTTS(texto)
+            } catch (e: Exception) {
+                Log.e("CloudTTS", "Error de text to speech", e)
+            }
+        }
+    }
+    fun reproducirMP3(context: Context, audioBytes: ByteArray) {
+        try {
+
+            if (audioBytes.isEmpty()) {
+                Log.e("TTS", "Audio vacío")
+                return
+            }
+
+            // 🔥 PONLO AQUÍ
+            Log.d("TTS_SIZE", "Bytes recibidos: ${audioBytes.size}")
+
+            val tempFile = File.createTempFile("tts_", ".mp3", context.cacheDir)
+            tempFile.writeBytes(audioBytes)
+
+            mediaPlayer = MediaPlayer().apply {
+                setDataSource(tempFile.absolutePath)
+                prepare()
+                start()
+
+                setOnCompletionListener {
+                    it.release()
+                    tempFile.delete()
+                    mediaPlayer = null
+                }
+
+                setOnErrorListener { mp, what, extra ->
+                    Log.e("TTS", "Error en MediaPlayer: $what / $extra")
+                    mp.release()
+                    tempFile.delete()
+                    mediaPlayer = null
+                    true
+                }
+            }
+
+        } catch (e: Exception) {
+            Log.e("TTS", "Error reproduciendo MP3", e)
+        }
     }
 
 }

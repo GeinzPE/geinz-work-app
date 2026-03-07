@@ -1,12 +1,13 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
+import android.Manifest
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
 import android.location.Location
 import android.graphics.*
-import android.os.Build
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
@@ -17,11 +18,13 @@ import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import androidx.compose.animation.AnimatedVisibility
 import com.mapbox.maps.plugin.annotation.annotations
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,9 +37,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.DirectionsBike
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.DirectionsBike
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.NightlightRound
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -49,6 +59,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -62,6 +73,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -74,6 +86,7 @@ import com.geinzz.geinzwork.BuildConfig.MAPBOX_ACCESS_TOKEN
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
+import com.geinzz.geinzwork.data.model.localizate_geinz.iconos_creaciones_rutas
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openFacebook
@@ -92,6 +105,8 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.MarkerIcon
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.dialogo_lugar_tienda
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.actualizarUbicacion
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularDistanciaMetros
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatearDistancia
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isLocationEnabled
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.llamar
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
@@ -172,6 +187,13 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import kotlin.text.get
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import androidx.annotation.RequiresPermission
+import androidx.compose.ui.node.Ref
+import androidx.core.content.ContextCompat
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("MissingPermission")
@@ -196,7 +218,14 @@ fun SimpleMapDark(
             Log.d("GPS", "❌ El usuario canceló el diálogo de ubicación")
         }
     }
-    var rutaCompleta by remember { mutableStateOf<List<Point>>(emptyList()) }
+    val listaIconosRutas = listOf(
+        iconos_creaciones_rutas("walking", Icons.Default.DirectionsWalk),
+        iconos_creaciones_rutas("cycling", Icons.Default.DirectionsBike),
+        iconos_creaciones_rutas("driving", Icons.Default.DirectionsCar)
+    )
+    var yaSeAnuncioLlegada by remember { mutableStateOf(false) }
+    val rutaRef = remember { mutableStateOf<List<Point>>(emptyList()) }
+    var rutaCompleta by rutaRef
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var mapboxMapInstance by remember { mutableStateOf<MapboxMap?>(null) }
     val pointAnnotationManager = remember { mutableStateOf<PointAnnotationManager?>(null) }
@@ -212,7 +241,6 @@ fun SimpleMapDark(
     var showRecenterButton by remember { mutableStateOf(false) }
 
 
-
     val radio by viewmodel_lugares_turisticos.estado_radio_filtrada.collectAsState()
 
     val coordenadas by viewmode_segurirdad_Salud.coordenadasSeleccionadas.observeAsState()
@@ -221,9 +249,15 @@ fun SimpleMapDark(
     val lista_filtrada_tiendas by viewModel_filtrado_tiendas.listaTiendasGuardadas.observeAsState(
         emptyList()
     )
-    val lista_tiendas_cecanas_turismo by viewmodel_lugares_turisticos.listaTiendasGuardadas
-        .collectAsState()
-
+    val lista_tiendas_cecanas_turismo by viewmodel_lugares_turisticos.listaTiendasGuardadas.collectAsState()
+    val datos_cloud_TTs by viewmodelMapa.datosCloudTts.collectAsState()
+    LaunchedEffect(datos_cloud_TTs) {
+        Log.d("datos_cloud_TTs", "$datos_cloud_TTs")
+        if (datos_cloud_TTs.isNotEmpty()) {
+            viewmodelMapa.reproducirMP3(context, datos_cloud_TTs)
+            viewmodelMapa.limpiarAudio()
+        }
+    }
 
     val lista_categiras_filtrado_tiendas_Cercanas by viewmodel_lugares_turisticos.lista_categoira_filtradas.collectAsState()
     val imageCache = remember { mutableMapOf<String, Bitmap>() }
@@ -273,10 +307,10 @@ fun SimpleMapDark(
     val horarios by viewModel_filtrado_tiendas.horariosTiendas_real.collectAsState()
     var modo3D by remember { mutableStateOf(false) }
     var tipo_crearcion_ruta_creado by remember { mutableStateOf("") }
+    val estaRecalculando = remember { mutableStateOf(false) }
+    val ultimoRecalculo = remember { longArrayOf(0L) }
     fun animarTamano(
-        annotation: PointAnnotation,
-        desde: Double,
-        hasta: Double
+        annotation: PointAnnotation, desde: Double, hasta: Double
     ) {
         val animator = ValueAnimator.ofFloat(desde.toFloat(), hasta.toFloat())
         animator.duration = 250 // duración en milisegundos
@@ -313,12 +347,8 @@ fun SimpleMapDark(
         val pitchValue = if (modo3D) 45.0 else 0.0
 
         mapboxMapInstance?.easeTo(
-            CameraOptions.Builder()
-                .pitch(pitchValue)
-                .build(),
-            MapAnimationOptions.Builder()
-                .duration(600)
-                .build()
+            CameraOptions.Builder().pitch(pitchValue).build(),
+            MapAnimationOptions.Builder().duration(600).build()
         )
     }
 
@@ -344,14 +374,12 @@ fun SimpleMapDark(
         Log.d("id_tienda_cambiada", "${lister_marker.id} ${lister_marker.horario_box}")
 
         viewModel_filtrado_tiendas.calcularHorarioParaTienda(
-            lister_marker.id,
-            lister_marker.horario_box
+            lister_marker.id, lister_marker.horario_box
         )
     }
     LaunchedEffect(id_lugar_tienda_select) {
         viewModel_filtrado_tiendas.obtener_campos_tiendas_por_id(
-            localidad_tienda_lugar_Select,
-            id_lugar_tienda_select
+            localidad_tienda_lugar_Select, id_lugar_tienda_select
         )
     }
     LaunchedEffect(datosTienda) {
@@ -363,8 +391,7 @@ fun SimpleMapDark(
 
 
     viewModel_filtrado_tiendas.repo_filtrado.escucharHorarioDeTiendaUnica(
-        idTiendaBuscada = lister_marker.id,
-        localidad = "barranca"
+        idTiendaBuscada = lister_marker.id, localidad = "barranca"
     )
 
 
@@ -372,7 +399,8 @@ fun SimpleMapDark(
     val managerLauncher = remember { mutableStateOf<PointAnnotationManager?>(null) }
 
     var primeraCargaCamara by remember { mutableStateOf(true) }
-
+// 1️⃣ Agrega esta variable junto a tus otros remember
+    var ultimoBearing by remember { mutableStateOf(0.0) }
     val defaultLocation_barranca = Point.fromLngLat(-77.76088112286742, -10.751480371828691)
     val defaultLocation_paramonga = Point.fromLngLat(-77.81957068618482, -10.678480703018984)
     val defaultLocation_supe = Point.fromLngLat(-77.71618154413743, -10.795610086889571)
@@ -386,9 +414,8 @@ fun SimpleMapDark(
         "puerto_supe" -> defaultLocation_puerto_supe
         else -> defaultLocation_barranca
     }
-    val coroutineScope = rememberCoroutineScope()
     var styleReady by remember { mutableStateOf(false) }
-
+    var mostar_ocultar_carta by remember { mutableStateOf(true) }
     LaunchedEffect(radio, lat_lugar_directo, lng_lugar_directo, styleReady) {
 
         if (!styleReady) return@LaunchedEffect
@@ -409,9 +436,13 @@ fun SimpleMapDark(
             )
         }
     }
-    LaunchedEffect(radio) {
+    LaunchedEffect(radio, estado) {
         show_dialog_datos_lugares = false
         seleccionadoId = null
+        viewmodelMapa.limpiarAudio()
+        yaSeAnuncioLlegada = false
+
+
     }
     LaunchedEffect(lista_tiendas_cecanas_turismo, pointAnnotationManager.value) {
 
@@ -433,8 +464,7 @@ fun SimpleMapDark(
                     var bitmap = imageCache[imageUrl]
 
                     if (bitmap == null) {
-                        bitmap = loadBitmapFromUrl(imageUrl, context)
-                            .toCircularBitmap(sizePx = 120)
+                        bitmap = loadBitmapFromUrl(imageUrl, context).toCircularBitmap(sizePx = 120)
                         imageCache[imageUrl] = bitmap
                     }
 
@@ -451,16 +481,11 @@ fun SimpleMapDark(
                     style.addImage(imageId, bitmap)
                 }
 
-                val option = PointAnnotationOptions()
-                    .withPoint(
-                        Point.fromLngLat(
-                            tienda.longitud,
-                            tienda.latitud
-                        )
+                val option = PointAnnotationOptions().withPoint(
+                    Point.fromLngLat(
+                        tienda.longitud, tienda.latitud
                     )
-                    .withIconImage(imageId)
-                    .withIconSize(0.9)
-                    .withIconOpacity(0.6)
+                ).withIconImage(imageId).withIconSize(0.9).withIconOpacity(0.6)
 
                 val annotation = manager.create(option)
 
@@ -478,6 +503,9 @@ fun SimpleMapDark(
         if (id.isNullOrBlank()) {
 
             Log.d("MAP_DEBUG", "❌ seleccionadoId está null o vacío → borrando ruta")
+
+            viewmodelMapa.limpiarAudio()
+            yaSeAnuncioLlegada = false
 
             mapboxMapInstance?.getStyle { style ->
 
@@ -497,26 +525,20 @@ fun SimpleMapDark(
         }
 
         Log.d("MAP_DEBUG", "🎯 seleccionadoId válido → seleccionando marker: $id")
-
+        yaSeAnuncioLlegada = false
+        viewmodelMapa.limpiarAudio()
         seleccionarMarkerPorId(id)
     }
     LaunchedEffect(
-        img_lugare_dircto,
-        lat_lugar_directo,
-        lng_lugar_directo,
-        managerLauncher.value
+        img_lugare_dircto, lat_lugar_directo, lng_lugar_directo, managerLauncher.value
     ) {
-        if (img_lugare_dircto == null ||
-            lat_lugar_directo == null ||
-            lng_lugar_directo == null
-        ) return@LaunchedEffect
+        if (img_lugare_dircto == null || lat_lugar_directo == null || lng_lugar_directo == null) return@LaunchedEffect
 
         val launcherManager = managerLauncher.value ?: return@LaunchedEffect
         val mapboxMap = mapboxMapInstance ?: return@LaunchedEffect
 
         val punto = Point.fromLngLat(
-            lng_lugar_directo,
-            lat_lugar_directo
+            lng_lugar_directo, lat_lugar_directo
         )
         latitud_lugar = lat_lugar_directo
         longitud_lugar = lng_lugar_directo
@@ -525,8 +547,7 @@ fun SimpleMapDark(
         val imageId = "launcher_icon"
 
         // ✅ AQUI SÍ puedes llamar suspend
-        val bitmap = loadBitmapFromUrl(img_lugare_dircto, context)
-            .toCircularBitmap(130)
+        val bitmap = loadBitmapFromUrl(img_lugare_dircto, context).toCircularBitmap(130)
 
         // 🔥 Ahora solo usas style
         mapboxMap.getStyle { style ->
@@ -535,19 +556,13 @@ fun SimpleMapDark(
             style.addImage(imageId, bitmap)
 
             launcherManager.create(
-                PointAnnotationOptions()
-                    .withPoint(punto)
-                    .withIconImage(imageId)
-                    .withIconAnchor(IconAnchor.BOTTOM)
-                    .withIconSize(1.0)
+                PointAnnotationOptions().withPoint(punto).withIconImage(imageId)
+                    .withIconAnchor(IconAnchor.BOTTOM).withIconSize(1.0)
             )
         }
     }
     LaunchedEffect(
-        lat_lugar_directo,
-        lng_lugar_directo,
-        mapboxMapInstance,
-        styleReady
+        lat_lugar_directo, lng_lugar_directo, mapboxMapInstance, styleReady
     ) {
 
         if (!styleReady) return@LaunchedEffect
@@ -562,23 +577,15 @@ fun SimpleMapDark(
         if (primeraCargaCamara) {
 
             mapboxMap.setCamera(
-                CameraOptions.Builder()
-                    .center(punto)
-                    .zoom(16.0)
-                    .build()
+                CameraOptions.Builder().center(punto).zoom(16.0).build()
             )
 
             primeraCargaCamara = false
         } else {
 
             mapboxMap.flyTo(
-                CameraOptions.Builder()
-                    .center(punto)
-                    .zoom(16.0)
-                    .build(),
-                MapAnimationOptions.Builder()
-                    .duration(1500)
-                    .build()
+                CameraOptions.Builder().center(punto).zoom(16.0).build(),
+                MapAnimationOptions.Builder().duration(1500).build()
             )
         }
     }
@@ -587,8 +594,7 @@ fun SimpleMapDark(
     val fabColor by animateColorAsState(
         targetValue = if (seguirUbicacion.value) MaterialTheme.colorScheme.primary else Color(
             0xFF9C7BFF
-        ),
-        animationSpec = tween(
+        ), animationSpec = tween(
             durationMillis = 300 // 0.3 segundos, suave pero rápido
         )
     )
@@ -596,8 +602,7 @@ fun SimpleMapDark(
     val mapView = mapViewState.value
     var ultimaLat: Double? = null
     var ultimaLng: Double? = null
-    var lastPoint: Point? = null
-    var lastTime: Long? = null
+    var yaSeAnuncio50metros by remember { mutableStateOf(false) }
     LaunchedEffect(seguirUbicacion.value) {
 
         if (seguirUbicacion.value) {
@@ -609,18 +614,17 @@ fun SimpleMapDark(
             if (ultimaLat != null && ultimaLng != null) {
 
                 val puntoUsuario = Point.fromLngLat(
-                    ultimaLng,
-                    ultimaLat
+                    ultimaLng, ultimaLat
                 )
-
+                val distacia_camaara_creada = if (rutaCompleta.isNotEmpty()) {
+                    18.0
+                } else {
+                    16.0
+                }
                 mapboxMapInstance?.flyTo(
-                    cameraOptions = CameraOptions.Builder()
-                        .center(puntoUsuario)
-                        .zoom(16.0)
-                        .build(),
-                    animationOptions = MapAnimationOptions.Builder()
-                        .duration(1000) // 1 segundo, rápido y elegante
-                        .build()
+                    cameraOptions = CameraOptions.Builder().center(puntoUsuario)
+                        .zoom(distacia_camaara_creada).build(),
+                    animationOptions = MapAnimationOptions.Builder().duration(1000).build()
                 )
             }
         }
@@ -631,10 +635,11 @@ fun SimpleMapDark(
             "Seguimiento automático desactivado"
         }
 
-        snackbarHostState.showSnackbar(
-            message = mensaje,
-            duration = SnackbarDuration.Short
-        )
+        scope.launch {
+            snackbarHostState.showSnackbar(
+                message = mensaje, duration = SnackbarDuration.Short
+            )
+        }
     }
 
     DisposableEffect(mapView) {
@@ -648,15 +653,14 @@ fun SimpleMapDark(
         mapboxMapInstance = mapboxMap
 
         val locationListener = OnIndicatorPositionChangedListener { point ->
-
             val lat = point.latitude()
             val lng = point.longitude()
-            val currentTime = System.currentTimeMillis()
-            val currentPoint = Point.fromLngLat(lng, lat)
 
-            if (lat == 0.0 && lng == 0.0) {
-                return@OnIndicatorPositionChangedListener
-            }
+            if (lat == 0.0 && lng == 0.0) return@OnIndicatorPositionChangedListener
+
+            val distancia = FloatArray(1)
+            Location.distanceBetween(lat_user, log_user, lat, lng, distancia)
+            if (distancia[0] < 1f && lat_user != 0.0) return@OnIndicatorPositionChangedListener
 
             lat_user = lat
             log_user = lng
@@ -664,16 +668,48 @@ fun SimpleMapDark(
             if (!seguirUbicacion.value) return@OnIndicatorPositionChangedListener
 
             val puntoUsuario = Point.fromLngLat(lng, lat)
+            val rutaActual = rutaRef.value
 
-            // 🔥 Movimiento fluido sin animación constante
-            mapboxMap.setCamera(
-                CameraOptions.Builder()
-                    .center(puntoUsuario)
-                    .zoom(16.0)
-                    .build()
-            )
+            if (rutaActual.isNotEmpty()) {
+                val siguiente =
+                    rutaActual.firstOrNull() ?: return@OnIndicatorPositionChangedListener
+                val bearingNuevo = calculateBearing(Point.fromLngLat(lng, lat), siguiente)
+                val bearingCorregido = (bearingNuevo + 180.0) % 360.0
+
+                // ✅ Umbral más alto = menos micro-rotaciones
+                val diferenciaBearing = Math.abs(bearingCorregido - ultimoBearing)
+                val bearingFinal = if (diferenciaBearing > 15.0 && diferenciaBearing < 345.0) {
+                    ultimoBearing = bearingCorregido
+                    bearingCorregido
+                } else {
+                    ultimoBearing
+                }
+
+                mapboxMap.easeTo(
+                    CameraOptions.Builder()
+                        .center(puntoUsuario)
+                        .zoom(18.0)
+                        .bearing(bearingFinal)
+//                        .pitch(45.0)
+                        .build(),
+                    MapAnimationOptions.Builder()
+                        .duration(300) // ✅ Reducido: termina antes del próximo update GPS
+                        .build()
+                )
+            } else {
+                mapboxMap.easeTo(
+                    CameraOptions.Builder()
+                        .center(puntoUsuario)
+                        .zoom(16.0)
+                        .bearing(0.0)
+                        .pitch(0.0)
+                        .build(),
+                    MapAnimationOptions.Builder()
+                        .duration(300) // ✅ Reducido también
+                        .build()
+                )
+            }
         }
-
         val moveListener = object : OnMoveListener {
 
             override fun onMoveBegin(detector: MoveGestureDetector) {
@@ -688,19 +724,13 @@ fun SimpleMapDark(
                 val cameraState = mapboxMap.cameraState
 
                 val bounds = mapboxMap.coordinateBoundsForCamera(
-                    CameraOptions.Builder()
-                        .center(cameraState.center)
-                        .zoom(cameraState.zoom)
-                        .bearing(cameraState.bearing)
-                        .pitch(cameraState.pitch)
-                        .build()
+                    CameraOptions.Builder().center(cameraState.center).zoom(cameraState.zoom)
+                        .bearing(cameraState.bearing).pitch(cameraState.pitch).build()
                 )
 
                 val markerPoint = Point.fromLngLat(lng, lat)
-                val markerVisible = markerPoint.latitude() in
-                        bounds.southwest.latitude()..bounds.northeast.latitude() &&
-                        markerPoint.longitude() in
-                        bounds.southwest.longitude()..bounds.northeast.longitude()
+                val markerVisible =
+                    markerPoint.latitude() in bounds.southwest.latitude()..bounds.northeast.latitude() && markerPoint.longitude() in bounds.southwest.longitude()..bounds.northeast.longitude()
 
                 showRecenterButton = !markerVisible
             }
@@ -711,17 +741,13 @@ fun SimpleMapDark(
                 val cameraState = mapboxMap.cameraState
 
                 val bounds = mapboxMap.coordinateBoundsForCamera(
-                    CameraOptions.Builder()
-                        .center(cameraState.center)
-                        .zoom(cameraState.zoom)
-                        .bearing(cameraState.bearing)
-                        .pitch(cameraState.pitch)
-                        .build()
+                    CameraOptions.Builder().center(cameraState.center).zoom(cameraState.zoom)
+                        .bearing(cameraState.bearing).pitch(cameraState.pitch).build()
                 )
 
                 val markerPoint = Point.fromLngLat(lng_lugar_directo!!, lat_lugar_directo!!)
-                val markerVisible = markerPoint.latitude() in bounds.southwest.latitude()..bounds.northeast.latitude() &&
-                        markerPoint.longitude() in bounds.southwest.longitude()..bounds.northeast.longitude()
+                val markerVisible =
+                    markerPoint.latitude() in bounds.southwest.latitude()..bounds.northeast.latitude() && markerPoint.longitude() in bounds.southwest.longitude()..bounds.northeast.longitude()
 
                 showRecenterButton = !markerVisible
             }
@@ -756,42 +782,38 @@ fun SimpleMapDark(
             rutaCompleta = puntos
 
             mapboxMapInstance?.getStyle { style ->
-                style.getSourceAs<GeoJsonSource>("route_source")
-                    ?.featureCollection(
-                        FeatureCollection.fromFeature(
-                            Feature.fromGeometry(
-                                LineString.fromLngLats(puntos)
-                            )
+                style.getSourceAs<GeoJsonSource>("route_source")?.featureCollection(
+                    FeatureCollection.fromFeature(
+                        Feature.fromGeometry(
+                            LineString.fromLngLats(puntos)
                         )
                     )
+                )
             }
 
             // 🔹 Ajustar cámara para que toda la ruta se vea
             if (puntos.isNotEmpty()) {
-                modo3D=true
-                // 🔹 Creamos los bounds de toda la ruta
-                val bounds = puntos.fold(
-                    CoordinateBounds(puntos.first(), puntos.first())
-                ) { acc, point -> acc.extend(point) }
+                modo3D = true
 
-                // 🔹 Obtenemos opciones de cámara que ajusten toda la ruta a la pantalla
-                val cameraOptions = mapboxMapInstance?.cameraForCoordinateBounds(
-                    bounds = bounds,
-                    boundsPadding = EdgeInsets(100.0, 100.0, 100.0, 100.0), // margen de la pantalla
-                    bearing = 0.0,   // dirección frontal
-                    pitch = 45.0,    // inclinación 3D tipo Google Maps
-                    maxZoom = 16.0,  // para no acercar demasiado
-                    offset = null
+                // 🔑 Calcular dirección desde tu posición hacia el primer punto de la ruta
+                val tuPosicion = Point.fromLngLat(log_user, lat_user)
+                val primerPunto = puntos.first()
+
+                // Bearing = ángulo hacia donde apunta la ruta
+                val bearing = calculateBearing(tuPosicion, primerPunto)
+                val bearingCorregido = (bearing + 180.0) % 360.0  // ✅ mismo fix
+
+
+                // 🎯 Cámara detrás tuyo, mirando hacia adelante — igual que Google Maps navegando
+                mapboxMapInstance?.flyTo(
+                    cameraOptions = CameraOptions.Builder()
+                        .center(tuPosicion)        // centrada en TI, no en la ruta
+                        .zoom(18.0)                // zoom cercano como navegación
+                        .bearing(bearingCorregido)          // rotada hacia donde vas
+                        .pitch(45.0)               // inclinación fuerte tipo GPS
+                        .build(),
+                    animationOptions = MapAnimationOptions.Builder().duration(2000).build()
                 )
-
-                cameraOptions?.let { options ->
-                    mapboxMapInstance?.flyTo(
-                        cameraOptions = options,
-                        animationOptions = MapAnimationOptions.Builder()
-                            .duration(2000) // animación fluida
-                            .build()
-                    )
-                }
             }
         }
     }
@@ -799,72 +821,141 @@ fun SimpleMapDark(
     LaunchedEffect(lat_user, log_user) {
         if (rutaCompleta.isEmpty() || seleccionadoId.isNullOrBlank()) return@LaunchedEffect
 
-        val miUbicacionReal = Point.fromLngLat(log_user, lat_user)
-        val radioToleranciaEsquina = 15.0
+        // 🔴 BLOQUEO — si ya está recalculando, no hacer nada
+        if (estaRecalculando.value) {
+            Log.d("DESVIO_DEBUG", "⏳ Ya recalculando, ignorando update GPS")
+            return@LaunchedEffect
+        }
 
-        // 1. Copiamos la ruta completa para trabajar
-        val listaRestante = rutaCompleta.toMutableList()
+        val distanciaMetros = calcularDistanciaMetros(
+            lat_user, log_user,
+            lister_marker.latitud, lister_marker.longitud
+        )
 
-        // 2. Solo eliminamos la primera esquina si ya la pasamos
-        if (listaRestante.isNotEmpty()) {
+        if (distanciaMetros <= 10f) {
+            mostar_ocultar_carta = true
+            show_dialog_datos_lugares = true
+
+            if (!yaSeAnuncioLlegada) {
+                yaSeAnuncioLlegada = true
+                viewmodelMapa.crear_texto__para_tts("Benjamin llegaste a ${lister_marker.nombre} mira a tu alrededor")
+                vibrarTelefono(context)
+                tipo_crearcion_ruta_creado = ""
+                rutaCompleta = emptyList()
+                mapboxMapInstance?.getStyle { style ->
+                    style.getSourceAs<GeoJsonSource>("route_source")?.featureCollection(
+                        FeatureCollection.fromFeatures(emptyArray())
+                    )
+                }
+            }
+            return@LaunchedEffect
+        }
+
+        if (distanciaMetros <= 50f) {
+            mostar_ocultar_carta = true
+            show_dialog_datos_lugares = true
+
+            if (!yaSeAnuncio50metros) {
+                yaSeAnuncio50metros = true
+                viewmodelMapa.crear_texto__para_tts("Benjamin estas por llegar a ${lister_marker.nombre} a menos de 50 metros")
+                vibrarTelefono(context)
+            }
+            return@LaunchedEffect
+        }
+        val miUbicacion = Point.fromLngLat(log_user, lat_user)
+        var mejorIndice = 0
+        var mejorDistancia = Float.MAX_VALUE
+
+        for (i in 0 until rutaCompleta.size - 1) {
+            val snap =
+                obtenerPuntoMasCercanoEnSegmento(miUbicacion, rutaCompleta[i], rutaCompleta[i + 1])
             val dist = FloatArray(1)
-            Location.distanceBetween(
-                lat_user, log_user,
-                listaRestante[0].latitude(),
-                listaRestante[0].longitude(),
-                dist
-            )
-            if (dist[0] < radioToleranciaEsquina) {
-                listaRestante.removeAt(0)
+            Location.distanceBetween(lat_user, log_user, snap.latitude(), snap.longitude(), dist)
+            if (dist[0] < mejorDistancia) {
+                mejorDistancia = dist[0]
+                mejorIndice = i
             }
         }
 
-        if (listaRestante.size >= 2) {
-            // 3. Calculamos el punto exacto en la calle donde deberías estar parado
-            val puntoSnap = obtenerPuntoMasCercanoEnSegmento(
-                miUbicacionReal,
-                listaRestante[0], // Esquina actual
-                listaRestante[1]  // Siguiente esquina
-            )
+        Log.d("DESVIO_DEBUG", "mejorDistancia = $mejorDistancia metros")
 
-            // 4. Creamos la lista visual: tu sombra + el resto de la ruta
-            val listaVisual = mutableListOf<Point>()
-            listaVisual.add(puntoSnap)
-            listaVisual.addAll(listaRestante.drop(1))
+        val ahora = System.currentTimeMillis()
 
-            // 5. Actualizamos el mapa
-            mapboxMapInstance?.getStyle { style ->
-                val source = style.getSourceAs<GeoJsonSource>("route_source")
-                source?.featureCollection(
-                    FeatureCollection.fromFeature(
-                        Feature.fromGeometry(LineString.fromLngLats(listaVisual))
-                    )
-                )
-            }
+        if (mejorDistancia > 50f && tipo_crearcion_ruta_creado.isNotBlank()) {
+            if (ahora - ultimoRecalculo[0] > 8_000L) {
 
-            // 6. Solo actualizamos la ruta real si pasamos la primera esquina
-            if (listaRestante.size < rutaCompleta.size) {
-                rutaCompleta = listaRestante
-            }
+                estaRecalculando.value = true
+                ultimoRecalculo[0] = ahora
 
-        } else if (listaRestante.size == 1) {
-            // Caso final: Solo queda el destino
-            val listaFinal = listOf(miUbicacionReal, listaRestante[0])
-            mapboxMapInstance?.getStyle { style ->
-                style.getSourceAs<GeoJsonSource>("route_source")?.featureCollection(
-                    FeatureCollection.fromFeature(
-                        Feature.fromGeometry(
-                            LineString.fromLngLats(
-                                listaFinal
-                            )
+                Log.d("DESVIO_DEBUG", "🔄 Recalculando ruta...")
+
+                // ✅ Usar recalculoScope en vez de await directo
+                scope.launch {
+                    try {
+                        val nuevaRuta = obtenerRuta(
+                            lat_user, log_user,
+                            lister_marker.latitud, lister_marker.longitud,
+                            tipo_crearcion_ruta_creado
                         )
-                    )
-                )
+
+                        if (nuevaRuta != null && nuevaRuta.isNotEmpty()) {
+                            Log.d(
+                                "DESVIO_DEBUG",
+                                "✅ Nueva ruta con ${nuevaRuta.size} puntos — dibujando"
+                            )
+                            rutaCompleta = nuevaRuta
+                            mapboxMapInstance?.getStyle { style ->
+                                style.getSourceAs<GeoJsonSource>("route_source")?.featureCollection(
+                                    FeatureCollection.fromFeature(
+                                        Feature.fromGeometry(LineString.fromLngLats(nuevaRuta))
+                                    )
+                                )
+                            }
+                        } else {
+                            Log.e("DESVIO_DEBUG", "❌ obtenerRuta() devolvió null")
+                        }
+                    } catch (e: Exception) {
+                        Log.e("DESVIO_DEBUG", "💥 EXCEPCIÓN: ${e.message}", e)
+                    } finally {
+                        estaRecalculando.value = false
+                        Log.d("DESVIO_DEBUG", "🔓 Desbloqueado")
+                    }
+                }
             }
+            return@LaunchedEffect
+        }
+        // Sin desvío — recortar ruta normalmente
+        if (mejorIndice >= rutaCompleta.size - 1) return@LaunchedEffect
+
+        val snap = obtenerPuntoMasCercanoEnSegmento(
+            miUbicacion, rutaCompleta[mejorIndice], rutaCompleta[mejorIndice + 1]
+        )
+
+        val listaVisual = mutableListOf(snap)
+        listaVisual.addAll(rutaCompleta.drop(mejorIndice + 1))
+
+        mapboxMapInstance?.getStyle { style ->
+            style.getSourceAs<GeoJsonSource>("route_source")?.featureCollection(
+                FeatureCollection.fromFeature(
+                    Feature.fromGeometry(LineString.fromLngLats(listaVisual))
+                )
+            )
+        }
+
+        if (mejorIndice > 0) {
+            rutaCompleta = rutaCompleta.drop(mejorIndice)
+        }
+
+        if (!seguirUbicacion.value) {
+            val location = Point.fromLngLat(log_user, lat_user)
+            mapboxMapInstance?.easeTo(
+                CameraOptions.Builder().center(location).zoom(16.0).build(),
+                MapAnimationOptions.Builder().duration(500).build()
+            )
         }
     }
 
-    // FUNCIÓN MATEMÁTICA PARA QUE LA LÍNEA NO SE DEFORME
+
 
     Box(modifier = Modifier.fillMaxSize()) {
 
@@ -873,14 +964,11 @@ fun SimpleMapDark(
             MapStyle(ulr_esilo)
 
             MapEffect(Unit) { mapView ->
-
-
                 mapView.getMapboxMap().getStyle { style ->
 
                     style.styleLayers.forEach {
                         Log.d("LAYERS_DEBUG", "Layer id = ${it.id}")
                     }
-
                 }
                 val mapboxMap = mapView.getMapboxMap()
                 mapViewState.value = mapView
@@ -896,8 +984,7 @@ fun SimpleMapDark(
                 }
 
                 if (managerLauncher.value == null) {
-                    managerLauncher.value =
-                        mapView.annotations.createPointAnnotationManager()
+                    managerLauncher.value = mapView.annotations.createPointAnnotationManager()
                 }
 
                 if (pointAnnotationManager.value == null) {
@@ -907,8 +994,8 @@ fun SimpleMapDark(
 
                     pointAnnotationManager.value?.addClickListener { annotation ->
 
-                        val tienda = lista_tiendas_cecanas_turismo
-                            .find { "marker-${it.id_tienda}" == annotation.iconImage }
+                        val tienda =
+                            lista_tiendas_cecanas_turismo.find { "marker-${it.id_tienda}" == annotation.iconImage }
 
                         tienda?.let {
 
@@ -949,15 +1036,13 @@ fun SimpleMapDark(
                                 featureCollection(
                                     FeatureCollection.fromFeatures(emptyArray())
                                 )
-                            }
-                        )
+                            })
 
                         style.addLayerBelow(
                             fillLayer("launcher_circle_layer", "launcher_circle_source") {
 //                                fillColor("#2196F3")
                                 fillOpacity(0.2)
-                            },
-                            "road-label"
+                            }, "road-label"
                         )
                         styleReady = true // ✅ aquí sí
                     }
@@ -968,8 +1053,7 @@ fun SimpleMapDark(
                                 featureCollection(
                                     FeatureCollection.fromFeatures(emptyArray())
                                 )
-                            }
-                        )
+                            })
                         if (style.styleLayerExists("route_layer")) {
                             style.removeStyleLayer("route_layer")
                         }
@@ -979,21 +1063,19 @@ fun SimpleMapDark(
                                 lineWidth(12.0)
                                 lineCap(LineCap.ROUND)
                                 lineJoin(LineJoin.ROUND)
-                            },
-                            "road-label"
+                            }, "road-label"
                         )
                     }
 
 // ✅ REDIBUJAR LA RUTA SI EXISTE
                     if (rutaCompleta.isNotEmpty()) {
-                        style.getSourceAs<GeoJsonSource>("route_source")
-                            ?.featureCollection(
-                                FeatureCollection.fromFeature(
-                                    Feature.fromGeometry(
-                                        LineString.fromLngLats(rutaCompleta)
-                                    )
+                        style.getSourceAs<GeoJsonSource>("route_source")?.featureCollection(
+                            FeatureCollection.fromFeature(
+                                Feature.fromGeometry(
+                                    LineString.fromLngLats(rutaCompleta)
                                 )
                             )
+                        )
                         Log.d("MAP_DEBUG", "🔵 Ruta redibujada tras cambio de estilo")
                     }
                 }
@@ -1012,98 +1094,74 @@ fun SimpleMapDark(
                     Log.d("MAP_DEBUG", "🎨 Style cargado")
 
                     if (style.getSource("launcher_circle_source") == null) {
-
                         style.addSource(
                             geoJsonSource("launcher_circle_source") {
-                                featureCollection(
-                                    FeatureCollection.fromFeatures(emptyArray())
-                                )
-                            }
-                        )
-
+                                featureCollection(FeatureCollection.fromFeatures(emptyArray()))
+                            })
                         style.addLayerBelow(
                             fillLayer("launcher_circle_layer", "launcher_circle_source") {
-//                                fillColor("#2196F3")
                                 fillOpacity(0.2)
-                            },
-                            "road-label"
+                            }, "road-label"
                         )
                     }
 
-                    // 🔥 REDIBUJAR CÍRCULO AQUÍ MISMO
+                    // 🔵 REDIBUJAR CÍRCULO
                     if (lat_lugar_directo != null && lng_lugar_directo != null) {
-
                         val punto = Point.fromLngLat(lng_lugar_directo, lat_lugar_directo)
                         val radioEnMetros = radio * 100.0
-
                         style.getSourceAs<GeoJsonSource>("launcher_circle_source")
                             ?.featureCollection(
                                 FeatureCollection.fromFeature(
-                                    Feature.fromGeometry(
-                                        createCirclePolygon(punto, radioEnMetros)
-                                    )
+                                    Feature.fromGeometry(createCirclePolygon(punto, radioEnMetros))
                                 )
                             )
-
                         Log.d("MAP_DEBUG", "🔵 Círculo redibujado tras cambio de estilo")
                     }
-                    if (style.getSource("route_source") == null) {
 
+                    if (style.getSource("route_source") == null) {
                         style.addSource(
                             geoJsonSource("route_source") {
-                                featureCollection(
-                                    FeatureCollection.fromFeatures(emptyArray())
-                                )
-                            }
+                                featureCollection(FeatureCollection.fromFeatures(emptyArray()))
+                            })
+                    }
+                    if (style.styleLayerExists("route_layer")) {
+                        style.removeStyleLayer("route_layer")
+                    }
+                    style.addLayerBelow(
+                        lineLayer("route_layer", "route_source") {
+                            lineColor("#4285F4")
+                            lineWidth(12.0)
+                            lineCap(LineCap.ROUND)
+                            lineJoin(LineJoin.ROUND)
+                        }, "road-label"
+                    )
+
+                    // ✅ REDIBUJAR RUTA (lo que faltaba)
+                    if (rutaCompleta.isNotEmpty()) {
+                        style.getSourceAs<GeoJsonSource>("route_source")?.featureCollection(
+                            FeatureCollection.fromFeature(
+                                Feature.fromGeometry(LineString.fromLngLats(rutaCompleta))
+                            )
                         )
-                        if (style.styleLayerExists("route_layer")) {
-                            style.removeStyleLayer("route_layer")
-                        }
-                        style.addLayerBelow(
-                            lineLayer("route_layer", "route_source") {
-                                lineColor("#4285F4")  // naranja fuerte
-                                lineWidth(12.0)       // aumenta el grosor, antes estaba 6
-                                lineCap(LineCap.ROUND) // redondea los extremos
-                                lineJoin(LineJoin.ROUND) // redondea las esquinas
-                            },
-                            "road-label"
-                        )
+                        Log.d("MAP_DEBUG", "🟢 Ruta redibujada tras cambio de estilo día/noche")
                     }
                 }
             }
 
         }
-        Column(modifier = Modifier.align(Alignment.TopEnd)) {
 
-            Button(onClick = {
-                estilo_mapa_mapbox = !estilo_mapa_mapbox
-            }) {
-                texto_generico_one_line("cambiar a ${if (estilo_mapa_mapbox) "noche" else "dia"}")
-            }
 
-            Button(onClick = {
-                tipo_crearcion_ruta_creado = "walking"
-            }) {
-                texto_generico_one_line("caminar")
-            }
-            Button(onClick = {
-                tipo_crearcion_ruta_creado = "cycling"
+        Row(
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.animateContentSize()
+        ) {
 
-            }) {
-                texto_generico_one_line("bicicleta")
-            }
-
-            Button(onClick = {
-                tipo_crearcion_ruta_creado = "driving"
-            }) {
-                texto_generico_one_line("carro")
-            }
-        }
-        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            Column(
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
                 FloatingActionButton(
                     modifier = Modifier.padding(10.dp),
                     containerColor = fabColor,
@@ -1113,15 +1171,11 @@ fun SimpleMapDark(
                             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                                 location?.let {
                                     val userPoint = Point.fromLngLat(it.longitude, it.latitude)
-                                    coroutineScope.launch {
+                                    scope.launch {
                                         mapboxMapInstance?.easeTo(
-                                            CameraOptions.Builder()
-                                                .center(userPoint)
-                                                .zoom(16.0)
+                                            CameraOptions.Builder().center(userPoint).zoom(16.0)
                                                 .build(),
-                                            MapAnimationOptions.Builder()
-                                                .duration(800)
-                                                .build()
+                                            MapAnimationOptions.Builder().duration(800).build()
                                         )
                                         seguirUbicacion.value = true
                                         animatingMap.value = false
@@ -1131,65 +1185,94 @@ fun SimpleMapDark(
                         } else {
                             validacion_mostrar_dialog_ubi_off = true
                         }
-                    }
-                ) {
+                    }) {
                     Icon(Icons.Default.MyLocation, contentDescription = "Mi ubicación")
                 }
-                Box(
-                    modifier = Modifier
-                        .size(40.dp) // tamaño compacto
-                        .clip(CircleShape)
-                        .background(fabColor)
-                        .clickable {
-                            modo3D = !modo3D
-                            cambiarModoMapa()
+
+                // 🔹 Botones de rutas
+                if (show_dialog_datos_lugares) {
+                    desing_creacion_ruta(
+                        context,
+                        lista = listaIconosRutas,
+                        img_tienda = lister_marker.img,
+                        seleccionado = { select ->
+
+                            Log.d("tipo_creacion_ruta", "creacion de ruta de $select")
+                            tipo_crearcion_ruta_creado = select
+                            seguirUbicacion.value = true
+
+
                         },
-                    contentAlignment = Alignment.Center
-                ) {
-                    texto_generico_one_line(
-                        if (modo3D) "2D" else "3D",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                        cancelacion_ruta = {
+                            mostar_ocultar_carta = true
+                            show_dialog_datos_lugares = true
+                            tipo_crearcion_ruta_creado = ""
+                            rutaCompleta = emptyList()
+                            mapboxMapInstance?.getStyle { style ->
+                                style.getSourceAs<GeoJsonSource>("route_source")?.featureCollection(
+                                    FeatureCollection.fromFeatures(emptyArray())
+                                )
+                            }
+                        },
+                        ocultar_dialog_ = {
+                            mostar_ocultar_carta = false
+                        }, mostrar_campo = {
+                            mostar_ocultar_carta = !mostar_ocultar_carta
+                            show_dialog_datos_lugares = true
+                        }, {
+                            validacion_mostrar_dialog_ubi_off = true
+                        })
                 }
+
+
             }
-            AnimatedVisibility (img_lugare_dircto != null && showRecenterButton, enter = fadeIn(), exit = fadeOut()) {
-                FloatingActionButton(
-                    modifier = Modifier.padding(10.dp),
-                    containerColor = fabColor,
-                    contentColor = Color.White,
-                    onClick = {
-                        if (mapView == null) return@FloatingActionButton
+
+            // 🔹 Columna derecha (siempre fija)
+            Row(
+                modifier = Modifier.padding(top = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+
+                estilo_visual_btns(null, null, if (modo3D) "2D" else "3D", "text") {
+                    modo3D = !modo3D
+                    cambiarModoMapa()
+                }
+
+                estilo_visual_btns(
+                    null,
+                    if (estilo_mapa_mapbox) Icons.Default.NightlightRound else Icons.Default.WbSunny,
+                    null,
+                    "icono"
+                ) {
+                    estilo_mapa_mapbox = !estilo_mapa_mapbox
+                }
+
+                if (img_lugare_dircto != null && showRecenterButton) {
+
+                    estilo_visual_btns(
+                        img_lugare_dircto, null, null, "img"
+                    ) {
+
+                        if (mapView == null) return@estilo_visual_btns
                         val mapboxMap = mapView.getMapboxMap()
+
                         if (longitud_lugar != 0.0 && latitud_lugar != 0.0) {
                             val puntoUsuario = Point.fromLngLat(longitud_lugar, latitud_lugar)
+
                             mapboxMap.flyTo(
-                                cameraOptions = CameraOptions.Builder()
-                                    .center(puntoUsuario)
-                                    .zoom(16.0)
-                                    .build(),
-                                animationOptions = MapAnimationOptions.Builder()
-                                    .duration(2000)
-                                    .build()
+                                CameraOptions.Builder().center(puntoUsuario).zoom(16.0).build(),
+                                MapAnimationOptions.Builder().duration(2000).build()
                             )
                         }
-                        showRecenterButton=false
+
+                        showRecenterButton = false
                     }
-                ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(img_lugare_dircto)
-                            .placeholder(R.drawable.cargando_img_categorias)
-                            .error(R.drawable.cargando_img_categorias)
-                            .build(),
-                        contentDescription = "Mi ubicación",
-                        modifier = Modifier
-                            .size(50.dp)
-                            .clip(CircleShape), // 🔹 aquí hacemos la imagen circular
-                        contentScale = ContentScale.Crop
-                    )
                 }
             }
         }
+
+
 
 
         AnimatedVisibility(
@@ -1248,12 +1331,10 @@ fun SimpleMapDark(
 
                                     val location_turismo = Point.fromLngLat(it.longitud, it.latitud)
 
-                                    coroutineScope.launch {
+                                    scope.launch {
                                         mapboxMapInstance?.flyTo(
-                                            CameraOptions.Builder()
-                                                .center(location_turismo)
-                                                .zoom(16.0)
-                                                .build()
+                                            CameraOptions.Builder().center(location_turismo)
+                                                .zoom(16.0).build()
                                         )
                                     }
                                 }
@@ -1303,12 +1384,10 @@ fun SimpleMapDark(
 
                                     val location_tienda = Point.fromLngLat(it.longitud, it.latitud)
 
-                                    coroutineScope.launch {
+                                    scope.launch {
                                         mapboxMapInstance?.flyTo(
-                                            CameraOptions.Builder()
-                                                .center(location_tienda)
-                                                .zoom(16.0)
-                                                .build()
+                                            CameraOptions.Builder().center(location_tienda)
+                                                .zoom(16.0).build()
                                         )
                                     }
                                 }
@@ -1344,14 +1423,15 @@ fun SimpleMapDark(
                 },
                 selecionado_id = { seleccionadoIds ->
                     seleccionadoId = seleccionadoIds
-                }, datos_selecionado_retornar = { datos ->
+                },
+                datos_selecionado_retornar = { datos ->
                     lister_marker = datos
                     show_dialog_datos_lugares = true
                 })
         }
 
         AnimatedVisibility(
-            visible = show_dialog_datos_lugares,
+            visible = show_dialog_datos_lugares && mostar_ocultar_carta,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.BottomCenter)
@@ -1360,14 +1440,34 @@ fun SimpleMapDark(
             dialogo_lugar_tienda(
                 horario_box1 = horarios[lister_marker.id] ?: HorarioDia_box(),
                 viewmodelMapa = viewmodelMapa,
-                lat_user = lat_user, log_user = log_user,
+                lat_user = lat_user,
+                log_user = log_user,
                 time = tick,
                 dataclass_map = lister_marker,
                 cerra_dialog = {
+                    selectedAnnotation?.let { anterior ->
+                        animarTamano(anterior, anterior.iconSize ?: 1.0, 0.9)
+                        anterior.iconOpacity = 0.6
+                        pointAnnotationManager.value?.update(anterior)
+                    }
+                    selectedAnnotation = null
                     show_dialog_datos_lugares = false
                     mostar_bottom_sheet = true
+                    tipo_crearcion_ruta_creado = ""
+                    rutaCompleta = emptyList()
+                    mapboxMapInstance?.getStyle { style ->
+                        style.getSourceAs<GeoJsonSource>("route_source")?.featureCollection(
+                            FeatureCollection.fromFeatures(emptyArray())
+                        )
+                    }
                 },
                 limpiar = {
+                    selectedAnnotation?.let { anterior ->
+                        animarTamano(anterior, anterior.iconSize ?: 1.0, 0.9)
+                        anterior.iconOpacity = 0.6
+                        pointAnnotationManager.value?.update(anterior)
+                    }
+                    selectedAnnotation = null
                     seleccionadoId = ""
                 },
                 crear_ruta = { id, lat, log ->
@@ -1381,8 +1481,7 @@ fun SimpleMapDark(
                         lat_user = lat
                         log_user = log
                         lister_marker = lister_marker.copy(
-                            my_latitud = lat,
-                            my_longitud = log
+                            my_latitud = lat, my_longitud = log
                         )
                     }
                 },
@@ -1395,12 +1494,9 @@ fun SimpleMapDark(
                     scope.launch {
                         val location = Point.fromLngLat(log, lat)
 
-                        coroutineScope.launch {
+                        scope.launch {
                             mapboxMapInstance?.flyTo(
-                                CameraOptions.Builder()
-                                    .center(location)
-                                    .zoom(16.0)
-                                    .build(),
+                                CameraOptions.Builder().center(location).zoom(16.0).build(),
 
                                 )
                         }
@@ -1429,7 +1525,8 @@ fun SimpleMapDark(
                                 context = context,
                                 username = datos.valor,
                                 id_tienda = id,
-                                localidad_tienda = localidad, id_user
+                                localidad_tienda = localidad,
+                                id_user
                             )
                         }
 
@@ -1440,7 +1537,8 @@ fun SimpleMapDark(
                                 context = context,
                                 pageUrl = datos.valor,
                                 id_tienda = id,
-                                localidad_tienda = localidad, id_user
+                                localidad_tienda = localidad,
+                                id_user
                             )
                         }
 
@@ -1451,7 +1549,8 @@ fun SimpleMapDark(
                                 context = context,
                                 url = datos.valor,
                                 id_tienda = id,
-                                localidad_tienda = localidad, id_user
+                                localidad_tienda = localidad,
+                                id_user
                             )
                         }
 
@@ -1460,7 +1559,8 @@ fun SimpleMapDark(
                                 context = context,
                                 url = datos.valor,
                                 id_tienda = id,
-                                localidad_tienda = localidad, id_user
+                                localidad_tienda = localidad,
+                                id_user
                             )
                         }
 
@@ -1501,11 +1601,9 @@ fun SimpleMapDark(
                                     currentIndex_turismo = anterior // 🔹 Actualiza el índice
                                     val location = Point.fromLngLat(tienda.longitud, tienda.latitud)
 
-                                    coroutineScope.launch {
+                                    scope.launch {
                                         mapboxMapInstance?.flyTo(
-                                            CameraOptions.Builder()
-                                                .center(location)
-                                                .zoom(16.0)
+                                            CameraOptions.Builder().center(location).zoom(16.0)
                                                 .build()
                                         )
                                     }
@@ -1552,11 +1650,9 @@ fun SimpleMapDark(
                                     currentIndex = anterior
                                     val location = Point.fromLngLat(tienda.longitud, tienda.latitud)
 
-                                    coroutineScope.launch {
+                                    scope.launch {
                                         mapboxMapInstance?.flyTo(
-                                            CameraOptions.Builder()
-                                                .center(location)
-                                                .zoom(16.0)
+                                            CameraOptions.Builder().center(location).zoom(16.0)
                                                 .build()
                                         )
                                     }
@@ -1599,11 +1695,9 @@ fun SimpleMapDark(
                                     currentIndex_turismo = siguiente // 🔹 Actualiza el índice
                                     val location = Point.fromLngLat(tienda.longitud, tienda.latitud)
 
-                                    coroutineScope.launch {
+                                    scope.launch {
                                         mapboxMapInstance?.flyTo(
-                                            CameraOptions.Builder()
-                                                .center(location)
-                                                .zoom(16.0)
+                                            CameraOptions.Builder().center(location).zoom(16.0)
                                                 .build()
                                         )
                                     }
@@ -1648,11 +1742,9 @@ fun SimpleMapDark(
                                     currentIndex = siguiente // 🔹 Actualiza el índice
                                     val location = Point.fromLngLat(tienda.longitud, tienda.latitud)
 
-                                    coroutineScope.launch {
+                                    scope.launch {
                                         mapboxMapInstance?.flyTo(
-                                            CameraOptions.Builder()
-                                                .center(location)
-                                                .zoom(16.0)
+                                            CameraOptions.Builder().center(location).zoom(16.0)
                                                 .build()
                                         )
                                     }
@@ -1671,9 +1763,7 @@ fun SimpleMapDark(
                         else -> {}
                     }
 
-
-                }
-            )
+                })
         }
         AnimatedVisibility(
             visible = (mostar_bottom_sheet && !show_dialog_datos_lugares) || seleccionadoId.isNullOrEmpty(),
@@ -1691,8 +1781,7 @@ fun SimpleMapDark(
             ) {
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowUp, // ícono de flecha hacia arriba
-                    contentDescription = "Abrir",
-                    tint = Color.White, // color del ícono
+                    contentDescription = "Abrir", tint = Color.White, // color del ícono
                     modifier = Modifier.size(20.dp) // tamaño del ícono
                 )
             }
@@ -1703,7 +1792,8 @@ fun SimpleMapDark(
             bottom_sheet_tiendas_filtradas(
                 verificar_intener,
                 viewModel_filtrado_tiendas,
-                dataclass_tienda_seleccionada, show_bottom_sheet_datos_tienda_lugares
+                dataclass_tienda_seleccionada,
+                show_bottom_sheet_datos_tienda_lugares
             ) {
                 show_bottom_sheet_datos_tienda_lugares = false
             }
@@ -1727,8 +1817,7 @@ fun SimpleMapDark(
 
         if (validacion_mostrar_dialog_ubi_off) {
             dialog_sin_ubi__rutas(
-                "Para una mejor experiencia y " +
-                        "poder mostrar tu ubicación actual en el mapa, por favor habilita la función de ubicación en tu dispositivo. Esto te permitirá ubicarte de manera más rápida y conocer la proximidad a tu destino.",
+                "Para una mejor experiencia y " + "poder mostrar tu ubicación actual en el mapa, por favor habilita la función de ubicación en tu dispositivo. Esto te permitirá ubicarte de manera más rápida y conocer la proximidad a tu destino.",
                 { validacion_mostrar_dialog_ubi_off = false },
                 {
                     validacion_mostrar_dialog_ubi_off = false
@@ -1766,8 +1855,7 @@ suspend fun loadBitmapFromUrl(url: String, context: Context): Bitmap = withConte
         e.printStackTrace()
         // Si falla por alguna razón, cargar un recurso local de la app
         BitmapFactory.decodeResource(
-            context.resources,
-            R.drawable.logo_geinz_500x500 // tu placeholder local en drawable
+            context.resources, R.drawable.logo_geinz_500x500 // tu placeholder local en drawable
         )
     }
 }
@@ -1782,7 +1870,8 @@ fun Bitmap.toCircularBitmap(sizePx: Int): Bitmap {
 
     val shader = BitmapShader(
         Bitmap.createScaledBitmap(this, sizePx, sizePx, true),
-        Shader.TileMode.CLAMP, Shader.TileMode.CLAMP
+        Shader.TileMode.CLAMP,
+        Shader.TileMode.CLAMP
     )
     paint.shader = shader
     canvas.drawOval(rectF, paint)
@@ -1804,8 +1893,7 @@ fun createCirclePolygon(center: Point, radiusMeters: Double, points: Int = 64): 
         val deltaLon = dx / (earthRadius * Math.cos(lat))
 
         val point = Point.fromLngLat(
-            Math.toDegrees(lon + deltaLon),
-            Math.toDegrees(lat + deltaLat)
+            Math.toDegrees(lon + deltaLon), Math.toDegrees(lat + deltaLat)
         )
         coordinates.add(point)
     }
@@ -1813,56 +1901,63 @@ fun createCirclePolygon(center: Point, radiusMeters: Double, points: Int = 64): 
     return Polygon.fromLngLats(listOf(coordinates))
 }
 
+// ✅ Fuera de la función — singleton, se crea una sola vez
+private val httpClient = OkHttpClient.Builder()
+    .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+    .readTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+    .build()
+
 suspend fun obtenerRuta(
-    originLat: Double,
-    originLng: Double,
-    destLat: Double,
-    destLng: Double,
-    profile: String
+    originLat: Double, originLng: Double, destLat: Double, destLng: Double, profile: String
 ): List<Point>? {
 
-    val client = OkHttpClient()
+    val url = "https://api.mapbox.com/directions/v5/mapbox/$profile/" +
+            "$originLng,$originLat;$destLng,$destLat" +
+            "?geometries=geojson&overview=full&steps=true&access_token=$MAPBOX_ACCESS_TOKEN"
 
-    val url =
-        "https://api.mapbox.com/directions/v5/mapbox/$profile/" +
-                "$originLng,$originLat;$destLng,$destLat" +
-                "?geometries=geojson&access_token=$MAPBOX_ACCESS_TOKEN"
+    Log.d("DESVIO_DEBUG", "🌐 URL: $url")
 
     val request = Request.Builder().url(url).build()
 
     return withContext(Dispatchers.IO) {
+        try {
+            val response = httpClient.newCall(request).execute()
+            val body = response.body?.string()
 
-        val response = client.newCall(request).execute()
-        val body = response.body?.string()
+            Log.d("DESVIO_DEBUG", "HTTP ${response.code} — body: ${body?.take(300)}")
 
-        if (response.isSuccessful && body != null) {
+            if (response.isSuccessful && body != null) {
+                val json = JSONObject(body)
+                val routes = json.getJSONArray("routes")
 
-            val json = JSONObject(body)
-            val routes = json.getJSONArray("routes")
+                Log.d("DESVIO_DEBUG", "Rutas en respuesta: ${routes.length()}")
 
-            if (routes.length() > 0) {
+                if (routes.length() > 0) {
+                    val coordinates = routes
+                        .getJSONObject(0)
+                        .getJSONObject("geometry")
+                        .getJSONArray("coordinates")
 
-                val geometry = routes
-                    .getJSONObject(0)
-                    .getJSONObject("geometry")
+                    val points = mutableListOf<Point>()
+                    for (i in 0 until coordinates.length()) {
+                        val coord = coordinates.getJSONArray(i)
+                        points.add(Point.fromLngLat(coord.getDouble(0), coord.getDouble(1)))
+                    }
 
-                val coordinates = geometry.getJSONArray("coordinates")
-
-                val points = mutableListOf<Point>()
-
-                for (i in 0 until coordinates.length()) {
-                    val coord = coordinates.getJSONArray(i)
-                    points.add(
-                        Point.fromLngLat(
-                            coord.getDouble(0),
-                            coord.getDouble(1)
-                        )
-                    )
+                    Log.d("DESVIO_DEBUG", "✅ Puntos extraídos: ${points.size}")
+                    points
+                } else {
+                    Log.e("DESVIO_DEBUG", "❌ routes vacío")
+                    null
                 }
-
-                points
-            } else null
-        } else null
+            } else {
+                Log.e("DESVIO_DEBUG", "❌ HTTP error ${response.code}: ${body?.take(200)}")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("DESVIO_DEBUG", "💥 Excepción: ${e.javaClass.simpleName} — ${e.message}")
+            null
+        }
     }
 }
 
@@ -1875,7 +1970,6 @@ fun obtenerPuntoMasCercanoEnSegmento(p: Point, a: Point, b: Point): Point {
 
     var param = if (lenSq != 0.0) dot / lenSq else -1.0
 
-    // Forzamos a que el punto esté dentro del segmento (entre esquinas)
     param = when {
         param < 0 -> 0.0
         param > 1 -> 1.0
@@ -1883,10 +1977,126 @@ fun obtenerPuntoMasCercanoEnSegmento(p: Point, a: Point, b: Point): Point {
     }
 
     return Point.fromLngLat(
-        a.longitude() + param * atb[0],
-        a.latitude() + param * atb[1]
+        a.longitude() + param * atb[0], a.latitude() + param * atb[1]
     )
 }
+
+@Composable
+fun estilo_visual_btns(
+    img: String?,
+    icon: ImageVector?,
+    txt: String?,
+    tipo: String,
+    listener: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary)
+            .clickable {
+                listener()
+            }, contentAlignment = Alignment.Center
+    ) {
+        when (tipo) {
+            "img" -> {
+                if (img != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current).data(img)
+                            .placeholder(R.drawable.cargando_img_categorias)
+                            .error(R.drawable.cargando_img_categorias).build(),
+                        contentDescription = "Mi ubicación",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+
+            "icono" -> {
+                if (icon != null) {
+                    Icon(icon, contentDescription = "Mi ubicación")
+                }
+            }
+
+            "text" -> {
+                if (txt != null) {
+                    texto_generico_one_line(
+                        txt, style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+
+    }
+}
+
+@Composable
+fun desing_creacion_ruta(
+    context: Context,
+    lista: List<iconos_creaciones_rutas>,
+    img_tienda: String,
+    seleccionado: (String) -> Unit,
+    cancelacion_ruta: () -> Unit,
+    ocultar_dialog_: () -> Unit, mostrar_campo: () -> Unit, mostar_dialog_no_ubi_activa: () -> Unit
+) {
+
+    var seleccionadoActual by remember { mutableStateOf<String?>(null) }
+
+    val listaVisible = if (seleccionadoActual == null) {
+        lista
+    } else {
+        lista.filter { it.tipo == seleccionadoActual }
+    }
+
+    listaVisible.forEach { i ->
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary)
+                .clickable {
+                    if (verificarUbiActiva(context)) {
+
+                        if (seleccionadoActual == i.tipo) {
+                            seleccionadoActual = null
+                            cancelacion_ruta()
+                        } else {
+                            seleccionadoActual = i.tipo
+                            seleccionado(i.tipo)
+                            ocultar_dialog_()
+                        }
+                    } else {
+                        mostar_dialog_no_ubi_activa()
+                    }
+                }, contentAlignment = Alignment.Center
+        ) {
+
+            Icon(
+                imageVector = i.icono, contentDescription = i.tipo
+            )
+        }
+    }
+    if (!seleccionadoActual.isNullOrEmpty()) {
+
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current).data(img_tienda)
+                .placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.cargando_img_categorias).build(),
+            contentDescription = "Mi ubicación",
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .clickable {
+                    mostrar_campo()
+                },
+            contentScale = ContentScale.Crop
+        )
+    }
+
+}
+
 
 fun calculateBearing(from: Point, to: Point): Double {
     val lat1 = Math.toRadians(from.latitude())
@@ -1895,7 +2105,31 @@ fun calculateBearing(from: Point, to: Point): Double {
     val lon2 = Math.toRadians(to.longitude())
     val dLon = lon2 - lon1
     val y = Math.sin(dLon) * Math.cos(lat2)
-    val x = Math.cos(lat1) * Math.sin(lat2) -
-            Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon)
+    val x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon)
     return Math.toDegrees(Math.atan2(y, x))
+}
+
+
+fun vibrarTelefono(context: Context) {
+    if (ContextCompat.checkSelfPermission(context, Manifest.permission.VIBRATE)
+        != PackageManager.PERMISSION_GRANTED
+    ) return
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val vibratorManager =
+            context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+        val vibrator = vibratorManager.defaultVibrator
+        vibrator.vibrate(
+            VibrationEffect.createOneShot(300, VibrationEffect.DEFAULT_AMPLITUDE)
+        )
+    } else {
+        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(300, VibrationEffect.DEFAULT_AMPLITUDE)
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(300)
+        }
+    }
 }

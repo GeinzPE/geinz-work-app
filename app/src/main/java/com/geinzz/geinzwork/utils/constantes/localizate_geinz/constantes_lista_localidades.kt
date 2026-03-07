@@ -1386,6 +1386,26 @@ object constantes_lista_localidades {
             String.format("%.1f km", distancia / 1000f) // 1 decimal en km
         }
     }
+    fun calcularDistanciaMetros(
+        myLat: Double,
+        myLng: Double,
+        latitud: Double,
+        longitud: Double
+    ): Float {
+
+        val resultado = FloatArray(1)
+        Location.distanceBetween(myLat, myLng, latitud, longitud, resultado)
+
+        return resultado[0] // metros
+    }
+
+    fun formatearDistancia(distancia: Float): String {
+        return if (distancia < 1000) {
+            "${distancia.toInt()} m"
+        } else {
+            String.format("%.1f km", distancia / 1000f)
+        }
+    }
 
     fun isGpsActivo(context: Context): Boolean {
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager

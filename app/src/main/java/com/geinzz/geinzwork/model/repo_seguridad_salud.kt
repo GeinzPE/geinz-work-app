@@ -195,10 +195,7 @@ class repo_seguridad_salud {
                 .post(body)
                 .build()
 
-
-
-
-            val response = client.newCall(request).execute() // ✅ ahora sí
+            val response = client.newCall(request).execute()
 
             if (!response.isSuccessful) {
                 throw IOException("Error TTS: ${response.code}")

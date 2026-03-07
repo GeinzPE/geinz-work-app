@@ -17,11 +17,19 @@ import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.IOException
 import java.util.Calendar
 
 class repo_lugares_turisticos {
     val db = FirebaseFirestore.getInstance()
+    private val client = OkHttpClient()
 
 
     suspend fun obtener_lugares_turisticos(localidad: String): List<lugares_turisticos> {
@@ -121,7 +129,32 @@ class repo_lugares_turisticos {
     }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+    suspend fun cloudTTS(texto: String): ByteArray =
+        withContext(Dispatchers.IO) {
+
+            val json = """
+        {
+          "texto": "$texto"
+        }
+        """.trimIndent()
+
+            val body = json.toRequestBody("application/json".toMediaType())
+
+            val request = Request.Builder()
+                .url("https://us-central1-geinzworkapp.cloudfunctions.net/textToSpeechIA")
+                .post(body)
+                .build()
+
+            val response = client.newCall(request).execute()
+
+            if (!response.isSuccessful) {
+                throw IOException("Error TTS: ${response.code}")
+            }
+
+            response.body?.bytes()
+                ?: throw IOException("Audio vacío")
+        }
+
     fun obtenerTiendasCercanas(
         lat: Double,
         lon: Double,
