@@ -25,7 +25,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -69,7 +68,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -192,8 +190,12 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.annotation.RequiresPermission
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.Alignment
+
 import androidx.compose.ui.node.Ref
 import androidx.core.content.ContextCompat
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("MissingPermission")
@@ -207,6 +209,10 @@ fun SimpleMapDark(
     viewModel_filtrado_tiendas: viewModel_filtado_tiendas,
     viewmode_segurirdad_Salud: viewmode_seguridad_salud,
 ) {
+    var velocidad_kmh by remember { mutableStateOf(0f) }
+    var ultimaUbicacionTiempo by remember { mutableStateOf(0L) }
+    var ultimaLat2 by remember { mutableStateOf(0.0) }
+    var ultimaLng2 by remember { mutableStateOf(0.0) }
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
@@ -309,6 +315,7 @@ fun SimpleMapDark(
     var tipo_crearcion_ruta_creado by remember { mutableStateOf("") }
     val estaRecalculando = remember { mutableStateOf(false) }
     val ultimoRecalculo = remember { longArrayOf(0L) }
+    var distancia_realziada_hacia_el_destivo by remember { mutableStateOf(0f) }
     fun animarTamano(
         annotation: PointAnnotation, desde: Double, hasta: Double
     ) {
@@ -661,7 +668,36 @@ fun SimpleMapDark(
             val distancia = FloatArray(1)
             Location.distanceBetween(lat_user, log_user, lat, lng, distancia)
             if (distancia[0] < 1f && lat_user != 0.0) return@OnIndicatorPositionChangedListener
+            if (rutaCompleta.isNotEmpty()) {
+                val ahora = System.currentTimeMillis()
+                if (ultimaLat2 != 0.0 && ultimaLng2 != 0.0) {
+                    val tiempoSegundos = (ahora - ultimaUbicacionTiempo) / 1000f
+                    val metros = FloatArray(1)
+                    Location.distanceBetween(ultimaLat2, ultimaLng2, lat, lng, metros)
+                    velocidad_kmh =
+                        if (tiempoSegundos > 0) (metros[0] / tiempoSegundos) * 3.6f else 0f
 
+                    Log.d(
+                        "VELOCIDAD_DEBUG", """
+            ⏱ tiempoSegundos: $tiempoSegundos
+            📏 metros recorridos: ${metros[0]}
+            🚀 velocidad_kmh: $velocidad_kmh
+            📍 de ($ultimaLat2, $ultimaLng2) → ($lat, $lng)
+        """.trimIndent()
+                    )
+                } else {
+                    Log.d("VELOCIDAD_DEBUG", "⚠️ Primera posición, aún no hay velocidad calculable")
+                }
+
+                ultimaLat2 = lat
+                ultimaLng2 = lng
+                ultimaUbicacionTiempo = ahora
+
+                Log.d(
+                    "VELOCIDAD_DEBUG",
+                    "💾 Guardado — ultimaLat2=$ultimaLat2, ultimaLng2=$ultimaLng2, ultimaUbicacionTiempo=$ultimaUbicacionTiempo"
+                )
+            }
             lat_user = lat
             log_user = lng
 
@@ -777,8 +813,7 @@ fun SimpleMapDark(
             tipo_crearcion_ruta_creado
         )
 
-        ruta?.let { puntos ->
-
+        ruta?.let { (puntos, distanciaMetros) ->
             rutaCompleta = puntos
 
             mapboxMapInstance?.getStyle { style ->
@@ -898,16 +933,16 @@ fun SimpleMapDark(
                             tipo_crearcion_ruta_creado
                         )
 
-                        if (nuevaRuta != null && nuevaRuta.isNotEmpty()) {
+                        if (nuevaRuta != null && nuevaRuta.first.isNotEmpty()) {
                             Log.d(
                                 "DESVIO_DEBUG",
-                                "✅ Nueva ruta con ${nuevaRuta.size} puntos — dibujando"
+                                "✅ Nueva ruta con ${nuevaRuta.first.size} puntos — dibujando"
                             )
-                            rutaCompleta = nuevaRuta
+                            rutaCompleta = nuevaRuta.first  // ← lista de puntos
                             mapboxMapInstance?.getStyle { style ->
                                 style.getSourceAs<GeoJsonSource>("route_source")?.featureCollection(
                                     FeatureCollection.fromFeature(
-                                        Feature.fromGeometry(LineString.fromLngLats(nuevaRuta))
+                                        Feature.fromGeometry(LineString.fromLngLats(nuevaRuta.first)) // ← .first aquí
                                     )
                                 )
                             }
@@ -1192,16 +1227,13 @@ fun SimpleMapDark(
                 // 🔹 Botones de rutas
                 if (show_dialog_datos_lugares) {
                     desing_creacion_ruta(
+                        distancia_realziada_hacia_el_destivo.toInt(),
+                        velocidad = velocidad_kmh,
                         context,
                         lista = listaIconosRutas,
                         img_tienda = lister_marker.img,
                         seleccionado = { select ->
-
-                            Log.d("tipo_creacion_ruta", "creacion de ruta de $select")
                             tipo_crearcion_ruta_creado = select
-                            seguirUbicacion.value = true
-
-
                         },
                         cancelacion_ruta = {
                             mostar_ocultar_carta = true
@@ -1763,6 +1795,8 @@ fun SimpleMapDark(
                         else -> {}
                     }
 
+                }, distancia_a_recorrer = { distancia ->
+                    distancia_realziada_hacia_el_destivo = distancia
                 })
         }
         AnimatedVisibility(
@@ -1909,7 +1943,7 @@ private val httpClient = OkHttpClient.Builder()
 
 suspend fun obtenerRuta(
     originLat: Double, originLng: Double, destLat: Double, destLng: Double, profile: String
-): List<Point>? {
+): Pair<List<Point>, Double>? {
 
     val url = "https://api.mapbox.com/directions/v5/mapbox/$profile/" +
             "$originLng,$originLat;$destLng,$destLat" +
@@ -1933,10 +1967,9 @@ suspend fun obtenerRuta(
                 Log.d("DESVIO_DEBUG", "Rutas en respuesta: ${routes.length()}")
 
                 if (routes.length() > 0) {
-                    val coordinates = routes
-                        .getJSONObject(0)
-                        .getJSONObject("geometry")
-                        .getJSONArray("coordinates")
+                    val route = routes.getJSONObject(0)
+                    val distanciaMetros = route.getDouble("distance")
+                    val coordinates = route.getJSONObject("geometry").getJSONArray("coordinates")
 
                     val points = mutableListOf<Point>()
                     for (i in 0 until coordinates.length()) {
@@ -1944,8 +1977,7 @@ suspend fun obtenerRuta(
                         points.add(Point.fromLngLat(coord.getDouble(0), coord.getDouble(1)))
                     }
 
-                    Log.d("DESVIO_DEBUG", "✅ Puntos extraídos: ${points.size}")
-                    points
+                    return@withContext Pair(points, distanciaMetros) // ← aquí el cambio
                 } else {
                     Log.e("DESVIO_DEBUG", "❌ routes vacío")
                     null
@@ -2034,6 +2066,8 @@ fun estilo_visual_btns(
 
 @Composable
 fun desing_creacion_ruta(
+    distancia: Int,
+    velocidad: Float,
     context: Context,
     lista: List<iconos_creaciones_rutas>,
     img_tienda: String,
@@ -2041,7 +2075,7 @@ fun desing_creacion_ruta(
     cancelacion_ruta: () -> Unit,
     ocultar_dialog_: () -> Unit, mostrar_campo: () -> Unit, mostar_dialog_no_ubi_activa: () -> Unit
 ) {
-
+    Log.d("distancia_realziada", "$distancia")
     var seleccionadoActual by remember { mutableStateOf<String?>(null) }
 
     val listaVisible = if (seleccionadoActual == null) {
@@ -2049,16 +2083,22 @@ fun desing_creacion_ruta(
     } else {
         lista.filter { it.tipo == seleccionadoActual }
     }
-
+    val distanciaKm = distancia / 1000.0
     listaVisible.forEach { i ->
+        val deshabilitado = i.tipo == "walking" && distanciaKm > 20.0
+
         Box(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary)
+                .background(
+                    if (deshabilitado) Color.Gray
+                    else MaterialTheme.colorScheme.primary
+                )
                 .clickable {
-                    if (verificarUbiActiva(context)) {
+                    if (deshabilitado) return@clickable // ← no hace nada
 
+                    if (verificarUbiActiva(context)) {
                         if (seleccionadoActual == i.tipo) {
                             seleccionadoActual = null
                             cancelacion_ruta()
@@ -2072,12 +2112,14 @@ fun desing_creacion_ruta(
                     }
                 }, contentAlignment = Alignment.Center
         ) {
-
             Icon(
-                imageVector = i.icono, contentDescription = i.tipo
+                imageVector = i.icono,
+                contentDescription = i.tipo,
+                tint = if (deshabilitado) Color.White.copy(alpha = 0.4f) else Color.White
             )
         }
     }
+
     if (!seleccionadoActual.isNullOrEmpty()) {
 
         AsyncImage(
@@ -2092,6 +2134,36 @@ fun desing_creacion_ruta(
                     mostrar_campo()
                 },
             contentScale = ContentScale.Crop
+        )
+    }
+
+    val colorVelocidad = when {
+        velocidad.toInt() > 400 -> Color.Red        // imposible / error
+        velocidad.toInt() > 120 -> Color(0xFFFF6600) // muy rápido
+        velocidad.toInt() > 60 -> Color(0xFFFFCC00) // rápido
+        velocidad.toInt() >= 1 -> Color(0xFF4CAF50) // normal
+        else -> Color.White        // quieto / sin movimiento
+    }
+
+    Column(
+        modifier = Modifier
+            .size(40.dp)
+            .clip(CircleShape)
+            .background(colorVelocidad)
+            .padding(horizontal = 10.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "${velocidad.toInt()}",
+            color = Color.Black,
+            style = MaterialTheme.typography.bodySmall
+        )
+        spacer_vertical(5.dp)
+        Text(
+            text = "km/h",
+            color = Color.Black,
+            style = MaterialTheme.typography.bodySmall
         )
     }
 

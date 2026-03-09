@@ -1246,6 +1246,7 @@ fun dialogo_lugar_tienda(
     mostrar_lista: () -> Unit,
     move_izquierda: () -> Unit,
     move_derecha: () -> Unit,
+    distancia_a_recorrer:(Float)-> Unit
 ) {
 
     val tick = time
@@ -1499,6 +1500,7 @@ fun dialogo_lugar_tienda(
                                 "A $distanciaTexto",
                                 MaterialTheme.typography.bodyMedium,
                             )
+                            distancia_a_recorrer(distanciaMetros)
                             spacer_horizonta(5.dp)
                             if (!boxVisible) {
                                 Box(

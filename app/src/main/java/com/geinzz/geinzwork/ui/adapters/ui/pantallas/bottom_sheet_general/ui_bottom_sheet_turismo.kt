@@ -430,6 +430,16 @@ fun card_img_container(
 
     var tipo_creacion_ruta by remember { mutableStateOf("") }
 
+
+    LaunchedEffect(lista_string_filtrado_tiendas) {
+        if (lista_string_filtrado_tiendas.isNotEmpty() && sub_categoria_selecionada.isEmpty()) {
+            val primera = lista_string_filtrado_tiendas.first()
+            sub_categoria_selecionada = primera
+            subcategoria_seleciondafun(primera)
+            viewmodel_turismo.actualizarCategoria(primera)
+        }
+    }
+
     LaunchedEffect(uid_respald_user) {
         if (uid_respald_user.isNotEmpty()) {
             id_respado_user = uid_respald_user
