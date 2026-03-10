@@ -213,6 +213,7 @@ fun SimpleMapDark(
     var ultimaUbicacionTiempo by remember { mutableStateOf(0L) }
     var ultimaLat2 by remember { mutableStateOf(0.0) }
     var ultimaLng2 by remember { mutableStateOf(0.0) }
+    val velocidadBuffer = remember { ArrayDeque<Float>() }
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
@@ -583,8 +584,9 @@ fun SimpleMapDark(
 
         if (primeraCargaCamara) {
 
-            mapboxMap.setCamera(
-                CameraOptions.Builder().center(punto).zoom(16.0).build()
+            mapboxMap.flyTo(
+                CameraOptions.Builder().center(punto).zoom(16.0).build(),
+                MapAnimationOptions.Builder().duration(1500).build()
             )
 
             primeraCargaCamara = false
@@ -613,27 +615,27 @@ fun SimpleMapDark(
     LaunchedEffect(seguirUbicacion.value) {
 
         if (seguirUbicacion.value) {
+            val lat = lat_user.takeIf { it != 0.0 } ?: return@LaunchedEffect
+            val lng = log_user.takeIf { it != 0.0 } ?: return@LaunchedEffect
 
-            ultimaLat = lat_user
+            val puntoUsuario = Point.fromLngLat(lng, lat)
+            val zoomDestino = if (rutaCompleta.isNotEmpty()) 18.0 else 16.0
 
-            ultimaLng = log_user
+            // 🔹 Paso 1: primero ajusta zoom suavemente sin mover centro
+//            mapboxMapInstance?.easeTo(
+//                CameraOptions.Builder()
+//                    .zoom(zoomDestino)
+//                    .build(),
+//                MapAnimationOptions.Builder().duration(300).build()
+//            )
 
-            if (ultimaLat != null && ultimaLng != null) {
-
-                val puntoUsuario = Point.fromLngLat(
-                    ultimaLng, ultimaLat
-                )
-                val distacia_camaara_creada = if (rutaCompleta.isNotEmpty()) {
-                    18.0
-                } else {
-                    16.0
-                }
-                mapboxMapInstance?.flyTo(
-                    cameraOptions = CameraOptions.Builder().center(puntoUsuario)
-                        .zoom(distacia_camaara_creada).build(),
-                    animationOptions = MapAnimationOptions.Builder().duration(1000).build()
-                )
-            }
+            // 🔹 Paso 2: luego desliza al centro — se siente natural y fluido
+//            delay(200)
+//            val pitchValue = if (modo3D) 45.0 else 0.0
+            mapboxMapInstance?.flyTo(
+                CameraOptions.Builder().center(puntoUsuario).zoom(zoomDestino).build(),
+                MapAnimationOptions.Builder().duration(2000).build()
+            )
         }
 
         val mensaje = if (seguirUbicacion.value) {
@@ -644,11 +646,11 @@ fun SimpleMapDark(
 
         scope.launch {
             snackbarHostState.showSnackbar(
-                message = mensaje, duration = SnackbarDuration.Short
+                message = mensaje,
+                duration = SnackbarDuration.Short
             )
         }
     }
-
     DisposableEffect(mapView) {
 
         if (mapView == null) return@DisposableEffect onDispose { }
@@ -668,35 +670,54 @@ fun SimpleMapDark(
             val distancia = FloatArray(1)
             Location.distanceBetween(lat_user, log_user, lat, lng, distancia)
             if (distancia[0] < 1f && lat_user != 0.0) return@OnIndicatorPositionChangedListener
+            // ❌ REEMPLAZA ESTO (el bloque if rutaCompleta.isNotEmpty con velocidad)
+            // ✅ POR ESTO
             if (rutaCompleta.isNotEmpty()) {
                 val ahora = System.currentTimeMillis()
+
                 if (ultimaLat2 != 0.0 && ultimaLng2 != 0.0) {
                     val tiempoSegundos = (ahora - ultimaUbicacionTiempo) / 1000f
                     val metros = FloatArray(1)
                     Location.distanceBetween(ultimaLat2, ultimaLng2, lat, lng, metros)
-                    velocidad_kmh =
-                        if (tiempoSegundos > 0) (metros[0] / tiempoSegundos) * 3.6f else 0f
 
-                    Log.d(
-                        "VELOCIDAD_DEBUG", """
-            ⏱ tiempoSegundos: $tiempoSegundos
-            📏 metros recorridos: ${metros[0]}
-            🚀 velocidad_kmh: $velocidad_kmh
-            📍 de ($ultimaLat2, $ultimaLng2) → ($lat, $lng)
-        """.trimIndent()
-                    )
+                    // 🔹 1. Tiempo mínimo entre cálculos (evita divisiones por tiempos muy cortos)
+                    val tiempoMinimo = tiempoSegundos >= 1.0f
+
+                    // 🔹 2. Distancia mínima real de movimiento (filtra microtremblores GPS)
+                    val distanciaReal = metros[0] >= 2f
+
+                    if (tiempoMinimo && distanciaReal) {
+                        val velocidadRaw = (metros[0] / tiempoSegundos) * 3.6f
+
+                        // 🔹 3. Filtro de velocidades imposibles (> 200 km/h = error GPS)
+                        if (velocidadRaw <= 200f) {
+
+                            // 🔹 4. Suavizado: media móvil de últimas 5 muestras
+                            velocidadBuffer.addLast(velocidadRaw)
+                            if (velocidadBuffer.size > 5) velocidadBuffer.removeFirst()
+
+                            val velocidadSuavizada = velocidadBuffer.average().toFloat()
+
+                            // 🔹 5. Si la diferencia con la anterior es pequeña, bajar gradualmente
+                            velocidad_kmh = when {
+                                velocidadSuavizada < 1f -> 0f // quieto = 0, sin decimales raros
+                                Math.abs(velocidadSuavizada - velocidad_kmh) < 2f ->
+                                    velocidad_kmh + (velocidadSuavizada - velocidad_kmh) * 0.3f // suavizado lento
+                                else -> velocidadSuavizada
+                            }
+                        }
+
+                        // Solo actualizar referencia cuando hubo movimiento real
+                        ultimaLat2 = lat
+                        ultimaLng2 = lng
+                        ultimaUbicacionTiempo = ahora
+                    }
                 } else {
-                    Log.d("VELOCIDAD_DEBUG", "⚠️ Primera posición, aún no hay velocidad calculable")
+                    // Primera posición
+                    ultimaLat2 = lat
+                    ultimaLng2 = lng
+                    ultimaUbicacionTiempo = ahora
                 }
-
-                ultimaLat2 = lat
-                ultimaLng2 = lng
-                ultimaUbicacionTiempo = ahora
-
-                Log.d(
-                    "VELOCIDAD_DEBUG",
-                    "💾 Guardado — ultimaLat2=$ultimaLat2, ultimaLng2=$ultimaLng2, ultimaUbicacionTiempo=$ultimaUbicacionTiempo"
-                )
             }
             lat_user = lat
             log_user = lng
@@ -733,15 +754,15 @@ fun SimpleMapDark(
                         .build()
                 )
             } else {
+                val pitchActual = if (modo3D) 45.0 else 0.0
+
                 mapboxMap.easeTo(
                     CameraOptions.Builder()
                         .center(puntoUsuario)
-                        .zoom(16.0)
-                        .bearing(0.0)
-                        .pitch(0.0)
+                        .pitch(pitchActual)
                         .build(),
                     MapAnimationOptions.Builder()
-                        .duration(300) // ✅ Reducido también
+                        .duration(2000)
                         .build()
                 )
             }
@@ -982,10 +1003,11 @@ fun SimpleMapDark(
         }
 
         if (!seguirUbicacion.value) {
+
             val location = Point.fromLngLat(log_user, lat_user)
             mapboxMapInstance?.easeTo(
                 CameraOptions.Builder().center(location).zoom(16.0).build(),
-                MapAnimationOptions.Builder().duration(500).build()
+                MapAnimationOptions.Builder().duration(2000).build()
             )
         }
     }
@@ -1224,7 +1246,6 @@ fun SimpleMapDark(
                     Icon(Icons.Default.MyLocation, contentDescription = "Mi ubicación")
                 }
 
-                // 🔹 Botones de rutas
                 if (show_dialog_datos_lugares) {
                     desing_creacion_ruta(
                         distancia_realziada_hacia_el_destivo.toInt(),
