@@ -468,8 +468,7 @@ fun card_img_container(
     // Launcher para pedir permiso
     val permisoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) {
+    ) { granted ->        if (granted) {
             if (lugares_turisticos_filtrados.isNotEmpty()) {
                 if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
                     ver_mapa(lugares_turisticos_filtrados)
