@@ -163,6 +163,8 @@ import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Share
@@ -468,7 +470,8 @@ fun card_img_container(
     // Launcher para pedir permiso
     val permisoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->        if (granted) {
+    ) { granted ->
+        if (granted) {
             if (lugares_turisticos_filtrados.isNotEmpty()) {
                 if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
                     ver_mapa(lugares_turisticos_filtrados)
@@ -522,7 +525,7 @@ fun card_img_container(
                 imagenes = datos.lista_img
             )
             spacer_vertical(10.dp)
-            chips_filtrado(lista_turismo_bottom_sheet,{ i ->
+            chips_filtrado(lista_turismo_bottom_sheet, { i ->
                 when (i) {
                     "Ir al lugar" -> {
                         tipo_creacion_ruta = "turismo"
@@ -564,7 +567,7 @@ fun card_img_container(
                         compartir_link_tienda(context, datos)
                     }
                 }
-            },{
+            }, {
                 scope.launch {
                     snackbarHostState.showSnackbar(
                         message = "Selecciona una categoria para ver en el mapa",
@@ -802,100 +805,112 @@ fun card_img_container(
                             ) {
                                 items(state.lista_lugares, key = { it.id_tienda }) { item ->
                                     Log.d("teindashoraiobox", item.horario_box.toString())
-                                    item_cercanos(
-                                        viewmodel_filtrado,
-                                        context,
-                                        firebaseAuth,
-                                        expanded = expandedItemId == item.id_tienda,
-                                        tick,
-                                        datos = datos,
-                                        item = item,
-                                        onExpand = { id ->
-                                            expandedItemId = if (expandedItemId == id) null else id
-                                        },
-                                        clik_card = { id, localidad, color ->
-                                            coroutineScope.launch {
-                                                clik_card(id, localidad, color)
-                                            }
-                                        },
-                                        clik_icono = { i ->
-                                            when (i.nombre_red) {
-                                                "llamar" -> {
-                                                    llamar(
-                                                        id_respado_user,
-                                                        "tienda",
-                                                        item.id_tienda,
-                                                        item.localidad_tienda,
-                                                        context,
-                                                        i.valor,
-                                                        {
-                                                            call_dialog_permise = true
-                                                            numero_llamada = i.valor
-                                                        })
-                                                }
+                                    Box(
+                                        modifier = Modifier
 
-                                                "whatsapp" -> {
-                                                    abrir_whattsapp(
-                                                        id_respado_user,
-                                                        "tienda",
-                                                        item.id_tienda,
-                                                        item.localidad_tienda,
-                                                        context,
-                                                        i.valor
-                                                    )
+                                            .animateItem(
+                                                placementSpec = tween(
+                                                    durationMillis = 350,
+                                                    easing = FastOutSlowInEasing
+                                                )
+                                            )
+                                    ) {
+                                        item_cercanos(
+                                            viewmodel_filtrado,
+                                            context,
+                                            firebaseAuth,
+                                            expanded = expandedItemId == item.id_tienda,
+                                            tick,
+                                            datos = datos,
+                                            item = item,
+                                            onExpand = { id ->
+                                                expandedItemId =
+                                                    if (expandedItemId == id) null else id
+                                            },
+                                            clik_card = { id, localidad, color ->
+                                                coroutineScope.launch {
+                                                    clik_card(id, localidad, color)
                                                 }
+                                            },
+                                            clik_icono = { i ->
+                                                when (i.nombre_red) {
+                                                    "llamar" -> {
+                                                        llamar(
+                                                            id_respado_user,
+                                                            "tienda",
+                                                            item.id_tienda,
+                                                            item.localidad_tienda,
+                                                            context,
+                                                            i.valor,
+                                                            {
+                                                                call_dialog_permise = true
+                                                                numero_llamada = i.valor
+                                                            })
+                                                    }
 
-                                                "tiktok" -> {
-                                                    openTiktok(
-                                                        "Tienda",
-                                                        context,
-                                                        i.valor,
-                                                        item.id_tienda,
-                                                        item.localidad_tienda, id_respado_user
-                                                    )
+                                                    "whatsapp" -> {
+                                                        abrir_whattsapp(
+                                                            id_respado_user,
+                                                            "tienda",
+                                                            item.id_tienda,
+                                                            item.localidad_tienda,
+                                                            context,
+                                                            i.valor
+                                                        )
+                                                    }
+
+                                                    "tiktok" -> {
+                                                        openTiktok(
+                                                            "Tienda",
+                                                            context,
+                                                            i.valor,
+                                                            item.id_tienda,
+                                                            item.localidad_tienda, id_respado_user
+                                                        )
+                                                    }
+
+                                                    "facebook" -> {
+                                                        openFacebook(
+                                                            "Tienda",
+                                                            context,
+                                                            i.valor,
+                                                            item.id_tienda,
+                                                            item.localidad_tienda, id_respado_user
+                                                        )
+                                                    }
+
+                                                    "instagram" -> {
+                                                        openInstagram(
+                                                            "Tienda",
+                                                            context,
+                                                            i.valor,
+                                                            item.id_tienda,
+                                                            item.localidad_tienda, id_respado_user
+                                                        )
+                                                    }
+
+                                                    "Web" -> {
+                                                        openWebLink(
+                                                            context,
+                                                            i.valor,
+                                                            item.id_tienda,
+                                                            item.localidad_tienda, id_respado_user
+                                                        )
+                                                    }
+
                                                 }
-
-                                                "facebook" -> {
-                                                    openFacebook(
-                                                        "Tienda",
-                                                        context,
-                                                        i.valor,
-                                                        item.id_tienda,
-                                                        item.localidad_tienda, id_respado_user
-                                                    )
-                                                }
-
-                                                "instagram" -> {
-                                                    openInstagram(
-                                                        "Tienda",
-                                                        context,
-                                                        i.valor,
-                                                        item.id_tienda,
-                                                        item.localidad_tienda, id_respado_user
-                                                    )
-                                                }
-
-                                                "Web" -> {
-                                                    openWebLink(
-                                                        context,
-                                                        i.valor,
-                                                        item.id_tienda,
-                                                        item.localidad_tienda, id_respado_user
-                                                    )
-                                                }
-
-                                            }
-                                        },
-                                        click_crear_ruta = { id_tienda, localidad, lat, log ->
-                                            lat_tienda = lat
-                                            long_tienda = log
-                                            dialog_Crear_ruta = true
-                                            tipo_creacion_ruta = "tienda"
-                                            id_tienda_parms = id_tienda
-                                            localidad_tienda = localidad
-                                        }, mostrar_dialog_registro = {
-                                            mostrar_login_seccion_bottom_sheet()
-                                        })
+                                            },
+                                            click_crear_ruta = { id_tienda, localidad, lat, log ->
+                                                lat_tienda = lat
+                                                long_tienda = log
+                                                dialog_Crear_ruta = true
+                                                tipo_creacion_ruta = "tienda"
+                                                id_tienda_parms = id_tienda
+                                                localidad_tienda = localidad
+                                            }, mostrar_dialog_registro = {
+                                                mostrar_login_seccion_bottom_sheet()
+                                            })
+                                    }
                                 }
                             }
                         }

@@ -185,6 +185,7 @@ fun pantalla_principal(
     abir_butom_Var: () -> Unit,
     cerrar_buttom_var: () -> Unit,
     onback_preset: () -> Unit,
+    geinz_inmobiliaria:(String)-> Unit,
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -480,7 +481,7 @@ fun pantalla_principal(
             titulo = "Buscas una casa cerca?",
             descripcion = "Encuentra la casa de tus sueños en ${localidadSeleccionada.value} aqui en Geinz",
             imagen = R.drawable.logo_geinz_500x500,
-            onClick = { listner_sevicios_tramites(localidad_defaul, "") }
+            onClick = { geinz_inmobiliaria(localidad_defaul) }
         ),
 
         BannerItem(
@@ -496,7 +497,18 @@ fun pantalla_principal(
             titulo = "¿Quieres ser parte de Geinz?",
             descripcion = "Llega a más clientes potenciales y aumenta tu presencia digital.",
             imagen = R.drawable.geinz_baner,
-            onClick = { listner_sevicios_tramites(localidad_defaul, "") }
+            onClick = {
+                if (isConnected) {
+                    mostar_bottom_sheet_ayuda_geinz = true
+                } else {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Verifica tu conexión a internet y vuelvelo a intentar",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                }
+            }
         )
 
     )
@@ -1605,4 +1617,3 @@ fun nuevos_lugares_agregados_fun(
 
     }
 }
-

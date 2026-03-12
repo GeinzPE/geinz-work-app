@@ -220,12 +220,12 @@ fun PantallaRecientes(
                             item {
                                 spacer_vertical(10.dp)
 
-                                    if(listaFiltrada.isNotEmpty()){
-                                        texto_generico_one_line(
-                                            "Encontrados (${listaFiltrada.size})"
-                                        )
-                                        spacer_vertical(5.dp)
-                                    }
+                                if(listaFiltrada.isNotEmpty()){
+                                    texto_generico_one_line(
+                                        "Encontrados (${listaFiltrada.size})"
+                                    )
+                                    spacer_vertical(5.dp)
+                                }
 
                             }
                             if (listaFiltrada.isEmpty()) {
@@ -267,8 +267,8 @@ fun PantallaRecientes(
                                                     bottom_sheet_datos_competos_notificacion=true
                                                     id_promo_select = id_promo
                                                 }else{
-                                                bottom_sheet_datos_competos = true
-                                                id_promo_select = id_promo
+                                                    bottom_sheet_datos_competos = true
+                                                    id_promo_select = id_promo
                                                 }
                                             },
                                             cambiar_a_pausar = { nuevo_estado, id_promo->
@@ -577,6 +577,5 @@ fun ShimmerImagenConMarca(texto:String="GEINZ") {
         }
     }
 }
-
 
 

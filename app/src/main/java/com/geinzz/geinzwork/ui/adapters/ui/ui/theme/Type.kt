@@ -83,7 +83,12 @@ val Typography = Typography(
     bodySmall = TextStyle(
         fontFamily = FontFamily.Default,
         fontSize = 13.sp,
+    ),
+    labelSmall = TextStyle( // más pequeño que bodySmall
+        fontFamily = FontFamily.Default,
+        fontSize = 12.sp
     )
+
 
 
     /* Other default text styles to override

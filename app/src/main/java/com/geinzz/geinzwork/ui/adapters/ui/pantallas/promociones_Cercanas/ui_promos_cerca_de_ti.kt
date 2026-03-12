@@ -658,8 +658,8 @@ fun ui_promos_cerca_de_ti(
                                 // 🔥 Nuevo item de filtros generales
                                 item {
 
-                                        // 🔹 Logueamos que no hay tienda seleccionada
-                                        Log.d("DEBUG_FILTROS", "No hay tienda seleccionada, mostrando FILTROS_GENERALES")
+                                    // 🔹 Logueamos que no hay tienda seleccionada
+                                    Log.d("DEBUG_FILTROS", "No hay tienda seleccionada, mostrando FILTROS_GENERALES")
 
                                     val condicion =
                                         (rango_precio != null && rango_precio != "Sin precio") ||
@@ -667,24 +667,24 @@ fun ui_promos_cerca_de_ti(
                                                 lista_comodidades_Select.isNotEmpty() ||
                                                 lista_resultados_gemini.isNotEmpty()
 
-                                        // 🔹 Logueamos el estado de cada filtro
-                                        Log.d("DEBUG_FILTROS", "Rango precio activo: ${rango_precio}")
-                                        Log.d("DEBUG_FILTROS", "Métodos seleccionados: ${listaSeleccionada.isNotEmpty()}")
-                                        Log.d("DEBUG_FILTROS", "Comodidades seleccionadas: ${lista_comodidades_Select.isNotEmpty()}")
-                                        Log.d("DEBUG_FILTROS", "Resultados Gemini: ${lista_resultados_gemini.isNotEmpty()}")
-                                        Log.d("DEBUG_FILTROS", "Condición general: $condicion")
+                                    // 🔹 Logueamos el estado de cada filtro
+                                    Log.d("DEBUG_FILTROS", "Rango precio activo: ${rango_precio}")
+                                    Log.d("DEBUG_FILTROS", "Métodos seleccionados: ${listaSeleccionada.isNotEmpty()}")
+                                    Log.d("DEBUG_FILTROS", "Comodidades seleccionadas: ${lista_comodidades_Select.isNotEmpty()}")
+                                    Log.d("DEBUG_FILTROS", "Resultados Gemini: ${lista_resultados_gemini.isNotEmpty()}")
+                                    Log.d("DEBUG_FILTROS", "Condición general: $condicion")
 
-                                        estilo_ig_header(
-                                            "FILTROS_GENERALES",
-                                            condicion,
-                                            i = itemFiltros,
-                                            seleccionada = false,
-                                            img_clikeada = { id ->
-                                                // 🔹 Logueamos el click en la imagen del header
-                                                Log.d("DEBUG_FILTROS", "Click en FILTROS_GENERALES, id: $id")
-                                                mostar_bottom_sheet_datos = true
-                                            }
-                                        )
+                                    estilo_ig_header(
+                                        "FILTROS_GENERALES",
+                                        condicion,
+                                        i = itemFiltros,
+                                        seleccionada = false,
+                                        img_clikeada = { id ->
+                                            // 🔹 Logueamos el click en la imagen del header
+                                            Log.d("DEBUG_FILTROS", "Click en FILTROS_GENERALES, id: $id")
+                                            mostar_bottom_sheet_datos = true
+                                        }
+                                    )
 
                                 }
 
@@ -1587,4 +1587,3 @@ fun estilo_chips_circular_Select(
         }
     }
 }
-

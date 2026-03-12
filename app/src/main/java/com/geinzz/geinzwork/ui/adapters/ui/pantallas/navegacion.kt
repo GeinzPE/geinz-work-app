@@ -12,7 +12,9 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -50,9 +52,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.toRoute
 import com.geinzz.geinzwork.Network_internet.ConnectivityViewModel
-import com.geinzz.geinzwork.NotificacionRS
 import com.geinzz.geinzwork.data.model.FavoritosFactory
-import com.geinzz.geinzwork.data.model.dataclass_review.data_class_review
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.UiAction
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data_store.data_store_localidad
@@ -64,20 +64,20 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda.ui_pantalla_busque
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.cuenta_user
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.favoritos.iu_favoritos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.Pantalla_filtrado_tiendas
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.pantalla_geinz_inmobiliaria
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.ui_info_imobiliara
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.IniciarSeccion
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.login_principal
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.nuevos_negocios.nuevos_negocios
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.HandleBackPress
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.PantallaExplorarTiendas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.bottom_navigation
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.pantalla_mapa_perzonalizado
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.promociones_Cercanas.ui_promos_cerca_de_ti
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.salud_seguridad.ui_salud_seguirdad
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.servicios_basicos.ui_servicio_tramite
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.login_socios
 import com.geinzz.geinzwork.ui.adapters.ui.principal.pantalla_principal
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.fondo_oscuro5_s
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.viewModels.DeepLinkViewModel
 import com.geinzz.geinzwork.viewModels.UiActionViewModel
 import com.geinzz.geinzwork.viewModels.viewModel_favoritos
@@ -87,12 +87,11 @@ import com.geinzz.geinzwork.viewModels.viewModel_login_user
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
+import com.geinzz.geinzwork.viewModels.viewmodel_inmobiliaria
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 import com.geinzz.geinzwork.viewModels.viewmodel_usuario_registrado
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import java.net.URLDecoder
-import java.net.URLEncoder
 
 private lateinit var firebaseAuth: FirebaseAuth
 
@@ -116,6 +115,7 @@ fun nativationWrapper(
     val viewModel_filtrado_tiendas: viewModel_filtado_tiendas = viewModel()
     val viewmode_segurirdad_Salud: viewmode_seguridad_salud = viewModel()
     val viewmodelMapa: viewmodel_mapa_personalizado = viewModel()
+    val viewmodel_inmobiliaria: viewmodel_inmobiliaria = viewModel()
 
     var id_promo_params by remember { mutableStateOf("") }
     val mostrarCarga by viewModel_login_user.mostrarCarga.observeAsState(false)
@@ -398,7 +398,19 @@ fun nativationWrapper(
             NavHost(
                 navController = navController,
                 startDestination = "pantalla_principal",
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding),
+                enterTransition = {
+                    fadeIn(animationSpec = tween(900))
+                },
+                exitTransition = {
+                    fadeOut(animationSpec = tween(900))
+                },
+                popEnterTransition = {
+                    fadeIn(animationSpec = tween(900))
+                },
+                popExitTransition = {
+                    fadeOut(animationSpec = tween(900))
+                }
             ) {
                 // Pantalla principal
                 composable("pantalla_principal") {
@@ -471,6 +483,8 @@ fun nativationWrapper(
                                 }
                                 launchSingleTop = true
                             }
+                        }, geinz_inmobiliaria = { localidad ->
+                            navController.navigate(geinz_inmobiliaria(localidad_selec = localidad))
                         }
                     )
                 }
@@ -511,7 +525,15 @@ fun nativationWrapper(
                         }, crear_cuenta_geinz = {
                             navController.navigate(crear_cuenta_geinz("crear"))
                         }, abrir_mapa = { tipo ->
-                            navController.navigate(map_perzonalizado(tipo, "barranca",null,null,null))
+                            navController.navigate(
+                                map_perzonalizado(
+                                    tipo,
+                                    "barranca",
+                                    null,
+                                    null,
+                                    null
+                                )
+                            )
                         }, crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
                         }, iniciar_seccion = {
@@ -587,8 +609,16 @@ fun nativationWrapper(
                         viewmodelMapa = viewmodelMapa,
                         localidad_selecionada = datos_lugares_turisticos.localidad,
                         viewmodel_lugares_turisticos = viewModelLugares,
-                        abrir_mapa = { tipo,nombre_lugar,lat,lng ->
-                            navController.navigate(map_perzonalizado(tipo, "barranca",nombre_lugar,lat,lng))
+                        abrir_mapa = { tipo, nombre_lugar, lat, lng ->
+                            navController.navigate(
+                                map_perzonalizado(
+                                    tipo,
+                                    "barranca",
+                                    nombre_lugar,
+                                    lat,
+                                    lng
+                                )
+                            )
                         }, crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
                         }, navigation_regresar = {
@@ -635,7 +665,7 @@ fun nativationWrapper(
 //                        localidad = direcciones.localidad
 //                    )
                     SimpleMapDark(
-                        direcciones.nombre,direcciones.latitud,direcciones.lng,
+                        direcciones.nombre, direcciones.latitud, direcciones.lng,
                         viewmodelMapa,
                         direcciones.localidad,
                         id_respado_user,
@@ -664,7 +694,15 @@ fun nativationWrapper(
                         },
                         abrir_mapa = { tipo, localidad ->
                             if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
-                                navController.navigate(map_perzonalizado(tipo, localidad,null,null,null))
+                                navController.navigate(
+                                    map_perzonalizado(
+                                        tipo,
+                                        localidad,
+                                        null,
+                                        null,
+                                        null
+                                    )
+                                )
                             } else {
                                 bottom_sheet_iniciar_seccion = true
                             }
@@ -702,7 +740,15 @@ fun nativationWrapper(
                         viewmode_segurirdad_Salud,
                         localida = salud_Seguridad.localidad,
                         abrir_mapa = { latitud, longitud ->
-                            navController.navigate(map_perzonalizado("seguridad", "",null,null,null))
+                            navController.navigate(
+                                map_perzonalizado(
+                                    "seguridad",
+                                    "",
+                                    null,
+                                    null,
+                                    null
+                                )
+                            )
 
                         })
                 }
@@ -756,7 +802,15 @@ fun nativationWrapper(
                         },
                         abrir_mapa = { tipo, loc ->
                             if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
-                                navController.navigate(map_perzonalizado(tipo, loc,null,null,null))
+                                navController.navigate(
+                                    map_perzonalizado(
+                                        tipo,
+                                        loc,
+                                        null,
+                                        null,
+                                        null
+                                    )
+                                )
                             } else {
                                 bottom_sheet_iniciar_seccion = true
                             }
@@ -781,8 +835,16 @@ fun nativationWrapper(
                         viewmodelMapa,
                         "barranca",
                         viewModelLugares,
-                        abrir_mapa = { tipo,nombre,lat,lng ->
-                            navController.navigate(map_perzonalizado(tipo, "barranca",nombre,lat,lng))
+                        abrir_mapa = { tipo, nombre, lat, lng ->
+                            navController.navigate(
+                                map_perzonalizado(
+                                    tipo,
+                                    "barranca",
+                                    nombre,
+                                    lat,
+                                    lng
+                                )
+                            )
                         },
                         crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
                         navigation_regresar = { navController.popBackStack() },
@@ -798,7 +860,15 @@ fun nativationWrapper(
                         viewmode_segurirdad_Salud,
                         localida = "barranca",
                         abrir_mapa = { latitud, longitud ->
-                            navController.navigate(map_perzonalizado("seguridad", "",null,null,null))
+                            navController.navigate(
+                                map_perzonalizado(
+                                    "seguridad",
+                                    "",
+                                    null,
+                                    null,
+                                    null
+                                )
+                            )
 
                         })
                 }
@@ -847,6 +917,34 @@ fun nativationWrapper(
                         })
                 }
 
+                composable<geinz_inmobiliaria> { navback ->
+
+                    val servicio = navback.toRoute<geinz_inmobiliaria>()
+
+                    pantalla_geinz_inmobiliaria(
+                        viewmodel_inmobiliaria,
+                        nombre_user = datos_user?.nombre ?: "",
+                        coneccion = isConnected,
+                        localidad_user = servicio.localidad_selec, { id, localidad, nombre ->
+                            navController.navigate(
+                                datos_completros_inmobiliaria(
+                                    id,
+                                    localidad,
+                                    nombre
+                                )
+                            )
+
+
+                        }
+                    )
+                }
+
+
+                composable<datos_completros_inmobiliaria> { navback ->
+                    val datos = navback.toRoute<datos_completros_inmobiliaria>()
+                    ui_info_imobiliara(viewmodel_inmobiliaria,datos.id, datos.localidad, datos.nombre_user)
+                }
+
 
                 composable(
                     route = "lugares_turisticos/{localidad}/{idLugar}",
@@ -860,8 +958,16 @@ fun nativationWrapper(
                         viewmodelMapa = viewmodelMapa,
                         localidad_selecionada = localidad,
                         viewmodel_lugares_turisticos = viewModelLugares,
-                        abrir_mapa = { tipo,nombre,lat,lng ->
-                            navController.navigate(map_perzonalizado(tipo, "barranca",nombre,lat,lng))
+                        abrir_mapa = { tipo, nombre, lat, lng ->
+                            navController.navigate(
+                                map_perzonalizado(
+                                    tipo,
+                                    "barranca",
+                                    nombre,
+                                    lat,
+                                    lng
+                                )
+                            )
                         },
                         crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
                         navigation_regresar = { navController.popBackStack() },
