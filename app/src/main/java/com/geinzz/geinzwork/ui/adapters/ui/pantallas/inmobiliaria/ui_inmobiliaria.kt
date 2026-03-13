@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -73,7 +74,6 @@ fun pantalla_geinz_inmobiliaria(
     val listState = rememberLazyListState()
     LaunchedEffect(Unit) {
         viewmodel.obtener_inmubles_dados(localidad_user)
-//        viewmodel.agregar_geo()
     }
 
     Box(
@@ -116,6 +116,7 @@ fun pantalla_geinz_inmobiliaria(
                     items(lista_inmubles) { i ->
 
                         estilo_visual_card(
+                            viewmodel,
                             i,
                             context,
                             "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0"
@@ -139,11 +140,13 @@ fun pantalla_geinz_inmobiliaria(
 
 @Composable
 fun estilo_visual_card(
+    viewmodel: viewmodel_inmobiliaria,
     i: dataclass_geinz_inmobiliaria_principal,
     context: Context,
     logo: String,
     img_clikeble: () -> Unit
 ) {
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -237,18 +240,23 @@ fun estilo_visual_card(
             )
         }
 
-
-
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            btns_solo_borde(
+                modifier = Modifier.size(50.dp),
+                color = Color(0xFF031E6C),
+                icono = R.drawable.comparir_icon,{
+                    viewmodel.compartir_link_tienda(context,i.localidad,i.id)
+                }
+            )
+
             btns(
                 modifier = Modifier.weight(1f),
                 color = Color(0xFF4A0085),
                 icono = R.drawable.google_maps_icono,
-                text = "Ver lugares cercanos"
+                text = "Lugares cercanos"
             )
 
             btns(
@@ -342,3 +350,41 @@ fun btns(
         }
     }
 }
+
+@Composable
+fun btns_solo_borde(
+    modifier: Modifier = Modifier,
+    color: Color,
+    icono: Int,clikc:()-> Unit
+) {
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(55.dp)
+            .border(
+                width = 2.dp,
+                color = color,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .clickable{
+                clikc()
+            }
+            .padding(vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+
+            Image(
+                painter = painterResource(id = icono),
+                contentDescription = null,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+    }
+}
+

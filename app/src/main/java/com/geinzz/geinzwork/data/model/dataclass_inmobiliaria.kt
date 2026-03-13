@@ -41,7 +41,8 @@ data class completeta_info_inmuebles(
 
     val cantidad_lugares_seguros: List<lugares_cercanos_> =emptyList(),
     val listalugares_cercanos: List<lugares_cercanos_> =emptyList(),
-    val llissa_lugareS_turistos: List<lugares_cercanos_> =emptyList()
+    val llissa_lugareS_turistos: List<lugares_cercanos_> =emptyList(),
+    val lista_servicios_sercanos : List<lugares_cercanos_> =emptyList()
 )
 
 

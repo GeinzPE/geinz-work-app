@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.lugares_cercanos_
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.viewModels.viewmodel_inmobiliaria
 
@@ -141,83 +144,17 @@ fun ui_info_imobiliara(
                         modifier = Modifier.padding(start = 5.dp)
                     )
 
-                    datos.llissa_lugareS_turistos.forEach { i ->
-                        AsyncImage(
-                            model = i.img_String,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(50.dp)
-                                .combinedClickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    onClick = {
-                                    },
-                                    onLongClick = {
-                                    }),
-                            contentScale = ContentScale.Crop,
-                            placeholder = painterResource(R.drawable.cargando_img_categorias),
-                            error = painterResource(R.drawable.cargando_img_categorias)
-                        )
-                        texto_generico_one_line(
-                            "lugares cercanos : ${i.nombre} / ${i.categoira} ",
-                            color = Color(0xFFB0B0B0),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 5.dp)
-                        )
+                    Column {
+
+                        ListaHorizontal(datos.llissa_lugareS_turistos)
+
+                        ListaHorizontal(datos.cantidad_lugares_seguros)
+
+                        ListaHorizontal(datos.listalugares_cercanos)
+
+                        ListaHorizontal(datos.lista_servicios_sercanos)
+
                     }
-
-                    datos.cantidad_lugares_seguros.forEach { i ->
-                        AsyncImage(
-                            model = i.img_String,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(50.dp)
-                                .combinedClickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    onClick = {
-                                    },
-                                    onLongClick = {
-                                    }),
-                            contentScale = ContentScale.Crop,
-                            placeholder = painterResource(R.drawable.cargando_img_categorias),
-                            error = painterResource(R.drawable.cargando_img_categorias)
-                        )
-                        texto_generico_one_line(
-                            "lugares cercanos : ${i.nombre} / ${i.categoira} ",
-                            color = Color(0xFFB0B0B0),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 5.dp)
-                        )
-                    }
-
-                    datos.listalugares_cercanos.forEach { i ->
-                        AsyncImage(
-                            model = i.img_String,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(50.dp)
-                                .combinedClickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    onClick = {
-                                    },
-                                    onLongClick = {
-                                    }),
-                            contentScale = ContentScale.Crop,
-                            placeholder = painterResource(R.drawable.cargando_img_categorias),
-                            error = painterResource(R.drawable.cargando_img_categorias)
-                        )
-                        texto_generico_one_line(
-                            "lugares cercanos : ${i.nombre} / ${i.categoira} ",
-                            color = Color(0xFFB0B0B0),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 5.dp)
-                        )
-                    }
-
-
-
 
                     val icon_bano = R.drawable.icono_bano
                     val icon_dormitorio = R.drawable.icono_dormitorio
@@ -317,4 +254,36 @@ fun GaleriaHorizontalInstagram(
             }
         }
     }
+}
+
+@Composable
+fun ListaHorizontal(lista: List<lugares_cercanos_>) {
+
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+
+        items(lista) { i ->
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+
+                AsyncImage(
+                    model = i.img_String,
+                    contentDescription = null,
+                    modifier = Modifier.size(50.dp),
+                    contentScale = ContentScale.Crop
+                )
+
+                texto_generico_one_line(
+                    "${i.nombre} / ${i.categoira}",
+                    color = Color(0xFFB0B0B0),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 5.dp)
+                )
+
+            }
+
+        }
+    }
+
 }

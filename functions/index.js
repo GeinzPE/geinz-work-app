@@ -161,7 +161,7 @@ exports.share = onRequest(async (req, res) => {
       "prf",
       "prn",
       "scr",
-      "prms",
+      "prms","in"
     ];
 
     if (!TIPOS_SIN_LOCALIDAD.includes(tipo) && (!localidad || !categoria)) {
@@ -206,6 +206,13 @@ exports.share = onRequest(async (req, res) => {
         .doc(id)
         .collection("notificaciones_enviadas")
         .doc(id_promo_compartida);
+    } else if (tipo == "in") {
+      ref = admin
+        .firestore()
+        .collection("Tiendas")
+        .doc(localidad)
+        .collection("geinz_inmobiliaria")
+        .doc(id);
     }
     // rew | rewc | ru | prf → NO FIRESTORE
 
@@ -237,6 +244,8 @@ exports.share = onRequest(async (req, res) => {
         titulo = capitalizeFirstLetter(
           data.datos_de_notificacion.nombre_tienda || "Geinz",
         );
+      } else if (tipo == "in") {
+        titulo = capitalizeFirstLetter(data.nombre || "Geinz");
       }
     }
 
@@ -280,6 +289,13 @@ exports.share = onRequest(async (req, res) => {
         imagen =
           data?.datos_de_notificacion?.img_notificacion ||
           "https://geinzworkapp.web.app/default.jpg";
+      }else if(tipo=="in"){
+         const promos = data.listaImg || [];
+        if (promos.length > 0) {
+          imagen = promos[0]; // toma siempre la primera imagen si existe
+        } else {
+          imagen = "https://geinzworkapp.web.app/default.jpg";
+        }
       }
     }
 
@@ -818,7 +834,8 @@ exports.textToSpeechIA = onRequest(
         .replace(/[\u{1F600}-\u{1F6FF}]/gu, "")
         .replace(/[\u{2700}-\u{27BF}]/gu, "");
 
-      if (textoLimpio.length === 0) return res.status(400).send("Texto inválido");
+      if (textoLimpio.length === 0)
+        return res.status(400).send("Texto inválido");
 
       // 🔹 Dividir texto en trozos de 5000 caracteres (limite API)
       const CHUNK_SIZE = 4500; // un poco menos de 5000 para seguridad
@@ -849,12 +866,11 @@ exports.textToSpeechIA = onRequest(
 
       res.set("Content-Type", "audio/mpeg");
       res.send(audioFinal);
-
     } catch (error) {
       console.error("❌ Error TTS:", error.code, error.message);
       res.status(500).send(error.message);
     }
-  }
+  },
 );
 
 /*

@@ -114,10 +114,15 @@ class repo_inmobiliaria {
             obtner_lugares_seguros_cerca_turismo(lat, lng, localidad)
         }
 
+        val sitios_cercanos =async {
+            obtener_servicios_esenciales(lat, lng, localidad)
+        }
+
         inmueble.copy(
             listalugares_cercanos = lugaresCercanosDeferred.await(),
             cantidad_lugares_seguros = lugaresSegurosDeferred.await(),
-            llissa_lugareS_turistos = turismoDeferred.await()
+            llissa_lugareS_turistos = turismoDeferred.await(),
+            lista_servicios_sercanos=sitios_cercanos.await()
         )
     }
 
@@ -265,6 +270,57 @@ class repo_inmobiliaria {
     }
 
 
+    suspend fun obtener_servicios_esenciales(
+        lat: Double,
+        lng: Double,
+        localidad: String,
+        radiusKm: Double = 1.0
+    ): List<lugares_cercanos_> {
+
+        val bounds = GeoFireUtils.getGeoHashQueryBounds(
+            GeoLocation(lat, lng),
+            radiusKm * 1000
+        )
+
+        val docs = bounds.flatMap { bound ->
+            db.collection("Tiendas")
+                .document("servicios_basicos")
+                .collection(localidad)
+                .orderBy("geohash")
+                .startAt(bound.startHash)
+                .endAt(bound.endHash)
+                .get()
+                .await()
+                .documents
+        }.distinctBy { it.id }
+
+        return docs
+            .filter { doc ->
+                val ubicacion = doc.get("direccion") as? Map<*, *>
+                val docLat = ubicacion?.get("lat") as? Double ?: return@filter false
+                val docLng = ubicacion?.get("log") as? Double ?: return@filter false
+
+                val distancia = calcularDistanciaKm_directo(lat, lng, docLat, docLng)
+
+                Log.d("lugares_seguros", "doc: ${doc.id} | distancia: $distancia km")
+
+                distancia <= radiusKm
+            }
+            .map { doc ->
+
+                val img = doc.getString("img_logo") ?: ""
+                val nombre = doc.getString("lugar_nombre") ?: ""
+
+                lugares_cercanos_(
+                    img_String = img,
+                    nombre = nombre,
+                    categoira = "",
+                    subcategoria = "seguridad"
+                )
+            }
+    }
+
+
     suspend fun buscarPorGeohash(
         lat: Double,
         lng: Double,
@@ -291,7 +347,7 @@ class repo_inmobiliaria {
 //
 //        val ref = FirebaseFirestore.getInstance()
 //            .collection("Tiendas")
-//            .document("salud_seguridad")
+//            .document("servicios_basicos")
 //            .collection("barranca")
 //
 //        val snapshot = ref.get().await()
@@ -300,10 +356,10 @@ class repo_inmobiliaria {
 //
 //            val data = doc.data ?: continue
 //
-//            val mapUbicacion = data["ubicacion"] as? Map<String, Any> ?: continue
+//            val mapUbicacion = data["direccion"] as? Map<String, Any> ?: continue
 //
-//            val lat = (mapUbicacion["latitud"] as? Number)?.toDouble() ?: continue
-//            val lng = (mapUbicacion["longitud"] as? Number)?.toDouble() ?: continue
+//            val lat = (mapUbicacion["lat"] as? Number)?.toDouble() ?: continue
+//            val lng = (mapUbicacion["log"] as? Number)?.toDouble() ?: continue
 //
 //            val geohash = constantes_lista_localidades.geohashing(lat, lng)
 //

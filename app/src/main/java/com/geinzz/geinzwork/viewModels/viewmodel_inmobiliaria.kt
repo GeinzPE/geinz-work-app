@@ -1,5 +1,7 @@
 package com.geinzz.geinzwork.viewModels
 
+import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.net.URLEncoder
 
 class viewmodel_inmobiliaria : ViewModel() {
     val instarepo = repo_inmobiliaria()
@@ -131,6 +134,27 @@ class viewmodel_inmobiliaria : ViewModel() {
 
 
 
+    fun compartir_link_tienda(
+        context: Context,
+        localidad: String,
+        id: String,
+    ) {
+        // Construimos el link de la Cloud Function
+        val link = "https://geinzworkapp.web.app/share?" +
+                "t=in" +
+                "&id=${URLEncoder.encode(id, "UTF-8")}" +
+                "&l=${URLEncoder.encode(localidad, "UTF-8")}"
+
+
+
+        // Intent simple ya sin imágenes, porque la preview la maneja Firebase Hosting
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT,link)
+        }
+
+        context.startActivity(Intent.createChooser(intent, "Compartir con"))
+    }
     sealed class etado_carga_info_inmuebles {
         data class succes(val datos: completeta_info_inmuebles) : etado_carga_info_inmuebles()
         data class error(val txt: String = "error") : etado_carga_info_inmuebles()

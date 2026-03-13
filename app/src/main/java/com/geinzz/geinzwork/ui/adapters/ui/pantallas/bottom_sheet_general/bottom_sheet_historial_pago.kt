@@ -106,8 +106,8 @@ fun bottom_sheet_historial_pago(
 
     val viewmodel_monedas: viewmodel_recargas = viewModel()
     val state by viewmodel_monedas.stateHistorial.collectAsState()
-    var tipoSeleccionado by remember { mutableStateOf<String?>(null) }
-    var cantidad_obtenida by remember { mutableStateOf<Int?>(null) }
+    var tipoSeleccionadoMap by remember { mutableStateOf<Map<String, String?>>(emptyMap()) }
+    var cantidadObtenidaMap by remember { mutableStateOf<Map<String, Int?>>(emptyMap()) }
 
 
     val lsita_fitlrado_opciones = listOf(
@@ -287,6 +287,8 @@ fun bottom_sheet_historial_pago(
 
                                     val expanded = expandedMap[fecha] ?: false
 
+                                    val tipoSeleccionado = tipoSeleccionadoMap[fecha]
+                                    val cantidad_obtenida = cantidadObtenidaMap[fecha]
                                     item(key = "group_$fecha") {
 
                                         Column(
@@ -398,8 +400,12 @@ fun bottom_sheet_historial_pago(
                                                             conteoPorTipo = conteoPorTipo,
                                                             onTipoSeleccionado = { tipo,cantidad ->
                                                                 Log.d("tipojjaa","$tipo $cantidad")
-                                                                tipoSeleccionado = tipo
-                                                                cantidad_obtenida=cantidad
+                                                                tipoSeleccionadoMap = tipoSeleccionadoMap
+                                                                    .toMutableMap()
+                                                                    .apply { put(fecha, tipo) }
+                                                                cantidadObtenidaMap = cantidadObtenidaMap
+                                                                    .toMutableMap()
+                                                                    .apply { put(fecha, cantidad) }
                                                             }
                                                         )
                                                     }
@@ -421,7 +427,6 @@ fun bottom_sheet_historial_pago(
                                                     } else {
                                                         listaPorFecha.sumOf { it.precio_soles.toDoubleSeguro() }
                                                     }
-
 
 
                                                     Spacer(modifier = Modifier.height(8.dp))
