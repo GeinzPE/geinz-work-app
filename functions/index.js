@@ -856,7 +856,7 @@ exports.textToSpeechIA = onRequest(
           },
           audioConfig: {
             audioEncoding: "MP3",
-            speakingRate: 1.0,
+            speakingRate: 1.05,
           },
         };
 
@@ -871,6 +871,53 @@ exports.textToSpeechIA = onRequest(
       res.status(500).send(error.message);
     }
   },
+);
+
+
+exports.textToSpeechIA_con_params = onRequest(
+  { region: "us-central1" },
+  async (req, res) => {
+    try {
+      if (req.method !== "POST") {
+        return res.status(405).send("Método no permitido");
+      }
+
+      const { texto, voz } = req.body;
+
+      if (!texto) return res.status(400).send("Falta texto");
+
+      // voz por defecto si no envían nada
+      const voiceName = voz || "es-US-News-F";
+
+      const textoLimpio = String(texto)
+        .replace(/[\u{1F600}-\u{1F6FF}]/gu, "")
+        .replace(/[\u{2700}-\u{27BF}]/gu, "");
+
+      if (textoLimpio.length === 0)
+        return res.status(400).send("Texto inválido");
+
+      const request = {
+        input: { text: textoLimpio },
+        voice: {
+          languageCode: "es-US",
+          name: voiceName
+        },
+        audioConfig: {
+          audioEncoding: "MP3",
+          speakingRate: 1.05
+        }
+      };
+
+      const [response] = await ttsClient.synthesizeSpeech(request);
+
+      res.set("Content-Type", "audio/mpeg");
+      res.send(response.audioContent);
+
+    } catch (error) {
+      console.error("❌ Error TTS:", error);
+      res.status(500).send(error.message);
+    }
+  }
 );
 
 /*
