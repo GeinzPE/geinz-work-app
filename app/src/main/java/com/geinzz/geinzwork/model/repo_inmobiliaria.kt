@@ -6,20 +6,22 @@ import com.firebase.geofire.GeoLocation
 import com.firebase.geofire.core.GeoHash
 import com.geinzz.geinzwork.data.model.completeta_info_inmuebles
 import com.geinzz.geinzwork.data.model.dataclass_geinz_inmobiliaria_principal
+import com.geinzz.geinzwork.data.model.ia_inmobiliara_tts
 import com.geinzz.geinzwork.data.model.lugares_cercanos_
+import com.geinzz.geinzwork.herramientas_geinz.constantes.construir_prompt_NLP_para_busqueda
+import com.geinzz.geinzwork.herramientas_geinz.constantes.contruir_promp_ia_datos_inmobiliara
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.calcularDistanciaKm
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.google.firebase.Firebase
+import com.google.firebase.ai.ai
+import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import kotlin.collections.emptyList
-
-import kotlinx.coroutines.tasks.await
 import kotlin.math.cos
 import kotlin.math.sqrt
 import kotlin.math.atan2
@@ -114,7 +116,7 @@ class repo_inmobiliaria {
             obtner_lugares_seguros_cerca_turismo(lat, lng, localidad)
         }
 
-        val sitios_cercanos =async {
+        val sitios_cercanos = async {
             obtener_servicios_esenciales(lat, lng, localidad)
         }
 
@@ -122,7 +124,7 @@ class repo_inmobiliaria {
             listalugares_cercanos = lugaresCercanosDeferred.await(),
             cantidad_lugares_seguros = lugaresSegurosDeferred.await(),
             llissa_lugareS_turistos = turismoDeferred.await(),
-            lista_servicios_sercanos=sitios_cercanos.await()
+            lista_servicios_sercanos = sitios_cercanos.await()
         )
     }
 
@@ -157,12 +159,16 @@ class repo_inmobiliaria {
             .map { doc ->
                 val listaImg = doc.get("img_tienda.logo_tienda") as? String ?: ""
                 val subcategorias = doc.get("subcategoria") as? List<*>
-
+                val ubicacion = doc.get("ubicacion") as? Map<*, *>
+                val docLat = ubicacion?.get("latitud") as? Double ?: 0.0
+                val docLng = ubicacion?.get("longitud") as? Double ?: 0.0
+                val distancia = calcularDistanciaKm_directo(lat, lng, docLat, docLng)
                 lugares_cercanos_(
                     img_String = listaImg,
                     nombre = doc.getString("nombre_tienda") ?: "",
                     categoira = doc.getString("categoria_tienda") ?: "",
-                    subcategoria = subcategorias?.firstOrNull()?.toString() ?: ""
+                    subcategoria = subcategorias?.firstOrNull()?.toString() ?: "",
+                    distancia
                 )
             }
     }
@@ -208,12 +214,17 @@ class repo_inmobiliaria {
                 val img = doc.getString("img") ?: ""
                 val nombre = doc.getString("nombre") ?: ""
                 val categoria = doc.getString("categoria") ?: ""
+                val ubicacion = doc.get("ubicacion") as? Map<*, *>
+                val docLat = ubicacion?.get("latitud") as? Double ?: 0.0
+                val docLng = ubicacion?.get("longitud") as? Double ?: 0.0
+                val distancia = calcularDistanciaKm_directo(lat, lng, docLat, docLng) // 👈
 
                 lugares_cercanos_(
                     img_String = img,
                     nombre = nombre,
                     categoira = categoria,
-                    subcategoria = "seguridad"
+                    subcategoria = "seguridad",
+                    distanciaKm = distancia
                 )
             }
     }
@@ -255,20 +266,54 @@ class repo_inmobiliaria {
                 distancia <= radiusKm
             }
             .map { doc ->
-
-                val img =  doc.get("img.principal") as? String ?: ""
+                val ubicacion = doc.get("ubicacion") as? Map<*, *>
+                val docLat = ubicacion?.get("latitud") as? Double ?: 0.0
+                val docLng = ubicacion?.get("longitud") as? Double ?: 0.0
+                val img = doc.get("img.principal") as? String ?: ""
                 val nombre = doc.getString("titulo") ?: ""
                 val categoria = ""
-
+                val distancia = calcularDistanciaKm_directo(lat, lng, docLat, docLng)
                 lugares_cercanos_(
                     img_String = img,
                     nombre = nombre,
                     categoira = categoria,
-                    subcategoria = ""
+                    subcategoria = "",
+                    distancia
                 )
             }
     }
 
+
+    suspend fun generacion_texto_por_IA(
+        i: ia_inmobiliara_tts,
+        perfil_selet: String
+    ): String {
+
+        val model = Firebase.ai(
+            backend = GenerativeBackend.googleAI()
+        ).generativeModel("gemini-2.5-flash")
+
+        val prompt = contruir_promp_ia_datos_inmobiliara(i, perfil_selet)
+
+        return try {
+
+            val result = model.generateContent(prompt)
+            val raw = result.text?.trim().orEmpty()
+
+            if (raw.isBlank()) {
+                Log.d("NLP_FLOW", "Respuesta vacía")
+                ""
+            } else {
+                Log.d("NLP_FLOW", "Respuesta IA: $raw")
+                raw
+            }
+
+        } catch (e: Exception) {
+
+            Log.e("NLP_FLOW", "Error en generación IA", e)
+            ""
+        }
+    }
 
     suspend fun obtener_servicios_esenciales(
         lat: Double,
@@ -307,15 +352,19 @@ class repo_inmobiliaria {
                 distancia <= radiusKm
             }
             .map { doc ->
-
+                val ubicacion = doc.get("direccion") as? Map<*, *>
+                val docLat = ubicacion?.get("lat") as? Double ?: 0.0
+                val docLng = ubicacion?.get("log") as? Double ?: 0.0
                 val img = doc.getString("img_logo") ?: ""
                 val nombre = doc.getString("lugar_nombre") ?: ""
+                val distancia = calcularDistanciaKm_directo(lat, lng, docLat, docLng)
 
                 lugares_cercanos_(
                     img_String = img,
                     nombre = nombre,
                     categoira = "",
-                    subcategoria = "seguridad"
+                    subcategoria = "seguridad",
+                    distancia
                 )
             }
     }
@@ -373,7 +422,6 @@ class repo_inmobiliaria {
 //    }
 
 }
-
 
 
 private fun calcularDistanciaKm_directo(

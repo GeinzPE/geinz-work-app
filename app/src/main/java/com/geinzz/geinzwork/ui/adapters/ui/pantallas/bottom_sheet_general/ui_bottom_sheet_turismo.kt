@@ -672,7 +672,7 @@ fun card_img_container(
                         enter = fadeIn(),
                         exit = fadeOut()
                     ) {
-                        Column() {
+
                             Slider(
                                 value = nueva_busqueda,
                                 onValueChange = { nueva_busqueda = it.roundToInt().toFloat() },
@@ -713,7 +713,7 @@ fun card_img_container(
                             )
 
 
-                        }
+
                     }
                     this@Column.AnimatedVisibility(
                         mostar_filtrado_categorias,

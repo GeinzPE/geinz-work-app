@@ -1,9 +1,5 @@
 package com.geinzz.geinzwork.data.model
 
-import android.R
-import kotlinx.serialization.Serializable
-
-
 data class dataclass_geinz_inmobiliaria_principal(
     val id: String = "",
     val lista_img: List<String> = emptyList(),
@@ -38,15 +34,26 @@ data class completeta_info_inmuebles(
     val id: String = "",
     val tipoOperacion: String = "",
     val tipoPropiedad: String = "",
+    val cantidad_lugares_seguros: List<lugares_cercanos_> = emptyList(),
+    val listalugares_cercanos: List<lugares_cercanos_> = emptyList(),
+    val llissa_lugareS_turistos: List<lugares_cercanos_> = emptyList(),
+    val lista_servicios_sercanos: List<lugares_cercanos_> = emptyList()
+)
 
-    val cantidad_lugares_seguros: List<lugares_cercanos_> =emptyList(),
-    val listalugares_cercanos: List<lugares_cercanos_> =emptyList(),
-    val llissa_lugareS_turistos: List<lugares_cercanos_> =emptyList(),
-    val lista_servicios_sercanos : List<lugares_cercanos_> =emptyList()
+data class lista_lugaers_totales(
+    val listalugares_cercanos: List<String> = emptyList(), //cercano
+    val llissa_lugareS_turistos: List<String> = emptyList(), //seguro
+    val lista_servicios_sercanos: List<String> = emptyList() //turistico
 )
 
 
-data class lugares_cercanos_(val img_String:String,val nombre:String,val categoira:String,val subcategoria: String)
+data class lugares_cercanos_(
+    val img_String: String,
+    val nombre: String,
+    val categoira: String,
+    val subcategoria: String,
+    val distanciaKm: Double = 0.0
+)
 
 data class datos_geolocalizables(
     val latitud: Double,
@@ -55,4 +62,19 @@ data class datos_geolocalizables(
     val refencia: String
 )
 
+
+data class ia_inmobiliara_tts(
+    val cantidad_lugares_seguros: Int,
+    val cantidad_lugares_encontrado: Int,
+    val cantidad_lugares_turisticos:Int,
+    val metros_cuadrados:String,
+    val tipo:String,
+    val estado:String,
+    val nombre_user: String,
+    val lista_lugares_cercanos: List<String>,
+    val lista_lugares_seguros: List<String>,
+    val lista_lugares_turisticos: List<String>,
+    val tipo_seleccionado: String,
+    val calle_ubicada: String
+)
 

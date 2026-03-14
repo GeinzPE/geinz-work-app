@@ -1,6 +1,8 @@
 package com.geinzz.geinzwork.herramientas_geinz.constantes
 
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.EntidadNLP
+import com.geinzz.geinzwork.data.model.ia_inmobiliara_tts
+import android.util.Log
 
 object proms_gen_IA {
 
@@ -1011,7 +1013,7 @@ Texto: "$textoUsuario"
 }
 
 
-fun construir_promp_NLP_depromo_y_oferta(textoUsuario:String,categoira_selec:String): String {
+fun construir_promp_NLP_depromo_y_oferta(textoUsuario: String, categoira_selec: String): String {
     return """
     Eres un extractor de datos categoría $categoira_selec.
     Extrae producto principal (sin cantidades), atributos, precio, método de pago y comodidades.
@@ -1053,4 +1055,81 @@ fun construir_prompt_NLP_para_busqueda(textoUsuario: String, categoria: String):
     
     Texto: "$textoUsuario"
     """.trimIndent()
+}
+
+
+
+fun contruir_promp_ia_datos_inmobiliara(
+    i: ia_inmobiliara_tts,
+    perfil_selet: String
+): String {
+
+    Log.d("PROMPT_IA", "Perfil seleccionado: $perfil_selet")
+    Log.d("PROMPT_IA", "Usuario: ${i.nombre_user}")
+    Log.d("PROMPT_IA", "Tipo propiedad: ${i.tipo}")
+    Log.d("PROMPT_IA", "Metros cuadrados: ${i.metros_cuadrados}")
+    Log.d("PROMPT_IA", "Ubicación: ${i.calle_ubicada}")
+
+    val lugares = (i.lista_lugares_cercanos + i.lista_lugares_seguros + i.lista_lugares_turisticos)
+        .take(6)
+        .joinToString(", ")
+
+    Log.d("PROMPT_IA", "Lugares usados en prompt: $lugares")
+
+    val enfoque = when (perfil_selet.lowercase().trim()) {
+        "inversionista" -> "enfócate en plusvalía, rentabilidad por metro cuadrado y el potencial de desarrollo del ${i.tipo}."
+        "familiar"      -> "enfócate en la amplitud de los ${i.metros_cuadrados}m², la seguridad y el espacio ideal para ver crecer a los hijos."
+        "solitario"     -> "enfócate en la independencia, el manejo eficiente del espacio de ${i.metros_cuadrados}m² y la practicidad."
+        else            -> "enfócate en la oportunidad única que representan estos ${i.metros_cuadrados}m² en una ubicación estratégica."
+    }
+
+    // construye solo las líneas de entorno que tienen datos reales
+    val lineas_entorno = buildString {
+        if (i.cantidad_lugares_encontrado > 0 && i.lista_lugares_cercanos.isNotEmpty()) {
+            appendLine("- Lugares de interés cercanos: ${i.cantidad_lugares_encontrado} (ej: ${i.lista_lugares_cercanos.take(3).joinToString(", ")})")
+        }
+        if (i.cantidad_lugares_seguros > 0 && i.lista_lugares_seguros.isNotEmpty()) {
+            appendLine("- Zonas seguras verificadas: ${i.cantidad_lugares_seguros} (ej: ${i.lista_lugares_seguros.take(2).joinToString(", ")})")
+        }
+        if (i.cantidad_lugares_turisticos > 0 && i.lista_lugares_turisticos.isNotEmpty()) {
+            appendLine("- Atractivos turísticos: ${i.cantidad_lugares_turisticos} (ej: ${i.lista_lugares_turisticos.take(2).joinToString(", ")})")
+        }
+    }.trim()
+
+    // instrucción de entorno adaptada según qué datos existen
+    val instruccion_entorno = if (lineas_entorno.isEmpty()) {
+        "No se encontraron datos de entorno cercano, así que enfócate solo en las características del inmueble y su ubicación estratégica."
+    } else {
+        "PODER DE LOS DATOS: Usa los datos de entorno para dar seguridad y credibilidad al cliente. Menciona las cantidades reales."
+    }
+
+    val seccion_entorno = if (lineas_entorno.isEmpty()) {
+        "No hay datos de entorno disponibles para esta búsqueda."
+    } else {
+        "DATOS DE ENTORNO (menos de 500 metros):\n$lineas_entorno"
+    }
+
+    val prompt = """
+        Eres un cerrador de ventas inmobiliarias de élite en Barranca.
+        Cliente: ${i.nombre_user}.
+        Producto: ${i.tipo} de ${i.metros_cuadrados}m² en ${i.estado}.
+        Ubicación: ${i.calle_ubicada}.
+        Perfil: $perfil_selet.
+        
+        $seccion_entorno
+        
+        TAREA: Convence al cliente en 3 párrafos muy breves.
+        REGLAS CRÍTICAS:
+        1. $instruccion_entorno
+        2. MENCIONA EL TAMAÑO: Integra los ${i.metros_cuadrados} metros cuadrados con naturalidad.
+        3. CONCORDANCIA Y FORMATO: Usa "esta/este" correctamente. NO uses asteriscos (**), ni negritas. Solo texto plano.
+        4. DEBES mencionar el nombre de la inmobiliaria "House Capital Group".
+        5. PERSUASIÓN: $enfoque.
+        
+        Estilo directo, profesional y sin errores ortográficos.
+    """.trimIndent()
+
+    Log.d("PROMPT_IA_FINAL", prompt)
+
+    return prompt
 }

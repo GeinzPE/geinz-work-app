@@ -558,6 +558,7 @@ fun ui_salud_seguirdad(
                     requestPermissionLauncher.launch(android.Manifest.permission.CALL_PHONE)
                 })
         }
+
         val numeroALlamar = when {
             dialogo_contacto.first -> dialogo_contacto.second
             mostar_dialog_permiso_llamada -> numero_dialogo_permiso_llamda

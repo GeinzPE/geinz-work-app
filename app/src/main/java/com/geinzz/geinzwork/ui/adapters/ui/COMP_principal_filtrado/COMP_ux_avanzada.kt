@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado
 
 import android.util.Log
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,6 +18,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import kotlinx.coroutines.delay
 
@@ -142,6 +144,35 @@ fun TypewriterClickableText(
         }
     )
 }
+
+
+@Composable
+fun TypewriterTexto(
+    text: String,
+    modifier: Modifier = Modifier,
+    speed: Long = 50L
+) {
+
+    var displayText by remember { mutableStateOf("") }
+
+    // efecto máquina de escribir
+    LaunchedEffect(text) {
+        displayText = ""
+        for (i in text.indices) {
+            displayText += text[i]
+            delay(speed)
+        }
+    }
+
+    Text(
+        text = displayText,
+        modifier = modifier.padding(vertical = 10.dp),
+        style = MaterialTheme.typography.bodyMedium,
+        color = Color.White
+    )
+}
+
+
 
 
 
