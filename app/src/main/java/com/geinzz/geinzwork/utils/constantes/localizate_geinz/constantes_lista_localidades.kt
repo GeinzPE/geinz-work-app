@@ -2012,6 +2012,35 @@ object constantes_lista_localidades {
                 .show()
         }
     }
+    fun house_capital_whatsap(
+        context: Context,
+        numero: String,
+        mensajePredefinido: String = "¡Hola! Vengo de Geinz y me gustaría hacer una consulta. ¿Me pueden atender?"
+    ) {
+        val mensajeCodificado = URLEncoder.encode(mensajePredefinido, "UTF-8")
+
+        val uri = Uri.parse("https://api.whatsapp.com/send?phone=$numero&text=$mensajeCodificado")
+
+        val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+            setPackage("com.whatsapp.w4b") // 🔥 WhatsApp Business
+        }
+
+        try {
+            context.startActivity(intent)
+        } catch (e: Exception) {
+
+            // fallback a WhatsApp normal
+            try {
+                val intentNormal = Intent(Intent.ACTION_VIEW, uri).apply {
+                    setPackage("com.whatsapp")
+                }
+                context.startActivity(intentNormal)
+
+            } catch (e: Exception) {
+                Toast.makeText(context, "No se pudo abrir WhatsApp", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
 
 
     fun llamar(id_user: String,tipo:String="tienda",id_tienda:String,localidad: String,context: Context, numero: String, open_dialog: () -> Unit) {

@@ -26,6 +26,11 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.util.Calendar
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 class repo_lugares_turisticos {
     val db = FirebaseFirestore.getInstance()
@@ -35,10 +40,8 @@ class repo_lugares_turisticos {
     suspend fun obtener_lugares_turisticos(localidad: String): List<lugares_turisticos> {
         Log.d("localida_pasada", localidad)
         val lista_lugares = mutableListOf<lugares_turisticos>()
-        val lugares_turisticos =
-            db.collection("Tiendas").document(localidad.lowercase())
-                .collection("lugares_turisticos")
-                .get().await()
+        val lugares_turisticos = db.collection("Tiendas").document(localidad.lowercase())
+            .collection("lugares_turisticos").get().await()
         for (datos in lugares_turisticos) {
             val data = datos.data
             val id = data?.get("id") as? String ?: ""
@@ -58,11 +61,13 @@ class repo_lugares_turisticos {
                 id,
                 titulo,
                 descripcion,
-                lista_img_ref, img_principal,
+                lista_img_ref,
+                img_principal,
                 dirección,
                 referencia,
                 latitud.toDouble(),
-                longitud.toDouble(), lista_categorias
+                longitud.toDouble(),
+                lista_categorias
             )
             lista_lugares.add(lista)
         }
@@ -71,12 +76,8 @@ class repo_lugares_turisticos {
     }
 
     suspend fun get_lugar_turistico(localidad: String, id: String): lugares_turisticos {
-        val docSnapshot = db.collection("Tiendas")
-            .document(localidad.lowercase())
-            .collection("lugares_turisticos")
-            .document(id)
-            .get()
-            .await()
+        val docSnapshot = db.collection("Tiendas").document(localidad.lowercase())
+            .collection("lugares_turisticos").document(id).get().await()
 
         if (!docSnapshot.exists()) lugares_turisticos()
 
@@ -113,12 +114,9 @@ class repo_lugares_turisticos {
 
     suspend fun obtener_filtrado_lugares(): List<String> {
         val lista_filtrado = mutableListOf<String>()
-        val lugares = db.collection("Tiendas")
-            .document("categorias")
-            .collection("categorias_lugares")
-            .document("categorias_lugares_turisticos")
-            .get()
-            .await()
+        val lugares =
+            db.collection("Tiendas").document("categorias").collection("categorias_lugares")
+                .document("categorias_lugares_turisticos").get().await()
 
         if (lugares.exists()) {
             val categoria = lugares.get("categorias") as? List<String> ?: emptyList()
@@ -129,31 +127,28 @@ class repo_lugares_turisticos {
     }
 
 
-    suspend fun cloudTTS(texto: String): ByteArray =
-        withContext(Dispatchers.IO) {
+    suspend fun cloudTTS(texto: String): ByteArray = withContext(Dispatchers.IO) {
 
-            val json = """
+        val json = """
         {
           "texto": "$texto"
         }
         """.trimIndent()
 
-            val body = json.toRequestBody("application/json".toMediaType())
+        val body = json.toRequestBody("application/json".toMediaType())
 
-            val request = Request.Builder()
-                .url("https://us-central1-geinzworkapp.cloudfunctions.net/textToSpeechIA")
-                .post(body)
-                .build()
+        val request = Request.Builder()
+            .url("https://us-central1-geinzworkapp.cloudfunctions.net/textToSpeechIA").post(body)
+            .build()
 
-            val response = client.newCall(request).execute()
+        val response = client.newCall(request).execute()
 
-            if (!response.isSuccessful) {
-                throw IOException("Error TTS: ${response.code}")
-            }
-
-            response.body?.bytes()
-                ?: throw IOException("Audio vacío")
+        if (!response.isSuccessful) {
+            throw IOException("Error TTS: ${response.code}")
         }
+
+        response.body?.bytes() ?: throw IOException("Audio vacío")
+    }
 
     fun obtenerTiendasCercanas(
         lat: Double,
@@ -184,106 +179,104 @@ class repo_lugares_turisticos {
             Log.d("geoquery", "   startHash=${b.startHash}")
             Log.d("geoquery", "   endHash=${b.endHash}")
 
-            val q = db.collection("Tiendas")
-                .document(localidad)
-                .collection(localidad)
-                .orderBy("geohash")
-                .startAt(b.startHash)
-                .endAt(b.endHash)
+            val q = db.collection("Tiendas").document(localidad).collection(localidad)
+                .orderBy("geohash").startAt(b.startHash).endAt(b.endHash)
 
-            tasks.add(
-                q.get()
-                    .addOnSuccessListener { snapshot ->
+            tasks.add(q.get().addOnSuccessListener { snapshot ->
 
-                        Log.d("geoquery", "📦 Documentos devueltos en rango $index: ${snapshot.size()}")
+                Log.d(
+                    "geoquery", "📦 Documentos devueltos en rango $index: ${snapshot.size()}"
+                )
 
-                        for (doc in snapshot) {
+                for (doc in snapshot) {
 
-                            val geohash = doc.getString("geohash") ?: ""
-                            val nombre = doc.getString("nombre_tienda") ?: ""
-                            val idTienda = doc.id
+                    val geohash = doc.getString("geohash") ?: ""
+                    val nombre = doc.getString("nombre_tienda") ?: ""
+                    val idTienda = doc.id
 
-                            val ubicacion = doc.get("ubicacion") as? Map<String, Any> ?: emptyMap()
-                            val latitud = ubicacion["latitud"] as? Number ?: 0
-                            val longitud = ubicacion["longitud"] as? Number ?: 0
-                            val pagado = doc.get("pagado") as? Boolean ?: false
+                    val ubicacion = doc.get("ubicacion") as? Map<String, Any> ?: emptyMap()
+                    val latitud = ubicacion["latitud"] as? Number ?: 0
+                    val longitud = ubicacion["longitud"] as? Number ?: 0
+                    val pagado = doc.get("pagado") as? Boolean ?: false
 
-                            val categoria_tienda = doc.getString("categoria_tienda") ?: ""
+                    val categoria_tienda = doc.getString("categoria_tienda") ?: ""
 
-                            // 🔥 DISTANCIA REAL
-                            val distancia = GeoFireUtils.getDistanceBetween(
-                                center,
-                                GeoLocation(latitud.toDouble(), longitud.toDouble())
-                            )
+                    // 🔥 DISTANCIA REAL
+                    val distancia = GeoFireUtils.getDistanceBetween(
+                        center, GeoLocation(latitud.toDouble(), longitud.toDouble())
+                    )
 
-                            Log.d("geoquery", "-------------------------------")
-                            Log.d("geoquery", "📝 TIENDA: ${doc.id}")
-                            Log.d("geoquery", "Nombre: $nombre")
-                            Log.d("geoquery", "Geohash: $geohash")
-                            Log.d("geoquery", "Lat: $latitud  Lon: $longitud")
-                            Log.d("geoquery", "Distancia: ${distancia.toInt()} m")
-                            Log.d("geoquery", "Pagado: $pagado")
-                            Log.d("geoquery", "Categoría: $categoria_tienda")
+                    Log.d("geoquery", "-------------------------------")
+                    Log.d("geoquery", "📝 TIENDA: ${doc.id}")
+                    Log.d("geoquery", "Nombre: $nombre")
+                    Log.d("geoquery", "Geohash: $geohash")
+                    Log.d("geoquery", "Lat: $latitud  Lon: $longitud")
+                    Log.d("geoquery", "Distancia: ${distancia.toInt()} m")
+                    Log.d("geoquery", "Pagado: $pagado")
+                    Log.d("geoquery", "Categoría: $categoria_tienda")
 
-                            if (!pagado) {
-                                Log.d("geoquery", "❌ Ignorada (NO PAGADO)")
-                                continue
-                            }
+                    if (!pagado) {
+                        Log.d("geoquery", "❌ Ignorada (NO PAGADO)")
+                        continue
+                    }
 
-                            if (distancia <= radiusInM) {
+                    if (distancia <= radiusInM) {
 
-                                Log.d("geoquery", "✅ DENTRO DEL RADIO")
+                        Log.d("geoquery", "✅ DENTRO DEL RADIO")
 
-                                if (categoria_tienda.isNotEmpty()) {
-                                    categoriasSet.add(categoria_tienda)
-                                    Log.d("geoquery", "   ➕ Categoría añadida: $categoria_tienda")
-                                }
-
-                                // Añadir a la lista (resto de campos completos)
-                                val mapImg = doc.get("img_tienda") as? Map<String, Any> ?: emptyMap()
-                                val logo = mapImg["logo_tienda"] as? String ?: ""
-                                val tag = doc.get("subcategoria") as? List<String> ?: emptyList()
-                                val direccion = ubicacion["dirección"] as? String ?: ""
-                                val referencia = ubicacion["referencia"] as? String ?: ""
-                                val descripcion = doc["descripcion"] as? String ?: ""
-                                val horario_dia = doc.get("horario_atencion") as? Map<String, Any> ?: emptyMap()
-                                val metodos_contacto = doc.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
-                                val metodo_pago = doc.get("metodos_pago") as? Map<String, Any> ?: emptyMap()
-                                val lcalidad_tienda = doc.get("localidad") as? String ?: ""
-
-                                val contacto_obs = metodos_contacto.toMetodoContacto()
-                                val metodo_pago_separado = metodo_pago.to_metodo_pago()
-                                val horario_box_mapeo = horario_dia.to_horario_atencion_box_dia()
-
-                                tiendas.add(
-                                    lugares_cercanos(
-                                        nombre_tienda = nombre,
-                                        logo_tienda = logo,
-                                        categoria = categoria_tienda,
-                                        lista_subcategoiras = tag,
-                                        id_tienda = idTienda,
-                                        pagado = pagado,
-                                        latitud = latitud.toDouble(),
-                                        longitud = longitud.toDouble(),
-                                        contacto_tienda = contacto_obs,
-                                        has_tienda = geohash,
-                                        direccion = direccion,
-                                        referencia = referencia,
-                                        descripcion = descripcion,
-                                        metodos_pago_tienda = metodo_pago_separado,
-                                        horario_box = horario_box_mapeo,
-                                        localidad_tienda = lcalidad_tienda
-                                    )
-                                )
-                            } else {
-                                Log.d("geoquery", "❌ FUERA DEL RADIO")
-                            }
+                        if (categoria_tienda.isNotEmpty()) {
+                            categoriasSet.add(categoria_tienda)
+                            Log.d("geoquery", "   ➕ Categoría añadida: $categoria_tienda")
                         }
+
+                        // Añadir a la lista (resto de campos completos)
+                        val mapImg = doc.get("img_tienda") as? Map<String, Any> ?: emptyMap()
+                        val logo = mapImg["logo_tienda"] as? String ?: ""
+                        val tag = doc.get("subcategoria") as? List<String> ?: emptyList()
+                        val direccion = ubicacion["dirección"] as? String ?: ""
+                        val referencia = ubicacion["referencia"] as? String ?: ""
+                        val descripcion = doc["descripcion"] as? String ?: ""
+                        val horario_dia =
+                            doc.get("horario_atencion") as? Map<String, Any> ?: emptyMap()
+                        val metodos_contacto =
+                            doc.get("metodo_contacto") as? Map<String, Any> ?: emptyMap()
+                        val metodo_pago =
+                            doc.get("metodos_pago") as? Map<String, Any> ?: emptyMap()
+                        val lcalidad_tienda = doc.get("localidad") as? String ?: ""
+
+                        val contacto_obs = metodos_contacto.toMetodoContacto()
+                        val metodo_pago_separado = metodo_pago.to_metodo_pago()
+                        val horario_box_mapeo = horario_dia.to_horario_atencion_box_dia()
+                        val distancia = calcularDistanciaKm_directo(lat, lon, latitud.toDouble(), longitud.toDouble())
+
+                        tiendas.add(
+                            lugares_cercanos(
+                                nombre_tienda = nombre,
+                                logo_tienda = logo,
+                                categoria = categoria_tienda,
+                                lista_subcategoiras = tag,
+                                id_tienda = idTienda,
+                                pagado = pagado,
+                                latitud = latitud.toDouble(),
+                                longitud = longitud.toDouble(),
+                                contacto_tienda = contacto_obs,
+                                has_tienda = geohash,
+                                direccion = direccion,
+                                referencia = referencia,
+                                descripcion = descripcion,
+                                metodos_pago_tienda = metodo_pago_separado,
+                                horario_box = horario_box_mapeo,
+                                localidad_tienda = lcalidad_tienda,
+                                distancia
+                            )
+                        )
+                    } else {
+                        Log.d("geoquery", "❌ FUERA DEL RADIO")
                     }
-                    .addOnFailureListener { e ->
-                        Log.e("geoquery", "⚠️ Error en rango $index → ${e.message}")
-                    }
-            )
+                }
+            }.addOnFailureListener { e ->
+                Log.e("geoquery", "⚠️ Error en rango $index → ${e.message}")
+            })
         }
 
         Tasks.whenAllComplete(tasks).addOnSuccessListener {
@@ -297,7 +290,67 @@ class repo_lugares_turisticos {
         }
     }
 
+    suspend fun obtener_datos_lugares_turisticos(
+        id_lugar_turistico: String,
+        localidad: String
+    ): lugares_turisticos {
+
+        val ref = db.collection("Tiendas")
+            .document(localidad)
+            .collection("lugares_turisticos")
+            .document(id_lugar_turistico)
+            .get()
+            .await()
+
+        if (ref.exists()) {
+
+            val data = ref.data ?: emptyMap()
+
+            val id = data["id"] as? String ?: ""
+            val titulo = data["titulo"] as? String ?: ""
+            val descripcion = data["descripcion"] as? String ?: ""
+
+            val img = data["img"] as? Map<String, Any> ?: emptyMap()
+            val lista_img = img["lista_img"] as? List<String> ?: emptyList()
+            val img_principal = img["principal"] as? String ?: ""
+
+            val ubicacion = data["ubicacion"] as? Map<String, Any> ?: emptyMap()
+            val direccion = ubicacion["direccion"] as? String ?: ""
+            val latitud = (ubicacion["latitud"] as? Number)?.toDouble() ?: 0.0
+            val longitud = (ubicacion["longitud"] as? Number)?.toDouble() ?: 0.0
+
+            val subcategoria = data["subcategoria_filtrado"] as? List<String> ?: emptyList()
+
+            return lugares_turisticos(
+                id_lugar_turistico = id,
+                titulo = titulo,
+                descripcion = descripcion,
+                lista_img = lista_img,
+                img_principal = img_principal,
+                direcccion = direccion,
+                referencia = "",
+                latitud = latitud,
+                longitud = longitud,
+                subcategoria_filtrado = subcategoria
+            )
+        }
+
+        return lugares_turisticos()
+    }
 
 
-
+    fun calcularDistanciaKm_directo(
+        lat1: Double, lng1: Double,
+        lat2: Double, lng2: Double
+    ): Double {
+        val R = 6371.0
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLng = Math.toRadians(lng2 - lng1)
+        val a = sin(dLat / 2).pow(2) +
+                cos(Math.toRadians(lat1)) *
+                cos(Math.toRadians(lat2)) *
+                sin(dLng / 2).pow(2)
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        return R * c
+    }
 }

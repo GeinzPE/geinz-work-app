@@ -11,6 +11,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -150,16 +151,18 @@ fun TypewriterClickableText(
 fun TypewriterTexto(
     text: String,
     modifier: Modifier = Modifier,
-    speed: Long = 50L
+    speed: Long = 70L
 ) {
+    // rememberSaveable sobrevive al scroll, remember no
+    var displayText by rememberSaveable(text) { mutableStateOf("") }
 
-    var displayText by remember { mutableStateOf("") }
-
-    // efecto máquina de escribir
     LaunchedEffect(text) {
-        displayText = ""
-        for (i in text.indices) {
-            displayText += text[i]
+        // Si ya está completo, no hace nada
+        if (displayText == text) return@LaunchedEffect
+
+        // Continúa desde donde quedó
+        for (i in displayText.length until text.length) {
+            displayText = text.substring(0, i + 1)
             delay(speed)
         }
     }
@@ -171,7 +174,6 @@ fun TypewriterTexto(
         color = Color.White
     )
 }
-
 
 
 

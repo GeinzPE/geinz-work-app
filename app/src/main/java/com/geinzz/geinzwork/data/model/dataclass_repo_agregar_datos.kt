@@ -23,8 +23,16 @@ data class dataclass_lugares_db(
     var logo_img: String = "",
     val contacto: contacto_lugares_gratis = contacto_lugares_gratis(),
     val pagado: Boolean = false,
+) : Parcelable
 
-    ) : Parcelable
+data class obtener_servicios_lugares(
+    val img: String,
+    val id: String,
+    val localidad_params: String,
+    var categoria: List<String> = emptyList(),
+    val lugar_nombre: String,
+    val pagado: Boolean,
+)
 
 @Parcelize
 data class contacto_lugares_gratis(

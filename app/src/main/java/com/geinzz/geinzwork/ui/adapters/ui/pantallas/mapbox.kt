@@ -501,6 +501,8 @@ fun SimpleMapDark(
                     )
                     // Actualizar source YA con lo que hay
                     source.featureCollection(FeatureCollection.fromFeatures(features.toList()))
+                    animarEntradaMarkers(style) // ← AGREGA ESTA LÍNEA
+
                 } else {
                     // 🌐 No está en cache — descargar en background y agregar cuando llegue
                     scope.launch(Dispatchers.IO) {
@@ -523,6 +525,7 @@ fun SimpleMapDark(
                                 )
                                 s.getSourceAs<GeoJsonSource>("markers_source")
                                     ?.featureCollection(FeatureCollection.fromFeatures(features.toList()))
+                                animarEntradaMarkers(s)
                             }
                         }
                     }
@@ -1167,7 +1170,7 @@ fun SimpleMapDark(
                         style.addLayer(
                             circleLayer("cluster_circle_layer", "markers_source") {
                                 circleRadius(18.0)
-//                                circleColor("#7B5EFF")
+                                circleOpacity(0.0)  // ← agrega esto
                                 filter(has("point_count"))
                             }
                         )
@@ -1178,6 +1181,7 @@ fun SimpleMapDark(
                                 textField(get("point_count_abbreviated"))
                                 textSize(13.0)
                                 textColor("#FFFFFF")
+                                textOpacity(0.0)
                                 textIgnorePlacement(true)
                                 textAllowOverlap(true)
                                 filter(has("point_count"))
@@ -1189,6 +1193,7 @@ fun SimpleMapDark(
                             symbolLayer("unclustered_layer", "markers_source") {
                                 iconImage(get("icon_id"))
                                 iconSize(0.9)
+                                iconOpacity(0.0)  // ← empieza invisible
                                 iconAllowOverlap(true)
                                 filter(not(has("point_count")))
                             }
@@ -1358,6 +1363,7 @@ fun SimpleMapDark(
                         symbolLayer("unclustered_layer", "markers_source") {
                             iconImage(get("icon_id"))
                             iconSize(0.9)
+                            iconOpacity(0.0)  // ← empieza invisible
                             iconAllowOverlap(true)
                             filter(not(has("point_count")))
                         }
@@ -1387,6 +1393,7 @@ fun SimpleMapDark(
                     if (features.isNotEmpty()) {
                         style.getSourceAs<GeoJsonSource>("markers_source")
                             ?.featureCollection(FeatureCollection.fromFeatures(features))
+                        animarEntradaMarkers(style)
                         Log.d(
                             "MAP_DEBUG",
                             "🟣 ${features.size} markers redibujados tras cambio de estilo"
@@ -2411,5 +2418,30 @@ fun vibrarTelefono(context: Context) {
             @Suppress("DEPRECATION")
             vibrator.vibrate(300)
         }
+    }
+}
+fun animarEntradaMarkers(style: com.mapbox.maps.Style) {
+    ValueAnimator.ofFloat(0f, 1f).apply {
+        duration = 600
+        interpolator = android.view.animation.DecelerateInterpolator()
+        addUpdateListener { anim ->
+            val valor = (anim.animatedValue as Float).toDouble()
+            try {
+                style.setStyleLayerProperty(
+                    "unclustered_layer", "icon-opacity", Value(valor)
+                )
+            } catch (e: Exception) { }
+            try {
+                style.setStyleLayerProperty(
+                    "cluster_circle_layer", "circle-opacity", Value(valor)
+                )
+            } catch (e: Exception) { }
+            try {
+                style.setStyleLayerProperty(
+                    "cluster_count_layer", "text-opacity", Value(valor)
+                )
+            } catch (e: Exception) { }
+        }
+        start()
     }
 }

@@ -55,7 +55,9 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.promociones_Cercanas.GaleriaHorizontalInstagram
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.ShimmerImagenConMarca
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.house_capital_whatsap
 import com.geinzz.geinzwork.viewModels.viewmodel_inmobiliaria
 
 @Composable
@@ -247,8 +249,8 @@ fun estilo_visual_card(
             btns_solo_borde(
                 modifier = Modifier.size(50.dp),
                 color = Color(0xFF031E6C),
-                icono = R.drawable.comparir_icon,{
-                    viewmodel.compartir_link_tienda(context,i.localidad,i.id)
+                icono = R.drawable.comparir_icon, {
+                    viewmodel.compartir_link_tienda(context, i.localidad, i.id)
                 }
             )
 
@@ -256,14 +258,21 @@ fun estilo_visual_card(
                 modifier = Modifier.weight(1f),
                 color = Color(0xFF4A0085),
                 icono = R.drawable.google_maps_icono,
-                text = "Lugares cercanos"
+                text = "Lugares cercanos", {}
             )
 
             btns(
                 modifier = Modifier.weight(1f),
                 color = Color(0xFF29A71A),
                 icono = R.drawable.whatsapp_icon,
-                text = "WhatsApp"
+                text = "WhatsApp", {
+                    house_capital_whatsap(
+                        context,
+                        "+1 (555) 167-1924",
+                        "Hola quiero mas informacion sobre " +
+                                "https://geinzworkapp.web.app/share?t=in&id=${i.id}&l=${i.localidad}"
+                    )
+                }
             )
         }
     }
@@ -318,7 +327,8 @@ fun btns(
     modifier: Modifier = Modifier,
     color: Color,
     icono: Int,
-    text: String
+    text: String,
+    clikeado: () -> Unit
 ) {
 
     Box(
@@ -326,6 +336,9 @@ fun btns(
             .fillMaxWidth()
             .height(55.dp)
             .background(color, shape = RoundedCornerShape(10.dp))
+            .clickable {
+                clikeado()
+            }
             .padding(vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -355,7 +368,7 @@ fun btns(
 fun btns_solo_borde(
     modifier: Modifier = Modifier,
     color: Color,
-    icono: Int,clikc:()-> Unit
+    icono: Int, clikc: () -> Unit
 ) {
 
     Box(
@@ -367,7 +380,7 @@ fun btns_solo_borde(
                 color = color,
                 shape = RoundedCornerShape(10.dp)
             )
-            .clickable{
+            .clickable {
                 clikc()
             }
             .padding(vertical = 12.dp),

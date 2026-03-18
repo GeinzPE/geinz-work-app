@@ -17,6 +17,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -363,7 +364,7 @@ fun ui_pantalla_busqueda(
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             Log.d("GPS", "✅ El usuario activó el GPS")
-             obtenerUbicacionEnTiempoReal(estadoGPS, context, { lat, lng ->
+            obtenerUbicacionEnTiempoReal(estadoGPS, context, { lat, lng ->
                 Log.d("lat_log_user", "$lat $lng")
                 hash_user = geohashing(lat, lng)
                 val hora = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
@@ -633,14 +634,14 @@ fun ui_pantalla_busqueda(
         }
     }
 
-    LaunchedEffect(bottom_sheet_turismo) {
-        if (bottom_sheet_turismo) {
-            viewModelFiltros.obtener_datos_lugares_turisticos(
-                id_lugar_turistico_select,
-                localdad_llugar_turistico
-            )
-        }
-    }
+//    LaunchedEffect(bottom_sheet_turismo) {
+//        if (bottom_sheet_turismo) {
+//            viewModelFiltros.obtener_datos_lugares_turisticos(
+//                id_lugar_turistico_select,
+//                localdad_llugar_turistico
+//            )
+//        }
+//    }
 
     LaunchedEffect(Unit) {
         viewModelFiltros.obtener_categorias()
@@ -799,6 +800,16 @@ fun ui_pantalla_busqueda(
                 }
             }
             itemsIndexed(items) { index, item ->
+                Box(
+                    modifier = Modifier
+                        .animateItem(
+                            placementSpec = tween(
+                                durationMillis = 450,
+                                easing = FastOutSlowInEasing
+                            )
+                        )
+                ){
+
                 ramdoBox(
                     viewModelFiltros,
                     tick,
@@ -837,6 +848,7 @@ fun ui_pantalla_busqueda(
                         id_seguridad_salud = id
                     }
                 )
+                }
             }
         }
 
@@ -1017,10 +1029,11 @@ fun ui_pantalla_busqueda(
 
         if (bottom_sheet_turismo) {
             bottom_sheet_lugares_turisticos(
+                localida_defauld.localida,
                 verificar_intener,
                 viewmodelMap = viewmodelMap,
                 viewmodel_lugares_turisticos = viewmodel_lugares_turisticos,
-                datos = datos_lugares_turisticos,
+//                datos = datos_lugares_turisticos,
                 visible = bottom_sheet_turismo,
                 onClose = { bottom_sheet_turismo = false },
                 ver_mapa = { lista_lugares_cecanos ->
@@ -1034,7 +1047,7 @@ fun ui_pantalla_busqueda(
                     viewModel.guardar_datos_cambi_pantalla(datos_cambio_pantalla)
                 },
                 iniciar_seccion = { iniciar_seccion() },
-                crear_cuenta = { crear_cuenta() })
+                crear_cuenta = { crear_cuenta() },id_lugar_turistico_select)
         }
 
         if (mostrar_dialog_cambiar_radio) {

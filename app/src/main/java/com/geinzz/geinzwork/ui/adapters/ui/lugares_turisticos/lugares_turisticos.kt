@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -207,7 +208,7 @@ fun pantalla_lugares_turisticos(
     var mostrar_texto_error by remember { mutableStateOf("") }
 
     val bottomSheetVisible by viewmodelMapa.estadoBottomSheet.collectAsState()
-    val lugarSeleccionado by viewmodelMapa.objetoSeleccionado.collectAsState()
+//    val lugarSeleccionado by viewmodelMapa.objetoSeleccionado.collectAsState()
 
     Box(
         modifier = Modifier
@@ -354,6 +355,16 @@ fun pantalla_lugares_turisticos(
                     mostar_error = false
                     lista_categoria = listOf("Todos") + state.lista_categoria
                     itemsIndexed(state.lista_lugares) { index, item ->
+                        Box(
+                            modifier = Modifier
+                                .animateItem(
+                                    placementSpec = tween(
+                                        durationMillis = 350,
+                                        easing = FastOutSlowInEasing
+                                    )
+                                )
+                        ){
+
                         carta_turismo(
                             verificar_intener = verificar_intener,
                             mostra_pantalla_carga = mostra_pantalla_carga,
@@ -372,6 +383,7 @@ fun pantalla_lugares_turisticos(
                                 viewmodelMapa.setObjetoSeleccionado(lugar)
                                 viewmodelMapa.setBottomSheetVisible(true)
                             })
+                        }
                     }
                 }
 
@@ -430,12 +442,13 @@ fun pantalla_lugares_turisticos(
                     .graphicsLayer { alpha = alphaAnim }
             )
         }
-        if ((bottomSheetVisible && lugarSeleccionado == objdatos_luga_turistico) && !mostra_pantalla_carga) {
+        if (bottomSheetVisible) {
             bottom_sheet_lugares_turisticos(
+                localidad_selecionada,
                 verificar_intener,
                 viewmodelMap = viewmodelMapa,
                 viewmodel_lugares_turisticos = viewmodel_lugares_turisticos,
-                datos = objdatos_luga_turistico,
+//                datos = objdatos_luga_turistico,
                 visible = true,
                 onClose = {
                     viewmodelMapa.setBottomSheetVisible(false)
@@ -447,7 +460,8 @@ fun pantalla_lugares_turisticos(
                         objdatos_luga_turistico.latitud,
                         objdatos_luga_turistico.longitud
                     )
-                }, iniciar_seccion = { iniciar_seccion() }, crear_cuenta = { crear_cuenta() }
+                }, iniciar_seccion = { iniciar_seccion() }, crear_cuenta = { crear_cuenta()},
+                objdatos_luga_turistico.id_lugar_turistico
             )
         }
 
@@ -567,4 +581,3 @@ fun carta_turismo(
 //        )
 //    }
 }
-

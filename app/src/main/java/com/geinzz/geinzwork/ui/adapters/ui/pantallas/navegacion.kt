@@ -451,8 +451,8 @@ fun nativationWrapper(
                             navController.navigate(ui_salud_seguridad(localida))
                         },
                         listner_sevicios_tramites = { localidad, id ->
-//                            navController.navigate(ui_servicios_tramites(localidad))
-                            navController.navigate(promociones_y_ofertas(localidad, id))
+                            navController.navigate(ui_servicios_tramites(localidad))
+//                            navController.navigate(promociones_y_ofertas(localidad, id))
 
                         },
                         abrir_guardar_datos = {
@@ -461,8 +461,8 @@ fun nativationWrapper(
 //                                                        "Mira ese nuevo negocio en geinz notificacion de prueva ",
 //                                                        "Encuentralo a unos pasos cerca de ti "
 //                                                    )
-//                            navController.navigate(ui_agregar_lugares)
-                            navController.navigate(map_box)
+                            navController.navigate(ui_agregar_lugares)
+//                            navController.navigate(map_box)
                             //                            pasar_teindas_nuevas()
 
                         },
@@ -942,7 +942,28 @@ fun nativationWrapper(
 
                 composable<datos_completros_inmobiliaria> { navback ->
                     val datos = navback.toRoute<datos_completros_inmobiliaria>()
-                    ui_info_imobiliara(viewmodel_inmobiliaria,datos.id, datos.localidad, datos.nombre_user)
+                    ui_info_imobiliara(
+                        viewmodelMapa = viewmodelMapa,
+                        viewmodel_lugares_turisticos = viewModelLugares,
+                        verificar_inter = isConnected,
+                        viewModel = viewmodel_inmobiliaria,
+                        id = datos.id,
+                        localidad = datos.localidad,
+                        nombre_user = datos.nombre_user,
+                        iniciar_seccion = { navController.navigate(crear_cuenta_geinz("crear")) },
+                        crear_cuenta = { navController.navigate("login_principal") },abrir_mapa={tipo,img,lat,lng->
+                            navController.navigate(
+                                map_perzonalizado(
+                                    tipo,
+                                    "barranca",
+                                    img,
+                                    lat,
+                                    lng
+                                )
+                            )
+
+                        }
+                    )
                 }
 
 

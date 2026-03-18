@@ -159,6 +159,8 @@ class repo_inmobiliaria {
             .map { doc ->
                 val listaImg = doc.get("img_tienda.logo_tienda") as? String ?: ""
                 val subcategorias = doc.get("subcategoria") as? List<*>
+                val id = doc.get("id_tienda") as? String ?: ""
+
                 val ubicacion = doc.get("ubicacion") as? Map<*, *>
                 val docLat = ubicacion?.get("latitud") as? Double ?: 0.0
                 val docLng = ubicacion?.get("longitud") as? Double ?: 0.0
@@ -168,7 +170,7 @@ class repo_inmobiliaria {
                     nombre = doc.getString("nombre_tienda") ?: "",
                     categoira = doc.getString("categoria_tienda") ?: "",
                     subcategoria = subcategorias?.firstOrNull()?.toString() ?: "",
-                    distancia
+                    distancia,id,localidad,docLat,docLng
                 )
             }
     }
@@ -214,6 +216,7 @@ class repo_inmobiliaria {
                 val img = doc.getString("img") ?: ""
                 val nombre = doc.getString("nombre") ?: ""
                 val categoria = doc.getString("categoria") ?: ""
+                val id = doc.getString("id") ?: ""
                 val ubicacion = doc.get("ubicacion") as? Map<*, *>
                 val docLat = ubicacion?.get("latitud") as? Double ?: 0.0
                 val docLng = ubicacion?.get("longitud") as? Double ?: 0.0
@@ -224,7 +227,7 @@ class repo_inmobiliaria {
                     nombre = nombre,
                     categoira = categoria,
                     subcategoria = "seguridad",
-                    distanciaKm = distancia
+                    distanciaKm = distancia,id,localidad,docLat,docLng
                 )
             }
     }
@@ -271,14 +274,14 @@ class repo_inmobiliaria {
                 val docLng = ubicacion?.get("longitud") as? Double ?: 0.0
                 val img = doc.get("img.principal") as? String ?: ""
                 val nombre = doc.getString("titulo") ?: ""
-                val categoria = ""
+                val id = doc.getString("id") ?: ""
                 val distancia = calcularDistanciaKm_directo(lat, lng, docLat, docLng)
                 lugares_cercanos_(
                     img_String = img,
                     nombre = nombre,
-                    categoira = categoria,
-                    subcategoria = "",
-                    distancia
+                    categoira = "",
+                    subcategoria = "",distancia,
+                    id,localidad,docLat,docLng
                 )
             }
     }
@@ -357,6 +360,9 @@ class repo_inmobiliaria {
                 val docLng = ubicacion?.get("log") as? Double ?: 0.0
                 val img = doc.getString("img_logo") ?: ""
                 val nombre = doc.getString("lugar_nombre") ?: ""
+                val id = doc.getString("id") ?: ""
+
+
                 val distancia = calcularDistanciaKm_directo(lat, lng, docLat, docLng)
 
                 lugares_cercanos_(
@@ -364,7 +370,7 @@ class repo_inmobiliaria {
                     nombre = nombre,
                     categoira = "",
                     subcategoria = "seguridad",
-                    distancia
+                    distancia,id,localidad,docLat,docLng
                 )
             }
     }

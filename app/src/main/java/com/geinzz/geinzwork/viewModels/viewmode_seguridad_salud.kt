@@ -91,9 +91,16 @@ class viewmode_seguridad_salud : ViewModel() {
     fun nombre_user(nombre: String) {
         nombre_user.value = nombre
     }
+
     private var mediaPlayer: MediaPlayer? = null
 //    val mostrar_busqueda_por_NLP=MutableStateFlow(false)
 
+
+    private val _estado_carga_datos_contacto =
+        MutableStateFlow<carga_contanto_emergencia>(carga_contanto_emergencia.loading)
+
+    val estado_carga_datos_contacto :
+        StateFlow<carga_contanto_emergencia> = _estado_carga_datos_contacto
 
     fun agregar_mas_tags_cateogira(id: String, lista: List<String>) {
 
@@ -107,6 +114,23 @@ class viewmode_seguridad_salud : ViewModel() {
             "tag_eventos_emerge",
             FieldValue.arrayUnion(*lista.toTypedArray())
         )
+    }
+
+
+    fun otener_contatos_numeros_emergencia(id_select: String, localidad: String) {
+        viewModelScope.launch {
+            _estado_carga_datos_contacto.value=carga_contanto_emergencia.loading
+            try {
+                val datos=instancia.obtener_datos_servicio_salud(localidad,id_select)
+                if(datos.nombre_.isNotEmpty()){
+                _estado_carga_datos_contacto.value=carga_contanto_emergencia.succes(datos)
+                }else{
+                    _estado_carga_datos_contacto.value=carga_contanto_emergencia.empty("no se encontraron datos")
+                }
+            } catch (e: Exception) {
+                _estado_carga_datos_contacto.value=carga_contanto_emergencia.error("Hubo un error al cargar los datos")
+            }
+        }
     }
 
 
@@ -350,11 +374,11 @@ class viewmode_seguridad_salud : ViewModel() {
         }
     }
 
-    fun cambiar_estado_Sin_internet(){
+    fun cambiar_estado_Sin_internet() {
         _state_lista_filtrada.value = carga_seguidad.succes(lista_general_original_inmutable.value)
         estadoBusqueda.value = Estado_busqueda.IDLE
-        texto_mostrado.value=""
-        titulo_mostrado.value=""
+        texto_mostrado.value = ""
+        titulo_mostrado.value = ""
     }
 
 
@@ -383,8 +407,6 @@ class viewmode_seguridad_salud : ViewModel() {
         } else {
             Log.d("NLP_DEBUG2", "Entidad no encontrada para '${r.t}'")
         }
-
-
 
 
         // Ahora hacemos debug de la acción
@@ -456,12 +478,13 @@ class viewmode_seguridad_salud : ViewModel() {
                     ) { sin_permisos ->
                         if (sin_permisos) {
                             verificarGPS(context, launcher)
-                            _mensajeTTS.value="Activa tu ubicacion para poder crearte una ruta hacia ${entidad?.key ?: r.t}"
+                            _mensajeTTS.value =
+                                "Activa tu ubicacion para poder crearte una ruta hacia ${entidad?.key ?: r.t}"
                             titulo_mostrado.value = "Activa tus permisos"
                             texto_mostrado.value =
                                 "Activa tu ubicacion para poder crearte una ruta hacia ${entidad?.key ?: r.t}"
                         } else {
-                            _mensajeTTS.value="Creando ruta hacia ${entidad?.key ?: r.t}"
+                            _mensajeTTS.value = "Creando ruta hacia ${entidad?.key ?: r.t}"
                             titulo_mostrado.value = "Creando ruta"
                             texto_mostrado.value = "Creando ruta hacia ${entidad?.key ?: r.t}"
                         }
@@ -474,7 +497,7 @@ class viewmode_seguridad_salud : ViewModel() {
                             r.g
                         )
 
-                    _mensajeTTS.value=mensaje
+                    _mensajeTTS.value = mensaje
                     titulo_mostrado.value = mensaje
                     texto_mostrado.value = mensaje
                     listaResultado?.let {
@@ -498,7 +521,7 @@ class viewmode_seguridad_salud : ViewModel() {
                     )
                     titulo_mostrado.value = "Aqui tienes tus resultados"
                     texto_mostrado.value = "Llamando a ${entidad.key} "
-                    _mensajeTTS.value=texto
+                    _mensajeTTS.value = texto
                     estadoBusqueda.value = Estado_busqueda.IDLE
                     _mostrar_micro.value = true
                     return
@@ -511,7 +534,7 @@ class viewmode_seguridad_salud : ViewModel() {
                             r.g
                         )
 
-                    _mensajeTTS.value=mensaje
+                    _mensajeTTS.value = mensaje
                     titulo_mostrado.value = mensaje
                     texto_mostrado.value = mensaje
                     listaResultado?.let {
@@ -520,7 +543,7 @@ class viewmode_seguridad_salud : ViewModel() {
                 }
 
 
-                _mensajeTTS.value="¿A quién deseas llamar?"
+                _mensajeTTS.value = "¿A quién deseas llamar?"
                 estadoBusqueda.value = Estado_busqueda.IDLE
                 _mostrar_micro.value = true
             }
@@ -538,7 +561,7 @@ class viewmode_seguridad_salud : ViewModel() {
                 } ?: run {
                     println("No se encontró número de WhatsApp")
 
-                    _mensajeTTS.value="No se encontró número de WhatsApp ${entidad?.key ?: r.t} "
+                    _mensajeTTS.value = "No se encontró número de WhatsApp ${entidad?.key ?: r.t} "
                     viewModelScope.launch {
                         val datos_a_enviar = FrasePendiente(
                             texto = texto_origina,
@@ -556,7 +579,7 @@ class viewmode_seguridad_salud : ViewModel() {
                     _mostrar_micro.value = true
                 }
 
-                _mensajeTTS.value="Abriendo Whattsapp"
+                _mensajeTTS.value = "Abriendo Whattsapp"
                 titulo_mostrado.value = "Abriendo Whattsapp"
                 texto_mostrado.value = "Abriendo Whattsapp"
                 Log.d("NLP_DEBUG2", "Detectado: WHATSAPP a '${entidad?.key ?: r.t}'")
@@ -599,7 +622,7 @@ class viewmode_seguridad_salud : ViewModel() {
                             lista_general_original_inmutable.value,
                             r.g
                         )
-                    _mensajeTTS.value=mensaje
+                    _mensajeTTS.value = mensaje
                     titulo_mostrado.value = mensaje
                     texto_mostrado.value = mensaje
                     listaResultado?.let {
@@ -621,12 +644,12 @@ class viewmode_seguridad_salud : ViewModel() {
                 )
                 if (resultadosFiltrados.isNotEmpty()) {
                     _state_lista_filtrada.value = carga_seguidad.succes(resultadosFiltrados)
-                    _mensajeTTS.value="Resultados filtrados para ${entidad?.key ?: r.t}"
+                    _mensajeTTS.value = "Resultados filtrados para ${entidad?.key ?: r.t}"
                     texto_mostrado.value = "Resultados filtrados para ${entidad?.key ?: r.t}"
                 } else {
                     _state_lista_filtrada.value =
                         carga_seguidad.empity("No se encontraron resultados para ${r.t}")
-                    _mensajeTTS.value="No se encontraron resultados para ${r.t}"
+                    _mensajeTTS.value = "No se encontraron resultados para ${r.t}"
                     viewModelScope.launch {
                         val datos_a_enviar = FrasePendiente(
                             texto = texto_origina,
@@ -669,7 +692,7 @@ class viewmode_seguridad_salud : ViewModel() {
                         texto_mostrado.value =
                             "Para calcular la distancia necesito acceder a tu ubicación actual 📍"
 
-                        _mensajeTTS.value=
+                        _mensajeTTS.value =
                             "Necesito permiso de ubicación para calcular la distancia hacia ${entidad?.key ?: r.t}"
 
 
@@ -685,7 +708,8 @@ class viewmode_seguridad_salud : ViewModel() {
                         texto_mostrado.value =
                             "Tu ubicación está desactivada. Actívala para poder calcular la distancia 📡"
 
-                        _mensajeTTS.value= "Activa tu ubicación para calcular la distancia hacia ${entidad?.key ?: r.t}"
+                        _mensajeTTS.value =
+                            "Activa tu ubicación para calcular la distancia hacia ${entidad?.key ?: r.t}"
 
 
                         verificarGPS(context, launcher)
@@ -731,7 +755,7 @@ class viewmode_seguridad_salud : ViewModel() {
                     texto_mostrado.value = distancia
                     estadoBusqueda.value = Estado_busqueda.IDLE
                     _mostrar_micro.value = true
-                    _mensajeTTS.value=distancia
+                    _mensajeTTS.value = distancia
                 }
             }
 
@@ -739,7 +763,7 @@ class viewmode_seguridad_salud : ViewModel() {
 
                 if (r.g == "otro") {
                     es_una_emergegecia.value = false
-                    _mensajeTTS.value="No entendí tu solicitud. ¿Podrías repetirlo?"
+                    _mensajeTTS.value = "No entendí tu solicitud. ¿Podrías repetirlo?"
                     viewModelScope.launch {
                         val datos_a_enviar = FrasePendiente(
                             texto = texto_origina,
@@ -779,7 +803,7 @@ class viewmode_seguridad_salud : ViewModel() {
                         }
                     }
 
-                    _mensajeTTS.value=mensaje
+                    _mensajeTTS.value = mensaje
                     titulo_mostrado.value = mensaje
                     texto_mostrado.value = mensaje
 
@@ -796,7 +820,8 @@ class viewmode_seguridad_salud : ViewModel() {
 
             else -> {
                 Log.w("NLP_DEBUG2", "Acción no soportada: ${r.a}")
-                _mensajeTTS.value="No pude encontrar exactamente lo que buscabas, pero mantén la calma. Recuerda que Geinz siempre está contigo ante cualquier emergencia."
+                _mensajeTTS.value =
+                    "No pude encontrar exactamente lo que buscabas, pero mantén la calma. Recuerda que Geinz siempre está contigo ante cualquier emergencia."
                 texto_mostrado.value =
                     "No pude encontrar exactamente lo que buscabas, pero mantén la calma. Recuerda que Geinz siempre está contigo ante cualquier emergencia."
 
@@ -1902,6 +1927,16 @@ class viewmode_seguridad_salud : ViewModel() {
         data class succes(val list: List<dataclass_seguridad>) : carga_seguidad()
         data class error(val texto: String) : carga_seguidad()
         object loading : carga_seguidad()
+    }
+
+
+    sealed class carga_contanto_emergencia {
+        data class succes(val data: dataclass_seguridad) : carga_contanto_emergencia()
+        object loading : carga_contanto_emergencia()
+        object idle : carga_contanto_emergencia()
+        data class empty(val text: String) : carga_contanto_emergencia()
+        data class error(val text: String) : carga_contanto_emergencia()
+
     }
 
 

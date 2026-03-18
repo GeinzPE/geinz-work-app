@@ -20,6 +20,7 @@ data class dataclass_seguridad(
     val key_alias: List<String> = emptyList()
 ) : Parcelable
 
+
 data class dialog_seguridad_salud_algolia(
     val lista_whatsapp: List<String>,
     val lista_llamada: List<String>,

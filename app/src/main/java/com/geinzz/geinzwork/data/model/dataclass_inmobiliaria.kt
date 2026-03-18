@@ -52,7 +52,9 @@ data class lugares_cercanos_(
     val nombre: String,
     val categoira: String,
     val subcategoria: String,
-    val distanciaKm: Double = 0.0
+    val distanciaKm: Double = 0.0,
+    val id: String, val localidad: String,
+    val lat: Double, val lng:Double
 )
 
 data class datos_geolocalizables(
@@ -66,10 +68,10 @@ data class datos_geolocalizables(
 data class ia_inmobiliara_tts(
     val cantidad_lugares_seguros: Int,
     val cantidad_lugares_encontrado: Int,
-    val cantidad_lugares_turisticos:Int,
-    val metros_cuadrados:String,
-    val tipo:String,
-    val estado:String,
+    val cantidad_lugares_turisticos: Int,
+    val metros_cuadrados: String,
+    val tipo: String,
+    val estado: String,
     val nombre_user: String,
     val lista_lugares_cercanos: List<String>,
     val lista_lugares_seguros: List<String>,

@@ -38,6 +38,7 @@ class repo_seguridad_salud {
     val db = FirebaseFirestore.getInstance()
 
     data class UbicacionResult(val latLng: LatLng, val callback: LocationCallback)
+
     private val client = OkHttpClient()
 
     suspend fun obtener_servicios_salud(localdad: String): List<dataclass_seguridad> {
@@ -102,6 +103,41 @@ class repo_seguridad_salud {
         return lista
     }
 
+
+    suspend fun obtener_datos_servicio_salud(localidad: String, id: String): dataclass_seguridad {
+        return try {
+            val ref = db.collection("Tiendas")
+                .document("salud_seguridad")
+                .collection(localidad)
+                .document(id)
+                .get()
+                .await()
+
+            if (!ref.exists()) return dataclass_seguridad()
+
+            val data = ref.data ?: return dataclass_seguridad()
+            val ubicacion = data["ubicacion"] as? Map<*, *> ?: emptyMap<String, Any>()
+            val contacto = data["numeros_contactos"] as? Map<*, *> ?: emptyMap<String, Any>()
+
+            dataclass_seguridad(
+                nombre_          = data["nombre"] as? String ?: "",
+                direccion        = ubicacion["direccion"] as? String ?: "",
+                latidud          = (ubicacion["latitud"] as? Number ?: 0).toDouble(),
+                longitud         = (ubicacion["longitud"] as? Number ?: 0).toDouble(),
+                referencia       = ubicacion["referencia"] as? String ?: "",
+                categoria        = data["categoria"] as? String ?: "",
+                numero_llamada   = contacto["llamada"] as? List<String> ?: emptyList(),
+                numero_whatsapp  = contacto["whatsapp"] as? List<String> ?: emptyList(),
+                img_ref          = data["img"] as? String ?: "",
+                etiqutas_emergencias  = data["tag_eventos_emerge"] as? List<String> ?: emptyList(),
+                etiquetas_no_urgente  = data["tag_no_urgentes"] as? List<String> ?: emptyList(),
+                key_alias        = data["alias_key"] as? List<String> ?: emptyList()
+            )
+        } catch (e: Exception) {
+            Log.e("obtener_datos_servicio_salud", "❌ Error: ${e.message}")
+            dataclass_seguridad()
+        }
+    }
 
     fun atencion_24h(i: String): String {
         return when (i) {

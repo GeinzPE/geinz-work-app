@@ -85,7 +85,7 @@ data class lugares_cercanos(
     val descripcion: String,
     val metodos_pago_tienda: modelo_pagos_tienda,
     val horario_box: HorarioAtencion_box,
-    val localidad_tienda: String
+    val localidad_tienda: String,val distancia:Double
 ) : Parcelable
 
 

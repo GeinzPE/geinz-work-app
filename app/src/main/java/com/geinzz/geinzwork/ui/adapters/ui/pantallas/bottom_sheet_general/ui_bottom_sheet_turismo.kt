@@ -168,9 +168,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.rememberModalBottomSheetState
 import com.bumptech.glide.Glide
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatRadioFromSlider
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatearDistanciaDouble
+import com.geinzz.geinzwork.viewModels.viewmodel_inmobiliaria
 import java.net.URL
 import java.net.URLEncoder
 
@@ -179,18 +181,20 @@ import java.net.URLEncoder
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_lugares_turisticos(
+    localidad_user: String,
     verificar_intener: Boolean,
     viewmodelMap: viewmodel_mapa_personalizado,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
-    datos: lugares_turisticos,
+//    datos: lugares_turisticos,
     visible: Boolean,
     onClose: () -> Unit,
     ver_mapa: (List<lugares_cercanos>) -> Unit,
     iniciar_seccion: () -> Unit,
-    crear_cuenta: () -> Unit
+    crear_cuenta: () -> Unit,
+    id_lugar_turistico: String,
 ) {
 
-    Log.d("pasmaoedatos_xetardiaspod", "${datos.latitud} ${datos.longitud}")
+    Log.d("pasmaoedatos_xetardiaspod", "${id_lugar_turistico} ${localidad_user}")
     val firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
@@ -212,10 +216,17 @@ fun bottom_sheet_lugares_turisticos(
     var subcategoriatienda_select by remember { mutableStateOf("Todos") }
     var bottom_sheet_iniciar_seccion by remember { mutableStateOf(false) }
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
-    var id_respado_user by remember { mutableStateOf("") }
 
+    val estado_carga_datos_lugares by viewmodel_turismo.state_carga_datos_lugares_turisticos.collectAsState()
+    var id_respado_user by remember { mutableStateOf("") }
     val id_tienda_parms by remember { mutableStateOf("") }
     val localidad_tienda by remember { mutableStateOf("") }
+
+    var datos by remember { mutableStateOf(lugares_turisticos()) }
+
+    LaunchedEffect(id_lugar_turistico) {
+        viewmodel_turismo.cargar_datos_lugares_turisticos(id_lugar_turistico, localidad_user.lowercase())
+    }
 
     LaunchedEffect(uid_respald_user) {
         if (uid_respald_user.isNotEmpty()) {
@@ -264,87 +275,123 @@ fun bottom_sheet_lugares_turisticos(
         }
     }
 
-    var cargando by remember { mutableStateOf(true) }
+//    var cargando by remember { mutableStateOf(true) }
+//
+//    LaunchedEffect(visible) {
+//        if (visible) {
+//            cargando = true
+//            delay(2000)
+//            cargando = false
+//        }
+//    }
 
-    LaunchedEffect(visible) {
-        if (visible) {
-            cargando = true
-            delay(2000)
-            cargando = false
+
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true  // opcional, evita el estado intermedio
+    )
+    val coroutineScope = rememberCoroutineScope()
+
+    // función helper para cerrar con animación
+    fun cerrarConAnimacion() {
+        coroutineScope.launch {
+            sheetState.hide()  // anima hacia abajo
+            onClose()          // después remueve el composable
         }
     }
 
     ModalBottomSheet(
-        onDismissRequest = { onClose() },
+        onDismissRequest = { cerrarConAnimacion() },
         modifier = Modifier.fillMaxWidth(),
         dragHandle = {},
         containerColor = MaterialTheme.colorScheme.background
     ) {
         FuenteControladaApp {
-            if (cargando) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    androidx.compose.material.CircularProgressIndicator()
+
+            when (estado_carga_datos_lugares) {
+                is viewModel_lugares_turisticos.carga_datos_lugares_turisticos.empty -> {
+
                 }
-            } else {
-                AnimatedVisibility(visible = true) {
-                    Column(
+
+                viewModel_lugares_turisticos.carga_datos_lugares_turisticos.idle -> {
+
+                }
+
+                viewModel_lugares_turisticos.carga_datos_lugares_turisticos.loading -> {
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .verticalScroll(rememberScrollState())
-                            .padding(bottom = 20.dp)
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        card_img_container(
-                            viewmodel_filtrado,
-                            viewmodel_turismo,
-                            firebaseAuth1 = firebaseAuth,
-                            datos = datos,
-                            tick = tick,
-                            lista_items = state_tiendas_cercanas,
-                            clik_card = { id, localidad, color ->
-                                if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
-                                    mostrar_bottom_datos = true
-                                    id_tienda = id
-                                    localida_tienda = localidad
-                                    color_estado_tienda = color
-                                } else {
-                                    bottom_sheet_iniciar_seccion = true
-                                }
-                            },
-                            buscar_nuevas_tiendas = { radio ->
-                                if (radio != radioAnterior) {
-                                    radioAnterior = radio
-                                }
-                            }, lista_base = { lista_baseparams, lista_sub ->
-                                lista_subacteogorias = lista_sub
-                            }, subcategoria_seleciondafun = { i ->
-                                subcategoriatienda_select = i
-                                viewmodel_turismo.filtrar_por_subcategoria(
-                                    lista_subacteogorias,
-                                    i,
-                                    datos.latitud,
-                                    datos.longitud, nueva_busqueda
-                                )
-                            }, nuevo_rango_km = { rango ->
-                                nueva_busqueda = rango
+                        androidx.compose.material.CircularProgressIndicator()
+                    }
+                }
 
-                                viewmodel_turismo.filtrar_por_subcategoria(
-                                    lista_subacteogorias,
-                                    subcategoriatienda_select,
-                                    datos.latitud,
-                                    datos.longitud, nueva_busqueda
-                                )
-                                Log.d("Rangonuevo", nueva_busqueda.toString())
-                            }, ver_mapa = { lugares_cercanos ->
-                                ver_mapa(lugares_cercanos)
-                            }, { bottom_sheet_iniciar_seccion = true })
+                is viewModel_lugares_turisticos.carga_datos_lugares_turisticos.succes -> {
+                    var datos_lugar = (estado_carga_datos_lugares as viewModel_lugares_turisticos.carga_datos_lugares_turisticos.succes).datos
+                    datos=datos_lugar
+                    AnimatedVisibility(visible = true) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .verticalScroll(rememberScrollState())
+                                .padding(bottom = 20.dp)
+                        ) {
+                            card_img_container(
+                                viewmodelMap,
+                                viewmodel_filtrado,
+                                viewmodel_turismo,
+                                firebaseAuth1 = firebaseAuth,
+                                datos = datos,
+                                tick = tick,
+                                lista_items = state_tiendas_cercanas,
+                                clik_card = { id, localidad, color ->
+                                    if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
+                                        mostrar_bottom_datos = true
+                                        id_tienda = id
+                                        localida_tienda = localidad
+                                        color_estado_tienda = color
+                                    } else {
+                                        bottom_sheet_iniciar_seccion = true
+                                    }
+                                },
+                                buscar_nuevas_tiendas = { radio ->
+                                    if (radio != radioAnterior) {
+                                        radioAnterior = radio
+                                    }
+                                }, lista_base = { lista_baseparams, lista_sub ->
+                                    lista_subacteogorias = lista_sub
+                                }, subcategoria_seleciondafun = { i ->
+                                    subcategoriatienda_select = i
+                                    viewmodel_turismo.filtrar_por_subcategoria(
+                                        lista_subcategorias = lista_subacteogorias,
+                                        subcategoria = i,
+                                        latUser = datos.latitud,
+                                        lonUser = datos.longitud, paso = nueva_busqueda
+                                    )
+                                }, nuevo_rango_km = { rango ->
+                                    nueva_busqueda = rango
+
+                                    viewmodel_turismo.filtrar_por_subcategoria(
+                                        lista_subacteogorias,
+                                        subcategoriatienda_select,
+                                        datos.latitud,
+                                        datos.longitud, nueva_busqueda
+                                    )
+                                    Log.d("Rangonuevo", nueva_busqueda.toString())
+                                }, ver_mapa = { lugares_cercanos ->
+                                    ver_mapa(lugares_cercanos)
+                                }, { bottom_sheet_iniciar_seccion = true })
+                        }
                     }
                 }
             }
+
+//            if (cargando) {
+//
+//            } else {
+//
+//            }
         }
     }
 
@@ -383,6 +430,7 @@ fun bottom_sheet_lugares_turisticos(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun card_img_container(
+    viewmodelMap: viewmodel_mapa_personalizado,
     viewmodel_filtrado: viewModel_filtado_tiendas,
     viewmodel_turismo: viewModel_lugares_turisticos,
     firebaseAuth1: FirebaseAuth,
@@ -434,14 +482,13 @@ fun card_img_container(
 
 
     LaunchedEffect(lista_string_filtrado_tiendas) {
-        if (lista_string_filtrado_tiendas.isNotEmpty() && sub_categoria_selecionada.isEmpty()) {
+        if (lista_string_filtrado_tiendas.isNotEmpty()) {
             val primera = lista_string_filtrado_tiendas.first()
             sub_categoria_selecionada = primera
             subcategoria_seleciondafun(primera)
             viewmodel_turismo.actualizarCategoria(primera)
         }
     }
-
     LaunchedEffect(uid_respald_user) {
         if (uid_respald_user.isNotEmpty()) {
             id_respado_user = uid_respald_user
@@ -547,6 +594,7 @@ fun card_img_container(
                                     viewmodel_turismo.actualizarRadio(nueva_busqueda.toDouble())
                                     viewmodel_turismo.actualizar_lat_lugar(datos.latitud)
                                     viewmodel_turismo.actualizar_lng_lugar(datos.longitud)
+                                    viewmodelMap.setBottomSheetVisible(false)
                                 } else {
                                     mostrar_login_seccion_bottom_sheet()
                                 }
@@ -673,45 +721,44 @@ fun card_img_container(
                         exit = fadeOut()
                     ) {
 
-                            Slider(
-                                value = nueva_busqueda,
-                                onValueChange = { nueva_busqueda = it.roundToInt().toFloat() },
-                                valueRange = 1f..10f,
-                                steps = 8,
-                                onValueChangeFinished = {
-                                    buscar_nuevas_tiendas(nueva_busqueda.toDouble())
-                                    nuevo_rango_km(nueva_busqueda)
-                                },
-                                colors = SliderDefaults.colors(
-                                    thumbColor = MaterialTheme.colorScheme.primary,       // 🔹 Color del "thumb" o bolita que se mueve cuando arrastras el slider
-                                    activeTrackColor = MaterialTheme.colorScheme.primary, // 🔹 Color de la línea activa del slider (la parte a la izquierda del thumb)
-                                    inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(
-                                        alpha = 0.2f
-                                    ), // 🔹 Color de la línea inactiva (parte a la derecha del thumb)
-                                    activeTickColor = MaterialTheme.colorScheme.primary,  // 🔹 Color de las marcas de pasos (ticks) que ya están "alcanzadas" por el thumb
-                                    inactiveTickColor = Color.Gray                        // 🔹 Color de las marcas de pasos que aún no se alcanzaron
-                                ),
-                                thumb = {
-                                    // Nuestra bolita blanca sin borde negro
-                                    Box(
-                                        modifier = Modifier
-                                            .size(25.dp)
-                                            .clip(CircleShape)
-                                            .background(Color.White),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        texto_generico_one_line(
-                                            nueva_busqueda.toInt().toString(),
-                                            color = Color.Black,
-                                            style = MaterialTheme.typography.bodyMedium
-                                        )
-                                    }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(40.dp)
-                            )
-
+                        Slider(
+                            value = nueva_busqueda,
+                            onValueChange = { nueva_busqueda = it.roundToInt().toFloat() },
+                            valueRange = 1f..10f,
+                            steps = 8,
+                            onValueChangeFinished = {
+                                buscar_nuevas_tiendas(nueva_busqueda.toDouble())
+                                nuevo_rango_km(nueva_busqueda)
+                            },
+                            colors = SliderDefaults.colors(
+                                thumbColor = MaterialTheme.colorScheme.primary,       // 🔹 Color del "thumb" o bolita que se mueve cuando arrastras el slider
+                                activeTrackColor = MaterialTheme.colorScheme.primary, // 🔹 Color de la línea activa del slider (la parte a la izquierda del thumb)
+                                inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.2f
+                                ), // 🔹 Color de la línea inactiva (parte a la derecha del thumb)
+                                activeTickColor = MaterialTheme.colorScheme.primary,  // 🔹 Color de las marcas de pasos (ticks) que ya están "alcanzadas" por el thumb
+                                inactiveTickColor = Color.Gray                        // 🔹 Color de las marcas de pasos que aún no se alcanzaron
+                            ),
+                            thumb = {
+                                // Nuestra bolita blanca sin borde negro
+                                Box(
+                                    modifier = Modifier
+                                        .size(25.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.White),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    texto_generico_one_line(
+                                        nueva_busqueda.toInt().toString(),
+                                        color = Color.Black,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                        )
 
 
                     }
@@ -773,7 +820,7 @@ fun card_img_container(
                         )
                         lugares_turisticos_filtrados = emptyList()
                         viewmodel_turismo.actualizarCategorias(emptyList())
-                        lista_string_filtrado_tiendas = listOf("Todos")
+
                     }
 
                     is viewModel_lugares_turisticos.carga_tienda_cercanos.error -> {

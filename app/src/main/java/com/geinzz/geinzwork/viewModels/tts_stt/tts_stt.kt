@@ -66,11 +66,14 @@ class tts_stt: ViewModel() {
     fun limpiarAudio() {
         _datosCloudTts.value = ByteArray(0)
     }
+    private var ultimoTextoReproducido = ""
+    fun crear_texto__para_tts(texto: String, tipo_voz: String) {
+        if (texto == ultimoTextoReproducido) return // ← no repetir
+        ultimoTextoReproducido = texto
 
-    fun crear_texto__para_tts(texto: String,tipo_voz:String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                _datosCloudTts.value = insta_tts.cloudTTS(texto,tipo_voz)
+                _datosCloudTts.value = insta_tts.cloudTTS(texto, tipo_voz)
             } catch (e: Exception) {
                 Log.e("CloudTTS", "Error de text to speech", e)
             }
@@ -82,6 +85,7 @@ class tts_stt: ViewModel() {
             mediaPlayer?.stop()
             mediaPlayer?.release()
             mediaPlayer = null
+            ultimoTextoReproducido = ""
         } catch (e: Exception) {
             Log.e("TTS", "Error al detener audio", e)
         }

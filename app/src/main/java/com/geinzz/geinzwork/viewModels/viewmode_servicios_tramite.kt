@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.dataclass_lugares_db
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
+import com.geinzz.geinzwork.data.model.obtener_servicios_lugares
 import com.geinzz.geinzwork.model.repo_servicios_tramites
 import com.geinzz.geinzwork.ui.adapters.adapterCategorias
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.isInternetAvailable
@@ -19,20 +20,25 @@ import kotlinx.coroutines.launch
 
 class viewmode_servicios_tramite : ViewModel() {
     private val isnta = repo_servicios_tramites()
-    private val _lugares = MutableLiveData<List<dataclass_lugares_db>>()
-    val lugares: LiveData<List<dataclass_lugares_db>> get() = _lugares
+    private val _lugares = MutableLiveData<List<obtener_servicios_lugares>>()
+    val lugares: LiveData<List<obtener_servicios_lugares>> get() = _lugares
 //    private val _listaFiltrada = MutableStateFlow<List<dataclass_lugares_db>>(emptyList())
 //    val listaFiltrada: StateFlow<List<dataclass_lugares_db>> = _listaFiltrada
 
     var lugares_turisticos = mutableListOf<dataclass_lugares_db>()
         private set
 
-    private var todo_lugares = emptyList<dataclass_lugares_db>()
+    private var todo_lugares = emptyList<obtener_servicios_lugares>()
 
 
     private val state_servicios = MutableStateFlow<carga_servicios>(carga_servicios.loading)
     val _state_servicios: StateFlow<carga_servicios> = state_servicios
 
+
+    private val _estado_carga_servicios =
+        MutableStateFlow<carga_datos_servicios>(carga_datos_servicios.loading)
+
+    val estado_carga_servicios: StateFlow<carga_datos_servicios> = _estado_carga_servicios
 
     private val _mostrar_carga_turistico = MutableStateFlow(false)
     val mostrar_carga_turistico = _mostrar_carga_turistico.asStateFlow()
@@ -46,29 +52,29 @@ class viewmode_servicios_tramite : ViewModel() {
     fun obtener_lugares(context: Context, localida: String) {
         viewModelScope.launch {
             try {
-                _mostrar_carga_turistico.value=true
+                _mostrar_carga_turistico.value = true
                 delay(2000)
                 state_servicios.value = carga_servicios.loading
                 if (!isInternetAvailable(context)) {
-                    _mostrar_carga_turistico.value=false
+                    _mostrar_carga_turistico.value = false
                     state_servicios.value = carga_servicios.error("Sin conexión a internet 😕")
                     return@launch
                 }
                 val res = isnta.obtenerServiciosTramites(localida)
                 _lugares.value = res
                 if (res.isNotEmpty()) {
-                    _mostrar_carga_turistico.value=false
+                    _mostrar_carga_turistico.value = false
                     state_servicios.value = carga_servicios.succes(res)
                 } else {
                     // Espera un poco antes de mostrar el "vacío"
-                    _mostrar_carga_turistico.value=false
+                    _mostrar_carga_turistico.value = false
                     delay(300)
                     state_servicios.value =
                         carga_servicios.emoty("No hay datos registrados de $localida")
                 }
 
             } catch (e: Exception) {
-                _mostrar_carga_turistico.value=false
+                _mostrar_carga_turistico.value = false
                 _lugares.value = emptyList()
                 state_servicios.value =
                     carga_servicios.error("Ocurrió un error al cargar los datos")
@@ -77,7 +83,7 @@ class viewmode_servicios_tramite : ViewModel() {
     }
 
 
-    fun todos(lista: List<dataclass_lugares_db>) {
+    fun todos(lista: List<obtener_servicios_lugares>) {
         todo_lugares = lista
         Log.d("todo_lugares_agregardos", lista.toString())
     }
@@ -138,9 +144,7 @@ class viewmode_servicios_tramite : ViewModel() {
 
 
     fun filtrar_nombre_categoria(
-        nombre: String,
-        categoria: String,
-        lista: List<dataclass_lugares_db>
+        nombre: String, categoria: String, lista: List<obtener_servicios_lugares>
     ) {
         viewModelScope.launch {
             try {
@@ -150,7 +154,8 @@ class viewmode_servicios_tramite : ViewModel() {
                     // 🔹 Si la categoría es "Todos", busca por nombre o por categoría
                     lista.filter { item ->
                         val coincideNombre = item.lugar_nombre.contains(nombre, ignoreCase = true)
-                        val coincideCategoria = item.categoria.any { it.contains(nombre, ignoreCase = true) }
+                        val coincideCategoria =
+                            item.categoria.any { it.contains(nombre, ignoreCase = true) }
                         coincideNombre || coincideCategoria
                     }
                 } else {
@@ -181,11 +186,55 @@ class viewmode_servicios_tramite : ViewModel() {
     }
 
 
+    fun obtener_datos_completos_de_servicios_(localidad: String, id: String) {
+        viewModelScope.launch {
+
+            Log.d("VM_SERVICIOS", "Iniciando carga → localidad=$localidad, id=$id")
+
+            _estado_carga_servicios.value = carga_datos_servicios.loading
+
+            try {
+                val datos = isnta.obtener_datos_servicios_tramites(localidad, id)
+
+                Log.d("VM_SERVICIOS", "Datos obtenidos: $datos")
+
+                if (datos.id.isNotEmpty()) {
+
+                    Log.d("VM_SERVICIOS", "SUCCESS → id válido: ${datos.id}")
+
+                    _estado_carga_servicios.value = carga_datos_servicios.succes(datos)
+
+                } else {
+
+                    Log.d("VM_SERVICIOS", "ERROR → id vacío")
+
+                    _estado_carga_servicios.value = carga_datos_servicios.error("ID vacío")
+
+                }
+
+            } catch (e: Exception) {
+
+                Log.e("VM_SERVICIOS", "EXCEPTION → ${e.message}", e)
+
+                _estado_carga_servicios.value =
+                    carga_datos_servicios.error(e.message ?: "Error desconocido")
+            }
+        }
+    }
+
+
+    sealed class carga_datos_servicios {
+        object loading : carga_datos_servicios()
+        data class succes(val datos: dataclass_lugares_db) : carga_datos_servicios()
+        data class error(val texto: String = "Error") : carga_datos_servicios()
+        object idle : carga_datos_servicios()
+    }
+
 
     sealed class carga_servicios {
         object loading : carga_servicios()
         data class emoty(val texto: String) : carga_servicios()
-        data class succes(val items: List<dataclass_lugares_db>) : carga_servicios()
+        data class succes(val items: List<obtener_servicios_lugares>) : carga_servicios()
         data class error(val texto: String) : carga_servicios()
     }
 }

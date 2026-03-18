@@ -33,13 +33,20 @@ class viewmodel_inmobiliaria : ViewModel() {
     val estado_carga_inmuebles_principales: StateFlow<estado_carga_principal_immubles> =
         _estado_carga_inmubles_principales
 
-    private val _respuesta_IA = MutableStateFlow("")
 
     private val _datosCloudTts = MutableStateFlow(ByteArray(0))
     val datosCloudTts: StateFlow<ByteArray> = _datosCloudTts
 
+    private val _respuesta_IA = MutableStateFlow("")
 
     val respuesta_IA: StateFlow<String> = _respuesta_IA.asStateFlow()
+
+
+    private val _respuesta_IA_datos = MutableStateFlow<estado_carga_respuesta_con_IA>(
+        estado_carga_respuesta_con_IA.loading
+    )
+
+    val respuesta_IA_datos: StateFlow<estado_carga_respuesta_con_IA> = _respuesta_IA_datos
 
 
     private val _lugares_filtrados = MutableStateFlow(lista_lugaers_totales())
@@ -372,10 +379,16 @@ class viewmodel_inmobiliaria : ViewModel() {
         perfil_selet: String
     ) {
         viewModelScope.launch {
+            _respuesta_IA_datos.value = estado_carga_respuesta_con_IA.loading
             try {
-                _respuesta_IA.value = instarepo.generacion_texto_por_IA(i, perfil_selet)
+                val respuesta = instarepo.generacion_texto_por_IA(i, perfil_selet)
+                if (respuesta.isNotEmpty()) {
+                    _respuesta_IA_datos.value = estado_carga_respuesta_con_IA.succes(respuesta)
+                }
             } catch (e: Exception) {
                 Log.d("error", "ocurrio un error al veriicar")
+                _respuesta_IA_datos.value =
+                    estado_carga_respuesta_con_IA.error("ocurrio un error vuelvelo a intenter")
             }
         }
 
@@ -429,6 +442,13 @@ class viewmodel_inmobiliaria : ViewModel() {
         data class error(val texto: String) : estado_carga_principal_immubles()
         object idle : estado_carga_principal_immubles()
         object loading : estado_carga_principal_immubles()
+    }
+
+    sealed class estado_carga_respuesta_con_IA {
+        data class succes(val texto: String) : estado_carga_respuesta_con_IA()
+        object loading : estado_carga_respuesta_con_IA()
+        object idle : estado_carga_respuesta_con_IA()
+        data class error(val texto: String) : estado_carga_respuesta_con_IA()
     }
 
 }

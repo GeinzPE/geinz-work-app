@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -77,6 +78,7 @@ import com.geinzz.geinzwork.data.model.dataclass_lugares_db
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dataclass_seguridad
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.data.model.obtener_servicios_lugares
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_compartir.compartir_pantalla_completa
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -101,7 +103,7 @@ import com.google.firebase.database.core.Context
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ui_servicio_tramite(verificar_intener: Boolean, localida: String,iduser:String) {
+fun ui_servicio_tramite(verificar_intener: Boolean, localida: String, iduser: String) {
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
     val viewmode_servicios_tramite: viewmode_servicios_tramite = viewModel()
     val lugares by viewmode_servicios_tramite.lugares.observeAsState(emptyList())
@@ -122,7 +124,7 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String,iduser:Stri
     var expandedIndex by remember { mutableStateOf(-1) }
     var lista_mostrar by remember { mutableStateOf<List<dataclass_lugares_db>>(emptyList()) }
     var mostrandoCarga_free by remember { mutableStateOf(false) }
-    var lista_base_seguridad by rememberSaveable { mutableStateOf(emptyList<dataclass_lugares_db>()) }
+    var lista_base_seguridad by rememberSaveable { mutableStateOf(emptyList<obtener_servicios_lugares>()) }
     val state_servicios =
         viewmode_servicios_tramite._state_servicios.collectAsState(carga_servicios.loading).value
     val estadoTiendaFree by viewmodel_filtrado._datos_tienda_sin_pago.observeAsState(
@@ -330,23 +332,36 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String,iduser:Stri
                     val lista =
                         (state_servicios as viewmode_servicios_tramite.carga_servicios.succes).items
                     itemsIndexed(lista, key = { _, item -> item.id }) { index, lugar ->
-                        carta_servicio_tramites(
-                            dataclass_lugares_db = lugar,
-                            index = index,
-                            isExpanded = false, click_card = {
-                                seleccionado = lugar
-                                dialog_servicos_tramite = true
-                            }, click_car_gas_agua = { id, localidad, pagado ->
-                                id_tienda_select = id
-                                mostrar_diaogo_general = true
-                                localidad_tienda = localidad
-                                pagado_tienda = pagado
-                                if (pagado) {
-                                    motrar_dialog_tienda_Select = true
-                                } else {
-                                    mostrar_dialog_tienda_no_pagada = true
-                                }
-                            })
+                        Box(
+                            modifier = Modifier
+                                .animateItem(
+                                    placementSpec = tween(
+                                        durationMillis = 350,
+                                        easing = FastOutSlowInEasing
+                                    )
+                                )
+                        ) {
+
+                            carta_servicio_tramites(
+                                dataclass_lugares_db = lugar,
+                                index = index,
+                                isExpanded = false, click_card = { id ->
+//                                    seleccionado = lugar
+                                    id_tienda_select = id
+                                    localidad_tienda = localida.lowercase()
+                                    dialog_servicos_tramite = true
+                                }, click_car_gas_agua = { id, localidad, pagado ->
+                                    id_tienda_select = id
+                                    mostrar_diaogo_general = true
+                                    localidad_tienda = localidad.lowercase()
+                                    pagado_tienda = pagado
+                                    if (pagado) {
+                                        motrar_dialog_tienda_Select = true
+                                    } else {
+                                        mostrar_dialog_tienda_no_pagada = true
+                                    }
+                                })
+                        }
                     }
                 }
 
@@ -388,7 +403,10 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String,iduser:Stri
                 when (estado) {
                     "loading" -> {}
                     "empty" ->
-                        Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
                             Text(
                                 texto_error_empity,
                                 color = Color.Gray,
@@ -418,9 +436,11 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String,iduser:Stri
             }
         }
 
-        if(mostar_bottom_sheet_ayuda_geinz){
-            bottom_sheet_ayudanos_a_creccer(iduser,verificar_intener,localida?:"barranca",
-                { mostar_bottom_sheet_ayuda_geinz = false },viewmodel_filtrado)
+        if (mostar_bottom_sheet_ayuda_geinz) {
+            bottom_sheet_ayudanos_a_creccer(
+                iduser, verificar_intener, localida ?: "barranca",
+                { mostar_bottom_sheet_ayuda_geinz = false }, viewmodel_filtrado
+            )
         }
         if (motrar_dialog_tienda_Select) {
             bottom_sheet_tiendas_filtradas(
@@ -442,11 +462,11 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String,iduser:Stri
 
 
         // 🔹 Diálogo de detalle
-        if (dialog_servicos_tramite && seleccionado != null) {
-            dialog_servicios_tramite(iduser,
+        if (dialog_servicos_tramite ) {
+            dialog_servicios_tramite(
+                viewmode_servicios_tramite, id_tienda_select, localidad_tienda, iduser,
                 localida,
                 ondimis = { dialog_servicos_tramite = false },
-                seleccionado!!
             )
         }
 
@@ -519,10 +539,10 @@ fun centrado_hori_vertical(
 
 @Composable
 fun carta_servicio_tramites(
-    dataclass_lugares_db: dataclass_lugares_db,
+    dataclass_lugares_db: obtener_servicios_lugares,
     index: Int,
     isExpanded: Boolean,
-    click_card: () -> Unit,
+    click_card: (id: String) -> Unit,
     click_car_gas_agua: (id: String, localida: String, pagado: Boolean) -> Unit
 ) {
     val heightOptions = listOf(200.dp, 210.dp)
@@ -536,7 +556,7 @@ fun carta_servicio_tramites(
             .clickable {
                 val categoriasProhibidas = listOf("gas", "agua de mesa")
                 if (!dataclass_lugares_db.categoria.any { it in categoriasProhibidas }) {
-                    click_card()
+                    click_card(dataclass_lugares_db.id)
                 } else {
                     click_car_gas_agua(
                         dataclass_lugares_db.id,
@@ -551,7 +571,7 @@ fun carta_servicio_tramites(
         // 🖼 Imagen principal
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(dataclass_lugares_db.logo_img)
+                .data(dataclass_lugares_db.img)
                 .memoryCachePolicy(CachePolicy.ENABLED)
                 .build(),
             contentDescription = null,
@@ -604,9 +624,17 @@ fun carta_servicio_tramites(
 
 @Composable
 fun cabezero_servicios_tramites(localiad: String) {
-    val context=LocalContext.current
-    Row(horizontalArrangement = Arrangement.Center , verticalAlignment = Alignment.CenterVertically){
-    Text(text = "servicios esenciales y tramites", fontFamily = baners_geinz_work, fontSize = 30.sp, modifier = Modifier.weight(1f))
+    val context = LocalContext.current
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "servicios esenciales y tramites",
+            fontFamily = baners_geinz_work,
+            fontSize = 30.sp,
+            modifier = Modifier.weight(1f)
+        )
         Box(
             modifier = Modifier,
         ) {
@@ -615,12 +643,21 @@ fun cabezero_servicios_tramites(localiad: String) {
                     .padding(8.dp)
                     .size(35.dp)
                     .clip(CircleShape)
-                    .background(Color.Gray.copy(alpha = 0.5f)).clickable{
-                        compartir_pantalla_completa("seyt","Explora los lugares disponibles en Geinz para tus servicios y trámites.",context)
+                    .background(Color.Gray.copy(alpha = 0.5f))
+                    .clickable {
+                        compartir_pantalla_completa(
+                            "seyt",
+                            "Explora los lugares disponibles en Geinz para tus servicios y trámites.",
+                            context
+                        )
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Image(painterResource(R.drawable.comparir_icon), modifier = Modifier.size(16.dp), contentDescription = null)
+                Image(
+                    painterResource(R.drawable.comparir_icon),
+                    modifier = Modifier.size(16.dp),
+                    contentDescription = null
+                )
             }
         }
     }
