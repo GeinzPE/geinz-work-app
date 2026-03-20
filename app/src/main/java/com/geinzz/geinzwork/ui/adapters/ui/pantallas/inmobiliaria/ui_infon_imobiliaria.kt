@@ -11,6 +11,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.EaseInOutCubic
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -37,6 +38,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -192,6 +194,23 @@ fun ui_info_imobiliara(
     var img_turismo by remember { mutableStateOf("") }
     var lat by remember { mutableStateOf(0.0) }
     var lng by remember { mutableStateOf(0.0) }
+    val listState = rememberLazyListState()
+    val stickyHeaderIndex = 1
+    var toastShown by remember { mutableStateOf(false) }
+    val paddingAnim by animateDpAsState(
+        targetValue = if (toastShown) 5.dp else 0.dp,
+        animationSpec = tween(
+            durationMillis = 300,
+            easing = FastOutSlowInEasing
+        )
+    )
+    LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
+        if (listState.firstVisibleItemIndex >= stickyHeaderIndex && !toastShown) {
+            toastShown = true
+        } else if (listState.firstVisibleItemIndex < stickyHeaderIndex) {
+            toastShown = false
+        }
+    }
     LaunchedEffect(datosTienda) {
         if (!datosTienda.isNullOrEmpty()) {
             dataclass_tienda_seleccionada = datosTienda!!.first()
@@ -290,7 +309,7 @@ fun ui_info_imobiliara(
                     (estado as viewmodel_inmobiliaria.etado_carga_info_inmuebles.succes).datos
                 datos_Estados_succes = datos
 
-                LazyColumn() {
+                LazyColumn(modifier = Modifier.padding(5.dp), state = listState) {
                     item {
                         Box {
                             GaleriaHorizontalInstagram(
@@ -311,7 +330,7 @@ fun ui_info_imobiliara(
                             )
                         }
 
-                        Column(modifier = Modifier.padding(horizontal = 5.dp)) {
+                        Column() {
                             texto_generico_one_line(datos.nombre)
 
                             texto_generico_one_line("${datos.distrito} / Lima")
@@ -370,7 +389,7 @@ fun ui_info_imobiliara(
                             Text(
                                 "Selecciona tu perfil",
                                 fontFamily = baners_geinz_work,
-                                fontSize = 25.sp,
+                                fontSize = 20.sp,
                                 color = Color.White
                             )
                             texto_generico_one_line(
@@ -414,75 +433,134 @@ fun ui_info_imobiliara(
                             )
                         }
                         spacer_vertical(10.dp)
-
                     }
 
                     stickyHeader() {
                         ColumnContenedorComun {
-                            Text(
-                                "Mira lo que hay a tu alrededor",
-                                fontFamily = baners_geinz_work,
-                                fontSize = 25.sp,
-                                color = Color.White
-                            )
-                            spacer_vertical(5.dp)
-                            Slider(
-                                value = nueva_busqueda,
-                                onValueChange = { nueva_busqueda = it.roundToInt().toFloat() },
-                                valueRange = 1f..10f,
-                                steps = 8,
-                                onValueChangeFinished = {
-                                    val radioEnKm = nueva_busqueda.toDouble() / 10.0
-                                    viewModel.filtrar_por_radio_Cercania(radioEnKm)
-                                },
-                                colors = SliderDefaults.colors(
-                                    thumbColor = MaterialTheme.colorScheme.primary,       // 🔹 Color del "thumb" o bolita que se mueve cuando arrastras el slider
-                                    activeTrackColor = MaterialTheme.colorScheme.primary, // 🔹 Color de la línea activa del slider (la parte a la izquierda del thumb)
-                                    inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(
-                                        alpha = 0.2f
+                            Column(
+                                modifier = Modifier
+                                    .animateContentSize()
+                                    .padding(
+                                        start = paddingAnim,
+                                        end = paddingAnim,
+                                        bottom = (paddingAnim - 5.dp).coerceAtLeast(0.dp)
+                                    ), verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+
+                                Text(
+                                    "Descubre tu futuro vecindario",
+                                    fontFamily = baners_geinz_work,
+                                    fontSize = 20.sp,
+                                    color = Color.White
+                                )
+
+                                AnimatedVisibility(!toastShown) {
+                                    texto_generico_multilinea(
+                                        "Explora los servicios, comercios y atractivos cercanos al inmueble para tomar la mejor decisión de compra",
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
+
+                                Slider(
+                                    value = nueva_busqueda,
+                                    onValueChange = { nueva_busqueda = it.roundToInt().toFloat() },
+                                    valueRange = 1f..10f,
+                                    steps = 8,
+                                    onValueChangeFinished = {
+                                        val radioEnKm = nueva_busqueda.toDouble() / 10.0
+                                        viewModel.filtrar_por_radio_Cercania(radioEnKm)
+                                    },
+                                    colors = SliderDefaults.colors(
+                                        thumbColor = MaterialTheme.colorScheme.primary,       // 🔹 Color del "thumb" o bolita que se mueve cuando arrastras el slider
+                                        activeTrackColor = MaterialTheme.colorScheme.primary, // 🔹 Color de la línea activa del slider (la parte a la izquierda del thumb)
+                                        inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(
+                                            alpha = 0.2f
+                                        ),
+                                        activeTickColor = MaterialTheme.colorScheme.primary,  // 🔹 Color de las marcas de pasos (ticks) que ya están "alcanzadas" por el thumb
+                                        inactiveTickColor = Color.Gray                        // 🔹 Color de las marcas de pasos que aún no se alcanzaron
                                     ),
-                                    activeTickColor = MaterialTheme.colorScheme.primary,  // 🔹 Color de las marcas de pasos (ticks) que ya están "alcanzadas" por el thumb
-                                    inactiveTickColor = Color.Gray                        // 🔹 Color de las marcas de pasos que aún no se alcanzaron
-                                ),
-                                thumb = {
-                                    // Nuestra bolita blanca sin borde negro
-                                    Box(
-                                        modifier = Modifier
-                                            .size(25.dp)
-                                            .clip(CircleShape)
-                                            .background(Color.White),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        val metros =
-                                            (nueva_busqueda * 100).toInt() // 1=100m, 10=1000m
-                                        val texto = if (metros >= 1000) "1km" else "${metros}m"
-                                        texto_generico_one_line(
-                                            texto,
-                                            color = Color.Black,
-                                            style = MaterialTheme.typography.bodySmall
+                                    thumb = {
+                                        // Nuestra bolita blanca sin borde negro
+                                        Box(
+                                            modifier = Modifier
+                                                .size(25.dp)
+                                                .clip(CircleShape)
+                                                .background(Color.White),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            val metros =
+                                                (nueva_busqueda).toInt() // 1=100m, 10=1000m
+                                            val texto = if (metros >= 1000) "1km" else "${metros}m"
+                                            texto_generico_one_line(
+                                                texto = "${metros}",
+                                                color = Color.Black,
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(40.dp)
+                                )
+
+                                val metros = (nueva_busqueda * 100).toInt() // 1=100m, 10=1000m
+                                val texto = if (metros >= 1000) "1km" else "${metros}m"
+
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .animateContentSize(),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    if (seguros.isNotEmpty()) {
+                                        iconos_de_filtrado(
+                                            seguros.size.toString(),
+                                            R.drawable.corazon_seguridad_webp
                                         )
                                     }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(40.dp)
-                            )
-                            val metros = (nueva_busqueda * 100).toInt() // 1=100m, 10=1000m
-                            val texto = if (metros >= 1000) "1km" else "${metros}m"
-                            texto_generico_one_line("Buscando en un radio de $texto")
+                                    if (cercanos.isNotEmpty()) {
+                                        iconos_de_filtrado(
+                                            cercanos.size.toString(),
+                                            R.drawable.pin3dicon
+                                        )
+                                    }
+                                    if (turisticos.isNotEmpty()) {
+                                        iconos_de_filtrado(
+                                            turisticos.size.toString(),
+                                            R.drawable.cristo3dicon
+                                        )
+                                    }
+                                    if (servicios.isNotEmpty()) {
+                                        iconos_de_filtrado(
+                                            servicios.size.toString(),
+                                            R.drawable.servicios_sercanos_icon
+                                        )
+                                    }
+                                }
+                                texto_generico_one_line(
+                                    "Buscando en un radio de $texto",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                spacer_vertical(9.dp)
+
+                            }
+
                         }
                     }
                     item {
                         Column(
                             Modifier.animateContentSize(),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                            verticalArrangement = Arrangement.spacedBy(20.dp)
                         ) {
                             if (seguros.isNotEmpty()) {
                                 ListaHorizontal(
-                                    "salud",
-                                    "Lugares seguros",
-                                    seguros,
-                                    { id_, localida, img, nombre, lat, lng ->
+                                    tipo_lanzado = "salud",
+                                    titulo = "Lugares seguros",
+                                    texto = "Encuentra hospitales, clínicas y puntos de atención cercanos al inmueble para tu tranquilidad y seguridad en cualquier momento.",
+                                    lista = seguros,
+                                    clik_carta = { id_, localida, img, nombre, lat, lng ->
                                         aler_dialog_contacto = true
                                         localidad_seguridad_salud = localida
                                         id_seguridad_salud = id_
@@ -492,10 +570,11 @@ fun ui_info_imobiliara(
                             }
                             if (cercanos.isNotEmpty()) {
                                 ListaHorizontal(
-                                    "cercanos",
-                                    "Lugares cercanos",
-                                    cercanos,
-                                    { id_, localida, img, nombre, lat, lng ->
+                                    tipo_lanzado = "cercanos",
+                                    titulo = "Lugares cercanos",
+                                    texto = "Descubre tiendas, restaurantes y servicios ubicados a pocos minutos de tu futura propiedad y disfruta de todo lo que tienes alrededor",
+                                    lista = cercanos,
+                                    clik_carta = { id_, localida, img, nombre, lat, lng ->
                                         localidad_tienda_seleccionada = localida
                                         id_tienda_selecionada = id_
                                         show_bottom_sheeet = true
@@ -503,10 +582,11 @@ fun ui_info_imobiliara(
                             }
                             if (turisticos.isNotEmpty()) {
                                 ListaHorizontal(
-                                    "turisticos",
-                                    "Lugares turistics",
-                                    turisticos,
-                                    { id_, localida, img, nombre, lat_, lng_ ->
+                                    tipo_lanzado = "turisticos",
+                                    titulo = "Lugares turistics",
+                                    texto = "Accede fácilmente a servicios esenciales como mantenimiento, técnicos y soluciones para el hogar cerca de tu inmueble.",
+                                    lista = turisticos,
+                                    clik_carta = { id_, localida, img, nombre, lat_, lng_ ->
                                         img_turismo = img
                                         lat = lat_
                                         lng = lng_
@@ -517,10 +597,11 @@ fun ui_info_imobiliara(
                             }
                             if (servicios.isNotEmpty()) {
                                 ListaHorizontal(
-                                    "servicos",
-                                    "Servicios para el hogar",
-                                    servicios,
-                                    { id_, localida_params, img, nombre, lat, lng ->
+                                    tipo_lanzado = "servicos",
+                                    titulo = "Servicios para el hogar",
+                                    texto = "Mira los negocios que tienes cerca del inmuble recorre los mejores lugares de barranca",
+                                    lista = servicios,
+                                    clik_carta = { id_, localida_params, img, nombre, lat, lng ->
                                         dialog_servicos_tramite = true
                                         id_tienda_select = id_
                                         localidad_tienda = localida_params
@@ -699,6 +780,7 @@ fun GaleriaHorizontalInstagram(
 fun ListaHorizontal(
     tipo_lanzado: String,
     titulo: String,
+    texto: String,
     lista: List<lugares_cercanos_>,
     clik_carta: (id: String, localida: String, img: String, nombre: String, lat: Double, lng: Double) -> Unit
 ) {
@@ -745,38 +827,47 @@ fun ListaHorizontal(
             150.dp
         }
     }
-    texto_generico_one_line("${titulo}${lista.size}")
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        items(lista) { i ->
-            Box(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .animateItem(
-                        placementSpec = tween(
-                            durationMillis = 350,
-                            easing = FastOutSlowInEasing
+    Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+        texto_generico_one_line(titulo)
+        texto_generico_multilinea(texto, style = MaterialTheme.typography.labelSmall)
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(lista) { i ->
+                Box(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .animateItem(
+                            placementSpec = tween(
+                                durationMillis = 350,
+                                easing = FastOutSlowInEasing
+                            )
                         )
-                    )
-            ) {
+                ) {
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
 
-                    AsyncImage(
-                        model = i.img_String,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(15.dp))
-                            .height(altos_definidos)
-                            .width(anchos_definidos)
-                            .clickable {
-                                clik_carta(i.id, i.localidad, i.img_String, i.nombre, i.lat, i.lng)
-                            },
-                        contentScale = ContentScale.Crop,
-                        placeholder = painterResource(R.drawable.cargando_img_categorias),
-                        error = painterResource(R.drawable.cargando_img_categorias)
-                    )
+                        AsyncImage(
+                            model = i.img_String,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(15.dp))
+                                .height(altos_definidos)
+                                .width(anchos_definidos)
+                                .clickable {
+                                    clik_carta(
+                                        i.id,
+                                        i.localidad,
+                                        i.img_String,
+                                        i.nombre,
+                                        i.lat,
+                                        i.lng
+                                    )
+                                },
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(R.drawable.cargando_img_categorias),
+                            error = painterResource(R.drawable.cargando_img_categorias)
+                        )
 
 //                    val distanciaTexto = when {
 //                        i.distanciaKm < 1.0 -> "${(i.distanciaKm * 1000).toInt()}m"
@@ -790,9 +881,10 @@ fun ListaHorizontal(
 //                        modifier = Modifier.padding(start = 5.dp)
 //                    )
 
+                    }
                 }
-            }
 
+            }
         }
     }
 
@@ -1111,6 +1203,20 @@ fun GeminiBlobBackground(
     }
 }
 
+@Composable
+fun iconos_de_filtrado(cantidad: String, icono: Int) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Image(
+            painter = painterResource(icono),
+            contentDescription = null,
+            modifier = Modifier.size(25.dp)
+        )
+        texto_generico_one_line(cantidad, style = MaterialTheme.typography.bodyMedium)
+    }
+}
 
 fun filtar_datos(
     viewModel: viewmodel_inmobiliaria,

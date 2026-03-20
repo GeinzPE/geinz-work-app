@@ -167,6 +167,15 @@ fun nativationWrapper(
                     )
                 }
 
+                is UiAction.abrir_pantalla_inmobiliara->{
+                    navController.navigate(
+                        datos_completros_inmobiliaria(
+                            action.id_propiedad,
+                            action.localdiad_pripiedad,
+                            datos_user?.nombre ?:"usuario"
+                        ))
+                }
+
                 is UiAction.ReviewPrivada -> TODO()
                 is UiAction.ReviewPublica -> TODO()
                 is UiAction.Ruta -> TODO()

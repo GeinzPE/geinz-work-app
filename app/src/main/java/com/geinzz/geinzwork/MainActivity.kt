@@ -171,6 +171,7 @@ class MainActivity : AppCompatActivity() {
             "nemg" -> "salud_y_seguridad"
             "ads"->"promocionar_ads"
             "rec"->"promocionar_rec"
+            "in"->"inmobiliaria"
 
             else -> null
         }
@@ -292,6 +293,11 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
+            }
+            "in"->{
+                uiActionVM.emitir(
+                UiAction.abrir_pantalla_inmobiliara(idRaw, localidad)
+                )
             }
         }
     }

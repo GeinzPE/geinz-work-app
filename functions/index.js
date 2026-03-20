@@ -3,6 +3,7 @@ const {
   onDocumentCreated,
   onDocumentWritten,
 } = require("firebase-functions/v2/firestore");
+
 const logger = require("firebase-functions/logger");
 
 const admin = require("firebase-admin");
@@ -15,6 +16,7 @@ const client_specth = new speech.SpeechClient();
 
 const textToSpeech = require("@google-cloud/text-to-speech");
 const ttsClient = new textToSpeech.TextToSpeechClient();
+const geofire = require("geofire-common");
 
 admin.initializeApp();
 
@@ -920,6 +922,83 @@ exports.textToSpeechIA_con_params = onRequest(
   }
 );
 
+exports.tiendasGeo = onRequest(async (req, res) => {
+  try {
+    const lat = parseFloat(req.query.lat);
+    const lng = parseFloat(req.query.lng);
+    const radioKm = 0.5;
+
+    if (isNaN(lat) || isNaN(lng)) {
+      return res.status(400).json({ error: "Lat/Lng inválidos" });
+    }
+
+    const db = admin.firestore();
+    const center = [lat, lng];
+    const bounds = geofire.geohashQueryBounds(center, radioKm * 1000);
+
+    // Definimos las 3 colecciones que queremos consultar
+    const configuracion = {
+      turismo: db.collection("Tiendas").doc("barranca").collection("lugares_turisticos"),
+      seguridad: db.collection("Tiendas").doc("salud_seguridad").collection("barranca"),
+      cercanos: db.collection("Tiendas").doc("barranca").collection("barranca")
+    };
+
+    const respuestaFinal = {};
+
+    // Ejecutamos la búsqueda para cada categoría
+    for (const [categoria, collectionRef] of Object.entries(configuracion)) {
+      const promises = bounds.map(b => {
+        return collectionRef
+          .orderBy("geohash")
+          .startAt(b[0])
+          .endAt(b[1])
+          .limit(10)
+          .get();
+      });
+
+      const snapshots = await Promise.all(promises);
+      const resultados = [];
+      const vistos = new Set();
+
+      for (const snap of snapshots) {
+        for (const doc of snap.docs) {
+          if (vistos.has(doc.id)) continue;
+          vistos.add(doc.id);
+
+          const data = doc.data();
+          const latTienda = data?.ubicacion?.latitud;
+          const lngTienda = data?.ubicacion?.longitud;
+
+          if (!latTienda || !lngTienda) continue;
+
+          const distancia = geofire.distanceBetween([lat, lng], [latTienda, lngTienda]);
+          if (distancia > radioKm) continue;
+
+          resultados.push({
+            nombre: data.nombre || data.nombre_tienda || data.titulo
+          });
+        }
+      }
+
+      // Si hay resultados en esta categoría, los agregamos
+      if (resultados.length > 0) {
+        // Mezclamos y limitamos a 4 por categoría para no saturar el prompt
+        respuestaFinal[categoria] = resultados
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 4);
+      }
+    }
+
+    return res.json({
+      coordenadas_busqueda: { lat, lng },
+      datos_entorno: respuestaFinal
+    });
+
+  } catch (error) {
+    console.error("💥 ERROR GEO UNIFICADO:", error);
+    return res.status(500).json({ error: "Error en consulta unificada" });
+  }
+});
 /*
 
 exports.enviarNotificacion = onRequest(async (req, res) => {

@@ -30,6 +30,10 @@ sealed class UiAction {
 
     data class Abrir_pantalla_promos_cecanas(val id_promocion:String, val localida_tienda:String): UiAction()
 
+
+    data class abrir_pantalla_inmobiliara(val id_propiedad:String ,val localdiad_pripiedad:String):
+        UiAction()
+
     data class AbrirPerfil(
         val idTienda: String,
         val localidad: String
@@ -53,5 +57,4 @@ sealed class UiAction {
         val lng: Double
     ) : UiAction()
 }
-
 
