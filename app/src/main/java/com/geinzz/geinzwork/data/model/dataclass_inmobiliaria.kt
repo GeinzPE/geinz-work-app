@@ -34,10 +34,12 @@ data class completeta_info_inmuebles(
     val id: String = "",
     val tipoOperacion: String = "",
     val tipoPropiedad: String = "",
+    val divisa:String="",
     val cantidad_lugares_seguros: List<lugares_cercanos_> = emptyList(),
     val listalugares_cercanos: List<lugares_cercanos_> = emptyList(),
     val llissa_lugareS_turistos: List<lugares_cercanos_> = emptyList(),
     val lista_servicios_sercanos: List<lugares_cercanos_> = emptyList()
+
 )
 
 data class lista_lugaers_totales(
@@ -57,6 +59,7 @@ data class lugares_cercanos_(
     val lat: Double, val lng:Double
 )
 
+data class perfiles_negocios(val txt: String,val emoji:String)
 data class datos_geolocalizables(
     val latitud: Double,
     val longitud: Double,

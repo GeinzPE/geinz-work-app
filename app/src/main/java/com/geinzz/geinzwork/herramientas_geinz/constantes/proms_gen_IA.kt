@@ -1058,7 +1058,6 @@ fun construir_prompt_NLP_para_busqueda(textoUsuario: String, categoria: String):
 }
 
 
-
 fun contruir_promp_ia_datos_inmobiliara(
     i: ia_inmobiliara_tts,
     perfil_selet: String
@@ -1078,21 +1077,39 @@ fun contruir_promp_ia_datos_inmobiliara(
 
     val enfoque = when (perfil_selet.lowercase().trim()) {
         "inversionista" -> "enfócate en plusvalía, rentabilidad por metro cuadrado y el potencial de desarrollo del ${i.tipo}."
-        "familiar"      -> "enfócate en la amplitud de los ${i.metros_cuadrados}m², la seguridad y el espacio ideal para ver crecer a los hijos."
-        "solitario"     -> "enfócate en la independencia, el manejo eficiente del espacio de ${i.metros_cuadrados}m² y la practicidad."
-        else            -> "enfócate en la oportunidad única que representan estos ${i.metros_cuadrados}m² en una ubicación estratégica."
+        "familiar" -> "enfócate en la amplitud de los ${i.metros_cuadrados}m², la seguridad y el espacio ideal para ver crecer a los hijos."
+        "solitario" -> "enfócate en la independencia, el manejo eficiente del espacio de ${i.metros_cuadrados}m² y la practicidad."
+        else -> "enfócate en la oportunidad única que representan estos ${i.metros_cuadrados}m² en una ubicación estratégica."
     }
 
     // construye solo las líneas de entorno que tienen datos reales
     val lineas_entorno = buildString {
         if (i.cantidad_lugares_encontrado > 0 && i.lista_lugares_cercanos.isNotEmpty()) {
-            appendLine("- Lugares de interés cercanos: ${i.cantidad_lugares_encontrado} (ej: ${i.lista_lugares_cercanos.take(3).joinToString(", ")})")
+            appendLine(
+                "- Lugares de interés cercanos: ${i.cantidad_lugares_encontrado} (ej: ${
+                    i.lista_lugares_cercanos.take(
+                        3
+                    ).joinToString(", ")
+                })"
+            )
         }
         if (i.cantidad_lugares_seguros > 0 && i.lista_lugares_seguros.isNotEmpty()) {
-            appendLine("- Zonas seguras verificadas: ${i.cantidad_lugares_seguros} (ej: ${i.lista_lugares_seguros.take(2).joinToString(", ")})")
+            appendLine(
+                "- Zonas seguras verificadas: ${i.cantidad_lugares_seguros} (ej: ${
+                    i.lista_lugares_seguros.take(
+                        2
+                    ).joinToString(", ")
+                })"
+            )
         }
         if (i.cantidad_lugares_turisticos > 0 && i.lista_lugares_turisticos.isNotEmpty()) {
-            appendLine("- Atractivos turísticos: ${i.cantidad_lugares_turisticos} (ej: ${i.lista_lugares_turisticos.take(2).joinToString(", ")})")
+            appendLine(
+                "- Atractivos turísticos: ${i.cantidad_lugares_turisticos} (ej: ${
+                    i.lista_lugares_turisticos.take(
+                        2
+                    ).joinToString(", ")
+                })"
+            )
         }
     }.trim()
 
@@ -1132,4 +1149,49 @@ fun contruir_promp_ia_datos_inmobiliara(
     Log.d("PROMPT_IA_FINAL", prompt)
 
     return prompt
+}
+
+fun construir_prompt_para_titulo_casa(
+    tipo_realizado: String,
+    tipo: String,
+    nombre_calle: String,
+    localidad: String
+): String {
+    return """
+       Eres un especialista en copywriting inmobiliario. Tu tarea es generar un título comercial directo y realista para una propiedad.
+    
+    Características del terreno:
+    Propiedad: $tipo_realizado
+    Operación: $tipo
+    Calle: $nombre_calle
+    Localidad: $localidad
+    Reglas Críticas:
+    
+    Cero Alucinación: No uses adjetivos como "céntrico", "lujoso", "exclusivo" o "estratégico" a menos que el usuario los proporcione.
+    Estructura: Usa únicamente el tipo de propiedad, la ubicación técnica (calle/localidad) y el tipo de operación.
+    Formato: Entrega solo el nombre, máximo 2 líneas, sin puntos finales ni texto adicional.
+    Enfoque: Prioriza la claridad sobre la decoración publicitaria.
+       
+    """.trimIndent()
+}
+
+
+fun construir_promp_para_Descripcion(
+    titulo: String,
+    lista_nomre_agregado: List<String>
+): String {
+    return """
+        Eres un experto en redactar descripciones inmobiliarias persuasivas y directas. Tu objetivo es convertir las características técnicas en beneficios para el comprador/arrendatario.
+        Información de Entrada:
+
+        Título Generado: $titulo
+        Lugares Cercanos:$lista_nomre_agregado
+        Reglas de Redacción:
+
+        Gancho Inicial: Empieza con una frase fuerte que destaque el tipo de operación (ej. "Excelente oportunidad de inversión" o "El hogar ideal para tu familia").
+        Conectividad: Integra los Lugares Cercanos de forma fluida, resaltando la comodidad de tener servicios a pocos minutos.
+        Cero Alucinación Técnica: No inventes metros cuadrados, número de habitaciones o materiales si no están en los datos.
+        Llamado a la Acción (CTA): Finaliza con una invitación clara a solicitar información o agendar una visita.
+        Formato: Estructura el texto en un máximo de 2 párrafos cortos. No uses listas de viñetas, mantén un tono narrativo y profesional.
+    """.trimIndent()
 }

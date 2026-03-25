@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria
 
+
 import android.graphics.Point
 import android.os.Build
 import android.util.Log
@@ -16,6 +17,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -43,11 +46,14 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -56,6 +62,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -67,6 +74,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -99,9 +107,11 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_lugares_turisticos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.formatearNumero
 import com.geinzz.geinzwork.ui.adapters.ui.principal.texFiel_fake
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.house_capital_whatsap
 import com.geinzz.geinzwork.viewModels.tts_stt.tts_stt
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
@@ -121,6 +131,10 @@ import kotlinx.coroutines.launch
 import java.net.URLEncoder
 import java.util.Properties
 import kotlin.math.roundToInt
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
+import com.geinzz.geinzwork.data.model.perfiles_negocios
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -171,7 +185,7 @@ fun ui_info_imobiliara(
 
     var nombre_seguridad_salud by remember { mutableStateOf("") }
     var img_seguirdad_salud by remember { mutableStateOf("") }
-    val lista_perfil = listOf("inversionista", "familiar", "solitario")
+    val lista_perfil = listOf(perfiles_negocios("Inversionista","\uD83D\uDD25"),perfiles_negocios("Familiar","❤\uFE0F"),perfiles_negocios("Solitario","⚔\uFE0F"))
     val scope = rememberCoroutineScope()
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
@@ -276,6 +290,12 @@ fun ui_info_imobiliara(
         }
     }
 
+    val mostrarColumna by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex >= 3 // item index 3 = el 4to item
+        }
+
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (estado) {
@@ -309,7 +329,12 @@ fun ui_info_imobiliara(
                     (estado as viewmodel_inmobiliaria.etado_carga_info_inmuebles.succes).datos
                 datos_Estados_succes = datos
 
-                LazyColumn(modifier = Modifier.padding(5.dp), state = listState) {
+                LazyColumn(
+                    modifier = Modifier.padding(5.dp),
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+
                     item {
                         Box {
                             GaleriaHorizontalInstagram(
@@ -330,24 +355,99 @@ fun ui_info_imobiliara(
                             )
                         }
 
-                        Column() {
-                            texto_generico_one_line(datos.nombre)
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.padding(horizontal = 5.dp)
+                        ) {
+                            Text(
+                                datos.nombre.capitalizeFirst(),
+                                fontFamily = baners_geinz_work,
+                                fontSize = 20.sp,
+                                color = Color.White, modifier = Modifier.padding(end = 10.dp)
+                            )
 
-                            texto_generico_one_line("${datos.distrito} / Lima")
+                            texto_generico_multilinea(
+                                datos.descripcion.capitalizeFirst(),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                texto_generico_one_line(
+                                    "Trato : ${datos.tipoOperacion.capitalizeFirst()}",
+                                    color = Color(0xFFB0B0B0),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+
+                                texto_generico_one_line(
+                                    "Tipo : ${datos.tipoPropiedad.capitalizeFirst()}",
+                                    color = Color(0xFFB0B0B0),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                texto_generico_one_line(
+                                    "Divisa principal: ${datos.divisa.capitalizeFirst()}",
+                                    color = Color(0xFFB0B0B0),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
 
                             texto_generico_one_line(
-                                "Trato : ${datos.tipoOperacion}",
+                                "Ubicacado en",
                                 color = Color(0xFFB0B0B0),
                                 style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(start = 5.dp)
+                            )
+
+                            desing_style_circular(
+                                "${datos.distrito} / Lima".capitalizeFirst(),
+                                Color(0xFF065D07)
                             )
 
                             texto_generico_one_line(
-                                "Tipo : ${datos.tipoPropiedad}",
+                                "Precio en soles o dolares",
                                 color = Color(0xFFB0B0B0),
                                 style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(start = 5.dp)
                             )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                val tipoCambio = 3.75 // soles por dólar
+
+                                val (textoPrimario, textoSecundario) = when (datos.divisa) {
+                                    "dolares" -> {
+                                        val enSoles = datos.precio * tipoCambio
+                                        "$${formatearNumero_double(datos.precio)}" to "S/${
+                                            formatearNumero_double(
+                                                enSoles
+                                            )
+                                        }"
+                                    }
+
+                                    "soles" -> {
+                                        val enDolares = datos.precio / tipoCambio
+                                        "S/${formatearNumero_double(datos.precio)}" to "$${
+                                            formatearNumero_double(
+                                                enDolares
+                                            )
+                                        }"
+                                    }
+
+                                    else -> formatearNumero_double(datos.precio) to ""
+                                }
+
+                                desing_style_circular(textoPrimario, Color(0xFFB69615))
+
+                                if (textoSecundario.isNotEmpty()) {
+                                    texto_generico_one_line(
+                                        "o",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    desing_style_circular(textoSecundario, Color(0xFFB69615))
+                                }
+                            }
+                            spacer_vertical(1.dp)
 
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -380,58 +480,137 @@ fun ui_info_imobiliara(
                     }
 
                     item {
-                        Column(
-                            modifier = Modifier
-                                .animateContentSize()
-                                .padding(horizontal = 5.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Text(
-                                "Selecciona tu perfil",
-                                fontFamily = baners_geinz_work,
-                                fontSize = 20.sp,
-                                color = Color.White
-                            )
-                            texto_generico_one_line(
-                                "Permite que la IA de Geinz personalice tu experiencia",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                        val colors: List<Color> = listOf(
+                            Color(0xFF7D49EE),
+                            Color(0xFF2354A6),
+                            Color(0xFF046070),
+                            Color(0xFF9A175C),
+                        )
+                        var expandido_var by rememberSaveable { mutableStateOf(true) }
 
-                            LazyRow(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        Box() {
+                            GeminiBlobBackground(
+                                isPlaying = isPlaying,
+                                colors = colors,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(15.dp))
+                                    .matchParentSize()
+                            )
+                            Column(
+                                modifier = Modifier
+                                    .animateContentSize()
+                                    .padding(horizontal = 10.dp, vertical = 10.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                items(lista_perfil) { i ->
 
-                                    seleccion_tipo_persona(
-                                        tipo = i,
-                                        seleccionado = filtro_seleccionado == i
-                                    ) { tipo_select ->
 
-                                        filtro_seleccionado = tipo_select
-                                        nueva_busqueda = 5.0f
-                                        val radioEnKm = nueva_busqueda.toDouble() / 10.0
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        "Selecciona tu perfil",
+                                        fontFamily = baners_geinz_work,
+                                        fontSize = 20.sp,
+                                        color = Color.White,
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(end = 10.dp)
+                                            .size(24.dp)
+                                            .graphicsLayer {
+                                                compositingStrategy = CompositingStrategy.Offscreen
+                                            }
+                                            .drawWithCache {
+                                                val brush = Brush.linearGradient(
+                                                    colors = listOf(
+                                                        Color(0xFFFFD700),
+                                                        Color(0xFFFF00FF),
+                                                        Color(0xFF00E0BA)
+                                                    )
+                                                )
+                                                onDrawWithContent {
+                                                    drawContent()
+                                                    drawRect(
+                                                        brush = brush,
+                                                        blendMode = BlendMode.SrcAtop
+                                                    )
+                                                }
+                                            }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.AutoAwesome,
+                                            contentDescription = null,
+                                            tint = Color.White, // 👈 blanco sólido para que el blend lo pinte bien
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
 
-                                        scope.launch {
-                                            filtar_datos(
-                                                viewModel,
-                                                radioEnKm,
-                                                datos,
-                                                nombre_user,
-                                                lista_lugares_cercanos_filtrada,
-                                                tipo_select
-                                            )
+                                }
+                                texto_generico_one_line(
+                                    "Permite que la IA de Geinz personalice tu experiencia",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+
+                                LazyRow(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    items(lista_perfil) { i ->
+                                        seleccion_tipo_persona(
+                                            i.emoji,
+                                            tipo = i.txt.capitalizeFirst(),
+                                            seleccionado = filtro_seleccionado == i.txt
+                                        ) { tipo_select ->
+
+                                            filtro_seleccionado = tipo_select
+                                            nueva_busqueda = 5.0f
+                                            val radioEnKm = nueva_busqueda.toDouble() / 10.0
+
+                                            scope.launch {
+                                                filtar_datos(
+                                                    viewModel,
+                                                    radioEnKm,
+                                                    datos,
+                                                    nombre_user,
+                                                    lista_lugares_cercanos_filtrada,
+                                                    tipo_select
+                                                )
+                                            }
                                         }
                                     }
                                 }
+                                GeminiBlobBackground_contexto(
+                                    expandido_var,
+                                    viewmodel_tts,
+                                    respuesta_gemini_para_tts,
+                                    filtro_seleccionado, { expandido ->
+                                        expandido_var = expandido
+                                    }
+                                )
                             }
-                            GeminiBlobBackground_contexto(
-                                viewmodel_tts,
-                                respuesta_gemini_para_tts,
-                                filtro_seleccionado,
-                                isPlaying = isPlaying,
-                            )
+//                            Text(
+//                                text = if (expandido) "▲ ver menos" else "▼ ver más",
+//                                style = MaterialTheme.typography.labelSmall,
+//                                color = Color.White.copy(alpha = 0.6f),
+//                                modifier = Modifier
+//                                    .padding(top = 8.dp)
+//                            )
+                            if (!expandido_var) {
+                                Box(
+                                    modifier = Modifier
+                                        .matchParentSize()
+                                        .background(
+                                            Brush.verticalGradient(
+                                                colors = listOf(
+                                                    Color.Transparent,
+                                                    Color.Black.copy(alpha = 0.6f)
+                                                ),
+                                                startY = 80f
+                                            )
+                                        )
+                                )
+                            }
                         }
+
                         spacer_vertical(10.dp)
                     }
 
@@ -448,7 +627,7 @@ fun ui_info_imobiliara(
                             ) {
 
                                 Text(
-                                    "Descubre tu futuro vecindario",
+                                    "Descubre que hay cerca",
                                     fontFamily = baners_geinz_work,
                                     fontSize = 20.sp,
                                     color = Color.White
@@ -507,38 +686,38 @@ fun ui_info_imobiliara(
                                 val texto = if (metros >= 1000) "1km" else "${metros}m"
 
 
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .animateContentSize(),
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    if (seguros.isNotEmpty()) {
-                                        iconos_de_filtrado(
-                                            seguros.size.toString(),
-                                            R.drawable.corazon_seguridad_webp
-                                        )
-                                    }
-                                    if (cercanos.isNotEmpty()) {
-                                        iconos_de_filtrado(
-                                            cercanos.size.toString(),
-                                            R.drawable.pin3dicon
-                                        )
-                                    }
-                                    if (turisticos.isNotEmpty()) {
-                                        iconos_de_filtrado(
-                                            turisticos.size.toString(),
-                                            R.drawable.cristo3dicon
-                                        )
-                                    }
-                                    if (servicios.isNotEmpty()) {
-                                        iconos_de_filtrado(
-                                            servicios.size.toString(),
-                                            R.drawable.servicios_sercanos_icon
-                                        )
-                                    }
-                                }
+//                                Row(
+//                                    verticalAlignment = Alignment.CenterVertically,
+//                                    modifier = Modifier
+//                                        .fillMaxWidth()
+//                                        .animateContentSize(),
+//                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+//                                ) {
+//                                    if (seguros.isNotEmpty()) {
+//                                        iconos_de_filtrado(
+//                                            seguros.size.toString(),
+//                                            R.drawable.corazon_seguridad_webp
+//                                        )
+//                                    }
+//                                    if (cercanos.isNotEmpty()) {
+//                                        iconos_de_filtrado(
+//                                            cercanos.size.toString(),
+//                                            R.drawable.pin3dicon
+//                                        )
+//                                    }
+//                                    if (turisticos.isNotEmpty()) {
+//                                        iconos_de_filtrado(
+//                                            turisticos.size.toString(),
+//                                            R.drawable.cristo3dicon
+//                                        )
+//                                    }
+//                                    if (servicios.isNotEmpty()) {
+//                                        iconos_de_filtrado(
+//                                            servicios.size.toString(),
+//                                            R.drawable.servicios_sercanos_icon
+//                                        )
+//                                    }
+//                                }
                                 texto_generico_one_line(
                                     "Buscando en un radio de $texto",
                                     style = MaterialTheme.typography.bodyMedium
@@ -549,6 +728,7 @@ fun ui_info_imobiliara(
 
                         }
                     }
+
                     item {
                         Column(
                             Modifier.animateContentSize(),
@@ -613,9 +793,11 @@ fun ui_info_imobiliara(
                         }
                         spacer_vertical(10.dp)
                     }
+
                     item {
                         MapPreview(datos.listaImg.first(), datos.lat, datos.lng, {})
                     }
+
 
                 }
 
@@ -673,6 +855,49 @@ fun ui_info_imobiliara(
                     img_seguirdad_salud
                 ),
                 ondimis = { aler_dialog_contacto = false })
+        }
+
+        AnimatedVisibility(
+            visible = mostrarColumna,
+            enter = slideInVertically(
+                animationSpec = tween(400, easing = FastOutSlowInEasing),
+                initialOffsetY = { it }   // empieza desde abajo (fuera de pantalla)
+            ),
+            exit = slideOutVertically(
+                animationSpec = tween(400, easing = FastOutSlowInEasing),
+                targetOffsetY = { it }    // sale hacia abajo
+            ),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+
+        ) {
+            Column(
+                modifier = Modifier
+
+                    .clip(RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp))
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(10.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    btns(
+                        modifier = Modifier.weight(1f),
+                        color = Color(0xFF4A0085),
+                        icono = R.drawable.google_maps_icono,
+                        text = "Ir a ver", {}
+                    )
+                    btns(
+                        modifier = Modifier.weight(1f),
+                        color = Color(0xFF29A71A),
+                        icono = R.drawable.whatsapp_icon,
+                        text = "WhatsApp", {
+
+                        }
+                    )
+                }
+            }
         }
     }
 
@@ -845,8 +1070,12 @@ fun ListaHorizontal(
                         )
                 ) {
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(15.dp))
+                            .height(altos_definidos)
+                            .width(anchos_definidos)
+                    ) {
                         AsyncImage(
                             model = i.img_String,
                             contentDescription = null,
@@ -868,6 +1097,25 @@ fun ListaHorizontal(
                             placeholder = painterResource(R.drawable.cargando_img_categorias),
                             error = painterResource(R.drawable.cargando_img_categorias)
                         )
+                        Column(
+                            modifier = Modifier
+
+                                .align(Alignment.BottomCenter)
+
+                        ) {
+                            val metros = (i.distanciaKm * 1000).toInt()
+                            val texto = if (metros >= 1000) "1km" else "${metros}m"
+                            texto_generico_one_line(
+                                "A solo ${texto}",
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(Color.Black.copy(alpha = 0.85f))
+                                    .padding(horizontal = 10.dp, vertical = 7.dp),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            spacer_vertical(10.dp)
+                        }
+
 
 //                    val distanciaTexto = when {
 //                        i.distanciaKm < 1.0 -> "${(i.distanciaKm * 1000).toInt()}m"
@@ -882,6 +1130,8 @@ fun ListaHorizontal(
 //                    )
 
                     }
+
+
                 }
 
             }
@@ -901,6 +1151,7 @@ fun normalizarNombre(nombre: String): String {
 
 @Composable
 fun seleccion_tipo_persona(
+    emoji: String,
     tipo: String,
     seleccionado: Boolean,
     click: (String) -> Unit
@@ -930,33 +1181,28 @@ fun seleccion_tipo_persona(
         shape = RoundedCornerShape(50.dp)
     ) {
         texto_generico_one_line(
-            tipo,
+            "${tipo} ${emoji}",
             color = textColor,
             style = MaterialTheme.typography.bodyMedium
         )
+
     }
 }
 
 
 @Composable
 fun GeminiBlobBackground_contexto(
+    expandido: Boolean,
     viewmodel_tts: tts_stt,
     respuesta_gemini_para_tts: viewmodel_inmobiliaria.estado_carga_respuesta_con_IA,
     filtro_seleccionado: String,
-    isPlaying: Boolean,
-    colors: List<Color> = listOf(
-        Color(0xFF7D49EE),
-        Color(0xFF2354A6),
-        Color(0xFF046070),
-        Color(0xFF9A175C),
-    )
+    desespandir: (Boolean) -> Unit
 ) {
 
-    var expandido by rememberSaveable { mutableStateOf(false) }
     val nombreAMostrar = when (filtro_seleccionado) {
-        "inversionista" -> "Pablo"
-        "familiar" -> "Naomi"
-        "solitario" -> "Luis"
+        "Inversionista" -> "Pablo"
+        "Familiar" -> "Naomi"
+        "Solitario" -> "Luis"
         else -> "Cliente"
     }
     AnimatedVisibility(filtro_seleccionado.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
@@ -972,21 +1218,15 @@ fun GeminiBlobBackground_contexto(
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() }) {
-                    expandido = !expandido
+                    desespandir(!expandido)
+//                    expandido = !expandido
                 }
                 .clipToBounds() // ← corta todo lo que desborde los 200dp
         ) {
-            GeminiBlobBackground(
-                isPlaying = isPlaying,
-                colors = colors,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(15.dp))
-                    .matchParentSize()
-            )
 
             Box(
                 modifier = Modifier
-                    .padding(12.dp)
+                    .padding(vertical = 12.dp)
                     .then(
                         if (!expandido) Modifier.heightIn(max = 170.dp) else Modifier
                     )
@@ -996,7 +1236,9 @@ fun GeminiBlobBackground_contexto(
                     is viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.error -> {}
                     viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.idle -> {}
                     viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.loading -> {
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center){
                         CircularProgressIndicator()
+                        }
                     }
 
                     is viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.succes -> {
@@ -1011,15 +1253,15 @@ fun GeminiBlobBackground_contexto(
                                 textoYaReproducido = respuesta_gemini
                                 val tipo_voz = when (filtro_seleccionado) {
 
-                                    "inversionista" -> {
+                                    "Inversionista" -> {
                                         "es-US-Polyglot-1"
                                     }
 
-                                    "familiar" -> {
+                                    "Familiar" -> {
                                         "es-US-News-F"
                                     }
 
-                                    "solitario" -> {
+                                    "Solitario" -> {
                                         "es-US-Neural2-B"
                                     }
 
@@ -1075,26 +1317,14 @@ fun GeminiBlobBackground_contexto(
                             }
                             TypewriterTexto(respuesta_gemini)
                         }
+
+
                     }
                 }
 
             }
 
-            if (!expandido) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.6f)
-                                ),
-                                startY = 80f
-                            )
-                        )
-                )
-            }
+
         }
     }
 }
@@ -1218,6 +1448,23 @@ fun iconos_de_filtrado(cantidad: String, icono: Int) {
     }
 }
 
+@Composable
+fun desing_style_circular(text: String, color: Color) {
+    Box(
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(
+                color
+            )
+    ) {
+        texto_generico_one_line(
+            text,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
 fun filtar_datos(
     viewModel: viewmodel_inmobiliaria,
     radioEnKm: Double,
@@ -1251,4 +1498,13 @@ fun filtar_datos(
     )
     viewModel.respuesta_gemini_(obj, tipo_select)
 
+}
+
+// Para Double (precio que viene del modelo)
+fun formatearNumero_double(numero: Double): String {
+    return if (numero % 1.0 == 0.0) {
+        "%,d".format(numero.toLong())   // 150000.0 → "150,000"
+    } else {
+        "%,.2f".format(numero)           // 150000.75 → "150,000.75"
+    }
 }

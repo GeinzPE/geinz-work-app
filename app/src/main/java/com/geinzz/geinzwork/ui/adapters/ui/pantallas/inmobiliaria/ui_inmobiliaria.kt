@@ -29,7 +29,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,11 +51,14 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_geinz_inmobiliaria_principal
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_shet_filtrado_inmubles
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.promociones_Cercanas.GaleriaHorizontalInstagram
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.ShimmerImagenConMarca
+import com.geinzz.geinzwork.ui.adapters.ui.principal.texFiel_fake
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
@@ -78,11 +83,13 @@ fun pantalla_geinz_inmobiliaria(
         viewmodel.obtener_inmubles_dados(localidad_user)
     }
 
+    var mostar_bottom_sheet_filtrado by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
         LazyColumn(
-            state = listState, verticalArrangement = Arrangement.spacedBy(40.dp)
+            state = listState, verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
 
             item {
@@ -98,8 +105,19 @@ fun pantalla_geinz_inmobiliaria(
                     style = MaterialTheme.typography.bodyMedium
                 )
 
-                spacer_vertical(10.dp)
             }
+            stickyHeader() {
+                ColumnContenedorComun {
+                    Column(modifier = Modifier.fillMaxSize().background(Color.Red)) {
+                        Box(modifier = Modifier.background(MaterialTheme.colorScheme.primary)) {
+                            texto_generico_one_line("filtrar", modifier = Modifier.clickable{
+                                mostar_bottom_sheet_filtrado=true
+                            })
+                        }
+                    }
+                }
+            }
+
 
             when (listarepo) {
 
@@ -134,6 +152,10 @@ fun pantalla_geinz_inmobiliaria(
                 viewmodel_inmobiliaria.estado_carga_principal_immubles.idle -> {}
             }
 
+        }
+
+        if(mostar_bottom_sheet_filtrado){
+            bottom_shet_filtrado_inmubles{mostar_bottom_sheet_filtrado=false}
         }
     }
 
@@ -400,4 +422,3 @@ fun btns_solo_borde(
         }
     }
 }
-
