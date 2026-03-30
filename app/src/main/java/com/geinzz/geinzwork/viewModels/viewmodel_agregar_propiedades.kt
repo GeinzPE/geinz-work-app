@@ -108,7 +108,7 @@ class viewmodel_agregar_propiedades : ViewModel() {
     suspend fun obtenerDireccion(lat: Double, lon: Double): String? {
         return withContext(Dispatchers.IO) {
             try {
-                val token = "pk.eyJ1IjoiYmVuamFtaW5sb3BleiIsImEiOiJjbWZrajJ2NHIxOXBkMmtvZW1kMTA5NWNoIn0.7s_234BN9y0pkTIgtF6ikw"
+//                val token = "pk.eyJ1IjoiYmVuamFtaW5sb3BleiIsImEiOiJjbWZrajJ2NHIxOXBkMmtvZW1kMTA5NWNoIn0.7s_234BN9y0pkTIgtF6ikw"
                 val url = "https://api.mapbox.com/geocoding/v5/mapbox.places/" +
                         "$lon,$lat.json" +
                         "?access_token=$token" +
