@@ -69,11 +69,13 @@ class repo_inmobiliaria {
                 cantidad_dormitrios = datos.getString("habitaciones") ?: "0",
                 cantidad_cochera = datos.getString("estacionamientos") ?: "0",
                 trato = datos.getString("tipoOperacion") ?: "",
+                medida_fondo = (datos.get("fondo") as? Long)?.toInt() ?: 0,
+                medida_frente = (datos.get("ancho") as? Long)?.toInt() ?: 0,
             )
 
             Log.d(
                 "INMUEBLE_MAP",
-                "ID:${inmueble.id} | baños:${inmueble.cantidad_banos} | dorm:${inmueble.cantidad_dormitrios} | cochera:${inmueble.cantidad_cochera} | metros:${inmueble.metros_cuadrados}"
+                "ID:${inmueble.id} | baños:${inmueble.cantidad_banos} | dorm:${inmueble.cantidad_dormitrios} | cochera:${inmueble.cantidad_cochera} | metros:${inmueble.metros_cuadrados} | medida_fondo:${inmueble.medida_fondo} | medida_frente:${inmueble.medida_frente}"
             )
 
             inmueble

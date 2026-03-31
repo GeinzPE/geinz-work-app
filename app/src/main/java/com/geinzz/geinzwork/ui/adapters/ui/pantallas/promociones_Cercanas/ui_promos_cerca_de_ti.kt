@@ -45,6 +45,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -108,6 +109,8 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
+import com.geinzz.geinzwork.utils.constantes.constantes_reprodutor_video.GaleriaHorizontalInstagram_promociones_solo_imagen
+import com.geinzz.geinzwork.utils.constantes.constantes_reprodutor_video.VideoPlayerWithControls
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_datos_promociones
@@ -1151,7 +1154,7 @@ fun carta_promocion_geinz(
                 .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
 
         ) {
-            GaleriaHorizontalInstagram(
+            GaleriaHorizontalInstagram_promociones_solo_imagen(
                 imagenes = i.img.lista_img,
                 modifier = Modifier.fillMaxSize(), img_clikeble_valor = { select ->
                     img_clikeble(i.informacion_publcacion.id_promocion, i.img.lista_img, select)
@@ -1306,67 +1309,10 @@ fun parseDiasHorasRestantes(diasRestantesStr: String): Pair<Int, String> {
     }
 }
 
-@Composable
-fun GaleriaHorizontalInstagram(
-    imagenes: List<String>,
-    modifier: Modifier = Modifier,
-    img_clikeble_valor: (Int) -> Unit,
-    long_listatener: () -> Int
-) {
-    val pagerState = rememberPagerState { imagenes.size }
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(4f / 5f)
-            .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
-    ) {
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxSize()
-        ) { page ->
 
-            AsyncImage(
-                model = imagenes[page],
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .combinedClickable(
-                        indication = null, // opcional (sin ripple)
-                        interactionSource = remember { MutableInteractionSource() },
-                        onClick = {
-                            img_clikeble_valor(page)
-                        },
-                        onLongClick = {
-                            long_listatener()
-                        }),
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(R.drawable.cargando_img_categorias),
-                error = painterResource(R.drawable.cargando_img_categorias)
-            )
-        }
 
-        // Indicador 1/5
-        if (imagenes.size > 1) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
-                    .background(
-                        Color.Black.copy(alpha = 0.6f),
-                        RoundedCornerShape(12.dp)
-                    )
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = "${pagerState.currentPage + 1}/${imagenes.size}",
-                    color = Color.White,
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-        }
-    }
-}
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun compartir_hosting_promo(

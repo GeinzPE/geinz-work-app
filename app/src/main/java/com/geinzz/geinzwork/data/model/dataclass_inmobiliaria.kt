@@ -12,7 +12,9 @@ data class dataclass_geinz_inmobiliaria_principal(
     val metros_cuadrados: Double = 0.0,
     val cantidad_dormitrios: String = "",
     val cantidad_cochera: String = "",
-    val trato: String = ""
+    val trato: String = "",
+    val medida_fondo : Int =0,
+    val medida_frente : Int =0
 )
 
 
@@ -35,6 +37,8 @@ data class completeta_info_inmuebles(
     val tipoOperacion: String = "",
     val tipoPropiedad: String = "",
     val divisa:String="",
+    val ancho : Int =0,
+    val fondo : Int =0,
     val cantidad_lugares_seguros: List<lugares_cercanos_> = emptyList(),
     val listalugares_cercanos: List<lugares_cercanos_> = emptyList(),
     val llissa_lugareS_turistos: List<lugares_cercanos_> = emptyList(),
@@ -59,7 +63,7 @@ data class lugares_cercanos_(
     val lat: Double, val lng:Double
 )
 
-data class perfiles_negocios(val txt: String,val emoji:String)
+data class perfiles_negocios(val txt: String,val imagen: Int,val nombre_personas:String)
 data class datos_geolocalizables(
     val latitud: Double,
     val longitud: Double,

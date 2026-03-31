@@ -478,9 +478,9 @@ fun pantalla_principal(
 
         BannerItem(
             id = "1",
-            titulo = "Buscas una casa cerca?",
-            descripcion = "Encuentra la casa de tus sueños en ${localidadSeleccionada.value} aqui en Geinz",
-            imagen = R.drawable.logo_geinz_500x500,
+            titulo = "House capital Group",
+            descripcion = "Transforma tu vida en ${localidadSeleccionada.value} aqui en Geinz",
+            imagen = R.drawable.logo_comprimido_inmobiliaria,
             onClick = { geinz_inmobiliaria(localidad_defaul) }
         ),
 

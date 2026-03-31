@@ -16,6 +16,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.normalizarNomb
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -135,6 +136,7 @@ class viewmodel_inmobiliaria : ViewModel() {
                 _estado_carga_inmubles_principales.value =
                     estado_carga_principal_immubles.loading
             }
+            delay(4000)
 
             try {
 
@@ -178,11 +180,9 @@ class viewmodel_inmobiliaria : ViewModel() {
     }
 
     fun cargarDatos(id: String, localidad: String) {
-
+        _estado_carga_info_inmuebles.value = etado_carga_info_inmuebles.loading
         viewModelScope.launch {
-
             try {
-
                 val datos = instarepo.obtner_datos_completos_del_inmueble(
                     id,
                     localidad
@@ -411,14 +411,12 @@ class viewmodel_inmobiliaria : ViewModel() {
         localidad: String,
         id: String,
     ) {
-        // Construimos el link de la Cloud Function
         val link = "https://geinzworkapp.web.app/share?" +
                 "t=in" +
                 "&id=${URLEncoder.encode(id, "UTF-8")}" +
-                "&l=${URLEncoder.encode(localidad, "UTF-8")}"
+                "&l=${URLEncoder.encode(localidad, "UTF-8")}" +
 
 
-        // Intent simple ya sin imágenes, porque la preview la maneja Firebase Hosting
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, link)
@@ -431,6 +429,7 @@ class viewmodel_inmobiliaria : ViewModel() {
         data class succes(val datos: completeta_info_inmuebles) : etado_carga_info_inmuebles()
         data class error(val txt: String = "error") : etado_carga_info_inmuebles()
         object idle : etado_carga_info_inmuebles()
+        object loading : etado_carga_info_inmuebles()
     }
 
 

@@ -3,6 +3,7 @@ package com.geinzz.geinzwork.viewModels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geinzz.geinzwork.BuildConfig
 
 import com.geinzz.geinzwork.model.repo_agregar_inmubles
 import com.geinzz.geinzwork.model.repo_inmobiliaria
@@ -108,10 +109,10 @@ class viewmodel_agregar_propiedades : ViewModel() {
     suspend fun obtenerDireccion(lat: Double, lon: Double): String? {
         return withContext(Dispatchers.IO) {
             try {
-//                val token = "pk.eyJ1IjoiYmVuamFtaW5sb3BleiIsImEiOiJjbWZrajJ2NHIxOXBkMmtvZW1kMTA5NWNoIn0.7s_234BN9y0pkTIgtF6ikw"
+                val apiKey = BuildConfig.MAPBOX_ACCESS_TOKEN
                 val url = "https://api.mapbox.com/geocoding/v5/mapbox.places/" +
                         "$lon,$lat.json" +
-                        "?access_token=$token" +
+                        "?access_token=$apiKey" +
                         "&types=address" +
                         "&language=es"
 

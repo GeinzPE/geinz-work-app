@@ -90,6 +90,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.fracespantalla11
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.fracespantalla12
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.fracespantalla13
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.fracespantalla14
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -234,7 +235,6 @@ fun pantalla1(
 }
 
 
-
 @Composable
 fun CartaLocalizacion(
     lugar: String,
@@ -304,7 +304,7 @@ fun FondoOscuroAlto(listaColores: List<Color>) {
 
 @Composable
 fun pantalla2(lista_colores_degradaro: List<Color>, onFinish: () -> Unit) {
-    val pagerState = rememberPagerState(pageCount = { 4 })
+    val pagerState = rememberPagerState(pageCount = { 5 })
     val scope = rememberCoroutineScope()
 
     HorizontalPager(
@@ -351,7 +351,19 @@ fun pantalla2(lista_colores_degradaro: List<Color>, onFinish: () -> Unit) {
                     }
                 }
 
-                3 -> pantalla6 {
+                3 -> pantalla6_1(lista_colores_degradaro) {
+                    scope.launch {
+                        pagerState.animateScrollToPage(
+                            page = 4,
+                            animationSpec = tween(
+                                durationMillis = 400,
+                                easing = LinearEasing
+                            )
+                        )
+                    }
+                }
+
+                4 -> pantalla6 {
                     onFinish()
                 }
             }
@@ -595,6 +607,86 @@ fun pantalla5(
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
+fun pantalla6_1(
+    lista_colores_degradado: List<Color>,
+    onNext: () -> Unit
+) {
+    val lista_colores_degradado_top = constantes_lista_localidades.lista_color_degradado_top
+
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(fracespantalla14.img)
+                .build(),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        fondo_osucro(lista_colocares = lista_colores_degradado_top)
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(bottom = 20.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(10.dp)
+                ) {
+                    spacer_vertical(20.dp)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.7f)
+                            .height(IntrinsicSize.Min)
+                    ) {
+                        texto_generico_multilinea(
+                            fracespantalla14.titulo.uppercase(),
+                            MaterialTheme.typography.busquedaGeinzWork, Color = Color.White
+                        )
+                    }
+
+                    spacer_vertical(10.dp)
+                    texto_generico_multilinea(
+                        fracespantalla14.texto,
+                        MaterialTheme.typography.bodyMedium, Color = Color.White
+                    )
+
+                }
+                Box(Modifier.padding(end = 20.dp, start = 10.dp, bottom = 20.dp)) {
+                    CelularAnimacion(
+                        modifier = Modifier.align(
+                            Alignment.BottomCenter
+                        ), {
+                            onNext()
+                        }, orientation = Orientation.Horizontal
+                    )
+
+                }
+            }
+
+        }
+
+        FondoOscuroAlto(lista_colores_degradado)
+        CartaLocalizacion(
+            lugar = "Rutas rápidas",
+            localida = "Geinz", false
+        )
+
+    }
+
+}
+
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
 fun pantalla6(
     onNext: () -> Unit
 ) {
@@ -649,7 +741,7 @@ fun pantalla6(
                     drawableResId = R.drawable.f1,
                     anguloRotacion = -8f,
                     desplazamientoX = -70.dp,
-                    desplazamientoY = 20.dp,null,{},true
+                    desplazamientoY = 20.dp, null, {}, true
                 )
 
                 // --- Foto 2 (Centro, la protagonista) ---
@@ -657,7 +749,7 @@ fun pantalla6(
                     drawableResId = R.drawable.f5,
                     anguloRotacion = 3f,
                     desplazamientoX = 0.dp,
-                    desplazamientoY = 0.dp,null,{},true
+                    desplazamientoY = 0.dp, null, {}, true
                 )
 
                 // --- Foto 3 (Derecha) ---
@@ -665,7 +757,7 @@ fun pantalla6(
                     drawableResId = R.drawable.f4,
                     anguloRotacion = 7f,
                     desplazamientoX = 70.dp,
-                    desplazamientoY = 40.dp,null,{},true
+                    desplazamientoY = 40.dp, null, {}, true
                 )
             }
             spacer_vertical(30.dp)
@@ -693,7 +785,6 @@ fun pantalla6(
 
             }
         }
-
 
 
     }
@@ -778,6 +869,7 @@ fun galeria_img(
         }
     }
 }
+
 @Composable
 fun carta_img_preview(
     img: dataclass_onboarding,

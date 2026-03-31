@@ -578,14 +578,20 @@ object constantes_lista_localidades {
             "Rutas rápidas",
             "Sigue rutas directas y seguras para llegar más rápido a tu destino. Encuentra siempre lo que buscas sin complicaciones.",
             R.drawable.onb3
-        )
+        ),
+        dataclass_pantalla1(
+            "seguridad siempre contigo",
+            "Obtén los números de emergencia y contáctalos de inmediato ante cualquier situación crítica. Con Geinz, siempre estás protegido y acompañado",
+            R.drawable.onb1
+        ),
+
     )
 
 
     val fracespantalla11 = dataclass_pantalla1(
         "Tu camino más fácil",
         "Encuentra rápido las tiendas y servicios que necesitas cerca de ti. Todo en un solo lugar, para que tu día sea más simple.",
-        R.drawable.onb1
+        R.drawable.pasto
 
     )
     val fracespantalla12 = dataclass_pantalla1(
@@ -597,7 +603,13 @@ object constantes_lista_localidades {
     val fracespantalla13 = dataclass_pantalla1(
         "Rutas rápidas",
         "Sigue rutas directas y seguras para llegar más rápido a tu destino. Encuentra siempre lo que buscas sin complicaciones.",
-        R.drawable.onb3
+        R.drawable.ruta
+
+    )
+    val fracespantalla14 = dataclass_pantalla1(
+        "seguridad siempre contigo",
+        "Obtén los números de emergencia y contáctalos de inmediato ante cualquier situación crítica. Con Geinz, siempre estás protegido y acompañado.",
+        R.drawable.emergencia
 
     )
 

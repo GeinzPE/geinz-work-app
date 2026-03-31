@@ -568,7 +568,6 @@ fun bottom_sheet_tiendas_filtradas(
                             ) { expander_contacto = !expander_contacto }
                             spacer_vertical(10.dp)
                         }
-
                         item {
                             val tieneMetodos = with(tiendas_filtradas.metodos_pago_tienda) {
                                 yape.enable || plin.enable || agora.enable || efectivo.enable || visa_mastercard.enable
@@ -587,7 +586,6 @@ fun bottom_sheet_tiendas_filtradas(
                                 spacer_vertical(10.dp)
                             }
                         }
-
                         item {
                             Expandible_qr_tienda(
                                 qrBitmap,
@@ -598,7 +596,6 @@ fun bottom_sheet_tiendas_filtradas(
 
                             spacer_vertical(10.dp)
                         }
-
                         item {
 //                            Box(
 //                                modifier = Modifier
@@ -1081,7 +1078,7 @@ fun perfil_cabezero(
                 viewModelFiltros.setear_color(color)
             })
         spacer_vertical(5.dp)
-        TextoCopiable(id_tienda)
+//        TextoCopiable(id_tienda)
         text_expandible_wrapp(
             texto = "${categoritienda.capitalizeFirst()}",
             style = MaterialTheme.typography.bodyMedium

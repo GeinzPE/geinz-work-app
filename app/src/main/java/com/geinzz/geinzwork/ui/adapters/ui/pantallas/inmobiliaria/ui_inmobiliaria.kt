@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -56,10 +57,12 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_shet_filtrado_inmubles
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.promociones_Cercanas.GaleriaHorizontalInstagram
+
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.ShimmerImagenConMarca
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.ShimmerImagenConMarca_logo
 import com.geinzz.geinzwork.ui.adapters.ui.principal.texFiel_fake
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
+import com.geinzz.geinzwork.utils.constantes.constantes_reprodutor_video.GaleriaHorizontalInstagram_mas_video_ui_inmobiliaria
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.house_capital_whatsap
@@ -85,51 +88,58 @@ fun pantalla_geinz_inmobiliaria(
 
     var mostar_bottom_sheet_filtrado by remember { mutableStateOf(false) }
 
+    val cargando_data = listarepo is viewmodel_inmobiliaria.estado_carga_principal_immubles.loading
+            || listarepo == viewmodel_inmobiliaria.estado_carga_principal_immubles.idle
+
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
         LazyColumn(
             state = listState, verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
+            if (!cargando_data) {
+                item {
 
-            item {
+                    texto_generico_multilinea(
+                        "House capital group", style = MaterialTheme.typography.banerGeinzWork
+                    )
 
-                texto_generico_multilinea(
-                    "House capital group", style = MaterialTheme.typography.banerGeinzWork
-                )
+                    spacer_vertical(5.dp)
 
-                spacer_vertical(5.dp)
+                    texto_generico_multilinea(
+                        "Obten lo mejore de barranca y mira los mejores precios que traemos para ti ",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
 
-                texto_generico_multilinea(
-                    "Obten lo mejore de barranca y mira los mejores precios que traemos para ti ",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-            }
-            stickyHeader() {
-                ColumnContenedorComun {
-                    Column(modifier = Modifier.fillMaxSize().background(Color.Red)) {
-                        Box(modifier = Modifier.background(MaterialTheme.colorScheme.primary)) {
-                            texto_generico_one_line("filtrar", modifier = Modifier.clickable{
-                                mostar_bottom_sheet_filtrado=true
-                            })
+                }
+                stickyHeader() {
+                    ColumnContenedorComun {
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            Box(modifier = Modifier.background(MaterialTheme.colorScheme.primary)) {
+                                texto_generico_one_line(
+                                    "filtrar", modifier = Modifier
+                                        .clip(
+                                            RoundedCornerShape(10.dp)
+                                        )
+                                        .padding(10.dp)
+                                        .clickable {
+                                            mostar_bottom_sheet_filtrado = true
+                                        })
+                            }
                         }
                     }
                 }
+
             }
 
 
             when (listarepo) {
 
                 viewmodel_inmobiliaria.estado_carga_principal_immubles.loading -> {
-
-                    item {
-                        ShimmerImagenConMarca("HOUSE CAPITAL GROUP")
-                    }
                 }
 
                 is viewmodel_inmobiliaria.estado_carga_principal_immubles.succes -> {
-
                     val lista_inmubles =
                         (listarepo as viewmodel_inmobiliaria.estado_carga_principal_immubles.succes).lista_inmuebles
 
@@ -139,7 +149,7 @@ fun pantalla_geinz_inmobiliaria(
                             viewmodel,
                             i,
                             context,
-                            "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0"
+                            "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/DR%20HOUSE.png?alt=media&token=be17b505-95d3-4434-878f-c6ec5fd9dceb"
                         ) {
                             ver_detalles_completos(i.id, localidad_user, nombre_user)
                         }
@@ -154,8 +164,11 @@ fun pantalla_geinz_inmobiliaria(
 
         }
 
-        if(mostar_bottom_sheet_filtrado){
-            bottom_shet_filtrado_inmubles{mostar_bottom_sheet_filtrado=false}
+        if (mostar_bottom_sheet_filtrado) {
+            bottom_shet_filtrado_inmubles { mostar_bottom_sheet_filtrado = false }
+        }
+        if (cargando_data) {
+            ShimmerImagenConMarca_logo()
         }
     }
 
@@ -177,7 +190,8 @@ fun estilo_visual_card(
             .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
 
     ) {
-        GaleriaHorizontalInstagram(
+        GaleriaHorizontalInstagram_mas_video_ui_inmobiliaria(
+            "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/videos_prueva%2FDownload.mp4?alt=media&token=0bf1f262-a5e2-46aa-b807-7c82c11333e4",
             imagenes = i.lista_img,
             modifier = Modifier.fillMaxSize(),
             img_clikeble_valor = { select ->
@@ -260,8 +274,11 @@ fun estilo_visual_card(
                 i.cantidad_banos,
                 i.cantidad_dormitrios,
                 i.cantidad_cochera,
-                i.metros_cuadrados.toString()
-            )
+                i.metros_cuadrados.toString(),
+                i.medida_frente.toString(),
+                i.medida_fondo.toString(),
+
+                )
         }
 
         Row(
@@ -272,7 +289,7 @@ fun estilo_visual_card(
                 modifier = Modifier.size(50.dp),
                 color = Color(0xFF031E6C),
                 icono = R.drawable.comparir_icon, {
-                    viewmodel.compartir_link_tienda(context, i.localidad, i.id)
+                    viewmodel.compartir_link_tienda(context, i.localidad, i.id,)
                 }
             )
 
@@ -302,22 +319,49 @@ fun estilo_visual_card(
 
 @Composable
 fun iconos_datos_inmuebles(
-    banos: String, dormitorios: String, cochera: String, metros: String
+    banos: String,
+    dormitorios: String,
+    cochera: String,
+    metros: String,
+    entrada: String,
+    fondo: String
 ) {
 
     val icon_bano = R.drawable.icono_bano
     val icon_dormitorio = R.drawable.icono_dormitorio
     val icono_cochera = R.drawable.icono_nochera
     val icon_regla = R.drawable.icono_regla
+    val icono_flecha_vertical = R.drawable.flecha_vertical
+    val icon_flecha_horizontal = R.drawable.flecha_orizontal
 
-    Row(
+    LazyRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ItemIcono(icon_regla, "${metros} m²")
-        ItemIcono(icon_dormitorio, "${dormitorios} dorm.")
-        ItemIcono(icon_bano, "${banos} baños.")
-        ItemIcono(icono_cochera, "${cochera} estac.")
+        item {
+            ItemIcono(icon_regla, "${metros} m²")
+
+        }
+        item {
+            ItemIcono(icono_flecha_vertical, "${fondo} m")
+
+        }
+        item {
+            ItemIcono(icon_flecha_horizontal, "${entrada} m.")
+
+        }
+        item {
+            ItemIcono(icon_dormitorio, "${dormitorios} dorm.")
+
+        }
+        item {
+            ItemIcono(icon_bano, "${banos} baños.")
+
+        }
+        item {
+
+            ItemIcono(icono_cochera, "${cochera} estac.")
+        }
     }
 }
 

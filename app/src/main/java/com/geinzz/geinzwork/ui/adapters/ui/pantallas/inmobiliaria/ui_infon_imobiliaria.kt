@@ -1,8 +1,10 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria
 
 
-import android.graphics.Point
+//import android.graphics.Point
 import android.os.Build
+import androidx.media3.common.MediaItem
+import android.support.v4.media.MediaBrowserCompat
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
@@ -24,12 +26,15 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -46,14 +51,25 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FastRewind
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -134,7 +150,15 @@ import kotlin.math.roundToInt
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import com.geinzz.geinzwork.data.model.perfiles_negocios
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.ShimmerImagenConMarca_logo
+import com.geinzz.geinzwork.utils.constantes.constantes_reprodutor_video.GaleriaHorizontalInstagram_mas_video_info_inmobiliaria
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -178,6 +202,8 @@ fun ui_info_imobiliara(
     val icon_dormitorio = R.drawable.icono_dormitorio
     val icono_cochera = R.drawable.icono_nochera
     val icon_regla = R.drawable.icono_regla
+    val icono_profuncidad = R.drawable.flecha_vertical
+    val icon_ancho = R.drawable.flecha_orizontal
     val isPlaying by viewmodel_tts.isPlaying.collectAsState()
 
 
@@ -185,7 +211,11 @@ fun ui_info_imobiliara(
 
     var nombre_seguridad_salud by remember { mutableStateOf("") }
     var img_seguirdad_salud by remember { mutableStateOf("") }
-    val lista_perfil = listOf(perfiles_negocios("Inversionista","\uD83D\uDD25"),perfiles_negocios("Familiar","❤\uFE0F"),perfiles_negocios("Solitario","⚔\uFE0F"))
+    val lista_perfil = listOf(
+        perfiles_negocios("Inversionista", R.drawable.pablo_asistente, "Pablo"),
+        perfiles_negocios("Familiar", R.drawable.naomi_asistente, "Kaori"),
+        perfiles_negocios("Solitario", R.drawable.luis_asistente, "Luis")
+    )
     val scope = rememberCoroutineScope()
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
@@ -218,13 +248,13 @@ fun ui_info_imobiliara(
             easing = FastOutSlowInEasing
         )
     )
-    LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
-        if (listState.firstVisibleItemIndex >= stickyHeaderIndex && !toastShown) {
-            toastShown = true
-        } else if (listState.firstVisibleItemIndex < stickyHeaderIndex) {
-            toastShown = false
-        }
-    }
+//    LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
+//        if (listState.firstVisibleItemIndex >= stickyHeaderIndex && !toastShown) {
+//            toastShown = true
+//        } else if (listState.firstVisibleItemIndex < stickyHeaderIndex) {
+//            toastShown = false
+//        }
+//    }
     LaunchedEffect(datosTienda) {
         if (!datosTienda.isNullOrEmpty()) {
             dataclass_tienda_seleccionada = datosTienda!!.first()
@@ -297,6 +327,15 @@ fun ui_info_imobiliara(
 
     }
 
+    var isFullscreen by rememberSaveable { mutableStateOf(false) } // 🔲 estado pantalla completa
+    val altura by animateDpAsState(
+        targetValue = if (isFullscreen) LocalConfiguration.current.screenHeightDp.dp else 550.dp,
+        animationSpec = tween(durationMillis = 400, easing = EaseInOutCubic),
+        label = "altura_galeria"
+    )
+    val cargando_data = estado is viewmodel_inmobiliaria.etado_carga_info_inmuebles.loading
+            || estado == viewmodel_inmobiliaria.etado_carga_info_inmuebles.idle
+
     Box(modifier = Modifier.fillMaxSize()) {
         when (estado) {
 
@@ -325,268 +364,320 @@ fun ui_info_imobiliara(
             }
 
             is viewmodel_inmobiliaria.etado_carga_info_inmuebles.succes -> {
-                var datos =
-                    (estado as viewmodel_inmobiliaria.etado_carga_info_inmuebles.succes).datos
-                datos_Estados_succes = datos
+                if (!cargando_data) {
 
-                LazyColumn(
-                    modifier = Modifier.padding(5.dp),
-                    state = listState,
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
+                    var datos =
+                        (estado as viewmodel_inmobiliaria.etado_carga_info_inmuebles.succes).datos
+                    datos_Estados_succes = datos
 
-                    item {
-                        Box {
-                            GaleriaHorizontalInstagram(
-                                datos.listaImg,
-                                modifier = Modifier,
-                                { },
-                                {
-                                    Log.d("LONG_PRESS", "Long press en la galería")
-                                }
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(40.dp)
-                                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-                                    .background(Color.Black)
-                                    .align(Alignment.BottomCenter)
-                            )
+                    LazyColumn(
+                        modifier = Modifier
+                            .padding(5.dp)
+                            .animateContentSize(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        state = listState,
+                    ) {
+                        item(key = "galeria") {
+                            Box {
+                                GaleriaHorizontalInstagram_mas_video_info_inmobiliaria(
+                                    altura,
+                                    isFullscreen,
+                                    imagenes = datos.listaImg,
+                                    videoUrl = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/videos_prueva%2FDownload.mp4?alt=media&token=0bf1f262-a5e2-46aa-b807-7c82c11333e4",
+                                    modifier = Modifier,
+                                    img_clikeble_valor = { },
+                                    long_listatener = {
+                                        Log.d("LONG_PRESS", "Long press en la galería")
+                                    },
+                                    es_completo = { completo ->
+                                        isFullscreen = completo
+                                    }
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(20.dp)
+                                        .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                                        .background(Color.Black)
+                                        .align(Alignment.BottomCenter)
+                                )
+                            }
                         }
 
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                            modifier = Modifier.padding(horizontal = 5.dp)
-                        ) {
-                            Text(
-                                datos.nombre.capitalizeFirst(),
-                                fontFamily = baners_geinz_work,
-                                fontSize = 20.sp,
-                                color = Color.White, modifier = Modifier.padding(end = 10.dp)
-                            )
-
-                            texto_generico_multilinea(
-                                datos.descripcion.capitalizeFirst(),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                texto_generico_one_line(
-                                    "Trato : ${datos.tipoOperacion.capitalizeFirst()}",
-                                    color = Color(0xFFB0B0B0),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-
-                                texto_generico_one_line(
-                                    "Tipo : ${datos.tipoPropiedad.capitalizeFirst()}",
-                                    color = Color(0xFFB0B0B0),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                                texto_generico_one_line(
-                                    "Divisa principal: ${datos.divisa.capitalizeFirst()}",
-                                    color = Color(0xFFB0B0B0),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            }
-
-                            texto_generico_one_line(
-                                "Ubicacado en",
-                                color = Color(0xFFB0B0B0),
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-
-                            desing_style_circular(
-                                "${datos.distrito} / Lima".capitalizeFirst(),
-                                Color(0xFF065D07)
-                            )
-
-                            texto_generico_one_line(
-                                "Precio en soles o dolares",
-                                color = Color(0xFFB0B0B0),
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                val tipoCambio = 3.75 // soles por dólar
-
-                                val (textoPrimario, textoSecundario) = when (datos.divisa) {
-                                    "dolares" -> {
-                                        val enSoles = datos.precio * tipoCambio
-                                        "$${formatearNumero_double(datos.precio)}" to "S/${
-                                            formatearNumero_double(
-                                                enSoles
-                                            )
-                                        }"
-                                    }
-
-                                    "soles" -> {
-                                        val enDolares = datos.precio / tipoCambio
-                                        "S/${formatearNumero_double(datos.precio)}" to "$${
-                                            formatearNumero_double(
-                                                enDolares
-                                            )
-                                        }"
-                                    }
-
-                                    else -> formatearNumero_double(datos.precio) to ""
-                                }
-
-                                desing_style_circular(textoPrimario, Color(0xFFB69615))
-
-                                if (textoSecundario.isNotEmpty()) {
-                                    texto_generico_one_line(
-                                        "o",
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                    desing_style_circular(textoSecundario, Color(0xFFB69615))
-                                }
-                            }
-                            spacer_vertical(1.dp)
-
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-
-                                ItemIcono(icon_regla, "${datos.metros} m²")
-
-                                ItemIcono(
-                                    icon_dormitorio,
-                                    "${datos.habitaciones} dorm."
-                                )
-
-                                ItemIcono(
-                                    icon_bano,
-                                    "${datos.banos} baños."
-                                )
-
-                                ItemIcono(
-                                    icono_cochera,
-                                    "${datos.estacionamientos} estac."
-                                )
-
-                            }
-                            spacer_vertical(10.dp)
-
-                        }
-
-
-                    }
-
-                    item {
-                        val colors: List<Color> = listOf(
-                            Color(0xFF7D49EE),
-                            Color(0xFF2354A6),
-                            Color(0xFF046070),
-                            Color(0xFF9A175C),
-                        )
-                        var expandido_var by rememberSaveable { mutableStateOf(true) }
-
-                        Box() {
-                            GeminiBlobBackground(
-                                isPlaying = isPlaying,
-                                colors = colors,
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(15.dp))
-                                    .matchParentSize()
-                            )
+                        item {
                             Column(
-                                modifier = Modifier
-                                    .animateContentSize()
-                                    .padding(horizontal = 10.dp, vertical = 10.dp),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                                verticalArrangement = Arrangement.spacedBy(15.dp),
+                                modifier = Modifier.padding(horizontal = 8.dp)
                             ) {
-
-
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                Row() {
                                     Text(
-                                        "Selecciona tu perfil",
+                                        datos.nombre.capitalizeFirst(),
                                         fontFamily = baners_geinz_work,
                                         fontSize = 20.sp,
                                         color = Color.White,
-                                        modifier = Modifier.weight(1f),
+                                        modifier = Modifier
+                                            .padding(end = 10.dp)
+                                            .weight(1f)
                                     )
                                     Box(
                                         modifier = Modifier
-                                            .padding(end = 10.dp)
-                                            .size(24.dp)
-                                            .graphicsLayer {
-                                                compositingStrategy = CompositingStrategy.Offscreen
-                                            }
-                                            .drawWithCache {
-                                                val brush = Brush.linearGradient(
-                                                    colors = listOf(
-                                                        Color(0xFFFFD700),
-                                                        Color(0xFFFF00FF),
-                                                        Color(0xFF00E0BA)
-                                                    )
+
+                                            .size(36.dp)
+                                            .background(Color.Gray.copy(alpha = 0.5f), CircleShape)
+                                            .clickable(
+                                                indication = null,
+                                                interactionSource = remember { MutableInteractionSource() }
+                                            ) {
+                                                viewModel.compartir_link_tienda(
+                                                    context,
+                                                    datos.distrito,
+                                                    datos.id,
                                                 )
-                                                onDrawWithContent {
-                                                    drawContent()
-                                                    drawRect(
-                                                        brush = brush,
-                                                        blendMode = BlendMode.SrcAtop
-                                                    )
-                                                }
-                                            }
+                                            },
+                                        contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Default.AutoAwesome,
+                                            imageVector = Icons.Default.Share,
                                             contentDescription = null,
-                                            tint = Color.White, // 👈 blanco sólido para que el blend lo pinte bien
-                                            modifier = Modifier.fillMaxSize()
+                                            tint = Color.White,
+                                            modifier = Modifier.size(20.dp)
                                         )
                                     }
-
+                                    spacer_horizonta(5.dp)
                                 }
-                                texto_generico_one_line(
-                                    "Permite que la IA de Geinz personalice tu experiencia",
+
+                                texto_generico_multilinea(
+                                    datos.descripcion.capitalizeFirst(),
                                     style = MaterialTheme.typography.bodyMedium
                                 )
-
                                 LazyRow(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                                 ) {
-                                    items(lista_perfil) { i ->
-                                        seleccion_tipo_persona(
-                                            i.emoji,
-                                            tipo = i.txt.capitalizeFirst(),
-                                            seleccionado = filtro_seleccionado == i.txt
-                                        ) { tipo_select ->
 
-                                            filtro_seleccionado = tipo_select
-                                            nueva_busqueda = 5.0f
-                                            val radioEnKm = nueva_busqueda.toDouble() / 10.0
+                                    item {
+                                        desing_style_circular(
+                                            "Ubicado en ${datos.distrito} / Lima".capitalizeFirst(),
+                                            Color(0xFF065D07).copy(alpha = 0.25f)
+                                        )
+                                    }
 
-                                            scope.launch {
-                                                filtar_datos(
-                                                    viewModel,
-                                                    radioEnKm,
-                                                    datos,
-                                                    nombre_user,
-                                                    lista_lugares_cercanos_filtrada,
-                                                    tipo_select
+                                    item {
+                                        desing_style_circular(
+                                            "Trato : ${datos.tipoOperacion.capitalizeFirst()}",
+                                            Color(0xFF0738BD).copy(alpha = 0.25f)
+                                        )
+                                    }
+
+                                    item {
+                                        desing_style_circular(
+                                            "Tipo : ${datos.tipoPropiedad.capitalizeFirst()}",
+                                            Color(0xFF980606).copy(alpha = 0.25f)
+                                        )
+                                    }
+
+                                    item {
+                                        desing_style_circular(
+                                            "Divisa principal: ${datos.divisa.capitalizeFirst()}",
+                                            Color(0xFF9D3704).copy(alpha = 0.25f)
+                                        )
+                                    }
+                                }
+
+                                texto_generico_one_line(
+                                    "Precio en soles o dolares",
+                                    color = Color(0xFFB0B0B0),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    val tipoCambio = 3.75 // soles por dólar
+
+                                    val (textoPrimario, textoSecundario) = when (datos.divisa) {
+                                        "dolares" -> {
+                                            val enSoles = datos.precio * tipoCambio
+                                            "$${formatearNumero_double(datos.precio)}" to "S/${
+                                                formatearNumero_double(
+                                                    enSoles
                                                 )
+                                            }"
+                                        }
+
+                                        "soles" -> {
+                                            val enDolares = datos.precio / tipoCambio
+                                            "S/${formatearNumero_double(datos.precio)}" to "$${
+                                                formatearNumero_double(
+                                                    enDolares
+                                                )
+                                            }"
+                                        }
+
+                                        else -> formatearNumero_double(datos.precio) to ""
+                                    }
+
+                                    desing_style_circular(textoPrimario, Color(0xFFB69615))
+
+                                    if (textoSecundario.isNotEmpty()) {
+                                        texto_generico_one_line(
+                                            "o",
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                        desing_style_circular(textoSecundario, Color(0xFFB69615))
+                                    }
+                                }
+                                spacer_vertical(1.dp)
+
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+
+                                    ItemIcono(icon_regla, "${datos.metros} m²")
+
+                                    ItemIcono(
+                                        icono_profuncidad,
+                                        "${datos.fondo} m."
+
+                                    )
+
+                                    ItemIcono(
+                                        icon_ancho,
+                                        "${datos.ancho} m."
+                                    )
+
+                                    ItemIcono(
+                                        icon_dormitorio,
+                                        "${datos.habitaciones} dorm."
+                                    )
+
+                                    ItemIcono(
+                                        icon_bano,
+                                        "${datos.banos} baños."
+                                    )
+
+                                    ItemIcono(
+                                        icono_cochera,
+                                        "${datos.estacionamientos} estac."
+                                    )
+
+                                }
+                                spacer_vertical(10.dp)
+
+                            }
+
+                        }
+
+                        item {
+                            val colors: List<Color> = listOf(
+                                Color(0xFF7D49EE),
+                                Color(0xFF2354A6),
+                                Color(0xFF046070),
+                                Color(0xFF9A175C),
+                            )
+                            var expandido_var by rememberSaveable { mutableStateOf(true) }
+
+                            Box() {
+                                GeminiBlobBackground(
+                                    isPlaying = isPlaying,
+                                    colors = colors,
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(15.dp))
+                                        .matchParentSize()
+                                )
+                                Column(
+                                    modifier = Modifier
+                                        .animateContentSize()
+                                        .padding(horizontal = 10.dp, vertical = 10.dp),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+
+
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            "Selecciona tu perfil",
+                                            fontFamily = baners_geinz_work,
+                                            fontSize = 20.sp,
+                                            color = Color.White,
+                                            modifier = Modifier.weight(1f),
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(end = 10.dp)
+                                                .size(24.dp)
+                                                .graphicsLayer {
+                                                    compositingStrategy =
+                                                        CompositingStrategy.Offscreen
+                                                }
+                                                .drawWithCache {
+                                                    val brush = Brush.linearGradient(
+                                                        colors = listOf(
+                                                            Color(0xFFFFD700),
+                                                            Color(0xFFFF00FF),
+                                                            Color(0xFF00E0BA)
+                                                        )
+                                                    )
+                                                    onDrawWithContent {
+                                                        drawContent()
+                                                        drawRect(
+                                                            brush = brush,
+                                                            blendMode = BlendMode.SrcAtop
+                                                        )
+                                                    }
+                                                }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.AutoAwesome,
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
+
+                                    }
+                                    texto_generico_one_line(
+                                        "Permite perzonalizar tu experiencia con asistentes de Geinz",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+
+                                    LazyRow(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(15.dp)
+                                    ) {
+                                        items(lista_perfil) { i ->
+                                            seleccion_tipo_persona(
+                                                i = i,
+                                                seleccionado = filtro_seleccionado == i.txt
+                                            ) { tipo_select ->
+
+                                                filtro_seleccionado = tipo_select
+                                                nueva_busqueda = 5.0f
+                                                val radioEnKm = nueva_busqueda.toDouble() / 10.0
+
+                                                scope.launch {
+                                                    filtar_datos(
+                                                        viewModel,
+                                                        radioEnKm,
+                                                        datos,
+                                                        nombre_user,
+                                                        lista_lugares_cercanos_filtrada,
+                                                        tipo_select
+                                                    )
+                                                }
                                             }
                                         }
                                     }
+                                    GeminiBlobBackground_contexto(
+                                        expandido = expandido_var,
+                                        viewmodel_tts = viewmodel_tts,
+                                        respuesta_gemini_para_tts = respuesta_gemini_para_tts,
+                                        filtro_seleccionado = filtro_seleccionado,
+                                        desespandir = { expandido ->
+                                            expandido_var = expandido
+                                        }
+                                    )
                                 }
-                                GeminiBlobBackground_contexto(
-                                    expandido_var,
-                                    viewmodel_tts,
-                                    respuesta_gemini_para_tts,
-                                    filtro_seleccionado, { expandido ->
-                                        expandido_var = expandido
-                                    }
-                                )
-                            }
 //                            Text(
 //                                text = if (expandido) "▲ ver menos" else "▼ ver más",
 //                                style = MaterialTheme.typography.labelSmall,
@@ -594,28 +685,29 @@ fun ui_info_imobiliara(
 //                                modifier = Modifier
 //                                    .padding(top = 8.dp)
 //                            )
-                            if (!expandido_var) {
-                                Box(
-                                    modifier = Modifier
-                                        .matchParentSize()
-                                        .background(
-                                            Brush.verticalGradient(
-                                                colors = listOf(
-                                                    Color.Transparent,
-                                                    Color.Black.copy(alpha = 0.6f)
-                                                ),
-                                                startY = 80f
+                                if (!expandido_var) {
+                                    Box(
+                                        modifier = Modifier
+                                            .matchParentSize()
+                                            .background(
+                                                Brush.verticalGradient(
+                                                    colors = listOf(
+                                                        Color.Transparent,
+                                                        Color.Black.copy(alpha = 0.6f)
+                                                    ),
+                                                    startY = 80f
+                                                )
                                             )
-                                        )
-                                )
+                                    )
+                                }
                             }
+
+                            spacer_vertical(10.dp)
+
+
                         }
 
-                        spacer_vertical(10.dp)
-                    }
-
-                    stickyHeader() {
-                        ColumnContenedorComun {
+                        item {
                             Column(
                                 modifier = Modifier
                                     .animateContentSize()
@@ -633,16 +725,18 @@ fun ui_info_imobiliara(
                                     color = Color.White
                                 )
 
-                                AnimatedVisibility(!toastShown) {
-                                    texto_generico_multilinea(
-                                        "Explora los servicios, comercios y atractivos cercanos al inmueble para tomar la mejor decisión de compra",
-                                        style = MaterialTheme.typography.labelSmall
-                                    )
-                                }
+//                                AnimatedVisibility(!toastShown) {
+                                texto_generico_multilinea(
+                                    "Explora los servicios, comercios y atractivos cercanos al inmueble para tomar la mejor decisión de compra",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+//                                }
 
                                 Slider(
                                     value = nueva_busqueda,
-                                    onValueChange = { nueva_busqueda = it.roundToInt().toFloat() },
+                                    onValueChange = {
+                                        nueva_busqueda = it.roundToInt().toFloat()
+                                    },
                                     valueRange = 1f..10f,
                                     steps = 8,
                                     onValueChangeFinished = {
@@ -668,8 +762,9 @@ fun ui_info_imobiliara(
                                             contentAlignment = Alignment.Center
                                         ) {
                                             val metros =
-                                                (nueva_busqueda).toInt() // 1=100m, 10=1000m
-                                            val texto = if (metros >= 1000) "1km" else "${metros}m"
+                                                (nueva_busqueda).toInt()
+                                            val texto =
+                                                if (metros >= 1000) "1km" else "${metros}m"
                                             texto_generico_one_line(
                                                 texto = "${metros}",
                                                 color = Color.Black,
@@ -682,42 +777,9 @@ fun ui_info_imobiliara(
                                         .height(40.dp)
                                 )
 
-                                val metros = (nueva_busqueda * 100).toInt() // 1=100m, 10=1000m
+                                val metros = (nueva_busqueda * 100).toInt()
                                 val texto = if (metros >= 1000) "1km" else "${metros}m"
 
-
-//                                Row(
-//                                    verticalAlignment = Alignment.CenterVertically,
-//                                    modifier = Modifier
-//                                        .fillMaxWidth()
-//                                        .animateContentSize(),
-//                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-//                                ) {
-//                                    if (seguros.isNotEmpty()) {
-//                                        iconos_de_filtrado(
-//                                            seguros.size.toString(),
-//                                            R.drawable.corazon_seguridad_webp
-//                                        )
-//                                    }
-//                                    if (cercanos.isNotEmpty()) {
-//                                        iconos_de_filtrado(
-//                                            cercanos.size.toString(),
-//                                            R.drawable.pin3dicon
-//                                        )
-//                                    }
-//                                    if (turisticos.isNotEmpty()) {
-//                                        iconos_de_filtrado(
-//                                            turisticos.size.toString(),
-//                                            R.drawable.cristo3dicon
-//                                        )
-//                                    }
-//                                    if (servicios.isNotEmpty()) {
-//                                        iconos_de_filtrado(
-//                                            servicios.size.toString(),
-//                                            R.drawable.servicios_sercanos_icon
-//                                        )
-//                                    }
-//                                }
                                 texto_generico_one_line(
                                     "Buscando en un radio de $texto",
                                     style = MaterialTheme.typography.bodyMedium
@@ -725,85 +787,90 @@ fun ui_info_imobiliara(
                                 spacer_vertical(9.dp)
 
                             }
+                        }
+                        item {
+                            Column(
+                                Modifier.animateContentSize(),
+                                verticalArrangement = Arrangement.spacedBy(20.dp)
+                            ) {
+                                if (seguros.isNotEmpty()) {
+                                    ListaHorizontal(
+                                        tipo_lanzado = "salud",
+                                        titulo = "Lugares seguros",
+                                        texto = "Encuentra hospitales, clínicas y puntos de atención cercanos al inmueble para tu tranquilidad y seguridad en cualquier momento.",
+                                        lista = seguros,
+                                        clik_carta = { id_, localida, img, nombre, lat, lng ->
+                                            aler_dialog_contacto = true
+                                            localidad_seguridad_salud = localida
+                                            id_seguridad_salud = id_
+                                            nombre_seguridad_salud = nombre
+                                            img_seguirdad_salud = img
+                                        })
+                                }
+                                if (cercanos.isNotEmpty()) {
+                                    ListaHorizontal(
+                                        tipo_lanzado = "cercanos",
+                                        titulo = "Lugares cercanos",
+                                        texto = "Descubre tiendas, restaurantes y servicios ubicados a pocos minutos de tu futura propiedad y disfruta de todo lo que tienes alrededor",
+                                        lista = cercanos,
+                                        clik_carta = { id_, localida, img, nombre, lat, lng ->
+                                            localidad_tienda_seleccionada = localida
+                                            id_tienda_selecionada = id_
+                                            show_bottom_sheeet = true
+                                        })
+                                }
+                                if (turisticos.isNotEmpty()) {
+                                    ListaHorizontal(
+                                        tipo_lanzado = "turisticos",
+                                        titulo = "Lugares turistics",
+                                        texto = "Accede fácilmente a servicios esenciales como mantenimiento, técnicos y soluciones para el hogar cerca de tu inmueble.",
+                                        lista = turisticos,
+                                        clik_carta = { id_, localida, img, nombre, lat_, lng_ ->
+                                            img_turismo = img
+                                            lat = lat_
+                                            lng = lng_
+                                            localidad_tienda_seleccionada = localida
+                                            id_tienda_selecionada = id_
+                                            viewmodelMapa.setBottomSheetVisible(true)
+                                        })
+                                }
+                                if (servicios.isNotEmpty()) {
+                                    ListaHorizontal(
+                                        tipo_lanzado = "servicos",
+                                        titulo = "Servicios para el hogar",
+                                        texto = "Mira los negocios que tienes cerca del inmuble recorre los mejores lugares de barranca",
+                                        lista = servicios,
+                                        clik_carta = { id_, localida_params, img, nombre, lat, lng ->
+                                            dialog_servicos_tramite = true
+                                            id_tienda_select = id_
+                                            localidad_tienda = localida_params
+                                            iduser = ""
+                                            localida = localida_params
+                                        })
+                                }
 
+                            }
+                            spacer_vertical(10.dp)
+                        }
+
+                        item {
+                            MapPreview(datos.listaImg.first(), datos.lat, datos.lng, {})
+                            spacer_vertical(80.dp)
                         }
                     }
-
-                    item {
-                        Column(
-                            Modifier.animateContentSize(),
-                            verticalArrangement = Arrangement.spacedBy(20.dp)
-                        ) {
-                            if (seguros.isNotEmpty()) {
-                                ListaHorizontal(
-                                    tipo_lanzado = "salud",
-                                    titulo = "Lugares seguros",
-                                    texto = "Encuentra hospitales, clínicas y puntos de atención cercanos al inmueble para tu tranquilidad y seguridad en cualquier momento.",
-                                    lista = seguros,
-                                    clik_carta = { id_, localida, img, nombre, lat, lng ->
-                                        aler_dialog_contacto = true
-                                        localidad_seguridad_salud = localida
-                                        id_seguridad_salud = id_
-                                        nombre_seguridad_salud = nombre
-                                        img_seguirdad_salud = img
-                                    })
-                            }
-                            if (cercanos.isNotEmpty()) {
-                                ListaHorizontal(
-                                    tipo_lanzado = "cercanos",
-                                    titulo = "Lugares cercanos",
-                                    texto = "Descubre tiendas, restaurantes y servicios ubicados a pocos minutos de tu futura propiedad y disfruta de todo lo que tienes alrededor",
-                                    lista = cercanos,
-                                    clik_carta = { id_, localida, img, nombre, lat, lng ->
-                                        localidad_tienda_seleccionada = localida
-                                        id_tienda_selecionada = id_
-                                        show_bottom_sheeet = true
-                                    })
-                            }
-                            if (turisticos.isNotEmpty()) {
-                                ListaHorizontal(
-                                    tipo_lanzado = "turisticos",
-                                    titulo = "Lugares turistics",
-                                    texto = "Accede fácilmente a servicios esenciales como mantenimiento, técnicos y soluciones para el hogar cerca de tu inmueble.",
-                                    lista = turisticos,
-                                    clik_carta = { id_, localida, img, nombre, lat_, lng_ ->
-                                        img_turismo = img
-                                        lat = lat_
-                                        lng = lng_
-                                        localidad_tienda_seleccionada = localida
-                                        id_tienda_selecionada = id_
-                                        viewmodelMapa.setBottomSheetVisible(true)
-                                    })
-                            }
-                            if (servicios.isNotEmpty()) {
-                                ListaHorizontal(
-                                    tipo_lanzado = "servicos",
-                                    titulo = "Servicios para el hogar",
-                                    texto = "Mira los negocios que tienes cerca del inmuble recorre los mejores lugares de barranca",
-                                    lista = servicios,
-                                    clik_carta = { id_, localida_params, img, nombre, lat, lng ->
-                                        dialog_servicos_tramite = true
-                                        id_tienda_select = id_
-                                        localidad_tienda = localida_params
-                                        iduser = ""
-                                        localida = localida_params
-                                    })
-                            }
-
-                        }
-                        spacer_vertical(10.dp)
-                    }
-
-                    item {
-                        MapPreview(datos.listaImg.first(), datos.lat, datos.lng, {})
-                    }
-
-
                 }
 
             }
 
+            viewmodel_inmobiliaria.etado_carga_info_inmuebles.loading -> {
+
+            }
         }
+
+        if (cargando_data) {
+            ShimmerImagenConMarca_logo()
+        }
+
         AnimatedVisibility(show_bottom_sheeet) {
             bottom_sheet_tiendas_filtradas(
                 verificar_inter,
@@ -893,7 +960,14 @@ fun ui_info_imobiliara(
                         color = Color(0xFF29A71A),
                         icono = R.drawable.whatsapp_icon,
                         text = "WhatsApp", {
-
+                            house_capital_whatsap(
+                                context,
+                                "+1 (555) 167-1924",
+                                "Hola quiero mas informacion sobre " +
+                                        "https://geinzworkapp.web.app/share?t=in&id=${datos_Estados_succes.id}" +
+                                        "&l=${datos_Estados_succes.distrito}" +
+                                        "&p=${filtro_seleccionado}"
+                            )
                         }
                     )
                 }
@@ -901,6 +975,17 @@ fun ui_info_imobiliara(
         }
     }
 
+}
+
+@Composable
+fun GaleriaHorizontalInstagram(
+    x0: List<String>,
+    x1: String,
+    modifier: Modifier.Companion,
+    x3: () -> Unit,
+    x4: () -> Int
+) {
+    TODO("Not yet implemented")
 }
 
 @Composable
@@ -939,67 +1024,6 @@ fun MapPreview(
 
 }
 
-@Composable
-fun GaleriaHorizontalInstagram(
-    imagenes: List<String>,
-    modifier: Modifier = Modifier,
-    img_clikeble_valor: (Int) -> Unit,
-    long_listatener: () -> Int
-) {
-    val pagerState = rememberPagerState { imagenes.size }
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(340.dp)
-
-    ) {
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxSize()
-        ) { page ->
-
-            AsyncImage(
-                model = imagenes[page],
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .combinedClickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() },
-                        onClick = {
-                            img_clikeble_valor(page)
-                        },
-                        onLongClick = {
-                            long_listatener()
-                        }),
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(R.drawable.cargando_img_categorias),
-                error = painterResource(R.drawable.cargando_img_categorias)
-            )
-        }
-
-        // Indicador 1/5
-        if (imagenes.size > 1) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(bottom = 50.dp, end = 8.dp)
-                    .background(
-                        Color.Black.copy(alpha = 0.6f),
-                        RoundedCornerShape(12.dp)
-                    )
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = "${pagerState.currentPage + 1}/${imagenes.size}",
-                    color = Color.White,
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun ListaHorizontal(
@@ -1151,44 +1175,87 @@ fun normalizarNombre(nombre: String): String {
 
 @Composable
 fun seleccion_tipo_persona(
-    emoji: String,
-    tipo: String,
+    i: perfiles_negocios,
     seleccionado: Boolean,
     click: (String) -> Unit
 ) {
-
-    val containerColor by animateColorAsState(
-        targetValue = if (seleccionado)
-            Color.White
-        else
-            MaterialTheme.colorScheme.primary,
-        label = "btnColor"
+    val overlayAlpha by animateFloatAsState(
+        targetValue = if (seleccionado) 0f else 0.55f,
+        animationSpec = tween(300),
+        label = "overlay"
     )
 
-    val textColor by animateColorAsState(
-        targetValue = if (seleccionado)
-            Color.Black
-        else
-            Color.White,
-        label = "textColor"
+    // 🌑 Gradiente inferior animado — aparece cuando está seleccionado
+    val gradientAlpha by animateFloatAsState(
+        targetValue = if (seleccionado) 1f else 0f,
+        animationSpec = tween(300),
+        label = "gradient"
     )
 
-    Button(
-        onClick = { click(tipo) },
-        colors = ButtonDefaults.buttonColors(
-            containerColor = containerColor,
-        ),
-        shape = RoundedCornerShape(50.dp)
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .width(100.dp)
+            .height(120.dp)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { click(i.txt) }
     ) {
-        texto_generico_one_line(
-            "${tipo} ${emoji}",
-            color = textColor,
-            style = MaterialTheme.typography.bodyMedium
+        // 🖼 Imagen base
+        Image(
+            painter = painterResource(i.imagen),
+            contentScale = ContentScale.Crop,
+            alignment = Alignment.TopCenter,
+            modifier = Modifier.fillMaxSize(),
+            contentDescription = null
         )
 
+        // 🌑 Overlay negro — oscuro cuando no seleccionado
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = overlayAlpha))
+        )
+
+        // 🎨 Gradiente inferior — aparece al seleccionar para proteger el texto
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(60.dp)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.75f * gradientAlpha)
+                        )
+                    )
+                )
+        )
+
+        // 📝 Texto
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = i.txt,
+                color = Color.White,
+                style = MaterialTheme.typography.labelSmall
+            )
+            Text(
+                text = i.nombre_personas,
+                color = Color.White,
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
     }
 }
-
 
 @Composable
 fun GeminiBlobBackground_contexto(
@@ -1196,15 +1263,22 @@ fun GeminiBlobBackground_contexto(
     viewmodel_tts: tts_stt,
     respuesta_gemini_para_tts: viewmodel_inmobiliaria.estado_carga_respuesta_con_IA,
     filtro_seleccionado: String,
-    desespandir: (Boolean) -> Unit
+    desespandir: (Boolean) -> Unit,
 ) {
 
     val nombreAMostrar = when (filtro_seleccionado) {
         "Inversionista" -> "Pablo"
-        "Familiar" -> "Naomi"
+        "Familiar" -> "Kaori"
         "Solitario" -> "Luis"
         else -> "Cliente"
     }
+    val imagen_perfil_asistente =
+        when (filtro_seleccionado) {
+            "Inversionista" -> R.drawable.pablo_asistente
+            "Familiar" -> R.drawable.naomi_asistente
+            "Solitario" -> R.drawable.luis_asistente
+            else -> R.drawable.naomi_asistente
+        }
     AnimatedVisibility(filtro_seleccionado.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
 
         Box(
@@ -1221,7 +1295,7 @@ fun GeminiBlobBackground_contexto(
                     desespandir(!expandido)
 //                    expandido = !expandido
                 }
-                .clipToBounds() // ← corta todo lo que desborde los 200dp
+                .clipToBounds()
         ) {
 
             Box(
@@ -1236,8 +1310,12 @@ fun GeminiBlobBackground_contexto(
                     is viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.error -> {}
                     viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.idle -> {}
                     viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.loading -> {
-                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center){
-                        CircularProgressIndicator()
+
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
                         }
                     }
 
@@ -1279,33 +1357,25 @@ fun GeminiBlobBackground_contexto(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Image(
-                                    painter = painterResource(id = R.drawable.logo_geinz_500x500),
+                                    painter = painterResource(id = imagen_perfil_asistente),
                                     contentDescription = "Logo IA",
+                                    contentScale = ContentScale.Crop,
                                     modifier = Modifier
+                                        .clip(CircleShape)
                                         .clickable(
                                             indication = null,
                                             interactionSource = remember { MutableInteractionSource() }) {
 
                                         }
-                                        .size(35.dp)
+                                        .size(40.dp)
                                 )
                                 spacer_horizonta(5.dp)
-
-
-//                Column() {
 
                                 Text(
                                     text = "$nombreAMostrar asistente de ventas",
                                     style = MaterialTheme.typography.labelMedium,
                                     modifier = Modifier.weight(1f)
                                 )
-//                    Text(
-//                        text = "House capital Group",
-//                        fontSize = 13.sp, // ojo, en Text se usa sp para el tamaño, no dp
-//                        color = Color.Gray
-//                    )
-//                }
-
 
                                 Text(
                                     text = if (expandido) "▲ ver menos" else "▼ ver más",
@@ -1506,5 +1576,64 @@ fun formatearNumero_double(numero: Double): String {
         "%,d".format(numero.toLong())   // 150000.0 → "150,000"
     } else {
         "%,.2f".format(numero)           // 150000.75 → "150,000.75"
+    }
+}
+
+@Composable
+fun VideoPlayer(
+    url: String,
+    isVisible: Boolean // 👈 clave
+) {
+    val context = LocalContext.current
+
+    var isLoading by remember { mutableStateOf(true) }
+
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context).build().apply {
+            val mediaItem = MediaItem.fromUri(url)
+            setMediaItem(mediaItem)
+            prepare()
+
+            addListener(object : Player.Listener {
+                override fun onPlaybackStateChanged(state: Int) {
+                    isLoading = state == Player.STATE_BUFFERING
+                }
+            })
+        }
+    }
+
+    // 🎯 Control de reproducción
+    LaunchedEffect(isVisible) {
+        if (isVisible) {
+            exoPlayer.play()
+        } else {
+            exoPlayer.pause()
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            exoPlayer.release()
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = {
+                PlayerView(it).apply {
+                    player = exoPlayer
+                    useController = false // 👈 desactivamos nativo
+                }
+            }
+        )
+
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color = Color.White
+            )
+        }
     }
 }

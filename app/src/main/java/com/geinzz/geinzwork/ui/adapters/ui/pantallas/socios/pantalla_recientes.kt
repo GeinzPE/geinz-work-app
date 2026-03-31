@@ -8,12 +8,14 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,7 +26,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -85,7 +89,10 @@ fun PantallaRecientes(
     // Lanzamos la carga de datos al inicio
     LaunchedEffect(Unit) {
         viewModelPantallasRecientes.obtner_noti_promo(id_tienda, localidad_tienda)
-        viewModelPantallasRecientes.obtener_estadotiempo_real_promociones(id_tienda, localidad_tienda)
+        viewModelPantallasRecientes.obtener_estadotiempo_real_promociones(
+            id_tienda,
+            localidad_tienda
+        )
     }
     val lsita_fitlrado_opciones = listOf(
         "Todos",
@@ -161,7 +168,6 @@ fun PantallaRecientes(
                     }
 
 
-
                     val listState = rememberLazyListState()
                     val targetAlpha = if (listState.canScrollForward) 1f else 0f
                     val alphaAnim by animateFloatAsState(
@@ -220,7 +226,7 @@ fun PantallaRecientes(
                             item {
                                 spacer_vertical(10.dp)
 
-                                if(listaFiltrada.isNotEmpty()){
+                                if (listaFiltrada.isNotEmpty()) {
                                     texto_generico_one_line(
                                         "Encontrados (${listaFiltrada.size})"
                                     )
@@ -262,17 +268,22 @@ fun PantallaRecientes(
                                             id_tienda = id_tienda,
                                             viewModel = viewModelPantallasRecientes,
                                             item = item,
-                                            item_clikeado = { id_promo,tipo ->
-                                                if(tipo.equals("notificación")){
-                                                    bottom_sheet_datos_competos_notificacion=true
+                                            item_clikeado = { id_promo, tipo ->
+                                                if (tipo.equals("notificación")) {
+                                                    bottom_sheet_datos_competos_notificacion = true
                                                     id_promo_select = id_promo
-                                                }else{
+                                                } else {
                                                     bottom_sheet_datos_competos = true
                                                     id_promo_select = id_promo
                                                 }
                                             },
-                                            cambiar_a_pausar = { nuevo_estado, id_promo->
-                                                viewModelPantallasRecientes.cambiar_estado_promociones(id_tienda,localidad_tienda,id_promo,nuevo_estado)
+                                            cambiar_a_pausar = { nuevo_estado, id_promo ->
+                                                viewModelPantallasRecientes.cambiar_estado_promociones(
+                                                    id_tienda,
+                                                    localidad_tienda,
+                                                    id_promo,
+                                                    nuevo_estado
+                                                )
                                                 scope.launch {
                                                     snackbarHostState.showSnackbar(
                                                         message = "Estado cambiado correctamente",
@@ -341,7 +352,7 @@ fun PantallaRecientes(
                         bottom_sheet_datos_competos = false
                     })
             }
-            if(bottom_sheet_datos_competos_notificacion){
+            if (bottom_sheet_datos_competos_notificacion) {
                 bottom_sheet_datos_notificacion(
                     viewmodel_pantalla = viewModelPantallasRecientes,
                     id_tienda = id_tienda,
@@ -376,10 +387,10 @@ fun ordenarPorVence(lista: List<publicaciones_notificaciones_geinz>): List<publi
 
 @Composable
 fun item_recientes(
-    localidad_tienda: String,id_tienda: String,
+    localidad_tienda: String, id_tienda: String,
     viewModel: viewmodel_pantallas_recientes,
     item: publicaciones_notificaciones_geinz,
-    item_clikeado: (String,String) -> Unit,
+    item_clikeado: (String, String) -> Unit,
     cambiar_a_pausar: (tipo: String, id_promo: String) -> Unit
 ) {
     val diasRestantes = item.vence
@@ -397,7 +408,7 @@ fun item_recientes(
             .clip(RoundedCornerShape(20.dp))
             .background(Color(0xFF2B2B2B))
             .clickable {
-                item_clikeado(item.id,item.tipo)
+                item_clikeado(item.id, item.tipo)
             }
     ) {
 
@@ -475,7 +486,9 @@ fun item_recientes(
                                     checkedThumbColor = MaterialTheme.colorScheme.primary,
                                     checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                                     uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                                    uncheckedTrackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                    uncheckedTrackColor = MaterialTheme.colorScheme.outline.copy(
+                                        alpha = 0.3f
+                                    )
                                 ),
                                 modifier = Modifier.padding(end = 10.dp)
                             )
@@ -559,7 +572,7 @@ fun colorPorVencimiento(vence: String): Color {
 }
 
 @Composable
-fun ShimmerImagenConMarca(texto:String="GEINZ") {
+fun ShimmerImagenConMarca(texto: String = "GEINZ") {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -574,6 +587,72 @@ fun ShimmerImagenConMarca(texto:String="GEINZ") {
                 fontSize = 50.sp,                        // más grande
                 fontWeight = FontWeight.Bold
             )
+        }
+    }
+}
+
+@Composable
+fun ShimmerImagenConMarca_logo() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .shimmer(),
+        contentAlignment = Alignment.Center
+    ) {
+        // Shimmer sweep sobre toda la pantalla
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+
+                .background(Color.White.copy(alpha = 0.03f))
+        )
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Logo centrado y proporcional
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.55f)   // 55% del ancho de pantalla
+                    .aspectRatio(1f)        // mantiene proporción cuadrada
+                    .border(
+                        width = 0.5.dp,
+                        color = Color.White.copy(alpha = 0.08f),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.house_capital_logo),
+                    contentDescription = "House Capital Group",
+                    modifier = Modifier
+                        .fillMaxWidth(0.75f)
+                        .aspectRatio(1f),
+                    contentScale = ContentScale.Fit
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Separador + texto elegante
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(0.4f)
+            ) {
+                Divider(color = Color.White.copy(alpha = 0.12f), modifier = Modifier.weight(1f))
+                Text(
+                    text = "CARGANDO",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = Color.White.copy(alpha = 0.2f),
+                        letterSpacing = 4.sp
+                    ),
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                Divider(color = Color.White.copy(alpha = 0.12f), modifier = Modifier.weight(1f))
+            }
         }
     }
 }
