@@ -12,9 +12,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -64,6 +62,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.busqueda.ui_pantalla_busque
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.cuenta_user
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.favoritos.iu_favoritos
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.Pantalla_filtrado_tiendas
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.mapa_inmobilia
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.pantalla_geinz_inmobiliaria
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.ui_info_imobiliara
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.login.IniciarSeccion
@@ -88,6 +87,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewModel_principal_geinz_work
 import com.geinzz.geinzwork.viewModels.viewmode_seguridad_salud
 import com.geinzz.geinzwork.viewModels.viewmodel_inmobiliaria
+import com.geinzz.geinzwork.viewModels.viewmodel_mapa_inmobiliara
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 import com.geinzz.geinzwork.viewModels.viewmodel_usuario_registrado
 import com.google.firebase.auth.FirebaseAuth
@@ -115,6 +115,7 @@ fun nativationWrapper(
     val viewModel_filtrado_tiendas: viewModel_filtado_tiendas = viewModel()
     val viewmode_segurirdad_Salud: viewmode_seguridad_salud = viewModel()
     val viewmodelMapa: viewmodel_mapa_personalizado = viewModel()
+    val viewmodel_mapa_inmobilia: viewmodel_mapa_inmobiliara = viewModel()
     val viewmodel_inmobiliaria: viewmodel_inmobiliaria = viewModel()
 
     var id_promo_params by remember { mutableStateOf("") }
@@ -167,13 +168,14 @@ fun nativationWrapper(
                     )
                 }
 
-                is UiAction.abrir_pantalla_inmobiliara->{
+                is UiAction.abrir_pantalla_inmobiliara -> {
                     navController.navigate(
                         datos_completros_inmobiliaria(
                             action.id_propiedad,
                             action.localdiad_pripiedad,
-                            datos_user?.nombre ?:"usuario"
-                        ))
+                            datos_user?.nombre ?: "usuario"
+                        )
+                    )
                 }
 
                 is UiAction.ReviewPrivada -> TODO()
@@ -958,6 +960,7 @@ fun nativationWrapper(
                 composable<datos_completros_inmobiliaria> { navback ->
                     val datos = navback.toRoute<datos_completros_inmobiliaria>()
                     ui_info_imobiliara(
+                        viewmodel_mapa_inmobilia,
                         viewmodelMapa = viewmodelMapa,
                         viewmodel_lugares_turisticos = viewModelLugares,
                         verificar_inter = isConnected,
@@ -966,7 +969,8 @@ fun nativationWrapper(
                         localidad = datos.localidad,
                         nombre_user = datos.nombre_user,
                         iniciar_seccion = { navController.navigate(crear_cuenta_geinz("crear")) },
-                        crear_cuenta = { navController.navigate("login_principal") },abrir_mapa={tipo,img,lat,lng->
+                        crear_cuenta = { navController.navigate("login_principal") },
+                        abrir_mapa = { tipo, img, lat, lng ->
                             navController.navigate(
                                 map_perzonalizado(
                                     tipo,
@@ -977,8 +981,15 @@ fun nativationWrapper(
                                 )
                             )
 
+                        },
+                        {
+                            navController.navigate(abrir_mapa_inmobiliara)
                         }
                     )
+                }
+
+                composable<abrir_mapa_inmobiliara> {
+                    mapa_inmobilia(viewmodel_mapa_inmobilia)
                 }
 
 

@@ -414,7 +414,7 @@ class viewmodel_inmobiliaria : ViewModel() {
         val link = "https://geinzworkapp.web.app/share?" +
                 "t=in" +
                 "&id=${URLEncoder.encode(id, "UTF-8")}" +
-                "&l=${URLEncoder.encode(localidad, "UTF-8")}" +
+                "&l=${URLEncoder.encode(localidad, "UTF-8")}"
 
 
         val intent = Intent(Intent.ACTION_SEND).apply {

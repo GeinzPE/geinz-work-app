@@ -24,6 +24,8 @@ data class promociones_y_ofertas(val localidad: String, val id_promo: String = "
 object login_scios
 
 @Serializable
+object abrir_mapa_inmobiliara
+@Serializable
 data class mostrar_tiendas(val nombre_user: String, val localidad: String)
 
 @Serializable

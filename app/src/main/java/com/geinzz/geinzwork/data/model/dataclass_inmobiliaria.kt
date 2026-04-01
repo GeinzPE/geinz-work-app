@@ -1,5 +1,9 @@
 package com.geinzz.geinzwork.data.model
 
+import androidx.compose.runtime.mutableStateOf
+import com.mapbox.maps.MapboxMap
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager
+
 data class dataclass_geinz_inmobiliaria_principal(
     val id: String = "",
     val lista_img: List<String> = emptyList(),
@@ -13,8 +17,8 @@ data class dataclass_geinz_inmobiliaria_principal(
     val cantidad_dormitrios: String = "",
     val cantidad_cochera: String = "",
     val trato: String = "",
-    val medida_fondo : Int =0,
-    val medida_frente : Int =0
+    val medida_fondo: Int = 0,
+    val medida_frente: Int = 0
 )
 
 
@@ -36,9 +40,9 @@ data class completeta_info_inmuebles(
     val id: String = "",
     val tipoOperacion: String = "",
     val tipoPropiedad: String = "",
-    val divisa:String="",
-    val ancho : Int =0,
-    val fondo : Int =0,
+    val divisa: String = "",
+    val ancho: Int = 0,
+    val fondo: Int = 0,
     val cantidad_lugares_seguros: List<lugares_cercanos_> = emptyList(),
     val listalugares_cercanos: List<lugares_cercanos_> = emptyList(),
     val llissa_lugareS_turistos: List<lugares_cercanos_> = emptyList(),
@@ -54,16 +58,24 @@ data class lista_lugaers_totales(
 
 
 data class lugares_cercanos_(
+    val nombre:String,
+    val categoira:String,
     val img_String: String,
-    val nombre: String,
-    val categoira: String,
-    val subcategoria: String,
     val distanciaKm: Double = 0.0,
     val id: String, val localidad: String,
-    val lat: Double, val lng:Double
+    val lat: Double, val lng: Double
 )
 
-data class perfiles_negocios(val txt: String,val imagen: Int,val nombre_personas:String)
+object EstadoMapa {
+    val managerSecundario = mutableStateOf<PointAnnotationManager?>(null)
+    val mapboxMapGlobal = mutableStateOf<MapboxMap?>(null)
+    var contextoGlobal: android.content.Context? = null
+    val cargandoPuntos = mutableStateOf(false)
+    // ✅ Job para cancelar carga anterior
+    var jobCarga: kotlinx.coroutines.Job? = null
+}
+data class perfiles_negocios(val txt: String, val imagen: Int, val nombre_personas: String)
+
 data class datos_geolocalizables(
     val latitud: Double,
     val longitud: Double,
@@ -85,5 +97,34 @@ data class ia_inmobiliara_tts(
     val lista_lugares_turisticos: List<String>,
     val tipo_seleccionado: String,
     val calle_ubicada: String
+)
+
+data class datos_viewmodel_inmobiliara(
+    val id: String = "",
+    val lista_img: List<String> = emptyList(),
+    val localidad: String = "",
+    val nombre: String = "",
+    val latitud: Double = 0.0,
+    val longitud: Double = 0.0,
+    val ancho: Int = 0,
+    val fondo: Int = 0,
+    val precio: Double = 0.0,
+    val banos: String = "",
+    val metros: Double = 0.0,
+    val habitaciones: String = "",
+    val cantidad_lugares_seguros: List<lugares_cercanos_> = emptyList(),
+    val cantidad_lugares_cercanos: List<lugares_cercanos_> = emptyList(),
+    val cantidad_lugares_turisticos: List<lugares_cercanos_> = emptyList(),
+    val cantidad_lugares_para_el_hogar: List<lugares_cercanos_> = emptyList(),
+)
+
+
+data class datos_compartidos_lugares_cercacnos(
+    val img: String, val lat: Double, val lng: Double, val id: String
+)
+
+
+data class categorias_diltrado_mapa_inmobiliara(
+    val nombre: String, val cantidad: Int
 )
 

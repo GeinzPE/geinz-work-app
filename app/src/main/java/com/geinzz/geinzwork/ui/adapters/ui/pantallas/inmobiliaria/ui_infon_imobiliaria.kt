@@ -156,14 +156,19 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import com.geinzz.geinzwork.data.model.datos_compartidos_lugares_cercacnos
+import com.geinzz.geinzwork.data.model.datos_viewmodel_inmobiliara
 import com.geinzz.geinzwork.data.model.perfiles_negocios
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.ShimmerImagenConMarca_logo
 import com.geinzz.geinzwork.utils.constantes.constantes_reprodutor_video.GaleriaHorizontalInstagram_mas_video_info_inmobiliaria
+import com.geinzz.geinzwork.viewModels.viewmodel_mapa_inmobiliara
+import kotlin.String
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ui_info_imobiliara(
+    viewmodel_mapa_inmobilia: viewmodel_mapa_inmobiliara,
     viewmodelMapa: viewmodel_mapa_personalizado,
     viewmodel_lugares_turisticos: viewModel_lugares_turisticos,
     verificar_inter: Boolean,
@@ -171,7 +176,8 @@ fun ui_info_imobiliara(
     id: String,
     localidad: String,
     nombre_user: String, iniciar_seccion: () -> Unit, crear_cuenta: () -> Unit,
-    abrir_mapa: (tipo: String, img: String, lat: Double, lng: Double) -> Unit
+    abrir_mapa: (tipo: String, img: String, lat: Double, lng: Double) -> Unit,
+    abrir_mapa_ver_cercanos: () -> Unit
 ) {
     val context = LocalContext.current
     val viewmode_servicios_tramite: viewmode_servicios_tramite = viewModel()
@@ -421,7 +427,6 @@ fun ui_info_imobiliara(
                                     )
                                     Box(
                                         modifier = Modifier
-
                                             .size(36.dp)
                                             .background(Color.Gray.copy(alpha = 0.5f), CircleShape)
                                             .clickable(
@@ -953,7 +958,29 @@ fun ui_info_imobiliara(
                         modifier = Modifier.weight(1f),
                         color = Color(0xFF4A0085),
                         icono = R.drawable.google_maps_icono,
-                        text = "Ir a ver", {}
+                        text = "Ir a ver", clikeado = {
+                            val instancia_datos = datos_viewmodel_inmobiliara(
+                                id = datos_Estados_succes.id,
+                                lista_img = datos_Estados_succes.listaImg,
+                                localidad = datos_Estados_succes.distrito,
+                                nombre = datos_Estados_succes.nombre,
+                                latitud = datos_Estados_succes.lat,
+                                longitud = datos_Estados_succes.lng,
+                                ancho = datos_Estados_succes.ancho,
+                                fondo = datos_Estados_succes.fondo,
+                                precio = datos_Estados_succes.precio,
+                                banos = datos_Estados_succes.banos,
+                                metros = datos_Estados_succes.metros,
+                                habitaciones = datos_Estados_succes.habitaciones,
+                                cantidad_lugares_seguros =datos_Estados_succes.cantidad_lugares_seguros,
+                                cantidad_lugares_cercanos =datos_Estados_succes.listalugares_cercanos ,
+                                cantidad_lugares_turisticos =datos_Estados_succes.llissa_lugareS_turistos,
+                                cantidad_lugares_para_el_hogar =datos_Estados_succes.lista_servicios_sercanos
+
+                            )
+                            abrir_mapa_ver_cercanos()
+                            viewmodel_mapa_inmobilia.agregar_datos_para_pasa_mapa(instancia_datos)
+                        }
                     )
                     btns(
                         modifier = Modifier.weight(1f),
@@ -1579,61 +1606,3 @@ fun formatearNumero_double(numero: Double): String {
     }
 }
 
-@Composable
-fun VideoPlayer(
-    url: String,
-    isVisible: Boolean // 👈 clave
-) {
-    val context = LocalContext.current
-
-    var isLoading by remember { mutableStateOf(true) }
-
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            val mediaItem = MediaItem.fromUri(url)
-            setMediaItem(mediaItem)
-            prepare()
-
-            addListener(object : Player.Listener {
-                override fun onPlaybackStateChanged(state: Int) {
-                    isLoading = state == Player.STATE_BUFFERING
-                }
-            })
-        }
-    }
-
-    // 🎯 Control de reproducción
-    LaunchedEffect(isVisible) {
-        if (isVisible) {
-            exoPlayer.play()
-        } else {
-            exoPlayer.pause()
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            exoPlayer.release()
-        }
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = {
-                PlayerView(it).apply {
-                    player = exoPlayer
-                    useController = false // 👈 desactivamos nativo
-                }
-            }
-        )
-
-        if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center),
-                color = Color.White
-            )
-        }
-    }
-}

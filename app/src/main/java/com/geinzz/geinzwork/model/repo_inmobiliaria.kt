@@ -162,16 +162,14 @@ class repo_inmobiliaria {
                 val listaImg = doc.get("img_tienda.logo_tienda") as? String ?: ""
                 val subcategorias = doc.get("subcategoria") as? List<*>
                 val id = doc.get("id_tienda") as? String ?: ""
+                val nombre = doc.get("nombre_tienda") as? String ?: ""
 
                 val ubicacion = doc.get("ubicacion") as? Map<*, *>
                 val docLat = ubicacion?.get("latitud") as? Double ?: 0.0
                 val docLng = ubicacion?.get("longitud") as? Double ?: 0.0
                 val distancia = calcularDistanciaKm_directo(lat, lng, docLat, docLng)
-                lugares_cercanos_(
+                lugares_cercanos_(nombre,"",
                     img_String = listaImg,
-                    nombre = doc.getString("nombre_tienda") ?: "",
-                    categoira = doc.getString("categoria_tienda") ?: "",
-                    subcategoria = subcategorias?.firstOrNull()?.toString() ?: "",
                     distancia,id,localidad,docLat,docLng
                 )
             }
@@ -225,10 +223,9 @@ class repo_inmobiliaria {
                 val distancia = calcularDistanciaKm_directo(lat, lng, docLat, docLng) // 👈
 
                 lugares_cercanos_(
+                    nombre,
+                    categoria,
                     img_String = img,
-                    nombre = nombre,
-                    categoira = categoria,
-                    subcategoria = "seguridad",
                     distanciaKm = distancia,id,localidad,docLat,docLng
                 )
             }
@@ -278,11 +275,8 @@ class repo_inmobiliaria {
                 val nombre = doc.getString("titulo") ?: ""
                 val id = doc.getString("id") ?: ""
                 val distancia = calcularDistanciaKm_directo(lat, lng, docLat, docLng)
-                lugares_cercanos_(
-                    img_String = img,
-                    nombre = nombre,
-                    categoira = "",
-                    subcategoria = "",distancia,
+                lugares_cercanos_(nombre,"",
+                    img_String = img,distancia,
                     id,localidad,docLat,docLng
                 )
             }
@@ -367,11 +361,8 @@ class repo_inmobiliaria {
 
                 val distancia = calcularDistanciaKm_directo(lat, lng, docLat, docLng)
 
-                lugares_cercanos_(
+                lugares_cercanos_(nombre,"",
                     img_String = img,
-                    nombre = nombre,
-                    categoira = "",
-                    subcategoria = "seguridad",
                     distancia,id,localidad,docLat,docLng
                 )
             }
