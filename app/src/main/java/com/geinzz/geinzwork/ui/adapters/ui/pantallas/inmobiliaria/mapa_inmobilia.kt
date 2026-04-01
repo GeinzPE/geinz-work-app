@@ -2,7 +2,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria
 
 import android.R.attr.duration
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
@@ -66,9 +66,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -80,11 +83,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.modifier.ModifierLocalModifierNode
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
 
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.EstadoMapa
 import com.geinzz.geinzwork.data.model.categorias_diltrado_mapa_inmobiliara
 import com.geinzz.geinzwork.data.model.lugares_cercanos_
@@ -92,10 +97,12 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatearDistanciaDouble
+import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.easeTo
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun mapa_inmobilia(viewmodel_mapa_inmobilia: viewmodel_mapa_inmobiliara) {
     var ulr_esilo by remember { mutableStateOf("") }
@@ -107,7 +114,7 @@ fun mapa_inmobilia(viewmodel_mapa_inmobilia: viewmodel_mapa_inmobiliara) {
     var pitch_selecciondo by remember { mutableStateOf("2D") }
     var mostrar_ocultar_immagen by remember { mutableStateOf(true) }
     var lista_seleccionada by remember { mutableStateOf<List<lugares_cercanos_>>(emptyList()) }
-
+    val seguirUbicacion = remember { mutableStateOf(false) }
 //    val lista_configuracion = listOf(
 //        "Mapa de dia", "Mapa nocturno"
 //    )
@@ -151,6 +158,8 @@ fun mapa_inmobilia(viewmodel_mapa_inmobilia: viewmodel_mapa_inmobiliara) {
         lista_seleccionada = lista
         setear_puntos_clikeados(lista)
     }
+
+
     val categorias = listOf(
         categorias_diltrado_mapa_inmobiliara("Principal", 0),
         categorias_diltrado_mapa_inmobiliara(
@@ -241,54 +250,155 @@ fun mapa_inmobilia(viewmodel_mapa_inmobilia: viewmodel_mapa_inmobiliara) {
             }
         )
     }
-    Box(modifier = Modifier.fillMaxSize()) {
-        MapboxMap(modifier = Modifier.fillMaxSize(), scaleBar = {}, compass = {}) {
-            MapStyle(ulr_esilo)
-            MapEffect(Unit) { mapView ->
-                mapView.getMapboxMap().getStyle { style ->
-                    val mapboxMap = mapView.getMapboxMap()
-                    mapViewState.value = mapView
-                    mapboxMapInstance = mapboxMap
 
-                    managerLauncher.value = mapView.annotations.createPointAnnotationManager()
+    val scaffoldState = rememberBottomSheetScaffoldState()
 
-                    // ✅ ESTO FALTABA — sin esto setear_puntos_clikeados siempre retorna
-                    EstadoMapa.managerSecundario.value =
-                        mapView.annotations.createPointAnnotationManager()
-                    EstadoMapa.mapboxMapGlobal.value = mapboxMap
-                    EstadoMapa.contextoGlobal = contex
+    val scope=rememberCoroutineScope()
+    val fabColor by animateColorAsState(
+        targetValue = if (seguirUbicacion.value) MaterialTheme.colorScheme.primary else Color(
+            0xFF9C7BFF
+        ), animationSpec = tween(
+            durationMillis = 300 // 0.3 segundos, suave pero rápido
+        )
+    )
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = 80.dp, // 👈 TIRITA SIEMPRE VISIBLE
+        sheetDragHandle = null,
+        sheetContainerColor = Color.Black,
+        sheetContent = {
 
-                    mapView.getPlugin<ScaleBarPlugin>(Plugin.MAPBOX_SCALEBAR_PLUGIN_ID)?.enabled =
-                        false
-                    mapView.location?.apply {
-                        enabled = true
-                        pulsingEnabled = true
+
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight() // 👈 altura siempre automática al contenido
+                        .navigationBarsPadding()
+                ) {
+                    AnimatedVisibility(
+                        visible = !mostrar_ocultar_immagen,
+                        enter = fadeIn(tween(300)) + expandVertically(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow
+                            )
+                        ),
+                        exit = fadeOut(tween(200)) + shrinkVertically(tween(250))
+                    ) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(7.dp),
+                            modifier = Modifier.padding(top = 30.dp, start = 10.dp, end = 10.dp)
+                        ) {
+
+                            Text(
+                                text = "Todo lo que rodea tu próximo terreno",
+                                fontSize = 20.sp,
+                                fontFamily = baners_geinz_work,
+                            )
+
+                            texto_generico_one_line(
+                                "Conoce los lugares cercanos y toma una mejor decisión",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            img_container(lista_seleccionada, { lat, lng ->
+                                mapboxMapInstance?.easeTo(
+                                    CameraOptions.Builder()
+                                        .center(Point.fromLngLat(lng, lat))
+                                        .zoom(16.0)
+                                        .build(),
+                                    MapAnimationOptions.mapAnimationOptions {
+                                        duration(800)
+                                    }
+                                )
+                            })
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        ListaChips(
+                            modifier = Modifier.weight(1f),
+                            categorias = categorias,
+                            seleccionado = chipSeleccionado,
+                            onSeleccionar = {
+                                chipSeleccionado = it
+                                if (it == "Principal") {
+                                    mostrar_ocultar_immagen = true
+                                } else {
+                                    mostrar_ocultar_immagen = false
+                                    scope.launch {
+                                        scaffoldState.bottomSheetState.expand() // 👈 sube el sheet
+                                    }
+
+                                }
+                            }
+                        )
                     }
                 }
-            }
+
 
         }
-        FabMenuAjustes(
-            confuracion_seleccionda = confuracion_seleccionda,
-            onToggleDayNight = {
-                confuracion_seleccionda =
-                    if (confuracion_seleccionda == "Mapa de dia") "Mapa nocturno" else "Mapa de dia"
-            },
-            pitch_selecciondo = pitch_selecciondo,
-            onToggle3D = {
-                pitch_selecciondo = if (pitch_selecciondo == "2D") "3D" else "2D"
-            }, modifier = Modifier.padding(10.dp).align(Alignment.TopEnd)
+    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+            MapboxMap(modifier = Modifier.fillMaxSize(), scaleBar = {}, compass = {}) {
+                MapStyle(ulr_esilo)
+                MapEffect(Unit) { mapView ->
+                    mapView.getMapboxMap().getStyle { style ->
+                        val mapboxMap = mapView.getMapboxMap()
+                        mapViewState.value = mapView
+                        mapboxMapInstance = mapboxMap
 
-        )
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-        ) {
+                        managerLauncher.value = mapView.annotations.createPointAnnotationManager()
+
+                        // ✅ ESTO FALTABA — sin esto setear_puntos_clikeados siempre retorna
+                        EstadoMapa.managerSecundario.value =
+                            mapView.annotations.createPointAnnotationManager()
+                        EstadoMapa.mapboxMapGlobal.value = mapboxMap
+                        EstadoMapa.contextoGlobal = contex
+
+                        mapView.getPlugin<ScaleBarPlugin>(Plugin.MAPBOX_SCALEBAR_PLUGIN_ID)?.enabled =
+                            false
+                        mapView.location?.apply {
+                            enabled = true
+                            pulsingEnabled = true
+                        }
+                    }
+                }
+
+            }
+        FloatingActionButton(
+            modifier = Modifier.padding(10.dp),
+            containerColor = fabColor,
+            contentColor = Color.White,
+            onClick = {
+
+            }) {
+            Icon(Icons.Default.MyLocation, contentDescription = "Mi ubicación")
+        }
+            FabMenuAjustes(
+                confuracion_seleccionda = confuracion_seleccionda,
+                onToggleDayNight = {
+                    confuracion_seleccionda =
+                        if (confuracion_seleccionda == "Mapa de dia") "Mapa nocturno" else "Mapa de dia"
+                },
+                pitch_selecciondo = pitch_selecciondo,
+                onToggle3D = {
+                    pitch_selecciondo = if (pitch_selecciondo == "2D") "3D" else "2D"
+                }, modifier = Modifier
+                    .padding(10.dp)
+                    .align(Alignment.TopEnd)
+
+            )
             AnimatedVisibility(
                 visible = mostrar_ocultar_immagen,
-                enter = fadeIn(),
-                exit = fadeOut()
+                enter = fadeIn(tween(300)) + slideInVertically { it },
+                exit = fadeOut(tween(200)) + slideOutVertically { it },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 85.dp)
             ) {
                 estilo_carta_visual_inmueble(
                     modifier = Modifier,
@@ -297,212 +407,10 @@ fun mapa_inmobilia(viewmodel_mapa_inmobilia: viewmodel_mapa_inmobiliara) {
             }
 
 
-            Column(
-                Modifier
-                    .fillMaxWidth()
-
-                    .clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp))
-                    .background(Color.Black)
-            ) {
-                AnimatedVisibility(
-                    visible = !mostrar_ocultar_immagen,
-                    enter = fadeIn(tween(300)) + expandVertically(
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        )
-                    ),
-                    exit = fadeOut(tween(200)) + shrinkVertically(tween(250))
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.padding(10.dp)) {
-                        Text(
-                            text = "Todo lo que rodea tu próximo terreno",
-                            fontSize = 20.sp,
-                            fontFamily = baners_geinz_work
-                        )
-                        texto_generico_one_line(
-                            "Conoce los lugares cercanos y toma una mejor decisión",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        img_container(lista_seleccionada, { lat, lng ->
-                            mapboxMapInstance?.easeTo(
-                                CameraOptions.Builder()
-                                    .center(Point.fromLngLat(lng, lat))
-                                    .zoom(16.0)
-                                    .build(),
-                                MapAnimationOptions.mapAnimationOptions {
-                                    duration(800)
-                                }
-                            )
-                        })
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ListaChips(
-                        modifier = Modifier.weight(1f),
-                        categorias = categorias,
-                        seleccionado = chipSeleccionado,
-                        onSeleccionar = {
-                            chipSeleccionado = it
-                            if (it == "Principal") {
-                                mostrar_ocultar_immagen = true
-                            } else {
-                                mostrar_ocultar_immagen = false
-
-                            }
-                        }
-                    )
-//                    Box(
-//                        modifier = Modifier
-//                            .padding(end = 10.dp)
-//                            .size(36.dp)
-//                            .background(Color.Gray.copy(alpha = 0.5f), CircleShape)
-//                            .clickable(
-//                                indication = null,
-//                                interactionSource = remember { MutableInteractionSource() }
-//                            ) { chipsExpandido = !chipsExpandido },
-//                        contentAlignment = Alignment.Center
-//                    ) {
-//                        Icon(
-//                            imageVector = Icons.Default.ArrowDropDown,
-//                            contentDescription = null,
-//                            tint = Color.White,
-//                            modifier = Modifier
-//                                .size(20.dp)
-//                                .graphicsLayer { rotationZ = iconoFlechaRotacion }
-//                        )
-//                    }
-                }
-
-//                texto_generico_one_line(
-//                    "Ajustes de mapa",
-//                    style = MaterialTheme.typography.bodyMedium
-//                )
-//                AnimatedVisibility(
-//                    visible = chipsExpandido,
-//                    enter = fadeIn(tween(300)) + expandVertically(
-//                        animationSpec = spring(
-//                            dampingRatio = Spring.DampingRatioMediumBouncy,
-//                            stiffness = Spring.StiffnessLow
-//                        )
-//                    ),
-//                    exit = fadeOut(tween(200)) + shrinkVertically(tween(250))
-//                ) {
-//                    Row(
-//                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-//                    ) {
-//                        // ── Botón Día / Noche ─────────────────────
-//                        Box(
-//                            modifier = Modifier
-//                                .size(40.dp)
-//                                .clip(CircleShape)
-//                                .background(
-//                                    if (confuracion_seleccionda == "Mapa de dia")
-//                                        Color(0xFFFFA500).copy(alpha = 0.2f)
-//                                    else
-//                                        Color(0xFF1A1A2E).copy(alpha = 0.8f)
-//                                )
-//                                .border(
-//                                    1.dp,
-//                                    if (confuracion_seleccionda == "Mapa de dia") Color(0xFFFFA500)
-//                                    else Color(0xFF7C3AED),
-//                                    CircleShape
-//                                )
-//                                .clickable(
-//                                    indication = null,
-//                                    interactionSource = remember { MutableInteractionSource() }
-//                                ) {
-//                                    confuracion_seleccionda =
-//                                        if (confuracion_seleccionda == "Mapa de dia")
-//                                            "Mapa nocturno" else "Mapa de dia"
-//                                },
-//                            contentAlignment = Alignment.Center
-//                        ) {
-//                            // Animación del icono al cambiar
-//                            val iconoRotacion by animateFloatAsState(
-//                                targetValue = if (confuracion_seleccionda == "Mapa de dia") 0f else 360f,
-//                                animationSpec = tween(500, easing = FastOutSlowInEasing),
-//                                label = "rotacion_dia_noche"
-//                            )
-//                            Icon(
-//                                imageVector = if (confuracion_seleccionda == "Mapa de dia")
-//                                    Icons.Rounded.WbSunny
-//                                else
-//                                    Icons.Rounded.NightlightRound,
-//                                contentDescription = null,
-//                                tint = if (confuracion_seleccionda == "Mapa de dia")
-//                                    Color(0xFFFFA500)
-//                                else
-//                                    Color(0xFF9F5FFA),
-//                                modifier = Modifier
-//                                    .size(20.dp)
-//                                    .graphicsLayer { rotationZ = iconoRotacion }
-//                            )
-//                        }
-//
-//                        // ── Botón 2D / 3D ─────────────────────────
-//                        Box(
-//                            modifier = Modifier
-//                                .height(40.dp)
-//                                .clip(RoundedCornerShape(20.dp))
-//                                .background(Color(0xFF1A1040).copy(alpha = 0.8f))
-//                                .border(1.dp, Color(0xFF7C3AED), RoundedCornerShape(20.dp))
-//                                .clickable(
-//                                    indication = null,
-//                                    interactionSource = remember { MutableInteractionSource() }
-//                                ) {
-//                                    pitch_selecciondo =
-//                                        if (pitch_selecciondo == "2D") "3D" else "2D"
-//                                }
-//                                .padding(horizontal = 14.dp),
-//                            contentAlignment = Alignment.Center
-//                        ) {
-//                            Row(
-//                                verticalAlignment = Alignment.CenterVertically,
-//                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-//                            ) {
-//                                // Cubo animado
-//                                val escala3D by animateFloatAsState(
-//                                    targetValue = if (pitch_selecciondo == "3D") 1.2f else 1f,
-//                                    animationSpec = spring(Spring.DampingRatioMediumBouncy),
-//                                    label = "escala3d"
-//                                )
-//                                Icon(
-//                                    imageVector = if (pitch_selecciondo == "3D")
-//                                        Icons.Rounded.ViewInAr
-//                                    else
-//                                        Icons.Rounded.Map,
-//                                    contentDescription = null,
-//                                    tint = Color(0xFF9F5FFA),
-//                                    modifier = Modifier
-//                                        .size(16.dp)
-//                                        .graphicsLayer { scaleX = escala3D; scaleY = escala3D }
-//                                )
-//                                Text(
-//                                    text = pitch_selecciondo,
-//                                    color = Color.White,
-//                                    fontSize = 13.sp,
-//                                    fontWeight = FontWeight.Bold,
-//                                    letterSpacing = 0.5.sp
-//                                )
-//                            }
-//                        }
-//                    }
-//
-//
-//                }
-            }
-
         }
-
     }
+
+
 }
 
 @Composable
@@ -702,8 +610,9 @@ fun img_container(
                                 .clickable {
                                     seleccionado = datos
                                     lugar_clikeado(datos.lat, datos.lng)
-                                }
-
+                                },
+//                                    placeholder = painterResource(com.geinzz.geinzwork.R.drawable.cargando_img_categorias),
+//                            error = painterResource(R.drawable.cargando_img_categorias)
                         )
                         Box(
                             modifier = Modifier
@@ -798,7 +707,9 @@ fun estilo_carta_visual_inmueble(modifier: Modifier, datos: datos_viewmodel_inmo
                     .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+//                        placeholder = painterResource(com.geinzz.geinzwork.R.drawable.cargando_img_categorias),
+//                error = painterResource(R.drawable.cargando_img_categorias)
             )
         }
 
@@ -1120,7 +1031,7 @@ fun FabItem(
             .size(42.dp)
             .clip(CircleShape)
             .background(
-               Color.White
+                Color.White
             )
             .border(1.5.dp, borderColor, CircleShape)
             .clickable(
