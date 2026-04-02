@@ -973,11 +973,11 @@ fun nativationWrapper(
                         abrir_mapa = { tipo, img, lat, lng ->
                             navController.navigate(
                                 map_perzonalizado(
-                                    tipo,
-                                    "barranca",
-                                    img,
-                                    lat,
-                                    lng
+                                    tipo = tipo,
+                                    localidad = "barranca",
+                                    nombre = img,
+                                    latitud = lat,
+                                    lng = lng
                                 )
                             )
 
@@ -989,7 +989,16 @@ fun nativationWrapper(
                 }
 
                 composable<abrir_mapa_inmobiliara> {
-                    mapa_inmobilia(viewmodel_mapa_inmobilia)
+                    mapa_inmobilia(
+                        id_respado_user,
+                        viewModelLugares,
+                        viewmodelMapa,
+                        viewModel_filtrado_tiendas,
+                        isConnected,
+                        viewmodel_mapa_inmobilia,
+                        iniciar_seccion ={},
+                        crear_cuenta = {}
+                    )
                 }
 
 

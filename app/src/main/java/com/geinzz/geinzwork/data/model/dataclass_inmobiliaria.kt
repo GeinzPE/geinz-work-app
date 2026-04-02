@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.data.model
 
 import androidx.compose.runtime.mutableStateOf
+import com.mapbox.maps.MapView
 import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager
 
@@ -58,12 +59,17 @@ data class lista_lugaers_totales(
 
 
 data class lugares_cercanos_(
-    val nombre:String,
-    val categoira:String,
-    val img_String: String,
+    val nombre: String = "",
+    val categoira: String = "",
+    val img_String: String = "",
     val distanciaKm: Double = 0.0,
-    val id: String, val localidad: String,
-    val lat: Double, val lng: Double
+    val id: String, val localidad: String = "",
+    val lat: Double = 0.0, val lng: Double = 0.0
+)
+
+data class obj_pasado_clikeado_mapa(
+    val tipo: String = "",
+    val datos: List<lugares_cercanos_> = emptyList()
 )
 
 object EstadoMapa {
@@ -71,9 +77,27 @@ object EstadoMapa {
     val mapboxMapGlobal = mutableStateOf<MapboxMap?>(null)
     var contextoGlobal: android.content.Context? = null
     val cargandoPuntos = mutableStateOf(false)
+    var mapViewGlobal: MapView? = null
+    var idPuntoSeleccionado = mutableStateOf<String?>(null)
+
+    fun seleccionarPinPorId(id: String) {
+        val manager = managerSecundario.value ?: return
+        manager.annotations.forEach { annotation ->
+            val data = annotation.getData()?.asJsonObject ?: return@forEach
+            val annotationId = data.get("id")?.asString ?: return@forEach
+
+            annotation.iconSize = if (annotationId == id) 1.3 else 0.8
+        }
+        // actualizar todos de una sola vez
+        manager.update(manager.annotations)
+        idPuntoSeleccionado.value = id
+    }
     // ✅ Job para cancelar carga anterior
     var jobCarga: kotlinx.coroutines.Job? = null
+    var onClickPunto: ((tipo: String, id: String, localidad: String, img: String, nombre: String, lat: Double, lng: Double) -> Unit)? = null
+
 }
+
 data class perfiles_negocios(val txt: String, val imagen: Int, val nombre_personas: String)
 
 data class datos_geolocalizables(
@@ -127,4 +151,3 @@ data class datos_compartidos_lugares_cercacnos(
 data class categorias_diltrado_mapa_inmobiliara(
     val nombre: String, val cantidad: Int
 )
-

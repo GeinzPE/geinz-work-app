@@ -138,7 +138,7 @@ fun dialog_servicios_tramite(
                                 .padding(16.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                                texto_generico_one_line("Error al cargar los datos")
+                            texto_generico_one_line("Error al cargar los datos")
                         }
                     }
 

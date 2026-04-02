@@ -325,12 +325,12 @@ fun ui_info_imobiliara(
             )
         }
     }
-
+    val cargando_data = estado is viewmodel_inmobiliaria.etado_carga_info_inmuebles.loading
+            || estado == viewmodel_inmobiliaria.etado_carga_info_inmuebles.idle
     val mostrarColumna by remember {
         derivedStateOf {
-            listState.firstVisibleItemIndex >= 3 // item index 3 = el 4to item
+            cargando_data && listState.firstVisibleItemIndex >= 3
         }
-
     }
 
     var isFullscreen by rememberSaveable { mutableStateOf(false) } // 🔲 estado pantalla completa
@@ -339,8 +339,7 @@ fun ui_info_imobiliara(
         animationSpec = tween(durationMillis = 400, easing = EaseInOutCubic),
         label = "altura_galeria"
     )
-    val cargando_data = estado is viewmodel_inmobiliaria.etado_carga_info_inmuebles.loading
-            || estado == viewmodel_inmobiliaria.etado_carga_info_inmuebles.idle
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (estado) {
@@ -1605,4 +1604,3 @@ fun formatearNumero_double(numero: Double): String {
         "%,.2f".format(numero)           // 150000.75 → "150,000.75"
     }
 }
-
