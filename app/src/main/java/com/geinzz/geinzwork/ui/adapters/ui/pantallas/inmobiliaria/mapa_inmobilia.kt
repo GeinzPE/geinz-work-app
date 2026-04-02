@@ -6,6 +6,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -66,7 +67,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -93,7 +93,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -163,10 +162,17 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularDistanciaMetros
 
 @SuppressLint("MissingPermission")
 @RequiresApi(Build.VERSION_CODES.O)
@@ -213,15 +219,40 @@ fun mapa_inmobilia(
     val managerLauncher = remember { mutableStateOf<PointAnnotationManager?>(null) }
 
 // ── Estado de ruta ─────────────────────────────────────────
-    var puntos_ruta_activa    by remember { mutableStateOf<List<Point>>(emptyList()) }
+    var puntos_ruta_activa by remember { mutableStateOf<List<Point>>(emptyList()) }
     var distancia_ruta_metros by remember { mutableStateOf(0) }
-    var velocidad_actual      by remember { mutableStateOf(0f) }
+    var velocidad_actual by remember { mutableStateOf(0f) }
+    var perfil_creacion_ruta_seleccionada by remember { mutableStateOf("") }
+    var icono_creacion_ruta_seleccionada by remember {
+        mutableStateOf(Icons.Default.Place)
+    }
+    var distancia_al_destino by remember { mutableStateOf(0f) }
 
+
+    LaunchedEffect(perfil_creacion_ruta_seleccionada) {
+        icono_creacion_ruta_seleccionada = when (perfil_creacion_ruta_seleccionada) {
+            "driving" -> {
+                Icons.Default.DirectionsCar
+            }
+
+            "walking" -> {
+                Icons.Default.DirectionsWalk
+            }
+
+            "cycling" -> {
+                Icons.Default.DirectionsBike
+            }
+
+            else -> {
+                Icons.Default.DirectionsCar
+            }
+        }
+    }
     val lista_iconos_ruta = remember {
         listOf(
-            iconos_creaciones_rutas("driving", Icons.Default.DirectionsCar,  ),
-            iconos_creaciones_rutas("walking", Icons.Default.DirectionsWalk,),
-            iconos_creaciones_rutas("cycling", Icons.Default.DirectionsBike, )
+            iconos_creaciones_rutas("driving", Icons.Default.DirectionsCar),
+            iconos_creaciones_rutas("walking", Icons.Default.DirectionsWalk),
+            iconos_creaciones_rutas("cycling", Icons.Default.DirectionsBike)
         )
     }
     val ruta_creada_state = remember { mutableStateOf(false) }
@@ -235,14 +266,21 @@ fun mapa_inmobilia(
             skipHiddenState = true,
             confirmValueChange = { nuevoValor ->
                 when (nuevoValor) {
-                    SheetValue.Expanded         -> !rutaCreadaRef.value  // bloqueado con ruta
+                    SheetValue.Expanded -> !ruta_creada  // bloqueado con ruta
                     SheetValue.PartiallyExpanded -> true                  // siempre permitido
-                    SheetValue.Hidden           -> true                  // siempre permitido
-                    else                        -> true
+                    SheetValue.Hidden -> true                  // siempre permitido
+                    else -> true
                 }
             }
         )
     )
+
+    var lat_user by remember { mutableStateOf(0.0) }
+    var lng_user by remember { mutableStateOf(0.0) }
+    var lat_lugar_seleccionado by remember { mutableStateOf(0.0) }
+    var lng_lugar_seleccionado by remember { mutableStateOf(0.0) }
+
+
     LaunchedEffect(ruta_creada) {
         if (ruta_creada) {
             pitch_selecciondo = "3D"
@@ -309,13 +347,13 @@ fun mapa_inmobilia(
     }
     LaunchedEffect(chipSeleccionado) {
         mapboxMapInstance?.easeTo(
-        CameraOptions.Builder()
-            .center(Point.fromLngLat(datos_obtener_mapa.longitud, datos_obtener_mapa.latitud))
-            .zoom(14.0)
-            .build(),
-        MapAnimationOptions.mapAnimationOptions {
-            duration(800)
-        }
+            CameraOptions.Builder()
+                .center(Point.fromLngLat(datos_obtener_mapa.longitud, datos_obtener_mapa.latitud))
+                .zoom(14.0)
+                .build(),
+            MapAnimationOptions.mapAnimationOptions {
+                duration(800)
+            }
         )
     }
     LaunchedEffect(chipSeleccionado, datos_obtener_mapa, EstadoMapa.managerSecundario.value) {
@@ -345,10 +383,10 @@ fun mapa_inmobilia(
         }
         lista_seleccionada = lista
         setear_puntos_clikeados(
-            lista = lista, onPuntoClick = { id, lat, lng, img,nombre ->
-                seleccionado_posible=id
-                img_negocio_preview=img
-                nombre_negocio_select_preview=nombre
+            lista = lista, onPuntoClick = { id, lat, lng, img, nombre ->
+                seleccionado_posible = id
+                img_negocio_preview = img
+                nombre_negocio_select_preview = nombre
                 mapboxMapInstance?.easeTo(
                     CameraOptions.Builder()
                         .center(Point.fromLngLat(lng, lat))
@@ -383,9 +421,6 @@ fun mapa_inmobilia(
             datos_obtener_mapa.cantidad_lugares_para_el_hogar.size
         )
     )
-
-
-
 
 
     // ✅ Escucha AMBOS: datos + manager listo
@@ -471,7 +506,6 @@ fun mapa_inmobilia(
     }
 
 
-
 // ── Vincula con ruta_creada_state ────────────────────────
     LaunchedEffect(ruta_creada_state.value) {
         rutaCreadaRef.value = ruta_creada_state.value
@@ -479,8 +513,7 @@ fun mapa_inmobilia(
 
 
 // Agrega estas variables junto a tus otros remember en mapa_inmobilia
-    var lat_user by remember { mutableStateOf(0.0) }
-    var lng_user by remember { mutableStateOf(0.0) }
+
     var tipo_ruta by remember { mutableStateOf("") }
     var validacion_mostrar_dialog_ubi_off by remember { mutableStateOf(false) }
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(contex) }
@@ -517,15 +550,17 @@ fun mapa_inmobilia(
                 ) {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(7.dp),
-                        modifier = Modifier.padding(top = 30.dp, start = 10.dp, end = 10.dp)
+                        modifier = Modifier.padding(start = 10.dp, end = 10.dp)
                     ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
+                                .padding(horizontal = 16.dp)
+                                .height(90.dp),
                             contentAlignment = Alignment.CenterStart
                         ) {
-                            val expandido = scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded
+                            val expandido =
+                                scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded
 
                             Crossfade(
                                 targetState = expandido,
@@ -546,228 +581,342 @@ fun mapa_inmobilia(
                                         )
                                     }
                                 } else {
-                                    // ── Colapsado: imagen + nombre ──
-                                    LazyRow (
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                    ) {
-                                        item{
-                                            AsyncImage(
-                                                model = img_negocio_preview,
-                                                contentDescription = null,
-                                                modifier = Modifier
-                                                    .size(42.dp)
-                                                    .clip(CircleShape),
-                                                contentScale = ContentScale.Crop
-                                            )
-
-                                        }
-                                        item {
-                                            Text(
-                                                text = nombre_negocio_select_preview,
-                                                fontSize = 14.sp,
-                                                fontFamily = baners_geinz_work,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                                modifier = Modifier.width(100.dp) // 👈 toma el espacio disponible y cede a los botones
-                                            )
-                                        }
-                                        item {
-                                            desing_creacion_ruta(
-                                                puntos_para_la_ruta       = puntos_ruta_activa,
-                                                distancia                 = distancia_ruta_metros,
-                                                velocidad                 = velocidad_actual,
-                                                context                   = contex,
-                                                lista                     = lista_iconos_ruta,
-                                                img_tienda                = img_negocio_preview,
-                                                seleccionado              = { perfil ->
-                                                    // 1️⃣ Obtener ubicación actual
-                                                    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                                                        location?.let {
-                                                            lat_user = it.latitude
-                                                            lng_user = it.longitude
-
-                                                            // 2️⃣ Buscar el destino seleccionado
-                                                            val destino = lista_seleccionada.datos
-                                                                .firstOrNull { d -> d.id == seleccionado_posible }
-                                                                ?: return@let
-
-                                                            // 3️⃣ Calcular y dibujar ruta
-                                                            scope.launch {
-                                                                ruta_cargando = true
-                                                                ruta_creada   = false
-                                                                val resultado = obtenerRuta(
-                                                                    lat_user, lng_user,
-                                                                    destino.lat, destino.lng,
-                                                                    perfil
-                                                                )
-                                                                resultado?.let { (puntos, metros) ->
-                                                                    puntos_ruta_activa    = puntos
-                                                                    distancia_ruta_metros = metros.toInt()
-
-                                                                    // 4️⃣ Dibujar en el mapa
-                                                                    mapboxMapInstance?.let { map ->
-                                                                        dibujarRutaEnMapa(map, puntos)
-
-                                                                        // 5️⃣ Centrar cámara entre origen y destino
-                                                                        val latMedio = (lat_user + destino.lat) / 2
-                                                                        val lngMedio = (lng_user + destino.lng) / 2
-                                                                        map.easeTo(
-                                                                            CameraOptions.Builder()
-                                                                                .center(Point.fromLngLat(lngMedio, latMedio))
-                                                                                .zoom(16.5)
-                                                                                .build(),
-                                                                            MapAnimationOptions.mapAnimationOptions { duration(900) }
-                                                                        )
-                                                                    }
-                                                                }
-                                                                ruta_creada = true   // ← ruta lista
-                                                            }
-                                                            ruta_cargando = false
-                                                        }
-                                                    }
-                                                },
-                                                cancelacion_ruta = {
-                                                    // Limpiar estado y mapa
-                                                    puntos_ruta_activa    = emptyList()
-                                                    distancia_ruta_metros = 0
-                                                    mapboxMapInstance?.let { limpiarRutaEnMapa(it) }
-                                                },
-                                                ocultar_dialog_  = {
-                                                    // Colapsar bottom sheet al activar ruta
-                                                    scope.launch {
-                                                        scaffoldState.bottomSheetState.partialExpand()
-                                                    }
-                                                },
-                                                mostrar_campo    = {
-                                                    // Abrir detalle del lugar seleccionado
-                                                    val destino = lista_seleccionada.datos
-                                                        .firstOrNull { it.id == seleccionado_posible }
-                                                        ?: return@desing_creacion_ruta
-
-                                                    when (lista_seleccionada.tipo) {
-                                                        "lugar_cercanos"  -> mostar_dialog_lugare_Cercanos = true
-                                                        "lugar_seguro"    -> mostra_lugar_seguro_dialog    = true
-                                                        "lugar_turistico" -> viewmodelMapa.setBottomSheetVisible(true)
-                                                        "lugar_servicios" -> mostrar_lugares_hogares        = true
-                                                    }
-                                                    id_negocio_lugar_previwe       = destino.id
-                                                    localida_negocio_lugar_preview = destino.localidad
-                                                },
-                                                mostar_dialog_no_ubi_activa = {
-                                                    validacion_mostrar_dialog_ubi_off = true
-                                                }
-                                            )
-                                        }
-                                        item {
-                                            box_datos_botones_faciles(
+                                    if (ruta_creada) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.padding(bottom = 10.dp)
+                                        ) {
+                                            estilo_botons_circulares(
+                                                color = Color.White,
+                                                iconoTint = Color.Black,
+                                                icon = Icons.Default.Close,
                                                 onclick = {
-                                                    val lista = lista_seleccionada.datos
-                                                    if (lista.isEmpty()) return@box_datos_botones_faciles
-
-                                                    val indexActual = lista.indexOfFirst { it.id == seleccionado_posible }
-                                                    val siguiente = lista.getOrNull(indexActual + 1) ?: lista.first() // vuelve al primero si llega al final
-
-                                                    seleccionado_posible = siguiente.id
-                                                    EstadoMapa.seleccionarPinPorId(siguiente.id)
-                                                    img_negocio_preview = siguiente.img_String
-                                                    nombre_negocio_select_preview = siguiente.nombre
-                                                    mapboxMapInstance?.easeTo(
-                                                        CameraOptions.Builder()
-                                                            .center(Point.fromLngLat(siguiente.lng, siguiente.lat))
-                                                            .zoom(16.0)
-                                                            .build(),
-                                                        MapAnimationOptions.mapAnimationOptions { duration(800) }
+                                                    ruta_creada = false
+                                                    puntos_ruta_activa = emptyList()
+                                                    distancia_ruta_metros = 0
+                                                    mapboxMapInstance?.let {
+                                                        limpiarRutaEnMapa(
+                                                            it
+                                                        )
+                                                    }
+                                                })
+                                            Spacer(modifier = Modifier.weight(1f))
+                                            Column() {
+                                                texto_generico_one_line(distancia_al_destino.toString(), style = MaterialTheme.typography.titleLarge)
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                                                ) {
+                                                    Icon(
+                                                        icono_creacion_ruta_seleccionada,
+                                                        contentDescription = "Mi ubicación",
+                                                        tint = Color.Gray
                                                     )
-                                                },
-                                                icono = Icons.Default.ArrowRight
-                                            )
+
+                                                    texto_generico_one_line("1:40h", style = MaterialTheme.typography.labelSmall)
+
+                                                }
+                                            }
+                                            Spacer(modifier = Modifier.weight(1f))
+                                            Column(
+                                                modifier = Modifier
+                                                    .size(50.dp)
+                                                    .clip(CircleShape)
+                                                    .background(Color.White)
+                                                    .border(2.dp, Color(0xFF7C3AED), CircleShape),
+                                                verticalArrangement = Arrangement.Center,
+                                                horizontalAlignment = Alignment.CenterHorizontally
+                                            ) {
+                                                Text(
+                                                    text = "${velocidad_actual.toInt()}",
+                                                    color = Color.Black,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = "km/h",
+                                                    color = Color(0xFF7C3AED),
+                                                    style = MaterialTheme.typography.labelSmall
+                                                )
+                                            }
+
                                         }
+                                    } else {
+                                        // ── Colapsado: imagen + nombre ──
+                                        LazyRow(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        ) {
+                                            item {
+                                                AsyncImage(
+                                                    model = img_negocio_preview,
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .size(42.dp)
+                                                        .clip(CircleShape),
+                                                    contentScale = ContentScale.Crop
+                                                )
 
+                                            }
+                                            item {
+                                                Text(
+                                                    text = nombre_negocio_select_preview,
+                                                    fontSize = 14.sp,
+                                                    fontFamily = baners_geinz_work,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    modifier = Modifier.width(100.dp) // 👈 toma el espacio disponible y cede a los botones
+                                                )
+                                            }
+                                            item {
+                                                desing_creacion_ruta(
+                                                    puntos_para_la_ruta = puntos_ruta_activa,
+                                                    distancia = distancia_ruta_metros,
+                                                    velocidad = velocidad_actual,
+                                                    context = contex,
+                                                    lista = lista_iconos_ruta,
+                                                    img_tienda = img_negocio_preview,
+                                                    seleccionado = { perfil, icono ->
+                                                        // 1️⃣ Obtener ubicación actual
+                                                        perfil_creacion_ruta_seleccionada=perfil
+                                                        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                                                            location?.let {
+                                                                lat_user = it.latitude
+                                                                lng_user = it.longitude
 
+                                                                // 2️⃣ Buscar el destino seleccionado
+                                                                val destino =
+                                                                    lista_seleccionada.datos
+                                                                        .firstOrNull { d -> d.id == seleccionado_posible }
+                                                                        ?: return@let
+
+                                                                // 3️⃣ Calcular y dibujar ruta
+                                                                scope.launch {
+                                                                    ruta_cargando = true
+                                                                    ruta_creada = false
+                                                                    val resultado = obtenerRuta(
+                                                                        lat_user, lng_user,
+                                                                        destino.lat, destino.lng,
+                                                                        perfil
+                                                                    )
+                                                                    lng_lugar_seleccionado =
+                                                                        destino.lng
+                                                                    lat_lugar_seleccionado =
+                                                                        destino.lat
+                                                                    resultado?.let { (puntos, metros) ->
+                                                                        puntos_ruta_activa = puntos
+                                                                        distancia_ruta_metros =
+                                                                            metros.toInt()
+
+                                                                        // 4️⃣ Dibujar en el mapa
+                                                                        mapboxMapInstance?.let { map ->
+                                                                            dibujarRutaEnMapa(
+                                                                                map,
+                                                                                puntos
+                                                                            )
+
+                                                                            // 5️⃣ Centrar cámara entre origen y destino
+                                                                            val latMedio =
+                                                                                (lat_user + destino.lat) / 2
+                                                                            val lngMedio =
+                                                                                (lng_user + destino.lng) / 2
+                                                                            map.easeTo(
+                                                                                CameraOptions.Builder()
+                                                                                    .center(
+                                                                                        Point.fromLngLat(
+                                                                                            lngMedio,
+                                                                                            latMedio
+                                                                                        )
+                                                                                    )
+                                                                                    .zoom(16.5)
+                                                                                    .build(),
+                                                                                MapAnimationOptions.mapAnimationOptions {
+                                                                                    duration(
+                                                                                        900
+                                                                                    )
+                                                                                }
+                                                                            )
+                                                                        }
+                                                                    }
+                                                                    ruta_creada =
+                                                                        true   // ← ruta lista
+                                                                }
+                                                                ruta_cargando = false
+                                                            }
+                                                        }
+                                                    },
+                                                    cancelacion_ruta = {
+                                                        // Limpiar estado y mapa
+                                                        ruta_creada = false
+                                                        puntos_ruta_activa = emptyList()
+                                                        distancia_ruta_metros = 0
+                                                        mapboxMapInstance?.let {
+                                                            limpiarRutaEnMapa(
+                                                                it
+                                                            )
+                                                        }
+                                                    },
+                                                    ocultar_dialog_ = {
+                                                        // Colapsar bottom sheet al activar ruta
+                                                        scope.launch {
+                                                            scaffoldState.bottomSheetState.partialExpand()
+                                                        }
+                                                    },
+                                                    mostrar_campo = {
+                                                        // Abrir detalle del lugar seleccionado
+                                                        val destino = lista_seleccionada.datos
+                                                            .firstOrNull { it.id == seleccionado_posible }
+                                                            ?: return@desing_creacion_ruta
+
+                                                        when (lista_seleccionada.tipo) {
+                                                            "lugar_cercanos" -> mostar_dialog_lugare_Cercanos =
+                                                                true
+
+                                                            "lugar_seguro" -> mostra_lugar_seguro_dialog =
+                                                                true
+
+                                                            "lugar_turistico" -> viewmodelMapa.setBottomSheetVisible(
+                                                                true
+                                                            )
+
+                                                            "lugar_servicios" -> mostrar_lugares_hogares =
+                                                                true
+                                                        }
+                                                        id_negocio_lugar_previwe = destino.id
+                                                        localida_negocio_lugar_preview =
+                                                            destino.localidad
+                                                    },
+                                                    mostar_dialog_no_ubi_activa = {
+                                                        validacion_mostrar_dialog_ubi_off = true
+                                                    }
+                                                )
+                                            }
+                                            item {
+                                                box_datos_botones_faciles(
+                                                    onclick = {
+                                                        val lista = lista_seleccionada.datos
+                                                        if (lista.isEmpty()) return@box_datos_botones_faciles
+
+                                                        val indexActual =
+                                                            lista.indexOfFirst { it.id == seleccionado_posible }
+                                                        val siguiente =
+                                                            lista.getOrNull(indexActual + 1)
+                                                                ?: lista.first() // vuelve al primero si llega al final
+
+                                                        seleccionado_posible = siguiente.id
+                                                        EstadoMapa.seleccionarPinPorId(siguiente.id)
+                                                        img_negocio_preview = siguiente.img_String
+                                                        nombre_negocio_select_preview =
+                                                            siguiente.nombre
+                                                        mapboxMapInstance?.easeTo(
+                                                            CameraOptions.Builder()
+                                                                .center(
+                                                                    Point.fromLngLat(
+                                                                        siguiente.lng,
+                                                                        siguiente.lat
+                                                                    )
+                                                                )
+                                                                .zoom(16.0)
+                                                                .build(),
+                                                            MapAnimationOptions.mapAnimationOptions {
+                                                                duration(
+                                                                    800
+                                                                )
+                                                            }
+                                                        )
+                                                    },
+                                                    icono = Icons.Default.ArrowRight
+                                                )
+                                            }
+                                        }
                                     }
+
                                 }
                             }
                         }
-                        img_container(
-                            lista_seleccionada = lista_seleccionada,
-                            seleccionado_posible,
-                            lugar_clikeado = { id,lat, lng,img,nombre ->
-                                seleccionado_posible=id
-                                EstadoMapa.seleccionarPinPorId(id)
-                                img_negocio_preview=img
-                                nombre_negocio_select_preview=nombre
-                                mapboxMapInstance?.easeTo(
-                                    CameraOptions.Builder()
-                                        .center(Point.fromLngLat(lng, lat))
-                                        .zoom(16.0)
-                                        .build(),
-                                    MapAnimationOptions.mapAnimationOptions {
-                                        duration(800)
+                        if (!ruta_creada) {
+                            img_container(
+                                lista_seleccionada = lista_seleccionada,
+                                seleccionado_posible,
+                                lugar_clikeado = { id, lat, lng, img, nombre ->
+                                    seleccionado_posible = id
+                                    EstadoMapa.seleccionarPinPorId(id)
+                                    img_negocio_preview = img
+                                    nombre_negocio_select_preview = nombre
+                                    mapboxMapInstance?.easeTo(
+                                        CameraOptions.Builder()
+                                            .center(Point.fromLngLat(lng, lat))
+                                            .zoom(16.0)
+                                            .build(),
+                                        MapAnimationOptions.mapAnimationOptions {
+                                            duration(800)
+                                        }
+                                    )
+                                },
+                                ver_mas_ = { tipo, id, localidad, img, nombre ->
+                                    Log.d("tipo_clikeado ", "$tipo $id $localidad")
+                                    when (tipo) {
+                                        "lugar_seguro" -> {
+                                            mostra_lugar_seguro_dialog = true
+                                            id_negocio_lugar_previwe = id
+                                            localida_negocio_lugar_preview = localidad
+                                            nombre_negocio_select_preview = nombre
+                                            img_negocio_preview = img
+                                        }
+
+                                        "lugar_cercanos" -> {
+                                            mostar_dialog_lugare_Cercanos = true
+                                            id_negocio_lugar_previwe = id
+                                            localida_negocio_lugar_preview = localidad
+
+                                        }
+
+                                        "lugar_turistico" -> {
+                                            viewmodelMapa.setBottomSheetVisible(true)
+                                            id_negocio_lugar_previwe = id
+                                            localida_negocio_lugar_preview = localidad
+
+                                        }
+
+                                        "lugar_servicios" -> {
+                                            mostrar_lugares_hogares = true
+                                            id_negocio_lugar_previwe = id
+                                            localida_negocio_lugar_preview = localidad
+
+                                        }
                                     }
-                                )
-                            },
-                            ver_mas_ = { tipo, id, localidad, img, nombre ->
-                                Log.d("tipo_clikeado ", "$tipo $id $localidad")
-                                when (tipo) {
-                                    "lugar_seguro" -> {
-                                        mostra_lugar_seguro_dialog = true
-                                        id_negocio_lugar_previwe = id
-                                        localida_negocio_lugar_preview = localidad
-                                        nombre_negocio_select_preview = nombre
-                                        img_negocio_preview = img
-                                    }
 
-                                    "lugar_cercanos" -> {
-                                        mostar_dialog_lugare_Cercanos = true
-                                        id_negocio_lugar_previwe = id
-                                        localida_negocio_lugar_preview = localidad
-
-                                    }
-
-                                    "lugar_turistico" -> {
-                                        viewmodelMapa.setBottomSheetVisible(true)
-                                        id_negocio_lugar_previwe = id
-                                        localida_negocio_lugar_preview = localidad
-
-                                    }
-
-                                    "lugar_servicios" -> {
-                                        mostrar_lugares_hogares = true
-                                        id_negocio_lugar_previwe = id
-                                        localida_negocio_lugar_preview = localidad
-
+                                })
+                        }
+                    }
+                }
+                if (!ruta_creada) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        ListaChips(
+                            modifier = Modifier.weight(1f),
+                            categorias = categorias,
+                            seleccionado = chipSeleccionado,
+                            onSeleccionar = {
+                                chipSeleccionado = it
+                                if (it == "Principal") {
+                                    mostrar_ocultar_immagen = true
+                                } else {
+                                    mostrar_ocultar_immagen = false
+                                    if (!ruta_creada_state.value) {   // ← bloqueado si hay ruta
+                                        scope.launch {
+                                            scaffoldState.bottomSheetState.expand()
+                                        }
                                     }
                                 }
-
-                            })
+                            }
+                        )
                     }
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ListaChips(
-                        modifier = Modifier.weight(1f),
-                        categorias = categorias,
-                        seleccionado = chipSeleccionado,
-                        onSeleccionar = {
-                            chipSeleccionado = it
-                            if (it == "Principal") {
-                                mostrar_ocultar_immagen = true
-                            } else {
-                                mostrar_ocultar_immagen = false
-                                if (!ruta_creada_state.value) {   // ← bloqueado si hay ruta
-                                    scope.launch {
-                                        scaffoldState.bottomSheetState.expand()
-                                    }
-                                }
-                            }
-                        }
-                    )
-                }
             }
 
 
@@ -809,14 +958,27 @@ fun mapa_inmobilia(
                             pulsingEnabled = true
                         }
                         mapView.location.updateSettings {
-                            enabled              = true
-                            pulsingEnabled       = true
-                            showAccuracyRing     = true
-                            puckBearingEnabled   = true
-                            puckBearing          = com.mapbox.maps.plugin.PuckBearing.HEADING
-                            locationPuck         = com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck(
-                                withBearing = true
-                            )
+                            enabled = true
+                            pulsingEnabled = true
+                            showAccuracyRing = true
+                            puckBearingEnabled = true
+                            puckBearing = com.mapbox.maps.plugin.PuckBearing.HEADING
+                            locationPuck =
+                                com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck(
+                                    withBearing = true
+                                )
+                        }
+                        mapView.location.addOnIndicatorPositionChangedListener { point ->
+                            lat_user = point.latitude()
+                            lng_user = point.longitude()
+
+                            if (lat_lugar_seleccionado != 0.0) {
+                                distancia_al_destino = calcularDistanciaMetros(
+                                    lat_user, lng_user,
+                                    lat_lugar_seleccionado, lng_lugar_seleccionado
+                                )
+                                Log.d("distancia_realtime", "📍 ${distancia_al_destino.toInt()} metros")
+                            }
                         }
 
                         mapboxMap.addOnMoveListener(object : OnMoveListener {
@@ -1067,7 +1229,7 @@ fun ChipEstilo(
 fun img_container(
     lista_seleccionada: obj_pasado_clikeado_mapa,
     seleccionado: String?,
-    lugar_clikeado: (id:String,lat: Double, lng: Double,img:String,nombre:String) -> Unit,
+    lugar_clikeado: (id: String, lat: Double, lng: Double, img: String, nombre: String) -> Unit,
     ver_mas_: (tipo: String, id: String, localidad: String, img: String, nombre: String) -> Unit
 ) {
 
@@ -1135,7 +1297,13 @@ fun img_container(
                                 )
                                 .clickable {
 
-                                    lugar_clikeado(datos.id,datos.lat, datos.lng,datos.img_String,datos.nombre)
+                                    lugar_clikeado(
+                                        datos.id,
+                                        datos.lat,
+                                        datos.lng,
+                                        datos.img_String,
+                                        datos.nombre
+                                    )
                                 },
 //                                    placeholder = painterResource(com.geinzz.geinzwork.R.drawable.cargando_img_categorias),
 //                            error = painterResource(R.drawable.cargando_img_categorias)
@@ -1413,7 +1581,7 @@ fun IconoDato(icon: ImageVector, texto: String) {
 // ── Setear puntos clickeados en el mapa ───────
 fun setear_puntos_clikeados(
     lista: obj_pasado_clikeado_mapa,
-    onPuntoClick: (id: String, lat: Double, lng: Double, img: String,nombre:String) -> Unit
+    onPuntoClick: (id: String, lat: Double, lng: Double, img: String, nombre: String) -> Unit
 ) {
     val manager = EstadoMapa.managerSecundario.value ?: return
     val mapboxMap = EstadoMapa.mapboxMapGlobal.value ?: return
@@ -1431,7 +1599,7 @@ fun setear_puntos_clikeados(
     manager.addClickListener { annotation ->
         val data = annotation.getData()?.asJsonObject ?: return@addClickListener false
 
-        val id  = data.get("id")?.asString  ?: "null"
+        val id = data.get("id")?.asString ?: "null"
         val lat = data.get("lat")?.asDouble ?: 0.0
         val lng = data.get("lng")?.asDouble ?: 0.0
         val img = data.get("img")?.asString ?: ""
@@ -1446,7 +1614,7 @@ fun setear_puntos_clikeados(
 
         EstadoMapa.idPuntoSeleccionado.value = id  // 👈 guardar seleccionado
 
-        onPuntoClick(id, lat, lng, img,nombre)
+        onPuntoClick(id, lat, lng, img, nombre)
         true
     }
 
@@ -1471,11 +1639,17 @@ fun setear_puntos_clikeados(
 
                 try {
                     val bitmap = loadBitmapFromUrl(lugar.img_String, contexto).toCircularBitmap(100)
-                    try { style.removeStyleImage(imageId) } catch (_: Exception) {}
+                    try {
+                        style.removeStyleImage(imageId)
+                    } catch (_: Exception) {
+                    }
                     style.addImage(imageId, bitmap)
                 } catch (e: Exception) {
                     val bitmapFallback = crearCirculoFallback(contexto)
-                    try { style.removeStyleImage(imageId) } catch (_: Exception) {}
+                    try {
+                        style.removeStyleImage(imageId)
+                    } catch (_: Exception) {
+                    }
                     style.addImage(imageId, bitmapFallback)
                 }
 
@@ -1635,18 +1809,18 @@ fun FabItem(
 }
 
 @Composable
-fun box_datos_botones_faciles(onclick:()-> Unit,icono: ImageVector){
+fun box_datos_botones_faciles(onclick: () -> Unit, icono: ImageVector) {
     Box(
         modifier = Modifier
             .size(42.dp)
             .clip(CircleShape)
             .background(
-             MaterialTheme.colorScheme.primary
+                MaterialTheme.colorScheme.primary
             )
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
-            ) {  onclick()},
+            ) { onclick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(
@@ -1715,14 +1889,21 @@ suspend fun obtenerRuta(
         }
     }
 }
+
 fun dibujarRutaEnMapa(
     mapboxMap: MapboxMap,
     puntos: List<Point>
 ) {
     mapboxMap.getStyle { style ->
         // ── Limpia capa y source previos ──────────────
-        try { style.removeStyleLayer("route_layer") } catch (_: Exception) {}
-        try { style.removeStyleSource("route_source") } catch (_: Exception) {}
+        try {
+            style.removeStyleLayer("route_layer")
+        } catch (_: Exception) {
+        }
+        try {
+            style.removeStyleSource("route_source")
+        } catch (_: Exception) {
+        }
 
         if (puntos.isEmpty()) return@getStyle
 
@@ -1755,8 +1936,14 @@ fun dibujarRutaEnMapa(
 
 fun limpiarRutaEnMapa(mapboxMap: MapboxMap) {
     mapboxMap.getStyle { style ->
-        try { style.removeStyleLayer("route_layer") } catch (_: Exception) {}
-        try { style.removeStyleSource("route_source") } catch (_: Exception) {}
+        try {
+            style.removeStyleLayer("route_layer")
+        } catch (_: Exception) {
+        }
+        try {
+            style.removeStyleSource("route_source")
+        } catch (_: Exception) {
+        }
     }
 }
 
@@ -1769,7 +1956,7 @@ fun desing_creacion_ruta(
     context: Context,
     lista: List<iconos_creaciones_rutas>,
     img_tienda: String,
-    seleccionado: (String) -> Unit,
+    seleccionado: (String, ImageVector) -> Unit,
     cancelacion_ruta: () -> Unit,
     ocultar_dialog_: () -> Unit,
     mostrar_campo: () -> Unit,
@@ -1783,44 +1970,44 @@ fun desing_creacion_ruta(
     val distanciaKm = distancia / 1000.0
 
     // ── Velocímetro (solo cuando hay ruta activa) ──────
-    AnimatedVisibility(
-        visible = puntos_para_la_ruta.isNotEmpty() && seleccionadoActual != null,
-        enter = fadeIn(tween(300)) + scaleIn(tween(300)),
-        exit  = fadeOut(tween(200)) + scaleOut(tween(200))
-    ) {
-        Column(
-            modifier = Modifier
-                .size(44.dp)
-                .clip(CircleShape)
-                .background(Color.White)
-                .border(2.dp, Color(0xFF7C3AED), CircleShape),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "${velocidad.toInt()}",
-                color = Color.Black,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "km/h",
-                color = Color(0xFF7C3AED),
-                style = MaterialTheme.typography.labelSmall
-            )
-        }
-    }
+//    AnimatedVisibility(
+//        visible = puntos_para_la_ruta.isNotEmpty() && seleccionadoActual != null,
+//        enter = fadeIn(tween(300)) + scaleIn(tween(300)),
+//        exit = fadeOut(tween(200)) + scaleOut(tween(200))
+//    ) {
+//        Column(
+//            modifier = Modifier
+//                .size(44.dp)
+//                .clip(CircleShape)
+//                .background(Color.White)
+//                .border(2.dp, Color(0xFF7C3AED), CircleShape),
+//            verticalArrangement = Arrangement.Center,
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            Text(
+//                text = "${velocidad.toInt()}",
+//                color = Color.Black,
+//                style = MaterialTheme.typography.bodyMedium,
+//                fontWeight = FontWeight.Bold
+//            )
+//            Text(
+//                text = "km/h",
+//                color = Color(0xFF7C3AED),
+//                style = MaterialTheme.typography.labelSmall
+//            )
+//        }
+//    }
 
     // ── Botones de tipo de ruta ────────────────────────
     listaVisible.forEach { item ->
         val deshabilitado = item.tipo == "walking" && distanciaKm > 20.0
-        val estaActivo    = seleccionadoActual == item.tipo
+        val estaActivo = seleccionadoActual == item.tipo
 
         val colorFondo by animateColorAsState(
             targetValue = when {
                 deshabilitado -> Color.Gray
-                estaActivo    -> Color(0xFF5B21B6)   // más oscuro = activo
-                else          -> Color(0xFF7C3AED)
+                estaActivo -> Color(0xFF5B21B6)   // más oscuro = activo
+                else -> Color(0xFF7C3AED)
             },
             animationSpec = tween(250),
             label = "fondo_${item.tipo}"
@@ -1829,6 +2016,7 @@ fun desing_creacion_ruta(
 
         Box(
             modifier = Modifier
+                .padding(horizontal = 5.dp)
                 .size(44.dp)
                 .clip(CircleShape)
                 .background(colorFondo)
@@ -1848,7 +2036,7 @@ fun desing_creacion_ruta(
                             cancelacion_ruta()
                         } else {
                             seleccionadoActual = item.tipo
-                            seleccionado(item.tipo)
+                            seleccionado(item.tipo, item.icono)
                             ocultar_dialog_()
                         }
                     } else {
@@ -1866,4 +2054,34 @@ fun desing_creacion_ruta(
         }
     }
 
+}
+
+
+@Composable
+fun estilo_botons_circulares(
+    color: Color,
+    iconoTint: Color,
+    icon: ImageVector,
+    onclick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(50.dp)
+            .clip(CircleShape)
+            .background(
+                color
+            )
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { onclick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = iconoTint,
+            modifier = Modifier.size(20.dp)
+        )
+    }
 }
