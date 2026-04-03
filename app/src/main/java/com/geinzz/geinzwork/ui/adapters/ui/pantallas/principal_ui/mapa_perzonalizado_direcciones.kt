@@ -1224,7 +1224,6 @@ fun MarkerIcon(
     return bitmapDescriptorFromDrawable(context, drawableId, sizePx, sizePx)
 }
 
-
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun dialogo_lugar_tienda(

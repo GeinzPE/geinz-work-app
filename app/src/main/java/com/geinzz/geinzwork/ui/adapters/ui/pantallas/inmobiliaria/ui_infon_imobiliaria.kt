@@ -533,39 +533,45 @@ fun ui_info_imobiliara(
                                 }
                                 spacer_vertical(1.dp)
 
-                                Row(
+                                LazyRow(
                                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
 
-                                    ItemIcono(icon_regla, "${datos.metros} m²")
+                                    item { ItemIcono(icon_regla, "${datos.metros} m²") }
+                                    item {
+                                        ItemIcono(
+                                            icono_profuncidad,
+                                            "${datos.fondo} m."
 
-                                    ItemIcono(
-                                        icono_profuncidad,
-                                        "${datos.fondo} m."
+                                        )
+                                    }
+                                    item {
 
-                                    )
+                                        ItemIcono(
+                                            icon_ancho,
+                                            "${datos.ancho} m."
+                                        )
+                                    }
+                                    item {
 
-                                    ItemIcono(
-                                        icon_ancho,
-                                        "${datos.ancho} m."
-                                    )
-
-                                    ItemIcono(
-                                        icon_dormitorio,
-                                        "${datos.habitaciones} dorm."
-                                    )
-
-                                    ItemIcono(
-                                        icon_bano,
-                                        "${datos.banos} baños."
-                                    )
-
-                                    ItemIcono(
-                                        icono_cochera,
-                                        "${datos.estacionamientos} estac."
-                                    )
-
+                                        ItemIcono(
+                                            icon_dormitorio,
+                                            "${datos.habitaciones} dorm."
+                                        )
+                                    }
+                                    item {
+                                        ItemIcono(
+                                            icon_bano,
+                                            "${datos.banos} baños."
+                                        )
+                                    }
+                                    item {
+                                        ItemIcono(
+                                            icono_cochera,
+                                            "${datos.estacionamientos} estac."
+                                        )
+                                    }
                                 }
                                 spacer_vertical(10.dp)
 
@@ -645,16 +651,16 @@ fun ui_info_imobiliara(
                                         style = MaterialTheme.typography.bodyMedium
                                     )
 
-                                    LazyRow(
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(15.dp)
+                                        horizontalArrangement = Arrangement.SpaceEvenly
                                     ) {
-                                        items(lista_perfil) { i ->
+                                        lista_perfil.forEach { i ->
                                             seleccion_tipo_persona(
                                                 i = i,
                                                 seleccionado = filtro_seleccionado == i.txt
                                             ) { tipo_select ->
-
                                                 filtro_seleccionado = tipo_select
                                                 nueva_busqueda = 5.0f
                                                 val radioEnKm = nueva_busqueda.toDouble() / 10.0
@@ -971,10 +977,10 @@ fun ui_info_imobiliara(
                                 banos = datos_Estados_succes.banos,
                                 metros = datos_Estados_succes.metros,
                                 habitaciones = datos_Estados_succes.habitaciones,
-                                cantidad_lugares_seguros =datos_Estados_succes.cantidad_lugares_seguros,
-                                cantidad_lugares_cercanos =datos_Estados_succes.listalugares_cercanos ,
-                                cantidad_lugares_turisticos =datos_Estados_succes.llissa_lugareS_turistos,
-                                cantidad_lugares_para_el_hogar =datos_Estados_succes.lista_servicios_sercanos
+                                cantidad_lugares_seguros = datos_Estados_succes.cantidad_lugares_seguros,
+                                cantidad_lugares_cercanos = datos_Estados_succes.listalugares_cercanos,
+                                cantidad_lugares_turisticos = datos_Estados_succes.llissa_lugareS_turistos,
+                                cantidad_lugares_para_el_hogar = datos_Estados_succes.lista_servicios_sercanos
 
                             )
                             abrir_mapa_ver_cercanos()
@@ -1222,7 +1228,7 @@ fun seleccion_tipo_persona(
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
             .width(100.dp)
-            .height(120.dp)
+            .height(140.dp)
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
