@@ -221,6 +221,7 @@ fun mapa_inmobilia(
     var id_negocio_lugar_previwe by remember { mutableStateOf("") }
     var localida_negocio_lugar_preview by remember { mutableStateOf("") }
     var nombre_negocio_select_preview by remember { mutableStateOf("") }
+    var distancia_terreno by remember { mutableStateOf("") }
     var img_negocio_preview by remember { mutableStateOf("") }
     val bottomSheetVisible by viewmodelMapa.estadoBottomSheet.collectAsState()
     val datos_numeros_salud_seguridad by viewModelFiltros.instance_salud_seguridad.collectAsState()
@@ -314,6 +315,11 @@ fun mapa_inmobilia(
         label = "color_bottom_sheet"
     )
 
+    DisposableEffect(Unit) {
+        onDispose {
+            viewmodel_mapa_inmobilia.limpiarEstadoRuta()
+        }
+    }
     LaunchedEffect(ruta_creada) {
         if (ruta_creada) {
 
@@ -353,7 +359,10 @@ fun mapa_inmobilia(
             // API ya respondió → usar duración oficial
             duracion_ruta_segundos > 0.0 -> duracion_ruta_segundos.toInt()
             // ✅ API aún no llegó → estimar con función auxiliar
-            else -> viewmodel_mapa_inmobilia.calcularSegundosEstimados(distancia_al_destino, perfil_creacion_ruta_seleccionada)
+            else -> viewmodel_mapa_inmobilia.calcularSegundosEstimados(
+                distancia_al_destino,
+                perfil_creacion_ruta_seleccionada
+            )
         }
 
         if (segundosRestantes <= 0) return@LaunchedEffect  // ✅ nunca mostrar "Ya llegaste" de inicio
@@ -467,10 +476,13 @@ fun mapa_inmobilia(
         }
         lista_seleccionada = lista
         viewmodel_mapa_inmobilia.setear_puntos_clikeados(
-            lista = lista, onPuntoClick = { id, lat, lng, img, nombre ->
+            lista = lista, onPuntoClick = { id, lat, lng, img, nombre, distancia ->
+                val distanciaTexto =
+                    formatearDistanciaDouble(distancia)
                 seleccionado_posible = id
                 img_negocio_preview = img
                 nombre_negocio_select_preview = nombre
+                distancia_terreno = distanciaTexto
                 mapboxMapInstance?.easeTo(
                     CameraOptions.Builder()
                         .center(Point.fromLngLat(lng, lat))
@@ -704,6 +716,10 @@ fun mapa_inmobilia(
             durationMillis = 300 // 0.3 segundos, suave pero rápido
         )
     )
+
+    val estaExpandido = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded
+    val estaColapsado = scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded
+    val estaOculto = scaffoldState.bottomSheetState.currentValue == SheetValue.Hidden
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 90.dp, // 👈 TIRITA SIEMPRE VISIBLE
@@ -715,7 +731,7 @@ fun mapa_inmobilia(
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight() // 👈 altura siempre automática al contenido
+                    .wrapContentHeight()
                     .navigationBarsPadding()
             ) {
                 AnimatedVisibility(
@@ -751,7 +767,7 @@ fun mapa_inmobilia(
                                     // ── Expandido: solo texto ──
                                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                         Text(
-                                            text = "Todo lo que rodea tu próximo terreno",
+                                            text = "Todo lo que rodea tu próxima inversion",
                                             fontSize = 20.sp,
                                             fontFamily = baners_geinz_work,
                                         )
@@ -863,23 +879,27 @@ fun mapa_inmobilia(
 
                                             }
                                             item {
-                                                Text(
-                                                    text = nombre_negocio_select_preview,
-                                                    fontSize = 14.sp,
-                                                    fontFamily = baners_geinz_work,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                    modifier = Modifier.width(100.dp) // 👈 toma el espacio disponible y cede a los botones
-                                                )
+                                                Column(modifier = Modifier.width(150.dp)) {// 👈 toma el espacio disponible y cede a los botones) {
+                                                    Text(
+                                                        text = nombre_negocio_select_preview,
+                                                        fontSize = 14.sp,
+                                                        fontFamily = baners_geinz_work,
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis,
+                                                    )
+                                                    texto_generico_one_line(
+                                                        "A $distancia_terreno de tu inversion ",
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        color = Color.Gray
+                                                    )
+                                                }
+
                                             }
                                             item {
                                                 desing_creacion_ruta(
-                                                    puntos_para_la_ruta = puntos_ruta_activa,
                                                     distancia = distancia_ruta_metros,
-                                                    velocidad = velocidad_actual,
                                                     context = contex,
                                                     lista = lista_iconos_ruta,
-                                                    img_tienda = img_negocio_preview,
                                                     seleccionado = { perfil, icono ->
                                                         // 1️⃣ Obtener ubicación actual
                                                         perfil_creacion_ruta_seleccionada = perfil
@@ -916,6 +936,7 @@ fun mapa_inmobilia(
                                                     },
                                                     cancelacion_ruta = {
                                                         // Limpiar estado y mapa
+                                                        viewmodel_mapa_inmobilia.limpiarEstadoRuta()
                                                         ruta_creada = false
                                                         puntos_ruta_activa = emptyList()
                                                         distancia_ruta_metros = 0
@@ -930,30 +951,6 @@ fun mapa_inmobilia(
                                                         scope.launch {
                                                             scaffoldState.bottomSheetState.partialExpand()
                                                         }
-                                                    },
-                                                    mostrar_campo = {
-                                                        // Abrir detalle del lugar seleccionado
-                                                        val destino = lista_seleccionada.datos
-                                                            .firstOrNull { it.id == seleccionado_posible }
-                                                            ?: return@desing_creacion_ruta
-
-                                                        when (lista_seleccionada.tipo) {
-                                                            "lugar_cercanos" -> mostar_dialog_lugare_Cercanos =
-                                                                true
-
-                                                            "lugar_seguro" -> mostra_lugar_seguro_dialog =
-                                                                true
-
-                                                            "lugar_turistico" -> viewmodelMapa.setBottomSheetVisible(
-                                                                true
-                                                            )
-
-                                                            "lugar_servicios" -> mostrar_lugares_hogares =
-                                                                true
-                                                        }
-                                                        id_negocio_lugar_previwe = destino.id
-                                                        localida_negocio_lugar_preview =
-                                                            destino.localidad
                                                     },
                                                     mostar_dialog_no_ubi_activa = {
                                                         validacion_mostrar_dialog_ubi_off = true
@@ -1007,7 +1004,8 @@ fun mapa_inmobilia(
                             img_container(
                                 lista_seleccionada = lista_seleccionada,
                                 seleccionado_posible,
-                                lugar_clikeado = { id, lat, lng, img, nombre ->
+                                lugar_clikeado = { id, lat, lng, img, nombre,distancia ->
+                                    distancia_terreno=formatearDistanciaDouble(distancia)
                                     seleccionado_posible = id
                                     EstadoMapa.seleccionarPinPorId(id)
                                     img_negocio_preview = img
@@ -1208,7 +1206,7 @@ fun mapa_inmobilia(
                 }
 
             }
-            AnimatedVisibility(visible=!ruta_creada,enter = fadeIn(), exit = fadeOut()) {
+            AnimatedVisibility(visible = !ruta_creada, enter = fadeIn(), exit = fadeOut()) {
                 FloatingActionButton(
                     modifier = Modifier.padding(10.dp),
                     containerColor = fabColor,
@@ -1307,7 +1305,14 @@ fun mapa_inmobilia(
                     ondimis = { mostrar_lugares_hogares = false },
                 )
             }
-            AnimatedVisibility(visible=ruta_creada, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.align(Alignment.BottomStart) .padding(start = 15.dp, bottom = 95.dp)) {
+            AnimatedVisibility(
+                visible = ruta_creada,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 15.dp, bottom = 95.dp)
+            ) {
                 Box(
                     modifier = Modifier
                         .clip(CircleShape)

@@ -36,6 +36,11 @@ class viewmodel_mapa_inmobiliara : ViewModel() {
     private val _estadoRuta = MutableStateFlow<Exitosa?>(null)
     val estadoRuta: StateFlow<Exitosa?> = _estadoRuta.asStateFlow()
 
+
+    fun limpiarEstadoRuta() {
+        _estadoRuta.value = null
+    }
+
     fun agregar_datos_para_pasa_mapa(datos: datos_viewmodel_inmobiliara) {
         guardar_datos_inmuble.value = datos
     }
@@ -66,7 +71,7 @@ class viewmodel_mapa_inmobiliara : ViewModel() {
 
     fun setear_puntos_clikeados(
         lista: obj_pasado_clikeado_mapa,
-        onPuntoClick: (id: String, lat: Double, lng: Double, img: String, nombre: String) -> Unit
+        onPuntoClick: (id: String, lat: Double, lng: Double, img: String, nombre: String,distancia:Double) -> Unit
     ) {
         val manager = EstadoMapa.managerSecundario.value ?: return
         val mapboxMap = EstadoMapa.mapboxMapGlobal.value ?: return
@@ -89,6 +94,7 @@ class viewmodel_mapa_inmobiliara : ViewModel() {
             val lng = data.get("lng")?.asDouble ?: 0.0
             val img = data.get("img")?.asString ?: ""
             val nombre = data.get("nombre")?.asString ?: ""
+            val distanciaKm=data.get("distanciaKm")?.asDouble ?: 0.0
 
             // ✅ Resetear tamaño de TODOS los marcadores
             manager.annotations.forEach { it.iconSize = 0.8 }
@@ -99,7 +105,7 @@ class viewmodel_mapa_inmobiliara : ViewModel() {
 
             EstadoMapa.idPuntoSeleccionado.value = id  // 👈 guardar seleccionado
 
-            onPuntoClick(id, lat, lng, img, nombre)
+            onPuntoClick(id, lat, lng, img, nombre,distanciaKm)
             true
         }
 
@@ -120,7 +126,9 @@ class viewmodel_mapa_inmobiliara : ViewModel() {
                         addProperty("lng", lugar.lng)
                         addProperty("img", lugar.img_String)
                         addProperty("nombre", lugar.nombre)
+                        addProperty("distanciaKm",lugar.distanciaKm)
                     }
+                    Log.d("DISTANCIA_SAVE", "id=${lugar.id} | distanciaKm=${lugar.distanciaKm}")
 
                     try {
                         val bitmap =

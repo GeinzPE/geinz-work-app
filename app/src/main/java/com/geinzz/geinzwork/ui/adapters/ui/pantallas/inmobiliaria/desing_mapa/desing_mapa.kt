@@ -466,7 +466,7 @@ fun estilo_carta_visual_inmueble(modifier: Modifier, datos: datos_viewmodel_inmo
 fun img_container(
     lista_seleccionada: obj_pasado_clikeado_mapa,
     seleccionado: String?,
-    lugar_clikeado: (id: String, lat: Double, lng: Double, img: String, nombre: String) -> Unit,
+    lugar_clikeado: (id: String, lat: Double, lng: Double, img: String, nombre: String,distancia: Double) -> Unit,
     ver_mas_: (tipo: String, id: String, localidad: String, img: String, nombre: String) -> Unit
 ) {
 
@@ -486,14 +486,6 @@ fun img_container(
                     stiffness = Spring.StiffnessMedium
                 ),
                 label = "ancho_${datos.nombre}"
-            )
-            val altoAnimado by animateDpAsState(
-                targetValue = if (estaSeleccionado) 140.dp else 120.dp,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMedium
-                ),
-                label = "alto_${datos.nombre}"
             )
 
             Box(
@@ -522,7 +514,7 @@ fun img_container(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(15.dp))
                                 .width(anchoAnimado)
-                                .height(altoAnimado)
+                                .height(140.dp)
                                 .then(
                                     if (estaSeleccionado)
                                         Modifier.border(
@@ -539,7 +531,7 @@ fun img_container(
                                         datos.lat,
                                         datos.lng,
                                         datos.img_String,
-                                        datos.nombre
+                                        datos.nombre,datos.distanciaKm
                                     )
                                 },
 //                                    placeholder = painterResource(com.geinzz.geinzwork.R.drawable.cargando_img_categorias),

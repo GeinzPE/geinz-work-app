@@ -8,11 +8,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,16 +41,12 @@ import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 @SuppressLint("MissingPermission")
 @Composable
 fun desing_creacion_ruta(
-    puntos_para_la_ruta: List<Point>,
     distancia: Int,
-    velocidad: Float,
     context: Context,
     lista: List<iconos_creaciones_rutas>,
-    img_tienda: String,
     seleccionado: (String, ImageVector) -> Unit,
     cancelacion_ruta: () -> Unit,
     ocultar_dialog_: () -> Unit,
-    mostrar_campo: () -> Unit,
     mostar_dialog_no_ubi_activa: () -> Unit
 ) {
     var seleccionadoActual by remember { mutableStateOf<String?>(null) }
@@ -57,63 +56,71 @@ fun desing_creacion_ruta(
 
     val distanciaKm = distancia / 1000.0
 
-
-    // ── Botones de tipo de ruta ────────────────────────
-    listaVisible.forEach { item ->
-        val deshabilitado = item.tipo == "walking" && distanciaKm > 20.0
-        val estaActivo = seleccionadoActual == item.tipo
-
-        val colorFondo by animateColorAsState(
-            targetValue = when {
-                deshabilitado -> Color.Gray
-                estaActivo -> Color(0xFF5B21B6)   // más oscuro = activo
-                else -> Color(0xFF7C3AED)
-            },
-            animationSpec = tween(250),
-            label = "fondo_${item.tipo}"
-        )
-
-
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 5.dp)
-                .size(44.dp)
-                .clip(CircleShape)
-                .background(colorFondo)
-                .then(
-                    if (estaActivo)
-                        Modifier.border(2.dp, Color.White.copy(alpha = 0.6f), CircleShape)
-                    else Modifier
-                )
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ) {
-                    if (deshabilitado) return@clickable
-                    if (verificarUbiActiva(context)) {
-                        if (seleccionadoActual == item.tipo) {
-                            seleccionadoActual = null
-                            cancelacion_ruta()
-                        } else {
-                            seleccionadoActual = item.tipo
-                            seleccionado(item.tipo, item.icono)
-                            ocultar_dialog_()
-                        }
-                    } else {
-                        mostar_dialog_no_ubi_activa()
-                    }
-                },
-            contentAlignment = Alignment.Center
+    // ✅ Contenedor con fondo redondeado
+    Box(
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(Color.White)
+            .padding(horizontal = 6.dp, vertical = 6.dp)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = item.icono,
-                contentDescription = item.tipo,
-                tint = if (deshabilitado) Color.White.copy(alpha = 0.35f) else Color.White,
-                modifier = Modifier.size(22.dp)
-            )
+            listaVisible.forEach { item ->
+                val deshabilitado = item.tipo == "walking" && distanciaKm > 20.0
+                val estaActivo = seleccionadoActual == item.tipo
+
+                val colorFondo by animateColorAsState(
+                    targetValue = when {
+                        deshabilitado -> Color.Gray
+                        estaActivo -> Color(0xFF5B21B6)
+                        else -> Color(0xFF7C3AED)
+                    },
+                    animationSpec = tween(250),
+                    label = "fondo_${item.tipo}"
+                )
+
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(colorFondo)
+                        .then(
+                            if (estaActivo)
+                                Modifier.border(2.dp, Color.White.copy(alpha = 0.6f), CircleShape)
+                            else Modifier
+                        )
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            if (deshabilitado) return@clickable
+                            if (verificarUbiActiva(context)) {
+                                if (seleccionadoActual == item.tipo) {
+                                    seleccionadoActual = null
+                                    cancelacion_ruta()
+                                } else {
+                                    seleccionadoActual = item.tipo
+                                    seleccionado(item.tipo, item.icono)
+                                    ocultar_dialog_()
+                                }
+                            } else {
+                                mostar_dialog_no_ubi_activa()
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = item.icono,
+                        contentDescription = item.tipo,
+                        tint = if (deshabilitado) Color.White.copy(alpha = 0.35f) else Color.White,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+            }
         }
     }
-
 }
 
 
