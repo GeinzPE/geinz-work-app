@@ -163,6 +163,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.runtime.DisposableEffect
@@ -479,19 +480,27 @@ fun mapa_inmobilia(
             lista = lista, onPuntoClick = { id, lat, lng, img, nombre, distancia ->
                 val distanciaTexto =
                     formatearDistanciaDouble(distancia)
-                seleccionado_posible = id
-                img_negocio_preview = img
-                nombre_negocio_select_preview = nombre
-                distancia_terreno = distanciaTexto
-                mapboxMapInstance?.easeTo(
-                    CameraOptions.Builder()
-                        .center(Point.fromLngLat(lng, lat))
-                        .zoom(16.0)
-                        .build(),
-                    MapAnimationOptions.mapAnimationOptions {
-                        duration(800)
-                    }
-                )
+                if(seleccionado_posible==id){
+                    seleccionado_posible = null
+                    EstadoMapa.seleccionarPinPorId("")
+                    img_negocio_preview = ""
+                    nombre_negocio_select_preview = ""
+                    distancia_terreno = ""
+                }else{
+                    seleccionado_posible = id
+                    img_negocio_preview = img
+                    nombre_negocio_select_preview = nombre
+                    distancia_terreno = distanciaTexto
+                    mapboxMapInstance?.easeTo(
+                        CameraOptions.Builder()
+                            .center(Point.fromLngLat(lng, lat))
+                            .zoom(16.0)
+                            .build(),
+                        MapAnimationOptions.mapAnimationOptions {
+                            duration(800)
+                        }
+                    )
+                }
             }
 
         )
@@ -777,7 +786,9 @@ fun mapa_inmobilia(
                                         )
                                     }
                                 } else {
+
                                     if (ruta_creada) {
+                                        //tablero de ruta creada
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             modifier = Modifier.padding(bottom = 10.dp)
@@ -862,137 +873,181 @@ fun mapa_inmobilia(
 
                                         }
                                     } else {
-                                        // ── Colapsado: imagen + nombre ──
-                                        LazyRow(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                        ) {
-                                            item {
-                                                AsyncImage(
-                                                    model = img_negocio_preview,
-                                                    contentDescription = null,
-                                                    modifier = Modifier
-                                                        .size(42.dp)
-                                                        .clip(CircleShape),
-                                                    contentScale = ContentScale.Crop
-                                                )
+                                        // tablero sin ruta creada
 
-                                            }
-                                            item {
-                                                Column(modifier = Modifier.width(150.dp)) {// 👈 toma el espacio disponible y cede a los botones) {
+                                        if (seleccionado_posible.isNullOrEmpty()) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(17.dp)
+                                            ) {
+
+                                                Column(
+                                                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                                                    horizontalAlignment = Alignment.Start
+                                                ) {
                                                     Text(
-                                                        text = nombre_negocio_select_preview,
-                                                        fontSize = 14.sp,
+                                                        text = "Lugares cercanos a tu proxima inversion",
+                                                        fontSize = 17.sp,
                                                         fontFamily = baners_geinz_work,
                                                         maxLines = 1,
                                                         overflow = TextOverflow.Ellipsis,
                                                     )
                                                     texto_generico_one_line(
-                                                        "A $distancia_terreno de tu inversion ",
+                                                        "Conoce los lugares y toma una mejor desicion",
                                                         style = MaterialTheme.typography.labelSmall,
                                                         color = Color.Gray
                                                     )
                                                 }
-
-                                            }
-                                            item {
-                                                desing_creacion_ruta(
-                                                    distancia = distancia_ruta_metros,
-                                                    context = contex,
-                                                    lista = lista_iconos_ruta,
-                                                    seleccionado = { perfil, icono ->
-                                                        // 1️⃣ Obtener ubicación actual
-                                                        perfil_creacion_ruta_seleccionada = perfil
-                                                        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                                                            location?.let {
-                                                                lat_user = it.latitude
-                                                                lng_user = it.longitude
-
-                                                                // 2️⃣ Buscar el destino seleccionado
-                                                                val destino =
-                                                                    lista_seleccionada.datos
-                                                                        .firstOrNull { d -> d.id == seleccionado_posible }
-                                                                        ?: return@let
-
-                                                                // 3️⃣ Calcular y dibujar ruta
-                                                                scope.launch {
-                                                                    ruta_cargando = true
-                                                                    ruta_creada = false
-                                                                    viewmodel_mapa_inmobilia.crear_ruta(
-                                                                        lat_user, lng_user,
-                                                                        destino.lat, destino.lng,
-                                                                        perfil
-                                                                    )
-                                                                    lng_lugar_seleccionado =
-                                                                        destino.lng
-                                                                    lat_lugar_seleccionado =
-                                                                        destino.lat
-                                                                    ruta_creada =
-                                                                        true   // ← ruta lista
-                                                                }
-                                                                ruta_cargando = false
-                                                            }
-                                                        }
-                                                    },
-                                                    cancelacion_ruta = {
-                                                        // Limpiar estado y mapa
-                                                        viewmodel_mapa_inmobilia.limpiarEstadoRuta()
-                                                        ruta_creada = false
-                                                        puntos_ruta_activa = emptyList()
-                                                        distancia_ruta_metros = 0
-                                                        mapboxMapInstance?.let {
-                                                            limpiarRutaEnMapa(
-                                                                it
-                                                            )
-                                                        }
-                                                    },
-                                                    ocultar_dialog_ = {
-                                                        // Colapsar bottom sheet al activar ruta
-                                                        scope.launch {
-                                                            scaffoldState.bottomSheetState.partialExpand()
-                                                        }
-                                                    },
-                                                    mostar_dialog_no_ubi_activa = {
-                                                        validacion_mostrar_dialog_ubi_off = true
-                                                    }
-                                                )
-                                            }
-                                            item {
-                                                box_datos_botones_faciles(
+                                                estilo_botons_circulares(
+                                                    color = Color.White,
+                                                    iconoTint = MaterialTheme.colorScheme.primary,
+                                                    icon = Icons.Default.ArrowDropUp,
                                                     onclick = {
-                                                        val lista = lista_seleccionada.datos
-                                                        if (lista.isEmpty()) return@box_datos_botones_faciles
+                                                        scope.launch {
+                                                            scaffoldState.bottomSheetState.expand()
+                                                        }
+                                                    })
+                                            }
+                                        } else {
 
-                                                        val indexActual =
-                                                            lista.indexOfFirst { it.id == seleccionado_posible }
-                                                        val siguiente =
-                                                            lista.getOrNull(indexActual + 1)
-                                                                ?: lista.first() // vuelve al primero si llega al final
+                                            LazyRow(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                            ) {
+                                                item {
+                                                    AsyncImage(
+                                                        model = img_negocio_preview,
+                                                        contentDescription = null,
+                                                        modifier = Modifier
+                                                            .size(42.dp)
+                                                            .clip(CircleShape),
+                                                        contentScale = ContentScale.Crop
+                                                    )
 
-                                                        seleccionado_posible = siguiente.id
-                                                        EstadoMapa.seleccionarPinPorId(siguiente.id)
-                                                        img_negocio_preview = siguiente.img_String
-                                                        nombre_negocio_select_preview =
-                                                            siguiente.nombre
-                                                        mapboxMapInstance?.easeTo(
-                                                            CameraOptions.Builder()
-                                                                .center(
-                                                                    Point.fromLngLat(
-                                                                        siguiente.lng,
-                                                                        siguiente.lat
-                                                                    )
-                                                                )
-                                                                .zoom(16.0)
-                                                                .build(),
-                                                            MapAnimationOptions.mapAnimationOptions {
-                                                                duration(
-                                                                    800
+                                                }
+                                                item {
+                                                    Column(modifier = Modifier.width(150.dp)) {// 👈 toma el espacio disponible y cede a los botones) {
+                                                        Text(
+                                                            text = nombre_negocio_select_preview,
+                                                            fontSize = 14.sp,
+                                                            fontFamily = baners_geinz_work,
+                                                            maxLines = 1,
+                                                            overflow = TextOverflow.Ellipsis,
+                                                        )
+                                                        texto_generico_one_line(
+                                                            "A $distancia_terreno de tu inversion ",
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            color = Color.Gray
+                                                        )
+                                                    }
+
+                                                }
+                                                item {
+                                                    desing_creacion_ruta(
+                                                        distancia = distancia_ruta_metros,
+                                                        context = contex,
+                                                        lista = lista_iconos_ruta,
+                                                        seleccionado = { perfil, icono ->
+                                                            // 1️⃣ Obtener ubicación actual
+                                                            perfil_creacion_ruta_seleccionada =
+                                                                perfil
+                                                            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                                                                location?.let {
+                                                                    lat_user = it.latitude
+                                                                    lng_user = it.longitude
+
+                                                                    // 2️⃣ Buscar el destino seleccionado
+                                                                    val destino =
+                                                                        lista_seleccionada.datos
+                                                                            .firstOrNull { d -> d.id == seleccionado_posible }
+                                                                            ?: return@let
+
+                                                                    // 3️⃣ Calcular y dibujar ruta
+                                                                    scope.launch {
+                                                                        ruta_cargando = true
+                                                                        ruta_creada = false
+                                                                        viewmodel_mapa_inmobilia.crear_ruta(
+                                                                            lat_user,
+                                                                            lng_user,
+                                                                            destino.lat,
+                                                                            destino.lng,
+                                                                            perfil
+                                                                        )
+                                                                        lng_lugar_seleccionado =
+                                                                            destino.lng
+                                                                        lat_lugar_seleccionado =
+                                                                            destino.lat
+                                                                        ruta_creada =
+                                                                            true   // ← ruta lista
+                                                                    }
+                                                                    ruta_cargando = false
+                                                                }
+                                                            }
+                                                        },
+                                                        cancelacion_ruta = {
+                                                            // Limpiar estado y mapa
+                                                            viewmodel_mapa_inmobilia.limpiarEstadoRuta()
+                                                            ruta_creada = false
+                                                            puntos_ruta_activa = emptyList()
+                                                            distancia_ruta_metros = 0
+                                                            mapboxMapInstance?.let {
+                                                                limpiarRutaEnMapa(
+                                                                    it
                                                                 )
                                                             }
-                                                        )
-                                                    },
-                                                    icono = Icons.Default.ArrowRight
-                                                )
+                                                        },
+                                                        ocultar_dialog_ = {
+                                                            // Colapsar bottom sheet al activar ruta
+                                                            scope.launch {
+                                                                scaffoldState.bottomSheetState.partialExpand()
+                                                            }
+                                                        },
+                                                        mostar_dialog_no_ubi_activa = {
+                                                            validacion_mostrar_dialog_ubi_off = true
+                                                        }
+                                                    )
+                                                }
+                                                item {
+                                                    box_datos_botones_faciles(
+                                                        onclick = {
+                                                            val lista = lista_seleccionada.datos
+                                                            if (lista.isEmpty()) return@box_datos_botones_faciles
+
+                                                            val indexActual =
+                                                                lista.indexOfFirst { it.id == seleccionado_posible }
+                                                            val siguiente =
+                                                                lista.getOrNull(indexActual + 1)
+                                                                    ?: lista.first() // vuelve al primero si llega al final
+
+                                                            seleccionado_posible = siguiente.id
+                                                            distancia_terreno = formatearDistanciaDouble(siguiente.distanciaKm)
+
+                                                            EstadoMapa.seleccionarPinPorId(siguiente.id)
+                                                            img_negocio_preview =
+                                                                siguiente.img_String
+                                                            nombre_negocio_select_preview =
+                                                                siguiente.nombre
+                                                            mapboxMapInstance?.easeTo(
+                                                                CameraOptions.Builder()
+                                                                    .center(
+                                                                        Point.fromLngLat(
+                                                                            siguiente.lng,
+                                                                            siguiente.lat
+                                                                        )
+                                                                    )
+                                                                    .zoom(16.0)
+                                                                    .build(),
+                                                                MapAnimationOptions.mapAnimationOptions {
+                                                                    duration(
+                                                                        800
+                                                                    )
+                                                                }
+                                                            )
+                                                        },
+                                                        icono = Icons.Default.ArrowRight
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -1004,21 +1059,29 @@ fun mapa_inmobilia(
                             img_container(
                                 lista_seleccionada = lista_seleccionada,
                                 seleccionado_posible,
-                                lugar_clikeado = { id, lat, lng, img, nombre,distancia ->
-                                    distancia_terreno=formatearDistanciaDouble(distancia)
-                                    seleccionado_posible = id
-                                    EstadoMapa.seleccionarPinPorId(id)
-                                    img_negocio_preview = img
-                                    nombre_negocio_select_preview = nombre
-                                    mapboxMapInstance?.easeTo(
-                                        CameraOptions.Builder()
-                                            .center(Point.fromLngLat(lng, lat))
-                                            .zoom(16.0)
-                                            .build(),
-                                        MapAnimationOptions.mapAnimationOptions {
-                                            duration(800)
-                                        }
-                                    )
+                                lugar_clikeado = { id, lat, lng, img, nombre, distancia ->
+                                    if (seleccionado_posible == id) {
+                                        seleccionado_posible = null
+                                        EstadoMapa.seleccionarPinPorId("")
+                                        img_negocio_preview = ""
+                                        nombre_negocio_select_preview = ""
+                                        distancia_terreno = ""
+                                    } else {
+                                        distancia_terreno = formatearDistanciaDouble(distancia)
+                                        seleccionado_posible = id
+                                        EstadoMapa.seleccionarPinPorId(id)
+                                        img_negocio_preview = img
+                                        nombre_negocio_select_preview = nombre
+                                        mapboxMapInstance?.easeTo(
+                                            CameraOptions.Builder()
+                                                .center(Point.fromLngLat(lng, lat))
+                                                .zoom(16.0)
+                                                .build(),
+                                            MapAnimationOptions.mapAnimationOptions {
+                                                duration(800)
+                                            }
+                                        )
+                                    }
                                 },
                                 ver_mas_ = { tipo, id, localidad, img, nombre ->
                                     Log.d("tipo_clikeado ", "$tipo $id $localidad")
@@ -1067,6 +1130,7 @@ fun mapa_inmobilia(
                             categorias = categorias,
                             seleccionado = chipSeleccionado,
                             onSeleccionar = {
+                                seleccionado_posible = null
                                 chipSeleccionado = it
                                 if (it == "Principal") {
                                     mostrar_ocultar_immagen = true

@@ -710,7 +710,8 @@ fun ListaChips(
                 texto = categoria.nombre,
                 cantidad = categoria.cantidad,
                 estaSeleccionado = categoria.nombre == seleccionado,
-                onClick = { onSeleccionar(categoria.nombre) }
+                onClick = { onSeleccionar(categoria.nombre)
+                   }
             )
         }
     }
