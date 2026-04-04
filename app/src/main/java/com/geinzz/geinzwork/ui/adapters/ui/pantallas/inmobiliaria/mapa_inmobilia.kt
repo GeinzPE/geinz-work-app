@@ -185,11 +185,13 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.desing_mapa.de
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.desing_mapa.dibujarRutaEnMapa
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.desing_mapa.estilo_botons_circulares
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.desing_mapa.estilo_carta_visual_inmueble
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.desing_mapa.filtro_chips_categoria_Seleccioanda
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.desing_mapa.img_container
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.desing_mapa.limpiarRutaEnMapa
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularDistanciaMetros
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatearDistancia
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
+import kotlin.math.roundToInt
 
 @SuppressLint("MissingPermission")
 @RequiresApi(Build.VERSION_CODES.O)
@@ -211,6 +213,12 @@ fun mapa_inmobilia(
     val contex = LocalContext.current
     var chipSeleccionado by remember { mutableStateOf("Principal") }
     val datos_obtener_mapa by viewmodel_mapa_inmobilia.datosInmueble.collectAsState()
+    var subcategoria_seleccionada by remember { mutableStateOf("") }
+    val lista_categoria_lugares_seguros by viewmodel_mapa_inmobilia.categorias_mas_lista_lugares_cercanos_seguros.collectAsState()
+    val lista_categoria_lugares_cercanos by viewmodel_mapa_inmobilia.categorias_mas_lista_lugares_cercanos.collectAsState()
+    val lista_categoria_lugares_turisticos by viewmodel_mapa_inmobilia.categorias_mas_lista_lugares_cercanos_turisticos.collectAsState()
+    val lista_categoria_lugares_servicios_hogar by viewmodel_mapa_inmobilia.categorias_mas_lista_lugares_cercanos_hogar.collectAsState()
+    var select_filtrado_sub by remember { mutableStateOf("") }
     val estadoRuta by viewmodel_mapa_inmobilia.estadoRuta.collectAsState()
     var confuracion_seleccionda by remember { mutableStateOf("Mapa nocturno") }
     var pitch_selecciondo by remember { mutableStateOf("2D") }
@@ -235,7 +243,7 @@ fun mapa_inmobilia(
     val mapViewState = remember { mutableStateOf<MapView?>(null) }
     var mapboxMapInstance by remember { mutableStateOf<MapboxMap?>(null) }
     val managerLauncher = remember { mutableStateOf<PointAnnotationManager?>(null) }
-
+var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(emptyList()) }
 // ── Estado de ruta ─────────────────────────────────────────
     var puntos_ruta_activa by remember { mutableStateOf<List<Point>>(emptyList()) }
     var distancia_ruta_metros by remember { mutableStateOf(0) }
@@ -311,6 +319,10 @@ fun mapa_inmobilia(
     val cerca_del_destino by remember(distancia_al_destino) {
         derivedStateOf { distancia_al_destino in 1f..100f }
     }
+    // Agrega esto junto a los demás estados
+    var chip_cambio_contador by remember { mutableStateOf(0) }
+
+    var nueva_busqueda by remember { mutableStateOf(0f) }
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
@@ -336,6 +348,7 @@ fun mapa_inmobilia(
             viewmodel_mapa_inmobilia.limpiarEstadoRuta()
         }
     }
+
     LaunchedEffect(ruta_creada) {
         if (ruta_creada) {
 
@@ -465,36 +478,81 @@ fun mapa_inmobilia(
             }
         )
     }
-    LaunchedEffect(chipSeleccionado, datos_obtener_mapa, EstadoMapa.managerSecundario.value) {
+    // 👇 Reemplaza este LaunchedEffect existente
+    LaunchedEffect(
+        chipSeleccionado,
+        subcategoria_seleccionada,
+        datos_obtener_mapa,
+        EstadoMapa.managerSecundario.value,
+        lista_categoria_lugares_seguros,
+        lista_categoria_lugares_cercanos,
+        lista_categoria_lugares_turisticos,
+        lista_categoria_lugares_servicios_hogar
+    ) {
+        Log.d("MAPA_FILTER", "==============================")
+        Log.d("MAPA_FILTER", "chip: $chipSeleccionado")
+        Log.d("MAPA_FILTER", "subcategoria: '$subcategoria_seleccionada'")
 
-        val lista = when (chipSeleccionado) {
+        // ✅ Si es una categoria con subcategorias, esperar a que llegue la subcategoria
+        val requiereSubcategoria = chipSeleccionado != "Principal"
+        if (requiereSubcategoria && subcategoria_seleccionada.isBlank()) {
+            Log.d("MAPA_FILTER", "⏳ Esperando subcategoría, no se setean puntos aún")
+            return@LaunchedEffect
+        }
+
+        val listaCompleta = when (chipSeleccionado) {
             "Lugares seguros" -> obj_pasado_clikeado_mapa(
                 "lugar_seguro",
-                datos_obtener_mapa.cantidad_lugares_seguros
+                lista_categoria_lugares_seguros.lista_data
             )
 
             "Lugares cercanos" -> obj_pasado_clikeado_mapa(
                 "lugar_cercanos",
-                datos_obtener_mapa.cantidad_lugares_cercanos
+                lista_categoria_lugares_cercanos.lista_data
             )
 
             "Lugares turísticos" -> obj_pasado_clikeado_mapa(
                 "lugar_turistico",
-                datos_obtener_mapa.cantidad_lugares_turisticos
+                lista_categoria_lugares_turisticos.lista_data
             )
 
             "Lugares para el hogar" -> obj_pasado_clikeado_mapa(
                 "lugar_servicios",
-                datos_obtener_mapa.cantidad_lugares_para_el_hogar
+                lista_categoria_lugares_servicios_hogar.lista_data
             )
 
             else -> obj_pasado_clikeado_mapa()
         }
-        lista_seleccionada = lista
+
+        Log.d("MAPA_FILTER", "listaCompleta.datos.size: ${listaCompleta.datos.size}")
+
+        val listaFinal = if (subcategoria_seleccionada.isNotBlank()) {
+            val filtrados = listaCompleta.datos.filter { it.categoira == subcategoria_seleccionada }
+            Log.d(
+                "MAPA_FILTER",
+                "Filtrando por '$subcategoria_seleccionada' → ${filtrados.size} resultados"
+            )
+            if (filtrados.isEmpty()) {
+                Log.w("MAPA_FILTER", "⚠️ FILTRO VACÍO")
+                Log.w(
+                    "MAPA_FILTER",
+                    "Categorías disponibles: ${listaCompleta.datos.map { it.categoira }.distinct()}"
+                )
+            }
+            listaCompleta.copy(datos = filtrados)
+        } else {
+            listaCompleta
+        }
+
+        Log.d("MAPA_FILTER", "listaFinal enviada al mapa: ${listaFinal.datos.size} puntos")
+        Log.d("MAPA_FILTER", "==============================")
+
+        lista_seleccionada = listaFinal
+
         viewmodel_mapa_inmobilia.setear_puntos_clikeados(
-            lista = lista, onPuntoClick = { id, lat, lng, img, nombre, distancia ->
-                val distanciaTexto =
-                    formatearDistanciaDouble(distancia)
+            lista = listaFinal,
+            onPuntoClick = { id, lat, lng, img, nombre, distancia ->
+                val distanciaTexto = formatearDistanciaDouble(distancia)
                 if (seleccionado_posible == id) {
                     seleccionado_posible = null
                     EstadoMapa.seleccionarPinPorId("")
@@ -511,34 +569,38 @@ fun mapa_inmobilia(
                             .center(Point.fromLngLat(lng, lat))
                             .zoom(16.0)
                             .build(),
-                        MapAnimationOptions.mapAnimationOptions {
-                            duration(800)
-                        }
+                        MapAnimationOptions.mapAnimationOptions { duration(800) }
                     )
                 }
             }
-
         )
     }
 
-
     val categorias = listOf(
-        categorias_diltrado_mapa_inmobiliara("Principal", 0),
+        categorias_diltrado_mapa_inmobiliara(
+            nombre = "Principal",
+            cantidad = 0,
+            categoria = emptyList()
+        ),
         categorias_diltrado_mapa_inmobiliara(
             "Lugares seguros",
-            datos_obtener_mapa.cantidad_lugares_seguros.size
+            lista_categoria_lugares_seguros.lista_data.size,
+            lista_categoria_lugares_seguros.lista_categoira,
         ),
         categorias_diltrado_mapa_inmobiliara(
             "Lugares cercanos",
-            datos_obtener_mapa.cantidad_lugares_cercanos.size
+            lista_categoria_lugares_cercanos.lista_data.size,
+            lista_categoria_lugares_cercanos.lista_categoira
         ),
         categorias_diltrado_mapa_inmobiliara(
             "Lugares turísticos",
-            datos_obtener_mapa.cantidad_lugares_turisticos.size
+            lista_categoria_lugares_turisticos.lista_data.size,
+            lista_categoria_lugares_turisticos.lista_categoira
         ),
         categorias_diltrado_mapa_inmobiliara(
             "Lugares para el hogar",
-            datos_obtener_mapa.cantidad_lugares_para_el_hogar.size
+            lista_categoria_lugares_servicios_hogar.lista_data.size,
+            lista_categoria_lugares_servicios_hogar.lista_categoira
         )
     )
 
@@ -1082,7 +1144,10 @@ fun mapa_inmobilia(
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(15.dp, Alignment.CenterHorizontally)
+                                        horizontalArrangement = Arrangement.spacedBy(
+                                            15.dp,
+                                            Alignment.CenterHorizontally
+                                        )
                                     ) {
                                         texto_generico_one_line(
                                             "Cargando lo mejor para ti",
@@ -1095,7 +1160,7 @@ fun mapa_inmobilia(
                             } else {
                                 img_container(
                                     lista_seleccionada = lista_seleccionada,
-                                    seleccionado_posible,
+                                    seleccionado = seleccionado_posible,
                                     lugar_clikeado = { id, lat, lng, img, nombre, distancia ->
                                         if (seleccionado_posible == id) {
                                             seleccionado_posible = null
@@ -1152,40 +1217,65 @@ fun mapa_inmobilia(
 
                                             }
                                         }
+                                    }
 
+                                )
+                                filtro_chips_categoria_Seleccioanda(
+                                    seleccioando = subcategoria_seleccionada,
+                                    categoria = lista_subcategoria_selecciondad,
+                                    cateogira_selecto = { categoriaSeleccionada ->
+                                        subcategoria_seleccionada = categoriaSeleccionada
+                                        when (chipSeleccionado) {
+                                            "Lugares seguros" -> viewmodel_mapa_inmobilia.aplicarFiltroSeguros(
+                                                categoriaSeleccionada
+                                            )
+
+                                            "Lugares cercanos" -> viewmodel_mapa_inmobilia.aplicarFiltrolugares_cercanos(
+                                                categoriaSeleccionada
+                                            )
+
+                                            "Lugares turísticos" -> viewmodel_mapa_inmobilia.aplicarFiltroTuristicos(
+                                                categoriaSeleccionada
+                                            )
+
+                                            "Lugares para el hogar" -> viewmodel_mapa_inmobilia.aplicarFiltroHogar(
+                                                categoriaSeleccionada
+                                            )
+                                        }
                                     })
                             }
                         }
                     }
                 }
                 if (!ruta_creada) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
                         ListaChips(
+                            subateoria = subcategoria_seleccionada,
                             categorias = categorias,
                             seleccionado = chipSeleccionado,
-                            onSeleccionar = {
+                            onSeleccionar = {it,lista->
+                                lista_subcategoria_selecciondad = lista
                                 seleccionado_posible = null
                                 mostrar_carga_datos_prores = false
                                 chipSeleccionado = it
+                                subcategoria_seleccionada = ""
+                                chip_cambio_contador++
                                 if (it == "Principal") {
                                     mostrar_ocultar_immagen = true
                                 } else {
                                     mostrar_ocultar_immagen = false
                                     if (!ruta_creada_state.value) {
                                         scope.launch {
+                                            // ✅ Pequeño delay para que los cambios de estado no interrumpan la animación
+                                            kotlinx.coroutines.delay(50)
                                             scaffoldState.bottomSheetState.expand()
                                         }
                                     }
                                 }
-                            }, {
+                            }, todos_cargados = {
                                 mostrar_carga_datos_prores = true
                             }
                         )
-                    }
+
                 }
 
             }
@@ -1214,7 +1304,6 @@ fun mapa_inmobilia(
 
                             true
                         }
-                        // ✅ ESTO FALTABA — sin esto setear_puntos_clikeados siempre retorna
                         EstadoMapa.managerSecundario.value =
                             mapView.annotations.createPointAnnotationManager()
                         EstadoMapa.mapboxMapGlobal.value = mapboxMap
@@ -1226,6 +1315,13 @@ fun mapa_inmobilia(
                             enabled = true
                             pulsingEnabled = true
                         }
+//                        mapboxMap.setBounds(
+//                            com.mapbox.maps.CameraBoundsOptions.Builder()
+//                                .maxZoom(19.0)   // 👈 zoom máximo
+//                                .maxPitch(65.0)  // 👈 pitch máximo que el usuario puede mover
+//                                .build()
+//                        )
+
                         mapView.location.updateSettings {
                             enabled = true
                             pulsingEnabled = true
@@ -1391,14 +1487,7 @@ fun mapa_inmobilia(
                     onClose = {
                         viewmodelMapa.setBottomSheetVisible(false)
                     },
-                    ver_mapa = {
-//                        abrir_mapa(
-//                            "turismo",
-//                            img_turismo,
-//                            lat,
-//                            lng
-//                        )
-                    }, iniciar_seccion = { iniciar_seccion() }, crear_cuenta = { crear_cuenta() },
+                    ver_mapa = {}, iniciar_seccion = { iniciar_seccion() }, crear_cuenta = { crear_cuenta() },
                     id_negocio_lugar_previwe
                 )
             }

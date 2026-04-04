@@ -35,8 +35,7 @@ class viewmodel_inmobiliaria : ViewModel() {
         _estado_carga_inmubles_principales
 
 
-    private val _datosCloudTts = MutableStateFlow(ByteArray(0))
-    val datosCloudTts: StateFlow<ByteArray> = _datosCloudTts
+
 
     private val _respuesta_IA = MutableStateFlow("")
 
@@ -209,98 +208,121 @@ class viewmodel_inmobiliaria : ViewModel() {
         lista_seguros: List<lugares_cercanos_>,
         lista_turisticos: List<lugares_cercanos_>,
     ) {
+        Log.d("IA_LUGARES", "════════════════════════════════════════")
+        Log.d("IA_LUGARES", "▶ obtener_negocios_para_perfil() | tipo=$tipo")
+        Log.d("IA_LUGARES", "  input → negocios=${lista_negocios.size}, seguros=${lista_seguros.size}, turisticos=${lista_turisticos.size}")
 
         val categorias = when (tipo) {
-
-            "inversionista" -> listOf(
+            "Inversionista" -> listOf(
+                "comida y restaurantes",
                 "bancos y servicios financieros",
                 "supermercado minimarkets y bodegas",
                 "transporte y terminales",
                 "turismo",
                 "hospedaje y entretenimiento nocturno"
             )
-
-            "familiar" -> listOf(
+            "Familiar" -> listOf(
+                "comida y restaurantes",
                 "salud y farmacias",
                 "educacion y librerias",
                 "supermercado minimarkets y bodegas",
                 "deporte y bienestar",
                 "transporte y terminales"
             )
-
-            "solitario" -> listOf(
+            "Solitario" -> listOf(
+                "supermercado minimarkets y bodegas",
                 "comida y restaurantes",
                 "entretenimiento y recreacion",
                 "moda y estilo",
                 "tecnologia y electronica",
                 "belleza"
             )
-
             else -> emptyList()
         }
 
-        val usados = mutableSetOf<String>()
+        Log.d("IA_LUGARES", "  categorias asignadas (${categorias.size}): $categorias")
 
+        val usados = mutableSetOf<String>()
         val negocios = mutableListOf<String>()
         val seguros = mutableListOf<String>()
         val turisticos = mutableListOf<String>()
 
-        // 🔹 NEGOCIOS (máx 10)
+        // ══ NEGOCIOS ══
+        Log.d("IA_LUGARES", "── NEGOCIOS ──────────────────────────────")
         categorias.forEach { categoria ->
 
-            val lugares = lista_negocios
-                .filter { it.distanciaKm <= 0.5 }
-                .filter { it.categoira == categoria }
+            val candidatos = lista_negocios.filter { it.distanciaKm <= 0.5 }
                 .sortedBy { it.distanciaKm }
 
-            for (lugar in lugares) {
+            Log.d("IA_LUGARES", "  categoria='$categoria' → candidatos dentro de 500m: ${candidatos.size}")
 
+            if (candidatos.isEmpty()) {
+                // Ayuda a detectar si el problema es distancia o nombre de categoría
+                val sinFiltro = lista_negocios.filter { it.categoira == categoria }
+                Log.w("IA_LUGARES", "    ⚠ sin filtro de distancia habría ${sinFiltro.size} | distancias: ${sinFiltro.map { "%.2f".format(it.distanciaKm) }}")
+            }
+
+            for (lugar in candidatos) {
                 val clave = normalizarNombre(lugar.nombre)
+                val duplicado = usados.contains(clave)
+                Log.d("IA_LUGARES", "    · '${lugar.nombre}' (${lugar.distanciaKm}km) clave='$clave' duplicado=$duplicado")
 
-                if (!usados.contains(clave)) {
+                if (!duplicado) {
                     negocios.add(lugar.nombre)
                     usados.add(clave)
                 }
-
-                if (negocios.size >= 10) break
+                if (negocios.size >= 10) {
+                    Log.d("IA_LUGARES", "    ⏹ límite 10 alcanzado, cortando")
+                    break
+                }
             }
         }
+        Log.d("IA_LUGARES", "  negocios recolectados (${negocios.size}): $negocios")
 
-        // 🔹 SEGUROS (máx 4)
+        // ══ SEGUROS ══
+        Log.d("IA_LUGARES", "── SEGUROS ───────────────────────────────")
         lista_seguros
             .filter { it.distanciaKm <= 0.5 }
             .sortedBy { it.distanciaKm }
             .take(4)
             .forEach {
-
                 val clave = normalizarNombre(it.nombre)
-
-                if (!usados.contains(clave)) {
+                val duplicado = usados.contains(clave)
+                Log.d("IA_LUGARES", "  · '${it.nombre}' (${it.distanciaKm}km) clave='$clave' duplicado=$duplicado")
+                if (!duplicado) {
                     seguros.add(it.nombre)
                     usados.add(clave)
                 }
             }
+        Log.d("IA_LUGARES", "  seguros recolectados (${seguros.size}): $seguros")
 
-        // 🔹 TURISMO (máx 4)
+        // ══ TURISMO ══
+        Log.d("IA_LUGARES", "── TURISMO ───────────────────────────────")
         lista_turisticos
             .filter { it.distanciaKm <= 0.5 }
             .sortedBy { it.distanciaKm }
             .take(4)
             .forEach {
-
                 val clave = normalizarNombre(it.nombre)
-
-                if (!usados.contains(clave)) {
+                val duplicado = usados.contains(clave)
+                Log.d("IA_LUGARES", "  · '${it.nombre}' (${it.distanciaKm}km) clave='$clave' duplicado=$duplicado")
+                if (!duplicado) {
                     turisticos.add(it.nombre)
                     usados.add(clave)
                 }
             }
+        Log.d("IA_LUGARES", "  turisticos recolectados (${turisticos.size}): $turisticos")
 
-        _lugares_filtrados.value =
-            lista_lugaers_totales(negocios.take(4), turisticos.take(3), seguros.take(3))
+        // ══ RESULTADO FINAL ══
+        val resultado = lista_lugaers_totales(negocios.take(4), turisticos.take(3), seguros.take(3))
+        _lugares_filtrados.value = resultado
 
-
-        Log.d("IA_LUGARES", _lugares_filtrados.toString())
+        Log.d("IA_LUGARES", "── RESULTADO FINAL ───────────────────────")
+        Log.d("IA_LUGARES", "  negocios.take(4)   = ${negocios.take(4)}")
+        Log.d("IA_LUGARES", "  turisticos.take(3)  = ${turisticos.take(3)}")
+        Log.d("IA_LUGARES", "  seguros.take(3)     = ${seguros.take(3)}")
+        Log.d("IA_LUGARES", "  _lugares_filtrados  = ${_lugares_filtrados.value}")
+        Log.d("IA_LUGARES", "════════════════════════════════════════")
     }
 
 

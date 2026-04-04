@@ -916,84 +916,6 @@ fun ZoomableGalleryFullScreen_para_promociones(
     }
 }
 
-//@RequiresApi(Build.VERSION_CODES.O)
-//@OptIn(ExperimentalFoundationApi::class)
-//@Composable
-//fun ZoomableGalleryFullScreenVerticalPager(
-//    viewModel: viewmodel_promos_cercanas,
-//    localidad_general: String,
-//    promoSeleccionada: dataclass_promociones_cerca_de_ti,
-//    onDismiss: () -> Unit
-//) {
-//    val listaPromos by viewModel.promosCargadas.collectAsState()
-//    val threshold = 2
-//
-//    // Feed completo sin duplicados
-//    var feedVisible by remember { mutableStateOf<List<dataclass_promociones_cerca_de_ti>>(emptyList()) }
-//
-//    // Función para agregar nuevas promos sin duplicados
-//    fun agregarNuevasPromos(nuevas: List<dataclass_promociones_cerca_de_ti>) {
-//        val existentesIds = feedVisible.map { it.informacion_publcacion.id_promocion }.toSet()
-//        val filtradas = nuevas.filter { it.informacion_publcacion.id_promocion !in existentesIds }
-//        if (filtradas.isNotEmpty()) {
-//            feedVisible = feedVisible + filtradas
-//            Log.d("ZoomGallery", "Agregando ${filtradas.size} promos nuevas: ${filtradas.map { it.informacion_publcacion.id_promocion }}")
-//        }
-//    }
-//
-//    // Cargar bloques iniciales
-//    LaunchedEffect(Unit) {
-//        viewModel.cargarSiguienteBloque(localidad_general)
-//    }
-//
-//    // Cada vez que listaPromos cambia, agregamos nuevas promos
-//    LaunchedEffect(listaPromos) {
-//        agregarNuevasPromos(listaPromos)
-//    }
-//
-//    // Inicializar PagerState después de tener feedVisible
-//    val startIndex = feedVisible.indexOfFirst { it.informacion_publcacion.id_promocion == promoSeleccionada.informacion_publcacion.id_promocion }
-//        .takeIf { it >= 0 } ?: 0
-//    val pagerState = rememberPagerState(initialPage = startIndex)
-//
-//    // Scroll infinito
-//    LaunchedEffect(pagerState.currentPage, listaPromos.size) {
-//        if (pagerState.currentPage >= feedVisible.size - threshold) {
-//            agregarNuevasPromos(listaPromos)
-//            if (pagerState.currentPage >= listaPromos.size - threshold) {
-//                Log.d("ZoomGallery", "Solicitando siguiente bloque desde pager...")
-//                viewModel.cargarSiguienteBloque(localidad_general)
-//            }
-//        }
-//    }
-//
-//    // UI
-//    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-//        Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
-//            VerticalPager(
-//                state = pagerState,
-//                pageCount = feedVisible.size,
-//                modifier = Modifier.fillMaxSize()
-//            ) { index ->
-//                val promo = feedVisible[index]
-//                Log.d("ZoomGallery", "Mostrando promo index=$index id=${promo.informacion_publcacion.id_promocion}")
-//
-//                ZoomableGalleryFullScreen_promociones(
-//                    dias_restantes = promo.dias_restantes,
-//                    logo_tienda = promo.img.logo_img,
-//                    nombre_tienda = promo.informacion_publcacion.nombre_tienda,
-//                    titulo = promo.informacion_publcacion.titulo,
-//                    txt = promo.informacion_publcacion.descripcion,
-//                    imagenes = promo.img.lista_img,
-//                    startIndex = 0,
-//                    onDismiss = onDismiss
-//                )
-//            }
-//        }
-//    }
-//}
-
-
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun ZoomableGalleryFullScreen_promociones(
@@ -1066,8 +988,8 @@ fun ZoomableGalleryFullScreen_promociones(
                 },
             userScrollEnabled = allowScroll
         ) { page ->
+  val zoomState = rememberZoomState()
 
-            val zoomState = rememberZoomState()
             val painter = rememberAsyncImagePainter(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(imagenes[page])

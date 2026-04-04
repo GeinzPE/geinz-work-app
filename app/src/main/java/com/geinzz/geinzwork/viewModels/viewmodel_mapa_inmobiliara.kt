@@ -10,6 +10,8 @@ import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.EstadoMapa
 import com.geinzz.geinzwork.data.model.datos_viewmodel_inmobiliara
 import com.geinzz.geinzwork.data.model.localizate_geinz.Exitosa
+import com.geinzz.geinzwork.data.model.lugares_cercanos_
+import com.geinzz.geinzwork.data.model.ob_categoria_mas_lista_lugares_cercanos
 import com.geinzz.geinzwork.data.model.obj_pasado_clikeado_mapa
 import com.geinzz.geinzwork.model.repo_mapa_inmobiliara
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.loadBitmapFromUrl
@@ -33,8 +35,39 @@ class viewmodel_mapa_inmobiliara : ViewModel() {
 
     val datosInmueble: StateFlow<datos_viewmodel_inmobiliara> = guardar_datos_inmuble.asStateFlow()
 
+
+    private val _categorias_mas_lista_lugares_cercanos_seguros =
+        MutableStateFlow(ob_categoria_mas_lista_lugares_cercanos())
+
+    val categorias_mas_lista_lugares_cercanos_seguros: StateFlow<ob_categoria_mas_lista_lugares_cercanos> =
+        _categorias_mas_lista_lugares_cercanos_seguros
+
+
+    private val _categorias_mas_lista_lugares_cercanos =
+        MutableStateFlow(ob_categoria_mas_lista_lugares_cercanos())
+
+    val categorias_mas_lista_lugares_cercanos: StateFlow<ob_categoria_mas_lista_lugares_cercanos> =
+        _categorias_mas_lista_lugares_cercanos
+
+
+    private val _categorias_mas_lista_lugares_cercanos_turisticos =
+        MutableStateFlow(ob_categoria_mas_lista_lugares_cercanos())
+
+    val categorias_mas_lista_lugares_cercanos_turisticos: StateFlow<ob_categoria_mas_lista_lugares_cercanos> =
+        _categorias_mas_lista_lugares_cercanos_turisticos
+
+
+    private val _categorias_mas_lista_lugares_cercanos_hoga =
+        MutableStateFlow(ob_categoria_mas_lista_lugares_cercanos())
+
+    val categorias_mas_lista_lugares_cercanos_hogar: StateFlow<ob_categoria_mas_lista_lugares_cercanos> =
+        _categorias_mas_lista_lugares_cercanos_hoga
+
+
     private val _estadoRuta = MutableStateFlow<Exitosa?>(null)
     val estadoRuta: StateFlow<Exitosa?> = _estadoRuta.asStateFlow()
+
+
 
 
     fun limpiarEstadoRuta() {
@@ -44,7 +77,93 @@ class viewmodel_mapa_inmobiliara : ViewModel() {
     fun agregar_datos_para_pasa_mapa(datos: datos_viewmodel_inmobiliara) {
         guardar_datos_inmuble.value = datos
     }
+    // 👇 Listas ORIGINALES (nunca se tocan)
+    private var _lista_original_seguros = listOf<lugares_cercanos_>()
+    private var _lista_original_cercanos = listOf<lugares_cercanos_>()
+    private var _lista_original_turisticos = listOf<lugares_cercanos_>()
+    private var _lista_original_hogar = listOf<lugares_cercanos_>()
 
+    fun obtener_lista_original_seguros() = _lista_original_seguros
+    fun obtener_lista_original_cercanos() = _lista_original_cercanos
+    fun obtener_lista_original_turisticos() = _lista_original_turisticos
+    fun obtener_lista_original_hogar() = _lista_original_hogar
+    // Al guardar, siempre salva también la original
+    fun guardar_listas_datos_lugares_Seguros(lista: List<lugares_cercanos_>) {
+        _lista_original_seguros = lista // 👈 guardar original
+        val categorias = lista.map { it.categoira }.distinct()
+        _categorias_mas_lista_lugares_cercanos_seguros.value =
+            ob_categoria_mas_lista_lugares_cercanos(lista, categorias)
+    }
+
+    fun guardar_lista_datos_lugares_cercanos(lista: List<lugares_cercanos_>) {
+        _lista_original_cercanos = lista
+        val categorias = lista.map { it.categoira }.distinct()
+        _categorias_mas_lista_lugares_cercanos.value =
+            ob_categoria_mas_lista_lugares_cercanos(lista, categorias)
+    }
+
+    fun guardar_lista_datos_lugares_turisticos(lista: List<lugares_cercanos_>) {
+        _lista_original_turisticos = lista
+        val categorias = lista.map { it.categoira }.distinct()
+        _categorias_mas_lista_lugares_cercanos_turisticos.value =
+            ob_categoria_mas_lista_lugares_cercanos(lista, categorias)
+    }
+
+    fun guardar_lista_datos_lugares_servicio_hogar(lista: List<lugares_cercanos_>) {
+        _lista_original_hogar = lista
+        val categorias = lista.map { it.categoira }.distinct()
+        _categorias_mas_lista_lugares_cercanos_hoga.value =
+            ob_categoria_mas_lista_lugares_cercanos(lista, categorias)
+    }
+
+    // 👇 Filtros siempre desde la original
+    fun aplicarFiltroSeguros(categoria: String) {
+        val filtrados = filtrarPorCategoria(_lista_original_seguros, categoria)
+        _categorias_mas_lista_lugares_cercanos_seguros.value =
+            ob_categoria_mas_lista_lugares_cercanos(
+                lista_data = filtrados,
+                lista_categoira = _lista_original_seguros.map { it.categoira }.distinct()
+            )
+    }
+
+    fun aplicarFiltrolugares_cercanos(categoria: String) {
+        val filtrados = filtrarPorCategoria(_lista_original_cercanos, categoria)
+        _categorias_mas_lista_lugares_cercanos.value =
+            ob_categoria_mas_lista_lugares_cercanos(
+                lista_data = filtrados,
+                lista_categoira = _lista_original_cercanos.map { it.categoira }.distinct()
+            )
+    }
+
+    fun aplicarFiltroTuristicos(categoria: String) {
+        val filtrados = filtrarPorCategoria(_lista_original_turisticos, categoria)
+        _categorias_mas_lista_lugares_cercanos_turisticos.value =
+            ob_categoria_mas_lista_lugares_cercanos(
+                lista_data = filtrados,
+                lista_categoira = _lista_original_turisticos.map { it.categoira }.distinct()
+            )
+    }
+
+    fun aplicarFiltroHogar(categoria: String) {
+        val filtrados = filtrarPorCategoria(_lista_original_hogar, categoria)
+        _categorias_mas_lista_lugares_cercanos_hoga.value =
+            ob_categoria_mas_lista_lugares_cercanos(
+                lista_data = filtrados,
+                lista_categoira = _lista_original_hogar.map { it.categoira }.distinct()
+            )
+    }
+
+    fun filtrarPorCategoria(
+        lista: List<lugares_cercanos_>,
+        categoriaSeleccionada: String
+    ): List<lugares_cercanos_> {
+
+        if (categoriaSeleccionada.isEmpty()) return lista
+
+        return lista.filter { lugar ->
+            lugar.categoira.equals(categoriaSeleccionada, ignoreCase = true)
+        }
+    }
 
     fun crear_ruta(
         originLat: Double,
@@ -71,8 +190,9 @@ class viewmodel_mapa_inmobiliara : ViewModel() {
 
     fun setear_puntos_clikeados(
         lista: obj_pasado_clikeado_mapa,
-        onPuntoClick: (id: String, lat: Double, lng: Double, img: String, nombre: String,distancia:Double) -> Unit
+        onPuntoClick: (id: String, lat: Double, lng: Double, img: String, nombre: String, distancia: Double) -> Unit
     ) {
+        EstadoMapa.cargandoPuntos.value = true
         val manager = EstadoMapa.managerSecundario.value ?: return
         val mapboxMap = EstadoMapa.mapboxMapGlobal.value ?: return
         val contexto = EstadoMapa.contextoGlobal ?: return
@@ -94,7 +214,7 @@ class viewmodel_mapa_inmobiliara : ViewModel() {
             val lng = data.get("lng")?.asDouble ?: 0.0
             val img = data.get("img")?.asString ?: ""
             val nombre = data.get("nombre")?.asString ?: ""
-            val distanciaKm=data.get("distanciaKm")?.asDouble ?: 0.0
+            val distanciaKm = data.get("distanciaKm")?.asDouble ?: 0.0
 
             // ✅ Resetear tamaño de TODOS los marcadores
             manager.annotations.forEach { it.iconSize = 0.8 }
@@ -105,7 +225,7 @@ class viewmodel_mapa_inmobiliara : ViewModel() {
 
             EstadoMapa.idPuntoSeleccionado.value = id  // 👈 guardar seleccionado
 
-            onPuntoClick(id, lat, lng, img, nombre,distanciaKm)
+            onPuntoClick(id, lat, lng, img, nombre, distanciaKm)
             true
         }
 
@@ -126,7 +246,7 @@ class viewmodel_mapa_inmobiliara : ViewModel() {
                         addProperty("lng", lugar.lng)
                         addProperty("img", lugar.img_String)
                         addProperty("nombre", lugar.nombre)
-                        addProperty("distanciaKm",lugar.distanciaKm)
+                        addProperty("distanciaKm", lugar.distanciaKm)
                     }
                     Log.d("DISTANCIA_SAVE", "id=${lugar.id} | distanciaKm=${lugar.distanciaKm}")
 
@@ -163,6 +283,7 @@ class viewmodel_mapa_inmobiliara : ViewModel() {
                 }
             }
         }
+        EstadoMapa.cargandoPuntos.value = false
     }
 
 

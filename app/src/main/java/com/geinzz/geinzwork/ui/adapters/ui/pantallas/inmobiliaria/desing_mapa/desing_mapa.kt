@@ -13,6 +13,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,6 +37,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.rounded.Bathtub
 import androidx.compose.material.icons.rounded.CheckCircle
@@ -60,6 +62,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -72,12 +75,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import coil3.request.error
+import coil3.request.placeholder
+import com.geinzz.geinzwork.BuildConfig
+import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.EstadoMapa
 import com.geinzz.geinzwork.data.model.categorias_diltrado_mapa_inmobiliara
 import com.geinzz.geinzwork.data.model.datos_viewmodel_inmobiliara
@@ -87,7 +97,10 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatearDistanciaDouble
 import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
+import com.github.panpf.zoomimage.ZoomImage
+import com.github.panpf.zoomimage.compose.rememberZoomState
 import com.mapbox.geojson.Point
+import kotlinx.coroutines.flow.first
 import kotlin.text.ifEmpty
 
 
@@ -342,17 +355,35 @@ fun estilo_carta_visual_inmueble(modifier: Modifier, datos: datos_viewmodel_inmo
                 .fillMaxWidth()
                 .height(alturaAnimada)
         ) { page ->
-            AsyncImage(
+
+            val zoomState = rememberZoomState()
+
+            val painter = rememberAsyncImagePainter(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(datos.lista_img.getOrNull(page))
-                    .crossfade(true)
-                    .build(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-//                        placeholder = painterResource(com.geinzz.geinzwork.R.drawable.cargando_img_categorias),
-//                error = painterResource(R.drawable.cargando_img_categorias)
+                    .data(datos.lista_img[page])
+                    .placeholder(R.drawable.cargando_img_categorias)
+                    .error(R.drawable.cargando_img_categorias)
+                    .build()
             )
+            val state = painter.state
+            ZoomImage(
+                painter = painter,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                zoomState = zoomState,
+                contentScale = ContentScale.Crop
+            )
+
+//            AsyncImage(
+//                model = ImageRequest.Builder(LocalContext.current)
+//                    .data(datos.lista_img.getOrNull(page))
+//                    .crossfade(true)
+//                    .build(),
+//                contentDescription = null,
+//                contentScale = ContentScale.Crop,
+//                modifier = Modifier.fillMaxSize(),
+//
+//            )
         }
 
         Box(
@@ -467,7 +498,7 @@ fun estilo_carta_visual_inmueble(modifier: Modifier, datos: datos_viewmodel_inmo
 fun img_container(
     lista_seleccionada: obj_pasado_clikeado_mapa,
     seleccionado: String?,
-    lugar_clikeado: (id: String, lat: Double, lng: Double, img: String, nombre: String,distancia: Double) -> Unit,
+    lugar_clikeado: (id: String, lat: Double, lng: Double, img: String, nombre: String, distancia: Double) -> Unit,
     ver_mas_: (tipo: String, id: String, localidad: String, img: String, nombre: String) -> Unit
 ) {
 
@@ -490,8 +521,8 @@ fun img_container(
             )
 
             Box(
-                modifier = Modifier.
-                    padding(bottom = 10.dp)
+                modifier = Modifier
+                    .padding(bottom = 10.dp)
                     .animateItem(
                         placementSpec = tween(
                             durationMillis = 350,
@@ -505,7 +536,7 @@ fun img_container(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box {
-                        AsyncImage(
+                        SubcomposeAsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
                                 .data(datos.img_String)
                                 .crossfade(true)
@@ -526,17 +557,42 @@ fun img_container(
                                     else Modifier
                                 )
                                 .clickable {
-
                                     lugar_clikeado(
                                         datos.id,
                                         datos.lat,
                                         datos.lng,
                                         datos.img_String,
-                                        datos.nombre,datos.distanciaKm
+                                        datos.nombre,
+                                        datos.distanciaKm
                                     )
                                 },
-//                                    placeholder = painterResource(com.geinzz.geinzwork.R.drawable.cargando_img_categorias),
-//                            error = painterResource(R.drawable.cargando_img_categorias)
+                            loading = {
+                                Image(
+                                    painter = painterResource(R.drawable.cargando_img_categorias),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .width(anchoAnimado)
+                                        .height(140.dp)
+                                        .clip(RoundedCornerShape(15.dp))
+                                )
+                            },
+                            error = {
+                                // Imagen de fallback sin animación
+                                Box(
+                                    modifier = Modifier
+                                        .width(anchoAnimado)
+                                        .height(140.dp)
+                                        .background(Color.Gray.copy(alpha = 0.3f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.BrokenImage,
+                                        contentDescription = null,
+                                        tint = Color.Gray
+                                    )
+                                }
+                            }
                         )
 
                         Box(
@@ -674,54 +730,122 @@ fun ChipEstilo(
                 letterSpacing = 0.3.sp
             )
 
-            AnimatedVisibility(
-                visible = estaSeleccionado,
-                enter = fadeIn(tween(300)) + scaleIn(tween(300)),
-                exit = fadeOut(tween(200)) + scaleOut(tween(200))
-            ) {
-                if (mostrarProgreso) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(14.dp),
-                        color = Color.White,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    // ✅ Ya NO se llama todos_cargados() aquí
-                    Icon(
-                        imageVector = Icons.Rounded.CheckCircle,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = alphaIconos),
-                        modifier = Modifier.size(14.dp)
-                    )
+//            AnimatedVisibility(
+//                visible = estaSeleccionado,
+//                enter = fadeIn(tween(300)) + scaleIn(tween(300)),
+//                exit = fadeOut(tween(200)) + scaleOut(tween(200))
+//            ) {
+//                if (mostrarProgreso) {
+//                    CircularProgressIndicator(
+//                        modifier = Modifier.size(14.dp),
+//                        color = Color.White,
+//                        strokeWidth = 2.dp
+//                    )
+//                } else {
+//                    // ✅ Ya NO se llama todos_cargados() aquí
+//                    Icon(
+//                        imageVector = Icons.Rounded.CheckCircle,
+//                        contentDescription = null,
+//                        tint = Color.White.copy(alpha = alphaIconos),
+//                        modifier = Modifier.size(14.dp)
+//                    )
+//                }
+//            }
+        }
+    }
+}
+
+@Composable
+fun filtro_chips_categoria_Seleccioanda(
+    seleccioando: String,
+    categoria: List<String>,
+    cateogira_selecto: (String) -> Unit
+) {
+
+    // 🔥 Auto seleccionar el primero SOLO si no hay seleccionado
+    LaunchedEffect(categoria) {
+        if (seleccioando.isEmpty() && categoria.isNotEmpty()) {
+            cateogira_selecto(categoria.first())
+        }
+    }
+
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        items(categoria) { i ->
+            ChipEstilo(
+                texto = i,
+                cantidad = 0,
+                estaSeleccionado = i == seleccioando,
+                todos_cargados = {},
+                onClick = {
+                    cateogira_selecto(i)
                 }
+            )
+        }
+    }
+}
+
+@Composable
+fun ListaChips(
+    subateoria: String,
+    categorias: List<categorias_diltrado_mapa_inmobiliara>,
+    seleccionado: String,
+    onSeleccionar: (String,lista: List<String>) -> Unit,
+    todos_cargados: () -> Unit,
+) {
+    Column (verticalArrangement = Arrangement.spacedBy(10.dp)){
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(12.dp)
+        ) {
+            items(categorias) { categoria ->
+                ChipEstilo(
+                    texto = categoria.nombre,
+                    cantidad = categoria.cantidad,
+                    estaSeleccionado = categoria.nombre == seleccionado,
+                    { todos_cargados() },
+                    onClick = { onSeleccionar(categoria.nombre,categoria.categoria) }
+                )
             }
         }
+
     }
 }
 
 
 @Composable
-fun ListaChips(
-    categorias: List<categorias_diltrado_mapa_inmobiliara>,
-    seleccionado: String,
-    onSeleccionar: (String) -> Unit,
-    todos_cargados: () -> Unit,
+fun MapPreview_solo_imagen(
+    lat: Double,
+    lon: Double,
+    onClick: () -> Unit
 ) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(start = 12.dp , end = 12.dp , top = 5.dp , bottom =5.dp)
+
+    val apiKey = BuildConfig.MAPBOX_ACCESS_TOKEN
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() }
     ) {
-        items(categorias) { categoria ->
-            ChipEstilo(
-                texto = categoria.nombre,
-                cantidad = categoria.cantidad,
-                estaSeleccionado = categoria.nombre == seleccionado,
-                {
-                    todos_cargados()
-                },
-                onClick = { onSeleccionar(categoria.nombre)
-                   }
-            )
-        }
+        AsyncImage(
+            model = "https://api.mapbox.com/styles/v1/benjaminlopez/cmm9c0hlt003901s54utw9p30/static/" +
+                    // Pin rojo pequeño
+                    "pin-s+ff0000($lon,$lat)/" +
+                    // Centro del mapa
+                    "$lon,$lat,18,0,45/" +
+                    // Tamaño de la imagen
+                    "1200x600" +
+                    "?access_token=$apiKey",
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(R.drawable.cargando_img_categorias),
+            error = painterResource(R.drawable.cargando_img_categorias)
+        )
     }
+
 }

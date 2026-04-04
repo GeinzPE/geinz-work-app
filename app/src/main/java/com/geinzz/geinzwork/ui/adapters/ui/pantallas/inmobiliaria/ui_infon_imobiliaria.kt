@@ -4,39 +4,26 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
-import androidx.media3.common.MediaItem
-import android.support.v4.media.MediaBrowserCompat
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.EaseInOutCubic
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectTapGestures
+
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,25 +38,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.VolumeOff
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.FastForward
-import androidx.compose.material.icons.filled.FastRewind
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
+
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -85,6 +59,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -93,13 +68,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -139,32 +111,18 @@ import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite
 import com.geinzz.geinzwork.viewModels.viewmodel_inmobiliaria
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
-import com.google.android.gms.maps.MapView
-import com.mapbox.maps.CameraOptions
-import com.mapbox.maps.extension.compose.MapEffect
-import com.mapbox.maps.extension.compose.MapboxMap
-import com.mapbox.maps.extension.compose.style.MapStyle
-import com.mapbox.maps.plugin.gestures.gestures
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import java.net.URLEncoder
-import java.util.Properties
+
 import kotlin.math.roundToInt
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
+
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.core.content.ContextCompat
-import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
-import com.geinzz.geinzwork.data.model.datos_compartidos_lugares_cercacnos
 import com.geinzz.geinzwork.data.model.datos_viewmodel_inmobiliara
 import com.geinzz.geinzwork.data.model.perfiles_negocios
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.desing_mapa.MapPreview_solo_imagen
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.ShimmerImagenConMarca_logo
 import com.geinzz.geinzwork.utils.constantes.constantes_reprodutor_video.GaleriaHorizontalInstagram_mas_video_info_inmobiliaria
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_inmobiliara
@@ -205,10 +163,7 @@ fun ui_info_imobiliara(
                 banos = datos_Estados_succes.banos,
                 metros = datos_Estados_succes.metros,
                 habitaciones = datos_Estados_succes.habitaciones,
-                cantidad_lugares_seguros = datos_Estados_succes.cantidad_lugares_seguros,
-                cantidad_lugares_cercanos = datos_Estados_succes.listalugares_cercanos,
-                cantidad_lugares_turisticos = datos_Estados_succes.llissa_lugareS_turistos,
-                cantidad_lugares_para_el_hogar = datos_Estados_succes.lista_servicios_sercanos
+
 
             )
 
@@ -234,6 +189,7 @@ fun ui_info_imobiliara(
 
 
     var filtro_seleccionado by remember { mutableStateOf("") }
+    var nombre_personaje_seleccionado by remember { mutableStateOf("") }
 
     val lista_lugares_cercanos_filtrada by viewModel.lugares_filtrados.collectAsState()
     val datos_numeros_salud_seguridad by viewModelFiltros.instance_salud_seguridad.collectAsState()
@@ -248,7 +204,6 @@ fun ui_info_imobiliara(
     val icono_profuncidad = R.drawable.flecha_vertical
     val icon_ancho = R.drawable.flecha_orizontal
     val isPlaying by viewmodel_tts.isPlaying.collectAsState()
-
 
     val respuesta_gemini_para_tts by viewModel.respuesta_IA_datos.collectAsState()
 
@@ -282,7 +237,6 @@ fun ui_info_imobiliara(
     var lat by remember { mutableStateOf(0.0) }
     var lng by remember { mutableStateOf(0.0) }
     val listState = rememberLazyListState()
-    val stickyHeaderIndex = 1
     var toastShown by remember { mutableStateOf(false) }
     val paddingAnim by animateDpAsState(
         targetValue = if (toastShown) 5.dp else 0.dp,
@@ -291,17 +245,9 @@ fun ui_info_imobiliara(
             easing = FastOutSlowInEasing
         )
     )
-//    LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
-//        if (listState.firstVisibleItemIndex >= stickyHeaderIndex && !toastShown) {
-//            toastShown = true
-//        } else if (listState.firstVisibleItemIndex < stickyHeaderIndex) {
-//            toastShown = false
-//        }
-//    }
     LaunchedEffect(datosTienda) {
         if (!datosTienda.isNullOrEmpty()) {
             dataclass_tienda_seleccionada = datosTienda!!.first()
-//            viewModelFiltros.cast_horario_atencion_horario_tienda(datosTienda!!.first().horario_atencion)
         }
     }
 
@@ -364,9 +310,10 @@ fun ui_info_imobiliara(
     }
     val cargando_data = estado is viewmodel_inmobiliaria.etado_carga_info_inmuebles.loading
             || estado == viewmodel_inmobiliaria.etado_carga_info_inmuebles.idle
+
     val mostrarColumna by remember {
         derivedStateOf {
-            cargando_data && listState.firstVisibleItemIndex >= 3
+            listState.firstVisibleItemIndex >= 3
         }
     }
 
@@ -446,7 +393,7 @@ fun ui_info_imobiliara(
                             }
                         }
 
-                        item {
+                        item(key = "datos") {
                             Column(
                                 verticalArrangement = Arrangement.spacedBy(15.dp),
                                 modifier = Modifier.padding(horizontal = 8.dp)
@@ -616,7 +563,7 @@ fun ui_info_imobiliara(
 
                         }
 
-                        item {
+                        item(key = "perfiles") {
                             val colors: List<Color> = listOf(
                                 Color(0xFF7D49EE),
                                 Color(0xFF2354A6),
@@ -694,28 +641,32 @@ fun ui_info_imobiliara(
                                         horizontalArrangement = Arrangement.SpaceEvenly
                                     ) {
                                         lista_perfil.forEach { i ->
+                                            key(i.txt) {
                                             seleccion_tipo_persona(
                                                 i = i,
                                                 seleccionado = filtro_seleccionado == i.txt
-                                            ) { tipo_select ->
+                                            ) { tipo_select,nombre ->
                                                 filtro_seleccionado = tipo_select
+                                                nombre_personaje_seleccionado=nombre
+                                                viewmodel_tts.detenerAudio()
                                                 nueva_busqueda = 5.0f
                                                 val radioEnKm = nueva_busqueda.toDouble() / 10.0
-
                                                 scope.launch {
                                                     filtar_datos(
-                                                        viewModel,
-                                                        radioEnKm,
-                                                        datos,
-                                                        nombre_user,
-                                                        lista_lugares_cercanos_filtrada,
-                                                        tipo_select
+                                                        viewModel = viewModel,
+                                                        radioEnKm = radioEnKm,
+                                                        datos = datos,
+                                                        nombre_user = nombre_user,
+                                                        lista_lugares_cercanos_filtrada = lista_lugares_cercanos_filtrada,
+                                                        tipo_select = tipo_select
                                                     )
                                                 }
+                                            }
                                             }
                                         }
                                     }
                                     GeminiBlobBackground_contexto(
+                                        nombre_personaje_seleccionado,
                                         expandido = expandido_var,
                                         viewmodel_tts = viewmodel_tts,
                                         respuesta_gemini_para_tts = respuesta_gemini_para_tts,
@@ -725,13 +676,6 @@ fun ui_info_imobiliara(
                                         }
                                     )
                                 }
-//                            Text(
-//                                text = if (expandido) "▲ ver menos" else "▼ ver más",
-//                                style = MaterialTheme.typography.labelSmall,
-//                                color = Color.White.copy(alpha = 0.6f),
-//                                modifier = Modifier
-//                                    .padding(top = 8.dp)
-//                            )
                                 if (!expandido_var) {
                                     Box(
                                         modifier = Modifier
@@ -750,11 +694,9 @@ fun ui_info_imobiliara(
                             }
 
                             spacer_vertical(10.dp)
-
-
                         }
 
-                        item {
+                        item(key = "slider") {
                             Column(
                                 modifier = Modifier
                                     .animateContentSize()
@@ -835,7 +777,7 @@ fun ui_info_imobiliara(
 
                             }
                         }
-                        item {
+                        item (key = "listas") {
                             Column(
                                 Modifier.animateContentSize(),
                                 verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -900,8 +842,8 @@ fun ui_info_imobiliara(
                             spacer_vertical(10.dp)
                         }
 
-                        item {
-                            MapPreview(datos.listaImg.first(), datos.lat, datos.lng, {})
+                        item (key = "mapa"){
+                            MapPreview_solo_imagen( datos.lat, datos.lng, {})
                             spacer_vertical(80.dp)
                         }
                     }
@@ -1019,14 +961,13 @@ fun ui_info_imobiliara(
                                     banos = datos_Estados_succes.banos,
                                     metros = datos_Estados_succes.metros,
                                     habitaciones = datos_Estados_succes.habitaciones,
-                                    cantidad_lugares_seguros = datos_Estados_succes.cantidad_lugares_seguros,
-                                    cantidad_lugares_cercanos = datos_Estados_succes.listalugares_cercanos,
-                                    cantidad_lugares_turisticos = datos_Estados_succes.llissa_lugareS_turistos,
-                                    cantidad_lugares_para_el_hogar = datos_Estados_succes.lista_servicios_sercanos
-
                                 )
 
                                 abrir_mapa_ver_cercanos()
+                                viewmodel_mapa_inmobilia.guardar_listas_datos_lugares_Seguros(datos_Estados_succes.cantidad_lugares_seguros)
+                                viewmodel_mapa_inmobilia.guardar_lista_datos_lugares_cercanos(datos_Estados_succes.listalugares_cercanos)
+                                viewmodel_mapa_inmobilia.guardar_lista_datos_lugares_turisticos(datos_Estados_succes.llissa_lugareS_turistos)
+                                viewmodel_mapa_inmobilia.guardar_lista_datos_lugares_servicio_hogar(datos_Estados_succes.lista_servicios_sercanos)
                                 viewmodel_mapa_inmobilia.agregar_datos_para_pasa_mapa(instancia_datos)
                             } else {
                                 permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -1056,181 +997,10 @@ fun ui_info_imobiliara(
 }
 
 
-@Composable
-fun MapPreview(
-    img_inmueble: String,
-    lat: Double,
-    lon: Double,
-    onClick: () -> Unit
-) {
-
-    val apiKey = BuildConfig.MAPBOX_ACCESS_TOKEN
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(300.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .clickable { onClick() }
-    ) {
-        AsyncImage(
-            model = "https://api.mapbox.com/styles/v1/benjaminlopez/cmm9c0hlt003901s54utw9p30/static/" +
-                    // Pin rojo pequeño
-                    "pin-s+ff0000($lon,$lat)/" +
-                    // Centro del mapa
-                    "$lon,$lat,18,0,45/" +
-                    // Tamaño de la imagen
-                    "1200x600" +
-                    "?access_token=$apiKey",
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-            placeholder = painterResource(R.drawable.cargando_img_categorias),
-            error = painterResource(R.drawable.cargando_img_categorias)
-        )
-    }
-
-}
 
 
-@Composable
-fun ListaHorizontal(
-    tipo_lanzado: String,
-    titulo: String,
-    texto: String,
-    lista: List<lugares_cercanos_>,
-    clik_carta: (id: String, localida: String, img: String, nombre: String, lat: Double, lng: Double) -> Unit
-) {
-
-    val anchos_definidos = when (tipo_lanzado) {
-        "salud" -> {
-            150.dp
-        }
-
-        "cercanos" -> {
-            150.dp
-        }
-
-        "turisticos" -> {
-            300.dp
-        }
-
-        "servicos" -> {
-            150.dp
-        }
-
-        else -> {
-            150.dp
-        }
-    }
-    val altos_definidos = when (tipo_lanzado) {
-        "salud" -> {
-            150.dp
-        }
-
-        "cercanos" -> {
-            150.dp
-        }
-
-        "turisticos" -> {
-            200.dp
-        }
-
-        "servicos" -> {
-            150.dp
-        }
-
-        else -> {
-            150.dp
-        }
-    }
-    Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-        texto_generico_one_line(titulo)
-        texto_generico_multilinea(texto, style = MaterialTheme.typography.labelSmall)
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(lista) { i ->
-                Box(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .animateItem(
-                            placementSpec = tween(
-                                durationMillis = 350,
-                                easing = FastOutSlowInEasing
-                            )
-                        )
-                ) {
-
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(15.dp))
-                            .height(altos_definidos)
-                            .width(anchos_definidos)
-                    ) {
-                        AsyncImage(
-                            model = i.img_String,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(15.dp))
-                                .height(altos_definidos)
-                                .width(anchos_definidos)
-                                .clickable {
-                                    clik_carta(
-                                        i.id,
-                                        i.localidad,
-                                        i.img_String,
-                                        i.nombre,
-                                        i.lat,
-                                        i.lng
-                                    )
-                                },
-                            contentScale = ContentScale.Crop,
-                            placeholder = painterResource(R.drawable.cargando_img_categorias),
-                            error = painterResource(R.drawable.cargando_img_categorias)
-                        )
-                        Column(
-                            modifier = Modifier
-
-                                .align(Alignment.BottomCenter)
-
-                        ) {
-                            val metros = (i.distanciaKm * 1000).toInt()
-                            val texto = if (metros >= 1000) "1km" else "${metros}m"
-                            texto_generico_one_line(
-                                "A solo ${texto}",
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(Color.Black.copy(alpha = 0.85f))
-                                    .padding(horizontal = 10.dp, vertical = 7.dp),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            spacer_vertical(10.dp)
-                        }
 
 
-//                    val distanciaTexto = when {
-//                        i.distanciaKm < 1.0 -> "${(i.distanciaKm * 1000).toInt()}m"
-//                        else -> "${"%.1f".format(i.distanciaKm)}km"
-//                    }
-
-//                    texto_generico_one_line(
-//                        distanciaTexto,
-//                        color = Color(0xFFB0B0B0),
-//                        style = MaterialTheme.typography.bodyMedium,
-//                        modifier = Modifier.padding(start = 5.dp)
-//                    )
-
-                    }
-
-
-                }
-
-            }
-        }
-    }
-
-}
 
 
 fun normalizarNombre(nombre: String): String {
@@ -1241,404 +1011,7 @@ fun normalizarNombre(nombre: String): String {
         .first()
 }
 
-@Composable
-fun seleccion_tipo_persona(
-    i: perfiles_negocios,
-    seleccionado: Boolean,
-    click: (String) -> Unit
-) {
-    val overlayAlpha by animateFloatAsState(
-        targetValue = if (seleccionado) 0f else 0.55f,
-        animationSpec = tween(300),
-        label = "overlay"
-    )
 
-    // 🌑 Gradiente inferior animado — aparece cuando está seleccionado
-    val gradientAlpha by animateFloatAsState(
-        targetValue = if (seleccionado) 1f else 0f,
-        animationSpec = tween(300),
-        label = "gradient"
-    )
-
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(10.dp))
-            .width(100.dp)
-            .height(140.dp)
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ) { click(i.txt) }
-    ) {
-        // 🖼 Imagen base
-        Image(
-            painter = painterResource(i.imagen),
-            contentScale = ContentScale.Crop,
-            alignment = Alignment.TopCenter,
-            modifier = Modifier.fillMaxSize(),
-            contentDescription = null
-        )
-
-        // 🌑 Overlay negro — oscuro cuando no seleccionado
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = overlayAlpha))
-        )
-
-        // 🎨 Gradiente inferior — aparece al seleccionar para proteger el texto
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(60.dp)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.Black.copy(alpha = 0.75f * gradientAlpha)
-                        )
-                    )
-                )
-        )
-
-        // 📝 Texto
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(5.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = i.txt,
-                color = Color.White,
-                style = MaterialTheme.typography.labelSmall
-            )
-            Text(
-                text = i.nombre_personas,
-                color = Color.White,
-                style = MaterialTheme.typography.labelSmall
-            )
-        }
-    }
-}
-
-@Composable
-fun GeminiBlobBackground_contexto(
-    expandido: Boolean,
-    viewmodel_tts: tts_stt,
-    respuesta_gemini_para_tts: viewmodel_inmobiliaria.estado_carga_respuesta_con_IA,
-    filtro_seleccionado: String,
-    desespandir: (Boolean) -> Unit,
-) {
-    var respuesta_IA_cargada by remember { mutableStateOf(false) }
-
-    val nombreAMostrar = when (filtro_seleccionado) {
-        "Inversionista" -> "Pablo"
-        "Familiar" -> "Kaori"
-        "Solitario" -> "Luis"
-        else -> "Cliente"
-    }
-    val imagen_perfil_asistente =
-        when (filtro_seleccionado) {
-            "Inversionista" -> R.drawable.pablo_asistente
-            "Familiar" -> R.drawable.naomi_asistente
-            "Solitario" -> R.drawable.luis_asistente
-            else -> R.drawable.naomi_asistente
-        }
-    AnimatedVisibility(filtro_seleccionado.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .animateContentSize(animationSpec = tween(400, easing = EaseInOutCubic))
-                .then(
-                    if (expandido) Modifier.wrapContentHeight()
-                    else Modifier.height(170.dp)
-                )
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }) {
-                    desespandir(!expandido)
-//                    expandido = !expandido
-                }
-                .clipToBounds()
-        ) {
-
-            Box(
-                modifier = Modifier
-                    .padding(vertical = 12.dp)
-                    .then(
-                        if (!expandido) Modifier.heightIn(max = 170.dp) else Modifier
-                    )
-            ) {
-
-                when (respuesta_gemini_para_tts) {
-                    is viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.error -> {}
-                    viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.idle -> {}
-                    viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.loading -> {
-                        respuesta_IA_cargada=false
-//                        Box(
-//                            modifier = Modifier.fillMaxWidth(),
-//                            contentAlignment = Alignment.Center
-//                        ) {
-//                            CircularProgressIndicator()
-//                        }
-                    }
-
-                    is viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.succes -> {
-                        respuesta_IA_cargada=true
-                        var respuesta_gemini =
-                            (respuesta_gemini_para_tts as viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.succes).texto
-
-                        // ✅ Guarda qué texto ya fue enviado al TTS
-                        var textoYaReproducido by remember { mutableStateOf("") }
-                        LaunchedEffect(respuesta_gemini) {
-                            Log.d("respuesta_gemini", "${respuesta_gemini}")
-                            if (respuesta_gemini.isNotEmpty() && respuesta_gemini != textoYaReproducido) {
-                                textoYaReproducido = respuesta_gemini
-                                val tipo_voz = when (filtro_seleccionado) {
-
-                                    "Inversionista" -> {
-                                        "es-US-Polyglot-1"
-                                    }
-
-                                    "Familiar" -> {
-                                        "es-US-News-F"
-                                    }
-
-                                    "Solitario" -> {
-                                        "es-US-Neural2-B"
-                                    }
-
-                                    else -> {
-                                        "es-US-News-F"
-                                    }
-                                }
-                                viewmodel_tts.crear_texto__para_tts(respuesta_gemini, tipo_voz)
-                            }
-
-                        }
-                        Column(Modifier.fillMaxSize()) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Image(
-                                    painter = painterResource(id = imagen_perfil_asistente),
-                                    contentDescription = "Logo IA",
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .clip(CircleShape)
-                                        .clickable(
-                                            indication = null,
-                                            interactionSource = remember { MutableInteractionSource() }) {
-
-                                        }
-                                        .size(40.dp)
-                                )
-                                spacer_horizonta(5.dp)
-
-                                Text(
-                                    text = "$nombreAMostrar asistente de ventas",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    modifier = Modifier.weight(1f)
-                                )
-
-                                Text(
-                                    text = if (expandido) "▲ ver menos" else "▼ ver más",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White.copy(alpha = 0.6f),
-                                    modifier = Modifier
-                                        .padding(top = 8.dp)
-                                )
-                            }
-                            TypewriterTexto(respuesta_gemini)
-                        }
-
-
-                    }
-                }
-
-            }
-
-
-        }
-    }
-}
-
-@Composable
-fun GeminiBlobBackground(
-    isPlaying: Boolean,
-    modifier: Modifier = Modifier,
-    colors: List<Color> = listOf(
-        Color(0xFF8B5CF6), // purple
-        Color(0xFF3B82F6), // blue
-        Color(0xFF06B6D4), // cyan
-        Color(0xFFEC4899), // pink
-    )
-) {
-    data class Blob(
-        val xAnim: Animatable<Float, AnimationVector1D>,
-        val yAnim: Animatable<Float, AnimationVector1D>,
-        val scaleAnim: Animatable<Float, AnimationVector1D>,
-        val color: Color
-    )
-
-    val blobs = remember {
-        colors.mapIndexed { i, color ->
-            Blob(
-                xAnim = Animatable(0.2f + (i * 0.2f)),
-                yAnim = Animatable(0.2f + (i * 0.15f)),
-                scaleAnim = Animatable(0.6f),
-                color = color
-            )
-        }
-    }
-
-    LaunchedEffect(isPlaying) {
-        if (isPlaying) {
-            blobs.forEach { blob ->
-                launch {
-                    while (isPlaying) {
-                        val tx = (0.1f + Math.random() * 0.8f).toFloat()
-                        val ty = (0.1f + Math.random() * 0.8f).toFloat()
-                        val ts = (0.5f + Math.random() * 0.6f).toFloat()
-                        val dur = (1800 + Math.random() * 1400).toInt()
-
-                        launch {
-                            blob.xAnim.animateTo(tx, tween(dur, easing = EaseInOutCubic))
-                        }
-                        launch {
-                            blob.yAnim.animateTo(ty, tween(dur, easing = EaseInOutCubic))
-                        }
-                        blob.scaleAnim.animateTo(ts, tween(dur, easing = EaseInOutCubic))
-                    }
-                }
-            }
-        } else {
-            // vuelven a posición inicial suavemente
-            blobs.forEachIndexed { i, blob ->
-                launch {
-                    blob.xAnim.animateTo(0.2f + (i * 0.2f), tween(1200, easing = EaseInOutCubic))
-                    blob.yAnim.animateTo(0.2f + (i * 0.15f), tween(1200, easing = EaseInOutCubic))
-                    blob.scaleAnim.animateTo(0.6f, tween(1200, easing = EaseInOutCubic))
-                }
-            }
-        }
-    }
-
-    Canvas(modifier = modifier) {
-        val blobRadius = size.minDimension * 0.75f
-
-        blobs.forEach { blob ->
-            val cx = blob.xAnim.value * size.width
-            val cy = blob.yAnim.value * size.height
-            val radius = blobRadius * blob.scaleAnim.value
-            val c = blob.color
-
-            // capa principal — color en el centro, se desvanece hacia los bordes
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colorStops = arrayOf(
-                        0.0f to c.copy(alpha = 0.30f),
-                        0.4f to c.copy(alpha = 0.20f),
-                        0.7f to c.copy(alpha = 0.08f),
-                        1.0f to c.copy(alpha = 0.0f)
-                    ),
-                    center = Offset(cx, cy),
-                    radius = radius
-                ),
-                radius = radius,
-                center = Offset(cx, cy)
-            )
-
-            // halo exterior más grande y muy suave
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colorStops = arrayOf(
-                        0.0f to c.copy(alpha = 0.10f),
-                        0.5f to c.copy(alpha = 0.05f),
-                        1.0f to c.copy(alpha = 0.0f)
-                    ),
-                    center = Offset(cx, cy),
-                    radius = radius * 1.6f
-                ),
-                radius = radius * 1.6f,
-                center = Offset(cx, cy)
-            )
-        }
-    }
-}
-
-@Composable
-fun iconos_de_filtrado(cantidad: String, icono: Int) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Image(
-            painter = painterResource(icono),
-            contentDescription = null,
-            modifier = Modifier.size(25.dp)
-        )
-        texto_generico_one_line(cantidad, style = MaterialTheme.typography.bodyMedium)
-    }
-}
-
-@Composable
-fun desing_style_circular(text: String, color: Color) {
-    Box(
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(
-                color
-            )
-    ) {
-        texto_generico_one_line(
-            text,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
-            style = MaterialTheme.typography.bodyMedium
-        )
-    }
-}
-
-fun filtar_datos(
-    viewModel: viewmodel_inmobiliaria,
-    radioEnKm: Double,
-    datos: completeta_info_inmuebles,
-    nombre_user: String,
-    lista_lugares_cercanos_filtrada: lista_lugaers_totales,
-    tipo_select: String
-) {
-
-    viewModel.filtrar_por_radio_Cercania(radioEnKm)
-    val seguros_filtrados =
-        viewModel.lista_lugares_seguros_filtrada.value
-    val cercanos_filtrados =
-        viewModel.lista_lugares_cercanos_filtrada.value
-    val turisticos_filtrados =
-        viewModel.lista_lugares_turisticos_filtrada.value
-
-    val obj = ia_inmobiliara_tts(
-        cantidad_lugares_seguros = seguros_filtrados.size,   // ← filtrado
-        cantidad_lugares_encontrado = cercanos_filtrados.size,  // ← filtrado
-        cantidad_lugares_turisticos = turisticos_filtrados.size,// ← filtrado
-        metros_cuadrados = datos.metros.toString(),
-        tipo = datos.tipoPropiedad,
-        estado = datos.tipoOperacion,
-        nombre_user = nombre_user,
-        lista_lugares_cercanos = lista_lugares_cercanos_filtrada.listalugares_cercanos,
-        lista_lugares_seguros = lista_lugares_cercanos_filtrada.lista_servicios_sercanos,
-        lista_lugares_turisticos = lista_lugares_cercanos_filtrada.llissa_lugareS_turistos,
-        tipo_seleccionado = tipo_select,
-        calle_ubicada = datos.direccion,
-    )
-    viewModel.respuesta_gemini_(obj, tipo_select)
-
-}
 
 // Para Double (precio que viene del modelo)
 fun formatearNumero_double(numero: Double): String {

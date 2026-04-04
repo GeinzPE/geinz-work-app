@@ -18,6 +18,7 @@ import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.ktx.getField
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
@@ -163,12 +164,12 @@ class repo_inmobiliaria {
                 val subcategorias = doc.get("subcategoria") as? List<*>
                 val id = doc.get("id_tienda") as? String ?: ""
                 val nombre = doc.get("nombre_tienda") as? String ?: ""
-
+                val categorira=doc.getString("categoria_tienda") ?:""
                 val ubicacion = doc.get("ubicacion") as? Map<*, *>
                 val docLat = ubicacion?.get("latitud") as? Double ?: 0.0
                 val docLng = ubicacion?.get("longitud") as? Double ?: 0.0
                 val distancia = calcularDistanciaKm_directo(lat, lng, docLat, docLng)
-                lugares_cercanos_(nombre,"",
+                lugares_cercanos_(nombre,categorira,
                     img_String = listaImg,
                     distancia,id,localidad,docLat,docLng
                 )
@@ -274,10 +275,14 @@ class repo_inmobiliaria {
                 val img = doc.get("img.principal") as? String ?: ""
                 val nombre = doc.getString("titulo") ?: ""
                 val id = doc.getString("id") ?: ""
+                val categoria = (doc.get("categoria") as? List<*>)
+                    ?.filterIsInstance<String>()
+                    ?.firstOrNull() ?: ""
                 val distancia = calcularDistanciaKm_directo(lat, lng, docLat, docLng)
-                lugares_cercanos_(nombre,"",
-                    img_String = img,distancia,
-                    id,localidad,docLat,docLng
+                lugares_cercanos_(
+                    nombre = nombre, categoira = categoria,
+                    img_String = img, distanciaKm = distancia,
+                    id = id, localidad = localidad, lat = docLat, lng = docLng
                 )
             }
     }
@@ -356,12 +361,15 @@ class repo_inmobiliaria {
                 val docLng = ubicacion?.get("log") as? Double ?: 0.0
                 val img = doc.getString("img_logo") ?: ""
                 val nombre = doc.getString("lugar_nombre") ?: ""
+                val categoria = (doc.get("categoria") as? List<*>)
+                    ?.filterIsInstance<String>()
+                    ?.firstOrNull() ?: ""
                 val id = doc.getString("id") ?: ""
 
 
                 val distancia = calcularDistanciaKm_directo(lat, lng, docLat, docLng)
 
-                lugares_cercanos_(nombre,"",
+                lugares_cercanos_(nombre,categoria,
                     img_String = img,
                     distancia,id,localidad,docLat,docLng
                 )

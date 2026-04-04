@@ -1063,12 +1063,6 @@ fun contruir_promp_ia_datos_inmobiliara(
     perfil_selet: String
 ): String {
 
-    Log.d("PROMPT_IA", "Perfil seleccionado: $perfil_selet")
-    Log.d("PROMPT_IA", "Usuario: ${i.nombre_user}")
-    Log.d("PROMPT_IA", "Tipo propiedad: ${i.tipo}")
-    Log.d("PROMPT_IA", "Metros cuadrados: ${i.metros_cuadrados}")
-    Log.d("PROMPT_IA", "Ubicación: ${i.calle_ubicada}")
-
     val lugares = (i.lista_lugares_cercanos + i.lista_lugares_seguros + i.lista_lugares_turisticos)
         .take(6)
         .joinToString(", ")
@@ -1076,74 +1070,44 @@ fun contruir_promp_ia_datos_inmobiliara(
     Log.d("PROMPT_IA", "Lugares usados en prompt: $lugares")
 
     val enfoque = when (perfil_selet.lowercase().trim()) {
-        "inversionista" -> "enfócate en plusvalía, rentabilidad por metro cuadrado y el potencial de desarrollo del ${i.tipo}."
-        "familiar" -> "enfócate en la amplitud de los ${i.metros_cuadrados}m², la seguridad y el espacio ideal para ver crecer a los hijos."
-        "solitario" -> "enfócate en la independencia, el manejo eficiente del espacio de ${i.metros_cuadrados}m² y la practicidad."
-        else -> "enfócate en la oportunidad única que representan estos ${i.metros_cuadrados}m² en una ubicación estratégica."
+        "inversionista" -> "Habla de retorno de inversión, plusvalía real y por qué este ${i.tipo} en ${i.calle_ubicada} es una oportunidad que no se repite. Usa los datos de entorno como evidencia de demanda."
+        "familiar"      -> "Pinta la vida cotidiana dentro de los ${i.metros_cuadrados}m²: los hijos creciendo, la seguridad del barrio, la tranquilidad de tenerlo todo cerca. Hazlo emocional."
+        "solitario"     -> "Habla de libertad, control total del espacio y lo estratégico de la ubicación para alguien que valora su tiempo. Sin cargas innecesarias."
+        else            -> "Destaca la rareza de encontrar ${i.metros_cuadrados}m² en ${i.calle_ubicada} a este precio. Genera urgencia sin presionar."
     }
 
-    // construye solo las líneas de entorno que tienen datos reales
     val lineas_entorno = buildString {
         if (i.cantidad_lugares_encontrado > 0 && i.lista_lugares_cercanos.isNotEmpty()) {
-            appendLine(
-                "- Lugares de interés cercanos: ${i.cantidad_lugares_encontrado} (ej: ${
-                    i.lista_lugares_cercanos.take(
-                        3
-                    ).joinToString(", ")
-                })"
-            )
+            appendLine("- ${i.cantidad_lugares_encontrado} lugares de interés a menos de 500m (ej: ${i.lista_lugares_cercanos.take(3).joinToString(", ")})")
         }
         if (i.cantidad_lugares_seguros > 0 && i.lista_lugares_seguros.isNotEmpty()) {
-            appendLine(
-                "- Zonas seguras verificadas: ${i.cantidad_lugares_seguros} (ej: ${
-                    i.lista_lugares_seguros.take(
-                        2
-                    ).joinToString(", ")
-                })"
-            )
+            appendLine("- ${i.cantidad_lugares_seguros} zonas seguras verificadas cerca (ej: ${i.lista_lugares_seguros.take(2).joinToString(", ")})")
         }
         if (i.cantidad_lugares_turisticos > 0 && i.lista_lugares_turisticos.isNotEmpty()) {
-            appendLine(
-                "- Atractivos turísticos: ${i.cantidad_lugares_turisticos} (ej: ${
-                    i.lista_lugares_turisticos.take(
-                        2
-                    ).joinToString(", ")
-                })"
-            )
+            appendLine("- ${i.cantidad_lugares_turisticos} atractivos turísticos próximos (ej: ${i.lista_lugares_turisticos.take(2).joinToString(", ")})")
         }
     }.trim()
 
-    // instrucción de entorno adaptada según qué datos existen
-    val instruccion_entorno = if (lineas_entorno.isEmpty()) {
-        "No se encontraron datos de entorno cercano, así que enfócate solo en las características del inmueble y su ubicación estratégica."
-    } else {
-        "PODER DE LOS DATOS: Usa los datos de entorno para dar seguridad y credibilidad al cliente. Menciona las cantidades reales."
-    }
-
-    val seccion_entorno = if (lineas_entorno.isEmpty()) {
-        "No hay datos de entorno disponibles para esta búsqueda."
-    } else {
-        "DATOS DE ENTORNO (menos de 500 metros):\n$lineas_entorno"
-    }
+    val seccion_entorno = if (lineas_entorno.isEmpty())
+        "Sin datos de entorno disponibles. Compensa con la ubicación y las características del inmueble."
+    else
+        "ENTORNO VERIFICADO (radio 500m):\n$lineas_entorno\nUSA ESTOS NÚMEROS: dan credibilidad real, no los ignores."
 
     val prompt = """
-        Eres un cerrador de ventas inmobiliarias de élite en Barranca.
-        Cliente: ${i.nombre_user}.
-        Producto: ${i.tipo} de ${i.metros_cuadrados}m² en ${i.estado}.
-        Ubicación: ${i.calle_ubicada}.
-        Perfil: $perfil_selet.
+        Eres el mejor cerrador de ventas inmobiliarias de Barranca. Hablas directo, generas confianza y cierras.
+        Cliente: ${i.nombre_user} — Perfil: $perfil_selet.
+        Inmueble: ${i.tipo} de ${i.metros_cuadrados}m² | Estado: ${i.estado} | Ubicación: ${i.calle_ubicada}.
         
         $seccion_entorno
         
-        TAREA: Convence al cliente en 3 párrafos muy breves.
-        REGLAS CRÍTICAS:
-        1. $instruccion_entorno
-        2. MENCIONA EL TAMAÑO: Integra los ${i.metros_cuadrados} metros cuadrados con naturalidad.
-        3. CONCORDANCIA Y FORMATO: Usa "esta/este" correctamente. NO uses asteriscos (**), ni negritas. Solo texto plano.
-        4. DEBES mencionar el nombre de la inmobiliaria "House Capital Group".
-        5. PERSUASIÓN: $enfoque.
-        
-        Estilo directo, profesional y sin errores ortográficos.
+        TAREA: 3 párrafos breves que conviertan el interés en decisión.
+        REGLAS:
+        1. $enfoque
+        2. Integra "${i.metros_cuadrados}m²" de forma natural, no forzada.
+        3. Nombra "House Capital Group" con autoridad, como respaldo de confianza.
+        4. Cierra siempre invitando a contactar por WhatsApp para resolver cualquier duda.
+        5. Cero asteriscos, cero negritas. Texto plano, sin errores ortográficos.
+        6. Usa "este/esta" según corresponda al tipo de inmueble.
     """.trimIndent()
 
     Log.d("PROMPT_IA_FINAL", prompt)

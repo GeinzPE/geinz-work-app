@@ -67,6 +67,9 @@ data class lugares_cercanos_(
     val lat: Double = 0.0, val lng: Double = 0.0
 )
 
+
+data class ob_categoria_mas_lista_lugares_cercanos (val lista_data:List<lugares_cercanos_> =emptyList(),val lista_categoira: List<String> = emptyList())
+
 data class obj_pasado_clikeado_mapa(
     val tipo: String = "",
     val datos: List<lugares_cercanos_> = emptyList()
@@ -136,10 +139,7 @@ data class datos_viewmodel_inmobiliara(
     val banos: String = "",
     val metros: Double = 0.0,
     val habitaciones: String = "",
-    val cantidad_lugares_seguros: List<lugares_cercanos_> = emptyList(),
-    val cantidad_lugares_cercanos: List<lugares_cercanos_> = emptyList(),
-    val cantidad_lugares_turisticos: List<lugares_cercanos_> = emptyList(),
-    val cantidad_lugares_para_el_hogar: List<lugares_cercanos_> = emptyList(),
+
 )
 
 
@@ -149,5 +149,5 @@ data class datos_compartidos_lugares_cercacnos(
 
 
 data class categorias_diltrado_mapa_inmobiliara(
-    val nombre: String, val cantidad: Int
+    val nombre: String, val cantidad: Int,val categoria: List<String>
 )
