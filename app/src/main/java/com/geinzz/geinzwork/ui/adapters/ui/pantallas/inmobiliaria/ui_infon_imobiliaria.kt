@@ -1,11 +1,15 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria
 
 
-//import android.graphics.Point
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.media3.common.MediaItem
 import android.support.v4.media.MediaBrowserCompat
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -73,6 +77,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -153,6 +158,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.core.content.ContextCompat
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
@@ -179,7 +185,39 @@ fun ui_info_imobiliara(
     abrir_mapa: (tipo: String, img: String, lat: Double, lng: Double) -> Unit,
     abrir_mapa_ver_cercanos: () -> Unit
 ) {
+
     val context = LocalContext.current
+    var datos_Estados_succes by remember { mutableStateOf(completeta_info_inmuebles()) }
+    val permisoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            val instancia_datos = datos_viewmodel_inmobiliara(
+                id = datos_Estados_succes.id,
+                lista_img = datos_Estados_succes.listaImg,
+                localidad = datos_Estados_succes.distrito,
+                nombre = datos_Estados_succes.nombre,
+                latitud = datos_Estados_succes.lat,
+                longitud = datos_Estados_succes.lng,
+                ancho = datos_Estados_succes.ancho,
+                fondo = datos_Estados_succes.fondo,
+                precio = datos_Estados_succes.precio,
+                banos = datos_Estados_succes.banos,
+                metros = datos_Estados_succes.metros,
+                habitaciones = datos_Estados_succes.habitaciones,
+                cantidad_lugares_seguros = datos_Estados_succes.cantidad_lugares_seguros,
+                cantidad_lugares_cercanos = datos_Estados_succes.listalugares_cercanos,
+                cantidad_lugares_turisticos = datos_Estados_succes.llissa_lugareS_turistos,
+                cantidad_lugares_para_el_hogar = datos_Estados_succes.lista_servicios_sercanos
+
+            )
+
+            abrir_mapa_ver_cercanos()
+            viewmodel_mapa_inmobilia.agregar_datos_para_pasa_mapa(instancia_datos)
+        } else {
+            Toast.makeText(context, "Se necesita permiso de ubicación", Toast.LENGTH_SHORT).show()
+        }
+    }
     val viewmode_servicios_tramite: viewmode_servicios_tramite = viewModel()
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
 
@@ -195,7 +233,6 @@ fun ui_info_imobiliara(
     val servicios by viewModel.lista_lugares_servicios_filtrada.collectAsState()
 
 
-    var datos_Estados_succes by remember { mutableStateOf(completeta_info_inmuebles()) }
     var filtro_seleccionado by remember { mutableStateOf("") }
 
     val lista_lugares_cercanos_filtrada by viewModel.lugares_filtrados.collectAsState()
@@ -964,27 +1001,36 @@ fun ui_info_imobiliara(
                         color = Color(0xFF4A0085),
                         icono = R.drawable.google_maps_icono,
                         text = "Ir a ver", clikeado = {
-                            val instancia_datos = datos_viewmodel_inmobiliara(
-                                id = datos_Estados_succes.id,
-                                lista_img = datos_Estados_succes.listaImg,
-                                localidad = datos_Estados_succes.distrito,
-                                nombre = datos_Estados_succes.nombre,
-                                latitud = datos_Estados_succes.lat,
-                                longitud = datos_Estados_succes.lng,
-                                ancho = datos_Estados_succes.ancho,
-                                fondo = datos_Estados_succes.fondo,
-                                precio = datos_Estados_succes.precio,
-                                banos = datos_Estados_succes.banos,
-                                metros = datos_Estados_succes.metros,
-                                habitaciones = datos_Estados_succes.habitaciones,
-                                cantidad_lugares_seguros = datos_Estados_succes.cantidad_lugares_seguros,
-                                cantidad_lugares_cercanos = datos_Estados_succes.listalugares_cercanos,
-                                cantidad_lugares_turisticos = datos_Estados_succes.llissa_lugareS_turistos,
-                                cantidad_lugares_para_el_hogar = datos_Estados_succes.lista_servicios_sercanos
+                            if (ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.ACCESS_FINE_LOCATION
+                                ) == PackageManager.PERMISSION_GRANTED
+                            ) {
+                                val instancia_datos = datos_viewmodel_inmobiliara(
+                                    id = datos_Estados_succes.id,
+                                    lista_img = datos_Estados_succes.listaImg,
+                                    localidad = datos_Estados_succes.distrito,
+                                    nombre = datos_Estados_succes.nombre,
+                                    latitud = datos_Estados_succes.lat,
+                                    longitud = datos_Estados_succes.lng,
+                                    ancho = datos_Estados_succes.ancho,
+                                    fondo = datos_Estados_succes.fondo,
+                                    precio = datos_Estados_succes.precio,
+                                    banos = datos_Estados_succes.banos,
+                                    metros = datos_Estados_succes.metros,
+                                    habitaciones = datos_Estados_succes.habitaciones,
+                                    cantidad_lugares_seguros = datos_Estados_succes.cantidad_lugares_seguros,
+                                    cantidad_lugares_cercanos = datos_Estados_succes.listalugares_cercanos,
+                                    cantidad_lugares_turisticos = datos_Estados_succes.llissa_lugareS_turistos,
+                                    cantidad_lugares_para_el_hogar = datos_Estados_succes.lista_servicios_sercanos
 
-                            )
-                            abrir_mapa_ver_cercanos()
-                            viewmodel_mapa_inmobilia.agregar_datos_para_pasa_mapa(instancia_datos)
+                                )
+
+                                abrir_mapa_ver_cercanos()
+                                viewmodel_mapa_inmobilia.agregar_datos_para_pasa_mapa(instancia_datos)
+                            } else {
+                                permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                            }
                         }
                     )
                     btns(
@@ -1009,16 +1055,6 @@ fun ui_info_imobiliara(
 
 }
 
-@Composable
-fun GaleriaHorizontalInstagram(
-    x0: List<String>,
-    x1: String,
-    modifier: Modifier.Companion,
-    x3: () -> Unit,
-    x4: () -> Int
-) {
-    TODO("Not yet implemented")
-}
 
 @Composable
 fun MapPreview(
@@ -1297,6 +1333,7 @@ fun GeminiBlobBackground_contexto(
     filtro_seleccionado: String,
     desespandir: (Boolean) -> Unit,
 ) {
+    var respuesta_IA_cargada by remember { mutableStateOf(false) }
 
     val nombreAMostrar = when (filtro_seleccionado) {
         "Inversionista" -> "Pablo"
@@ -1342,16 +1379,17 @@ fun GeminiBlobBackground_contexto(
                     is viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.error -> {}
                     viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.idle -> {}
                     viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.loading -> {
-
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
+                        respuesta_IA_cargada=false
+//                        Box(
+//                            modifier = Modifier.fillMaxWidth(),
+//                            contentAlignment = Alignment.Center
+//                        ) {
+//                            CircularProgressIndicator()
+//                        }
                     }
 
                     is viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.succes -> {
+                        respuesta_IA_cargada=true
                         var respuesta_gemini =
                             (respuesta_gemini_para_tts as viewmodel_inmobiliaria.estado_carga_respuesta_con_IA.succes).texto
 
@@ -1610,3 +1648,4 @@ fun formatearNumero_double(numero: Double): String {
         "%,.2f".format(numero)           // 150000.75 → "150,000.75"
     }
 }
+

@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria
 
 import android.R.attr.duration
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -162,6 +163,8 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Close
@@ -174,6 +177,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import com.geinzz.geinzwork.data.model.localizate_geinz.obj_cuando_creas_rutas
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.desing_mapa.FabMenuAjustes
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.desing_mapa.ListaChips
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.desing_mapa.box_datos_botones_faciles
@@ -185,6 +189,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.desing_mapa.im
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.desing_mapa.limpiarRutaEnMapa
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularDistanciaMetros
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatearDistancia
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
 
 @SuppressLint("MissingPermission")
 @RequiresApi(Build.VERSION_CODES.O)
@@ -301,10 +306,20 @@ fun mapa_inmobilia(
     var ultimoBearing by remember { mutableStateOf(0.0) }
     val estaRecalculando = remember { mutableStateOf(false) }
     val ultimoRecalculo = remember { longArrayOf(0L) }
-
+    var mostrar_carga_datos_prores by remember { mutableStateOf(true) }
     var seguimiento_automatico by remember { mutableStateOf(true) }
     val cerca_del_destino by remember(distancia_al_destino) {
         derivedStateOf { distancia_al_destino in 1f..100f }
+    }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            Log.d("GPS", "✅ El usuario activó el GPS")
+
+        } else {
+            Log.d("GPS", "❌ El usuario canceló el diálogo de ubicación")
+        }
     }
     val colorBottomSheet by animateColorAsState(
         targetValue = when {
@@ -480,13 +495,13 @@ fun mapa_inmobilia(
             lista = lista, onPuntoClick = { id, lat, lng, img, nombre, distancia ->
                 val distanciaTexto =
                     formatearDistanciaDouble(distancia)
-                if(seleccionado_posible==id){
+                if (seleccionado_posible == id) {
                     seleccionado_posible = null
                     EstadoMapa.seleccionarPinPorId("")
                     img_negocio_preview = ""
                     nombre_negocio_select_preview = ""
                     distancia_terreno = ""
-                }else{
+                } else {
                     seleccionado_posible = id
                     img_negocio_preview = img
                     nombre_negocio_select_preview = nombre
@@ -1021,7 +1036,8 @@ fun mapa_inmobilia(
                                                                     ?: lista.first() // vuelve al primero si llega al final
 
                                                             seleccionado_posible = siguiente.id
-                                                            distancia_terreno = formatearDistanciaDouble(siguiente.distanciaKm)
+                                                            distancia_terreno =
+                                                                formatearDistanciaDouble(siguiente.distanciaKm)
 
                                                             EstadoMapa.seleccionarPinPorId(siguiente.id)
                                                             img_negocio_preview =
@@ -1056,67 +1072,89 @@ fun mapa_inmobilia(
                             }
                         }
                         if (!ruta_creada) {
-                            img_container(
-                                lista_seleccionada = lista_seleccionada,
-                                seleccionado_posible,
-                                lugar_clikeado = { id, lat, lng, img, nombre, distancia ->
-                                    if (seleccionado_posible == id) {
-                                        seleccionado_posible = null
-                                        EstadoMapa.seleccionarPinPorId("")
-                                        img_negocio_preview = ""
-                                        nombre_negocio_select_preview = ""
-                                        distancia_terreno = ""
-                                    } else {
-                                        distancia_terreno = formatearDistanciaDouble(distancia)
-                                        seleccionado_posible = id
-                                        EstadoMapa.seleccionarPinPorId(id)
-                                        img_negocio_preview = img
-                                        nombre_negocio_select_preview = nombre
-                                        mapboxMapInstance?.easeTo(
-                                            CameraOptions.Builder()
-                                                .center(Point.fromLngLat(lng, lat))
-                                                .zoom(16.0)
-                                                .build(),
-                                            MapAnimationOptions.mapAnimationOptions {
-                                                duration(800)
-                                            }
+                            if (!mostrar_carga_datos_prores) {
+                                Box(
+                                    modifier = Modifier
+                                        .height(140.dp)
+                                        .fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(15.dp, Alignment.CenterHorizontally)
+                                    ) {
+                                        texto_generico_one_line(
+                                            "Cargando lo mejor para ti",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.Gray
                                         )
+                                        CircularProgressIndicator()
                                     }
-                                },
-                                ver_mas_ = { tipo, id, localidad, img, nombre ->
-                                    Log.d("tipo_clikeado ", "$tipo $id $localidad")
-                                    when (tipo) {
-                                        "lugar_seguro" -> {
-                                            mostra_lugar_seguro_dialog = true
-                                            id_negocio_lugar_previwe = id
-                                            localida_negocio_lugar_preview = localidad
-                                            nombre_negocio_select_preview = nombre
+                                }
+                            } else {
+                                img_container(
+                                    lista_seleccionada = lista_seleccionada,
+                                    seleccionado_posible,
+                                    lugar_clikeado = { id, lat, lng, img, nombre, distancia ->
+                                        if (seleccionado_posible == id) {
+                                            seleccionado_posible = null
+                                            EstadoMapa.seleccionarPinPorId("")
+                                            img_negocio_preview = ""
+                                            nombre_negocio_select_preview = ""
+                                            distancia_terreno = ""
+                                        } else {
+                                            distancia_terreno = formatearDistanciaDouble(distancia)
+                                            seleccionado_posible = id
+                                            EstadoMapa.seleccionarPinPorId(id)
                                             img_negocio_preview = img
+                                            nombre_negocio_select_preview = nombre
+                                            mapboxMapInstance?.easeTo(
+                                                CameraOptions.Builder()
+                                                    .center(Point.fromLngLat(lng, lat))
+                                                    .zoom(16.0)
+                                                    .build(),
+                                                MapAnimationOptions.mapAnimationOptions {
+                                                    duration(800)
+                                                }
+                                            )
+                                        }
+                                    },
+                                    ver_mas_ = { tipo, id, localidad, img, nombre ->
+                                        Log.d("tipo_clikeado ", "$tipo $id $localidad")
+                                        when (tipo) {
+                                            "lugar_seguro" -> {
+                                                mostra_lugar_seguro_dialog = true
+                                                id_negocio_lugar_previwe = id
+                                                localida_negocio_lugar_preview = localidad
+                                                nombre_negocio_select_preview = nombre
+                                                img_negocio_preview = img
+                                            }
+
+                                            "lugar_cercanos" -> {
+                                                mostar_dialog_lugare_Cercanos = true
+                                                id_negocio_lugar_previwe = id
+                                                localida_negocio_lugar_preview = localidad
+
+                                            }
+
+                                            "lugar_turistico" -> {
+                                                viewmodelMapa.setBottomSheetVisible(true)
+                                                id_negocio_lugar_previwe = id
+                                                localida_negocio_lugar_preview = localidad
+
+                                            }
+
+                                            "lugar_servicios" -> {
+                                                mostrar_lugares_hogares = true
+                                                id_negocio_lugar_previwe = id
+                                                localida_negocio_lugar_preview = localidad
+
+                                            }
                                         }
 
-                                        "lugar_cercanos" -> {
-                                            mostar_dialog_lugare_Cercanos = true
-                                            id_negocio_lugar_previwe = id
-                                            localida_negocio_lugar_preview = localidad
-
-                                        }
-
-                                        "lugar_turistico" -> {
-                                            viewmodelMapa.setBottomSheetVisible(true)
-                                            id_negocio_lugar_previwe = id
-                                            localida_negocio_lugar_preview = localidad
-
-                                        }
-
-                                        "lugar_servicios" -> {
-                                            mostrar_lugares_hogares = true
-                                            id_negocio_lugar_previwe = id
-                                            localida_negocio_lugar_preview = localidad
-
-                                        }
-                                    }
-
-                                })
+                                    })
+                            }
                         }
                     }
                 }
@@ -1131,6 +1169,7 @@ fun mapa_inmobilia(
                             seleccionado = chipSeleccionado,
                             onSeleccionar = {
                                 seleccionado_posible = null
+                                mostrar_carga_datos_prores = false
                                 chipSeleccionado = it
                                 if (it == "Principal") {
                                     mostrar_ocultar_immagen = true
@@ -1142,6 +1181,8 @@ fun mapa_inmobilia(
                                         }
                                     }
                                 }
+                            }, {
+                                mostrar_carga_datos_prores = true
                             }
                         )
                     }
@@ -1276,14 +1317,25 @@ fun mapa_inmobilia(
                     containerColor = fabColor,
                     contentColor = Color.White,
                     onClick = {
-                        seguimiento_automatico = true
-                        mapboxMapInstance?.easeTo(
-                            CameraOptions.Builder()
-                                .center(Point.fromLngLat(lng_user, lat_user))
-//                            .zoom(17.5)
-                                .build(),
-                            MapAnimationOptions.mapAnimationOptions { duration(600) }
-                        )
+                        if (verificarUbiActiva(contex)) {
+                            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                                location?.let {
+                                    val user_point = Point.fromLngLat(it.longitude, it.latitude)
+                                    scope.launch {
+                                        seguimiento_automatico = true
+                                        mapboxMapInstance?.easeTo(
+                                            CameraOptions.Builder()
+                                                .center(Point.fromLngLat(lng_user, lat_user))
+                                                .build(),
+                                            MapAnimationOptions.mapAnimationOptions { duration(600) }
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            validacion_mostrar_dialog_ubi_off = true
+                        }
+
                     }) {
                     Icon(Icons.Default.MyLocation, contentDescription = "Mi ubicación")
                 }
@@ -1368,6 +1420,15 @@ fun mapa_inmobilia(
                     localida_negocio_lugar_preview,
                     ondimis = { mostrar_lugares_hogares = false },
                 )
+            }
+            if (validacion_mostrar_dialog_ubi_off) {
+                dialog_sin_ubi__rutas(
+                    "Para una mejor experiencia y " + "poder mostrar tu ubicación actual en el mapa, por favor habilita la función de ubicación en tu dispositivo. Esto te permitirá ubicarte de manera más rápida y conocer la proximidad a tu destino.",
+                    { validacion_mostrar_dialog_ubi_off = false },
+                    {
+                        validacion_mostrar_dialog_ubi_off = false
+                        verificarGPS(contex, launcher)
+                    })
             }
             AnimatedVisibility(
                 visible = ruta_creada,

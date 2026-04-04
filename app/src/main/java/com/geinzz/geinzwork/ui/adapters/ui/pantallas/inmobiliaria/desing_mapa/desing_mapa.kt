@@ -55,6 +55,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -621,12 +622,19 @@ fun ChipEstilo(
     texto: String,
     cantidad: Int,
     estaSeleccionado: Boolean = false,
+    todos_cargados: () -> Unit,
     onClick: () -> Unit = {}
 ) {
     val cargando by EstadoMapa.cargandoPuntos
     val mostrarProgreso = estaSeleccionado && cargando
 
-    // Animación de aparición suave de los iconos cuando termina
+    // ✅ Solo se dispara cuando termina de cargar (cargando pasa de true → false)
+    LaunchedEffect(estaSeleccionado, cargando) {
+        if (estaSeleccionado && !cargando) {
+            todos_cargados()
+        }
+    }
+
     val alphaIconos by animateFloatAsState(
         targetValue = if (estaSeleccionado && !cargando) 1f else 0f,
         animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
@@ -657,7 +665,6 @@ fun ChipEstilo(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            // ── Texto del chip ────────────────────
             val texto_final = if (cantidad == 0) texto else "$texto ($cantidad)"
             Text(
                 text = texto_final,
@@ -667,21 +674,19 @@ fun ChipEstilo(
                 letterSpacing = 0.3.sp
             )
 
-            // ── Progress o check animado ──────────
             AnimatedVisibility(
                 visible = estaSeleccionado,
                 enter = fadeIn(tween(300)) + scaleIn(tween(300)),
                 exit = fadeOut(tween(200)) + scaleOut(tween(200))
             ) {
                 if (mostrarProgreso) {
-                    // Cargando → spinner
                     CircularProgressIndicator(
                         modifier = Modifier.size(14.dp),
                         color = Color.White,
                         strokeWidth = 2.dp
                     )
                 } else {
-                    // Listo → check con fade suave
+                    // ✅ Ya NO se llama todos_cargados() aquí
                     Icon(
                         imageVector = Icons.Rounded.CheckCircle,
                         contentDescription = null,
@@ -699,7 +704,8 @@ fun ChipEstilo(
 fun ListaChips(
     categorias: List<categorias_diltrado_mapa_inmobiliara>,
     seleccionado: String,
-    onSeleccionar: (String) -> Unit
+    onSeleccionar: (String) -> Unit,
+    todos_cargados: () -> Unit,
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -710,6 +716,9 @@ fun ListaChips(
                 texto = categoria.nombre,
                 cantidad = categoria.cantidad,
                 estaSeleccionado = categoria.nombre == seleccionado,
+                {
+                    todos_cargados()
+                },
                 onClick = { onSeleccionar(categoria.nombre)
                    }
             )
