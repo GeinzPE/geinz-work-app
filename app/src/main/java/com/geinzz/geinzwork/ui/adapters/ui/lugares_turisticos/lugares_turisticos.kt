@@ -365,24 +365,24 @@ fun pantalla_lugares_turisticos(
                                 )
                         ){
 
-                        carta_turismo(
-                            verificar_intener = verificar_intener,
-                            mostra_pantalla_carga = mostra_pantalla_carga,
-                            viewmodelMap = viewmodelMapa,
-                            viewmodel_lugares_turisticos = viewmodel_lugares_turisticos,
-                            index = index,
-                            img = item.img_principal,
-                            lugar = item,
-                            abrir_mapa = { tipo ->
-                                abrir_mapa(tipo, item.img_principal, item.latitud, item.longitud)
-                            },
-                            crear_cuenta = { crear_cuenta() },
-                            iniciar_seccion = { iniciar_seccion() },
-                            { lugar ->
-                                objdatos_luga_turistico = lugar
-                                viewmodelMapa.setObjetoSeleccionado(lugar)
-                                viewmodelMapa.setBottomSheetVisible(true)
-                            })
+                            carta_turismo(
+                                verificar_intener = verificar_intener,
+                                mostra_pantalla_carga = mostra_pantalla_carga,
+                                viewmodelMap = viewmodelMapa,
+                                viewmodel_lugares_turisticos = viewmodel_lugares_turisticos,
+                                index = index,
+                                img = item.img_principal,
+                                lugar = item,
+                                abrir_mapa = { tipo ->
+                                    abrir_mapa(tipo, item.img_principal, item.latitud, item.longitud)
+                                },
+                                crear_cuenta = { crear_cuenta() },
+                                iniciar_seccion = { iniciar_seccion() },
+                                { lugar ->
+                                    objdatos_luga_turistico = lugar
+                                    viewmodelMapa.setObjetoSeleccionado(lugar)
+                                    viewmodelMapa.setBottomSheetVisible(true)
+                                })
                         }
                     }
                 }
@@ -444,6 +444,7 @@ fun pantalla_lugares_turisticos(
         }
         if (bottomSheetVisible) {
             bottom_sheet_lugares_turisticos(
+                false,
                 localidad_selecionada,
                 verificar_intener,
                 viewmodelMap = viewmodelMapa,

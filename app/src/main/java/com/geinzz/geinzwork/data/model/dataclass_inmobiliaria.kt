@@ -19,7 +19,9 @@ data class dataclass_geinz_inmobiliaria_principal(
     val cantidad_cochera: String = "",
     val trato: String = "",
     val medida_fondo: Int = 0,
-    val medida_frente: Int = 0
+    val medida_frente: Int = 0,
+    val longitud: Double = 0.0,
+    val latitud: Double = 0.0
 )
 
 
@@ -68,7 +70,10 @@ data class lugares_cercanos_(
 )
 
 
-data class ob_categoria_mas_lista_lugares_cercanos (val lista_data:List<lugares_cercanos_> =emptyList(),val lista_categoira: List<String> = emptyList())
+data class ob_categoria_mas_lista_lugares_cercanos(
+    val lista_data: List<lugares_cercanos_> = emptyList(),
+    val lista_categoira: List<String> = emptyList()
+)
 
 data class obj_pasado_clikeado_mapa(
     val tipo: String = "",
@@ -95,9 +100,11 @@ object EstadoMapa {
         manager.update(manager.annotations)
         idPuntoSeleccionado.value = id
     }
+
     // ✅ Job para cancelar carga anterior
     var jobCarga: kotlinx.coroutines.Job? = null
-    var onClickPunto: ((tipo: String, id: String, localidad: String, img: String, nombre: String, lat: Double, lng: Double) -> Unit)? = null
+    var onClickPunto: ((tipo: String, id: String, localidad: String, img: String, nombre: String, lat: Double, lng: Double) -> Unit)? =
+        null
 
 }
 
@@ -140,7 +147,7 @@ data class datos_viewmodel_inmobiliara(
     val metros: Double = 0.0,
     val habitaciones: String = "",
 
-)
+    )
 
 
 data class datos_compartidos_lugares_cercacnos(
@@ -149,5 +156,5 @@ data class datos_compartidos_lugares_cercacnos(
 
 
 data class categorias_diltrado_mapa_inmobiliara(
-    val nombre: String, val cantidad: Int,val categoria: List<String>
+    val nombre: String, val cantidad: Int, val categoria: List<String>
 )

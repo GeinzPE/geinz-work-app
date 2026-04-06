@@ -165,9 +165,13 @@ fun ui_info_imobiliara(
                 habitaciones = datos_Estados_succes.habitaciones,
 
 
-            )
+                )
 
             abrir_mapa_ver_cercanos()
+            viewmodel_mapa_inmobilia.guardar_listas_datos_lugares_Seguros(datos_Estados_succes.cantidad_lugares_seguros)
+            viewmodel_mapa_inmobilia.guardar_lista_datos_lugares_cercanos(datos_Estados_succes.listalugares_cercanos)
+            viewmodel_mapa_inmobilia.guardar_lista_datos_lugares_turisticos(datos_Estados_succes.llissa_lugareS_turistos)
+            viewmodel_mapa_inmobilia.guardar_lista_datos_lugares_servicio_hogar(datos_Estados_succes.lista_servicios_sercanos)
             viewmodel_mapa_inmobilia.agregar_datos_para_pasa_mapa(instancia_datos)
         } else {
             Toast.makeText(context, "Se necesita permiso de ubicación", Toast.LENGTH_SHORT).show()
@@ -308,6 +312,38 @@ fun ui_info_imobiliara(
             )
         }
     }
+
+    fun cargar_mapa_con_datos(){
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            val instancia_datos = datos_viewmodel_inmobiliara(
+                id = datos_Estados_succes.id,
+                lista_img = datos_Estados_succes.listaImg,
+                localidad = datos_Estados_succes.distrito,
+                nombre = datos_Estados_succes.nombre,
+                latitud = datos_Estados_succes.lat,
+                longitud = datos_Estados_succes.lng,
+                ancho = datos_Estados_succes.ancho,
+                fondo = datos_Estados_succes.fondo,
+                precio = datos_Estados_succes.precio,
+                banos = datos_Estados_succes.banos,
+                metros = datos_Estados_succes.metros,
+                habitaciones = datos_Estados_succes.habitaciones,
+            )
+
+            abrir_mapa_ver_cercanos()
+            viewmodel_mapa_inmobilia.guardar_listas_datos_lugares_Seguros(datos_Estados_succes.cantidad_lugares_seguros)
+            viewmodel_mapa_inmobilia.guardar_lista_datos_lugares_cercanos(datos_Estados_succes.listalugares_cercanos)
+            viewmodel_mapa_inmobilia.guardar_lista_datos_lugares_turisticos(datos_Estados_succes.llissa_lugareS_turistos)
+            viewmodel_mapa_inmobilia.guardar_lista_datos_lugares_servicio_hogar(datos_Estados_succes.lista_servicios_sercanos)
+            viewmodel_mapa_inmobilia.agregar_datos_para_pasa_mapa(instancia_datos)
+        } else {
+            permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
     val cargando_data = estado is viewmodel_inmobiliaria.etado_carga_info_inmuebles.loading
             || estado == viewmodel_inmobiliaria.etado_carga_info_inmuebles.idle
 
@@ -354,7 +390,6 @@ fun ui_info_imobiliara(
 
             is viewmodel_inmobiliaria.etado_carga_info_inmuebles.succes -> {
                 if (!cargando_data) {
-
                     var datos =
                         (estado as viewmodel_inmobiliaria.etado_carga_info_inmuebles.succes).datos
                     datos_Estados_succes = datos
@@ -642,26 +677,26 @@ fun ui_info_imobiliara(
                                     ) {
                                         lista_perfil.forEach { i ->
                                             key(i.txt) {
-                                            seleccion_tipo_persona(
-                                                i = i,
-                                                seleccionado = filtro_seleccionado == i.txt
-                                            ) { tipo_select,nombre ->
-                                                filtro_seleccionado = tipo_select
-                                                nombre_personaje_seleccionado=nombre
-                                                viewmodel_tts.detenerAudio()
-                                                nueva_busqueda = 5.0f
-                                                val radioEnKm = nueva_busqueda.toDouble() / 10.0
-                                                scope.launch {
-                                                    filtar_datos(
-                                                        viewModel = viewModel,
-                                                        radioEnKm = radioEnKm,
-                                                        datos = datos,
-                                                        nombre_user = nombre_user,
-                                                        lista_lugares_cercanos_filtrada = lista_lugares_cercanos_filtrada,
-                                                        tipo_select = tipo_select
-                                                    )
+                                                seleccion_tipo_persona(
+                                                    i = i,
+                                                    seleccionado = filtro_seleccionado == i.txt
+                                                ) { tipo_select,nombre ->
+                                                    filtro_seleccionado = tipo_select
+                                                    nombre_personaje_seleccionado=nombre
+                                                    viewmodel_tts.detenerAudio()
+                                                    nueva_busqueda = 5.0f
+                                                    val radioEnKm = nueva_busqueda.toDouble() / 10.0
+                                                    scope.launch {
+                                                        filtar_datos(
+                                                            viewModel = viewModel,
+                                                            radioEnKm = radioEnKm,
+                                                            datos = datos,
+                                                            nombre_user = nombre_user,
+                                                            lista_lugares_cercanos_filtrada = lista_lugares_cercanos_filtrada,
+                                                            tipo_select = tipo_select
+                                                        )
+                                                    }
                                                 }
-                                            }
                                             }
                                         }
                                     }
@@ -843,7 +878,9 @@ fun ui_info_imobiliara(
                         }
 
                         item (key = "mapa"){
-                            MapPreview_solo_imagen( datos.lat, datos.lng, {})
+                            MapPreview_solo_imagen( datos.lat, datos.lng, {
+                                cargar_mapa_con_datos()
+                            })
                             spacer_vertical(80.dp)
                         }
                     }
@@ -871,6 +908,7 @@ fun ui_info_imobiliara(
         }
         AnimatedVisibility(bottomSheetVisible) {
             bottom_sheet_lugares_turisticos(
+                true,
                 localidad_tienda_seleccionada,
                 verificar_inter,
                 viewmodelMap = viewmodelMapa,
@@ -880,12 +918,12 @@ fun ui_info_imobiliara(
                     viewmodelMapa.setBottomSheetVisible(false)
                 },
                 ver_mapa = {
-                    abrir_mapa(
-                        "turismo",
-                        img_turismo,
-                        lat,
-                        lng
-                    )
+//                    abrir_mapa(
+//                        "turismo",
+//                        img_turismo,
+//                        lat,
+//                        lng
+//                    )
                 }, iniciar_seccion = { iniciar_seccion() }, crear_cuenta = { crear_cuenta() },
                 id_tienda_selecionada
             )
@@ -943,35 +981,7 @@ fun ui_info_imobiliara(
                         color = Color(0xFF4A0085),
                         icono = R.drawable.google_maps_icono,
                         text = "Ir a ver", clikeado = {
-                            if (ContextCompat.checkSelfPermission(
-                                    context,
-                                    Manifest.permission.ACCESS_FINE_LOCATION
-                                ) == PackageManager.PERMISSION_GRANTED
-                            ) {
-                                val instancia_datos = datos_viewmodel_inmobiliara(
-                                    id = datos_Estados_succes.id,
-                                    lista_img = datos_Estados_succes.listaImg,
-                                    localidad = datos_Estados_succes.distrito,
-                                    nombre = datos_Estados_succes.nombre,
-                                    latitud = datos_Estados_succes.lat,
-                                    longitud = datos_Estados_succes.lng,
-                                    ancho = datos_Estados_succes.ancho,
-                                    fondo = datos_Estados_succes.fondo,
-                                    precio = datos_Estados_succes.precio,
-                                    banos = datos_Estados_succes.banos,
-                                    metros = datos_Estados_succes.metros,
-                                    habitaciones = datos_Estados_succes.habitaciones,
-                                )
-
-                                abrir_mapa_ver_cercanos()
-                                viewmodel_mapa_inmobilia.guardar_listas_datos_lugares_Seguros(datos_Estados_succes.cantidad_lugares_seguros)
-                                viewmodel_mapa_inmobilia.guardar_lista_datos_lugares_cercanos(datos_Estados_succes.listalugares_cercanos)
-                                viewmodel_mapa_inmobilia.guardar_lista_datos_lugares_turisticos(datos_Estados_succes.llissa_lugareS_turistos)
-                                viewmodel_mapa_inmobilia.guardar_lista_datos_lugares_servicio_hogar(datos_Estados_succes.lista_servicios_sercanos)
-                                viewmodel_mapa_inmobilia.agregar_datos_para_pasa_mapa(instancia_datos)
-                            } else {
-                                permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                            }
+                            cargar_mapa_con_datos()
                         }
                     )
                     btns(
@@ -1021,4 +1031,3 @@ fun formatearNumero_double(numero: Double): String {
         "%,.2f".format(numero)           // 150000.75 → "150,000.75"
     }
 }
-

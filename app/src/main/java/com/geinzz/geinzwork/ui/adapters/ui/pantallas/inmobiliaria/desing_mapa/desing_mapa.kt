@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.desing_mapa
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
@@ -458,8 +459,16 @@ fun estilo_carta_visual_inmueble(modifier: Modifier, datos: datos_viewmodel_inmo
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconoDato(icon = Icons.Rounded.KingBed, texto = datos.habitaciones.ifEmpty { "—" })
-                IconoDato(icon = Icons.Rounded.Bathtub, texto = datos.banos.ifEmpty { "—" })
+                if (datos.habitaciones != "0") {
+
+                    IconoDato(
+                        icon = Icons.Rounded.KingBed,
+                        texto = datos.habitaciones.ifEmpty { "—" })
+                }
+
+                if (datos.banos != "0") {
+                    IconoDato(icon = Icons.Rounded.Bathtub, texto = datos.banos.ifEmpty { "—" })
+                }
                 IconoDato(
                     icon = Icons.Rounded.SquareFoot,
                     texto = if (datos.metros > 0) "${datos.metros.toInt()} m²" else "—"
@@ -791,10 +800,10 @@ fun ListaChips(
     subateoria: String,
     categorias: List<categorias_diltrado_mapa_inmobiliara>,
     seleccionado: String,
-    onSeleccionar: (String,lista: List<String>) -> Unit,
+    onSeleccionar: (String, lista: List<String>) -> Unit,
     todos_cargados: () -> Unit,
 ) {
-    Column (verticalArrangement = Arrangement.spacedBy(10.dp)){
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
 
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -806,7 +815,7 @@ fun ListaChips(
                     cantidad = categoria.cantidad,
                     estaSeleccionado = categoria.nombre == seleccionado,
                     { todos_cargados() },
-                    onClick = { onSeleccionar(categoria.nombre,categoria.categoria) }
+                    onClick = { onSeleccionar(categoria.nombre, categoria.categoria) }
                 )
             }
         }

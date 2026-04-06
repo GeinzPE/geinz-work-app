@@ -585,7 +585,7 @@ object constantes_lista_localidades {
             R.drawable.onb1
         ),
 
-    )
+        )
 
 
     val fracespantalla11 = dataclass_pantalla1(

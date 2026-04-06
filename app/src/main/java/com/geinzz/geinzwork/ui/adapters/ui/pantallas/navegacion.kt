@@ -939,10 +939,12 @@ fun nativationWrapper(
                     val servicio = navback.toRoute<geinz_inmobiliaria>()
 
                     pantalla_geinz_inmobiliaria(
-                        viewmodel_inmobiliaria,
+                        viewmodel_mapa_inmobilia,
+                        viewmodel = viewmodel_inmobiliaria,
                         nombre_user = datos_user?.nombre ?: "",
                         coneccion = isConnected,
-                        localidad_user = servicio.localidad_selec, { id, localidad, nombre ->
+                        localidad_user = servicio.localidad_selec,
+                        ver_detalles_completos = { id, localidad, nombre ->
                             navController.navigate(
                                 datos_completros_inmobiliaria(
                                     id,
@@ -952,6 +954,9 @@ fun nativationWrapper(
                             )
 
 
+                        },
+                        ver_lugares_mapa = {
+                            navController.navigate(abrir_mapa_inmobiliara)
                         }
                     )
                 }
@@ -996,7 +1001,7 @@ fun nativationWrapper(
                         viewModel_filtrado_tiendas,
                         isConnected,
                         viewmodel_mapa_inmobilia,
-                        iniciar_seccion ={},
+                        iniciar_seccion = {},
                         crear_cuenta = {}
                     )
                 }

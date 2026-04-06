@@ -810,44 +810,44 @@ fun ui_pantalla_busqueda(
                         )
                 ){
 
-                ramdoBox(
-                    viewModelFiltros,
-                    tick,
-                    aler_dialog_contacto = aler_dialog_contacto,
-                    firebaseAuth = firebaseAuth,
-                    estado_tienda = horario_por_tienda,
-                    i = item,
-                    index = index,
-                    listener_carta = { id, localidad, color ->
-                        Log.d("coorrr1213213132", "$color")
-                        localidad_tienda_seklecioanda = localidad
-                        id_tienda_selecionada = id
+                    ramdoBox(
+                        viewModelFiltros,
+                        tick,
+                        aler_dialog_contacto = aler_dialog_contacto,
+                        firebaseAuth = firebaseAuth,
+                        estado_tienda = horario_por_tienda,
+                        i = item,
+                        index = index,
+                        listener_carta = { id, localidad, color ->
+                            Log.d("coorrr1213213132", "$color")
+                            localidad_tienda_seklecioanda = localidad
+                            id_tienda_selecionada = id
 
 //                        viewModelFiltros.obtenerHorarioPorTienda_activa(localidad, id)
-                        show_bottom_sheeet = true
-                    }, listner_carta_turismo = { id, localidad ->
-                        Log.d("id_tiendasdada", "$id $localidad")
-                        id_lugar_turistico_select = id
-                        localdad_llugar_turistico = localidad
-                        bottom_sheet_turismo = true
-                    },
-                    abrir_gogle_map = { lat, log, id_tienda, localidad ->
-                        dialog_Crear_ruta = true
-                        id_tienda_crear_ruta = id_tienda
-                        localidad_tienda_crear_ruta = localidad
-                        latitud = lat
-                        longitud = log
-                    },
-                    iniciar_seccion_normal = { iniciar_seccion_normal() },
-                    crear_cuenta_geinz = { crear_cuenta_geinz() },
-                    aler_dialog_contacto_fun = { lugar, nombre, img, id ->
-                        aler_dialog_contacto = true
-                        localidad_seguridad_salud = lugar
-                        nombre_seguridad_salud = nombre
-                        img_seguirdad_salud = img
-                        id_seguridad_salud = id
-                    }
-                )
+                            show_bottom_sheeet = true
+                        }, listner_carta_turismo = { id, localidad ->
+                            Log.d("id_tiendasdada", "$id $localidad")
+                            id_lugar_turistico_select = id
+                            localdad_llugar_turistico = localidad
+                            bottom_sheet_turismo = true
+                        },
+                        abrir_gogle_map = { lat, log, id_tienda, localidad ->
+                            dialog_Crear_ruta = true
+                            id_tienda_crear_ruta = id_tienda
+                            localidad_tienda_crear_ruta = localidad
+                            latitud = lat
+                            longitud = log
+                        },
+                        iniciar_seccion_normal = { iniciar_seccion_normal() },
+                        crear_cuenta_geinz = { crear_cuenta_geinz() },
+                        aler_dialog_contacto_fun = { lugar, nombre, img, id ->
+                            aler_dialog_contacto = true
+                            localidad_seguridad_salud = lugar
+                            nombre_seguridad_salud = nombre
+                            img_seguirdad_salud = img
+                            id_seguridad_salud = id
+                        }
+                    )
                 }
             }
         }
@@ -1029,6 +1029,7 @@ fun ui_pantalla_busqueda(
 
         if (bottom_sheet_turismo) {
             bottom_sheet_lugares_turisticos(
+                false,
                 localida_defauld.localida,
                 verificar_intener,
                 viewmodelMap = viewmodelMap,

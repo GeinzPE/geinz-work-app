@@ -191,6 +191,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.desing_mapa.li
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularDistanciaMetros
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.formatearDistancia
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 @SuppressLint("MissingPermission")
@@ -213,6 +214,7 @@ fun mapa_inmobilia(
     val contex = LocalContext.current
     var chipSeleccionado by remember { mutableStateOf("Principal") }
     val datos_obtener_mapa by viewmodel_mapa_inmobilia.datosInmueble.collectAsState()
+    val cargandoDatosMapa by viewmodel_mapa_inmobilia.cargandoDatosMapa.collectAsState()
     var subcategoria_seleccionada by remember { mutableStateOf("") }
     val lista_categoria_lugares_seguros by viewmodel_mapa_inmobilia.categorias_mas_lista_lugares_cercanos_seguros.collectAsState()
     val lista_categoria_lugares_cercanos by viewmodel_mapa_inmobilia.categorias_mas_lista_lugares_cercanos.collectAsState()
@@ -243,7 +245,7 @@ fun mapa_inmobilia(
     val mapViewState = remember { mutableStateOf<MapView?>(null) }
     var mapboxMapInstance by remember { mutableStateOf<MapboxMap?>(null) }
     val managerLauncher = remember { mutableStateOf<PointAnnotationManager?>(null) }
-var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(emptyList()) }
+    var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(emptyList()) }
 // ── Estado de ruta ─────────────────────────────────────────
     var puntos_ruta_activa by remember { mutableStateOf<List<Point>>(emptyList()) }
     var distancia_ruta_metros by remember { mutableStateOf(0) }
@@ -315,7 +317,10 @@ var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(e
     val estaRecalculando = remember { mutableStateOf(false) }
     val ultimoRecalculo = remember { longArrayOf(0L) }
     var mostrar_carga_datos_prores by remember { mutableStateOf(true) }
-    var seguimiento_automatico by remember { mutableStateOf(true) }
+//    var seguimiento_automatico by remember { mutableStateOf(false) }
+    val seguimientoRef = remember { mutableStateOf(false) }
+    var seguimiento_automatico by seguimientoRef
+    val moviendoProgramaticamente = remember { mutableStateOf(false) }
     val cerca_del_destino by remember(distancia_al_destino) {
         derivedStateOf { distancia_al_destino in 1f..100f }
     }
@@ -342,6 +347,21 @@ var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(e
         animationSpec = tween(durationMillis = 1500, easing = FastOutSlowInEasing),
         label = "color_bottom_sheet"
     )
+
+    fun moverCamaraSin_apagar_seguimiento(
+        builder: CameraOptions,
+        duracionMs: Long = 600
+    ) {
+        moviendoProgramaticamente.value = true
+        mapboxMapInstance?.easeTo(
+            builder,
+            MapAnimationOptions.mapAnimationOptions { duration(duracionMs) }
+        )
+        scope.launch {
+            delay(duracionMs + 100)
+            moviendoProgramaticamente.value = false
+        }
+    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -635,13 +655,16 @@ var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(e
                     .withIconSize(1.0)
             )
 
-            // ✅ Centra cámara en el punto
-            mapboxMap.setCamera(
+            mapboxMap.easeTo(
                 CameraOptions.Builder()
                     .center(punto)
                     .zoom(14.0)
-                    .build()
+                    .build(),
+                MapAnimationOptions.mapAnimationOptions {
+                    duration(600)  // 2.2 segundos de vuelo suave
+                }
             )
+            viewmodel_mapa_inmobilia.marcar_mapa_listo()
         }
     }
 
@@ -704,23 +727,22 @@ var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(e
         mapboxMapInstance?.let { map ->
             dibujarRutaEnMapa(map, exitosa.puntos)
 
-            // Calcular bearing (rumbo) del usuario hacia el destino
             val bearingHaciaDestino = viewmodel_mapa_inmobilia.calcularBearing(
                 lat_user, lng_user,
                 lat_lugar_seleccionado, lng_lugar_seleccionado
             )
 
-            map.easeTo(
+            moverCamaraSin_apagar_seguimiento(          // ✅ reemplaza el easeTo directo
                 CameraOptions.Builder()
-                    .center(Point.fromLngLat(lng_user, lat_user)) // cámara sobre el usuario
-//                    .zoom(17.5)
-                    .bearing(bearingHaciaDestino) // orientado hacia el destino
+                    .center(Point.fromLngLat(lng_user, lat_user))
+                    .bearing(bearingHaciaDestino)
                     .build(),
-                MapAnimationOptions.mapAnimationOptions { duration(1000) }
+                duracionMs = 1000
             )
         }
         ruta_creada = true
         ruta_cargando = false
+        seguimientoRef.value = true                     // ✅ activa el seguimiento al crear ruta
     }
 
     LaunchedEffect(lat_user, lng_user) {
@@ -796,7 +818,7 @@ var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(e
     var validacion_mostrar_dialog_ubi_off by remember { mutableStateOf(false) }
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(contex) }
     val fabColor by animateColorAsState(
-        targetValue = if (seguirUbicacion.value) MaterialTheme.colorScheme.primary else Color(
+        targetValue = if (seguimiento_automatico) MaterialTheme.colorScheme.primary else Color(
             0xFF9C7BFF
         ), animationSpec = tween(
             durationMillis = 300 // 0.3 segundos, suave pero rápido
@@ -806,6 +828,8 @@ var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(e
     val estaExpandido = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded
     val estaColapsado = scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded
     val estaOculto = scaffoldState.bottomSheetState.currentValue == SheetValue.Hidden
+    // Justo después de declarar los estados, antes de los LaunchedEffect
+
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 90.dp, // 👈 TIRITA SIEMPRE VISIBLE
@@ -1051,6 +1075,7 @@ var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(e
                                                                             destino.lng,
                                                                             perfil
                                                                         )
+//                                                                        seguimiento_automatico=true
                                                                         lng_lugar_seleccionado =
                                                                             destino.lng
                                                                         lat_lugar_seleccionado =
@@ -1106,21 +1131,12 @@ var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(e
                                                                 siguiente.img_String
                                                             nombre_negocio_select_preview =
                                                                 siguiente.nombre
-                                                            mapboxMapInstance?.easeTo(
+                                                            moverCamaraSin_apagar_seguimiento(
                                                                 CameraOptions.Builder()
-                                                                    .center(
-                                                                        Point.fromLngLat(
-                                                                            siguiente.lng,
-                                                                            siguiente.lat
-                                                                        )
-                                                                    )
-                                                                    .zoom(16.0)
+                                                                    .center(Point.fromLngLat(siguiente.lng, siguiente.lat))
+//                                                                    .zoom(16.0)
                                                                     .build(),
-                                                                MapAnimationOptions.mapAnimationOptions {
-                                                                    duration(
-                                                                        800
-                                                                    )
-                                                                }
+                                                                duracionMs = 800
                                                             )
                                                         },
                                                         icono = Icons.Default.ArrowRight
@@ -1174,14 +1190,12 @@ var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(e
                                             EstadoMapa.seleccionarPinPorId(id)
                                             img_negocio_preview = img
                                             nombre_negocio_select_preview = nombre
-                                            mapboxMapInstance?.easeTo(
+                                            moverCamaraSin_apagar_seguimiento(
                                                 CameraOptions.Builder()
                                                     .center(Point.fromLngLat(lng, lat))
-                                                    .zoom(16.0)
+//                                                    .zoom(16.0)
                                                     .build(),
-                                                MapAnimationOptions.mapAnimationOptions {
-                                                    duration(800)
-                                                }
+                                                duracionMs = 800
                                             )
                                         }
                                     },
@@ -1247,34 +1261,35 @@ var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(e
                         }
                     }
                 }
-                if (!ruta_creada) {
-                        ListaChips(
-                            subateoria = subcategoria_seleccionada,
-                            categorias = categorias,
-                            seleccionado = chipSeleccionado,
-                            onSeleccionar = {it,lista->
-                                lista_subcategoria_selecciondad = lista
-                                seleccionado_posible = null
-                                mostrar_carga_datos_prores = false
-                                chipSeleccionado = it
-                                subcategoria_seleccionada = ""
-                                chip_cambio_contador++
-                                if (it == "Principal") {
-                                    mostrar_ocultar_immagen = true
-                                } else {
-                                    mostrar_ocultar_immagen = false
-                                    if (!ruta_creada_state.value) {
-                                        scope.launch {
-                                            // ✅ Pequeño delay para que los cambios de estado no interrumpan la animación
-                                            kotlinx.coroutines.delay(50)
-                                            scaffoldState.bottomSheetState.expand()
-                                        }
+                if (!ruta_creada &&!cargandoDatosMapa) {
+                    ListaChips(
+                        subateoria = subcategoria_seleccionada,
+                        categorias = categorias,
+                        seleccionado = chipSeleccionado,
+                        onSeleccionar = {it,lista->
+                            seguimiento_automatico = false
+                            lista_subcategoria_selecciondad = lista
+                            seleccionado_posible = null
+                            mostrar_carga_datos_prores = false
+                            chipSeleccionado = it
+                            subcategoria_seleccionada = ""
+                            chip_cambio_contador++
+                            if (it == "Principal") {
+                                mostrar_ocultar_immagen = true
+                            } else {
+                                mostrar_ocultar_immagen = false
+                                if (!ruta_creada_state.value) {
+                                    scope.launch {
+                                        // ✅ Pequeño delay para que los cambios de estado no interrumpan la animación
+                                        kotlinx.coroutines.delay(50)
+                                        scaffoldState.bottomSheetState.expand()
                                     }
                                 }
-                            }, todos_cargados = {
-                                mostrar_carga_datos_prores = true
                             }
-                        )
+                        }, todos_cargados = {
+                            mostrar_carga_datos_prores = true
+                        }
+                    )
 
                 }
 
@@ -1282,6 +1297,7 @@ var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(e
         }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
+
             MapboxMap(modifier = Modifier.fillMaxSize(), scaleBar = {}, compass = {}) {
                 MapStyle(ulr_esilo)
                 MapEffect(Unit) { mapView ->
@@ -1337,60 +1353,62 @@ var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(e
                         mapView.location.addOnIndicatorPositionChangedListener { point ->
                             val lat = point.latitude()
                             val lng = point.longitude()
+
+                            // ✅ Calcular velocidad
+                            val ahora = System.currentTimeMillis()
+                            if (ultimaLat != 0.0 && ultimaLng != 0.0 && ultimoTiempo != 0L) {
+                                val distMetros = calcularDistanciaMetros(ultimaLat, ultimaLng, lat, lng)
+                                val tiempoSegundos = (ahora - ultimoTiempo) / 1000f
+
+                                // ✅ Solo calcular si movió más de 2 metros (evita ruido GPS en quieto)
+                                if (tiempoSegundos > 0f && distMetros > 2f) {
+                                    val velocidadInstantanea = (distMetros / tiempoSegundos) * 3.6f
+
+                                    // ✅ Buffer de 10 muestras para más suavizado
+                                    velocidadBuffer.addLast(velocidadInstantanea)
+                                    if (velocidadBuffer.size > 10) velocidadBuffer.removeFirst()
+
+                                    velocidad_actual = velocidadBuffer.average().toFloat()
+                                } else if (distMetros <= 2f) {
+                                    // ✅ Si no se mueve, ir bajando la velocidad gradualmente
+                                    velocidad_actual = (velocidad_actual * 0.85f)
+                                }
+                            }
+
+                            ultimaLat = lat
+                            ultimaLng = lng
+                            ultimoTiempo = ahora
                             lat_user = lat
                             lng_user = lng
 
-                            val ahora = System.currentTimeMillis()
+                            if (seguimientoRef.value) {
+                                val cameraBuilder = CameraOptions.Builder()
+                                    .center(Point.fromLngLat(lng, lat))
 
-                            if (ultimaLat != 0.0 && ultimoTiempo != 0L) {
-                                val tiempoSegundos = (ahora - ultimoTiempo) / 1000f
-
-                                if (tiempoSegundos >= 1f) {
-                                    val metros =
-                                        calcularDistanciaMetros(ultimaLat, ultimaLng, lat, lng)
-
-                                    // ✅ Siempre actualizar posición y tiempo
-                                    ultimaLat = lat
-                                    ultimaLng = lng
-                                    ultimoTiempo = ahora
-
-                                    if (metros < 1.5f) {
-                                        // ✅ Sin movimiento → bajar gradualmente hasta 0
-                                        velocidadBuffer.clear() // limpiar buffer
-                                        velocidad_actual = (velocidad_actual * 0.4f)
-                                            .coerceAtMost(200f)
-                                        if (velocidad_actual < 1f) velocidad_actual = 0f
-
-                                    } else {
-                                        val velocidadRaw = (metros / tiempoSegundos) * 3.6f
-
-                                        if (velocidadRaw <= 200f) {
-                                            velocidadBuffer.addLast(velocidadRaw)
-                                            if (velocidadBuffer.size > 4) velocidadBuffer.removeFirst()
-
-                                            // ✅ Promedio del buffer = velocidad suavizada
-                                            velocidad_actual = velocidadBuffer.average().toFloat()
-                                        }
-                                    }
+                                if (rutaCreadaRef.value) {
+                                    val bearing = viewmodel_mapa_inmobilia.calcularBearing(
+                                        lat, lng,
+                                        lat_lugar_seleccionado,
+                                        lng_lugar_seleccionado
+                                    )
+                                    cameraBuilder.bearing(bearing)
                                 }
-                            } else {
-                                // Primera posición
-                                ultimaLat = lat
-                                ultimaLng = lng
-                                ultimoTiempo = ahora
-                                velocidad_actual = 0f
+
+                                mapboxMapInstance?.easeTo(
+                                    cameraBuilder.build(),
+                                    MapAnimationOptions.mapAnimationOptions { duration(300) }
+                                )
                             }
                         }
                         mapboxMap.addOnMoveListener(object : OnMoveListener {
                             override fun onMoveBegin(detector: MoveGestureDetector) {
+                                if (!moviendoProgramaticamente.value) {
+                                    seguimientoRef.value = false  // solo gestos humanos apagan el seguimiento
+                                }
                                 if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
                                     scope.launch { scaffoldState.bottomSheetState.partialExpand() }
                                 }
-                                if (rutaCreadaRef.value) {
-                                    seguimiento_automatico = false
-                                }
                             }
-
                             override fun onMove(detector: MoveGestureDetector): Boolean = false
                             override fun onMoveEnd(detector: MoveGestureDetector) {}
                         })
@@ -1419,11 +1437,10 @@ var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(e
                                     val user_point = Point.fromLngLat(it.longitude, it.latitude)
                                     scope.launch {
                                         seguimiento_automatico = true
-                                        mapboxMapInstance?.easeTo(
+                                        moverCamaraSin_apagar_seguimiento(
                                             CameraOptions.Builder()
                                                 .center(Point.fromLngLat(lng_user, lat_user))
-                                                .build(),
-                                            MapAnimationOptions.mapAnimationOptions { duration(600) }
+                                                .build()
                                         )
                                     }
                                 }
@@ -1479,6 +1496,7 @@ var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(e
             }
             if (bottomSheetVisible) {
                 bottom_sheet_lugares_turisticos(
+                    true,
                     localida_negocio_lugar_preview,
                     verificar_inter,
                     viewmodelMap = viewmodelMapa,
@@ -1532,12 +1550,11 @@ var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(e
                         .clip(CircleShape)
                         .background(fabColor)
                         .clickable() {
-                            seguimiento_automatico = true
-                            mapboxMapInstance?.easeTo(
+                            seguimientoRef.value = true
+                            moverCamaraSin_apagar_seguimiento(
                                 CameraOptions.Builder()
                                     .center(Point.fromLngLat(lng_user, lat_user))
-                                    .build(),
-                                MapAnimationOptions.mapAnimationOptions { duration(600) }
+                                    .build()
                             )
                         }) {
                     Icon(
@@ -1545,6 +1562,32 @@ var lista_subcategoria_selecciondad by remember { mutableStateOf<List<String>>(e
                         contentDescription = "Mi ubicación",
                         tint = Color.White, modifier = Modifier.padding(15.dp)
                     )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = cargandoDatosMapa,
+                enter = fadeIn(),
+                exit = fadeOut(tween(600)),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        CircularProgressIndicator(color = Color.White)
+                        Text(
+                            text = "Cargando mapa...",
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
 

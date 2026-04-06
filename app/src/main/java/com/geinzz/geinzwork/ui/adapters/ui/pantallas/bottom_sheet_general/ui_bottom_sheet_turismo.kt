@@ -181,6 +181,7 @@ import java.net.URLEncoder
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_lugares_turisticos(
+    bloqueo_ver_mapa:Boolean,
     localidad_user: String,
     verificar_intener: Boolean,
     viewmodelMap: viewmodel_mapa_personalizado,
@@ -225,7 +226,10 @@ fun bottom_sheet_lugares_turisticos(
     var datos by remember { mutableStateOf(lugares_turisticos()) }
 
     LaunchedEffect(id_lugar_turistico) {
-        viewmodel_turismo.cargar_datos_lugares_turisticos(id_lugar_turistico, localidad_user.lowercase())
+        viewmodel_turismo.cargar_datos_lugares_turisticos(
+            id_lugar_turistico,
+            localidad_user.lowercase()
+        )
     }
 
     LaunchedEffect(uid_respald_user) {
@@ -328,8 +332,9 @@ fun bottom_sheet_lugares_turisticos(
                 }
 
                 is viewModel_lugares_turisticos.carga_datos_lugares_turisticos.succes -> {
-                    var datos_lugar = (estado_carga_datos_lugares as viewModel_lugares_turisticos.carga_datos_lugares_turisticos.succes).datos
-                    datos=datos_lugar
+                    var datos_lugar =
+                        (estado_carga_datos_lugares as viewModel_lugares_turisticos.carga_datos_lugares_turisticos.succes).datos
+                    datos = datos_lugar
                     AnimatedVisibility(visible = true) {
                         Column(
                             modifier = Modifier
@@ -338,6 +343,7 @@ fun bottom_sheet_lugares_turisticos(
                                 .padding(bottom = 20.dp)
                         ) {
                             card_img_container(
+                                bloqueo_ver_mapa,
                                 viewmodelMap,
                                 viewmodel_filtrado,
                                 viewmodel_turismo,
@@ -430,6 +436,7 @@ fun bottom_sheet_lugares_turisticos(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun card_img_container(
+    bloqueo_ver_mapa: Boolean,
     viewmodelMap: viewmodel_mapa_personalizado,
     viewmodel_filtrado: viewModel_filtado_tiendas,
     viewmodel_turismo: viewModel_lugares_turisticos,
@@ -451,7 +458,7 @@ fun card_img_container(
         botom_shet_turismobtn(
             "ver en mapa",
             Icons.Filled.Map,
-            if (sub_categoria_selecionada.isNotEmpty()) true else false
+            if (sub_categoria_selecionada.isNotEmpty() && !bloqueo_ver_mapa) true else false
         ),
         botom_shet_turismobtn("compartir", Icons.Filled.Share, true)
     )
@@ -572,7 +579,7 @@ fun card_img_container(
                 imagenes = datos.lista_img
             )
             spacer_vertical(10.dp)
-            chips_filtrado(lista_turismo_bottom_sheet, { i ->
+            chips_filtrado(list = lista_turismo_bottom_sheet, item_clikeado = { i ->
                 when (i) {
                     "Ir al lugar" -> {
                         tipo_creacion_ruta = "turismo"
@@ -582,43 +589,52 @@ fun card_img_container(
                     }
 
                     "ver en mapa" -> {
-
-                        if (ContextCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.ACCESS_FINE_LOCATION
-                            ) == PackageManager.PERMISSION_GRANTED
-                        ) {
-                            if (lugares_turisticos_filtrados.isNotEmpty()) {
-                                if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
-                                    ver_mapa(lugares_turisticos_filtrados)
-                                    viewmodel_turismo.actualizarRadio(nueva_busqueda.toDouble())
-                                    viewmodel_turismo.actualizar_lat_lugar(datos.latitud)
-                                    viewmodel_turismo.actualizar_lng_lugar(datos.longitud)
-                                    viewmodelMap.setBottomSheetVisible(false)
+                        if (!bloqueo_ver_mapa) {
+                            if (ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.ACCESS_FINE_LOCATION
+                                ) == PackageManager.PERMISSION_GRANTED
+                            ) {
+                                if (lugares_turisticos_filtrados.isNotEmpty()) {
+                                    if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
+                                        ver_mapa(lugares_turisticos_filtrados)
+                                        viewmodel_turismo.actualizarRadio(nueva_busqueda.toDouble())
+                                        viewmodel_turismo.actualizar_lat_lugar(datos.latitud)
+                                        viewmodel_turismo.actualizar_lng_lugar(datos.longitud)
+                                        viewmodelMap.setBottomSheetVisible(false)
+                                    } else {
+                                        mostrar_login_seccion_bottom_sheet()
+                                    }
                                 } else {
-                                    mostrar_login_seccion_bottom_sheet()
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "No se encontraron lugares cercanos",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
                                 }
                             } else {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "No se encontraron lugares cercanos",
-                                        duration = SnackbarDuration.Short
-                                    )
-                                }
+                                permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                             }
-                        } else {
-                            permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                        }else{
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "El mapa solo funciona dentro de el apartado de turismo",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
                         }
+
                     }
 
                     "compartir" -> {
                         compartir_link_tienda(context, datos)
                     }
                 }
-            }, {
+            }, error_clikero = {
                 scope.launch {
                     snackbarHostState.showSnackbar(
-                        message = "Selecciona una categoria para ver en el mapa",
+                        message = "El mapa solo funciona dentro de el apartado de turismo",
                         duration = SnackbarDuration.Short
                     )
                 }

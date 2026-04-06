@@ -62,7 +62,7 @@ class repo_inmobiliaria {
                 lista_img = datos.get("listaImg") as? List<String> ?: emptyList(),
                 nombre_inmobiliara = datos.getString("nombre") ?: "",
                 descripcion = datos.getString("descripcion") ?: "",
-                precio_String = datos.getDouble("precioid") ?: 0.0,
+                precio_String = datos.getDouble("precio") ?: 0.0,
                 localidad = datos.getString("ciudad") ?: "",
                 tipo_propieda = datos.getString("tipoPropiedad") ?: "",
                 cantidad_banos = datos.getString("banos") ?: "0",
@@ -72,7 +72,10 @@ class repo_inmobiliaria {
                 trato = datos.getString("tipoOperacion") ?: "",
                 medida_fondo = (datos.get("fondo") as? Long)?.toInt() ?: 0,
                 medida_frente = (datos.get("ancho") as? Long)?.toInt() ?: 0,
-            )
+                longitud=datos.get("lng") as? Double ?:0.0,
+                latitud=datos.get("lat") as? Double ?:0.0,
+
+                )
 
             Log.d(
                 "INMUEBLE_MAP",
@@ -287,38 +290,6 @@ class repo_inmobiliaria {
             }
     }
 
-
-    suspend fun generacion_texto_por_IA(
-        i: ia_inmobiliara_tts,
-        perfil_selet: String
-    ): String {
-
-        val model = Firebase.ai(
-            backend = GenerativeBackend.googleAI()
-        ).generativeModel("gemini-2.5-flash")
-
-        val prompt = contruir_promp_ia_datos_inmobiliara(i, perfil_selet)
-
-        return try {
-
-            val result = model.generateContent(prompt)
-            val raw = result.text?.trim().orEmpty()
-
-            if (raw.isBlank()) {
-                Log.d("NLP_FLOW", "Respuesta vacía")
-                ""
-            } else {
-                Log.d("NLP_FLOW", "Respuesta IA: $raw")
-                raw
-            }
-
-        } catch (e: Exception) {
-
-            Log.e("NLP_FLOW", "Error en generación IA", e)
-            ""
-        }
-    }
-
     suspend fun obtener_servicios_esenciales(
         lat: Double,
         lng: Double,
@@ -375,6 +346,40 @@ class repo_inmobiliaria {
                 )
             }
     }
+
+
+
+    suspend fun generacion_texto_por_IA(
+        i: ia_inmobiliara_tts,
+        perfil_selet: String
+    ): String {
+
+        val model = Firebase.ai(
+            backend = GenerativeBackend.googleAI()
+        ).generativeModel("gemini-2.5-flash")
+
+        val prompt = contruir_promp_ia_datos_inmobiliara(i, perfil_selet)
+
+        return try {
+
+            val result = model.generateContent(prompt)
+            val raw = result.text?.trim().orEmpty()
+
+            if (raw.isBlank()) {
+                Log.d("NLP_FLOW", "Respuesta vacía")
+                ""
+            } else {
+                Log.d("NLP_FLOW", "Respuesta IA: $raw")
+                raw
+            }
+
+        } catch (e: Exception) {
+
+            Log.e("NLP_FLOW", "Error en generación IA", e)
+            ""
+        }
+    }
+
 
 
     suspend fun buscarPorGeohash(

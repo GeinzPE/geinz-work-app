@@ -13,6 +13,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.Exitosa
 import com.geinzz.geinzwork.data.model.lugares_cercanos_
 import com.geinzz.geinzwork.data.model.ob_categoria_mas_lista_lugares_cercanos
 import com.geinzz.geinzwork.data.model.obj_pasado_clikeado_mapa
+import com.geinzz.geinzwork.model.repo_inmobiliaria
 import com.geinzz.geinzwork.model.repo_mapa_inmobiliara
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.loadBitmapFromUrl
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.toCircularBitmap
@@ -29,6 +30,11 @@ import kotlinx.coroutines.launch
 class viewmodel_mapa_inmobiliara : ViewModel() {
 
     private val instance_repo_mapa_inmobiliara = repo_mapa_inmobiliara()
+
+    private val instance_repo= repo_inmobiliaria()
+
+    private val _cargandoDatosMapa = MutableStateFlow(true)
+    val cargandoDatosMapa: StateFlow<Boolean> = _cargandoDatosMapa
 
 
     private val guardar_datos_inmuble = MutableStateFlow(datos_viewmodel_inmobiliara())
@@ -64,18 +70,58 @@ class viewmodel_mapa_inmobiliara : ViewModel() {
         _categorias_mas_lista_lugares_cercanos_hoga
 
 
+
+    private val _lugares_Seguros_encontrados=MutableStateFlow<List<lugares_cercanos_>> (emptyList())
+    val lugares_Seguros_econtrados: StateFlow<List<lugares_cercanos_>> = _lugares_Seguros_encontrados
+
+    private val _lugares_cercanos_encontrados=MutableStateFlow<List<lugares_cercanos_>> (emptyList())
+    val lugares_cercanos_econtrados: StateFlow<List<lugares_cercanos_>> = _lugares_cercanos_encontrados
+
+    private val _lugares_turisticos_encontrados=MutableStateFlow<List<lugares_cercanos_>> (emptyList())
+    val lugares_turistico_econtrados: StateFlow<List<lugares_cercanos_>> = _lugares_turisticos_encontrados
+
+    private val _lugares_esenciales_encontrados=MutableStateFlow<List<lugares_cercanos_>> (emptyList())
+    val lugares_esenciales_econtrados: StateFlow<List<lugares_cercanos_>> = _lugares_esenciales_encontrados
+
     private val _estadoRuta = MutableStateFlow<Exitosa?>(null)
     val estadoRuta: StateFlow<Exitosa?> = _estadoRuta.asStateFlow()
 
 
 
 
+    init {
+        viewModelScope.launch {
+            _lugares_Seguros_encontrados.collect { lista ->
+                if (lista.isNotEmpty()) guardar_listas_datos_lugares_Seguros(lista)
+            }
+        }
+        viewModelScope.launch {
+            _lugares_cercanos_encontrados.collect { lista ->
+                if (lista.isNotEmpty()) guardar_lista_datos_lugares_cercanos(lista)
+            }
+        }
+        viewModelScope.launch {
+            _lugares_turisticos_encontrados.collect { lista ->
+                if (lista.isNotEmpty()) guardar_lista_datos_lugares_turisticos(lista)
+            }
+        }
+        viewModelScope.launch {
+            _lugares_esenciales_encontrados.collect { lista ->
+                if (lista.isNotEmpty()) guardar_lista_datos_lugares_servicio_hogar(lista)
+            }
+        }
+    }
     fun limpiarEstadoRuta() {
         _estadoRuta.value = null
+        _cargandoDatosMapa.value = true
     }
 
     fun agregar_datos_para_pasa_mapa(datos: datos_viewmodel_inmobiliara) {
         guardar_datos_inmuble.value = datos
+
+    }
+    fun marcar_mapa_listo() {
+        _cargandoDatosMapa.value = false
     }
     // 👇 Listas ORIGINALES (nunca se tocan)
     private var _lista_original_seguros = listOf<lugares_cercanos_>()
@@ -151,6 +197,79 @@ class viewmodel_mapa_inmobiliara : ViewModel() {
                 lista_data = filtrados,
                 lista_categoira = _lista_original_hogar.map { it.categoira }.distinct()
             )
+    }
+
+    fun obtner_lugarres_Seguros(lat: Double, lng: Double, localidad: String, radiusKm: Double = 1.0){
+        viewModelScope.launch {
+            try {
+                val datos_lista= instance_repo.obtner_lugares_seguros_cerca(lat,lng,localidad,radiusKm)
+                if(datos_lista.isNotEmpty()){
+                    _lugares_Seguros_encontrados.value=datos_lista
+
+                }else{
+                    _lugares_Seguros_encontrados.value=emptyList()
+
+                }
+
+            }catch (e: Exception){
+                _lugares_Seguros_encontrados.value=emptyList()
+
+            }
+        }
+    }
+    fun obtner_lugarres_cercanos(lat: Double, lng: Double, localidad: String, radiusKm: Double = 1.0){
+        viewModelScope.launch {
+            try {
+                val datos_lista= instance_repo.obtener_cantidad_lugares_cercanos(lat,lng,localidad,radiusKm)
+                if(datos_lista.isNotEmpty()){
+                    _lugares_cercanos_encontrados.value=datos_lista
+
+                }else{
+                    _lugares_cercanos_encontrados.value=emptyList()
+
+                }
+
+            }catch (e: Exception){
+                _lugares_cercanos_encontrados.value=emptyList()
+
+            }
+        }
+    }
+    fun obtner_lugarres_turisticos(lat: Double, lng: Double, localidad: String, radiusKm: Double = 1.0){
+        viewModelScope.launch {
+            try {
+                val datos_lista= instance_repo.obtner_lugares_seguros_cerca_turismo(lat,lng,localidad,radiusKm)
+                if(datos_lista.isNotEmpty()){
+                    _lugares_turisticos_encontrados.value=datos_lista
+
+                }else{
+                    _lugares_turisticos_encontrados.value=emptyList()
+
+                }
+
+            }catch (e: Exception){
+                _lugares_turisticos_encontrados.value=emptyList()
+
+            }
+        }
+    }
+    fun obtner_lugarres_servicios_para_el_hogar(lat: Double, lng: Double, localidad: String, radiusKm: Double = 1.0){
+        viewModelScope.launch {
+            try {
+                val datos_lista= instance_repo.obtener_servicios_esenciales(lat,lng,localidad,radiusKm)
+                if(datos_lista.isNotEmpty()){
+                    _lugares_esenciales_encontrados.value=datos_lista
+
+                }else{
+                    _lugares_esenciales_encontrados.value=emptyList()
+
+                }
+
+            }catch (e: Exception){
+                _lugares_esenciales_encontrados.value=emptyList()
+
+            }
+        }
     }
 
     fun filtrarPorCategoria(

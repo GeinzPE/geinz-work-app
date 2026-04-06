@@ -1,7 +1,12 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -45,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -52,6 +58,7 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_geinz_inmobiliaria_principal
+import com.geinzz.geinzwork.data.model.datos_viewmodel_inmobiliara
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.ColumnContenedorComun
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -67,14 +74,19 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.house_capital_whatsap
 import com.geinzz.geinzwork.viewModels.viewmodel_inmobiliaria
+import com.geinzz.geinzwork.viewModels.viewmodel_mapa_inmobiliara
+import kotlin.collections.emptyList
+import kotlin.math.ln
 
 @Composable
 fun pantalla_geinz_inmobiliaria(
+    viewmodel_mapa_inmobilia: viewmodel_mapa_inmobiliara,
     viewmodel: viewmodel_inmobiliaria,
     nombre_user: String,
     coneccion: Boolean,
     localidad_user: String,
-    ver_detalles_completos: (id: String, localidad_user: String, nombreuser: String) -> Unit
+    ver_detalles_completos: (id: String, localidad_user: String, nombreuser: String) -> Unit,
+    ver_lugares_mapa: () -> Unit,
 ) {
     val context = LocalContext.current
     val listarepo by viewmodel.estado_carga_inmuebles_principales.collectAsState()
@@ -92,6 +104,87 @@ fun pantalla_geinz_inmobiliaria(
             || listarepo == viewmodel_inmobiliaria.estado_carga_principal_immubles.idle
 
 
+    var id_selet by remember { mutableStateOf("") }
+    var lista_img by remember { mutableStateOf<List<String>>(emptyList()) }
+    var localidad by remember { mutableStateOf("") }
+    var nombre by remember { mutableStateOf("") }
+    var lat by remember { mutableStateOf(0.0) }
+    var lng by remember { mutableStateOf(0.0) }
+    var ancho by remember { mutableStateOf(0) }
+    var fondo by remember { mutableStateOf(0) }
+    var precio by remember { mutableStateOf(0.0) }
+    var banos by remember { mutableStateOf("") }
+    var metros by remember { mutableStateOf(0.0) }
+    var habitaciones by remember { mutableStateOf("") }
+
+
+    val permisoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            val instancia_datos = datos_viewmodel_inmobiliara(
+                id = id_selet,
+                lista_img = lista_img,
+                localidad = localidad,
+                nombre = nombre,
+                latitud = lat,
+                longitud = lng,
+                ancho = ancho,
+                fondo = fondo,
+                precio = precio,
+                banos = banos,
+                metros = metros,
+                habitaciones = habitaciones,
+
+                )
+
+            ver_lugares_mapa()
+            viewmodel_mapa_inmobilia.agregar_datos_para_pasa_mapa(instancia_datos)
+        } else {
+            Toast.makeText(context, "Se necesita permiso de ubicación", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun cargar_mapa_con_datos() {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            viewmodel_mapa_inmobilia.limpiarEstadoRuta()
+            val instancia_datos = datos_viewmodel_inmobiliara(
+                id = id_selet,
+                lista_img = lista_img,
+                localidad = localidad,
+                nombre = nombre,
+                latitud = lat,
+                longitud = lng,
+                ancho = ancho,
+                fondo = fondo,
+                precio = precio,
+                banos = banos,
+                metros = metros,
+                habitaciones = habitaciones,
+
+                )
+
+            ver_lugares_mapa()
+
+            viewmodel_mapa_inmobilia.obtner_lugarres_Seguros(instancia_datos.latitud,instancia_datos.longitud,instancia_datos.localidad)
+            viewmodel_mapa_inmobilia.obtner_lugarres_cercanos(instancia_datos.latitud,instancia_datos.longitud,instancia_datos.localidad)
+            viewmodel_mapa_inmobilia.obtner_lugarres_turisticos(instancia_datos.latitud,instancia_datos.longitud,instancia_datos.localidad)
+            viewmodel_mapa_inmobilia.obtner_lugarres_servicios_para_el_hogar(instancia_datos.latitud,instancia_datos.longitud,instancia_datos.localidad)
+
+//
+//            viewmodel_mapa_inmobilia.guardar_listas_datos_lugares_Seguros(lista_datos_seguros)
+//            viewmodel_mapa_inmobilia.guardar_lista_datos_lugares_cercanos(lista_datos_cercanos)
+//            viewmodel_mapa_inmobilia.guardar_lista_datos_lugares_turisticos(lista_datos_turismo)
+//            viewmodel_mapa_inmobilia.guardar_lista_datos_lugares_servicio_hogar(lista_datos_lugares_esenciales)
+            viewmodel_mapa_inmobilia.agregar_datos_para_pasa_mapa(instancia_datos)
+        } else {
+            permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -146,13 +239,31 @@ fun pantalla_geinz_inmobiliaria(
                     items(lista_inmubles) { i ->
 
                         estilo_visual_card(
-                            viewmodel,
-                            i,
-                            context,
-                            "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/DR%20HOUSE.png?alt=media&token=be17b505-95d3-4434-878f-c6ec5fd9dceb"
-                        ) {
-                            ver_detalles_completos(i.id, localidad_user, nombre_user)
-                        }
+                            viewmodel = viewmodel,
+                            i = i,
+                            context = context,
+                            logo = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/DR%20HOUSE.png?alt=media&token=be17b505-95d3-4434-878f-c6ec5fd9dceb",
+                            img_clikeble = {
+                                ver_detalles_completos(i.id, localidad_user, nombre_user)
+
+                            },
+                            ver_mapa = { id, lista, nombre_, localidad_, lat_, lng_, fondo_, frente_, precio_, banos_, mt2_, habitaciones_ ->
+                                id_selet = id
+                                lista_img = lista
+                                localidad = localidad_
+                                nombre = nombre_
+                                lat = lat_
+                                lng = lng_
+                                ancho = frente_
+                                fondo = fondo_
+                                precio = precio_
+                                banos = banos_
+                                metros = mt2_
+                                habitaciones = habitaciones_
+
+
+                                cargar_mapa_con_datos()
+                            })
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
@@ -181,7 +292,8 @@ fun estilo_visual_card(
     i: dataclass_geinz_inmobiliaria_principal,
     context: Context,
     logo: String,
-    img_clikeble: () -> Unit
+    img_clikeble: () -> Unit,
+    ver_mapa: (id: String, lista_img: List<String>, nombre: String, localidad: String, lat: Double, lng: Double, fondo: Int, frente: Int, precio: Double, banos: String, mt2: Double, habitaciones: String) -> Unit
 ) {
 
     Box(
@@ -289,7 +401,7 @@ fun estilo_visual_card(
                 modifier = Modifier.size(50.dp),
                 color = Color(0xFF031E6C),
                 icono = R.drawable.comparir_icon, {
-                    viewmodel.compartir_link_tienda(context, i.localidad, i.id,)
+                    viewmodel.compartir_link_tienda(context, i.localidad, i.id)
                 }
             )
 
@@ -297,7 +409,20 @@ fun estilo_visual_card(
                 modifier = Modifier.weight(1f),
                 color = Color(0xFF4A0085),
                 icono = R.drawable.google_maps_icono,
-                text = "Lugares cercanos", {}
+                text = "Lugares cercanos", {
+                    ver_mapa(
+                        i.id,
+                        i.lista_img,
+                        i.descripcion,
+                        i.localidad,
+                        i.latitud,
+                        i.longitud,
+                        i.medida_fondo,
+                        i.medida_frente,
+                        i.precio_String, i.cantidad_banos, i.metros_cuadrados, i.cantidad_dormitrios
+                    )
+
+                }
             )
 
             btns(
@@ -441,11 +566,9 @@ fun btns_solo_borde(
         modifier = modifier
             .fillMaxWidth()
             .height(55.dp)
-            .border(
-                width = 2.dp,
-                color = color,
-                shape = RoundedCornerShape(10.dp)
-            )
+            .clip( shape = RoundedCornerShape(10.dp))
+            .background(  color = color)
+
             .clickable {
                 clikc()
             }

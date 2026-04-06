@@ -65,7 +65,13 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
+import coil3.request.ImageRequest
+import coil3.request.error
+import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.github.panpf.zoomimage.ZoomImage
+import com.github.panpf.zoomimage.compose.rememberZoomState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -315,6 +321,7 @@ object constantes_reprodutor_video {
     ) {
         val totalItems = imagenes.size + if (videoUrl != null) 1 else 0
         val pagerState = rememberPagerState { totalItems }
+        val zoomState = rememberZoomState()
 
         Box(
             modifier = modifier
@@ -338,6 +345,21 @@ object constantes_reprodutor_video {
                     )
                 } else {
                     Box(modifier = Modifier.fillMaxSize()) {
+//                        val painter= rememberAsyncImagePainter(
+//                            model = ImageRequest.Builder(context = LocalContext.current)
+//                                .data(imagenes[page])
+//                                .placeholder ( R.drawable.cargando_img_categorias )
+//                                .error(R.drawable.cargando_img_categorias)
+//                                .build()
+//                        )
+//
+//                        ZoomImage(
+//                            painter = painter,
+//                            contentDescription = null,
+//                            modifier = Modifier.fillMaxSize(),
+//                            zoomState = zoomState,
+//                            contentScale = ContentScale.Crop
+//                        )
                         AsyncImage(
                             model = imagenes[page],
                             contentDescription = null,
@@ -409,6 +431,7 @@ object constantes_reprodutor_video {
         val totalPages = imagenes.size + 1 // 🎬 +1 para el video al final
         val pagerState = rememberPagerState { totalPages }
         val isOnVideoPage = pagerState.currentPage == imagenes.size // última página
+        val zoom_statte = rememberZoomState()
 
         Box(
             modifier = modifier
@@ -429,7 +452,8 @@ object constantes_reprodutor_video {
                         isVisible = isOnVideoPage
                     )
                 } else {
-                    // 🖼 Páginas normales = Imágenes
+
+
                     AsyncImage(
                         model = imagenes[page],
                         contentDescription = null,
@@ -551,4 +575,3 @@ object constantes_reprodutor_video {
         }
     }
 }
-
