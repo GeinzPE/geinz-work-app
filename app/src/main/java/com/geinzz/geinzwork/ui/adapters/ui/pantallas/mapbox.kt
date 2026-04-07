@@ -763,7 +763,7 @@ fun SimpleMapDark(
                     CameraOptions.Builder()
                         .center(puntoUsuario)
                         .zoom(18.0)
-                        .bearing(bearingFinal)
+//                        .bearing(bearingFinal)
 //                        .pitch(45.0)
                         .build(),
                     MapAnimationOptions.Builder()

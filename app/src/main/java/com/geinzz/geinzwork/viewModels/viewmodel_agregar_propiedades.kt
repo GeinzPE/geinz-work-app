@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.BuildConfig
 
 import com.geinzz.geinzwork.model.repo_agregar_inmubles
+import com.geinzz.geinzwork.model.repo_agregar_inmubles.agregar_inmubles_datos
 import com.geinzz.geinzwork.model.repo_inmobiliaria
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -31,8 +32,17 @@ class viewmodel_agregar_propiedades : ViewModel() {
     private val _descripcion = MutableStateFlow("")
     val descripcion: StateFlow<String> = _descripcion.asStateFlow()
 
+    private val _estadoAgregar = MutableStateFlow<agregar_lugares>(agregar_lugares.idle)
+
+    val estadoAgregar: StateFlow<agregar_lugares> = _estadoAgregar.asStateFlow()
 
 
+
+    fun limpiarCamposViewModel() {
+        _titulo.value = ""
+        _descripcion.value = ""
+        _nombre_calle.value = ""
+    }
 
     suspend fun obtener_lugares_cercanos(
         lat: Double,
@@ -116,12 +126,23 @@ class viewmodel_agregar_propiedades : ViewModel() {
                         "&types=address" +
                         "&language=es"
 
-                val response = URL(url).readText() // <-- directo, sin función extra
+                val response = URL(url).readText()
                 val json = JSONObject(response)
                 val features = json.getJSONArray("features")
 
                 if (features.length() > 0) {
-                    features.getJSONObject(0).getString("place_name")
+                    val feature = features.getJSONObject(0)
+
+                    val calle = feature.getString("text") // nombre calle
+                    val numero = feature.optString("address", "") // número (puede no existir)
+
+                    // 👉 Resultado corto tipo: "Av. Perú 123"
+                    if (numero.isNotEmpty()) {
+                        "$calle $numero"
+                    } else {
+                        calle // si no hay número
+                    }
+
                 } else {
                     null
                 }
@@ -132,6 +153,7 @@ class viewmodel_agregar_propiedades : ViewModel() {
             }
         }
     }
+
     fun buscar_nombre_calle(latitud: Double, longitud: Double) {
         viewModelScope.launch {
             try {
@@ -143,6 +165,28 @@ class viewmodel_agregar_propiedades : ViewModel() {
                 Log.e("error_calle", "Error: ${e.message}")
             }
         }
+    }
+
+    fun agregar_lugar(data: agregar_inmubles_datos) {
+        viewModelScope.launch {
+            _estadoAgregar.value = agregar_lugares.loading
+            try {
+                instania_repo_agregar_inmubes.agregar_inmuebles(data)
+                _estadoAgregar.value = agregar_lugares.sucecs
+                // 👇 reset para que el LaunchedEffect no se dispare de nuevo
+                _estadoAgregar.value = agregar_lugares.idle
+            } catch (e: Exception) {
+                Log.d("error_agrega", "$e")
+                _estadoAgregar.value = agregar_lugares.error
+            }
+        }
+    }
+
+    sealed class agregar_lugares{
+        object sucecs:agregar_lugares()
+        object error: agregar_lugares()
+        object loading:agregar_lugares()
+        object idle : agregar_lugares()
     }
 
 }
