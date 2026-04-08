@@ -1648,19 +1648,38 @@ fun mapa_inmobilia(
                             Log.d("MARKER_CLICK", "Lat: $lat, Lng: $lng")
 
                             if (tipo == "inmueble_principal") {
-//                                lista_seleccionada=obj_pasado_clikeado_mapa(
-//                                    tipo = "",
-//                                    datos = listOf(lugares_cercanos_(
-//                                        nombre = nombre_inmbuele?:"",
-//                                        categoira = "",
-//                                        img_String = img_data?:"",
-//                                        distanciaKm =0.0,
-//                                        id = id?:"",
-//                                        localidad = "",
-//                                        lat = lat?:0.0,
-//                                        lng = lng?:0.0
-//                                    ))
-//                                )
+                                // ✅ Agregar el inmueble a lista_seleccionada para que desing_creacion_ruta lo encuentre
+                                lista_seleccionada = obj_pasado_clikeado_mapa(
+                                    tipo = "inmueble_principal",
+                                    datos = listOf(
+                                        lugares_cercanos_(
+                                            nombre = nombre_inmbuele ?: "",
+                                            categoira = "",
+                                            img_String = img_data ?: "",
+                                            distanciaKm = 0.0,
+                                            id = id ?: "",
+                                            localidad = "",
+                                            lat = lat ?: 0.0,
+                                            lng = lng ?: 0.0
+                                        )
+                                    )
+                                )
+
+                                seleccionado_posible = id ?: ""
+                                EstadoMapa.seleccionarPinPorId(id ?: "")
+                                img_negocio_preview = img_data ?: ""
+                                nombre_negocio_select_preview = nombre_inmbuele ?: ""
+
+                                // ✅ También actualiza las coordenadas del destino para la ruta
+                                lat_lugar_seleccionado = lat ?: 0.0
+                                lng_lugar_seleccionado = lng ?: 0.0
+
+                                moverCamaraSin_apagar_seguimiento(
+                                    CameraOptions.Builder()
+                                        .center(Point.fromLngLat(lng ?: 0.0, lat ?: 0.0))
+                                        .build(),
+                                    duracionMs = 800
+                                )
                                 Toast.makeText(
                                     contex,
                                     "📍 ${datos_obtener_mapa.nombre}",

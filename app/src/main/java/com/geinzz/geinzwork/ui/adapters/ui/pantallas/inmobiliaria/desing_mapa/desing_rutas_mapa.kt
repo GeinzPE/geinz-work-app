@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.inmobiliaria.desing_mapa
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -49,7 +50,17 @@ fun desing_creacion_ruta(
     ocultar_dialog_: () -> Unit,
     mostar_dialog_no_ubi_activa: () -> Unit
 ) {
-    var seleccionadoActual by remember { mutableStateOf<String?>(null) }
+
+    Log.d("CREACION_RUTA", "distancia: $distancia")
+    Log.d("CREACION_RUTA", "context: $context")
+    Log.d("CREACION_RUTA", "lista size: ${lista.size}")
+    Log.d("CREACION_RUTA", "lista contenido: $lista")
+    Log.d("CREACION_RUTA", "callback seleccionado: $seleccionado")
+    Log.d("CREACION_RUTA", "callback cancelacion_ruta: $cancelacion_ruta")
+    Log.d("CREACION_RUTA", "callback ocultar_dialog_: $ocultar_dialog_")
+    Log.d("CREACION_RUTA", "callback mostar_dialog_no_ubi_activa: $mostar_dialog_no_ubi_activa")
+
+var seleccionadoActual by remember { mutableStateOf<String?>(null) }
 
     val listaVisible = if (seleccionadoActual == null) lista
     else lista.filter { it.tipo == seleccionadoActual }

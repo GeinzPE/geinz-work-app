@@ -34,9 +34,6 @@ class viewmodel_inmobiliaria : ViewModel() {
     val estado_carga_inmuebles_principales: StateFlow<estado_carga_principal_immubles> =
         _estado_carga_inmubles_principales
 
-
-
-
     private val _respuesta_IA = MutableStateFlow("")
 
     val respuesta_IA: StateFlow<String> = _respuesta_IA.asStateFlow()

@@ -453,6 +453,29 @@ fun agregar_propiedades() {
                     )
                 }
 
+                    OutlinedTextField(
+                        value = refenencia,
+                        onValueChange = { refenencia = it },
+                        label = { texto_generico_one_line("referencia") },
+                        shape = RoundedCornerShape(20.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+
+                    if (precio_por_m2 > 0.0) {
+                        texto_generico_one_line(
+                            "Precio por m²: ${moneda_seleccionada} ${"%.2f".format(precio_por_m2)}/m²"
+                        )
+                    }
+
+
                 spacer_vertical(20.dp)
                 if (resultado_medicion_terreno != 0.0) {
                     texto_generico_multilinea("El terreno tiene un área de ${"%.2f".format(resultado_medicion_terreno)} m²")
@@ -468,29 +491,7 @@ fun agregar_propiedades() {
                 spacer_vertical(20.dp)
             }
 
-            item {
-                OutlinedTextField(
-                    value = refenencia,
-                    onValueChange = { refenencia = it },
-                    label = { texto_generico_one_line("referencia") },
-                    shape = RoundedCornerShape(20.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                )
 
-
-                if (precio_por_m2 > 0.0) {
-                    texto_generico_one_line(
-                        "Precio por m²: ${moneda_seleccionada} ${"%.2f".format(precio_por_m2)}/m²"
-                    )
-                }
-            }
 
             item {
                 Button(onClick = {
