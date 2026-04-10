@@ -733,7 +733,7 @@ fun nativationWrapper(
                 }
 
                 composable<login_scios> {
-                    login_socios(isConnected, "", navController)
+                    login_socios(isConnected, "", navController,datos_user?.localida?:"indefinida")
                 }
 
                 composable<crear_cuenta_geinz> { navback ->
@@ -903,14 +903,14 @@ fun nativationWrapper(
                 }
 
                 composable("promocionar_ads") {
-                    login_socios(isConnected, "envio", navController)
+                    login_socios(isConnected, "envio", navController,datos_user?.localida?:"indefinida")
                 }
                 composable("promocionar_rec") {
-                    login_socios(isConnected, "recargas", navController)
+                    login_socios(isConnected, "recargas", navController,datos_user?.localida?:"indefinida")
                 }
 
                 composable("promocionar_rec") {
-                    login_socios(isConnected, "envio", navController)
+                    login_socios(isConnected, "envio", navController,datos_user?.localida?:"indefinida")
                 }
                 composable("promociones_nuevas") {
                     ui_promos_cerca_de_ti(

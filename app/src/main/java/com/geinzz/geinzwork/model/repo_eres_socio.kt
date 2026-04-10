@@ -50,6 +50,7 @@ import kotlinx.coroutines.tasks.await
 import com.google.firebase.Timestamp
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
+import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.serialization.json.Json
 
 
@@ -70,16 +71,16 @@ import kotlin.math.floor
 
 class repo_eres_socio {
     val stopWords = setOf(
-        "el","la","los","las","un","una","unos","unas",
-        "de","del","y","o","en","con","para","por","a","que",
-        "es","al","se","lo","su","como","más","pero","si",
-        "tu","te","mira","ven","pruebalo","disfruta","descubre",
-        "haz","pedido","ahora","hoy","solo","tan","este","esta",
-        "oferta","increible","imperdible"
+        "el", "la", "los", "las", "un", "una", "unos", "unas",
+        "de", "del", "y", "o", "en", "con", "para", "por", "a", "que",
+        "es", "al", "se", "lo", "su", "como", "más", "pero", "si",
+        "tu", "te", "mira", "ven", "pruebalo", "disfruta", "descubre",
+        "haz", "pedido", "ahora", "hoy", "solo", "tan", "este", "esta",
+        "oferta", "increible", "imperdible"
     )
 
     val stopWordsExtendido = stopWords + setOf(
-        "nuevo","solo","oferta","hoy","ahora","descubre","pruebalo","ven"
+        "nuevo", "solo", "oferta", "hoy", "ahora", "descubre", "pruebalo", "ven"
     )
 
     val normalizacion = mapOf(
@@ -90,8 +91,6 @@ class repo_eres_socio {
         "consigue" to "obtener",
         "aprovecha" to "obtener"
     )
-
-
 
 
     private val db = FirebaseFirestore.getInstance()
@@ -1243,7 +1242,8 @@ class repo_eres_socio {
                                     !gen.descripcion_original.isNullOrBlank() ||
                                     !gen.titulo_seleccionado.isNullOrBlank() ||
                                     !gen.descripcion_seleccionada.isNullOrBlank()
-                        }}
+                        }
+            }
 
             val ref = db.collection("Tiendas")
                 .document(localidad)
@@ -1253,7 +1253,6 @@ class repo_eres_socio {
             val ref2 = db.collection("Tiendas").document(localidad).collection(localidad)
                 .document(i.informacion.id_tienda).collection("promociones_geinz")
                 .document(i.informacion.id_promocion)
-
 
 
             val hasmap_metodos_pago = hashMapOf<String, Any>(
@@ -1279,7 +1278,10 @@ class repo_eres_socio {
                 "aire_acondicionado" to i.servicios_comoidades.aireAcondicionado
             )
 
-            val array_extraido=extraer_datos_de_texto_completo(i.informacion.titulo+i.informacion.descripcion,i.informacion.categoria)
+            val array_extraido = extraer_datos_de_texto_completo(
+                i.informacion.titulo + i.informacion.descripcion,
+                i.informacion.categoria
+            )
             val hashMap = hashMapOf<String, Any>(
                 "estado" to i.estado,
                 "tipo_hora_dias" to i.formato_fecha_hora,
@@ -1327,7 +1329,7 @@ class repo_eres_socio {
                 }
 
                 gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
-            }else if(tieneDatos && !datos_si_paso_IA.id_generacion_sin_publicar.isNullOrBlank()) {
+            } else if (tieneDatos && !datos_si_paso_IA.id_generacion_sin_publicar.isNullOrBlank()) {
                 val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
                     .document(i.informacion.id_tienda).collection("gen_con_IA_historial")
                     .document(datos_si_paso_IA.id_generacion_sin_publicar)
@@ -1337,7 +1339,7 @@ class repo_eres_socio {
                     "caudidad" to timestampEn30Dias(30),
                     "tipo" to "publicacion",
 
-                )
+                    )
 
                 gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
             }
@@ -1430,7 +1432,7 @@ class repo_eres_socio {
 
 
     suspend fun guaradar_generacion_normal_por_7_dias(
-        id_generacion:String,
+        id_generacion: String,
         localidad: String,
         id_tienda: String,
         i: generacion_primarios,
@@ -1470,7 +1472,8 @@ class repo_eres_socio {
             descripciones = textosParaTerminos.filterIndexed { index, _ -> index % 2 != 0 } // descripciones
         )
 
-        val terminos = extraerTerminosLocal(textoCompacto) // función local que devuelve List<String>
+        val terminos =
+            extraerTerminosLocal(textoCompacto) // función local que devuelve List<String>
         hashmpa_gen_con_IA["terminos"] = terminos
 
         gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
@@ -1534,7 +1537,8 @@ class repo_eres_socio {
 
         // 🔹 Extraer términos Super Saiyajin
         val titulos = listOf(i.titulo_original) + i.lista_generaciones.mapNotNull { it.titulo }
-        val descripciones = listOf(i.descripcion_original) + i.lista_generaciones.mapNotNull { it.descripcion }
+        val descripciones =
+            listOf(i.descripcion_original) + i.lista_generaciones.mapNotNull { it.descripcion }
 
         val textoCompacto = combinarTextosRelevantes(titulos, descripciones)
         val terminos = extraerTerminosLocal(textoCompacto) // lista de términos únicos, normalizados
@@ -1544,9 +1548,6 @@ class repo_eres_socio {
         // Guardar en Firestore
         gen_con_IA.set(historialIAData, SetOptions.merge()).await()
     }
-
-
-
 
 
     suspend fun crear_notificacion_conIA_corta(
@@ -2027,8 +2028,6 @@ class repo_eres_socio {
     }
 
 
-
-
     fun tiempoRestante(timestampFin: Long): String {
         val ahoraMs = System.currentTimeMillis()
         val diffMs = timestampFin - ahoraMs
@@ -2072,7 +2071,8 @@ class repo_eres_socio {
             resultado.append(palabra)
         }
 
-        return if (resultado.isEmpty()) palabras.takeWhile { it.length <= maxLength }.joinToString(" ") else resultado.toString()
+        return if (resultado.isEmpty()) palabras.takeWhile { it.length <= maxLength }
+            .joinToString(" ") else resultado.toString()
     }
 
     // 2️⃣ Combinar títulos y descripciones
@@ -2095,12 +2095,12 @@ class repo_eres_socio {
             .split(Regex("\\s+"))
             .map {
                 it.replace("s/", "")
-                    .replace("á","a")
-                    .replace("é","e")
-                    .replace("í","i")
-                    .replace("ó","o")
-                    .replace("ú","u")
-                    .replace("ñ","n")
+                    .replace("á", "a")
+                    .replace("é", "e")
+                    .replace("í", "i")
+                    .replace("ó", "o")
+                    .replace("ú", "u")
+                    .replace("ñ", "n")
             }
 
         val palabrasFiltradas = palabras.filter { it.isNotBlank() && it !in stopWords }
@@ -2108,4 +2108,7 @@ class repo_eres_socio {
 
         return palabrasNormalizadas.distinct()
     }
+
+
+
 }

@@ -53,39 +53,45 @@ class viewmodel_eres_socio : ViewModel() {
         private set
 
 
+    // Mutable
+
+
     val _tiene_nueva_generacion = MutableStateFlow(false)
 
 
-    val datos_publicidad_IA_params=MutableStateFlow(DatosPublicidadIA())
+    val datos_publicidad_IA_params = MutableStateFlow(DatosPublicidadIA())
 
-    val datos_notificaciones=MutableStateFlow(datos_notificacion())
+    val datos_notificaciones = MutableStateFlow(datos_notificacion())
 
 
-    fun setear_datos_notificacion_publicada_IA(i:datos_notificacion){
-        datos_notificaciones.value=i
+    fun setear_datos_notificacion_publicada_IA(i: datos_notificacion) {
+        datos_notificaciones.value = i
     }
 
 
-    fun setear_datos_datos_publicada_IA(i: DatosPublicidadIA){
-        datos_publicidad_IA_params.value=i
+
+
+
+    fun setear_datos_datos_publicada_IA(i: DatosPublicidadIA) {
+        datos_publicidad_IA_params.value = i
     }
 
 
-    fun limpiar_datos_pasados_publcada_IA(){
-        val data=DatosPublicidadIA(
+    fun limpiar_datos_pasados_publcada_IA() {
+        val data = DatosPublicidadIA(
             titulo = "",
             descripcion = "",
             whatsapp = "",
             compartir = "",
             tipo_redirigido = "",
-            id_generacion_sin_publicar = null,datos_generaciones_sin_publicaicones()
+            id_generacion_sin_publicar = null, datos_generaciones_sin_publicaicones()
         )
-        datos_publicidad_IA_params.value=data
+        datos_publicidad_IA_params.value = data
     }
 
 
-    fun limpiar_datos_pasados_notificaciones_con_IA(){
-        datos_notificaciones.value=datos_notificacion()
+    fun limpiar_datos_pasados_notificaciones_con_IA() {
+        datos_notificaciones.value = datos_notificacion()
     }
 
 
@@ -95,7 +101,7 @@ class viewmodel_eres_socio : ViewModel() {
         tipo: String
     ) {
 
-        notificacion_ID= when {
+        notificacion_ID = when {
             !idForzado.isNullOrBlank() -> {
                 Log.d("ID_NOTI", "Usando ID FORZADO: $idForzado")
                 idForzado
@@ -129,7 +135,6 @@ class viewmodel_eres_socio : ViewModel() {
     }
 
 
-
     fun iniciarPromo(idExterno: String?) {
         promocionId = if (!idExterno.isNullOrBlank()) {
             idExterno
@@ -140,24 +145,19 @@ class viewmodel_eres_socio : ViewModel() {
         Log.d("PROMO_ID", "Promo iniciada con ID: $promocionId")
     }
 
-    fun limpiar_id_selecionadanotificacion(){
+    fun limpiar_id_selecionadanotificacion() {
         notificacion_ID = ""
     }
 
     fun limpiarId() {
         promocionId = ""
-        _tiene_nueva_generacion.value=false
+        _tiene_nueva_generacion.value = false
     }
 
 
-
-
-
-    fun verificar_si_tiene_nueva_generacion(valor: Boolean){
-        _tiene_nueva_generacion.value=valor
+    fun verificar_si_tiene_nueva_generacion(valor: Boolean) {
+        _tiene_nueva_generacion.value = valor
     }
-
-
 
 
     private val _state_eres_socio = MutableStateFlow<carga_acces_socio>(carga_acces_socio.idle)
@@ -758,8 +758,14 @@ class viewmodel_eres_socio : ViewModel() {
         localidad: String
     ): Result<Unit> {
         val tieneNueva = _tiene_nueva_generacion.value
-        val datos_si_paso_IA=datos_publicidad_IA_params.value
-        return instace_repo.crear_promocion(datos_si_paso_IA,tieneNueva,lista_img_subida, i, localidad)
+        val datos_si_paso_IA = datos_publicidad_IA_params.value
+        return instace_repo.crear_promocion(
+            datos_si_paso_IA,
+            tieneNueva,
+            lista_img_subida,
+            i,
+            localidad
+        )
     }
 
 
@@ -788,7 +794,7 @@ class viewmodel_eres_socio : ViewModel() {
         localidad: String,
         id_tienda: String,
         i: generacion_primarios,
-    id_generacion: String
+        id_generacion: String
     ) {
         viewModelScope.launch {
             try {
@@ -798,14 +804,12 @@ class viewmodel_eres_socio : ViewModel() {
                     id_tienda,
                     i,
 
-                )
+                    )
             } catch (e: Exception) {
                 Log.d("Error_al_agregar", "$e")
             }
         }
     }
-
-
 
 
     fun actualizarWhatsapp(

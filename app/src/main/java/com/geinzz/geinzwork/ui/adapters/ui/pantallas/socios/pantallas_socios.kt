@@ -109,7 +109,7 @@ import com.google.firebase.auth.FirebaseAuth
 @OptIn(ExperimentalAnimationApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun login_socios(isConnected: Boolean, tipo_: String = "", navController: NavHostController) {
+fun login_socios(isConnected: Boolean, tipo_: String = "", navController: NavHostController,localidad_user:String) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
@@ -907,6 +907,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "", navController: NavHos
 
                                     "Recargas" -> {
                                         pantala_recarga(
+                                            localidad_user,
                                             viewmodel_paramo = viewmodel,
                                             nombre_tienda = nombre_tienda,
                                             localida_tienda = localidad_tienda,

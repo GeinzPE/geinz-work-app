@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.model
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import com.geinzz.geinzwork.data.model.EstadoNotificaciones
 import com.geinzz.geinzwork.data.model.historial_descuento
@@ -11,6 +12,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -65,6 +67,50 @@ class repo_recargas {
             e.printStackTrace()
             false
         }
+    }
+
+    fun crear_cargo_compras_paquetes(
+        localidad:String,
+        id_cliente: String,
+        cantidad: String,
+        monto: String,
+        onCheckoutUrl: (String) -> Unit
+    ) {
+        val functions = FirebaseFunctions.getInstance("us-central1")
+        Log.d("cantidad","$cantidad")
+        Log.d("cantidad","$monto")
+
+        val data = hashMapOf(
+            "monto" to monto,
+            "userId" to id_cliente,
+            "monedas" to cantidad.toInt(),
+            "nombre" to "Cliente",
+            "email" to "test@test.com",
+            "localidad" to localidad
+        )
+
+        functions
+            .getHttpsCallable("crearOrdenCulqi")
+            .call(data)
+            .addOnSuccessListener { result ->
+                val res = result.data as? Map<*, *>
+                Log.d("Culqi", "Keys disponibles: ${res?.keys}")  // ← ver todas las keys
+                Log.d("Culqi", "qr_url raw: ${res?.get("qr_url")}")
+                Log.d("Culqi", "checkout_url raw: ${res?.get("checkout_url")}")
+
+                val qrUrl = res?.get("qr_url")?.toString()       // ← usar toString() en vez de as? String
+                val checkoutUrl = res?.get("checkout_url")?.toString()
+                val url = qrUrl ?: checkoutUrl
+
+                if (url != null && url != "null") {  // ← verificar que no sea el string "null"
+                    onCheckoutUrl(url)
+                } else {
+                    Log.e("Culqi", "Ambas URLs son null. Respuesta: $res")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("Culqi", "Error al crear orden: ${e.message}")
+            }
     }
 
     fun obtner_saldo_reactivo(

@@ -226,6 +226,6 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer-dash:1.9.3")
     implementation("androidx.media3:media3-ui:1.9.3")
     implementation("androidx.media3:media3-ui-compose:1.9.3")
-
+    implementation("com.google.firebase:firebase-functions-ktx:20.2.0")
 
 }

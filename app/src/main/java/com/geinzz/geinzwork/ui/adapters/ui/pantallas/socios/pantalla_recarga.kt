@@ -71,6 +71,7 @@ import com.google.firebase.auth.FirebaseAuth
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun pantala_recarga(
+    localida_user:String,
     viewmodel_paramo: viewmodel_eres_socio,
     nombre_tienda: String,
     localida_tienda: String,
@@ -93,6 +94,11 @@ fun pantala_recarga(
     val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
     ?: ""
 
+    val enviar_webhook_culqui  by viewmodel_recarga_insta.enviar_webhook_culqui.collectAsState()
+
+    LaunchedEffect(enviar_webhook_culqui) {
+        Log.d("enviar_webhook_culqui","$enviar_webhook_culqui")
+    }
     LaunchedEffect(Unit) {
         viewmodel_paramo.obtener_precios_paquetes()
     }
@@ -144,10 +150,11 @@ fun pantala_recarga(
                                     estado = "Aceptado",
                                     monto_posterior = monedas_user
                                 )
-                                viewmodel_recarga_insta.recargar_puntos(
-                                    i = datos_recarga,
-                                    id_user = id_user
-                                )
+                                viewmodel_recarga_insta.crear_cargo__compra_paquete(localida_user.lowercase(),id_tienda,monedas_user.toString(),monedas)
+//                                viewmodel_recarga_insta.recargar_puntos(
+//                                    i = datos_recarga,
+//                                    id_user = id_user
+//                                )
                             }
                         }
                         item { spacer_vertical(20.dp) }

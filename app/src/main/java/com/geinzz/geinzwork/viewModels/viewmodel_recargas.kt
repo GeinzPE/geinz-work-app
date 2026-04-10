@@ -45,7 +45,28 @@ class viewmodel_recargas : ViewModel() {
 
     val estadoNotificaciones: StateFlow<EstadoNotificaciones> =
         _estadoNotificaciones
+    private val _enviar_webhook_culqui = MutableStateFlow("")
+    // Inmutable para exponer
+    val enviar_webhook_culqui: StateFlow<String> = _enviar_webhook_culqui
 
+
+    fun crear_cargo__compra_paquete(
+        localidad:String,
+        id_cliente: String,
+        cantidad: String,
+        monto: String,
+    ) {
+
+        viewModelScope.launch {
+            try {
+                insta_repo.crear_cargo_compras_paquetes(localidad,id_cliente, cantidad, monto, { url ->
+                    _enviar_webhook_culqui.value = url
+                })
+            } catch (e: Exception) {
+                _enviar_webhook_culqui.value = "$e"
+            }
+        }
+    }
 
 
     @RequiresApi(Build.VERSION_CODES.O)

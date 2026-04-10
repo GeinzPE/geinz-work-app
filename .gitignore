@@ -9,3 +9,5 @@ app/build/
 
 # Ignorar carpeta .gradle (puede estar en raíz o en app)
 .gradle/
+
+functions/.env

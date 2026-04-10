@@ -1,4 +1,4 @@
-const { onRequest } = require("firebase-functions/v2/https");
+const { onRequest, onCall } = require("firebase-functions/v2/https");
 const {
   onDocumentCreated,
   onDocumentWritten,
@@ -20,6 +20,85 @@ const geofire = require("geofire-common");
 
 admin.initializeApp();
 
+const axios = require("axios");
+
+const CULQI_KEY = process.env.CULQI_KEY; // 🔹 v2: se usa env variable
+
+const db = admin.firestore();
+exports.crearOrdenCulqi = onCall({ region: "us-central1" }, async (req) => {
+  const { monto, userId, monedas, nombre, email, localidad } = req.data;
+
+  console.log("=== PARAMETROS RECIBIDOS ===");
+  console.log("monto:", monto);
+  console.log("userId:", userId);
+  console.log("monedas:", monedas);
+  console.log("nombre:", nombre);
+  console.log("email:", email);
+  console.log("localidad:", localidad);
+  console.log("===========================");
+
+  const montoInt = parseInt(monto);
+  const orderId = "order_" + Date.now();
+
+  try {
+    const response = await axios.post(
+      "https://api.culqi.com/v2/orders",
+      {
+        amount: montoInt,
+        currency_code: "PEN",
+        description: "Compra de monedas",
+        order_number: orderId,
+        expiration_date: Math.floor(Date.now() / 1000) + 24 * 60 * 60,
+        client_details: {
+          first_name: nombre || "Cliente",
+          last_name: "Geinz",
+          email: email || "cliente@geinz.com",
+          phone_number: "999999999",
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${CULQI_KEY}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    await db
+      .collection("ordenes_pagos")
+      .doc(orderId)
+      .set({
+        orderId: orderId,
+        userId: userId,
+        monedas: monedas,
+        monto: parseInt(monto), // en soles (no en centavos)
+        estado: "pendiente",
+        localidad: localidad,
+        culqi_order_id: response.data.id, // id interno de Culqi
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+
+        paidAt: null,
+      });
+
+    console.log("Respuesta Culqi COMPLETA:", JSON.stringify(response.data));
+    console.log("CULQUI KEY", CULQI_KEY);
+    console.log("qr value:", response.data.qr);
+    console.log("url_pe value:", response.data.url_pe);
+    console.log("Todas las keys:", Object.keys(response.data));
+
+    return {
+      checkout_url: response.data.url_pe, // ✅ página de pago
+      qr_url: response.data.qr, // ✅ imagen del QR (bonus)
+      orderId,
+    };
+  } catch (error) {
+    console.error(
+      "Error crearOrdenCulqi:",
+      error.response?.data || error.message,
+    );
+    throw new Error(JSON.stringify(error.response?.data || error.message));
+  }
+});
 // ==================== Algolia ====================
 const APP_ID = process.env.ALGOLIA_APP_ID || "";
 const API_KEY = process.env.ALGOLIA_API_KEY || "";
@@ -47,6 +126,78 @@ exports.syncLugarToAlgolia = onDocumentWritten(
   },
 );
 
+exports.webhookCulqi = onRequest(
+  { region: "us-central1" },
+  async (req, res) => {
+    try {
+      const body = req.rawBody ? JSON.parse(req.rawBody.toString()) : req.body;
+
+      const event = body;
+
+      console.log("🔥 WEBHOOK RECIBIDO:");
+      console.log("Body:", JSON.stringify(event));
+
+      if (!event || !event.type) {
+        console.log("⚠️ Evento vacío o inválido");
+        return res.status(200).send("ok");
+      }
+
+      if (event.type === "order.status_changed") {
+        const order = event.data;
+
+        console.log("Estado:", order?.payment_status);
+
+        if (order?.payment_status === "paid") {
+          console.log("✅ PAGO CONFIRMADO");
+
+          const orderId = order.order_number;
+
+          const db = admin.firestore();
+          const docRef = db.collection("ordenes_pagos").doc(orderId);
+          const doc = await docRef.get();
+
+          if (!doc.exists) {
+            console.log("❌ Orden no encontrada:", orderId);
+            return res.status(200).send("ok");
+          }
+
+          const data = doc.data();
+
+          if (data.estado === "pagado") {
+            console.log("⚠️ Ya estaba pagado");
+            return res.status(200).send("ok");
+          }
+
+          await db
+            .collection("Tiendas")
+            .doc(data.localidad)
+            .collection(data.localidad)
+            .doc(data.userId)
+            .set(
+              {
+                puntos_tienda: admin.firestore.FieldValue.increment(
+                  data.monedas,
+                ),
+              },
+              { merge: true },
+            );
+
+          await docRef.update({
+            estado: "pagado",
+            paidAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+
+          console.log("💰 Monedas entregadas");
+        }
+      }
+
+      res.status(200).send("ok");
+    } catch (error) {
+      console.error("❌ Error webhook:", error);
+      res.status(500).send("error");
+    }
+  },
+);
 // ==================== Notificaciones ====================
 // ==================== Notificaciones ====================
 
@@ -163,7 +314,8 @@ exports.share = onRequest(async (req, res) => {
       "prf",
       "prn",
       "scr",
-      "prms","in"
+      "prms",
+      "in",
     ];
 
     if (!TIPOS_SIN_LOCALIDAD.includes(tipo) && (!localidad || !categoria)) {
@@ -291,8 +443,8 @@ exports.share = onRequest(async (req, res) => {
         imagen =
           data?.datos_de_notificacion?.img_notificacion ||
           "https://geinzworkapp.web.app/default.jpg";
-      }else if(tipo=="in"){
-         const promos = data.listaImg || [];
+      } else if (tipo == "in") {
+        const promos = data.listaImg || [];
         if (promos.length > 0) {
           imagen = promos[0]; // toma siempre la primera imagen si existe
         } else {
@@ -875,7 +1027,6 @@ exports.textToSpeechIA = onRequest(
   },
 );
 
-
 exports.textToSpeechIA_con_params = onRequest(
   { region: "us-central1" },
   async (req, res) => {
@@ -902,24 +1053,23 @@ exports.textToSpeechIA_con_params = onRequest(
         input: { text: textoLimpio },
         voice: {
           languageCode: "es-US",
-          name: voiceName
+          name: voiceName,
         },
         audioConfig: {
           audioEncoding: "MP3",
-          speakingRate: 1.05
-        }
+          speakingRate: 1.05,
+        },
       };
 
       const [response] = await ttsClient.synthesizeSpeech(request);
 
       res.set("Content-Type", "audio/mpeg");
       res.send(response.audioContent);
-
     } catch (error) {
       console.error("❌ Error TTS:", error);
       res.status(500).send(error.message);
     }
-  }
+  },
 );
 
 exports.tiendasGeo = onRequest(async (req, res) => {
@@ -938,16 +1088,22 @@ exports.tiendasGeo = onRequest(async (req, res) => {
 
     // Definimos las 3 colecciones que queremos consultar
     const configuracion = {
-      turismo: db.collection("Tiendas").doc("barranca").collection("lugares_turisticos"),
-      seguridad: db.collection("Tiendas").doc("salud_seguridad").collection("barranca"),
-      cercanos: db.collection("Tiendas").doc("barranca").collection("barranca")
+      turismo: db
+        .collection("Tiendas")
+        .doc("barranca")
+        .collection("lugares_turisticos"),
+      seguridad: db
+        .collection("Tiendas")
+        .doc("salud_seguridad")
+        .collection("barranca"),
+      cercanos: db.collection("Tiendas").doc("barranca").collection("barranca"),
     };
 
     const respuestaFinal = {};
 
     // Ejecutamos la búsqueda para cada categoría
     for (const [categoria, collectionRef] of Object.entries(configuracion)) {
-      const promises = bounds.map(b => {
+      const promises = bounds.map((b) => {
         return collectionRef
           .orderBy("geohash")
           .startAt(b[0])
@@ -971,11 +1127,14 @@ exports.tiendasGeo = onRequest(async (req, res) => {
 
           if (!latTienda || !lngTienda) continue;
 
-          const distancia = geofire.distanceBetween([lat, lng], [latTienda, lngTienda]);
+          const distancia = geofire.distanceBetween(
+            [lat, lng],
+            [latTienda, lngTienda],
+          );
           if (distancia > radioKm) continue;
 
           resultados.push({
-            nombre: data.nombre || data.nombre_tienda || data.titulo
+            nombre: data.nombre || data.nombre_tienda || data.titulo,
           });
         }
       }
@@ -991,9 +1150,8 @@ exports.tiendasGeo = onRequest(async (req, res) => {
 
     return res.json({
       coordenadas_busqueda: { lat, lng },
-      datos_entorno: respuestaFinal
+      datos_entorno: respuestaFinal,
     });
-
   } catch (error) {
     console.error("💥 ERROR GEO UNIFICADO:", error);
     return res.status(500).json({ error: "Error en consulta unificada" });
