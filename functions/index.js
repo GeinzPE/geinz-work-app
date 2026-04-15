@@ -105,6 +105,212 @@ const API_KEY = process.env.ALGOLIA_API_KEY || "";
 const client = algoliasearch(APP_ID, API_KEY);
 const index = client.initIndex("lugares");
 
+exports.buscarTiendas = onRequest(async (req, res) => {
+  try {
+    const { localidad, nombre_negocio, categoria, subcategoria } = req.body;
+
+    if (!localidad) {
+      return res.status(400).json({
+        ok: false,
+        error: "localidad es obligatoria",
+      });
+    }
+
+    // =========================
+    // 🔥 QUERY BASE
+    // =========================
+    const ref = admin
+      .firestore()
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection(localidad);
+
+    const snapshot = await ref.get();
+
+    let resultados = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    // =========================
+    // 🔍 FILTRO NOMBRE
+    // =========================
+ if (nombre_negocio) {
+  const nombre = normalizar(nombre_negocio);
+
+  resultados = resultados.filter(tienda => {
+    const target = normalizar(
+      tienda.nombre_lower || tienda.nombre_tienda || ""
+    );
+
+    return target.includes(nombre);
+  });
+}
+
+    // =========================
+    // 🏷 FILTRO CATEGORIA
+    // =========================
+    if (categoria) {
+      const cat = normalizar(categoria);
+
+      resultados = resultados.filter(tienda =>
+        normalizar(tienda.categoria_tienda || "") === cat
+      );
+    }
+
+    // =========================
+    // 🍕 FILTRO SUBCATEGORIA
+    // =========================
+if (subcategoria) {
+  const sub = normalizar(subcategoria);
+
+  resultados = resultados.filter(tienda => {
+    if (!Array.isArray(tienda.subcategoria)) return false;
+
+    return tienda.subcategoria.some(sc => {
+      const value = normalizar(sc);
+
+      return value.includes(sub) || sub.includes(value);
+    });
+  });
+}
+
+    // =========================
+    // 🕒 HORARIO PERÚ
+    // =========================
+    const now = new Date();
+    const peru = new Date(
+      now.toLocaleString("en-US", { timeZone: "America/Lima" })
+    );
+
+    const dias = [
+      "domingo",
+      "lunes",
+      "martes",
+      "miércoles",
+      "jueves",
+      "viernes",
+      "sábado",
+    ];
+
+    const diaActual = dias[peru.getDay()];
+    const minutosActual = peru.getHours() * 60 + peru.getMinutes();
+
+    // =========================
+    // 🔥 MAP FINAL
+    // =========================
+    const response = resultados.map(tienda => {
+      const horario = tienda.horario_atencion?.[diaActual];
+
+      let abierto = false;
+      let tiene_horario = true;
+
+      // 🚨 sin horario o cerrado
+      if (!horario || horario.cerrado === true) {
+        tiene_horario = false;
+      } else {
+        const bloques = horario.bloques || [];
+
+        for (const bloque of bloques) {
+          if (!bloque?.h_apertura || !bloque?.h_cierre) continue;
+
+          const [ha, ma] = bloque.h_apertura.split(":").map(Number);
+          const [hc, mc] = bloque.h_cierre.split(":").map(Number);
+
+          const apertura = ha * 60 + ma;
+          const cierre = hc * 60 + mc;
+
+          // horario normal
+          if (apertura <= cierre) {
+            if (minutosActual >= apertura && minutosActual <= cierre) {
+              abierto = true;
+              break;
+            }
+          }
+          // cruza medianoche
+          else {
+            if (minutosActual >= apertura || minutosActual <= cierre) {
+              abierto = true;
+              break;
+            }
+          }
+        }
+      }
+
+      return {
+        id: tienda.id,
+        nombre_tienda: tienda.nombre_tienda,
+        descripcion: tienda.descripcion,
+        categoria_tienda: tienda.categoria_tienda,
+        subcategoria: tienda.subcategoria || [],
+        localidad: tienda.localidad,
+
+        ubicacion: {
+          direccion: tienda.ubicacion?.direccion || "",
+          referencia: tienda.ubicacion?.referencia || "",
+          latitud: tienda.ubicacion?.latitud || null,
+          longitud: tienda.ubicacion?.longitud || null,
+        },
+
+        whatsapp: tienda.metodo_contacto?.whatsapp?.numero || "",
+        instagram: tienda.metodo_contacto?.instagram?.url || "",
+        facebook: tienda.metodo_contacto?.facebook?.url || "",
+
+        logo: tienda.img_tienda?.logo_tienda || "",
+
+        // 🔥 ESTADO FINAL
+        estado_abierto: abierto,
+        tiene_horario: tiene_horario,
+      };
+    });
+
+    // =========================
+    // 🔥 ORDEN: abiertos primero
+    // =========================
+    response.sort((a, b) => b.estado_abierto - a.estado_abierto);
+
+    return res.json({
+      ok: true,
+      total: response.length,
+      data: response,
+    });
+
+  } catch (error) {
+    console.error("❌ ERROR:", error);
+
+    return res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+exports.obtenerCategorias = onRequest(async (req, res) => {
+  try {
+
+    const snapshot = await admin
+      .firestore()
+      .collection("Tiendas")
+      .doc("categorias")
+      .collection("categorias")
+      .get();
+
+   const categorias = snapshot.docs.map(doc => {
+      return doc.id; 
+    });
+
+    res.json({
+      ok: true,
+      categorias
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message
+    });
+  }
+});
+
 exports.syncLugarToAlgolia = onDocumentWritten(
   {
     document: "lugares/{lugarId}",
@@ -1157,6 +1363,16 @@ exports.tiendasGeo = onRequest(async (req, res) => {
     return res.status(500).json({ error: "Error en consulta unificada" });
   }
 });
+
+function normalizar(texto) {
+  return texto
+    .toLowerCase()
+    .normalize("NFD") // separa tildes
+    .replace(/[\u0300-\u036f]/g, "") // elimina tildes
+    .replace(/[^\w\s]/gi, "") // elimina puntos, comas, etc
+    .trim();
+}
+
 /*
 
 exports.enviarNotificacion = onRequest(async (req, res) => {

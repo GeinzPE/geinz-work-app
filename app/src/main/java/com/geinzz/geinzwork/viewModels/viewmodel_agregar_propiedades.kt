@@ -37,6 +37,15 @@ class viewmodel_agregar_propiedades : ViewModel() {
     val estadoAgregar: StateFlow<agregar_lugares> = _estadoAgregar.asStateFlow()
 
 
+    fun agregar_noramilazicon(){
+        viewModelScope.launch {
+            try {
+                instania_repo_agregar_inmubes.agregarNombreNormalizadoATiendas()
+            }catch (e: Exception){
+
+            }
+        }
+    }
 
     fun limpiarCamposViewModel() {
         _titulo.value = ""

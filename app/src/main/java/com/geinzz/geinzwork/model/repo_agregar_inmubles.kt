@@ -10,6 +10,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.text.Normalizer
 
 class repo_agregar_inmubles {
 
@@ -100,5 +101,33 @@ class repo_agregar_inmubles {
         }
     }
 
+
+    suspend fun agregarNombreNormalizadoATiendas() {
+
+        val ref = db.collection("Tiendas")
+            .document("barranca")
+            .collection("barranca")
+            .get()
+            .await()
+
+        for (doc in ref) {
+
+            val data = doc.data
+            val nombre = data["nombre_tienda"] as? String ?: continue
+
+            // 🔥 SOLO AGREGA el campo, NO reemplaza nada
+            doc.reference.update(
+                "nombre_lower", normalizar(nombre)
+            ).await()
+
+            println("Actualizado: $nombre -> ${normalizar(nombre)}")
+        }
+    }
+    fun normalizar(texto: String): String {
+        return Normalizer.normalize(texto.lowercase(), Normalizer.Form.NFD)
+            .replace(Regex("[\\p{InCombiningDiacriticalMarks}]"), "") // quita tildes
+            .replace(Regex("[^\\w\\s]"), "") // quita puntos, comas, símbolos
+            .trim()
+    }
 
 }

@@ -536,6 +536,8 @@ fun agregar_propiedades() {
             item {
                 Button(
                     onClick = {
+
+//                        obtener_datos.agregar_noramilazicon()
                         Log.d("GUARDAR_PROPIEDAD", "=============================")
                         Log.d("GUARDAR_PROPIEDAD", "tipo_terreno: $tipo_terreno")
                         Log.d("GUARDAR_PROPIEDAD", "tipo_operacion: $tipo_operacion")
