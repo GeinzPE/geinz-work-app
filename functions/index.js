@@ -105,9 +105,20 @@ const API_KEY = process.env.ALGOLIA_API_KEY || "";
 const client = algoliasearch(APP_ID, API_KEY);
 const index = client.initIndex("lugares");
 
+// 🔀 Shuffle correcto (Fisher-Yates)
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
 exports.buscarTiendas = onRequest(async (req, res) => {
   try {
     const { localidad, nombre_negocio, categoria, subcategoria } = req.body;
+
+    console.log("📥 BODY:", req.body);
 
     if (!localidad) {
       return res.status(400).json({
@@ -116,9 +127,6 @@ exports.buscarTiendas = onRequest(async (req, res) => {
       });
     }
 
-    // =========================
-    // 🔥 QUERY BASE
-    // =========================
     const ref = admin
       .firestore()
       .collection("Tiendas")
@@ -132,48 +140,55 @@ exports.buscarTiendas = onRequest(async (req, res) => {
       ...doc.data(),
     }));
 
+    console.log("📊 TOTAL INICIAL:", resultados.length);
+
     // =========================
     // 🔍 FILTRO NOMBRE
     // =========================
- if (nombre_negocio) {
-  const nombre = normalizar(nombre_negocio);
+    if (nombre_negocio) {
+      const nombre = normalizar(nombre_negocio);
 
-  resultados = resultados.filter(tienda => {
-    const target = normalizar(
-      tienda.nombre_lower || tienda.nombre_tienda || ""
-    );
+      resultados = resultados.filter(tienda => {
+        const target = normalizar(
+          tienda.nombre_lower || tienda.nombre_tienda || ""
+        );
+        return target.includes(nombre);
+      });
 
-    return target.includes(nombre);
-  });
-}
+      console.log("🔍 NOMBRE:", resultados.length);
+    }
 
     // =========================
-    // 🏷 FILTRO CATEGORIA
+    // 🏷 FILTRO CATEGORIA (FLEXIBLE)
     // =========================
     if (categoria) {
       const cat = normalizar(categoria);
 
-      resultados = resultados.filter(tienda =>
-        normalizar(tienda.categoria_tienda || "") === cat
-      );
+      resultados = resultados.filter(tienda => {
+        const categoriaDB = normalizar(tienda.categoria_tienda || "");
+        return categoriaDB.includes(cat) || cat.includes(categoriaDB);
+      });
+
+      console.log("🏷 CATEGORIA:", resultados.length);
     }
 
     // =========================
     // 🍕 FILTRO SUBCATEGORIA
     // =========================
-if (subcategoria) {
-  const sub = normalizar(subcategoria);
+    if (subcategoria) {
+      const sub = normalizar(subcategoria);
 
-  resultados = resultados.filter(tienda => {
-    if (!Array.isArray(tienda.subcategoria)) return false;
+      resultados = resultados.filter(tienda => {
+        if (!Array.isArray(tienda.subcategoria)) return false;
 
-    return tienda.subcategoria.some(sc => {
-      const value = normalizar(sc);
+        return tienda.subcategoria.some(sc => {
+          const value = normalizar(sc);
+          return value.includes(sub) || sub.includes(value);
+        });
+      });
 
-      return value.includes(sub) || sub.includes(value);
-    });
-  });
-}
+      console.log("🍕 SUBCATEGORIA:", resultados.length);
+    }
 
     // =========================
     // 🕒 HORARIO PERÚ
@@ -187,7 +202,7 @@ if (subcategoria) {
       "domingo",
       "lunes",
       "martes",
-      "miércoles",
+      "miércoles", // sin tilde 🔥
       "jueves",
       "viernes",
       "sábado",
@@ -196,19 +211,17 @@ if (subcategoria) {
     const diaActual = dias[peru.getDay()];
     const minutosActual = peru.getHours() * 60 + peru.getMinutes();
 
+    console.log("📅 DIA:", diaActual);
+
     // =========================
-    // 🔥 MAP FINAL
+    // 🔥 MAP
     // =========================
     const response = resultados.map(tienda => {
       const horario = tienda.horario_atencion?.[diaActual];
 
       let abierto = false;
-      let tiene_horario = true;
 
-      // 🚨 sin horario o cerrado
-      if (!horario || horario.cerrado === true) {
-        tiene_horario = false;
-      } else {
+      if (horario && horario.cerrado !== true) {
         const bloques = horario.bloques || [];
 
         for (const bloque of bloques) {
@@ -220,15 +233,12 @@ if (subcategoria) {
           const apertura = ha * 60 + ma;
           const cierre = hc * 60 + mc;
 
-          // horario normal
           if (apertura <= cierre) {
             if (minutosActual >= apertura && minutosActual <= cierre) {
               abierto = true;
               break;
             }
-          }
-          // cruza medianoche
-          else {
+          } else {
             if (minutosActual >= apertura || minutosActual <= cierre) {
               abierto = true;
               break;
@@ -239,40 +249,35 @@ if (subcategoria) {
 
       return {
         id: tienda.id,
-        nombre_tienda: tienda.nombre_tienda,
-        descripcion: tienda.descripcion,
-        categoria_tienda: tienda.categoria_tienda,
-        subcategoria: tienda.subcategoria || [],
-        localidad: tienda.localidad,
-
-        ubicacion: {
-          direccion: tienda.ubicacion?.direccion || "",
-          referencia: tienda.ubicacion?.referencia || "",
-          latitud: tienda.ubicacion?.latitud || null,
-          longitud: tienda.ubicacion?.longitud || null,
-        },
-
-        whatsapp: tienda.metodo_contacto?.whatsapp?.numero || "",
-        instagram: tienda.metodo_contacto?.instagram?.url || "",
-        facebook: tienda.metodo_contacto?.facebook?.url || "",
-
-        logo: tienda.img_tienda?.logo_tienda || "",
-
-        // 🔥 ESTADO FINAL
-        estado_abierto: abierto,
-        tiene_horario: tiene_horario,
+        name: tienda.nombre_tienda,
+        desc: (tienda.descripcion || "").substring(0, 70),
+        ref: tienda.ubicacion?.referencia || "",
+        wha: tienda.metodo_contacto?.whatsapp?.numero || "",
+        loc: tienda.localidad,
+        cat: tienda.categoria_tienda,
+        open_state: abierto,
       };
     });
 
     // =========================
-    // 🔥 ORDEN: abiertos primero
+    // 🔥 PRIORIDAD: ABIERTOS
     // =========================
-    response.sort((a, b) => b.estado_abierto - a.estado_abierto);
+    let abiertos = response.filter(t => t.open_state);
+
+    console.log("🟢 ABIERTOS:", abiertos.length);
+
+    // 🔥 fallback si no hay abiertos
+    let baseFinal = abiertos.length > 0 ? abiertos : response;
+
+    // =========================
+    // 🎯 RANDOM + MAX 3
+    // =========================
+    const final = shuffle(baseFinal).slice(0, 3);
 
     return res.json({
       ok: true,
-      total: response.length,
-      data: response,
+      total: final.length,
+      data: final,
     });
 
   } catch (error) {
