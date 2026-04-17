@@ -537,54 +537,54 @@ fun agregar_propiedades() {
                 Button(
                     onClick = {
 
-//                        obtener_datos.agregar_noramilazicon()
-                        Log.d("GUARDAR_PROPIEDAD", "=============================")
-                        Log.d("GUARDAR_PROPIEDAD", "tipo_terreno: $tipo_terreno")
-                        Log.d("GUARDAR_PROPIEDAD", "tipo_operacion: $tipo_operacion")
-                        Log.d("GUARDAR_PROPIEDAD", "largo: $alto")
-                        Log.d("GUARDAR_PROPIEDAD", "ancho: $ancho")
-                        Log.d("GUARDAR_PROPIEDAD", "area_m2: ${"%.2f".format(resultado_medicion_terreno)}")
-                        Log.d("GUARDAR_PROPIEDAD", "precio: $precio_txt")
-                        Log.d("GUARDAR_PROPIEDAD", "moneda: $moneda_seleccionada")
-                        Log.d("GUARDAR_PROPIEDAD", "precio_por_m2: ${"%.2f".format(precio_por_m2)}")
-                        Log.d("GUARDAR_PROPIEDAD", "latitud: $cordenadas_lat")
-                        Log.d("GUARDAR_PROPIEDAD", "longitud: $cordenadas_lng")
-                        Log.d("GUARDAR_PROPIEDAD", "direccion: $direccion")
-                        Log.d("GUARDAR_PROPIEDAD", "localidad: $localidad_defaul")
-                        Log.d("GUARDAR_PROPIEDAD", "lugares_cercanos: ${lugares_nombres.joinToString(", ")}")
-                        Log.d("GUARDAR_PROPIEDAD", "titulo: $titulo_geneado_variable")
-                        Log.d("GUARDAR_PROPIEDAD", "descripcion: $descripcion_generada_varible")
-                        Log.d("GUARDAR_PROPIEDAD", "=============================")
-
-                        val anchoInt = ancho.toIntOrNull() ?: 0
-                        val fondoInt = alto.toIntOrNull() ?: 0
-                        val metrosInt = resultado_medicion_terreno.toInt()
-                        val precioInt = precio_txt.toIntOrNull() ?: 0
-
-                        val data = repo_agregar_inmubles.agregar_inmubles_datos(
-                            ancho = anchoInt,
-                            banos = "0",
-                            ciudad = localidad_terreno,
-                            descripcion = descripcion_generada_varible,
-                            direccion = direccion,
-                            distrito = localidad_terreno,
-                            divisa = moneda_seleccionada,
-                            estacionamiento = "0",
-                            fondo = fondoInt,
-                            habitaciones = "0",
-                            lat = cordenadas_lat,
-                            lng = cordenadas_lng,
-                            metros = metrosInt,
-                            nombre = titulo_geneado_variable,
-                            precio = precioInt,
-                            referencia = refenencia,
-                            tipoOperacion = tipo_operacion,
-                            tipoPropiedad = tipo_terreno
-                        )
-
-                        scope.launch {
-                            obtener_datos.agregar_lugar(data)
-                        }
+                        obtener_datos.agregar_noramilazicon()
+//                        Log.d("GUARDAR_PROPIEDAD", "=============================")
+//                        Log.d("GUARDAR_PROPIEDAD", "tipo_terreno: $tipo_terreno")
+//                        Log.d("GUARDAR_PROPIEDAD", "tipo_operacion: $tipo_operacion")
+//                        Log.d("GUARDAR_PROPIEDAD", "largo: $alto")
+//                        Log.d("GUARDAR_PROPIEDAD", "ancho: $ancho")
+//                        Log.d("GUARDAR_PROPIEDAD", "area_m2: ${"%.2f".format(resultado_medicion_terreno)}")
+//                        Log.d("GUARDAR_PROPIEDAD", "precio: $precio_txt")
+//                        Log.d("GUARDAR_PROPIEDAD", "moneda: $moneda_seleccionada")
+//                        Log.d("GUARDAR_PROPIEDAD", "precio_por_m2: ${"%.2f".format(precio_por_m2)}")
+//                        Log.d("GUARDAR_PROPIEDAD", "latitud: $cordenadas_lat")
+//                        Log.d("GUARDAR_PROPIEDAD", "longitud: $cordenadas_lng")
+//                        Log.d("GUARDAR_PROPIEDAD", "direccion: $direccion")
+//                        Log.d("GUARDAR_PROPIEDAD", "localidad: $localidad_defaul")
+//                        Log.d("GUARDAR_PROPIEDAD", "lugares_cercanos: ${lugares_nombres.joinToString(", ")}")
+//                        Log.d("GUARDAR_PROPIEDAD", "titulo: $titulo_geneado_variable")
+//                        Log.d("GUARDAR_PROPIEDAD", "descripcion: $descripcion_generada_varible")
+//                        Log.d("GUARDAR_PROPIEDAD", "=============================")
+//
+//                        val anchoInt = ancho.toIntOrNull() ?: 0
+//                        val fondoInt = alto.toIntOrNull() ?: 0
+//                        val metrosInt = resultado_medicion_terreno.toInt()
+//                        val precioInt = precio_txt.toIntOrNull() ?: 0
+//
+//                        val data = repo_agregar_inmubles.agregar_inmubles_datos(
+//                            ancho = anchoInt,
+//                            banos = "0",
+//                            ciudad = localidad_terreno,
+//                            descripcion = descripcion_generada_varible,
+//                            direccion = direccion,
+//                            distrito = localidad_terreno,
+//                            divisa = moneda_seleccionada,
+//                            estacionamiento = "0",
+//                            fondo = fondoInt,
+//                            habitaciones = "0",
+//                            lat = cordenadas_lat,
+//                            lng = cordenadas_lng,
+//                            metros = metrosInt,
+//                            nombre = titulo_geneado_variable,
+//                            precio = precioInt,
+//                            referencia = refenencia,
+//                            tipoOperacion = tipo_operacion,
+//                            tipoPropiedad = tipo_terreno
+//                        )
+//
+//                        scope.launch {
+//                            obtener_datos.agregar_lugar(data)
+//                        }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {

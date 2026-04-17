@@ -106,14 +106,14 @@ class repo_agregar_inmubles {
 
         val ref = db.collection("Tiendas")
             .document("barranca")
-            .collection("barranca")
+            .collection("lugares_turisticos")
             .get()
             .await()
 
         for (doc in ref) {
 
             val data = doc.data
-            val nombre = data["nombre_tienda"] as? String ?: continue
+            val nombre = data["titulo"] as? String ?: continue
 
             // 🔥 SOLO AGREGA el campo, NO reemplaza nada
             doc.reference.update(

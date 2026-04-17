@@ -255,7 +255,9 @@ exports.buscarTiendas = onRequest(async (req, res) => {
         wha: tienda.metodo_contacto?.whatsapp?.numero || "",
         loc: tienda.localidad,
         cat: tienda.categoria_tienda,
+        img: tienda.img_tienda ? tienda.img_tienda.logo_tienda || "" : "",
         open_state: abierto,
+        tipo: "tienda",
       };
     });
 
@@ -345,9 +347,69 @@ exports.obtener_subcategoira_de_cat = onRequest(async (req, res) => {
   }
 });
 
+function scoreLugar(lugar, nombre_negocio, subcategoria) {
+  let score = 0;
+
+  const nombre = lugar.nombre_lower || lugar.titulo || "";
+
+  if (nombre_negocio) {
+    const palabras = limpiar(nombre_negocio).split(" ");
+    const texto = limpiar(nombre);
+
+    palabras.forEach((p) => {
+      if (texto.includes(p)) score += 2;
+    });
+  }
+
+  if (subcategoria && Array.isArray(lugar.categoria)) {
+    const sub = limpiar(subcategoria);
+
+    if (lugar.categoria.some((c) => limpiar(c).includes(sub))) {
+      score += 1;
+    }
+  }
+
+  return score;
+}
+
+function limpiar(texto) {
+  return (texto || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\b(el|la|los|las|de|del)\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+function seleccionarAleatorioPonderado(lista, limite) {
+  const seleccionados = [];
+  const copia = [...lista];
+
+  while (seleccionados.length < limite && copia.length > 0) {
+    // suma total de scores
+    const totalScore = copia.reduce(
+      (sum, item) => sum + (item.score > 0 ? item.score : 1),
+      0,
+    );
+    let r = Math.random() * totalScore;
+
+    for (let i = 0; i < copia.length; i++) {
+      r -= copia[i].score || 1;
+
+      if (r <= 0) {
+        seleccionados.push(copia[i]);
+        copia.splice(i, 1); // evitar repetidos
+        break;
+      }
+    }
+  }
+
+  return seleccionados;
+}
 exports.obtener_lugares_turisticos_directos = onRequest(async (req, res) => {
   try {
     const { localidad, nombre_negocio, subcategoria } = req.body;
+
     console.log("📥 BODY:", req.body);
 
     if (!localidad) {
@@ -372,61 +434,106 @@ exports.obtener_lugares_turisticos_directos = onRequest(async (req, res) => {
 
     console.log("📊 TOTAL INICIAL:", resultados.length);
 
-    // 🔍 FILTRO NOMBRE
-    if (nombre_negocio) {
-      const nombre = normalizar(nombre_negocio);
+    // =========================
+    // 🧠 FUNCIONES BASE
+    // =========================
 
-      resultados = resultados.filter((lugar) => {
-        const target = normalizar(
-          lugar.nombre_lower || lugar.titulo || ""
-        );
-        return target.includes(nombre);
-      });
+    function matchNombre(target, busqueda) {
+      if (!busqueda) return true;
 
-      console.log("🔍 NOMBRE:", resultados.length);
+      const palabras = limpiar(busqueda).split(" ");
+      const texto = limpiar(target);
+
+      return palabras.every((p) => texto.includes(p));
     }
 
-    // 🍕 FILTRO SUBCATEGORIA (ARRAY)
-    if (subcategoria) {
-  const sub = normalizar(subcategoria);
+    function matchCategoria(categorias, sub) {
+      if (!sub) return true;
+      if (!Array.isArray(categorias)) return false;
 
-  resultados = resultados.filter((lugar) => {
-    if (!Array.isArray(lugar.categoria)) return false; // 🔥 CAMBIO
+      const subLimpio = limpiar(sub);
 
-    return lugar.categoria.some((sc) => // 🔥 CAMBIO
-      normalizar(sc).includes(sub)
-    );
-  });
+      return categorias.some((c) => limpiar(c).includes(subLimpio));
+    }
 
-  console.log("🏷 SUBCATEGORIA:", resultados.length);
-}
-    // 🔥 LIMITE (CLAVE PARA NO GASTAR TOKENS)
-// 🔥 LIMITE
-resultados = shuffle(resultados).slice(0, 4);
+    // =========================
+    // 🔍 FILTRO DINÁMICO
+    // =========================
+    let filtrados = resultados.filter((lugar) => {
+      const nombreOK = matchNombre(
+        lugar.nombre_lower || lugar.titulo,
+        nombre_negocio,
+      );
 
+      const categoriaOK = matchCategoria(lugar.categoria, subcategoria);
 
-// 🔥 TRANSFORMAR DATA
-const data = resultados.map((tienda) => ({
-  id: tienda.id,
-  titulo: tienda.titulo || "",
-  descripcion: (tienda.descripcion || "").substring(0, 150),
-  img: tienda.img?.principal || ""
-}));
+      return nombreOK && categoriaOK;
+    });
 
-// 🔥 RESPUESTA FINAL
-return res.json({
-  ok: true,
-  total: data.length,
-  data: data
-});
+    console.log("🔎 FILTRO INICIAL:", filtrados.length);
+
+    // =========================
+    // ⚠️ FALLBACK
+    // =========================
+    if (filtrados.length === 0 && nombre_negocio && subcategoria) {
+      console.log("⚠️ fallback → solo nombre");
+
+      filtrados = resultados.filter((lugar) =>
+        matchNombre(lugar.nombre_lower || lugar.titulo, nombre_negocio),
+      );
+    }
+
+    if (filtrados.length === 0 && subcategoria) {
+      console.log("⚠️ fallback → solo categoría");
+
+      filtrados = resultados.filter((lugar) =>
+        matchCategoria(lugar.categoria, subcategoria),
+      );
+    }
+
+    if (filtrados.length === 0) {
+      console.log("⚠️ fallback → general");
+
+      filtrados = resultados;
+    }
+
+    // =========================
+    // 🔥 SCORE + RANDOM
+    // =========================
+    const LIMITE = 4;
+
+    filtrados = filtrados.map((lugar) => ({
+      ...lugar,
+      score: scoreLugar(lugar, nombre_negocio, subcategoria), // 👈 usa tu función externa
+    }));
+
+    filtrados = seleccionarAleatorioPonderado(filtrados, LIMITE);
+
+    // =========================
+    // 🔥 RESPUESTA FINAL
+    // =========================
+    const data = filtrados.map((lugar) => ({
+      id: lugar.id,
+      titulo: lugar.titulo || "",
+      descripcion: (lugar.descripcion || "").substring(0, 150),
+      img: lugar.img?.principal || "",
+      tipo: "turismo",
+    }));
+
+    return res.json({
+      ok: true,
+      total: data.length,
+      data,
+    });
   } catch (error) {
-    console.error(error);
+    console.error("❌ ERROR:", error);
     return res.status(500).json({
       ok: false,
       error: error.message,
     });
   }
 });
+
 exports.syncLugarToAlgolia = onDocumentWritten(
   {
     document: "lugares/{lugarId}",
