@@ -135,7 +135,7 @@ exports.buscarTiendas = onRequest(async (req, res) => {
 
     const snapshot = await ref.get();
 
-    let resultados = snapshot.docs.map(doc => ({
+    let resultados = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
@@ -148,9 +148,9 @@ exports.buscarTiendas = onRequest(async (req, res) => {
     if (nombre_negocio) {
       const nombre = normalizar(nombre_negocio);
 
-      resultados = resultados.filter(tienda => {
+      resultados = resultados.filter((tienda) => {
         const target = normalizar(
-          tienda.nombre_lower || tienda.nombre_tienda || ""
+          tienda.nombre_lower || tienda.nombre_tienda || "",
         );
         return target.includes(nombre);
       });
@@ -164,7 +164,7 @@ exports.buscarTiendas = onRequest(async (req, res) => {
     if (categoria) {
       const cat = normalizar(categoria);
 
-      resultados = resultados.filter(tienda => {
+      resultados = resultados.filter((tienda) => {
         const categoriaDB = normalizar(tienda.categoria_tienda || "");
         return categoriaDB.includes(cat) || cat.includes(categoriaDB);
       });
@@ -176,26 +176,26 @@ exports.buscarTiendas = onRequest(async (req, res) => {
     // 🍕 FILTRO SUBCATEGORIA
     // =========================
     if (subcategoria) {
-      const sub = normalizar(subcategoria);
+      const palabrasBusqueda = normalizar(subcategoria).split(" ");
 
-      resultados = resultados.filter(tienda => {
+      resultados = resultados.filter((tienda) => {
         if (!Array.isArray(tienda.subcategoria)) return false;
 
-        return tienda.subcategoria.some(sc => {
+        return tienda.subcategoria.some((sc) => {
           const value = normalizar(sc);
-          return value.includes(sub) || sub.includes(value);
+
+          return palabrasBusqueda.some((palabra) => value.includes(palabra));
         });
       });
 
       console.log("🍕 SUBCATEGORIA:", resultados.length);
     }
-
     // =========================
     // 🕒 HORARIO PERÚ
     // =========================
     const now = new Date();
     const peru = new Date(
-      now.toLocaleString("en-US", { timeZone: "America/Lima" })
+      now.toLocaleString("en-US", { timeZone: "America/Lima" }),
     );
 
     const dias = [
@@ -216,7 +216,7 @@ exports.buscarTiendas = onRequest(async (req, res) => {
     // =========================
     // 🔥 MAP
     // =========================
-    const response = resultados.map(tienda => {
+    const response = resultados.map((tienda) => {
       const horario = tienda.horario_atencion?.[diaActual];
 
       let abierto = false;
@@ -262,7 +262,7 @@ exports.buscarTiendas = onRequest(async (req, res) => {
     // =========================
     // 🔥 PRIORIDAD: ABIERTOS
     // =========================
-    let abiertos = response.filter(t => t.open_state);
+    let abiertos = response.filter((t) => t.open_state);
 
     console.log("🟢 ABIERTOS:", abiertos.length);
 
@@ -279,7 +279,6 @@ exports.buscarTiendas = onRequest(async (req, res) => {
       total: final.length,
       data: final,
     });
-
   } catch (error) {
     console.error("❌ ERROR:", error);
 
@@ -291,7 +290,6 @@ exports.buscarTiendas = onRequest(async (req, res) => {
 });
 exports.obtenerCategorias = onRequest(async (req, res) => {
   try {
-
     const snapshot = await admin
       .firestore()
       .collection("Tiendas")
@@ -299,23 +297,136 @@ exports.obtenerCategorias = onRequest(async (req, res) => {
       .collection("categorias")
       .get();
 
-   const categorias = snapshot.docs.map(doc => {
-      return doc.id; 
+    const categorias = snapshot.docs.map((doc) => {
+      return doc.id;
     });
 
     res.json({
       ok: true,
-      categorias
+      categorias,
     });
-
   } catch (error) {
     res.status(500).json({
       ok: false,
-      error: error.message
+      error: error.message,
+    });
+  }
+});
+exports.obtener_subcategoira_de_cat = onRequest(async (req, res) => {
+  try {
+    const { categoria } = req.body;
+
+    const snapshot = await admin
+      .firestore()
+      .collection("Tiendas")
+      .doc("categorias")
+      .collection("categorias")
+      .doc(categoria)
+      .get();
+
+    if (!snapshot.exists) {
+      return res.status(404).json({
+        ok: false,
+        error: "Categoría no encontrada",
+      });
+    }
+
+    const data = snapshot.data();
+
+    return res.json({
+      ok: true,
+      subcategorias: data.subcategorias || [],
+    });
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error.message,
     });
   }
 });
 
+exports.obtener_lugares_turisticos_directos = onRequest(async (req, res) => {
+  try {
+    const { localidad, nombre_negocio, subcategoria } = req.body;
+    console.log("📥 BODY:", req.body);
+
+    if (!localidad) {
+      return res.status(400).json({
+        ok: false,
+        error: "localidad es obligatoria",
+      });
+    }
+
+    const ref = admin
+      .firestore()
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection("lugares_turisticos");
+
+    const snapshot = await ref.get();
+
+    let resultados = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    console.log("📊 TOTAL INICIAL:", resultados.length);
+
+    // 🔍 FILTRO NOMBRE
+    if (nombre_negocio) {
+      const nombre = normalizar(nombre_negocio);
+
+      resultados = resultados.filter((lugar) => {
+        const target = normalizar(
+          lugar.nombre_lower || lugar.titulo || ""
+        );
+        return target.includes(nombre);
+      });
+
+      console.log("🔍 NOMBRE:", resultados.length);
+    }
+
+    // 🍕 FILTRO SUBCATEGORIA (ARRAY)
+    if (subcategoria) {
+  const sub = normalizar(subcategoria);
+
+  resultados = resultados.filter((lugar) => {
+    if (!Array.isArray(lugar.categoria)) return false; // 🔥 CAMBIO
+
+    return lugar.categoria.some((sc) => // 🔥 CAMBIO
+      normalizar(sc).includes(sub)
+    );
+  });
+
+  console.log("🏷 SUBCATEGORIA:", resultados.length);
+}
+    // 🔥 LIMITE (CLAVE PARA NO GASTAR TOKENS)
+// 🔥 LIMITE
+resultados = shuffle(resultados).slice(0, 4);
+
+
+// 🔥 TRANSFORMAR DATA
+const data = resultados.map((tienda) => ({
+  id: tienda.id,
+  titulo: tienda.titulo || "",
+  descripcion: (tienda.descripcion || "").substring(0, 150),
+  img: tienda.img?.principal || ""
+}));
+
+// 🔥 RESPUESTA FINAL
+return res.json({
+  ok: true,
+  total: data.length,
+  data: data
+});
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
 exports.syncLugarToAlgolia = onDocumentWritten(
   {
     document: "lugares/{lugarId}",
