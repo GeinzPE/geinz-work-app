@@ -250,7 +250,7 @@ exports.buscarTiendas = onRequest(async (req, res) => {
       return {
         id: tienda.id,
         name: tienda.nombre_tienda,
-        desc: (tienda.descripcion || "").substring(0, 70),
+        desc: (tienda.descripcion_seo || "").substring(0, 150),
         ref: tienda.ubicacion?.referencia || "",
         wha: tienda.metodo_contacto?.whatsapp?.numero || "",
         loc: tienda.localidad,
