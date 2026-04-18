@@ -101,6 +101,24 @@ class repo_eres_socio {
         FirebaseSecundario.getFirestore()
     }
 
+    suspend fun agregar_descripcion_seo_bot(id_tienda: String, localidad: String, texto: String): Boolean {
+        val ref = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(id_tienda)
+
+        val data = mapOf("descripcion_seo" to texto) // Usando el nombre de campo que mencionaste antes
+
+        return try {
+            ref.set(data, SetOptions.merge()).await()
+            println("SEO actualizado correctamente")
+            true // Éxito
+        } catch (e: Exception) {
+            println("Error al actualizar SEO: ${e.message}")
+            false // Falló
+        }
+    }
+
     fun escuchar_datos_tienda(
         localidad_tienda: String,
         id_tienda: String,
@@ -158,6 +176,8 @@ class repo_eres_socio {
 
                 val ubicacion = data?.get("ubicacion") as? Map<String, Any>
                 val ubi_container = ubicacion.to_ubicacion_container()
+
+                val msje_bot_whatsapp =data?.get("descripcion_seo") as? String?:""
 
 
                 // 🔥 ESCUCHAR ESTADISTICAS EN TIEMPO REAL
@@ -217,6 +237,7 @@ class repo_eres_socio {
                                     localidad_tienda = localidadTienda,
                                     fecha_ingreso = fecha_ingreso,
                                     descripcion = descripcion,
+                                    descripcion_chat_bot_whatsapp=msje_bot_whatsapp,
                                     lista_ids_propietarios = propietario_id,
                                     saldo_disponible_tienda = saldo_tienda,
                                     compartidos = compartidos,

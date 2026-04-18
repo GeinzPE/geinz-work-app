@@ -15,6 +15,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -49,8 +50,10 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,6 +68,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -99,6 +103,7 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_p
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.subir_storage_perfil_img
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.Cartas_expandibles
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_texFiel
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_textField_150
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandible_wrapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
@@ -118,6 +123,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantall
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.estadisticas_aplicables
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
+import com.geinzz.geinzwork.viewModels.viewmodel_generaciones_IA
 import com.geinzz.geinzwork.viewModels.viewmodel_recargas
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.StateFlow
@@ -132,7 +138,7 @@ fun pantalla_carga_socios(
     isConnected: Boolean,
     id_registrado: (String) -> Unit,
     navegarcrear_pùblicidad_todas: (String, String, String, String, String, String?, i: datos_generaciones_sin_publicaicones) -> Unit,
-    navegarcrear_pùblicidad_titulo_descripcion: (String, String, String, String?, i:datos_generaciones_sin_publicaicones) -> Unit,
+    navegarcrear_pùblicidad_titulo_descripcion: (String, String, String, String?, i: datos_generaciones_sin_publicaicones) -> Unit,
     navegarcrear_pùblicidad_wsap: (String, String, String?) -> Unit,
     navegarcrear_pùblicidad_compartiro: (String, String, String?) -> Unit,
 ) {
@@ -140,6 +146,7 @@ fun pantalla_carga_socios(
     val viewmodel: viewmodel_eres_socio = viewModel()
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
     val viewmodel_recargas: viewmodel_recargas = viewModel()
+    val viewmodel_generacones_IA: viewmodel_generaciones_IA = viewModel()
     val labels = listOf("Vistas", "Guardados", "Clics", "Compartidos")
     val labels2 = listOf("Facebook", "Instagram", "TikTok", "Sitio web")
     val labels3 = listOf("Llamada", "Whatsapp", "Rutas")
@@ -158,6 +165,8 @@ fun pantalla_carga_socios(
     var fotosPromociones by remember {
         mutableStateOf<Map<String, String>>(emptyMap())
     }
+
+    var cambiar_estados_bot_whattsapp by remember { mutableStateOf(false) }
 
     var metodos_pago by remember { mutableStateOf(modelo_pagos_tienda()) }
     var metodo_contact by remember { mutableStateOf(metodo_contacto_tienda()) }
@@ -238,11 +247,44 @@ fun pantalla_carga_socios(
     var txt_leyenda by remember { mutableStateOf("") }
     var icono_mostar_leyendas_graficos by remember { mutableStateOf(0) }
     var mostrar_convesion by remember { mutableStateOf(false) }
+    val obj_creado_para_descripcion_para_whtsapp by remember { mutableStateOf("") }
+    val estado_descripcion_generadad_whatsapp by viewmodel_generacones_IA.estado_carga_generaciones_desk_whatsapp.collectAsState()
+// Verificamos si el estado actual es "Loading" o "Cargando"
+    val estaCargandoIA =
+        estado_descripcion_generadad_whatsapp is viewmodel_generaciones_IA.Estado_generacion_IA_whsatp.loading
+// Nota: Ajusta ".loading" al nombre exacto que uses en tu sealed class
+    var mostrar_btn_guardar_chatbot_IA by remember { mutableStateOf(false) }
+
+    val estado_subido_para_whatsapp_bot by viewmodel.estado_subido_desc_para_bot.collectAsState()
+
     var descripcion_negocio by remember {
+        mutableStateOf(datos.descripcion)
+    }
+
+    var descripcion_chat_bot by remember {
         mutableStateOf(
-            datos.descripcion
+            datos.descripcion_chat_bot_whatsapp ?: ""
         )
     }
+
+    LaunchedEffect(estado_descripcion_generadad_whatsapp) {
+        when (estado_descripcion_generadad_whatsapp) {
+
+            is viewmodel_generaciones_IA.Estado_generacion_IA_whsatp.succes -> {
+                val data =
+                    (estado_descripcion_generadad_whatsapp as viewmodel_generaciones_IA.Estado_generacion_IA_whsatp.succes).txt
+
+                if (!data.isNullOrEmpty()) {
+                    descripcion_chat_bot = data
+                    mostrar_btn_guardar_chatbot_IA = true
+                }
+            }
+
+            else -> Unit
+        }
+    }
+
+
     var nombre_negocio_actual by remember {
         mutableStateOf(
             datos.nombre
@@ -283,7 +325,11 @@ fun pantalla_carga_socios(
 
     var mostra_bottom_sheet_historial by remember { mutableStateOf(false) }
     var mostra_bottom_sheet_historial_de_gen_IA by remember { mutableStateOf(false) }
-
+    val elTextoCambio by remember(descripcion_chat_bot) {
+        derivedStateOf {
+            descripcion_chat_bot != (datos.descripcion_chat_bot_whatsapp ?: "")
+        }
+    }
     LaunchedEffect(datos) {
         values2 = listOf(
             datos.fb.toFloat(),
@@ -313,6 +359,25 @@ fun pantalla_carga_socios(
     }
     LaunchedEffect(id_tienda, horarioMap) {
         viewModelFiltros.calcularHorarioParaTienda(id_tienda, horarioMap)
+    }
+    LaunchedEffect(estado_subido_para_whatsapp_bot) {
+        if (estado_subido_para_whatsapp_bot) {
+
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = "Se actualizó la descripción correctamente",
+                    duration = SnackbarDuration.Short
+                )
+            }
+        }
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            viewmodel.resetear_valor_estado_whatsapp_subido_y_gemini()
+            viewmodel_generacones_IA.resetear_valor_generacion_desk_whatsapp()
+
+            println("Saliste de la pantalla: Estado reseteado a false")
+        }
     }
     val listState = rememberLazyListState()
     val targetAlpha = if (listState.canScrollForward) 1f else 0f
@@ -680,6 +745,8 @@ fun pantalla_carga_socios(
                                             placeholderText = "Descripción del negocio"
                                         )
 
+
+
                                         AnimatedVisibility(
                                             descripcion_negocio != descripcion_actual
                                         ) {
@@ -722,9 +789,117 @@ fun pantalla_carga_socios(
                                                 )
                                             }
                                         }
+
+
+                                        spacer_vertical(20.dp)
+
+                                        Column(
+                                            modifier = Modifier
+                                                .clip(
+                                                    RoundedCornerShape(
+                                                        10.dp
+                                                    )
+                                                )
+                                                .background(
+                                                    MaterialTheme.colorScheme.surfaceVariant
+                                                )
+                                                .fillMaxWidth(),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(40.dp)
+                                                    .clickable {
+                                                        cambiar_estados_bot_whattsapp =
+                                                            !cambiar_estados_bot_whattsapp
+                                                    }
+                                                    .padding(
+                                                        horizontal = 16.dp
+                                                    ),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                                ) {
+                                                    texto_generico_one_line(
+                                                        "Asistente de whatsApp"
+                                                    )
+                                                    Image(
+                                                        painter = painterResource(R.drawable.whatsapp_icon),
+                                                        modifier = Modifier.size(25.dp),
+                                                        contentDescription = null
+                                                    )
+                                                }
+                                            }
+
+                                            AnimatedVisibility(
+                                                cambiar_estados_bot_whattsapp,
+                                                modifier = Modifier.padding(10.dp)
+                                            ) {
+                                                Column(
+                                                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                                                    modifier = Modifier.animateContentSize()
+                                                ) {
+                                                    texto_generico_multilinea(
+                                                        "Optimiza tu perfil para la IA: Mejora la información de tu negocio para que nuestro asistente de WhatsApp te recomiende con prioridad y atraiga más clientes.",
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
+                                                    custom_textField_150(
+                                                        rounder = 10,
+                                                        value = descripcion_chat_bot,
+                                                        onValueChange = {
+                                                            descripcion_chat_bot = it
+                                                        },
+                                                        labelText = "Descripción SEO para WhatsApp",
+                                                        placeholderText = "Descripción SEO para WhatsApp"
+                                                    )
+                                                    if ((mostrar_btn_guardar_chatbot_IA || elTextoCambio) && !estado_subido_para_whatsapp_bot) {
+                                                        Button(
+                                                            onClick = {
+                                                                viewmodel.guadardar_descripcion_whattsapp_bot(
+                                                                    id_tienda,
+                                                                    datos.localidad_tienda,
+                                                                    descripcion_chat_bot
+                                                                )
+                                                            },
+                                                            modifier = Modifier.fillMaxWidth(),
+                                                            shape = CircleShape
+                                                        ) {
+                                                            texto_generico_one_line(
+                                                                "Guardar cambios",
+                                                                style = MaterialTheme.typography.bodyMedium
+                                                            )
+                                                        }
+                                                        spacer_vertical(10.dp)
+                                                    }
+                                                    boton_generador_por_IA(
+                                                        cargando = estaCargandoIA,
+                                                        onclick = {
+                                                            val data_para_ia =
+                                                                viewmodel.prepararInputParaIA(
+                                                                    datos.subcategorias_tienda,
+                                                                    metodos_pago,
+                                                                    datos.servicios_comodidades
+                                                                )
+                                                            Log.d("data_para_ia", data_para_ia)
+                                                            viewmodel_generacones_IA.obtener_descripcion_generada_con_datos(
+                                                                data_para_ia
+                                                            )
+                                                        },
+                                                        texto_button = "generar con IA",
+                                                        cantidad_monedas = "30"
+                                                    )
+
+
+                                                }
+                                            }
+                                        }
+
                                     }
 
-                                    spacer_vertical(20.dp)
+                                    spacer_vertical(10.dp)
                                     Column(
                                         modifier = Modifier
                                             .clip(
@@ -1752,8 +1927,6 @@ fun pantalla_carga_socios(
 
             }
         }
-
-
         if (mostra_bottom_sheet_historial) {
             bottom_sheet_historial_pago(
                 datos.id_tienda,
@@ -1878,6 +2051,8 @@ fun pantalla_carga_socios(
                 }
             )
         }
+
+
         SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
         Box(
             modifier = Modifier
@@ -1898,3 +2073,4 @@ fun pantalla_carga_socios(
 
 
 }
+

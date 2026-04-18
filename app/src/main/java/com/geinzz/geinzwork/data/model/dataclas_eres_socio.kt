@@ -35,6 +35,7 @@ data class datos_tienda(
     val localidad_tienda: String = "",
     val fecha_ingreso: String = "",
     val descripcion: String = "",
+    val descripcion_chat_bot_whatsapp:String ="",
     val lista_ids_propietarios: List<String> = emptyList(),
     val saldo_disponible_tienda: Number = 0,
     val compartidos: Number = 0,

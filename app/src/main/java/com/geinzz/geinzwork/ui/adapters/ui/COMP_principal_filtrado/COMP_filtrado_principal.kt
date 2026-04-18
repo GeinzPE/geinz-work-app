@@ -225,6 +225,60 @@ fun custom_texFiel(
 }
 
 @Composable
+fun custom_textField_150(
+    rounder: Int = 50,
+    value: String,
+    onValueChange: (String) -> Unit,
+    labelText: String,
+    placeholderText: String,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default
+) {
+
+    val maxLength = 200
+    val isOverLimit = value.length > maxLength
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+
+        OutlinedTextField(
+            value = value,
+            onValueChange = {
+                if (it.length <= maxLength) {
+                    onValueChange(it)
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            shape = RoundedCornerShape(rounder),
+            label = { retornar_pleaceholder_label(labelText) },
+            placeholder = { retornar_pleaceholder_label(placeholderText) },
+            trailingIcon = trailingIcon,
+            textStyle = MaterialTheme.typography.bodyMedium,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedBorderColor = Color(0xFF75707A),
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.primary
+            )
+        )
+
+        // 📊 contador de caracteres
+        Text(
+            text = "${value.length}/$maxLength",
+            modifier = Modifier
+                .align(Alignment.End)
+                .padding(end = 12.dp, top = 2.dp),
+            color = if (isOverLimit) Color.Red else Color.Gray,
+            style = MaterialTheme.typography.labelSmall
+        )
+    }
+}
+@Composable
 fun existencia_dato() {
     Text(
         "No hay coincidencias ingrese otra palabra",

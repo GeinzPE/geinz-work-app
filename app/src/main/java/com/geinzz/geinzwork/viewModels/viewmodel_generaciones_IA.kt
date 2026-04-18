@@ -48,6 +48,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
+import java.util.Objects
 
 class viewmodel_generaciones_IA : ViewModel() {
     val insta_repo = repo_generaciones_IA()
@@ -59,6 +60,12 @@ class viewmodel_generaciones_IA : ViewModel() {
 
     val estado_generaciones_IA: StateFlow<EstadoGeneracionesIA> =
         _estado_generaciones_IA
+
+    private val _estado_carga_generacion_desk_whatsap =
+        MutableStateFlow<Estado_generacion_IA_whsatp>(Estado_generacion_IA_whsatp.Idle)
+
+    val estado_carga_generaciones_desk_whatsapp: StateFlow<Estado_generacion_IA_whsatp> =
+        _estado_carga_generacion_desk_whatsap
 
 
     private val _estado_promociones_ia =
@@ -83,7 +90,6 @@ class viewmodel_generaciones_IA : ViewModel() {
     val textoCloudTts = _textoCloudTts.asStateFlow()
 
     var textoReconocido by mutableStateOf("")
-
 
 
     var listaCompleta by mutableStateOf<List<datos_gen_IA_Tiendas>>(emptyList())
@@ -119,6 +125,28 @@ class viewmodel_generaciones_IA : ViewModel() {
     }
 
 
+    fun obtener_descripcion_generada_con_datos(data: String) {
+        viewModelScope.launch {
+            _estado_carga_generacion_desk_whatsap.value = Estado_generacion_IA_whsatp.loading
+            try {
+
+                val texto_generado = insta_repo.generar_descripcion_con_IA_whatsapp_bot(data)
+                if (texto_generado.isNotEmpty()) {
+                    _estado_carga_generacion_desk_whatsap.value = Estado_generacion_IA_whsatp.succes(texto_generado)
+                }else{
+                    _estado_carga_generacion_desk_whatsap.value = Estado_generacion_IA_whsatp.empty(texto_generado)
+                }
+
+            } catch (e: Exception) {
+                Log.d("error_obtener_Descripcion", "$e")
+            }
+        }
+    }
+
+    fun resetear_valor_generacion_desk_whatsapp(){
+        _estado_carga_generacion_desk_whatsap.value = Estado_generacion_IA_whsatp.Idle
+
+    }
 
     private fun aplicarFiltros(): List<datos_gen_IA_Tiendas> {
         // Partimos de la lista madre
@@ -130,12 +158,16 @@ class viewmodel_generaciones_IA : ViewModel() {
             "Permanentes" -> listaFinal.filter { it.fin == null }
             "Generaciones no publicadas (promociones)" ->
                 listaFinal.filter { it.tipo_realizado == "generacion_publicacion_sin_pulicar" }
+
             "Generaciones no publicadas (notificaciones)" ->
                 listaFinal.filter { it.tipo_realizado == "notificacion_sin_publicar" }
+
             "Generaciones de promociones" ->
                 listaFinal.filter { it.tipo_realizado == "publicacion" }
+
             "Generaciones de notificaciones" ->
                 listaFinal.filter { it.tipo_realizado == "notificacion" }
+
             "Por vencer" -> {
                 val diasLimite = 1
                 listaFinal.filter { item ->
@@ -147,15 +179,19 @@ class viewmodel_generaciones_IA : ViewModel() {
                         tiempo == "Expirado" -> false
                         tiempo.contains("mto", ignoreCase = true) ||
                                 tiempo.contains("min", ignoreCase = true) -> true
+
                         tiempo.contains("hora", ignoreCase = true) -> true
                         tiempo.contains("día", ignoreCase = true) -> {
-                            val dias = tiempo.filter { it.isDigit() }.toIntOrNull() ?: return@filter false
+                            val dias =
+                                tiempo.filter { it.isDigit() }.toIntOrNull() ?: return@filter false
                             dias in 0..diasLimite
                         }
+
                         else -> false
                     }
                 }
             }
+
             else -> listaFinal
         }
 
@@ -189,8 +225,6 @@ class viewmodel_generaciones_IA : ViewModel() {
         }
 
 
-
-
         val filtroDias: Int? = dias_restantes
 
         Log.d("FiltroDias", "Valor recibido dias_restantes (filtro): $filtroDias")
@@ -222,7 +256,6 @@ class viewmodel_generaciones_IA : ViewModel() {
 
         Log.d("FiltroDias", "Total items antes: ${listaFinal.size}")
         Log.d("FiltroDias", "Total items después: ${listaFiltrada.size}")
-
 
 
         // 6️⃣ FILTRO POR TÉRMINOS
@@ -476,7 +509,13 @@ class viewmodel_generaciones_IA : ViewModel() {
         _estado_notificacion_con_ia_corta.value = EstadoIA_dialog_centrado_notificaciones.Idle
     }
 
-    fun guardar_como_permanete(id_generacion: String, id_tienda: String, localidad: String,nombre_tienda:String,saldo_tienda: Int) {
+    fun guardar_como_permanete(
+        id_generacion: String,
+        id_tienda: String,
+        localidad: String,
+        nombre_tienda: String,
+        saldo_tienda: Int
+    ) {
         viewModelScope.launch {
             try {
                 val guardado = insta_repo.guardar_como_permanente(
@@ -538,8 +577,6 @@ class viewmodel_generaciones_IA : ViewModel() {
     }
 
 
-
-
     @RequiresApi(Build.VERSION_CODES.O)
     fun coincideConTiempo(fecha: LocalDate, tiempo: String): Boolean {
         val hoy = LocalDate.now()
@@ -553,7 +590,9 @@ class viewmodel_generaciones_IA : ViewModel() {
             tiempoClean == "ayer" -> fecha.isEqual(hoy.minusDays(1))
 
             // Hace X días (soporta "día" y "días")
-            tiempoClean.startsWith("hace ") && (tiempoClean.endsWith(" día") || tiempoClean.endsWith(" días")) -> {
+            tiempoClean.startsWith("hace ") && (tiempoClean.endsWith(" día") || tiempoClean.endsWith(
+                " días"
+            )) -> {
                 val diasStr = tiempoClean
                     .removePrefix("hace ")
                     .removeSuffix(" días")
@@ -583,19 +622,14 @@ class viewmodel_generaciones_IA : ViewModel() {
                     DateTimeFormatter.ISO_LOCAL_DATE
                 )
                 formatos.any { fmt ->
-                    runCatching { LocalDate.parse(tiempoClean, fmt) }.getOrNull()?.let { fecha.isEqual(it) } ?: false
+                    runCatching { LocalDate.parse(tiempoClean, fmt) }.getOrNull()
+                        ?.let { fecha.isEqual(it) } ?: false
                 }
             }.getOrDefault(false)
         }.also { resultado ->
             Log.d("FiltroTiempo", "fecha=$fecha, tiempo='$tiempo', hoy=$hoy, resultado=$resultado")
         }
     }
-
-
-
-
-
-
 
 
     fun reproducirMP3(context: Context, audioBytes: ByteArray) {
@@ -636,16 +670,15 @@ class viewmodel_generaciones_IA : ViewModel() {
     }
 
 
-
     fun generarMensajeVoz(
         nombre_negocio: String,
         cantidad: Int,
         terminos: List<String>,
         tiempo: String?,
-        precio:String?,prioridad:String?,tipo:String?
+        precio: String?, prioridad: String?, tipo: String?
     ): String? {
         return try {
-            procesaro_por_vos(nombre_negocio, cantidad, terminos, tiempo,precio,prioridad,tipo)
+            procesaro_por_vos(nombre_negocio, cantidad, terminos, tiempo, precio, prioridad, tipo)
         } catch (e: Exception) {
             Log.e("IA_VOZ", "Error generando mensaje de voz", e)
             null
@@ -668,9 +701,6 @@ class viewmodel_generaciones_IA : ViewModel() {
             recognized
         }
     }
-
-
-
 
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -697,6 +727,15 @@ class viewmodel_generaciones_IA : ViewModel() {
             EstadoIA_dialog_centrado_notificaciones()
 
         data class Error(val mensaje: String) : EstadoIA_dialog_centrado_notificaciones()
+    }
+
+
+    sealed class Estado_generacion_IA_whsatp {
+        object Idle : Estado_generacion_IA_whsatp()
+        object loading : Estado_generacion_IA_whsatp()
+        data class succes(val txt: String) : Estado_generacion_IA_whsatp()
+        data class error(val error: String) : Estado_generacion_IA_whsatp()
+        data class empty(val txt: String) : Estado_generacion_IA_whsatp()
     }
 
 

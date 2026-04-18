@@ -105,6 +105,24 @@ D:
     }
 
 
+    fun generar_promp_generativo_IA_para_whattsapp(
+        dataInput:String
+    ): String {
+        return """
+        Eres un optimizador SEO local.
+        Tarea: Crear descripción de negocio para WhatsApp.
+        
+        Restricciones:
+        1. El texto debe tener más de 120 y menos de 150 caracteres. Ni un carácter más.
+        2. Texto plano, sin saludos, sin emojis, sin introducciones.
+        3. No repitas el nombre del negocio.
+        4. Prioriza beneficios y palabras clave para SEO.
+        
+        Input: $dataInput
+        Salida: Solo el texto optimizado en una línea.
+    """.trimIndent()
+    }
+
     fun generarPromptPromoVenta(
         tituloUsuario: String,
         descripcionUsuario: String,

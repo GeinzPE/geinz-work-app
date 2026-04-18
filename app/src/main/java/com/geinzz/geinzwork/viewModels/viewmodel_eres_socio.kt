@@ -21,7 +21,9 @@ import com.geinzz.geinzwork.data.model.datos_recarga
 import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.data.model.generacion_primarios
 import com.geinzz.geinzwork.data.model.historial_descuento
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.nuevas_notificaciones
+import com.geinzz.geinzwork.data.model.servicio_comodidad
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen_cinco
@@ -53,6 +55,11 @@ class viewmodel_eres_socio : ViewModel() {
         private set
 
 
+    // El privado es el que puedes modificar dentro del ViewModel
+    private val _estado_subido_desc_para_bot = MutableStateFlow(false)
+
+    // El público es el que observas desde el Composable (UI)
+    val estado_subido_desc_para_bot: StateFlow<Boolean> = _estado_subido_desc_para_bot.asStateFlow()
     // Mutable
 
 
@@ -66,6 +73,10 @@ class viewmodel_eres_socio : ViewModel() {
 
     fun setear_datos_notificacion_publicada_IA(i: datos_notificacion) {
         datos_notificaciones.value = i
+    }
+
+    fun resetear_valor_estado_whatsapp_subido_y_gemini(){
+        _estado_subido_desc_para_bot.value=false
     }
 
 
@@ -94,6 +105,17 @@ class viewmodel_eres_socio : ViewModel() {
         datos_notificaciones.value = datos_notificacion()
     }
 
+
+    fun guadardar_descripcion_whattsapp_bot(id_tienda: String, localidad: String, texto: String,){
+        viewModelScope.launch {
+            try {
+                _estado_subido_desc_para_bot.value= instace_repo.agregar_descripcion_seo_bot(id_tienda,localidad,texto)
+            }catch (e: Exception){
+                Log.d("error_data","$e")
+
+            }
+        }
+    }
 
     fun generarIdNotificacion(
         idForzado: String?,
@@ -914,7 +936,35 @@ class viewmodel_eres_socio : ViewModel() {
             }
         }
     }
+    fun prepararInputParaIA(
+        listaSubcategorias: List<String>,
+        pagos: modelo_pagos_tienda,
+        comodidades: List<servicio_comodidad>
+    ): String {
+        val elementos = mutableListOf<String>()
 
+        // 1. Subcategorías
+        elementos.addAll(listaSubcategorias)
+
+        // 2. Pagos (Evaluación individual para evitar que se pisen)
+        if (pagos.yape.enable) elementos.add("Yape")
+        if (pagos.plin.enable) elementos.add("Plin")
+        if (pagos.efectivo.enable) elementos.add("Efectivo")
+        if (pagos.visa_mastercard.enable) elementos.add("Tarjeta")
+        if (pagos.agora.enable) elementos.add("Agora")
+
+        // 3. Comodidades
+        val comodidadesActivas = comodidades
+            .filter { it.estado }
+            .map { it.nombre }
+        elementos.addAll(comodidadesActivas)
+
+        // 4. Resultado limpio
+        return elementos
+            .filter { it.isNotBlank() }
+            .distinct()
+            .joinToString(", ")
+    }
 
     sealed class CargaPaquetesPago {
         object Loading : CargaPaquetesPago()

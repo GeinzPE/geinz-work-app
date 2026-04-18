@@ -17,6 +17,7 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.procesarBusquedaConIA_
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoAtencion_solo_una_generacion
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoInformativo_solo_una_generacion
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generarPromptPromoVenta_solo_una_generacion
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generar_promp_generativo_IA_para_whattsapp
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionAtencion
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionCita
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.promptNotificacionNovedad
@@ -130,7 +131,7 @@ class repo_generaciones_IA {
                     listaFinal.add(
                         datos_gen_IA_Tiendas(
                             inicio = inicio,
-                            fin = fin ,
+                            fin = fin,
                             id_promo_noti_cread = data["id_promo_o_noti"] as? String ?: "",
                             img_container = data["img_container"] as? String ?: "",
                             nombre_generacion = data["nombre_generacion"] as? String ?: "",
@@ -159,7 +160,7 @@ class repo_generaciones_IA {
                                     nuevas_generaciones["titulo_anterior"] as? String ?: "",
                                 descripcion_anteriror =
                                     nuevas_generaciones["descripcion_anterior"] as? String ?: ""
-                            ),terminos,
+                            ), terminos,
                             fecha_normal = inicio.toDate() // <-- Aquí convertimos a LocalDate
                                 .toInstant()
                                 .atZone(ZoneId.systemDefault())
@@ -178,7 +179,6 @@ class repo_generaciones_IA {
 
         awaitClose { listener.remove() }
     }
-
 
 
     fun generarPromptSegunTipoUnaGeneracion(
@@ -247,6 +247,25 @@ class repo_generaciones_IA {
     }
 
 
+    suspend fun generar_descripcion_con_IA_whatsapp_bot(data: String): String {
+        return withContext(Dispatchers.IO) {
+            try {
+                val model = Firebase.ai(
+                    backend = GenerativeBackend.googleAI()
+                ).generativeModel("gemini-2.5-flash")
+
+                val prompt = generar_promp_generativo_IA_para_whattsapp(data)
+
+                val response = model.generateContent(prompt)
+
+                response.text?.trim() ?: "Error: No se pudo generar contenido"
+
+            } catch (e: Exception) {
+                println("Error en IA: ${e.message}")
+                "Error técnico al generar descripción"
+            }
+        }
+    }
     fun parsearRespuestaIA(
         id_promo_noti_gen: String,
         texto: String
@@ -277,7 +296,7 @@ class repo_generaciones_IA {
 
 
     suspend fun agregar_nuevas_generaciones(
-        titulo_anterior:String,descripcion_anterior:String,
+        titulo_anterior: String, descripcion_anterior: String,
         id_tienda: String,
         localidad: String,
         titulo_nuevo: String,
@@ -308,7 +327,6 @@ class repo_generaciones_IA {
     }
 
 
-
     suspend fun crear_notificacion_conIA_corta(
         id_notificacion_promo: String,
         tituloPublicacion: String,
@@ -334,34 +352,42 @@ class repo_generaciones_IA {
                     tituloPublicacion,
                     descripcion_acortada
                 )
+
                 TipoGeneracionIA.ATENCION -> promptNotificacionAtencion(
                     tituloPublicacion,
                     descripcion_acortada
                 )
+
                 TipoGeneracionIA.URGENCIA -> promptNotificacionUrgencia(
                     tituloPublicacion,
                     descripcion_acortada
                 )
+
                 TipoGeneracionIA.NOVEDAD -> promptNotificacionNovedad(
                     tituloPublicacion,
                     descripcion_acortada
                 )
+
                 TipoGeneracionIA.INFORMATIVO -> promptNotificacionAtencion(
                     tituloPublicacion,
                     descripcion_acortada
                 )
+
                 TipoGeneracionIA.OPERATIVA -> promptNotificacionOperativa(
                     tituloPublicacion,
                     descripcion_acortada
                 )
+
                 TipoGeneracionIA.REPOSICION -> promptNotificacionReposicion(
                     tituloPublicacion,
                     descripcion_acortada
                 )
+
                 TipoGeneracionIA.CITAS -> promptNotificacionCita(
                     tituloPublicacion,
                     descripcion_acortada
                 )
+
                 TipoGeneracionIA.SERVICIOS -> promptNotificacionServicios(
                     tituloPublicacion,
                     descripcion_acortada
@@ -406,7 +432,8 @@ class repo_generaciones_IA {
             }
         }
 
-        return NotificacionIA(tipoGeneracion,
+        return NotificacionIA(
+            tipoGeneracion,
             titulo = titulo, descripcion = descripcion
         )
     }
@@ -467,7 +494,6 @@ class repo_generaciones_IA {
         }
 
 
-
     suspend fun procesarBusquedaConIA(textoUsuario: String): String? {
         return try {
             val model = Firebase.ai(
@@ -484,7 +510,6 @@ class repo_generaciones_IA {
             null
         }
     }
-
 
 
 }
