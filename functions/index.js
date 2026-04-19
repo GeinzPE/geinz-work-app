@@ -255,7 +255,7 @@ exports.buscarTiendas = onRequest(async (req, res) => {
         wha: tienda.metodo_contacto?.whatsapp?.numero || "",
         loc: tienda.localidad,
         cat: tienda.categoria_tienda,
-        img: tienda.img_tienda ? tienda.img_tienda.logo_tienda || "" : "",
+        img: tienda.img_tienda ? tienda.img_tienda.imagen_bot || "" : "",
         open_state: abierto,
         tipo: "tienda",
       };
