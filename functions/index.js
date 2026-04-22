@@ -114,6 +114,202 @@ function shuffle(array) {
   return array;
 }
 
+function similitud(a, b) {
+  a = normalizar(a);
+  b = normalizar(b);
+
+  if (!a || !b) return 0;
+
+  if (a.includes(b) || b.includes(a)) return 1;
+
+  const palabrasA = a.split(" ");
+  const palabrasB = b.split(" ");
+
+  let matches = 0;
+
+  palabrasB.forEach((palabra) => {
+    if (palabrasA.some((p) => p.includes(palabra))) {
+      matches++;
+    }
+  });
+
+  return matches / palabrasB.length;
+}
+
+function esBusquedaDifusa(texto) {
+  const limpio = normalizar(texto);
+  const palabras = limpio.split(" ").filter((p) => p.length > 2);
+
+  if (limpio.length < 4) return true;
+
+  const sinVocales = palabras.some((p) => !/[aeiou]/.test(p));
+  const muchasCortas = palabras.filter((p) => p.length <= 3).length >= 2;
+
+  return sinVocales || muchasCortas;
+}
+
+async function buscarRapido(ref, nombre) {
+  const palabras = normalizar(nombre).split(" ");
+  const palabraClave = palabras.find((p) => p.length > 3) || palabras[0];
+
+  const snap = await ref
+    .where("nombre_keywords", "array-contains", palabraClave)
+    .limit(50)
+    .get();
+
+  return snap.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+}
+
+async function buscarInteligente(ref, nombre) {
+  const palabras = normalizar(nombre)
+    .split(" ")
+    .filter((p) => p.length > 2);
+
+  const keywords = palabras.slice(0, 2);
+
+  const queries = keywords.map((k) =>
+    ref.where("nombre_keywords", "array-contains", k).limit(30).get(),
+  );
+
+  const snaps = await Promise.all(queries);
+
+  let mapa = new Map();
+
+  snaps.forEach((snap) => {
+    snap.docs.forEach((doc) => {
+      mapa.set(doc.id, {
+        id: doc.id,
+        ...doc.data(),
+      });
+    });
+  });
+
+  return Array.from(mapa.values());
+}
+
+function rankear(resultados, nombreBuscado) {
+  const buscado = normalizar(nombreBuscado);
+  const palabras = buscado.split(" ");
+
+  let conScore = resultados.map((tienda) => {
+    const nombreDB = normalizar(
+      tienda.nombre_lower || tienda.nombre_tienda || "",
+    );
+
+    let score = 0;
+
+    // 🔥 match exacto completo
+    if (nombreDB.includes(buscado)) score += 3;
+
+    // 🔥 coincidencias por palabra
+    let matches = 0;
+    palabras.forEach((p) => {
+      if (nombreDB.includes(p)) matches++;
+    });
+    score += matches;
+
+    // 🔥 bonus si contiene TODAS
+    if (palabras.every((p) => nombreDB.includes(p))) {
+      score += 2;
+    }
+
+    // 🔥 similitud general
+    score += similitud(nombreDB, buscado);
+
+    return { tienda, score };
+  });
+
+  conScore = conScore
+    .filter((t) => t.score > 1)
+    .sort((a, b) => b.score - a.score);
+
+  return conScore.map((t) => t.tienda);
+}
+
+function limpiar(texto) {
+  return (texto || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\b(el|la|los|las|de|del)\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+exports.buscarTiendasSmart = onRequest(async (req, res) => {
+  try {
+    const { localidad, nombre_negocio } = req.body;
+
+    if (!localidad || !nombre_negocio) {
+      return res.status(400).json({
+        ok: false,
+        error: "faltan datos",
+      });
+    }
+
+    const ref = admin
+      .firestore()
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection(localidad);
+
+    let resultados = [];
+
+    const modoDifuso = esBusquedaDifusa(nombre_negocio);
+
+    console.log("🧠 MODO:", modoDifuso ? "INTELIGENTE" : "RAPIDO");
+
+    // 🔥 DECISIÓN
+    if (modoDifuso) {
+      resultados = await buscarInteligente(ref, nombre_negocio);
+    } else {
+      resultados = await buscarRapido(ref, nombre_negocio);
+
+      if (resultados.length === 0) {
+        resultados = await buscarInteligente(ref, nombre_negocio);
+      }
+    }
+
+    console.log("📊 RESULTADOS:", resultados.length);
+
+    // 🧠 ordenar
+    let ordenados = rankear(resultados, nombre_negocio);
+
+    // 🕒 horario
+    const response = ordenados.map((tienda) => ({
+      id: tienda.id,
+      name: tienda.nombre_tienda,
+      desc: (tienda.descripcion_seo || "").substring(0, 120),
+      ref: tienda.ubicacion?.referencia || "",
+      wha: tienda.metodo_contacto?.whatsapp?.numero || "",
+      loc: tienda.localidad,
+      cat: tienda.categoria_tienda,
+      img: tienda.img_tienda ? tienda.img_tienda.imagen_bot || "" : "",
+      open_state: verificar_apertura_tienda(tienda.horario_atencion),
+      tipo: "tienda",
+    }));
+
+    // 🟢 abiertos primero
+    const abiertos = response.filter((t) => t.open_state === true);
+    const baseFinal = abiertos.length > 0 ? abiertos : response;
+
+    const final = baseFinal.slice(0, 3);
+
+    return res.json({
+      ok: true,
+      modo: modoDifuso ? "inteligente" : "rapido",
+      total: final.length,
+      data: final,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ ok: false });
+  }
+});
+
 exports.buscarTiendas = onRequest(async (req, res) => {
   try {
     const { localidad, nombre_negocio, categoria, subcategoria } = req.body;
@@ -290,6 +486,153 @@ exports.buscarTiendas = onRequest(async (req, res) => {
     });
   }
 });
+
+exports.buscar_tienda_por_categorias_y_subcategoria = onRequest(
+  async (req, res) => {
+    try {
+      const { localidad, categoria, subcategoria } = {
+        localidad: limpiar(req.body.localidad),
+        categoria: limpiar(req.body.categoria),
+        subcategoria: req.body.subcategoria
+          ? limpiar(req.body.subcategoria)
+          : null,
+      };
+      if (!localidad || !categoria) {
+        return res.status(400).json({
+          ok: false,
+          error: "localidad y categoria son obligatorias",
+        });
+      }
+
+      let query = admin
+        .firestore()
+        .collection("Tiendas")
+        .doc(localidad)
+        .collection(localidad)
+        .where("categoria_tienda", "==", categoria);
+
+      // 👉 subcategoria opcional
+      if (subcategoria) {
+        query = query.where("subcategoria", "array-contains", subcategoria);
+      }
+
+      const snapshot = await query.get();
+
+      let resultados = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      console.log("📊 RESULTADOS:", resultados.length);
+
+      // =========================
+      // 🔥 MAP + HORARIO
+      // =========================
+      const response = resultados.map((tienda) => {
+        const estado = verificar_apertura_tienda(tienda.horario_atencion);
+
+        return {
+          id: tienda.id,
+          name: tienda.nombre_tienda,
+          desc: (tienda.descripcion_seo || "").substring(0, 150),
+          ref: tienda.ubicacion?.referencia || "",
+          wha: tienda.metodo_contacto?.whatsapp?.numero || "",
+          loc: tienda.localidad,
+          cat: tienda.categoria_tienda,
+          img: tienda.img_tienda ? tienda.img_tienda.imagen_bot || "" : "",
+          open_state: estado, // true | false | null
+          tipo: "tienda",
+        };
+      });
+
+      // =========================
+      // 🟢 PRIORIDAD ABIERTOS
+      // =========================
+      const abiertos = response.filter((t) => t.open_state === true);
+
+      const baseFinal = abiertos.length > 0 ? abiertos : response;
+
+      // =========================
+      // 🎯 RANDOM + LIMITE
+      // =========================
+      const final = baseFinal.sort(() => Math.random() - 0.5).slice(0, 3);
+
+      return res.json({
+        ok: true,
+        hayAbiertos: abiertos.length > 0,
+        total: final.length,
+        data: final,
+      });
+    } catch (error) {
+      console.error("❌ ERROR:", error);
+      return res.status(500).json({
+        ok: false,
+        error: "Error interno",
+      });
+    }
+  },
+);
+
+function verificar_apertura_tienda(horario_atencion) {
+  // 👉 si no hay datos
+  if (!horario_atencion) return null;
+
+  const now = new Date();
+
+  // 🔥 hora Perú
+  const peru = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/Lima" }),
+  );
+
+  const dias = [
+    "domingo",
+    "lunes",
+    "martes",
+    "miércoles",
+    "jueves",
+    "viernes",
+    "sábado",
+  ];
+
+  const diaActual = dias[peru.getDay()];
+  const minutosActual = peru.getHours() * 60 + peru.getMinutes();
+
+  const horario = horario_atencion[diaActual];
+
+  // 👉 si no hay horario ese día
+  if (!horario || horario.cerrado === true) {
+    return false;
+  }
+
+  const bloques = horario.bloques || [];
+
+  for (const bloque of bloques) {
+    if (!bloque || !bloque.h_apertura || !bloque.h_cierre) continue;
+
+    const [ha, ma] = bloque.h_apertura.split(":").map(Number);
+    const [hc, mc] = bloque.h_cierre.split(":").map(Number);
+
+    const apertura = ha * 60 + ma;
+    const cierre = hc * 60 + mc;
+
+    // 🔥 CASO NORMAL (ej: 9:00 - 18:00)
+    if (apertura <= cierre) {
+      if (minutosActual >= apertura && minutosActual <= cierre) {
+        return true;
+      }
+    }
+    // 🔥 CASO CRUZADO (ej: 20:00 - 02:00)
+    else {
+      if (minutosActual >= apertura || minutosActual <= cierre) {
+        return true;
+      }
+    }
+  }
+
+  // 👉 no está dentro de ningún bloque
+  return false;
+}
+
 exports.obtenerCategorias = onRequest(async (req, res) => {
   try {
     const snapshot = await admin
@@ -299,9 +642,9 @@ exports.obtenerCategorias = onRequest(async (req, res) => {
       .collection("categorias")
       .get();
 
-    const categorias = snapshot.docs.map((doc) => {
-      return doc.id;
-    });
+    const categorias = snapshot.docs
+      .map((doc) => doc.id)
+      .filter((cat) => cat.toLowerCase() !== "turismo");
 
     res.json({
       ok: true,
@@ -314,6 +657,7 @@ exports.obtenerCategorias = onRequest(async (req, res) => {
     });
   }
 });
+
 exports.obtener_subcategoira_de_cat = onRequest(async (req, res) => {
   try {
     const { categoria } = req.body;
@@ -347,6 +691,59 @@ exports.obtener_subcategoira_de_cat = onRequest(async (req, res) => {
   }
 });
 
+exports.obtener_lugares_seguros = onRequest(async (req, res) => {
+  try {
+    // 1. Recibimos localidad y la categoria_limpia del clasificador
+    const { localidad, categoria } = req.body;
+
+    let query = admin
+      .firestore()
+      .collection("Tiendas")
+      .doc("salud_seguridad")
+      .collection(localidad);
+
+    // 2. Aplicamos el WHERE solo si la categoría no es "general"
+    // Si es "general", traerá todos los contactos de la localidad
+    if (categoria && categoria !== "general") {
+      query = query.where("categoria", "==", categoria);
+    }
+
+    const snapshot = await query
+      .select("id", "categoria", "nombre", "numeros_contactos", "ubicacion")
+      .get();
+
+    if (snapshot.empty) {
+      return res.status(200).json({ ok: true, total: 0, data: [] });
+    }
+
+    const data = snapshot.docs.map((doc) => {
+      const d = doc.data();
+      return {
+        id: d.id ?? doc.id,
+        c: d.categoria,
+        n: d.nombre,
+        num: d.numeros_contactos ?? { llamada: [], whatsapp: [] },
+        ub: d.ubicacion ?? null,
+      };
+    });
+
+    // Cache de 5 minutos para ahorrar lecturas de Firestore
+    res.set("Cache-Control", "public, max-age=300");
+
+    return res.status(200).json({
+      ok: true,
+      total: data.length,
+      data,
+    });
+  } catch (error) {
+    console.error("Error en obtener_lugares_seguros:", error);
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error interno al filtrar por categoría",
+    });
+  }
+});
+
 function scoreLugar(lugar, nombre_negocio, subcategoria) {
   let score = 0;
 
@@ -372,15 +769,6 @@ function scoreLugar(lugar, nombre_negocio, subcategoria) {
   return score;
 }
 
-function limpiar(texto) {
-  return (texto || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\b(el|la|los|las|de|del)\b/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 function seleccionarAleatorioPonderado(lista, limite) {
   const seleccionados = [];
   const copia = [...lista];
@@ -689,7 +1077,54 @@ exports.enviarNotificacion = onRequest(async (req, res) => {
   }
 });
 
-// ==================== SHARE (Tienda + Turismo) ====================
+// ==================== Baneo Bot geinz====================
+exports.banUser = onRequest(async (req, res) => {
+  // 1. Capturamos el ID del parámetro 'id' en la URL
+  const userId = req.query.id;
+
+  if (!userId) {
+    return res
+      .status(400)
+      .send("<h1>Error: ID de usuario no proporcionado.</h1>");
+  }
+
+  try {
+    // 2. Referencia a Firestore (v2 suele trabajar mejor con Firestore)
+    // Si usas Realtime Database, el código cambia ligeramente,
+    // pero aquí te lo pongo para Firestore que es lo estándar en v2.
+    const db = admin.firestore();
+    const userRef = db.collection("usuarios").doc(userId);
+
+    // 3. Verificamos si el usuario existe antes de banear
+    const doc = await userRef.get();
+    if (!doc.exists) {
+      return res
+        .status(404)
+        .send(`<h1>Error: El usuario ${userId} no existe.</h1>`);
+    }
+
+    // 4. Actualizamos el estado
+    await userRef.update({
+      status: "deshabilitado",
+      fecha_bloqueo: admin.firestore.FieldValue.serverTimestamp(),
+      motivo_bloqueo: "Detección de amenaza - Administrador",
+    });
+
+    // 5. Respuesta visual para tu celular
+    res.send(`
+            <div style="font-family: sans-serif; text-align: center; padding: 40px; background-color: #fce4e4;">
+                <h1 style="color: #c62828;">🚫 Geinz: Bloqueo Exitoso</h1>
+                <p style="font-size: 1.2em;">El usuario <strong>${userId}</strong> ha sido deshabilitado.</p>
+                <p>El Bot ya no responderá a sus mensajes.</p>
+                <hr style="border: 1px solid #c62828; width: 50%;">
+                <small>Geinz Tecnología E.I.R.L.</small>
+            </div>
+        `);
+  } catch (error) {
+    console.error("Error en banUser:", error);
+    res.status(500).send("<h1>Error interno al procesar el baneo.</h1>");
+  }
+});
 // ==================== SHARE (Tienda + Turismo + Otros) ====================
 exports.share = onRequest(async (req, res) => {
   try {
