@@ -217,9 +217,8 @@ dependencies {
 
 
     implementation("io.github.dautovicharis:charts-android:2.0.1")
-    implementation("com.mapbox.maps:android:11.18.2")
-    implementation("com.mapbox.extension:maps-compose-ndk27:11.18.2")
-
+    implementation("com.mapbox.maps:android-ndk27:11.22.0")
+    implementation("com.mapbox.extension:maps-compose-ndk27:11.22.0")
     implementation(libs.androidx.foundation)
 //    implementation("com.github.SmartToolFactory:Compose-Cropper:1.2.3")
     implementation("androidx.media3:media3-exoplayer:1.9.3")

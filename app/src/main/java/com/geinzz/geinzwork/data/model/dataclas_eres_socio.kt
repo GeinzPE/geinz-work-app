@@ -66,7 +66,8 @@ data class obtener_img_tiendas(
     val logo_tienda: String = "",
     val lista_ambiernte: List<String> = emptyList(),
     val lista_productos: List<String> = emptyList(),
-    val lista_promociones: Map<String, String> = emptyMap()
+    val lista_promociones: Map<String, String> = emptyMap(),
+    val logo_whatsapp_bot : String =""
 )
 
 
@@ -356,6 +357,10 @@ data class GeneracionIA(
     val tipo: repo_pantallas_promocionar.TipoGeneracionIA,
     val beneficios: List<String>
 )
+
+data class tipo_de_genearcion_para_imagen(
+    val tipo:String,
+    val realiazar_promp: String)
 
 
 data class historial_financiero(

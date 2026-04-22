@@ -2466,11 +2466,13 @@ object constantes_lista_localidades {
             }?.toMap() ?: emptyMap()
 
 
+        val img_logo_whattsapp = this["imagen_bot"] as? String ?: ""
+
         return obtener_img_tiendas(
             logo_tienda = logo,
             lista_ambiernte = ambientales,
             lista_productos = productos,
-            lista_promociones = promociones
+            lista_promociones = promociones,img_logo_whattsapp
         )
     }
 

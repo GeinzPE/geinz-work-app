@@ -125,14 +125,35 @@ class viewmodel_generaciones_IA : ViewModel() {
     }
 
 
-    fun obtener_descripcion_generada_con_datos(data: String) {
+    fun obtener_descripcion_generada_con_datos(data: String,localidad_tienda:String,nombre_tienda:String,id_tienda:String,total_cobrar:String,saldo_tienda: Int) {
         viewModelScope.launch {
             _estado_carga_generacion_desk_whatsap.value = Estado_generacion_IA_whsatp.loading
             try {
-
                 val texto_generado = insta_repo.generar_descripcion_con_IA_whatsapp_bot(data)
                 if (texto_generado.isNotEmpty()) {
                     _estado_carga_generacion_desk_whatsap.value = Estado_generacion_IA_whsatp.succes(texto_generado)
+                    val historial = historial_descuento(
+                        tipo_transaccion = "descuento",
+                        fecha = obtenerFechaActual(),
+                        hora = obtenerHoraActual(),
+                        id_recarga = constantes_cobro_monedas.generarIdRecarga(),
+                        localidad_tienda = localidad_tienda,
+                        id_tienda = id_tienda,
+                        nombre_tienda = nombre_tienda,
+                        monto_descuento = total_cobrar,
+                        tipo = "Gen IA Asistente para whatsapp",
+                        precio_soles = constantes_cobro_monedas
+                            .calcular_precio_soles(total_cobrar)
+                            .toString(),
+                        estado = "Aceptado",
+                        monto_restante = saldo_tienda - total_cobrar.toInt()
+                    )
+                    viewmodel_recargas.restar_puntos_recarga(
+                        historial,
+                        total_cobrar,
+                        id_tienda,
+                        localidad_tienda
+                    )
                 }else{
                     _estado_carga_generacion_desk_whatsap.value = Estado_generacion_IA_whsatp.empty(texto_generado)
                 }

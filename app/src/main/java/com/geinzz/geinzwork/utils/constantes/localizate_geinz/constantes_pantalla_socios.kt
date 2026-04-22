@@ -1,6 +1,8 @@
 package com.geinzz.geinzwork.utils.constantes.localizate_geinz
 
+import android.content.ContentValues.TAG
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -39,6 +41,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -61,30 +64,39 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import coil3.compose.SubcomposeAsyncImage
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.BoxImagen
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.PlaceholderInterno
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.esUriLocal
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.esUrlRemota
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.guardarCambiosImagenes
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.guardarImagenesEnFirestore
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.guardarImagenesEnFirestore_promociones
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenParaWhatsappDB
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenWebPSinRecorte
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
+import com.geinzz.geinzwork.utils.constantes.constantes.Variables.idTienda
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v2
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v2
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageMetadata
 import io.github.dautovicharis.charts.PieChart
 import io.github.dautovicharis.charts.model.toChartDataSet
 import io.github.dautovicharis.charts.style.PieChartDefaults
@@ -135,7 +147,8 @@ object constantes_pantalla_socios {
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
                         ) {
-                            abrir_whattsapp(id_user,
+                            abrir_whattsapp(
+                                id_user,
                                 "",
                                 "",
                                 "",
@@ -212,7 +225,8 @@ object constantes_pantalla_socios {
 
     @RequiresApi(Build.VERSION_CODES.R)
     @Composable
-    fun BoxFotosTipos(id_user:String,
+    fun BoxFotosTipos(
+        id_user: String,
         tipo: String,
         id_tienda: String,
         urlsDesdeDb: List<String>, max: Int,
@@ -378,7 +392,7 @@ object constantes_pantalla_socios {
                                     imagenesOriginales = imagenesOriginales,
                                     idTienda = id_tienda,
                                     "barranca"
-                                ) { completo->
+                                ) { completo ->
                                     val urlsFinales = completo.filterNotNull()
                                     guardarImagenesEnFirestore(
                                         localidad = "barranca",
@@ -444,7 +458,7 @@ object constantes_pantalla_socios {
     @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun BoxTipo_promociones(
-        id_user:String,
+        id_user: String,
         tipo: String,
         id_tienda: String,
         urlsDesdeDb: Map<String, String>,
@@ -475,20 +489,23 @@ object constantes_pantalla_socios {
 
         var idSeleccionado by remember { mutableStateOf<String?>(null) }
 
-        val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            uri?.let {
-                idSeleccionado?.let { id ->
-                    imagenes[id] = it.toString()
-                    eliminadas.remove(id)
+        val launcher =
+            rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+                uri?.let {
+                    idSeleccionado?.let { id ->
+                        imagenes[id] = it.toString()
+                        eliminadas.remove(id)
+                    }
                 }
             }
-        }
 
         val listState = rememberLazyListState()
         var guardando by remember { mutableStateOf(false) }
 
         Column {
-            Box(modifier = Modifier.animateContentSize().height(100.dp)) {
+            Box(modifier = Modifier
+                .animateContentSize()
+                .height(100.dp)) {
                 LazyRow(
                     state = listState,
                     horizontalArrangement = Arrangement.spacedBy(20.dp)
@@ -511,6 +528,7 @@ object constantes_pantalla_socios {
                                     esUriLocal(url) -> {
                                         imagenes[id] = urlsDesdeDb[id]
                                     }
+
                                     esUrlRemota(url) -> {
                                         eliminadas.add(id)
                                         imagenes[id] = null
@@ -525,7 +543,7 @@ object constantes_pantalla_socios {
                     }
                 }
             }
-spacer_vertical(10.dp)
+            spacer_vertical(10.dp)
             AnimatedVisibility(visible = hayCambios) {
                 Box(
                     modifier = Modifier
@@ -566,7 +584,8 @@ spacer_vertical(10.dp)
         }
 
         if (mostrarDialogozoom && valor_img_completa != null) {
-            ZoomableGalleryFullScreen(id_user,
+            ZoomableGalleryFullScreen(
+                id_user,
                 compartir_promocion(),
                 imagenes = listOf(valor_img_completa!!.second ?: ""), // URL
                 startIndex = 0,
@@ -575,13 +594,169 @@ spacer_vertical(10.dp)
         }
     }
 
+    fun agregarImagenParaBot(
+        localidad_tienda: String,
+        id_tienda: String,
+        uri: Uri?,
+        context: Context,
+        checkFinish: () -> Unit
+    ) {
 
+        val storage = FirebaseStorage.getInstance().reference
+
+        if (uri != null) {
+
+            val bytes = procesarImagenParaWhatsappDB(context, uri)
+
+            val nombreArchivo = "bot_${System.currentTimeMillis()}.jpg"
+
+            val ref = storage.child("tiendas/$id_tienda/imagenes/para_whatsapp/$nombreArchivo")
+
+            val metadata = StorageMetadata.Builder()
+                .setContentType("image/jpeg")
+                .build()
+
+            ref.putBytes(bytes, metadata)
+                .continueWithTask { task ->
+                    if (!task.isSuccessful) {
+                        throw task.exception ?: Exception("Error subiendo imagen")
+                    }
+                    ref.downloadUrl
+                }
+                .addOnSuccessListener { downloadUrl ->
+
+                    Log.d(TAG, "✅ Imagen subida: $downloadUrl")
+
+                    val firestoreRef = FirebaseFirestore.getInstance()
+                        .collection("Tiendas")
+                        .document(localidad_tienda)
+                        .collection(localidad_tienda)
+                        .document(id_tienda)
+
+                    // 🔥 GUARDAR EN MAPA img_tienda → imagen_bot
+                    val updateData = mapOf(
+                        "img_tienda.imagen_bot" to downloadUrl.toString()
+                    )
+
+                    firestoreRef.update(updateData)
+                        .addOnSuccessListener {
+                            Log.d(TAG, "✅ URL guardada en Firestore")
+                            checkFinish()
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e(TAG, "❌ Error guardando en Firestore", e)
+                            checkFinish()
+                        }
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "❌ Error subiendo imagen", e)
+                    checkFinish()
+                }
+        } else {
+            Log.e(TAG, "❌ URI es null")
+            checkFinish()
+        }
+    }
+
+    @Composable
+    fun Box_para_imagen_general_de_Bot_whatsapp(
+        imagen_subida_correctamente: Boolean,
+        subiendo_imagen: Boolean,
+        imagenInicial: String?,
+        onImagenChange: (Uri?) -> Unit,
+        usuario_borro_los_cambios: () -> Unit
+    ) {
+
+        // 🔥 estado visual sincronizado con backend
+        var imagenActual by remember(imagenInicial) { mutableStateOf(imagenInicial) }
+
+        // 🔥 historial
+        val historial = remember { mutableStateListOf<String?>() }
+
+        // 🔥 limpiar historial cuando se sube correctamente
+        LaunchedEffect(imagen_subida_correctamente) {
+            if (imagen_subida_correctamente) {
+                historial.clear()
+            }
+        }
+
+        val launcher = rememberLauncherForActivityResult(
+            ActivityResultContracts.GetContent()
+        ) { uri ->
+
+            uri?.let {
+                historial.add(imagenActual)
+                imagenActual = it.toString()
+
+                onImagenChange(it)
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+        ) {
+
+            SubcomposeAsyncImage(
+                model = imagenActual ?: "",
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(20.dp))
+                    .clickable(
+                        enabled = !subiendo_imagen,
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        launcher.launch("image/*")
+                    },
+                contentScale = ContentScale.Crop,
+                loading = { PlaceholderInterno() },
+                error = { PlaceholderInterno() }
+            )
+
+            // 🔥 BOTÓN RETROCEDER
+            if (!imagen_subida_correctamente && !subiendo_imagen && historial.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(8.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(Color.Black.copy(alpha = 0.6f))
+                        .clickable {
+                            val anterior = historial.removeLast()
+                            imagenActual = anterior
+
+                            onImagenChange(anterior?.let { Uri.parse(it) })
+                            usuario_borro_los_cambios()
+                        }
+                        .padding(horizontal = 2.dp, vertical = 2.dp)
+                ) {
+                    Text("↩", color = Color.White)
+                }
+            }
+
+            // 🔥 OVERLAY MIENTRAS SUBE
+            if (subiendo_imagen) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .matchParentSize()
+                        .background(Color.Black.copy(alpha = 0.4f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+        }
+    }
     @Composable
     fun estadisticas_aplicables(
         mostrar_qr_externo: Boolean,
         List_float: List<Float>,
         ListString: List<String>,
-        colores_lista: List<Color>,contenido_clikeado:(String)-> Unit
+        colores_lista: List<Color>, contenido_clikeado: (String) -> Unit
     ) {
         AnimatedVisibility(
             visible = mostrar_qr_externo
@@ -610,7 +785,7 @@ spacer_vertical(10.dp)
                                 modifier = Modifier.clickable(
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() }) {
-                                    val datos=ListString[index]
+                                    val datos = ListString[index]
                                     contenido_clikeado(datos)
 
 

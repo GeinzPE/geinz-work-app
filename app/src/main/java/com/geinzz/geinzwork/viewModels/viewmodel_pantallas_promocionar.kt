@@ -1,8 +1,11 @@
 package com.geinzz.geinzwork.viewModels
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
@@ -17,17 +20,20 @@ import com.geinzz.geinzwork.data.model.Res_precios
 import com.geinzz.geinzwork.data.model.historial_descuento
 import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
 import com.geinzz.geinzwork.model.repo_eres_socio
+import com.geinzz.geinzwork.model.repo_generaciones_IA
 import com.geinzz.geinzwork.model.repo_pantallas_promocionar
 
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
 import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
 class viewmodel_pantallas_promocionar : ViewModel() {
@@ -88,7 +94,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     )
     val insta_repo = repo_pantallas_promocionar()
     val viewmodel_recargas = viewmodel_recargas()
-
+    val insta_repo_generaciones = repo_generaciones_IA()
     var titulo by mutableStateOf("")
 
     var descripcion by mutableStateOf("")
@@ -108,6 +114,9 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     var tipo_notificacion by mutableStateOf("")
 
 
+    private val _tituloDescripcion = MutableStateFlow<Pair<String, String>>(Pair("", ""))
+    val tituloDescripcion: StateFlow<Pair<String, String>> = _tituloDescripcion
+
     enum class CampoPendiente {
         TITULO,
         DESCRIPCION,
@@ -119,6 +128,110 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         FORMATO,
         TIPO
     }
+
+
+    fun uriToBitmap(context: Context, uri: Uri): Bitmap? {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val source = ImageDecoder.createSource(context.contentResolver, uri)
+                ImageDecoder.decodeBitmap(source)
+            } else {
+                MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    private val _estado_generacion_txt_img = MutableStateFlow<Estado_carga_para_generar_txt_a_img>(
+        Estado_carga_para_generar_txt_a_img.Idle
+    )
+    val estado_generacion_txt_img = _estado_generacion_txt_img.asStateFlow()
+
+    fun resetear_estado_generacion_img() {
+        _estado_generacion_txt_img.value = Estado_carga_para_generar_txt_a_img.Idle
+    }
+    fun generar_texto_descripcion_con_IA_desde_imagen(
+        localidad_tienda: String,
+        id_tienda: String,
+        nombre_tienda: String,
+        puntos_descuento: Int,
+        saldo_tienda: Int,
+        tipo_de_generacion: String,
+        context: Context,
+        uri: Uri
+    ) {
+        viewModelScope.launch {
+
+            _estado_generacion_txt_img.value = Estado_carga_para_generar_txt_a_img.Loading
+            Log.d("IA_IMAGEN", "Inicio | uri=$uri  $tipo_de_generacion")
+            val start = System.currentTimeMillis()
+
+            val resultado = withContext(Dispatchers.IO) {
+                try {
+                    val bitmap = uriToBitmap(context, uri)
+                        ?: return@withContext Pair("", "")
+
+                    val reducido = Bitmap.createScaledBitmap(bitmap, 512, 512, true)
+
+                    insta_repo_generaciones.generar_descripcion_con_imagen(
+                        tipo_de_generacion,
+                        reducido
+                    )
+
+                } catch (e: Exception) {
+                    Log.e("IA_IMAGEN", "Error en procesamiento: ${e.message}", e)
+                    _estado_generacion_txt_img.value = Estado_carga_para_generar_txt_a_img.Error(
+                        "ocurrio un error al generar"
+                    )
+                    Pair("", "")
+                }
+            }
+
+            val (titulo_, descripcion_) = resultado
+
+            if (titulo_.isNotBlank()) {
+                titulo = titulo_
+                descripcion = descripcion_
+                _estado_generacion_txt_img.value = Estado_carga_para_generar_txt_a_img.Succes(titulo_,descripcion_)
+
+                val tiempo = System.currentTimeMillis() - start
+                Log.d("IA_IMAGEN", "OK (${tiempo}ms) → $titulo_")
+                val historial = historial_descuento(
+                    tipo_transaccion = "descuento",
+                    fecha = obtenerFechaActual(),
+                    hora = obtenerHoraActual(),
+                    id_recarga = constantes_cobro_monedas.generarIdRecarga(),
+                    localidad_tienda = localidad_tienda,
+                    id_tienda = id_tienda,
+                    nombre_tienda = nombre_tienda,
+                    monto_descuento = puntos_descuento.toString(),
+                    tipo = "Gen IA titulo y descripcion de Imagen ",
+                    precio_soles = constantes_cobro_monedas.calcular_precio_soles(puntos_descuento.toString())
+                        .toString(),
+                    estado = "Aceptado",
+                    monto_restante = saldo_tienda - puntos_descuento
+                )
+                viewmodel_recargas.restar_puntos_recarga(
+                    historial,
+                    puntos_descuento.toString(),
+                    id_tienda,
+                    localidad_tienda
+                )
+
+            } else {
+                Log.w("IA_IMAGEN", "Respuesta vacía de IA")
+//                _estado_generacion_txt_img.value = Estado_carga_para_generar_txt_a_img.Error(
+//                    "La IA no devolvió resultado"
+//                )
+                _estado_generacion_txt_img.value = Estado_carga_para_generar_txt_a_img.Error(
+                    "ocurrio un error al generar"
+                )
+            }
+        }
+    }
+
 
     fun hayCambiosSinGuardar(): Boolean {
         return titulo.isNotBlank() ||
@@ -170,7 +283,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         _estadoRangoPrecio
 
 
-
     private val _estadoImagen = MutableStateFlow<ImagenEstado>(ImagenEstado.Idle)
     val estadoImagen: StateFlow<ImagenEstado> = _estadoImagen
 
@@ -195,8 +307,8 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         _estado_notificacion_con_ia_corta
 
 
-    fun resetear_Estado_notificacion_gnerado_ia(){
-        _estado_notificacion_con_ia_corta.value= EstadoIA_notifi_corta.Idle
+    fun resetear_Estado_notificacion_gnerado_ia() {
+        _estado_notificacion_con_ia_corta.value = EstadoIA_notifi_corta.Idle
     }
 
     private val _estado_texto_whatsap_con_ia =
@@ -210,8 +322,9 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         MutableStateFlow<Estado_ia_mensaje_whatsap_notificaion>(
             Estado_ia_mensaje_whatsap_notificaion.Idle
         )
-    fun resetear_Estado_notificacion_whatsap_gnerado_ia(){
-        _estado_texto_whatsap_con_ia_notificacion.value= Estado_ia_mensaje_whatsap_notificaion.Idle
+
+    fun resetear_Estado_notificacion_whatsap_gnerado_ia() {
+        _estado_texto_whatsap_con_ia_notificacion.value = Estado_ia_mensaje_whatsap_notificaion.Idle
     }
 
 
@@ -246,8 +359,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
     val estadoValidacion: StateFlow<EstadoValidacionNotificacion> =
         _estadoValidacion
-
-
 
 
     fun mejorar_texto_con_promo_IA(
@@ -328,9 +439,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
             }
         }
     }
-
-
-
 
 
     fun limpiar_resutlados_ia_promo() {
@@ -617,7 +725,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     }
 
 
-
     fun mejorar_texto_perzonalizado_whatsapp_notificacion(
         saldo_tienda: Int,
         localidad_tienda: String,
@@ -713,7 +820,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     }
 
 
-
     fun mejorar_texto_perzonalizado_compatir(
         saldo_tienda: Int,
         localidad_tienda: String,
@@ -806,7 +912,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
             }
         }
     }
-
 
 
     fun calcularBloques(seguidores: Int): Int {
@@ -970,10 +1075,9 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         }
     }
 
-    fun limpiar_precios(){
+    fun limpiar_precios() {
         _estadoRangoPrecio.value = Res_precios(emptyList(), null, null)
     }
-
 
 
     fun actualizarRangoDesdePrecio(precio: Double) {
@@ -984,10 +1088,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                 rango = rango
             )
     }
-
-
-
-
 
 
     fun obtenerRangoPrecio(precio: Double): String {
@@ -1023,10 +1123,9 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         _estado_texto_compartir_con_ia.value =
             ESstado_ia_msje_compartir.Idle
 
-        _estado_promociones_ia.value=EstadoIA.Idle
+        _estado_promociones_ia.value = EstadoIA.Idle
         // agrega aquí otros estados de publicación
     }
-
 
 
     fun validar_si_hay_datos_promocionar(
@@ -1055,8 +1154,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     }
 
 
-
-
     sealed class EstadoValidacionNotificacion {
         object Idle : EstadoValidacionNotificacion()
         object Permitida : EstadoValidacionNotificacion()
@@ -1079,7 +1176,6 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         data class Success(val lista: List<OpcionPromocionIA>) : EstadoIA()
         data class Error(val mensaje: String) : EstadoIA()
     }
-
 
 
     sealed class ESstado_ia_msje_whatsap {
@@ -1127,7 +1223,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     }
 
 
-    fun texto_retornable_prioridades(prioridad:String):String{
+    fun texto_retornable_prioridades(prioridad: String): String {
         return when (prioridad) {
             "high" -> {
                 "🚀 Prioridad ALTA (high)\n" +
@@ -1139,7 +1235,8 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                         "Las notificaciones se envían de forma estándar y pueden tardar un poco más en llegar."
             }
 
-            else -> {""
+            else -> {
+                ""
             }
         }
 
@@ -1158,5 +1255,13 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         ) : EstadoEnvioNotificacion()
     }
 
+    sealed class Estado_carga_para_generar_txt_a_img {
+        object Idle : Estado_carga_para_generar_txt_a_img()
+        object Loading : Estado_carga_para_generar_txt_a_img()
+        data class Succes (val titulo:String,val texto: String) :Estado_carga_para_generar_txt_a_img()
+        data class Error(
+            val mensaje: String
+        ) : Estado_carga_para_generar_txt_a_img()
+    }
 
 }

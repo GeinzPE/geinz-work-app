@@ -469,6 +469,95 @@ object constantes_subir_img_panel_tienda {
         return output.toByteArray()
     }
 
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    fun procesarImagenParaWhatsappDB(
+        context: Context,
+        uri: Uri,
+        maxSize: Int = 1280,
+        calidadJpg: Int = 80
+    ): ByteArray {
+
+        val inputStream = context.contentResolver.openInputStream(uri)
+            ?: throw IllegalArgumentException("No se pudo abrir el stream")
+
+        val bitmapOriginal = BitmapFactory.decodeStream(inputStream)
+            ?: throw IllegalArgumentException("No se pudo leer la imagen")
+
+        inputStream.close()
+
+        val width = bitmapOriginal.width
+        val height = bitmapOriginal.height
+
+        // 🔥 1. Escalado inteligente
+        val scale = if (width > height) {
+            if (width > maxSize) maxSize.toFloat() / width else 1f
+        } else {
+            if (height > maxSize) maxSize.toFloat() / height else 1f
+        }
+
+        val newWidth = (width * scale).toInt()
+        val newHeight = (height * scale).toInt()
+
+        val bitmapFinal = if (scale < 1f) {
+            Bitmap.createScaledBitmap(bitmapOriginal, newWidth, newHeight, true)
+        } else {
+            bitmapOriginal
+        }
+
+        // 🔥 2. Detectar si es tipo captura (texto/UI)
+        val esCaptura = esProbableCaptura(bitmapFinal)
+
+        val output = ByteArrayOutputStream()
+
+        if (esCaptura) {
+            // 🖼️ PNG para texto nítido
+            bitmapFinal.compress(
+                Bitmap.CompressFormat.PNG,
+                100,
+                output
+            )
+        } else {
+            // 📸 JPG para fotos livianas
+            bitmapFinal.compress(
+                Bitmap.CompressFormat.JPEG,
+                calidadJpg,
+                output
+            )
+        }
+
+        // 🔥 3. Liberar memoria
+        if (bitmapFinal != bitmapOriginal) {
+            bitmapOriginal.recycle()
+        }
+        bitmapFinal.recycle()
+
+        return output.toByteArray()
+    }
+    fun esProbableCaptura(bitmap: Bitmap): Boolean {
+
+        val width = bitmap.width
+        val height = bitmap.height
+
+        // 🔥 Si es muy rectangular tipo pantalla
+        val ratio = width.toFloat() / height.toFloat()
+
+        val esFormatoPantalla = ratio in 0.4f..0.6f || ratio in 1.6f..2.2f
+
+        // 🔥 Si tiene pocos colores (UI suele tener menos variación)
+        val sampleSize = 50
+        val colores = HashSet<Int>()
+
+        for (x in 0 until width step width / sampleSize) {
+            for (y in 0 until height step height / sampleSize) {
+                colores.add(bitmap.getPixel(x, y))
+                if (colores.size > 1000) return false // mucha variación → foto
+            }
+        }
+
+        return esFormatoPantalla || colores.size < 500
+    }
+
     suspend fun subir_foto_perfil_algolia_normal(
         id_tienda: String,
         urlFinal: String

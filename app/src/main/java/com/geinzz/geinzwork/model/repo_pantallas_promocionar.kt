@@ -90,6 +90,19 @@ class repo_pantallas_promocionar {
             icono = "🛠️" // Información sobre servicios, cambios o novedades
         ),
 
+        VENTA_DESDE_IMAGEN(
+            tituloUI = "Generar para venta",
+            icono = "🛒" // Nuevos productos o reposición de stock
+        ),
+        ATENCION_DESDE_IMAGEN(
+            tituloUI = "Generar para atencion",
+            icono = "✨" // Nuevos productos o reposición de stock
+        ),
+        INFORMATIVA_DESDE_IMAGEN(
+            tituloUI = "Generar para informativa",
+            icono = "🏢" // Nuevos productos o reposición de stock
+        ),
+
 
     }
 
@@ -154,41 +167,58 @@ class repo_pantallas_promocionar {
                 )
 
             }
+
+            TipoGeneracionIA.VENTA_DESDE_IMAGEN->{
+                generarPromptPromoInformativo(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+            }
+            TipoGeneracionIA.ATENCION_DESDE_IMAGEN->{
+                generarPromptPromoInformativo(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+            }
+            TipoGeneracionIA.INFORMATIVA_DESDE_IMAGEN->{
+                generarPromptPromoInformativo(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+            }
+
         }
     }
 
 
-    fun generarPromptSegunTipoUnaGeneracion(
-        tipo: TipoGeneracionIA,
-        tituloUsuario: String,
-        descripcionUsuario: String,
-        nombreTienda: String,
-        localidad: String
-    ): String {
-        return when (tipo) {
-
-            TipoGeneracionIA.VENTA ->
-                generarPromptPromoVenta_solo_una_generacion(
-                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
-                )
-
-            TipoGeneracionIA.ATENCION ->
-                generarPromptPromoAtencion_solo_una_generacion(
-                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
-                )
-
-            TipoGeneracionIA.INFORMATIVO,
-            TipoGeneracionIA.URGENCIA,
-            TipoGeneracionIA.NOVEDAD,
-            TipoGeneracionIA.OPERATIVA,
-            TipoGeneracionIA.REPOSICION,
-            TipoGeneracionIA.CITAS,
-            TipoGeneracionIA.SERVICIOS ->
-                generarPromptPromoInformativo_solo_una_generacion(
-                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
-                )
-        }
-    }
+//    fun generarPromptSegunTipoUnaGeneracion(
+//        tipo: TipoGeneracionIA,
+//        tituloUsuario: String,
+//        descripcionUsuario: String,
+//        nombreTienda: String,
+//        localidad: String
+//    ): String {
+//        return when (tipo) {
+//
+//            TipoGeneracionIA.VENTA ->
+//                generarPromptPromoVenta_solo_una_generacion(
+//                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+//                )
+//
+//            TipoGeneracionIA.ATENCION ->
+//                generarPromptPromoAtencion_solo_una_generacion(
+//                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+//                )
+//
+//            TipoGeneracionIA.INFORMATIVO,
+//            TipoGeneracionIA.URGENCIA,
+//            TipoGeneracionIA.NOVEDAD,
+//            TipoGeneracionIA.OPERATIVA,
+//            TipoGeneracionIA.REPOSICION,
+//            TipoGeneracionIA.CITAS,
+//            TipoGeneracionIA.SERVICIOS ->
+//                generarPromptPromoInformativo_solo_una_generacion(
+//                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+//                )
+//        }
+//    }
 
 
 
@@ -328,6 +358,25 @@ class repo_pantallas_promocionar {
                     tituloPublicacion,
                     descripcion_acortada
                 )
+
+                TipoGeneracionIA.VENTA_DESDE_IMAGEN -> {
+                    promptNotificacionServicios(
+                        tituloPublicacion,
+                        descripcion_acortada
+                    )
+                }
+                TipoGeneracionIA.ATENCION_DESDE_IMAGEN -> {
+                    promptNotificacionServicios(
+                        tituloPublicacion,
+                        descripcion_acortada
+                    )
+                }
+                TipoGeneracionIA.INFORMATIVA_DESDE_IMAGEN -> {
+                    promptNotificacionServicios(
+                        tituloPublicacion,
+                        descripcion_acortada
+                    )
+                }
             }
 
             val inicio = System.currentTimeMillis()

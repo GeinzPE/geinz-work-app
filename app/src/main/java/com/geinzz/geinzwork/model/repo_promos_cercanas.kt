@@ -239,6 +239,33 @@ class repo_promos_cercanas {
         }
     }
 
+    suspend fun obtener_categorias_firebase(): List<String> {
+        val snapshot = FirebaseFirestore.getInstance()
+            .collection("Tiendas")
+            .document("categorias")
+            .collection("categorias")
+            .get()
+            .await()
+
+        return snapshot.documents.map { it.id }
+    }
+
+    suspend fun obtener_subcategorias(categoria: String): List<String> {
+        return try {
+            val snapshot = FirebaseFirestore.getInstance()
+                .collection("Tiendas")
+                .document("categorias")
+                .collection("categorias")
+                .document(categoria)
+                .get()
+                .await()
+
+            snapshot.get("subcategorias") as? List<String> ?: emptyList()
+
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
 
     suspend fun obtener_estadisticas(
         localidad: String,

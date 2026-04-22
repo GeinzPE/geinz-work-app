@@ -1,7 +1,9 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios
 
+import android.net.Uri
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -120,6 +122,8 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.o
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.BoxFotosTipos
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.BoxTipo_promociones
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.Box_para_imagen_general_de_Bot_whatsapp
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.agregarImagenParaBot
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios.estadisticas_aplicables
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
@@ -184,7 +188,8 @@ fun pantalla_carga_socios(
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     val esta_vincualdo by viewmodel.esta_vinculado.collectAsState()
     val fecha_tienda_fin by fecha_finalizado_flow.collectAsState()
-
+    var subiendoImagen by remember { mutableStateOf(false) }
+    var imagen_subida_correctamente by remember { mutableStateOf(false) }
     LaunchedEffect(uid_respald_user) {
         if (uid_respald_user.isNotEmpty()) {
             viewmodel.verificar_cuenta_vinculada(
@@ -248,6 +253,8 @@ fun pantalla_carga_socios(
     var icono_mostar_leyendas_graficos by remember { mutableStateOf(0) }
     var mostrar_convesion by remember { mutableStateOf(false) }
     val obj_creado_para_descripcion_para_whtsapp by remember { mutableStateOf("") }
+    var cambiar_imagen_para_el_bot_whatsapp by remember { mutableStateOf(false) }
+    var uri_para_bot_whatsapp: Uri? = null
     val estado_descripcion_generadad_whatsapp by viewmodel_generacones_IA.estado_carga_generaciones_desk_whatsapp.collectAsState()
 // Verificamos si el estado actual es "Loading" o "Cargando"
     val estaCargandoIA =
@@ -840,7 +847,6 @@ fun pantalla_carga_socios(
                                             ) {
                                                 Column(
                                                     verticalArrangement = Arrangement.spacedBy(5.dp),
-                                                    modifier = Modifier.animateContentSize()
                                                 ) {
                                                     texto_generico_multilinea(
                                                         "Optimiza tu perfil para la IA: Mejora la información de tu negocio para que nuestro asistente de WhatsApp te recomiende con prioridad y atraiga más clientes.",
@@ -885,12 +891,82 @@ fun pantalla_carga_socios(
                                                                 )
                                                             Log.d("data_para_ia", data_para_ia)
                                                             viewmodel_generacones_IA.obtener_descripcion_generada_con_datos(
-                                                                data_para_ia
+                                                                data_para_ia,datos.localidad_tienda,datos.nombre,datos.id_tienda,"30",datos.saldo_disponible_tienda.toInt()
                                                             )
                                                         },
                                                         texto_button = "generar con IA",
                                                         cantidad_monedas = "30"
                                                     )
+
+                                                    spacer_vertical(15.dp)
+                                                    texto_generico_multilinea(
+                                                        "Agrega una imagen para que el asistente de Geinz pueda mostrar tu negocio de forma más atractiva.",
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
+                                                    spacer_vertical(10.dp)
+
+                                                    Box_para_imagen_general_de_Bot_whatsapp(
+                                                        imagen_subida_correctamente,
+                                                        subiendoImagen,
+                                                        imagenInicial = datos.obtener_img_tiendas.logo_whatsapp_bot,
+                                                        onImagenChange = { uri ->
+                                                            if (uri != null) {
+                                                                cambiar_imagen_para_el_bot_whatsapp =
+                                                                    true
+                                                                uri_para_bot_whatsapp=uri
+                                                            }
+                                                        },
+                                                        usuario_borro_los_cambios = {
+                                                            cambiar_imagen_para_el_bot_whatsapp =
+                                                                false
+                                                        })
+
+                                                    if (cambiar_imagen_para_el_bot_whatsapp) {
+                                                        Button(
+                                                            onClick = {
+                                                                subiendoImagen = true
+                                                                agregarImagenParaBot(
+                                                                    datos.localidad_tienda,
+                                                                    datos.id_tienda,
+                                                                    uri_para_bot_whatsapp,
+                                                                    context
+                                                                ) {
+                                                                    subiendoImagen = false
+                                                                    cambiar_imagen_para_el_bot_whatsapp = false
+
+                                                                    imagen_subida_correctamente=true
+                                                                    scope.launch {
+                                                                        snackbarHostState.showSnackbar(
+                                                                            message = "Imagen subida correctamente",
+                                                                            duration = SnackbarDuration.Short
+                                                                        )
+                                                                    }
+                                                                }
+                                                            },
+                                                            modifier = Modifier.fillMaxWidth(),
+                                                            shape = CircleShape,
+                                                            enabled = !subiendoImagen // 🔥 desactiva mientras sube
+                                                        ) {
+
+                                                            if (subiendoImagen) {
+                                                                Row(
+                                                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                                    verticalAlignment = Alignment.CenterVertically
+                                                                ) {
+                                                                    texto_generico_one_line(
+                                                                        "Subiendo...",
+                                                                        style = MaterialTheme.typography.bodyMedium
+                                                                    )
+                                                                }
+
+                                                            } else {
+                                                                texto_generico_one_line(
+                                                                    "Guardar cambios",
+                                                                    style = MaterialTheme.typography.bodyMedium
+                                                                )
+                                                            }
+                                                        }
+                                                    }
 
 
                                                 }

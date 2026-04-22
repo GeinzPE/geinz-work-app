@@ -7,10 +7,13 @@ import com.google.firebase.Firebase
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.text.Normalizer
+import kotlin.io.normalize
+
 
 class repo_agregar_inmubles {
 
@@ -102,25 +105,28 @@ class repo_agregar_inmubles {
     }
 
 
-    suspend fun agregarNombreNormalizadoATiendas() {
-
+    suspend fun normalizarSubcategorias() {
         val ref = db.collection("Tiendas")
             .document("barranca")
-            .collection("lugares_turisticos")
+            .collection("barranca")
             .get()
             .await()
 
         for (doc in ref) {
 
-            val data = doc.data
-            val nombre = data["titulo"] as? String ?: continue
+            val subcategorias = doc.get("subcategoria") as? List<String> ?: emptyList()
 
-            // 🔥 SOLO AGREGA el campo, NO reemplaza nada
+
+            val normalizadas = subcategorias.map { sub ->
+                Normalizer.normalize(sub.lowercase(), Normalizer.Form.NFD)
+                    .replace("\\p{InCombiningDiacriticalMarks}+".toRegex(), "")
+                    .trim()
+            }
             doc.reference.update(
-                "nombre_lower", normalizar(nombre)
+                "subcategoria", normalizadas
             ).await()
 
-            println("Actualizado: $nombre -> ${normalizar(nombre)}")
+            println("✅ ${subcategorias} -> ${normalizadas}")
         }
     }
     fun normalizar(texto: String): String {
@@ -129,5 +135,23 @@ class repo_agregar_inmubles {
             .replace(Regex("[^\\w\\s]"), "") // quita puntos, comas, símbolos
             .trim()
     }
+    fun generarKeywords(nombre: String): List<String> {
+        val limpio = normalizar(nombre)
 
+        val palabras = limpio.split(" ")
+            .filter { it.isNotBlank() }
+            .filter { it.length > 2 } // 🔥 evita palabras basura tipo "de", "la"
+
+        val combinaciones = mutableListOf<String>()
+
+        // 🔹 palabras individuales
+        combinaciones.addAll(palabras)
+
+        // 🔹 combinaciones (tipo "gran chifa")
+        for (i in 0 until palabras.size - 1) {
+            combinaciones.add("${palabras[i]} ${palabras[i + 1]}")
+        }
+
+        return combinaciones.distinct()
+    }
 }

@@ -40,7 +40,7 @@ class viewmodel_agregar_propiedades : ViewModel() {
     fun agregar_noramilazicon(){
         viewModelScope.launch {
             try {
-                instania_repo_agregar_inmubes.agregarNombreNormalizadoATiendas()
+                instania_repo_agregar_inmubes.normalizarSubcategorias()
             }catch (e: Exception){
 
             }

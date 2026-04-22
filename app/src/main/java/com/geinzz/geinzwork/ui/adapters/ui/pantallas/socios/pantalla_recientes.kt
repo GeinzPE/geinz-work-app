@@ -192,7 +192,9 @@ fun PantallaRecientes(
                                     color = Color.White,
                                     fontSize = 25.sp
                                 )
+
                                 spacer_vertical(10.dp)
+
                                 texto_generico_multilinea(
                                     "Aquí puedes ver todas tus promociones activas y las notificaciones que has enviado a tus seguidores.",
                                     style = MaterialTheme.typography.bodyMedium
@@ -405,6 +407,7 @@ fun item_recientes(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .height(135.dp)
             .clip(RoundedCornerShape(20.dp))
             .background(Color(0xFF2B2B2B))
             .clickable {
@@ -417,7 +420,7 @@ fun item_recientes(
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .height(120.dp)
+                .height(135.dp)
                 .width(100.dp)
                 .clip(RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp)),
             colorFilter = if (item.vence == "Expirado") {

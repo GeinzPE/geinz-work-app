@@ -572,91 +572,90 @@ fun ui_promos_cerca_de_ti(
                             .flatMap { categorias }
                             .distinct()
 
-                        item {
-                            Column(modifier = Modifier.padding(horizontal = 10.dp)) {
-
-                                OutlinedTextField(
-                                    value = valor_a_buscar,
-                                    onValueChange = {
-                                        valor_a_buscar = it
-                                        if (valor_a_buscar.isEmpty()) {
-                                            viewModel.resetear_respuesta_de_gemini()
-                                        }
-                                    },
-                                    placeholder = {
-                                        texto_generico_one_line(
-                                            "¿Qué buscas?",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = Color.Gray
-                                        )
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth(),
-                                    shape = RoundedCornerShape(50),
-//                                    leadingIcon = {
-//                                        IconButton(
-//                                            onClick = {
-//                                            }
-//                                        ) {
-//                                            Icon(
-//                                                imageVector = Icons.Default.Clear,
-//                                                contentDescription = "Hablar", tint = Color.Gray
-//                                            )
+//                        item {
+//                            Column(modifier = Modifier.padding(horizontal = 10.dp)) {
+//
+//                                OutlinedTextField(
+//                                    value = valor_a_buscar,
+//                                    onValueChange = {
+//                                        valor_a_buscar = it
+//                                        if (valor_a_buscar.isEmpty()) {
+//                                            viewModel.resetear_respuesta_de_gemini()
 //                                        }
 //                                    },
-                                    trailingIcon = {
-                                        IconButton(
-                                            onClick = {
-                                                if (mostrar_lupa_busqueda) {
-                                                    viewModel.procesar_NLP(
-                                                        valor_a_buscar,
-                                                        subCategoriaSeleccionada
-                                                    )
-                                                }
-                                            }
-                                        ) {
-
-                                            AnimatedContent(
-                                                targetState = mostrar_carga_Respuesta_gemini,
-                                                label = "icon_animation"
-                                            ) { cargando ->
-
-                                                if (cargando) {
-                                                    CircularProgressIndicator(
-                                                        modifier = Modifier.size(24.dp),
-                                                        strokeWidth = 2.dp
-                                                    )
-                                                } else {
-                                                    Icon(
-                                                        imageVector = Icons.Default.Search,
-                                                        contentDescription = "Buscar",
-                                                        tint = Color.Gray
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                )
-
-//                                respuesta_gemini_NLP?.let { respuesta ->
-//                                    texto_generico_multilinea(respuesta.toString())
-//                                }
-                            }
-                        }
+//                                    placeholder = {
+//                                        texto_generico_one_line(
+//                                            "¿Qué buscas?",
+//                                            style = MaterialTheme.typography.bodyMedium,
+//                                            color = Color.Gray
+//                                        )
+//                                    },
+//                                    modifier = Modifier
+//                                        .fillMaxWidth(),
+//                                    shape = RoundedCornerShape(50),
+////                                    leadingIcon = {
+////                                        IconButton(
+////                                            onClick = {
+////                                            }
+////                                        ) {
+////                                            Icon(
+////                                                imageVector = Icons.Default.Clear,
+////                                                contentDescription = "Hablar", tint = Color.Gray
+////                                            )
+////                                        }
+////                                    },
+//                                    trailingIcon = {
+//                                        IconButton(
+//                                            onClick = {
+//                                                if (mostrar_lupa_busqueda) {
+//                                                    viewModel.procesar_NLP(
+//                                                        valor_a_buscar,
+//                                                        subCategoriaSeleccionada
+//                                                    )
+//                                                }
+//                                            }
+//                                        ) {
+//
+//                                            AnimatedContent(
+//                                                targetState = mostrar_carga_Respuesta_gemini,
+//                                                label = "icon_animation"
+//                                            ) { cargando ->
+//
+//                                                if (cargando) {
+//                                                    CircularProgressIndicator(
+//                                                        modifier = Modifier.size(24.dp),
+//                                                        strokeWidth = 2.dp
+//                                                    )
+//                                                } else {
+//                                                    Icon(
+//                                                        imageVector = Icons.Default.Search,
+//                                                        contentDescription = "Buscar",
+//                                                        tint = Color.Gray
+//                                                    )
+//                                                }
+//                                            }
+//                                        }
+//                                    }
+//                                )
+//
+////                                respuesta_gemini_NLP?.let { respuesta ->
+////                                    texto_generico_multilinea(respuesta.toString())
+////                                }
+//                            }
+//                        }
 
                         item {
-
                             val itemFiltros = tiendas_con_mas_de_una_promo(
                                 id = "FILTROS_GENERALES",
                                 nombre_tienda = "Buscar",
                                 logo_img = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0"
                             )
                             LazyRow(
-                                modifier = Modifier.animateContentSize(),
+                                modifier = Modifier.animateContentSize().padding(top = 5.dp),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 contentPadding = PaddingValues(horizontal = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically
-                            ) {
+                                                            ) {
 
                                 // 🔥 Nuevo item de filtros generales
                                 item {

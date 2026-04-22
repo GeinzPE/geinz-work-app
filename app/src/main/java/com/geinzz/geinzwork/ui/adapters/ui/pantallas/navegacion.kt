@@ -463,7 +463,6 @@ fun nativationWrapper(
                         },
                         listner_sevicios_tramites = { localidad, id ->
                             navController.navigate(ui_servicios_tramites(localidad))
-//                            navController.navigate(promociones_y_ofertas(localidad, id))
 
                         },
                         abrir_guardar_datos = {
@@ -496,8 +495,10 @@ fun nativationWrapper(
                                 }
                                 launchSingleTop = true
                             }
-                        }, geinz_inmobiliaria = { localidad ->
-                            navController.navigate(geinz_inmobiliaria(localidad_selec = localidad))
+                        }, geinz_inmobiliaria = { localidad,id ->
+//                            navController.navigate(geinz_inmobiliaria(localidad_selec = localidad))
+                               navController.navigate(promociones_y_ofertas(localidad, id))
+
                         }
                     )
                 }

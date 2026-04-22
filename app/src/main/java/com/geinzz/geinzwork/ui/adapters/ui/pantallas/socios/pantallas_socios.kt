@@ -886,13 +886,10 @@ fun login_socios(isConnected: Boolean, tipo_: String = "", navController: NavHos
 
                                     "Promocionar" -> {
                                         pantalla_promocionar(
-
                                             viewmodel_pantalla_promocionar = viewmodel_pantalla_promocionar,
                                             viewmodel_socios = viewmodel,
                                             i = item_pantalla_promociones, ocultar_buttom_bar = {
-
                                             }, mostrar_buttom_bar = {
-
                                             })
                                     }
 

@@ -1,8 +1,11 @@
 package com.geinzz.geinzwork.viewModels
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
@@ -29,6 +32,7 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_p
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen_cinco
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen_nueve
 import com.geinzz.geinzwork.model.repo_eres_socio
+import com.geinzz.geinzwork.model.repo_generaciones_IA
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.generarIdFirebase
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
@@ -36,16 +40,20 @@ import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @RequiresApi(Build.VERSION_CODES.O)
 class viewmodel_eres_socio : ViewModel() {
     val instace_repo = repo_eres_socio()
+
+
 
     var promocionId by mutableStateOf("")
         private set
@@ -53,6 +61,8 @@ class viewmodel_eres_socio : ViewModel() {
 
     var notificacion_ID by mutableStateOf("")
         private set
+
+
 
 
     // El privado es el que puedes modificar dentro del ViewModel
@@ -78,7 +88,6 @@ class viewmodel_eres_socio : ViewModel() {
     fun resetear_valor_estado_whatsapp_subido_y_gemini(){
         _estado_subido_desc_para_bot.value=false
     }
-
 
 
 
@@ -965,6 +974,7 @@ class viewmodel_eres_socio : ViewModel() {
             .distinct()
             .joinToString(", ")
     }
+
 
     sealed class CargaPaquetesPago {
         object Loading : CargaPaquetesPago()

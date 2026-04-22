@@ -185,7 +185,7 @@ fun pantalla_principal(
     abir_butom_Var: () -> Unit,
     cerrar_buttom_var: () -> Unit,
     onback_preset: () -> Unit,
-    geinz_inmobiliaria:(String)-> Unit,
+    geinz_inmobiliaria:(String,String)-> Unit,
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -476,13 +476,27 @@ fun pantalla_principal(
 
     val banners = listOf(
 
+//        BannerItem(
+//            id = "1",
+//            titulo = "House capital Group",
+//            descripcion = "Transforma tu vida en ${localidadSeleccionada.value} aqui en Geinz",
+//            imagen = R.drawable.logo_comprimido_inmobiliaria,
+//            onClick = { geinz_inmobiliaria(localidad_defaul) }
+//        ),
+
+
+
+
         BannerItem(
             id = "1",
-            titulo = "House capital Group",
-            descripcion = "Transforma tu vida en ${localidadSeleccionada.value} aqui en Geinz",
-            imagen = R.drawable.logo_comprimido_inmobiliaria,
-            onClick = { geinz_inmobiliaria(localidad_defaul) }
+            titulo = "Ofertas y Promociones",
+            descripcion = "Encuentra las mejores promos de tus negocios favoritos y adquierelo ya",
+            imagen = R.drawable.servicios_basicos,
+            onClick = { geinz_inmobiliaria(localidad_defaul, "") }
         ),
+
+
+
 
         BannerItem(
             id = "2",

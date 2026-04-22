@@ -1,6 +1,8 @@
 package com.geinzz.geinzwork.model
 
+import android.R.attr.text
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -42,12 +44,22 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonNull.content
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.time.ZoneId
+
+import android.provider.MediaStore
+import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generar_texto_desde_imagen
+
+import kotlinx.coroutines.withContext
+
+import com.google.firebase.ai.ai
+import com.google.firebase.ai.type.content
+import org.json.JSONObject
 
 class repo_generaciones_IA {
 
@@ -210,6 +222,23 @@ class repo_generaciones_IA {
                 generarPromptPromoInformativo_solo_una_generacion(
                     tituloUsuario, descripcionUsuario, nombreTienda, localidad
                 )
+
+            TipoGeneracionIA.VENTA_DESDE_IMAGEN -> {
+                generarPromptPromoInformativo_solo_una_generacion(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+            }
+
+            TipoGeneracionIA.ATENCION_DESDE_IMAGEN -> {
+                generarPromptPromoInformativo_solo_una_generacion(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+            }
+            TipoGeneracionIA.INFORMATIVA_DESDE_IMAGEN -> {
+                generarPromptPromoInformativo_solo_una_generacion(
+                    tituloUsuario, descripcionUsuario, nombreTienda, localidad
+                )
+            }
         }
     }
 
@@ -265,6 +294,128 @@ class repo_generaciones_IA {
                 "Error técnico al generar descripción"
             }
         }
+    }
+
+    suspend fun generar_descripcion_con_imagen(
+        tipo_generacion:String,
+        bitmap: Bitmap
+    ): Pair<String, String> {
+
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.d("IA_DEBUG", "Inicio generación con imagen")
+                Log.d("IA_DEBUG", "Bitmap size: ${bitmap.width}x${bitmap.height}")
+
+                val model = Firebase.ai(
+                    backend = GenerativeBackend.googleAI()
+                ).generativeModel("gemini-2.5-flash")
+
+                val prompt = generar_texto_desde_imagen(tipo_generacion)
+
+                Log.d("IA_DEBUG", "Prompt enviado:\n$prompt")
+
+                val response = model.generateContent(
+                    content {
+                        image(bitmap)
+                        text(prompt)
+                    }
+                )
+
+                val texto = response.text?.trim() ?: ""
+
+                // 🔥 LOG CLAVE
+                Log.d("IA_RAW", "Respuesta cruda IA:\n$texto")
+
+                val (titulo, descripcion) = parsearIA(texto)
+
+                Log.d("IA_PARSE", "Título parseado: $titulo")
+                Log.d("IA_PARSE", "Descripción parseada: $descripcion")
+
+                Pair(titulo, descripcion)
+
+            } catch (e: Exception) {
+                Log.e("IA_ERROR", "Error en IA: ${e.message}", e)
+                Pair("", "")
+            }
+        }
+    }
+
+    data class ResultadoIA(
+        val titulo: String = "",
+        val descripcion: String = ""
+    )
+
+    fun parsearIA(textoRaw: String): ResultadoIA {
+        val texto = textoRaw.trim()
+
+        // ---------- 1. JSON ----------
+        try {
+            if (texto.startsWith("{") && texto.endsWith("}")) {
+                val json = JSONObject(texto)
+                val titulo = json.optString("titulo")
+                val descripcion = json.optString("descripcion")
+                if (titulo.isNotBlank()) {
+                    return ResultadoIA(
+                        limpiarTexto(titulo),
+                        limpiarTexto(descripcion)
+                    )
+                }
+            }
+        } catch (_: Exception) {}
+
+        // ---------- 2. FORMATO MAYÚSCULAS ----------
+        run {
+            val t = texto
+                .substringAfter("TITULO:", "")
+                .substringBefore("DESCRIPCION:")
+                .trim()
+
+            val d = texto
+                .substringAfter("DESCRIPCION:", "")
+                .trim()
+
+            if (t.isNotBlank()) return ResultadoIA(limpiarTexto(t), limpiarTexto(d))
+        }
+
+        // ---------- 3. FORMATO NORMAL ----------
+        run {
+            val t = texto
+                .substringAfter("Título:", "")
+                .substringBefore("Descripción:")
+                .trim()
+
+            val d = texto
+                .substringAfter("Descripción:", "")
+                .trim()
+
+            if (t.isNotBlank()) return ResultadoIA(limpiarTexto(t), limpiarTexto(d))
+        }
+
+        // ---------- 4. MARKDOWN ----------
+        run {
+            val tituloRegex = Regex("\\*\\*Título:\\*\\*\\s*(.+)")
+            val descripcionRegex = Regex("\\*\\*Descripción:\\*\\*\\s*([\\s\\S]+)")
+
+            val t = tituloRegex.find(texto)?.groupValues?.get(1)?.trim() ?: ""
+            val d = descripcionRegex.find(texto)?.groupValues?.get(1)?.trim() ?: ""
+
+            if (t.isNotBlank()) return ResultadoIA(limpiarTexto(t), limpiarTexto(d))
+        }
+
+        // ---------- 5. FALLBACK INTELIGENTE ----------
+        val lineas = texto.lines().filter { it.isNotBlank() }
+
+        val titulo = lineas.firstOrNull()?.take(80) ?: ""
+        val descripcion = lineas.drop(1).joinToString(" ").take(200)
+
+        return ResultadoIA(limpiarTexto(titulo), limpiarTexto(descripcion))
+    }
+    fun limpiarTexto(texto: String): String {
+        return texto
+            .replace("**", "")
+            .replace("\n", " ")
+            .replace(Regex("\\s+"), " ")
+            .trim()
     }
     fun parsearRespuestaIA(
         id_promo_noti_gen: String,
@@ -392,6 +543,24 @@ class repo_generaciones_IA {
                     tituloPublicacion,
                     descripcion_acortada
                 )
+
+                TipoGeneracionIA.VENTA_DESDE_IMAGEN ->{
+                    promptNotificacionServicios(
+                        tituloPublicacion,
+                        descripcion_acortada
+                    )
+                }
+                TipoGeneracionIA.ATENCION_DESDE_IMAGEN ->{
+                    promptNotificacionServicios(
+                        tituloPublicacion,
+                        descripcion_acortada
+                    )
+                }
+                TipoGeneracionIA.INFORMATIVA_DESDE_IMAGEN ->
+                    promptNotificacionServicios(
+                        tituloPublicacion,
+                        descripcion_acortada
+                    )
             }
 
             val inicio = System.currentTimeMillis()

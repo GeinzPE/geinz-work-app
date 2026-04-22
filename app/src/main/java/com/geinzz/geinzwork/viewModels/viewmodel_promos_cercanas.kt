@@ -49,12 +49,18 @@ class viewmodel_promos_cercanas : ViewModel() {
     private val _listaResultados = MutableStateFlow<List<String>>(emptyList())
     val listaResultados: StateFlow<List<String>> = _listaResultados
 
-    val texto_usser_buscado =MutableStateFlow("")
+    val texto_usser_buscado = MutableStateFlow("")
 
-    fun guardar_texto_user_buscado (txt:String){
-        texto_usser_buscado.value=txt
+    fun guardar_texto_user_buscado(txt: String) {
+        texto_usser_buscado.value = txt
     }
 
+    private val _obtener_categorias = MutableStateFlow<List<String>>(emptyList())
+    val obtener_categorias: StateFlow<List<String>> = _obtener_categorias
+
+
+    private val _obtener_subcategorias = MutableStateFlow<List<String>>(emptyList())
+    val obtener_subcategorias: StateFlow<List<String>> = _obtener_subcategorias
 
 
     fun eliminarItem(item: String) {
@@ -235,9 +241,43 @@ class viewmodel_promos_cercanas : ViewModel() {
         }
     }
 
-    fun retornar_lista_nuevamente(){
-        _estadoPromos.value = estado_carga_promociones.succes( listaCompleta.value)
+    fun obtener_filtrado_Categorias() {
+        viewModelScope.launch {
+            try {
+                val datos = repo.obtener_categorias_firebase()
+                if (datos.isNotEmpty()) {
+                    _obtener_categorias.value = datos
+                } else {
+                    _obtener_categorias.value = emptyList()
+                }
+            } catch (e: Exception) {
+                Log.d("error_obtenr_cat", "$e")
+                _obtener_categorias.value = emptyList()
+            }
+        }
     }
+
+    fun obtener_subcategorias(categoira: String) {
+        viewModelScope.launch {
+            try {
+                val res = repo.obtener_subcategorias(categoira)
+                if (res.isNotEmpty()) {
+                    _obtener_subcategorias.value = res
+                } else {
+                    _obtener_subcategorias.value = emptyList()
+                }
+            } catch (e: Exception) {
+                Log.d("error_obtenr_cat", "$e")
+                _obtener_subcategorias.value = emptyList()
+
+            }
+        }
+    }
+
+    fun retornar_lista_nuevamente() {
+        _estadoPromos.value = estado_carga_promociones.succes(listaCompleta.value)
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun obtener_promociones(
         localidad: String,

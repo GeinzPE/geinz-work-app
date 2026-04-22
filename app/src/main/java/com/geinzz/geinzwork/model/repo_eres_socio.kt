@@ -51,6 +51,9 @@ import com.google.firebase.Timestamp
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.functions.FirebaseFunctions
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.time.withTimeout
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 
 
@@ -1299,10 +1302,17 @@ class repo_eres_socio {
                 "aire_acondicionado" to i.servicios_comoidades.aireAcondicionado
             )
 
-            val array_extraido = extraer_datos_de_texto_completo(
-                i.informacion.titulo + i.informacion.descripcion,
-                i.informacion.categoria
-            )
+            val array_extraido = try {
+                withTimeout(20_000) {
+                    extraer_datos_de_texto_completo(
+                        i.informacion.titulo + i.informacion.descripcion,
+                        i.informacion.categoria
+                    )
+                }
+            } catch (e: TimeoutCancellationException) {
+                Log.e("TIMEOUT", "extraer_datos_de_texto_completo tardó demasiado")
+                emptyList<String>()
+            }
             val hashMap = hashMapOf<String, Any>(
                 "estado" to i.estado,
                 "tipo_hora_dias" to i.formato_fecha_hora,

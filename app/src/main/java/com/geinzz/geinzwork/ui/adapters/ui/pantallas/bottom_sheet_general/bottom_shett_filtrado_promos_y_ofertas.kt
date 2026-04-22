@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -75,18 +76,30 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
     comodidad_selet: Set<String>, metodo_pago: Set<String>,
     rango_precio: String?,
     viewModel: viewmodel_promos_cercanas,
-    onClose: () -> Unit,onAutocompletar:(String)-> Unit
+    onClose: () -> Unit, onAutocompletar: (String) -> Unit
 ) {
     var expandido by remember { mutableStateOf(true) }
 
-    var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
+    var categoira_seleccionada by remember { mutableStateOf("Todos") }
+    var subcategoria_select by remember { mutableStateOf("") }
     val categorias by viewModel._categoriasDisponibles.collectAsState()
+    val obtener_cateogiras by viewModel.obtener_categorias.collectAsState()
+    val subcategorias_obtenidas by viewModel.obtener_subcategorias.collectAsState()
 
     val obtener_datos_respuesta_gemini by viewModel.respuesta_gemini.collectAsState()
     val listaData by viewModel.listaResultados.collectAsState()
 
     val texto_ser_guardado by viewModel.texto_usser_buscado.collectAsState()
 
+    LaunchedEffect(categoira_seleccionada) {
+        if(categoira_seleccionada!="Todos"){
+        viewModel.obtener_subcategorias(categoira_seleccionada)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.obtener_filtrado_Categorias()
+    }
 
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -139,7 +152,7 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
         FuenteControladaApp {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp, top = 20.dp, bottom = 10.dp)
+                modifier = Modifier.padding(start = 10.dp, end = 10.dp, top = 20.dp, bottom = 10.dp).animateContentSize()
             ) {
                 item {
                     Text(
@@ -155,6 +168,49 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                         style = MaterialTheme.typography.bodyMedium
                     )
                     spacer_vertical(10.dp)
+                }
+
+                item {
+                    texto_generico_one_line("Selecciona tu categoria")
+                    spacer_vertical(10.dp)
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        items(obtener_cateogiras) { categoria ->
+                            val seleccionado = categoira_seleccionada == categoria
+                            chisp_filtrado_busqueda(
+                                carta_selecionada = seleccionado,
+                                filtrado = categoria.capitalizeFirst(),
+                                btn_visible = false,
+                                clik_card = {
+                                    categoira_seleccionada = categoria
+                                },
+                                onClick_delete = {}
+                            )
+                        }
+                    }
+                }
+                item {
+                    if(categoira_seleccionada!="Todos"){
+                        texto_generico_one_line("Subcategorias")
+                        spacer_vertical(10.dp)
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            items(subcategorias_obtenidas) { subcategoria ->
+                                val seleccionado = subcategoria_select == subcategoria
+                                chisp_filtrado_busqueda(
+                                    carta_selecionada = seleccionado,
+                                    filtrado = subcategoria.capitalizeFirst(),
+                                    btn_visible = false,
+                                    clik_card = {
+                                        subcategoria_select = subcategoria
+                                    },
+                                    onClick_delete = {}
+                                )
+                            }
+                        }
+                    }
                 }
                 item {
                     if (texto_ser_guardado.isNotEmpty()) {

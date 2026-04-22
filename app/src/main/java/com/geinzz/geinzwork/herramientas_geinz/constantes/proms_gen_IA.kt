@@ -123,6 +123,25 @@ D:
     """.trimIndent()
     }
 
+    fun generar_texto_desde_imagen(tipo:String): String {
+        return """
+    Analiza la imagen.
+
+Responde SOLO en JSON válido (sin texto adicional):
+
+{
+  "titulo": "máx 15 palabras, para estilo de $tipo",
+  "descripcion": "máx 3 líneas, estilo venta"
+}
+
+Reglas:
+- No markdown
+- No asteriscos
+- No texto fuera del JSON
+- No inventes información
+""".trimIndent()
+    }
+
     fun generarPromptPromoVenta(
         tituloUsuario: String,
         descripcionUsuario: String,

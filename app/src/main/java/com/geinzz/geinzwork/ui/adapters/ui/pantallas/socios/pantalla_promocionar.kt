@@ -88,6 +88,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -168,6 +169,7 @@ import com.geinzz.geinzwork.data.model.obj_suspend_notificacion
 import com.geinzz.geinzwork.data.model.pantalla_horarios
 import com.geinzz.geinzwork.data.model.precio_rango_publicacion
 import com.geinzz.geinzwork.data.model.servicio_comodidad
+import com.geinzz.geinzwork.data.model.tipo_de_genearcion_para_imagen
 import com.geinzz.geinzwork.data.model.ubicacaion_container
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.obtenerFechaFinDosDias
@@ -213,6 +215,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.simplificarCategoria
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.notificacionesFCM.enviar_notificacion_lista_dispo
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
+import com.geinzz.geinzwork.viewModels.viewmodel_generaciones_IA
 import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_promocionar
 import com.geinzz.geinzwork.viewModels.viewmodel_recargas
 import com.google.common.io.Files.append
@@ -241,6 +244,8 @@ fun pantalla_promocionar(
     ocultar_buttom_bar: () -> Unit,
     mostrar_buttom_bar: () -> Unit
 ) {
+    val scope = rememberCoroutineScope()
+
     val firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val idPromo = viewmodel_socios.promocionId
@@ -259,7 +264,7 @@ fun pantalla_promocionar(
     var tipo_notificacion_params_seleccionada by remember { mutableStateOf("") }
     var tipo_defecto by remember { mutableStateOf("") }
     var idSeleccionado by remember { mutableStateOf<String?>(null) }
-
+//val tituloDescripcion_por_imagen by viewmodel_socios.tituloDescripcion.collectAsState()
     LaunchedEffect(predeterminado.id_generacion_sin_publicar) {
         Log.d("nomralid", "${predeterminado.id_generacion_sin_publicar}")
         viewmodel_socios.iniciarPromo(predeterminado.id_generacion_sin_publicar)
@@ -331,6 +336,11 @@ fun pantalla_promocionar(
     }
 
 
+    DisposableEffect(Unit) {
+        onDispose {
+            viewmodel_pantalla_promocionar.resetear_estado_generacion_img()
+        }
+    }
     LaunchedEffect(estadoImagen) {
         if (estadoImagen is viewmodel_pantallas_promocionar.ImagenEstado.Exito) {
             url_img_notificaion_seleccionada =
@@ -490,14 +500,42 @@ fun pantalla_promocionar(
         datos.lista_obciones.orEmpty()
             .find { it.titulo == datos.titulo_seleccionado && it.descripcion == datos.descripcion_seleccionada }
     }
+    val estado_carga_gent_img_a_txt by viewmodel_pantalla_promocionar.estado_generacion_txt_img.collectAsState()
+
+    LaunchedEffect(estado_carga_gent_img_a_txt) {
+        when(estado_carga_gent_img_a_txt){
+            is viewmodel_pantallas_promocionar.Estado_carga_para_generar_txt_a_img.Error -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = (estado_carga_gent_img_a_txt as viewmodel_pantallas_promocionar.Estado_carga_para_generar_txt_a_img.Error).mensaje,
+                        duration = SnackbarDuration.Short
+                    )
+                }
+            }
+            viewmodel_pantallas_promocionar.Estado_carga_para_generar_txt_a_img.Idle -> {
+
+            }
+            viewmodel_pantallas_promocionar.Estado_carga_para_generar_txt_a_img.Loading -> {
+
+            }
+            is viewmodel_pantallas_promocionar.Estado_carga_para_generar_txt_a_img.Succes -> {
+                version_nombre_publicacion_original = (estado_carga_gent_img_a_txt as viewmodel_pantallas_promocionar.Estado_carga_para_generar_txt_a_img.Succes).titulo
+                descripcion_publicacion_original =(estado_carga_gent_img_a_txt as viewmodel_pantallas_promocionar.Estado_carga_para_generar_txt_a_img.Succes).texto
+            }
+
+        }
+    }
+
+    val estaCargandoIA =
+        estado_carga_gent_img_a_txt is viewmodel_pantallas_promocionar.Estado_carga_para_generar_txt_a_img.Loading
 
     LaunchedEffect(predeterminado) {
 
         Log.d("estado_tipo", predeterminado.tipo_redirigido)
         if (predeterminado.tipo_redirigido == "generacion_publicacion_sin_pulicar") {
             predeterminado.datos_generaciones?.let { datos ->
-                version_nombre_publicacion_original = datos.titulo_original ?: ""
-                descripcion_publicacion_original = datos.descripcion_original ?: ""
+                version_nombre_publicacion_original = datos.titulo_original ?: viewmodel_pantalla_promocionar.titulo
+                descripcion_publicacion_original = datos.descripcion_original ?: viewmodel_pantalla_promocionar.descripcion
                 listaOpcionesIA = datos.lista_obciones.orEmpty()
 
             }
@@ -594,6 +632,16 @@ fun pantalla_promocionar(
     )
 
 
+    val lista_generaciones_para_imagenes = listOf(
+        tipo_de_genearcion_para_imagen("Venta \uD83D\uDED2", "venta"),
+        tipo_de_genearcion_para_imagen(
+            "Llamado de atención \uD83D\uDCE2",
+            "llamado de atencion de venta"
+        ),
+        tipo_de_genearcion_para_imagen("Informativo ℹ\uFE0F", "informativo")
+    )
+
+
     val lista_generacions_IA_notificaciones = listOf(
         GeneracionIA(
             tipo = repo_pantallas_promocionar.TipoGeneracionIA.VENTA,
@@ -678,6 +726,11 @@ fun pantalla_promocionar(
         mutableStateOf<repo_pantallas_promocionar.TipoGeneracionIA?>(null)
     }
 
+    var tipo_promp_seleccionado_para_imagen_IA by remember {
+        mutableStateOf("")
+    }
+    var tipo_promp_para_mandar_img_IA by remember { mutableStateOf("") }
+
     var tipo_promp_seleccionado_IA_notificicaciones by remember {
         mutableStateOf<repo_pantallas_promocionar.TipoGeneracionIA?>(null)
     }
@@ -716,8 +769,6 @@ fun pantalla_promocionar(
 
     var monedas_costo_publicidad by remember { mutableStateOf("") }
 
-
-    val scope = rememberCoroutineScope()
 
     var error_mostrado_numero_contacto by remember { mutableStateOf(false) }
     var error_texto_mostrado_numero_contacto by remember { mutableStateOf("") }
@@ -1056,10 +1107,11 @@ fun pantalla_promocionar(
                     id_tienda = i.id_tienda,
                     localidad = i.localidad_tienda
                 )
+                tipo_promp_seleccionado_para_imagen_IA=""
                 viewmodel_socios.verificar_si_tiene_nueva_generacion(false)
                 listaOpcionesIA = emptyList()
-                metodos_de_pago=false
-                servicios_y_comodidades=false
+                metodos_de_pago = false
+                servicios_y_comodidades = false
                 viewmodel_pantalla_promocionar.resetearEstadosPublicacion()
                 imagenes.clear()
                 viewmodel_socios.resetear_Estado_promo_subida()
@@ -1138,6 +1190,7 @@ fun pantalla_promocionar(
                 tipo_notificacion_seleccionada = ""
                 idSeleccionado = null
                 tipo_promp_seleccionado_IA_notificicaciones = null
+//                tipo_promp_seleccionado_para_imagen_IA = null
                 fechaCaducidad = obtenerFechaFinDosDias()
                 id_publicacion_selecionada = ""
                 id_img_notificacion = ""
@@ -1156,6 +1209,7 @@ fun pantalla_promocionar(
                 tipo_notificacion_seleccionada = ""
                 idSeleccionado = null
                 tipo_promp_seleccionado_IA_notificicaciones = null
+//                tipo_promp_seleccionado_para_imagen_IA = null
                 fechaCaducidad = obtenerFechaFinDosDias()
                 id_publicacion_selecionada = ""
                 id_img_notificacion = ""
@@ -1236,11 +1290,21 @@ fun pantalla_promocionar(
 
     CambiarStatusBar(showHeader)
 
+    var mostar_scope_falta_de_saldo by remember { mutableStateOf(false) }
 
+    LaunchedEffect(mostar_scope_falta_de_saldo) {
+        if(mostar_scope_falta_de_saldo){
+        scope.launch {
+            snackbarHostState.showSnackbar(
+                message = "Saldo insuficiente",
+                duration = SnackbarDuration.Short
+            )
+        }
+        }
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
-
     ) {
 
 
@@ -1251,6 +1315,7 @@ fun pantalla_promocionar(
                 .padding(horizontal = 4.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+
             item {
                 Column(modifier = Modifier.animateContentSize()) {
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -1262,7 +1327,7 @@ fun pantalla_promocionar(
                     }
                     spacer_vertical(10.dp)
                     texto_generico_multilinea(
-                        "Diseña promociones de forma fácil y rápida para tus clientes o notifica a tus seguidores sobre ofertas exclusivas pensadas para ellos",
+                        "Crea promociones impactantes en segundos y llega directo a tus clientes con ofertas que no pueden ignorar",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     spacer_vertical(10.dp)
@@ -1289,6 +1354,7 @@ fun pantalla_promocionar(
                     )
                     spacer_vertical(10.dp)
                     SelectorFotos(
+                        estaCargandoIA,
                         imagenes = imagenes,
                         maxFotos = maxFotos,
                         onAddClick = {
@@ -1298,6 +1364,7 @@ fun pantalla_promocionar(
                         },
                         onRemove = { uri ->
                             imagenes.remove(uri)
+                            tipo_promp_seleccionado_para_imagen_IA=""
                         }, mostar_zoom_img = { img ->
                             val imageModel = img.uri ?: img.url
                             mostar_img_zoom = true
@@ -1317,6 +1384,67 @@ fun pantalla_promocionar(
                             }
                         }
                     )
+                    if (imagenes.isNotEmpty()) {
+                        spacer_vertical(10.dp)
+                        texto_generico_multilinea(
+                            "Evita escribir titulo y descripcion y has que la ia de geinz lo escriba por ti (la ia de geinz solo utilizara la imagen numero 1)",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        spacer_vertical(15.dp)
+
+                        LazyRow(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(lista_generaciones_para_imagenes) { i ->
+                                val seleccionado = tipo_promp_seleccionado_para_imagen_IA == i.tipo
+                                chisp_filtrado_busqueda_con_la_IA(
+                                    carta_selecionada = seleccionado,
+                                    filtrado = i.tipo,
+                                    btn_visible = false,
+                                    clik_card = {
+                                        tipo_promp_seleccionado_para_imagen_IA = i.tipo
+                                        tipo_promp_para_mandar_img_IA=i.realiazar_promp
+                                    },
+                                    onClick_delete = {}
+                                )
+                            }
+                        }
+                        spacer_vertical(15.dp)
+
+                        if (tipo_promp_seleccionado_para_imagen_IA.isNotEmpty() ) {
+                            boton_generador_por_IA(estaCargandoIA, onclick = {
+                                if(i.saldo.toInt() >= 50){
+                                val primeraImagen = imagenes.firstOrNull()
+                                primeraImagen?.uri?.let { uri ->
+                                    viewmodel_pantalla_promocionar.generar_texto_descripcion_con_IA_desde_imagen(
+                                        i.localidad_tienda, i.id_tienda, i.nombre_tienda, 50, i.saldo.toInt(),
+                                        tipo_promp_para_mandar_img_IA,
+                                        context,
+                                        uri
+                                    )
+                                }
+                                }else{
+                                    mostar_scope_falta_de_saldo=true
+                                }
+                            }, "Generar contenido", "50")
+                        }
+                        spacer_vertical(10.dp)
+
+
+//                        Button(onClick = {
+//                            val primeraImagen = imagenes.firstOrNull()
+//                            primeraImagen?.uri?.let { uri ->
+//                                viewmodel_pantalla_promocionar.generar_texto_descripcion_con_IA_desde_imagen(
+//                                    context,
+//                                    uri
+//                                )
+//                            }
+//                        }) {
+//                            texto_generico_one_line("Generar desde imagen")
+//                        }
+                    }
+
                     spacer_vertical(10.dp)
                     MyOutlinedTextField_proco_raduis(
                         value = viewmodel_pantalla_promocionar.titulo,
@@ -1677,7 +1805,7 @@ fun pantalla_promocionar(
                                     },
                                     titulo = "Mensaje perzonalizado whatsapp", false
                                 )
-                                if (mensaje_perzonalizado) {
+//                                if (mensaje_perzonalizado) {
                                     MyOutlinedTextField_proco_raduis(
                                         value = mensaje_perzonalizado_txt,
                                         onValueChange = { input ->
@@ -1808,7 +1936,7 @@ fun pantalla_promocionar(
                                         }
                                     }
                                     spacer_vertical(10.dp)
-                                }
+//                                }
 
                             }
                         }
@@ -1835,7 +1963,6 @@ fun pantalla_promocionar(
                                     .animateContentSize()
                                     .clip(RoundedCornerShape(20.dp))
                                     .background(MaterialTheme.colorScheme.surface)
-
                             ) {
 
                                 txt_publicaciones(
@@ -1845,7 +1972,7 @@ fun pantalla_promocionar(
                                     titulo = "Mensaje perzonalizado compartir", false
                                 )
 
-                                if (mensaje_perzonalizado_compartir) {
+//                                if (mensaje_perzonalizado_compartir) {
                                     MyOutlinedTextField_proco_raduis(
                                         value = mensaje_perzonalizado_txt_compartir,
                                         onValueChange = { input ->
@@ -1979,7 +2106,7 @@ fun pantalla_promocionar(
                                         }
                                     }
                                     spacer_vertical(10.dp)
-                                }
+
                             }
                         }
                     }
@@ -3921,6 +4048,7 @@ fun pantalla_promocionar(
 
         }
 
+
         SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
 
         if (mostrar_vista_previa_promos_cercanas) {
@@ -4217,6 +4345,7 @@ fun txt_publicaciones(
 
 @Composable
 fun SelectorFotos(
+    estaCargandoIA:Boolean,
     imagenes: SnapshotStateList<ImagenReview>,
     maxFotos: Int,
     onAddClick: () -> Unit,
@@ -4264,6 +4393,8 @@ fun SelectorFotos(
                     )
 
                     // ❌ ELIMINAR (SUAVE)
+                    if (!estaCargandoIA) {
+
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = null,
@@ -4286,8 +4417,11 @@ fun SelectorFotos(
 
                             }
                     )
+                    }
 
-                    // 🔍 VER
+                                        if (!estaCargandoIA) {
+
+                        // 🔍 VER
                     Icon(
                         imageVector = Icons.Default.OpenInFull,
                         contentDescription = null,
@@ -4305,7 +4439,9 @@ fun SelectorFotos(
                                 mostar_zoom_img(img)
                             }
                     )
-                    if (img.uri != null) {
+                                        }
+                    if (!estaCargandoIA) {
+                        if (img.uri != null) {
                         // ✏ EDITAR
                         Icon(
                             imageVector = Icons.Default.Edit,
@@ -4324,6 +4460,22 @@ fun SelectorFotos(
                                     editar_img(img)
                                 }
                         )
+                    }
+                    }
+                    if (estaCargandoIA) {
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.Black.copy(alpha = 0.5f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                strokeWidth = 3.dp,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
                     }
                 }
             }
