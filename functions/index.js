@@ -37,7 +37,7 @@ exports.crearOrdenCulqi = onCall({ region: "us-central1" }, async (req) => {
   console.log("localidad:", localidad);
   console.log("===========================");
 
-  const montoInt = parseInt(monto);
+ const montoInt = parseInt(monto) * 100;
   const orderId = "order_" + Date.now();
 
   try {
@@ -96,6 +96,44 @@ exports.crearOrdenCulqi = onCall({ region: "us-central1" }, async (req) => {
       "Error crearOrdenCulqi:",
       error.response?.data || error.message,
     );
+    throw new Error(JSON.stringify(error.response?.data || error.message));
+  }
+});
+
+exports.confirmarPago = onCall(async (req) => {
+
+  const { token, monto, email } = req.data;
+
+  console.log("TOKEN:", token);
+  console.log("MONTO:", monto);
+
+  try {
+    const response = await axios.post(
+      "https://api.culqi.com/v2/charges",
+      {
+        amount: Math.round(monto * 100),
+        currency_code: "PEN",
+        email: email || "test@test.com",
+        source_id: token
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${CULQI_KEY}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    console.log("CULQI RESPONSE:", response.data);
+
+    return {
+      ok: true,
+      data: response.data
+    };
+
+  } catch (error) {
+    console.error("ERROR CHARGE:", error.response?.data || error.message);
+
     throw new Error(JSON.stringify(error.response?.data || error.message));
   }
 });
