@@ -111,7 +111,7 @@ fun bottom_sheet_registrate(
 
                 }
                 spacer_vertical(15.dp)
-                crear_cuenta_geinz { crear_cuenta_geinz() }
+                crear_cuenta_geinz ({ crear_cuenta_geinz() })
                 spacer_vertical(15.dp)
             }
         }

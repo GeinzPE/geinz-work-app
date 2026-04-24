@@ -573,6 +573,52 @@ exports.buscar_tienda_por_categorias_y_subcategoria = onRequest(
   },
 );
 
+
+exports.agregar_usuario_de_geinz_bot = onRequest(async (req, res) => {
+  try {
+    const { nombre_user, id_user, numero_user, from_user_id } = req.body;
+
+    // 🔍 Validación básica
+    if (!numero_user) {
+      return res.status(400).json({
+        ok: false,
+        msg: "El número de usuario es obligatorio"
+      });
+    }
+
+    // 📍 Ruta: /Trabajadores_Usuarios_Drivers/usuario_bot_geinz/usuario_bot_geinz/{numero_user}
+    const ref = admin
+      .firestore()
+      .collection("Trabajadores_Usuarios_Drivers")
+      .doc("usuario_bot_geinz")
+      .collection("usuario_bot_geinz")
+      .doc(numero_user);
+
+    // 📦 Datos
+    const data = {
+      nombre_user: nombre_user || null,
+      id_user: id_user || null,
+      numero_user,
+      from_user_id: from_user_id || null,
+      fecha_registro: admin.firestore.FieldValue.serverTimestamp()
+    };
+
+    await ref.set(data, { merge: true });
+
+    return res.json({
+      ok: true,
+      msg: "Usuario guardado correctamente"
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
+      msg: "Error al guardar usuario"
+    });
+  }
+});
+
 function verificar_apertura_tienda(horario_atencion) {
   // 👉 si no hay datos
   if (!horario_atencion) return null;
@@ -640,53 +686,64 @@ exports.obtenerCategorias = onRequest(async (req, res) => {
       .collection("Tiendas")
       .doc("categorias")
       .collection("categorias")
+      .select() // 👈 solo metadata ligera
       .get();
 
-    const categorias = snapshot.docs
-      .map((doc) => doc.id)
-      .filter((cat) => cat.toLowerCase() !== "turismo");
+    const categorias = [];
 
-    res.json({
+    snapshot.forEach((doc) => {
+      const id = doc.id.toLowerCase();
+
+      if (id !== "turismo") {
+        categorias.push(doc.id);
+      }
+    });
+
+    return res.json({
       ok: true,
       categorias,
     });
+
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       ok: false,
-      error: error.message,
+      error: "Error interno"
     });
   }
 });
 
 exports.obtener_subcategoira_de_cat = onRequest(async (req, res) => {
   try {
-    const { categoria } = req.body;
+    const categoria = (req.body?.categoria || "").trim().toLowerCase();
 
-    const snapshot = await admin
-      .firestore()
-      .collection("Tiendas")
-      .doc("categorias")
-      .collection("categorias")
-      .doc(categoria)
-      .get();
-
-    if (!snapshot.exists) {
-      return res.status(404).json({
+    if (!categoria) {
+      return res.status(400).json({
         ok: false,
-        error: "Categoría no encontrada",
+        error: "Categoría inválida"
       });
     }
 
-    const data = snapshot.data();
+    const snap = await admin
+      .firestore()
+      .doc(`Tiendas/categorias/categorias/${categoria}`)
+      .get();
+
+    if (!snap.exists) {
+      return res.json({
+        ok: true,
+        data: []
+      });
+    }
 
     return res.json({
       ok: true,
-      subcategorias: data.subcategorias || [],
+      data: snap.get("subcategorias") ?? []
     });
+
   } catch (error) {
     return res.status(500).json({
       ok: false,
-      error: error.message,
+      error: "Error interno"
     });
   }
 });
@@ -1079,7 +1136,6 @@ exports.enviarNotificacion = onRequest(async (req, res) => {
 
 // ==================== Baneo Bot geinz====================
 exports.banUser = onRequest(async (req, res) => {
-  // 1. Capturamos el ID del parámetro 'id' en la URL
   const userId = req.query.id;
 
   if (!userId) {
@@ -1089,37 +1145,39 @@ exports.banUser = onRequest(async (req, res) => {
   }
 
   try {
-    // 2. Referencia a Firestore (v2 suele trabajar mejor con Firestore)
-    // Si usas Realtime Database, el código cambia ligeramente,
-    // pero aquí te lo pongo para Firestore que es lo estándar en v2.
     const db = admin.firestore();
-    const userRef = db.collection("usuarios").doc(userId);
 
-    // 3. Verificamos si el usuario existe antes de banear
+    // 🔥 NUEVA RUTA CORRECTA
+    const userRef = db
+      .collection("Trabajadores_Usuarios_Drivers")
+      .doc("usuario_bot_geinz")
+      .collection("usuario_bot_geinz")
+      .doc(userId);
+
     const doc = await userRef.get();
+
     if (!doc.exists) {
       return res
         .status(404)
         .send(`<h1>Error: El usuario ${userId} no existe.</h1>`);
     }
 
-    // 4. Actualizamos el estado
     await userRef.update({
       status: "deshabilitado",
       fecha_bloqueo: admin.firestore.FieldValue.serverTimestamp(),
       motivo_bloqueo: "Detección de amenaza - Administrador",
     });
 
-    // 5. Respuesta visual para tu celular
     res.send(`
-            <div style="font-family: sans-serif; text-align: center; padding: 40px; background-color: #fce4e4;">
-                <h1 style="color: #c62828;">🚫 Geinz: Bloqueo Exitoso</h1>
-                <p style="font-size: 1.2em;">El usuario <strong>${userId}</strong> ha sido deshabilitado.</p>
-                <p>El Bot ya no responderá a sus mensajes.</p>
-                <hr style="border: 1px solid #c62828; width: 50%;">
-                <small>Geinz Tecnología E.I.R.L.</small>
-            </div>
-        `);
+      <div style="font-family: sans-serif; text-align: center; padding: 40px; background-color: #fce4e4;">
+        <h1 style="color: #c62828;">🚫 Geinz: Bloqueo Exitoso</h1>
+        <p style="font-size: 1.2em;">El usuario <strong>${userId}</strong> ha sido deshabilitado.</p>
+        <p>El Bot ya no responderá a sus mensajes.</p>
+        <hr style="border: 1px solid #c62828; width: 50%;">
+        <small>Geinz Tecnología E.I.R.L.</small>
+      </div>
+    `);
+
   } catch (error) {
     console.error("Error en banUser:", error);
     res.status(500).send("<h1>Error interno al procesar el baneo.</h1>");

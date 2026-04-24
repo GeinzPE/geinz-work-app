@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios
 
+import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -38,6 +39,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.OpenInFull
@@ -47,6 +49,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -73,6 +77,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
@@ -94,6 +99,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.servicio_comodidad
 import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constante_abrir_navegador.openCustomTab
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandible_wrap_socio_atrubitos
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandibles_wrapp_socio_contacto_tienda
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandibles_wrapp_socio_geinzz
@@ -113,6 +119,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_mostar_leyendas_graficos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialogo_cerrar_seccion_teinda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_centro_de_Ayudas_pra_geinz
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_historial_pago
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.ui_bottom_sheet_generaciones_IA
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
@@ -145,6 +152,8 @@ fun pantalla_carga_socios(
     navegarcrear_pùblicidad_titulo_descripcion: (String, String, String, String?, i: datos_generaciones_sin_publicaicones) -> Unit,
     navegarcrear_pùblicidad_wsap: (String, String, String?) -> Unit,
     navegarcrear_pùblicidad_compartiro: (String, String, String?) -> Unit,
+    ocultar_button_bar:()-> Unit,
+    mostrar_buttom_bar:()-> Unit
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
     val viewmodel: viewmodel_eres_socio = viewModel()
@@ -331,7 +340,20 @@ fun pantalla_carga_socios(
     var guardandoLogo by remember { mutableStateOf(false) }
 
     var mostra_bottom_sheet_historial by remember { mutableStateOf(false) }
+
+    var mostarr_botom_sheet_legal_ayuda_geinz by remember { mutableStateOf(false) }
+    var mostrar_webview_terminos_condiciones by remember { mutableStateOf(false) }
+    var mostrar_webview_politicas_devoluciones by remember { mutableStateOf(false) }
+    var mostrar_webview_libro_recalmaciones by remember { mutableStateOf(false) }
     var mostra_bottom_sheet_historial_de_gen_IA by remember { mutableStateOf(false) }
+
+    LaunchedEffect (mostrar_webview_politicas_devoluciones) {
+        Log.d("cambiamos_btn_devolcuinos","$mostrar_webview_politicas_devoluciones")
+    }
+
+    LaunchedEffect (mostra_bottom_sheet_historial_de_gen_IA) {
+        Log.d("cambiamos_btn_terminos_condiciones","$mostra_bottom_sheet_historial_de_gen_IA")
+    }
     val elTextoCambio by remember(descripcion_chat_bot) {
         derivedStateOf {
             descripcion_chat_bot != (datos.descripcion_chat_bot_whatsapp ?: "")
@@ -1887,7 +1909,7 @@ fun pantalla_carga_socios(
                             }
                         }
                     }
-                    spacer_vertical(20.dp)
+                    spacer_vertical(10.dp)
 
                     Button(
                         onClick = {
@@ -1901,11 +1923,90 @@ fun pantalla_carga_socios(
                         )
                     ) {
                         texto_generico_one_line(
-                            "Historial de recarga y compra",
+                            "\uD83D\uDCCA Historial de recarga y compra",
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(vertical = 6.dp)
                         )
                     }
+
+                    spacer_vertical(10.dp)
+                    Button(
+                        onClick = {
+                            mostarr_botom_sheet_legal_ayuda_geinz = true
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        shape = CircleShape,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        texto_generico_one_line(
+                            "Centro Legal y Ayuda",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(vertical = 6.dp)
+                        )
+                    }
+
+
+//                    spacer_vertical(10.dp)
+//                       Button(
+//                        onClick = {
+//                            mostrar_webview_terminos_condiciones =true
+//                        },
+//                        modifier = Modifier
+//                            .fillMaxWidth(),
+//                        shape = CircleShape,
+//                        colors = ButtonDefaults.buttonColors(
+//                            containerColor = MaterialTheme.colorScheme.primary
+//                        )
+//                    ) {
+//                        texto_generico_one_line(
+//                            "\uD83D\uDCDC\uD83D\uDC99 Términos y condiciones",
+//                            style = MaterialTheme.typography.bodyMedium,
+//                            modifier = Modifier.padding(vertical = 6.dp)
+//                        )
+//                    }
+//                    spacer_vertical(10.dp)
+//                    Button(
+//                        onClick = {
+//                            mostrar_webview_politicas_devoluciones=true
+//                        },
+//                        modifier = Modifier
+//                            .fillMaxWidth(),
+//                        shape = CircleShape,
+//                        colors = ButtonDefaults.buttonColors(
+//                            containerColor = MaterialTheme.colorScheme.primary
+//                        )
+//                    ) {
+//                        texto_generico_one_line(
+//                            "\uD83D\uDCC4 Politica de cambios y devoluciones",
+//                            style = MaterialTheme.typography.bodyMedium,
+//                            modifier = Modifier.padding(vertical = 6.dp)
+//                        )
+//                    }
+//
+//                    spacer_vertical(10.dp)
+//                    Button(
+//                        onClick = {
+//                            mostrar_webview_libro_recalmaciones=true
+//                        },
+//                        modifier = Modifier
+//                            .fillMaxWidth(),
+//                        shape = CircleShape,
+//                        colors = ButtonDefaults.buttonColors(
+//                            containerColor = MaterialTheme.colorScheme.primary
+//                        )
+//                    ) {
+//                        texto_generico_one_line(
+//                            "\uD83D\uDCD8 Libro de Reclamaciones",
+//                            style = MaterialTheme.typography.bodyMedium,
+//                            modifier = Modifier.padding(vertical = 6.dp)
+//                        )
+//                    }
+                    spacer_vertical(20.dp)
+
+
 
 //                    spacer_vertical(10.dp)
 //
@@ -2003,6 +2104,31 @@ fun pantalla_carga_socios(
 
             }
         }
+
+        if(mostarr_botom_sheet_legal_ayuda_geinz){
+            bottom_sheet_centro_de_Ayudas_pra_geinz({
+                mostarr_botom_sheet_legal_ayuda_geinz=false
+            },{url->
+                openCustomTab(context, url)
+            })
+        }
+
+//        when {
+//            mostrar_webview_terminos_condiciones -> {
+//                openCustomTab(context, "https://geinzwork.web.app/terminos_y_condiciones.html")
+//                mostrar_webview_terminos_condiciones = false
+//            }
+//            mostrar_webview_politicas_devoluciones -> {
+//                openCustomTab(context, "https://geinzwork.web.app/politicas_devoluciones.html")
+//                mostrar_webview_politicas_devoluciones=false
+//            }
+//            mostrar_webview_libro_recalmaciones->{
+//                openCustomTab(context,"https://geinzwork.firebaseapp.com/libro_reclamaciones.html")
+//                mostrar_webview_libro_recalmaciones=false
+//            }
+//        }
+
+
         if (mostra_bottom_sheet_historial) {
             bottom_sheet_historial_pago(
                 datos.id_tienda,

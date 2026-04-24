@@ -22,13 +22,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,6 +44,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -58,19 +64,26 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constante_abrir_navegador.openCustomTab
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.MyOutlinedTextField
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.input_password
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_centro_de_Ayudas_pra_geinz
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.ui_bottom_sheet_errores
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.busquedaGeinzWork
@@ -134,6 +147,7 @@ fun IniciarSeccion(
     var blurEnabled by remember { mutableStateOf(true) }
 
     val blurFixed = 16.dp
+    var mostarr_botom_sheet_legal_ayuda_geinz by remember { mutableStateOf(false) }
 
 
 
@@ -256,6 +270,18 @@ fun IniciarSeccion(
         if(mostar_errores_bottom_sheet){
             ui_bottom_sheet_errores(viewModel_login_user,{mostar_errores_bottom_sheet=false})
         }
+
+        BotonLegalEsquina({
+            mostarr_botom_sheet_legal_ayuda_geinz = true
+        })
+
+        if(mostarr_botom_sheet_legal_ayuda_geinz){
+            bottom_sheet_centro_de_Ayudas_pra_geinz({
+                mostarr_botom_sheet_legal_ayuda_geinz=false
+            },{url->
+                openCustomTab(context, url)
+            })
+        }
     }
 }
 
@@ -292,8 +318,8 @@ fun login_principal_apartado(
         spacer_vertical(15.dp)
         btn_continuar_con_google { listener_continuar_con_google() }
         spacer_vertical(15.dp)
-        crear_cuenta_geinz { listener_Crear_cuenta_geinz() }
-        spacer_vertical(15.dp)
+        crear_cuenta_geinz ({ listener_Crear_cuenta_geinz() })
+        spacer_vertical(7.dp)
     }
 
 }
@@ -660,12 +686,15 @@ fun btn_principal_iniciar_seccion(listener_bottom_sheet: () -> Unit) {
 }
 
 @Composable
-fun crear_cuenta_geinz(listener_Crear_cuenta: () -> Unit) {
+fun crear_cuenta_geinz(
+    listener_Crear_cuenta: () -> Unit,
+) {
     Column(
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth().padding(top = 5.dp)
     ) {
-
+        // Fila existente de Crear Cuenta
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
@@ -675,7 +704,34 @@ fun crear_cuenta_geinz(listener_Crear_cuenta: () -> Unit) {
             spacer_horizonta(7.dp)
             crear_cuenta { listener_Crear_cuenta() }
         }
+
     }
-
-
+}
+@Composable
+fun BotonLegalEsquina(onLegalClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp), // Espaciado desde el borde de la pantalla
+        contentAlignment = Alignment.TopEnd // Lo manda a la esquina superior derecha
+    ) {
+        Surface(
+            onClick = { onLegalClick() },
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), // Gris muy suave y transparente
+            tonalElevation = 0.dp
+        ) {
+            Box(
+                modifier = Modifier.padding(8.dp), // Tamaño del círculo
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Gavel,
+                    contentDescription = "Información Legal",
+                    modifier = Modifier.size(20.dp), // Tamaño pequeño y elegante
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f) // Gris oscuro/blanco suave
+                )
+            }
+        }
+    }
 }

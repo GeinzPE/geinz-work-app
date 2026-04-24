@@ -3,6 +3,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.annotation.RequiresApi
@@ -630,6 +631,10 @@ fun login_socios(isConnected: Boolean, tipo_: String = "", navController: NavHos
                                                 datos_generaciones = datos_generaciones_sin_publicaicones()
                                             )
                                             viewmodel.setear_datos_datos_publicada_IA(datos)
+                                        },ocultar_button_bar={
+                                            Toast.makeText(context, "", Toast.LENGTH_SHORT).show()
+                                        },mostrar_buttom_bar={
+                                            Toast.makeText(context, "", Toast.LENGTH_SHORT).show()
                                         }
                                     )
                                 }

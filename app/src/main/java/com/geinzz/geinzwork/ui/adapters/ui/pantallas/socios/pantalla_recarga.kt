@@ -7,6 +7,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,23 +30,32 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -59,6 +69,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_creadtior_quees_geinzz
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
@@ -94,6 +105,8 @@ fun pantala_recarga(
     val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
     ?: ""
 
+    var abrir_para_que_monedas by remember { mutableStateOf(false) }
+    var mostrarInfoCreditos by remember { mutableStateOf(true) }
     val enviar_webhook_culqui  by viewmodel_recarga_insta.enviar_webhook_culqui.collectAsState()
 
     LaunchedEffect(enviar_webhook_culqui) {
@@ -131,6 +144,72 @@ fun pantala_recarga(
                                 "¡Hola $nombre_tienda! \uD83C\uDFAF Descubre los planes de GEINZ y toma el control de tus promociones, notificaciones y beneficios",
                                 MaterialTheme.typography.bodyMedium
                             )
+
+                            if (mostrarInfoCreditos) {
+                                Surface(
+                                    onClick = { abrir_para_que_monedas=true},
+                                    shape = RoundedCornerShape(24.dp),
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 16.dp),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                                ) {
+
+                                    Box {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+
+                                            Column(
+                                                modifier = Modifier.weight(1f),
+                                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                texto_generico_multilinea(
+                                                    "¿Cómo funcionan los créditos Geinz?",
+                                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                                )
+
+                                                texto_generico_multilinea(
+                                                    "Impulsa tu negocio en la plataforma usando créditos Geinz. Descubre cómo funcionan y qué beneficios.",
+                                                    style = MaterialTheme.typography.labelSmall.copy(
+                                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                                    )
+                                                )
+                                            }
+
+                                            Image(
+                                                painter = painterResource(R.drawable.icon_monedas_3d),
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .size(120.dp) // Ajustado un poco para que no choque con la X
+                                                    .graphicsLayer(alpha = 0.9f),
+                                                contentScale = ContentScale.Fit
+                                            )
+                                        }
+
+                                        // 2. BOTÓN DE CERRAR (X) EN LA ESQUINA
+                                        IconButton(
+                                            onClick = { mostrarInfoCreditos = false },
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .padding(4.dp)
+                                                .size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Close,
+                                                contentDescription = "Cerrar",
+                                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                         items(datos) { i ->
                             item_pantalla_recarga(i) { nombre, monedas, montosoles ->
@@ -184,6 +263,9 @@ fun pantala_recarga(
                     )
                     .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
             )
+            if(abrir_para_que_monedas){
+                bottom_sheet_creadtior_quees_geinzz{abrir_para_que_monedas=false}
+            }
         }
     }
 
@@ -224,7 +306,7 @@ fun item_pantalla_recarga(
                     Image(
                         painter = painterResource(R.drawable.icon_monedas_3d),
                         contentDescription = null,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(25.dp)
                     )
                 }
             }

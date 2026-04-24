@@ -227,4 +227,6 @@ dependencies {
     implementation("androidx.media3:media3-ui-compose:1.9.3")
     implementation("com.google.firebase:firebase-functions-ktx:20.2.0")
 
+    implementation("androidx.browser:browser:1.8.0")
+
 }

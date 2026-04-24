@@ -12,7 +12,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +24,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -55,11 +59,13 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constante_abrir_navegador.openCustomTab
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialogo_cerrar_seccion_teinda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_centro_de_Ayudas_pra_geinz
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.eres_socio_geinz
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.abrir_whattsapp
 import com.geinzz.geinzwork.viewModels.LoginState_inicio
@@ -77,7 +83,7 @@ fun cuenta_user(
     correo_registrado: String,
     navController: NavController,
     terminar_configurar: (String) -> Unit,
-    click_login_ver_socio:()-> Unit,
+    click_login_ver_socio: () -> Unit,
 ) {
     val loginState_principal by viewModel_login_user.loginStateCamposInicial.collectAsState()
     val registrado_google = viewModel_login_user.registrado_google.observeAsState()
@@ -85,6 +91,7 @@ fun cuenta_user(
 //    var falta_termianr_configurar_google by remember { mutableStateOf(false) }
 //    var mostrar_btn_termianr_configurar by remember { mutableStateOf(false) }
     var mostrar_fondo by remember { mutableStateOf(true) }
+
 //    var correo_registrado by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
 
@@ -123,7 +130,7 @@ fun cuenta_user(
             },
             terminar_configurar = {
                 terminar_configurar(correo_registrado)
-            },{click_login_ver_socio()})
+            }, { click_login_ver_socio() })
 
     }
 }
@@ -149,7 +156,9 @@ fun img_fondo_user(
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
-                .clickable (indication = null, interactionSource = remember { MutableInteractionSource() }){
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }) {
                     ocultar_contenido()
                 },
             contentScale = ContentScale.Crop
@@ -181,13 +190,15 @@ fun protada_perfil_user(
     ocultar_contenido: () -> Unit,
     cerrar_seccion: () -> Unit,
     terminar_configurar: () -> Unit,
-    click_login_ver_socio:()-> Unit,
+    click_login_ver_socio: () -> Unit,
 ) {
     val contex = LocalContext.current
     val scope = rememberCoroutineScope()
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     var eres_socio by remember { mutableStateOf(false) }
     var dialog_cerrar_Seccion by remember { mutableStateOf(false) }
+    var mostarr_botom_sheet_legal_ayuda_geinz by remember { mutableStateOf(false) }
+
     AnimatedVisibility(
         visible = ocultar_contenido_Boolean, enter = fadeIn(
             animationSpec = tween(
@@ -311,25 +322,43 @@ fun protada_perfil_user(
                 }
 
                 item {
+                    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 30.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                                .clickable {
+                                    dialog_cerrar_Seccion = true
+                                }, contentAlignment = Alignment.Center
+                        ) {
+                            texto_generico_one_line(
+                                "cerrar sesión",
+                                MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
+                            )
+                        }
+                        Button(
+                            onClick = {
+                                mostarr_botom_sheet_legal_ayuda_geinz = true
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            shape = CircleShape,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            texto_generico_one_line(
+                                "Centro Legal y Ayuda",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(vertical = 6.dp)
+                            )
+                        }
 
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 30.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
-                            .clickable {
-                                dialog_cerrar_Seccion=true
-
-
-                            }, contentAlignment = Alignment.Center
-                    ) {
-                        texto_generico_one_line(
-                            "cerrar sesión",
-                            MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
-                        )
                     }
+
                     spacer_vertical(10.dp)
                 }
 
@@ -358,14 +387,24 @@ fun protada_perfil_user(
 
         }
     }
-    if(dialog_cerrar_Seccion){
-        dialogo_cerrar_seccion_teinda("¿Deseas cerrar sesión? Tendrás que iniciar sesión nuevamente.",{dialog_cerrar_Seccion=!dialog_cerrar_Seccion},{
-            cerrar_seccion()
-            scope.launch {
-                data_store_localidad.limpiar_datos_autenticacion(contex)
-            }
-        })
+    if (dialog_cerrar_Seccion) {
+        dialogo_cerrar_seccion_teinda("¿Deseas cerrar sesión? Tendrás que iniciar sesión nuevamente.",
+            { dialog_cerrar_Seccion = !dialog_cerrar_Seccion },
+            {
+                cerrar_seccion()
+                scope.launch {
+                    data_store_localidad.limpiar_datos_autenticacion(contex)
+                }
+            })
 
+    }
+
+    if (mostarr_botom_sheet_legal_ayuda_geinz) {
+        bottom_sheet_centro_de_Ayudas_pra_geinz({
+            mostarr_botom_sheet_legal_ayuda_geinz = false
+        }, { url ->
+            openCustomTab(contex, url)
+        })
     }
 //    if (eres_socio) {
 //        click_login_ver_socio()
