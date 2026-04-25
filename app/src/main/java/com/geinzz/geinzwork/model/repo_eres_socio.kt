@@ -2007,9 +2007,10 @@ class repo_eres_socio {
             val monedas_agregadas = (data["monedas_agregadas"] as? Number)?.toString() ?: "0"
             val monedas_inicial = (data["monedas_inicial"] as? Number)?.toString() ?: "0"
             val precio_soles = (data["precio_soles"] as? Number)?.toString() ?: "0"
-
+            val id_plan =(data["nombre_plan"]) as? String?:""
             lista.add(
                 datos_recarga(
+                    id_plan,
                     accesos = accesos,
                     descripcion = descripcion,
                     monedas = monedas,

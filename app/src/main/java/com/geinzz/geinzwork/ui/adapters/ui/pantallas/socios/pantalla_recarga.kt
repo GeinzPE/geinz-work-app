@@ -65,6 +65,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.datos_recarga
 import com.geinzz.geinzwork.data.model.historial_recargas
 import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constante_abrir_navegador.openCustomTab
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
@@ -212,24 +213,28 @@ fun pantala_recarga(
                             }
                         }
                         items(datos) { i ->
-                            item_pantalla_recarga(i) { nombre, monedas, montosoles ->
-                                val datos_recarga = historial_recargas(
-                                    "recarga",
-                                    fecha = obtenerFechaActual(),
-                                    hora = obtenerHoraActual(),
-                                    id_recarga = generarIdRecarga(),
-                                    localidad_tienda = localida_tienda,
-                                    id_tienda = id_tienda,
-                                    nombre_tienda = nombre_tienda,
-                                    tipo = nombre,
-                                    monto = monedas,
-                                    precio_soles = montosoles,
-                                    yape = true,
-                                    plin = false,
-                                    estado = "Aceptado",
-                                    monto_posterior = monedas_user
-                                )
-                                viewmodel_recarga_insta.crear_cargo__compra_paquete(localida_user.lowercase(),id_tienda,monedas_user.toString(),monedas)
+                            item_pantalla_recarga(i) { id_plan->
+                                val url_pago="https://geinzwork.firebaseapp.com/pagos.html?orderId=${id_tienda}&plan=${id_plan}"
+                                openCustomTab(context,url_pago)
+
+
+//                                val datos_recarga = historial_recargas(
+//                                    "recarga",
+//                                    fecha = obtenerFechaActual(),
+//                                    hora = obtenerHoraActual(),
+//                                    id_recarga = generarIdRecarga(),
+//                                    localidad_tienda = localida_tienda,
+//                                    id_tienda = id_tienda,
+//                                    nombre_tienda = nombre_tienda,
+//                                    tipo = nombre,
+//                                    monto = monedas,
+//                                    precio_soles = montosoles,
+//                                    yape = true,
+//                                    plin = false,
+//                                    estado = "Aceptado",
+//                                    monto_posterior = monedas_user
+//                                )
+//                                viewmodel_recarga_insta.crear_cargo__compra_paquete(localida_user.lowercase(),id_tienda,monedas_user.toString(),monedas)
 //                                viewmodel_recarga_insta.recargar_puntos(
 //                                    i = datos_recarga,
 //                                    id_user = id_user
@@ -276,7 +281,7 @@ fun pantala_recarga(
 @Composable
 fun item_pantalla_recarga(
     i: datos_recarga,
-    plan_select: (plan: String, monto_total: String, precio_soles: String) -> Unit
+    plan_select: (plan: String) -> Unit
 ) {
 
     Column(
@@ -417,7 +422,7 @@ fun item_pantalla_recarga(
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary)
                 .clickable() {
-                    plan_select(i.nombre_plan, i.monedas, i.precio_soles)
+                    plan_select(i.id_plan_select)
                 }
                 .fillMaxWidth(), contentAlignment = Alignment.Center
         ) {

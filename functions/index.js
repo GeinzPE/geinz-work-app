@@ -1,3 +1,4 @@
+require("dotenv").config();
 const { onRequest, onCall } = require("firebase-functions/v2/https");
 const {
   onDocumentCreated,
@@ -23,8 +24,16 @@ admin.initializeApp();
 const axios = require("axios");
 
 const CULQI_KEY = process.env.CULQI_KEY; // 🔹 v2: se usa env variable
+const PHONE_ID = process.env.ID_NUMBER_WHATSAPP; 
+const WHATSAPP_TOKEN = process.env.ID_API_WHATSAPP; 
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
+const path = require("path");
 
 const db = admin.firestore();
+
+
+
 exports.crearOrdenCulqi = onCall({ region: "us-central1" }, async (req) => {
   const { monto, userId, monedas, nombre, email, localidad } = req.data;
 
@@ -100,12 +109,211 @@ exports.crearOrdenCulqi = onCall({ region: "us-central1" }, async (req) => {
   }
 });
 
+async function getImageBuffer(url) {
+  const res = await axios.get(url, { responseType: "arraybuffer" });
+  return Buffer.from(res.data, "binary");
+}
+
+async function generarPDF({ userId, monedas, chargeId, monto }) {
+  const doc = new PDFDocument({ margin: 30 });
+
+  const fileName = `boleta-${Date.now()}.pdf`;
+  const filePath = path.join("/tmp", fileName);
+
+  doc.pipe(fs.createWriteStream(filePath));
+
+  const logo = await getImageBuffer("https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo%20geinz.png?alt=media&token=4b90f507-8914-4f75-ae8e-0a1a0acda2a5");
+
+  // 🟨 HEADER IZQUIERDA
+  doc.image(logo, 30, 30, { width: 80 });
+
+  doc
+    .fontSize(10)
+    .text("GEINZ TECNOLOGIA E.I.R.L.", 120, 30)
+    .text("RUC: 20615632580")
+    .text("CALLE 1 - SAN MATEO")
+    .text("BARRANCA - LIMA")
+    .text("Email: soybenjadesing@gmail.com");
+
+  // 🧾 CAJA DERECHA (tipo SUNAT)
+  doc
+    .roundedRect(380, 30, 180, 80, 5)
+    .stroke();
+
+  doc
+    .fontSize(10)
+    .text("R.U.C. 20615632580", 390, 40)
+    .fontSize(12)
+    .text("BOLETA DE VENTA", 390, 60)
+    .text("ELECTRÓNICA", 390, 75)
+    .fontSize(10)
+    .text("B001 - 0000001", 390, 95);
+
+  // 👤 CLIENTE
+  doc
+    .moveDown(4)
+    .fontSize(9)
+    .text(`Cliente: ${userId}`)
+    .text(`DNI: -`)
+    .text(`Fecha: ${new Date().toLocaleDateString()}`);
+
+  // 📋 TABLA
+  const startY = 180;
+
+  // encabezado tabla
+  doc
+    .rect(30, startY, 530, 20)
+    .stroke();
+
+  doc
+    .fontSize(8)
+    .text("CANT.", 35, startY + 5)
+    .text("DESCRIPCIÓN", 100, startY + 5)
+    .text("P. UNIT", 400, startY + 5)
+    .text("IMPORTE", 480, startY + 5);
+
+  // fila
+  doc
+    .rect(30, startY + 20, 530, 200)
+    .stroke();
+
+  doc
+    .fontSize(9)
+    .text("1", 35, startY + 30)
+    .text("Compra de monedas GEINZ", 100, startY + 30)
+    .text(`S/ ${monto}`, 400, startY + 30)
+    .text(`S/ ${monto}`, 480, startY + 30);
+
+  // 💰 TOTALES
+  const totalY = startY + 230;
+
+  doc
+    .fontSize(9)
+    .text("OP. GRAVADA:", 350, totalY)
+    .text(`S/ ${(monto / 1.18).toFixed(2)}`, 480, totalY)
+
+    .text("IGV (18%):", 350, totalY + 15)
+    .text(`S/ ${(monto - monto / 1.18).toFixed(2)}`, 480, totalY + 15)
+
+    .fontSize(11)
+    .text("TOTAL:", 350, totalY + 35)
+    .text(`S/ ${monto}`, 480, totalY + 35);
+
+  // 🔳 QR (simulado por ahora)
+  doc
+    .rect(30, totalY, 80, 80)
+    .stroke()
+    .fontSize(6)
+    .text("QR", 55, totalY + 35);
+
+  // 📄 FOOTER
+  doc
+    .fontSize(6)
+    .text(
+      "Representación impresa de la boleta electrónica. Consulte en SUNAT.",
+      30,
+      doc.page.height - 40
+    );
+
+  doc.end();
+
+  return filePath;
+}
+async function subirPDF(filePath, fileName) {
+  const bucket = admin.storage().bucket();
+
+  await bucket.upload(filePath, {
+    destination: `boletas/${fileName}`,
+    metadata: { contentType: "application/pdf" },
+    public: true
+  });
+
+  const url = `https://storage.googleapis.com/${bucket.name}/boletas/${fileName}`;
+  return url;
+}
+
+async function enviarPDFWhatsApp(numero, pdfUrl) {
+  await axios.post(
+    `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
+    {
+      messaging_product: "whatsapp",
+      to: `51${numero}`,
+      type: "document",
+      document: {
+        link: pdfUrl,
+        filename: "boleta_geinz.pdf"
+      }
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+}
+
+async function enviarWhatsApp(numero, mensaje) {
+
+  const telefono = `51${numero}`; 
+
+await axios.post(
+  `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
+  {
+    messaging_product: "whatsapp",
+    to: `51${numero}`,
+    type: "text",
+    text: { body: mensaje }
+  },
+  {
+    headers: {
+      Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+      "Content-Type": "application/json"
+    }
+  }
+);
+}
+
+
+async function sumarSaldo(userId, monedas) {
+  console.log("🟡 [sumarSaldo] INICIO");
+  console.log("userId:", userId);
+  console.log("monedas:", monedas);
+
+  const ref = db
+    .collection("Tiendas")
+    .doc("barranca")
+    .collection("barranca")
+    .doc(userId);
+
+  console.log("📄 Referencia doc creada");
+
+  await ref.set({
+    puntos_tienda: admin.firestore.FieldValue.increment(monedas)
+  }, { merge: true });
+
+  console.log("✅ Saldo actualizado en Firestore");
+
+  const snap = await ref.get();
+
+  if (!snap.exists) {
+    console.log("❌ Documento no existe");
+    return null;
+  }
+
+  const data = snap.data();
+  console.log("📦 DATA COMPLETA USUARIO:", JSON.stringify(data, null, 2));
+
+  const numero = data?.metodo_contacto?.whatsapp?.numero || null;
+
+  console.log("📲 Número WhatsApp extraído:", numero);
+
+  return numero;
+}
+
 exports.confirmarPago = onCall(async (req) => {
 
-  const { token, monto, email } = req.data;
-
-  console.log("TOKEN:", token);
-  console.log("MONTO:", monto);
+  const { token, monto, email, userId, monedas } = req.data;
 
   try {
     const response = await axios.post(
@@ -124,11 +332,37 @@ exports.confirmarPago = onCall(async (req) => {
       }
     );
 
-    console.log("CULQI RESPONSE:", response.data);
+    const charge = response.data;
 
+    console.log("CULQI RESPONSE:", charge);
+
+    // 🚨 VALIDACIÓN REAL DE PAGO
+    if (charge.outcome?.code !== "AUT0000") {
+      throw new Error("Pago no aprobado");
+    }
+
+
+
+const numero = await sumarSaldo(userId, monedas);
+
+if (typeof numero === "string" && numero.length >= 9) {
+
+  const filePath = await generarPDF({
+    userId,
+    monedas,
+    chargeId: charge.id
+  });
+
+  const pdfUrl = await subirPDF(
+    filePath,
+    `boleta-${charge.id}.pdf`
+  );
+
+  await enviarPDFWhatsApp(numero, pdfUrl);
+}
     return {
       ok: true,
-      data: response.data
+      chargeId: charge.id
     };
 
   } catch (error) {
@@ -137,6 +371,8 @@ exports.confirmarPago = onCall(async (req) => {
     throw new Error(JSON.stringify(error.response?.data || error.message));
   }
 });
+
+
 // ==================== Algolia ====================
 const APP_ID = process.env.ALGOLIA_APP_ID || "";
 const API_KEY = process.env.ALGOLIA_API_KEY || "";
@@ -610,7 +846,6 @@ exports.buscar_tienda_por_categorias_y_subcategoria = onRequest(
     }
   },
 );
-
 
 exports.agregar_usuario_de_geinz_bot = onRequest(async (req, res) => {
   try {

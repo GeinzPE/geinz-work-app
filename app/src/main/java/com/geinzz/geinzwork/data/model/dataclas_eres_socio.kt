@@ -283,6 +283,7 @@ data class datos_publicaciones_realizadas(
 )
 
 data class datos_recarga(
+    val id_plan_select: String,
     val accesos: List<String>,
     val descripcion: String,
     val monedas: String,
