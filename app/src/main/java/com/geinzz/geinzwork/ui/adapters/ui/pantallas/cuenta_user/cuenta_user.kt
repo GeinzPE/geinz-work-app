@@ -24,8 +24,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -85,9 +88,13 @@ fun cuenta_user(
     terminar_configurar: (String) -> Unit,
     click_login_ver_socio: () -> Unit,
 ) {
+    val contex=LocalContext.current
     val loginState_principal by viewModel_login_user.loginStateCamposInicial.collectAsState()
     val registrado_google = viewModel_login_user.registrado_google.observeAsState()
     val mostrar_btn_termianr_configurar by viewModel_login_user.mostrar_btn_terminar_configurar.collectAsState()
+
+    var dialog_cerrar_Seccion by remember { mutableStateOf(false) }
+
 //    var falta_termianr_configurar_google by remember { mutableStateOf(false) }
 //    var mostrar_btn_termianr_configurar by remember { mutableStateOf(false) }
     var mostrar_fondo by remember { mutableStateOf(true) }
@@ -126,12 +133,43 @@ fun cuenta_user(
             ocultar_contenido_Boolean = mostrar_fondo,
             ocultar_contenido = { mostrar_fondo = false },
             cerrar_seccion = {
-                viewModel_login_user.logout()
             },
             terminar_configurar = {
                 terminar_configurar(correo_registrado)
             }, { click_login_ver_socio() })
 
+        Box(
+            modifier = Modifier
+                .padding(20.dp)
+                .size(35.dp) // tamaño del círculo
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary) // rojo elegante
+                .clickable {
+                    dialog_cerrar_Seccion = true
+                }
+                .align(Alignment.TopEnd),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Logout,
+                contentDescription = "Cerrar sesión",
+                tint = Color.White,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        if (dialog_cerrar_Seccion) {
+            dialogo_cerrar_seccion_teinda("¿Deseas cerrar sesión? Tendrás que iniciar sesión nuevamente.",
+                { dialog_cerrar_Seccion = !dialog_cerrar_Seccion },
+                {
+                    viewModel_login_user.logout()
+                    scope.launch {
+                        data_store_localidad.limpiar_datos_autenticacion(contex)
+                    }
+
+                })
+
+        }
     }
 }
 
@@ -276,37 +314,7 @@ fun protada_perfil_user(
                     )
                     spacer_vertical(10.dp)
                 }
-//                item {
-//                    Row(
-//                        verticalAlignment = Alignment.CenterVertically
-//                    ) {
-//                        Text(
-//                            buildAnnotatedString {
-//                                withStyle(
-//                                    style = SpanStyle(
-//                                        color = Color.White
-//                                    )
-//                                ) {
-//                                    append("Whatsapp oficial de Geinz  ")
-//                                }
-//                                withStyle(
-//                                    style = SpanStyle(
-//                                        color = MaterialTheme.colorScheme.primary,
-//                                        textDecoration = TextDecoration.Underline,
-//                                        fontWeight = FontWeight.Medium
-//                                    )
-//                                ) {
-//                                    append(" +51 958 120 920")
-//                                }
-//                            },
-//                            style = MaterialTheme.typography.bodyMedium,
-//                            modifier = Modifier.clickable {
-//                                abrir_whattsapp(contex, "958 120 920")
-//                            })
-//                    }
-//                    spacer_vertical(10.dp)
-//
-//                }
+
 
                 item {
                     Text(
@@ -330,25 +338,8 @@ fun protada_perfil_user(
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primary)
                                 .clickable {
-                                    dialog_cerrar_Seccion = true
+                                    mostarr_botom_sheet_legal_ayuda_geinz = true
                                 }, contentAlignment = Alignment.Center
-                        ) {
-                            texto_generico_one_line(
-                                "cerrar sesión",
-                                MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
-                            )
-                        }
-                        Button(
-                            onClick = {
-                                mostarr_botom_sheet_legal_ayuda_geinz = true
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            shape = CircleShape,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
-                            )
                         ) {
                             texto_generico_one_line(
                                 "Centro Legal y Ayuda",
@@ -356,6 +347,23 @@ fun protada_perfil_user(
                                 modifier = Modifier.padding(vertical = 6.dp)
                             )
                         }
+
+//                        Box(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .padding(horizontal = 30.dp)
+//                                .clip(CircleShape)
+//                                .background(Color(0xFFE57373))
+//                                .clickable {
+//                                    dialog_cerrar_Seccion = true
+//                                }, contentAlignment = Alignment.Center
+//                        ) {
+//                            texto_generico_one_line(
+//                                "cerrar sesión",
+//                                MaterialTheme.typography.bodyMedium,
+//                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
+//                            )
+//                        }
 
                     }
 

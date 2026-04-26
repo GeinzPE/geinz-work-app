@@ -33,7 +33,7 @@ const path = require("path");
 const db = admin.firestore();
 
 
-
+// ==================== culqui ====================
 exports.crearOrdenCulqi = onCall({ region: "us-central1" }, async (req) => {
   const { monto, userId, monedas, nombre, email, localidad } = req.data;
 
@@ -253,6 +253,55 @@ async function enviarPDFWhatsApp(numero, pdfUrl) {
   );
 }
 
+async function emitirBoletaNubefact({ userId, monedas, chargeId, monto, email, nombre }) {
+  const response = await axios.post(
+    "https://api.nubefact.com/api/v1/02bb7d82-0b0c-4006-82a5-74b7437bea0b",
+    {
+      "operacion": "generar_comprobante",
+      "tipo_de_comprobante": 2,
+      "serie": "B001",
+      "numero": 0,
+      "sunat_transaction": 1,
+      "cliente_tipo_de_documento": 0,
+      "cliente_numero_de_documento": "",   // ← agrega esto
+      "cliente_denominacion": nombre || "Consumidor final",
+      "cliente_email": email || "",
+      "items": [
+        {
+          "unidad_de_medida": "ZZ",
+          "codigo": "MON001",
+          "descripcion": `Paquete de ${monedas} monedas Geinz`,
+          "cantidad": 1,
+          "valor_unitario": (monto / 1.18).toFixed(6),
+          "precio_unitario": Number(monto).toFixed(6),
+          "descuento": "0.00",
+          "subtotal": (monto / 1.18).toFixed(6),
+          "tipo_de_igv": 1,
+          "igv": (monto - monto / 1.18).toFixed(6),
+          "total": Number(monto).toFixed(6),
+          "anticipo_regularizacion": false
+        }
+      ],
+      "moneda": 1,
+      "porcentaje_de_igv": 18.00,
+      "total_gravada": (monto / 1.18).toFixed(6),
+      "total_igv": (monto - monto / 1.18).toFixed(6),
+      "total": Number(monto).toFixed(6),
+      "enviar_automaticamente_a_la_sunat": true,
+      "enviar_automaticamente_al_cliente": !!email,
+      "codigo_unico": chargeId,
+    },
+    {
+      headers: {
+        "Authorization": `Token token="8eee1a640fd7485cbc1da29427f59792b196deb29b954a6eb131bdb8562492fa"`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+
+  return response.data.enlace_del_pdf;
+}
+
 async function enviarWhatsApp(numero, mensaje) {
 
   const telefono = `51${numero}`; 
@@ -313,17 +362,35 @@ async function sumarSaldo(userId, monedas) {
 
 exports.confirmarPago = onCall(async (req) => {
 
+  console.log("=====================");
   const { token, monto, email, userId, monedas } = req.data;
-
+  // 👇 AGREGA ESTO PARA VER QUÉ LLEGA
+  console.log("=== CONFIRMAR PAGO ===");
+  console.log("token:", token);
+  console.log("monto:", monto);
+  console.log("email:", email);
+  console.log("userId:", userId);
+  console.log("monedas:", monedas);
+  console.log("=====================");
   try {
     const response = await axios.post(
       "https://api.culqi.com/v2/charges",
-      {
-        amount: Math.round(monto * 100),
-        currency_code: "PEN",
-        email: email || "test@test.com",
-        source_id: token
-      },
+     {
+    amount: Math.round(monto * 100),
+    currency_code: "PEN",
+    email:email||"cliente@geinz.com",
+    source_id: token,
+    capture: true,
+    description: "Compra de monedas Geinz",
+    antifraud_details: {          // ← esto faltaba
+      address: "Barranca",
+      address_city: "Barranca",
+      country_code: "PE",
+      first_name: "Cliente",
+      last_name: "Geinz",
+      phone: "999999999"
+    }
+  },
       {
         headers: {
           Authorization: `Bearer ${CULQI_KEY}`,
@@ -345,34 +412,97 @@ exports.confirmarPago = onCall(async (req) => {
 
 const numero = await sumarSaldo(userId, monedas);
 
-if (typeof numero === "string" && numero.length >= 9) {
-
-  const filePath = await generarPDF({
+try {
+  const pdfUrl = await emitirBoletaNubefact({
     userId,
     monedas,
-    chargeId: charge.id
+    chargeId: charge.id,
+    monto,
+    email:  "cliente@geinz.com",
+    nombre: "Consumidor Final"
   });
 
-  const pdfUrl = await subirPDF(
-    filePath,
-    `boleta-${charge.id}.pdf`
-  );
-
-  await enviarPDFWhatsApp(numero, pdfUrl);
-}
-    return {
-      ok: true,
-      chargeId: charge.id
-    };
-
-  } catch (error) {
-    console.error("ERROR CHARGE:", error.response?.data || error.message);
-
-    throw new Error(JSON.stringify(error.response?.data || error.message));
+  if (typeof numero === "string" && numero.length >= 9) {
+    await enviarPDFWhatsApp(numero, pdfUrl);
   }
+} catch (nubefactErr) {
+  console.error("⚠️ Nubefact falló:", nubefactErr.response?.data || nubefactErr.message);
+}
+
+// ❌ BORRA ESTAS 3 LÍNEAS:
+// if (typeof numero === "string" && numero.length >= 9) {
+//   await enviarPDFWhatsApp(numero, pdfUrl);
+// }
+
+return {
+  ok: true,
+  chargeId: charge.id
+};
+
+} catch (error) {
+  console.error("ERROR CHARGE:", error.response?.data || error.message);
+  throw new Error(JSON.stringify(error.response?.data || error.message));
+}
 });
 
 
+
+// ==================== verificar_usuario_asistente ====================
+exports.verificar_usuario_asistente = onRequest(async (req, res) => {
+  try {
+    const { numero_usuario, nombre_user, id_user } = req.body;
+
+    if (!numero_usuario) {
+      return res.status(400).json({ error: "numero_usuario requerido" });
+    }
+
+    const ref = db
+      .collection("Trabajadores_Usuarios_Drivers")
+      .doc("usuario_bot_geinz")
+      .collection("usuario_bot_geinz")
+      .doc(numero_usuario);
+
+    const doc = await ref.get();
+
+    // 🔹 SI EXISTE
+    if (doc.exists) {
+      const data = doc.data();
+
+      return res.json({
+        exists: true,
+        nombre_cliente: data.nombre_user || "",
+        numero_cliente: numero_usuario,
+        estado_cuenta: data.status || "activo",
+        fecha_bloqueo: data.fecha_bloqueo || null,
+        motivo_bloqueo: data.motivo_bloqueo || ""
+      });
+    }
+
+    // 🔹 SI NO EXISTE → CREAR
+    const nuevoUsuario = {
+      nombre_user: nombre_user || "Usuario",
+      numero_user: numero_usuario,
+      id_user: id_user || "",
+      status: "activo",
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+
+    await ref.set(nuevoUsuario);
+
+    return res.json({
+      exists: false,
+      nombre_cliente: nuevoUsuario.nombre_user,
+      numero_cliente: numero_usuario,
+      estado_cuenta: "activo",
+      fecha_bloqueo: null,
+      motivo_bloqueo: ""
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Error interno" });
+  }
+});
 // ==================== Algolia ====================
 const APP_ID = process.env.ALGOLIA_APP_ID || "";
 const API_KEY = process.env.ALGOLIA_API_KEY || "";
@@ -1864,7 +1994,7 @@ exports.verificarMinimoSeguidores = onDocumentCreated(
             await enviarNotificacionFCM_tienda({
               token,
               title: `🎉 ¡Felicidades ${nombre_tienda}!`,
-              body: `¡Alcanzaste ${totalSeguidores} seguidores! Ya puedes enviar promociones 📢`,
+              body: `¡Alcanzaste ${totalSeguidores} seguidores! Ya puedes enviar notificaciones a tus seguidores 📢`,
               idTienda,
               tipo_notificacion: "logo",
               prioridad: "high",

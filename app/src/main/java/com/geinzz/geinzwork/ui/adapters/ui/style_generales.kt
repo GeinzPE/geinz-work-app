@@ -919,6 +919,7 @@ fun ZoomableGalleryFullScreen_para_promociones(
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun ZoomableGalleryFullScreen_promociones(
+    es_la_misma_tienda_o_no: Boolean,
     estadisticas: EstadisticasPromo?,
     i: compartir_contacto_pulicaciones,
     titulo: String, txt: String,
@@ -1031,6 +1032,7 @@ fun ZoomableGalleryFullScreen_promociones(
                 )
 
                 // Texto centrado REAL
+                // Texto centrado REAL
                 if (imagenes.size > 1) {
                     Text(
                         text = "${pagerState.currentPage + 1} de ${imagenes.size}",
@@ -1100,13 +1102,23 @@ fun ZoomableGalleryFullScreen_promociones(
                         contentDescription = null,
                         contentScale = ContentScale.Crop
                     )
+                    Column (verticalArrangement = Arrangement.spacedBy(5.dp)){
+
                     Text(
                         text = i.nombre_tienda.capitalizeFirst(),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
+                        if(es_la_misma_tienda_o_no){
+                            Text(
+                                text = "Solo publicaciones de ${i.nombre_tienda.capitalizeFirst()}",
+                                fontSize = 8.sp,
+                            )
+                        }
+                    }
                 }
                 spacer_vertical(10.dp)
+
                 Text(
                     text = titulo.capitalizeFirst(),
                     fontSize = 13.sp,

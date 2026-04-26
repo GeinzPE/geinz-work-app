@@ -682,7 +682,7 @@ fun ui_promos_cerca_de_ti(
                                         i = itemFiltros,
                                         seleccionada = false,
                                         img_clikeada = { id ->
-                                            // 🔹 Logueamos el click en la imagen del header
+
                                             Log.d("DEBUG_FILTROS", "Click en FILTROS_GENERALES, id: $id")
                                             mostar_bottom_sheet_datos = true
                                         }
@@ -813,7 +813,7 @@ fun ui_promos_cerca_de_ti(
                                                 if (tiendaSeleccionada == id) {
                                                     // 🔥 Si ya está seleccionada → deseleccionar
                                                     tiendaSeleccionada = null
-//                                                    viewModel.limpiar_filtro_promociones()
+                                                    viewModel.mostrarTodasLasPromociones()
                                                 } else {
                                                     // 🔥 Si no está seleccionada → seleccionar
                                                     tiendaSeleccionada = id
@@ -1062,6 +1062,7 @@ fun ui_promos_cerca_de_ti(
 //                if (mostrar_zoom_img && promoSeleccionada != null) {
                 if (mostrar_zoom_img) {
                     ZoomableGalleryFullScreenVerticalPager(
+                        if (tiendaSeleccionada != null) true else false,
                         tiendaSeleccionada1 = tiendaSeleccionada,
                         categoria_select_filtro = subCategoriaSeleccionada,
                         id_user = uid_respald_user,

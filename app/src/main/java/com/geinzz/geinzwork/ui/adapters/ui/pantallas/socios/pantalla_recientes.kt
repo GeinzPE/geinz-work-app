@@ -76,6 +76,7 @@ import kotlinx.coroutines.launch
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PantallaRecientes(
+    estado_notificacion_promocion_publicados:String,
     id_tienda: String,
     localidad_tienda: String,
     viewModelPantallasRecientes: viewmodel_pantallas_recientes = viewModel(),
@@ -103,7 +104,11 @@ fun PantallaRecientes(
         "Promos por vencer",
         "Promos en pausa"
     )
-    var subCategoriaSeleccionada by remember { mutableStateOf("Promociones o ofertas") }
+    var subCategoriaSeleccionada by remember {
+        mutableStateOf(
+            estado_notificacion_promocion_publicados.ifBlank { "Promociones o ofertas" }
+        )
+    }
     var bottom_sheet_datos_competos by remember { mutableStateOf(false) }
     var bottom_sheet_datos_competos_notificacion by remember { mutableStateOf(false) }
     var id_promo_select by remember { mutableStateOf("") }

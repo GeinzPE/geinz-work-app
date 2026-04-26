@@ -186,6 +186,7 @@ fun pantalla_principal(
     cerrar_buttom_var: () -> Unit,
     onback_preset: () -> Unit,
     geinz_inmobiliaria:(String,String)-> Unit,
+    navegacion_para_promos:(localida:String,id_prmo: String)-> Unit
 ) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -842,8 +843,8 @@ fun pantalla_principal(
         }
 
         if (navegarAPromo) {
-            listner_sevicios_tramites(localidad_promo_seleccionada, idPromoSeleccionada)
-
+//            listner_sevicios_tramites(localidad_promo_seleccionada, idPromoSeleccionada)
+            navegacion_para_promos(localidad_promo_seleccionada,idPromoSeleccionada)
         }
 
         if (mostar_bottom_sheet_ayuda_geinz) {

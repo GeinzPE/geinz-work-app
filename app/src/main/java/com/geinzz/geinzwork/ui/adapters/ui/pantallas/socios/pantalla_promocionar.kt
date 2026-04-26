@@ -241,6 +241,7 @@ fun pantalla_promocionar(
     viewmodel_pantalla_promocionar: viewmodel_pantallas_promocionar,
     viewmodel_socios: viewmodel_eres_socio,
     i: items_pantallas_promociones,
+    pasar_a_reecientes:(String)-> Unit,
     ocultar_buttom_bar: () -> Unit,
     mostrar_buttom_bar: () -> Unit
 ) {
@@ -1147,6 +1148,7 @@ fun pantalla_promocionar(
 //                viewmodel_pantalla_promocionar.reseteo_compartir()
 //                viewmodel_pantalla_promocionar.reseteo_wshap_promocion()
 
+                pasar_a_reecientes("Promociones o ofertas")
 
             }
 
@@ -1219,6 +1221,8 @@ fun pantalla_promocionar(
                 viewmodel_pantalla_promocionar.resetearEstadosNotificacion()
                 msje_texto_notificacion_generada = "Mejorar con IA"
                 mnsje_estado_notificacion_generada = "Mejorar titulo y texto con IA"
+
+                pasar_a_reecientes("Notificaciones")
             }
 
             else -> {}

@@ -110,7 +110,12 @@ import com.google.firebase.auth.FirebaseAuth
 @OptIn(ExperimentalAnimationApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun login_socios(isConnected: Boolean, tipo_: String = "", navController: NavHostController,localidad_user:String) {
+fun login_socios(
+    isConnected: Boolean,
+    tipo_: String = "",
+    navController: NavHostController,
+    localidad_user: String
+) {
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
@@ -135,8 +140,11 @@ fun login_socios(isConnected: Boolean, tipo_: String = "", navController: NavHos
         .collectAsState(initial = "")
     var ingresar_correo by remember { mutableStateOf(false) }
     var correo_electronico_cuenta_user by remember { mutableStateOf("") }
-    var item_pantalla_promociones by remember { mutableStateOf(items_pantallas_promociones()
-    ) }
+    var item_pantalla_promociones by remember {
+        mutableStateOf(
+            items_pantallas_promociones()
+        )
+    }
     var pantallaSeleccionada by remember { mutableStateOf("Inicio") }
     val viewmodel_pantalla_promocionar: viewmodel_pantallas_promocionar = viewModel()
     val mostarr_bundel_recientes by viewmodel_pantalla_promocionar.estado_envio_recientes.collectAsState()
@@ -144,6 +152,7 @@ fun login_socios(isConnected: Boolean, tipo_: String = "", navController: NavHos
     var mostrar_bundle_desbloqueo by remember { mutableStateOf(false) }
     var mostrar_bundle_recargas by remember { mutableStateOf(false) }
     var campoBloqueante by mutableStateOf<viewmodel_pantallas_promocionar.CampoPendiente?>(null)
+    var estado_notificacion_promocion_publicados by remember { mutableStateOf("") }
 
 
     var nombre_tienda by remember { mutableStateOf("") }
@@ -631,9 +640,9 @@ fun login_socios(isConnected: Boolean, tipo_: String = "", navController: NavHos
                                                 datos_generaciones = datos_generaciones_sin_publicaicones()
                                             )
                                             viewmodel.setear_datos_datos_publicada_IA(datos)
-                                        },ocultar_button_bar={
+                                        }, ocultar_button_bar = {
                                             Toast.makeText(context, "", Toast.LENGTH_SHORT).show()
-                                        },mostrar_buttom_bar={
+                                        }, mostrar_buttom_bar = {
                                             Toast.makeText(context, "", Toast.LENGTH_SHORT).show()
                                         }
                                     )
@@ -893,13 +902,20 @@ fun login_socios(isConnected: Boolean, tipo_: String = "", navController: NavHos
                                         pantalla_promocionar(
                                             viewmodel_pantalla_promocionar = viewmodel_pantalla_promocionar,
                                             viewmodel_socios = viewmodel,
-                                            i = item_pantalla_promociones, ocultar_buttom_bar = {
-                                            }, mostrar_buttom_bar = {
+                                            i = item_pantalla_promociones,
+                                            pasar_a_reecientes = { parametro ->
+                                                estado_notificacion_promocion_publicados=parametro
+                                                pantallaSeleccionada="Publicaciones"
+                                            },
+                                            ocultar_buttom_bar = {
+                                            },
+                                            mostrar_buttom_bar = {
                                             })
                                     }
 
                                     "Publicaciones" -> {
                                         PantallaRecientes(
+                                            estado_notificacion_promocion_publicados,
                                             id_tienda,
                                             localidad_tienda,
                                             viewmodel_pantalla_reciente, { cargando ->

@@ -45,6 +45,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ZoomableGalleryFullScreenVerticalPager(
+    es_la_misma_tienda_o_no: Boolean,
     tiendaSeleccionada1: String?,
     categoria_select_filtro: String,
     id_user: String,
@@ -247,7 +248,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
 
                         val stats = viewModel.statsCache[promo.informacion_publcacion.id_promocion]
 
-                        ZoomableGalleryFullScreen_promociones(
+                        ZoomableGalleryFullScreen_promociones(es_la_misma_tienda_o_no,
                             stats,
                             i = datos,
                             titulo = promo.informacion_publcacion.titulo,
