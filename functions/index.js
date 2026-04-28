@@ -24,14 +24,13 @@ admin.initializeApp();
 const axios = require("axios");
 
 const CULQI_KEY = process.env.CULQI_KEY; // 🔹 v2: se usa env variable
-const PHONE_ID = process.env.ID_NUMBER_WHATSAPP; 
-const WHATSAPP_TOKEN = process.env.ID_API_WHATSAPP; 
+const PHONE_ID = process.env.ID_NUMBER_WHATSAPP;
+const WHATSAPP_TOKEN = process.env.ID_API_WHATSAPP;
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const path = require("path");
 
 const db = admin.firestore();
-
 
 // ==================== culqui ====================
 exports.crearOrdenCulqi = onCall({ region: "us-central1" }, async (req) => {
@@ -46,7 +45,7 @@ exports.crearOrdenCulqi = onCall({ region: "us-central1" }, async (req) => {
   console.log("localidad:", localidad);
   console.log("===========================");
 
- const montoInt = parseInt(monto) * 100;
+  const montoInt = parseInt(monto) * 100;
   const orderId = "order_" + Date.now();
 
   try {
@@ -122,7 +121,9 @@ async function generarPDF({ userId, monedas, chargeId, monto }) {
 
   doc.pipe(fs.createWriteStream(filePath));
 
-  const logo = await getImageBuffer("https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo%20geinz.png?alt=media&token=4b90f507-8914-4f75-ae8e-0a1a0acda2a5");
+  const logo = await getImageBuffer(
+    "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo%20geinz.png?alt=media&token=4b90f507-8914-4f75-ae8e-0a1a0acda2a5",
+  );
 
   // 🟨 HEADER IZQUIERDA
   doc.image(logo, 30, 30, { width: 80 });
@@ -136,9 +137,7 @@ async function generarPDF({ userId, monedas, chargeId, monto }) {
     .text("Email: soybenjadesing@gmail.com");
 
   // 🧾 CAJA DERECHA (tipo SUNAT)
-  doc
-    .roundedRect(380, 30, 180, 80, 5)
-    .stroke();
+  doc.roundedRect(380, 30, 180, 80, 5).stroke();
 
   doc
     .fontSize(10)
@@ -161,9 +160,7 @@ async function generarPDF({ userId, monedas, chargeId, monto }) {
   const startY = 180;
 
   // encabezado tabla
-  doc
-    .rect(30, startY, 530, 20)
-    .stroke();
+  doc.rect(30, startY, 530, 20).stroke();
 
   doc
     .fontSize(8)
@@ -173,9 +170,7 @@ async function generarPDF({ userId, monedas, chargeId, monto }) {
     .text("IMPORTE", 480, startY + 5);
 
   // fila
-  doc
-    .rect(30, startY + 20, 530, 200)
-    .stroke();
+  doc.rect(30, startY + 20, 530, 200).stroke();
 
   doc
     .fontSize(9)
@@ -212,20 +207,21 @@ async function generarPDF({ userId, monedas, chargeId, monto }) {
     .text(
       "Representación impresa de la boleta electrónica. Consulte en SUNAT.",
       30,
-      doc.page.height - 40
+      doc.page.height - 40,
     );
 
   doc.end();
 
   return filePath;
 }
+
 async function subirPDF(filePath, fileName) {
   const bucket = admin.storage().bucket();
 
   await bucket.upload(filePath, {
     destination: `boletas/${fileName}`,
     metadata: { contentType: "application/pdf" },
-    public: true
+    public: true,
   });
 
   const url = `https://storage.googleapis.com/${bucket.name}/boletas/${fileName}`;
@@ -241,88 +237,93 @@ async function enviarPDFWhatsApp(numero, pdfUrl) {
       type: "document",
       document: {
         link: pdfUrl,
-        filename: "boleta_geinz.pdf"
-      }
+        filename: "boleta_geinz.pdf",
+      },
     },
     {
       headers: {
         Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-        "Content-Type": "application/json"
-      }
-    }
+        "Content-Type": "application/json",
+      },
+    },
   );
 }
 
-async function emitirBoletaNubefact({ userId, monedas, chargeId, monto, email, nombre }) {
+async function emitirBoletaNubefact({
+  userId,
+  monedas,
+  chargeId,
+  monto,
+  email,
+  nombre,
+}) {
   const response = await axios.post(
     "https://api.nubefact.com/api/v1/02bb7d82-0b0c-4006-82a5-74b7437bea0b",
     {
-      "operacion": "generar_comprobante",
-      "tipo_de_comprobante": 2,
-      "serie": "B001",
-      "numero": 0,
-      "sunat_transaction": 1,
-      "cliente_tipo_de_documento": 0,
-      "cliente_numero_de_documento": "",   // ← agrega esto
-      "cliente_denominacion": nombre || "Consumidor final",
-      "cliente_email": email || "",
-      "items": [
+      operacion: "generar_comprobante",
+      tipo_de_comprobante: 2,
+      serie: "B001",
+      numero: 0,
+      sunat_transaction: 1,
+      cliente_tipo_de_documento: 0,
+      cliente_numero_de_documento: "", // ← agrega esto
+      cliente_denominacion: nombre || "Consumidor final",
+      cliente_email: email || "",
+      items: [
         {
-          "unidad_de_medida": "ZZ",
-          "codigo": "MON001",
-          "descripcion": `Paquete de ${monedas} monedas Geinz`,
-          "cantidad": 1,
-          "valor_unitario": (monto / 1.18).toFixed(6),
-          "precio_unitario": Number(monto).toFixed(6),
-          "descuento": "0.00",
-          "subtotal": (monto / 1.18).toFixed(6),
-          "tipo_de_igv": 1,
-          "igv": (monto - monto / 1.18).toFixed(6),
-          "total": Number(monto).toFixed(6),
-          "anticipo_regularizacion": false
-        }
+          unidad_de_medida: "ZZ",
+          codigo: "MON001",
+          descripcion: `Paquete de ${monedas} monedas Geinz`,
+          cantidad: 1,
+          valor_unitario: (monto / 1.18).toFixed(6),
+          precio_unitario: Number(monto).toFixed(6),
+          descuento: "0.00",
+          subtotal: (monto / 1.18).toFixed(6),
+          tipo_de_igv: 1,
+          igv: (monto - monto / 1.18).toFixed(6),
+          total: Number(monto).toFixed(6),
+          anticipo_regularizacion: false,
+        },
       ],
-      "moneda": 1,
-      "porcentaje_de_igv": 18.00,
-      "total_gravada": (monto / 1.18).toFixed(6),
-      "total_igv": (monto - monto / 1.18).toFixed(6),
-      "total": Number(monto).toFixed(6),
-      "enviar_automaticamente_a_la_sunat": true,
-      "enviar_automaticamente_al_cliente": !!email,
-      "codigo_unico": chargeId,
+      moneda: 1,
+      porcentaje_de_igv: 18.0,
+      total_gravada: (monto / 1.18).toFixed(6),
+      total_igv: (monto - monto / 1.18).toFixed(6),
+      total: Number(monto).toFixed(6),
+      enviar_automaticamente_a_la_sunat: true,
+      enviar_automaticamente_al_cliente: !!email,
+      codigo_unico: chargeId,
     },
     {
       headers: {
-        "Authorization": `Token token="8eee1a640fd7485cbc1da29427f59792b196deb29b954a6eb131bdb8562492fa"`,
-        "Content-Type": "application/json"
-      }
-    }
+        Authorization: `Token token="8eee1a640fd7485cbc1da29427f59792b196deb29b954a6eb131bdb8562492fa"`,
+        "Content-Type": "application/json",
+      },
+    },
   );
 
   return response.data.enlace_del_pdf;
 }
 
 async function enviarWhatsApp(numero, mensaje) {
+  const telefono = `51${numero}`;
 
-  const telefono = `51${numero}`; 
-
-await axios.post(
-  `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
-  {
-    messaging_product: "whatsapp",
-    to: `51${numero}`,
-    type: "text",
-    text: { body: mensaje }
-  },
-  {
-    headers: {
-      Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-      "Content-Type": "application/json"
-    }
-  }
-);
+  await axios.post(
+    `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
+    {
+      messaging_product: "whatsapp",
+      to: `51${numero}`,
+      type: "text",
+      text: { body: mensaje },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+    },
+  );
 }
-
 
 async function sumarSaldo(userId, monedas) {
   console.log("🟡 [sumarSaldo] INICIO");
@@ -337,9 +338,12 @@ async function sumarSaldo(userId, monedas) {
 
   console.log("📄 Referencia doc creada");
 
-  await ref.set({
-    puntos_tienda: admin.firestore.FieldValue.increment(monedas)
-  }, { merge: true });
+  await ref.set(
+    {
+      puntos_tienda: admin.firestore.FieldValue.increment(monedas),
+    },
+    { merge: true },
+  );
 
   console.log("✅ Saldo actualizado en Firestore");
 
@@ -360,10 +364,158 @@ async function sumarSaldo(userId, monedas) {
   return numero;
 }
 
-exports.confirmarPago = onCall(async (req) => {
+async function agregar_historial_de_pagos_tienda({
+  id_transaccion,
+  tipo_transaccion,
+  metodo_pago,
+  nombre_tienda,
+  id_tienda,
+  localidad_tienda,
+  tipo_paquete,
+  monto_aumentado,
+  precio_soles,
+  estado,
+  monto_anterior,
+}) {
+  console.log("🚀 INICIANDO PROCESO PAGO COMPLETO");
 
+  try {
+    // 1️⃣ HISTORIAL PRIMERO (más importante)
+    const historialRef = db
+      .collection("Tiendas")
+      .doc(localidad_tienda)
+      .collection(localidad_tienda)
+      .doc(id_tienda)
+      .collection("historial_financiero")
+      .doc(id_transaccion);
+
+    const data = {
+      id_transaccion: id_transaccion,
+      tipo_transacción: tipo_transaccion,
+
+      hora_fecha: {
+        fecha: new Date().toISOString(),
+        hora: new Date().toLocaleTimeString("es-PE"),
+      },
+
+      metodo_pago: {
+        yape: metodo_pago === "yape",
+        plin: metodo_pago === "plin",
+      },
+
+      datos_tienda: {
+        nombre_tienda,
+        id_tienda,
+        localidad_tienda,
+      },
+
+      datos_recarga: {
+        tipo_paquete,
+        monto_aumentado,
+        precio_soles,
+        estado,
+        monto_anterior,
+      },
+
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    await historialRef.set(data);
+    console.log("✅ HISTORIAL GUARDADO");
+
+    // 2️⃣ LUEGO ACTUALIZAS PAGO
+    const pagoRef = db
+      .collection("Tiendas")
+      .doc(localidad_tienda)
+      .collection("pagos_tiendas")
+      .doc(id_transaccion);
+
+    await pagoRef.set(
+      {
+        estado: "pagado",
+        actualizado_en: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+
+    console.log("💰 PAGO MARCADO COMO PAGADO");
+
+    await db
+      .collection("Tiendas")
+      .doc(localidad_tienda)
+      .collection(localidad_tienda)
+      .doc(id_tienda)
+      .update({
+        pago_actual_id: admin.firestore.FieldValue.delete(),
+      });
+
+    // 4️⃣ OBTENER PROPIETARIOS
+    const tiendaDoc = await db
+      .collection("Tiendas")
+      .doc(localidad_tienda)
+      .collection(localidad_tienda)
+      .doc(id_tienda)
+      .get();
+
+    const propietarios = tiendaDoc.data()?.propietario_id || [];
+    const mensajesRandom = [
+      "🚀 Mira tus beneficios y sácales provecho.",
+      "📈 Disfruta tu recarga y haz crecer tu negocio.",
+      "💡 Aprovecha al máximo tus créditos disponibles.",
+      "🔥 Es momento de impulsar tu tienda.",
+      "✨ Dale más visibilidad a tu negocio ahora.",
+      "🎯 Usa tus créditos estratégicamente y destaca.",
+      "🛍️ Atrae más clientes con tus nuevas opciones.",
+      "📊 Haz que tu tienda crezca con esta recarga.",
+    ];
+    // 5️⃣ ENVIAR NOTIFICACIONES
+    for (const propietarioId of propietarios) {
+      const tokenDoc = await db
+        .collection("Trabajadores_Usuarios_Drivers")
+        .doc("users")
+        .collection("tokens")
+        .doc(propietarioId)
+        .get();
+
+      const tokens = Object.values(tokenDoc.data()?.tokens || {});
+
+      for (const token of tokens) {
+        const mensajeExtra =
+          mensajesRandom[Math.floor(Math.random() * mensajesRandom.length)];
+
+        await enviarNotificacionFCM_tienda({
+          token,
+          title: "¡Recarga Exitosa! 🎉",
+          body: `👋 Hola ${nombre_tienda} Tu recarga de ${monto_aumentado} creditos fue procesada correctamente. ${mensajeExtra}`,
+          idTienda: id_tienda,
+          tipo_notificacion: "pago",
+          prioridad: "high",
+        });
+      }
+    }
+
+    console.log("🧹 campo pago_actual_id eliminado");
+  } catch (error) {
+    console.error("❌ ERROR EN PROCESO DE PAGO COMPLETO:");
+    console.error(error);
+    throw error;
+  }
+}
+
+exports.confirmarPago = onCall(async (req) => {
   console.log("=====================");
-  const { token, monto, email, userId, monedas } = req.data;
+  const {
+    token,
+    monto,
+    email,
+    userId,
+    monedas,
+    nombre_tienda,
+    localidad,
+    nombre_paquete,
+    monto_anterior,
+    id_select_boleta_pago,
+  } = req.data;
   // 👇 AGREGA ESTO PARA VER QUÉ LLEGA
   console.log("=== CONFIRMAR PAGO ===");
   console.log("token:", token);
@@ -375,28 +527,29 @@ exports.confirmarPago = onCall(async (req) => {
   try {
     const response = await axios.post(
       "https://api.culqi.com/v2/charges",
-     {
-    amount: Math.round(monto * 100),
-    currency_code: "PEN",
-    email:email||"cliente@geinz.com",
-    source_id: token,
-    capture: true,
-    description: "Compra de monedas Geinz",
-    antifraud_details: {          // ← esto faltaba
-      address: "Barranca",
-      address_city: "Barranca",
-      country_code: "PE",
-      first_name: "Cliente",
-      last_name: "Geinz",
-      phone: "999999999"
-    }
-  },
+      {
+        amount: Math.round(monto * 100),
+        currency_code: "PEN",
+        email: email || "cliente@geinz.com",
+        source_id: token,
+        capture: true,
+        description: "Compra de monedas Geinz",
+        antifraud_details: {
+          // ← esto faltaba
+          address: "Barranca",
+          address_city: "Barranca",
+          country_code: "PE",
+          first_name: nombre_tienda || "Cliente",
+          last_name: "Geinz",
+          phone: "999999999",
+        },
+      },
       {
         headers: {
           Authorization: `Bearer ${CULQI_KEY}`,
-          "Content-Type": "application/json"
-        }
-      }
+          "Content-Type": "application/json",
+        },
+      },
     );
 
     const charge = response.data;
@@ -407,45 +560,51 @@ exports.confirmarPago = onCall(async (req) => {
     if (charge.outcome?.code !== "AUT0000") {
       throw new Error("Pago no aprobado");
     }
+    await agregar_historial_de_pagos_tienda({
+      id_transaccion: id_select_boleta_pago,
+      tipo_transaccion: "recarga",
+      metodo_pago: "yape", // o dinámico si lo tienes
+      nombre_tienda: nombre_tienda, // 🔥 ideal: tráelo de DB
+      id_tienda: userId,
+      localidad_tienda: localidad, // 🔥 dinámico mejor
+      tipo_paquete: nombre_paquete,
+      monto_aumentado: monedas,
+      precio_soles: monto.toString(),
+      estado: "Aceptado",
+      monto_anterior: monto_anterior, // 🔥 puedes mejorarlo leyendo antes
+    });
 
+    const numero = await sumarSaldo(userId, monedas);
 
+    try {
+      const pdfUrl = await emitirBoletaNubefact({
+        userId,
+        monedas,
+        chargeId: charge.id,
+        monto,
+        email: "cliente@geinz.com",
+        nombre: "Consumidor Final",
+      });
 
-const numero = await sumarSaldo(userId, monedas);
+      if (typeof numero === "string" && numero.length >= 9) {
+        await enviarPDFWhatsApp(numero, pdfUrl);
+      }
+    } catch (nubefactErr) {
+      console.error(
+        "⚠️ Nubefact falló:",
+        nubefactErr.response?.data || nubefactErr.message,
+      );
+    }
 
-try {
-  const pdfUrl = await emitirBoletaNubefact({
-    userId,
-    monedas,
-    chargeId: charge.id,
-    monto,
-    email:  "cliente@geinz.com",
-    nombre: "Consumidor Final"
-  });
-
-  if (typeof numero === "string" && numero.length >= 9) {
-    await enviarPDFWhatsApp(numero, pdfUrl);
+    return {
+      ok: true,
+      chargeId: charge.id,
+    };
+  } catch (error) {
+    console.error("ERROR CHARGE:", error.response?.data || error.message);
+    throw new Error(JSON.stringify(error.response?.data || error.message));
   }
-} catch (nubefactErr) {
-  console.error("⚠️ Nubefact falló:", nubefactErr.response?.data || nubefactErr.message);
-}
-
-// ❌ BORRA ESTAS 3 LÍNEAS:
-// if (typeof numero === "string" && numero.length >= 9) {
-//   await enviarPDFWhatsApp(numero, pdfUrl);
-// }
-
-return {
-  ok: true,
-  chargeId: charge.id
-};
-
-} catch (error) {
-  console.error("ERROR CHARGE:", error.response?.data || error.message);
-  throw new Error(JSON.stringify(error.response?.data || error.message));
-}
 });
-
-
 
 // ==================== verificar_usuario_asistente ====================
 exports.verificar_usuario_asistente = onRequest(async (req, res) => {
@@ -474,7 +633,7 @@ exports.verificar_usuario_asistente = onRequest(async (req, res) => {
         numero_cliente: numero_usuario,
         estado_cuenta: data.status || "activo",
         fecha_bloqueo: data.fecha_bloqueo || null,
-        motivo_bloqueo: data.motivo_bloqueo || ""
+        motivo_bloqueo: data.motivo_bloqueo || "",
       });
     }
 
@@ -484,7 +643,7 @@ exports.verificar_usuario_asistente = onRequest(async (req, res) => {
       numero_user: numero_usuario,
       id_user: id_user || "",
       status: "activo",
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
     };
 
     await ref.set(nuevoUsuario);
@@ -495,14 +654,117 @@ exports.verificar_usuario_asistente = onRequest(async (req, res) => {
       numero_cliente: numero_usuario,
       estado_cuenta: "activo",
       fecha_bloqueo: null,
-      motivo_bloqueo: ""
+      motivo_bloqueo: "",
     });
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Error interno" });
   }
 });
+
+// ==================== agregar_pago_del_usuario ====================
+exports.agregar_pago_para_el_usuario_tienda = onCall(async (req) => {
+  const {
+    id_tienda,
+    nombre_user,
+    plan_select,
+    localdiad,
+    saldo_tienda,
+    categoira_tienda,
+    logo_tienda,
+    nombre_plan,
+    monto_pagar_de_plan,
+  } = req.data;
+
+  if (!id_tienda || !nombre_user || !plan_select || !localdiad) {
+    throw new Error("Faltan datos obligatorios");
+  }
+
+  const tiendaRef = db
+    .collection("Tiendas")
+    .doc(localdiad)
+    .collection(localdiad)
+    .doc(id_tienda);
+
+  const pagosRef = db
+    .collection("Tiendas")
+    .doc(localdiad)
+    .collection("pagos_tiendas");
+
+  const result = await db.runTransaction(async (t) => {
+    const tiendaSnap = await t.get(tiendaRef);
+    const tiendaData = tiendaSnap.data() || {};
+
+    let pagoRef;
+
+    // 🔥 SI YA EXISTE PAGO PENDIENTE → REUTILIZAR
+    if (tiendaData.pago_actual_id) {
+      pagoRef = pagosRef.doc(tiendaData.pago_actual_id);
+
+      t.set(
+        pagoRef,
+        {
+          nombre_user,
+          plan_select,
+          saldo_tienda,
+          categoira_tienda,
+          logo_tienda,
+          localdiad,
+          monto_pagar_de_plan,
+          actualizado_en: admin.firestore.FieldValue.serverTimestamp(),
+          nombre_plan: nombre_plan || "",
+        },
+        { merge: true },
+      );
+
+      return {
+        id_pago: pagoRef.id,
+        reutilizado: true,
+      };
+    }
+
+    // 🔥 SI NO EXISTE → CREAR NUEVO
+    pagoRef = pagosRef.doc();
+
+    const data = {
+      id_pago: pagoRef.id,
+      id_tienda,
+      nombre_user,
+      plan_select,
+      saldo_tienda,
+      categoira_tienda,
+      logo_tienda,
+      localdiad,
+      monto_pagar_de_plan,
+      nombre_plan: nombre_plan || "",
+      fecha_pago: admin.firestore.FieldValue.serverTimestamp(),
+      estado: "pendiente",
+    };
+
+    t.set(pagoRef, data);
+
+    t.set(
+      tiendaRef,
+      {
+        pago_actual_id: pagoRef.id,
+        estado_pago: "pendiente",
+      },
+      { merge: true },
+    );
+
+    return {
+      id_pago: pagoRef.id,
+      reutilizado: false,
+    };
+  });
+
+  return {
+    ok: true,
+    id_pago: result.id_pago,
+    reutilizado: result.reutilizado,
+  };
+});
+
 // ==================== Algolia ====================
 const APP_ID = process.env.ALGOLIA_APP_ID || "";
 const API_KEY = process.env.ALGOLIA_API_KEY || "";
@@ -985,7 +1247,7 @@ exports.agregar_usuario_de_geinz_bot = onRequest(async (req, res) => {
     if (!numero_user) {
       return res.status(400).json({
         ok: false,
-        msg: "El número de usuario es obligatorio"
+        msg: "El número de usuario es obligatorio",
       });
     }
 
@@ -1003,21 +1265,20 @@ exports.agregar_usuario_de_geinz_bot = onRequest(async (req, res) => {
       id_user: id_user || null,
       numero_user,
       from_user_id: from_user_id || null,
-      fecha_registro: admin.firestore.FieldValue.serverTimestamp()
+      fecha_registro: admin.firestore.FieldValue.serverTimestamp(),
     };
 
     await ref.set(data, { merge: true });
 
     return res.json({
       ok: true,
-      msg: "Usuario guardado correctamente"
+      msg: "Usuario guardado correctamente",
     });
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       ok: false,
-      msg: "Error al guardar usuario"
+      msg: "Error al guardar usuario",
     });
   }
 });
@@ -1106,11 +1367,10 @@ exports.obtenerCategorias = onRequest(async (req, res) => {
       ok: true,
       categorias,
     });
-
   } catch (error) {
     return res.status(500).json({
       ok: false,
-      error: "Error interno"
+      error: "Error interno",
     });
   }
 });
@@ -1122,7 +1382,7 @@ exports.obtener_subcategoira_de_cat = onRequest(async (req, res) => {
     if (!categoria) {
       return res.status(400).json({
         ok: false,
-        error: "Categoría inválida"
+        error: "Categoría inválida",
       });
     }
 
@@ -1134,19 +1394,18 @@ exports.obtener_subcategoira_de_cat = onRequest(async (req, res) => {
     if (!snap.exists) {
       return res.json({
         ok: true,
-        data: []
+        data: [],
       });
     }
 
     return res.json({
       ok: true,
-      data: snap.get("subcategorias") ?? []
+      data: snap.get("subcategorias") ?? [],
     });
-
   } catch (error) {
     return res.status(500).json({
       ok: false,
-      error: "Error interno"
+      error: "Error interno",
     });
   }
 });
@@ -1580,7 +1839,6 @@ exports.banUser = onRequest(async (req, res) => {
         <small>Geinz Tecnología E.I.R.L.</small>
       </div>
     `);
-
   } catch (error) {
     console.error("Error en banUser:", error);
     res.status(500).send("<h1>Error interno al procesar el baneo.</h1>");

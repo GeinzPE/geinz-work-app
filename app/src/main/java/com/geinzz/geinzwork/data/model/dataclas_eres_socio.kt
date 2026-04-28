@@ -35,7 +35,7 @@ data class datos_tienda(
     val localidad_tienda: String = "",
     val fecha_ingreso: String = "",
     val descripcion: String = "",
-    val descripcion_chat_bot_whatsapp:String ="",
+    val descripcion_chat_bot_whatsapp: String = "",
     val lista_ids_propietarios: List<String> = emptyList(),
     val saldo_disponible_tienda: Number = 0,
     val compartidos: Number = 0,
@@ -47,6 +47,15 @@ data class datos_tienda(
     val categoira_tienda: String = "",
     val subcategorias_tienda: List<String> = emptyList(),
     val ubicacion: ubicacaion_container = ubicacaion_container()
+)
+
+data class obj_para_recargas(
+    val id_tienda: String="",
+    val nombre_tienda: String="",
+    val localidad_tienda: String="",
+    val saldo_tienda: Int=0,
+    val categoria_tenda: String="",
+    val logo_tienda:String="",
 )
 
 data class widget_tienda(
@@ -67,7 +76,7 @@ data class obtener_img_tiendas(
     val lista_ambiernte: List<String> = emptyList(),
     val lista_productos: List<String> = emptyList(),
     val lista_promociones: Map<String, String> = emptyMap(),
-    val logo_whatsapp_bot : String =""
+    val logo_whatsapp_bot: String = ""
 )
 
 
@@ -104,17 +113,17 @@ data class agregar_promociones(
     val generaciones_con_ia: generaciones_con_ia,
     val precio_publicacion: precio_rango_publicacion,
     val horario_deseado: horario_deseado,
-    val metodos_pagos:metodos_pagos_agregados_publiaciones,
-    val servicios_comoidades:ComodidadesAgregadas
+    val metodos_pagos: metodos_pagos_agregados_publiaciones,
+    val servicios_comoidades: ComodidadesAgregadas
 )
 
 data class metodos_pagos_agregados_publiaciones(
-    val yape: Boolean=false,
-    val plin: Boolean=false,
-    val agora: Boolean=false,
-    val efectivo: Boolean=false,
-    val visa: Boolean=false,
-    val mastercard: Boolean=false
+    val yape: Boolean = false,
+    val plin: Boolean = false,
+    val agora: Boolean = false,
+    val efectivo: Boolean = false,
+    val visa: Boolean = false,
+    val mastercard: Boolean = false
 )
 
 
@@ -234,7 +243,7 @@ data class items_pantallas_promociones(
     val id_tienda: String = "",
     val metodosPago: modelo_pagos_tienda = modelo_pagos_tienda(),
     val serviciosComodidades: List<servicio_comodidad> = emptyList(),
-    )
+)
 
 data class obj_contador_notificaciones(
     val id_tienda: String,
@@ -360,8 +369,9 @@ data class GeneracionIA(
 )
 
 data class tipo_de_genearcion_para_imagen(
-    val tipo:String,
-    val realiazar_promp: String)
+    val tipo: String,
+    val realiazar_promp: String
+)
 
 
 data class historial_financiero(
@@ -428,8 +438,8 @@ data class obtener_datos_promociones(
     val rango_publicacion: String,
     val precio_publicacion: String,
     val horaio_publicacion: String,
-    val metodos_pagos:metodos_pagos_agregados_publiaciones,
-    val servicios_comoidades:ComodidadesAgregadas
+    val metodos_pagos: metodos_pagos_agregados_publiaciones,
+    val servicios_comoidades: ComodidadesAgregadas
 )
 
 

@@ -54,15 +54,12 @@ class viewmodel_eres_socio : ViewModel() {
     val instace_repo = repo_eres_socio()
 
 
-
     var promocionId by mutableStateOf("")
         private set
 
 
     var notificacion_ID by mutableStateOf("")
         private set
-
-
 
 
     // El privado es el que puedes modificar dentro del ViewModel
@@ -80,16 +77,21 @@ class viewmodel_eres_socio : ViewModel() {
 
     val datos_notificaciones = MutableStateFlow(datos_notificacion())
 
+    // StateFlow privado (mutable)
+    private val _estado_Carga_subacategoria =
+        MutableStateFlow<Estado_carga_subcategoiras>(Estado_carga_subcategoiras.idle)
+
+    // StateFlow público (solo lectura)
+    val estado_Carga_subacategoria: StateFlow<Estado_carga_subcategoiras> =
+        _estado_Carga_subacategoria
 
     fun setear_datos_notificacion_publicada_IA(i: datos_notificacion) {
         datos_notificaciones.value = i
     }
 
-    fun resetear_valor_estado_whatsapp_subido_y_gemini(){
-        _estado_subido_desc_para_bot.value=false
+    fun resetear_valor_estado_whatsapp_subido_y_gemini() {
+        _estado_subido_desc_para_bot.value = false
     }
-
-
 
 
     fun setear_datos_datos_publicada_IA(i: DatosPublicidadIA) {
@@ -109,18 +111,75 @@ class viewmodel_eres_socio : ViewModel() {
         datos_publicidad_IA_params.value = data
     }
 
+    fun obtener_subcategorias(cat: String) {
+        viewModelScope.launch {
+            try {
+                val subcateogiras = instace_repo.obtener_subcateogiras(cat)
+                if (subcateogiras.isNotEmpty()) {
+                    _estado_Carga_subacategoria.value =
+                        Estado_carga_subcategoiras.succes(subcateogiras)
+                } else {
+                    _estado_Carga_subacategoria.value = Estado_carga_subcategoiras.empty
+                }
+            } catch (e: Exception) {
+                Log.d("error_obtener", "$e")
+                _estado_Carga_subacategoria.value =
+                    Estado_carga_subcategoiras.error("Hubo un error al obtner los resultados")
+            }
+        }
+    }
+
+    fun guardar_cambios_subcateogira(
+        idTienda: String,
+        localidad: String,
+        lista: List<String>
+    ) {
+        viewModelScope.launch {
+            try {
+                instace_repo.guardar_cambios_subcategoria_negocio(idTienda, localidad, lista)
+            } catch (e: Exception) {
+                Log.d("eror_actualziar", "error al actualziar los campos $e")
+            }
+        }
+    }
+
+    fun actualiza_direccion_de_tienda(
+        idTienda: String,
+        localidad: String,
+        dato: String, tipo: String
+    ) {
+        viewModelScope.launch {
+            try {
+                when (tipo) {
+                    "dir" -> {
+                        instace_repo.guardar_direccion_negocio(idTienda, localidad, dato)
+                    }
+
+                    "ref" -> {
+                        instace_repo.guardar_referencia_negocio(idTienda, localidad, dato)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.d("eror_actualziar", "error al actualziar la direccion y referncia $e")
+
+            }
+        }
+
+    }
+
 
     fun limpiar_datos_pasados_notificaciones_con_IA() {
         datos_notificaciones.value = datos_notificacion()
     }
 
 
-    fun guadardar_descripcion_whattsapp_bot(id_tienda: String, localidad: String, texto: String,){
+    fun guadardar_descripcion_whattsapp_bot(id_tienda: String, localidad: String, texto: String) {
         viewModelScope.launch {
             try {
-                _estado_subido_desc_para_bot.value= instace_repo.agregar_descripcion_seo_bot(id_tienda,localidad,texto)
-            }catch (e: Exception){
-                Log.d("error_data","$e")
+                _estado_subido_desc_para_bot.value =
+                    instace_repo.agregar_descripcion_seo_bot(id_tienda, localidad, texto)
+            } catch (e: Exception) {
+                Log.d("error_data", "$e")
 
             }
         }
@@ -945,6 +1004,7 @@ class viewmodel_eres_socio : ViewModel() {
             }
         }
     }
+
     fun prepararInputParaIA(
         listaSubcategorias: List<String>,
         pagos: modelo_pagos_tienda,
@@ -1013,6 +1073,14 @@ class viewmodel_eres_socio : ViewModel() {
         data class Error(val mensaje: String) : EstadoSeguidores()
         data class NoCumpleMinimo(val cantidad: Int) :
             EstadoSeguidores() // nuevo estado si hay menos de 10 seguidores
+    }
+
+    sealed class Estado_carga_subcategoiras {
+        object cagando : Estado_carga_subcategoiras()
+        data class succes(val lista_datos: List<String>) : Estado_carga_subcategoiras()
+        object empty : Estado_carga_subcategoiras()
+        data class error(val error: String) : Estado_carga_subcategoiras()
+        object idle : Estado_carga_subcategoiras()
     }
 
     companion object

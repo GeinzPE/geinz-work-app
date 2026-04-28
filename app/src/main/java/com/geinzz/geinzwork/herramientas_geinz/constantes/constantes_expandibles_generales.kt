@@ -68,25 +68,40 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import kotlin.collections.forEach
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.Undo
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Alignment
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.servicio_comodidad
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_textField_150
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.chips_filtrado
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.chips_subcategorias_negocio
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.getCategoriaIcon
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_recargas
@@ -177,8 +192,8 @@ object constantes_expandibles_generales {
     @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun expandibles_wrapp_socio_geinzz_datos_tienda(
-        nombre_tienda:String,
-        viewmodel_recargas:viewmodel_recargas,
+        nombre_tienda: String,
+        viewmodel_recargas: viewmodel_recargas,
         viewModelFiltros: viewmodel_eres_socio,
         context: Context,
         expandido: Boolean,
@@ -307,12 +322,12 @@ object constantes_expandibles_generales {
                                     modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
                                 )
 
-                                if(datos_tienda_fechas.fecha_termino.isNotEmpty()){
-                                texto_generico_one_line(
-                                    "fecha de finalizacion :${datos_tienda_fechas.fecha_termino}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
-                                )
+                                if (datos_tienda_fechas.fecha_termino.isNotEmpty()) {
+                                    texto_generico_one_line(
+                                        "fecha de finalizacion :${datos_tienda_fechas.fecha_termino}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.padding(start = 5.dp, bottom = 5.dp)
+                                    )
                                 }
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -377,7 +392,9 @@ object constantes_expandibles_generales {
                 ondimis = { por_renovar = !por_renovar },
                 comprar = { total_cancelar, meses_agregados ->
                     viewModelFiltros.descontar_puntos(
-                        viewmodel_recargas, datos_tienda_fechas.saldo_cuenta_tienda.toInt(),nombre_tienda,
+                        viewmodel_recargas,
+                        datos_tienda_fechas.saldo_cuenta_tienda.toInt(),
+                        nombre_tienda,
                         localidad_tienda = "barranca",
                         id_tienda = datos_tienda_fechas.id_tienda,
                         puntos_descuento = total_cancelar.toInt(),
@@ -647,7 +664,7 @@ object constantes_expandibles_generales {
     @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun expandibles_wrapp_socio_metodos_pago_tienda(
-        id_user:String,
+        id_user: String,
         viewModelFiltros: viewmodel_eres_socio,
         context: Context,
         expandido: Boolean,
@@ -728,7 +745,8 @@ object constantes_expandibles_generales {
                                     style = MaterialTheme.typography.bodyMedium
                                 )
 
-                                verificar_activo_pago(id_user,
+                                verificar_activo_pago(
+                                    id_user,
                                     logo = R.drawable.yape_logo,
                                     nombre_metodo = "yape",
                                     enable = metodos_pago.yape.enable,
@@ -760,7 +778,8 @@ object constantes_expandibles_generales {
 
 
 
-                                verificar_activo_pago(id_user,
+                                verificar_activo_pago(
+                                    id_user,
                                     logo = R.drawable.logo_plin,
                                     nombre_metodo = "plin",
                                     enable = metodos_pago.plin.enable,
@@ -790,7 +809,8 @@ object constantes_expandibles_generales {
                                         guardar_dado_datos()
                                     })
 
-                                verificar_activo_pago(id_user,
+                                verificar_activo_pago(
+                                    id_user,
                                     logo = R.drawable.logo_agora,
                                     nombre_metodo = "agora",
                                     enable = metodos_pago.agora.enable,
@@ -809,7 +829,8 @@ object constantes_expandibles_generales {
                                     },
                                     cambiar_datos_internos_pagos = { titular: String, numero: String, uri -> })
 
-                                verificar_activo_pago(id_user,
+                                verificar_activo_pago(
+                                    id_user,
                                     logo = R.drawable.efectivo_logo,
                                     nombre_metodo = "efectivo",
                                     enable = metodos_pago.efectivo.enable,
@@ -828,7 +849,8 @@ object constantes_expandibles_generales {
                                     },
                                     cambiar_datos_internos_pagos = { titular: String, numero: String, uri -> })
 
-                                verificar_activo_pago(id_user,
+                                verificar_activo_pago(
+                                    id_user,
                                     logo = R.drawable.visa_logo,
                                     nombre_metodo = "visa",
                                     enable = metodos_pago.visa_mastercard.enable,
@@ -1134,7 +1156,7 @@ object constantes_expandibles_generales {
     @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun expandido_wrap_socio_atributos(
-        id_tienda:String,localida:String,
+        id_tienda: String, localida: String,
         aforo_max: String,
         viewModelFiltros: viewmodel_eres_socio,
         expandido: Boolean,
@@ -1209,7 +1231,9 @@ object constantes_expandibles_generales {
 
                             // 🔼 MODO EXPANDIDO
                             Column(
-                                modifier = Modifier.fillMaxWidth() .fillParentMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .fillParentMaxWidth(),
 
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
 
@@ -1245,7 +1269,8 @@ object constantes_expandibles_generales {
                                         }
                                     },
                                     labelText = "Aforo máximo de personas",
-                                    placeholderText = "Ejemplo: 50",    keyboardOptions = KeyboardOptions(
+                                    placeholderText = "Ejemplo: 50",
+                                    keyboardOptions = KeyboardOptions(
                                         keyboardType = KeyboardType.Number
                                     )
                                 )
@@ -1261,7 +1286,11 @@ object constantes_expandibles_generales {
                                             .clickable {
                                                 guardar_dado_datos(aforoEditado)
                                                 onClickExpand()
-                                                viewModelFiltros.guardar_aforo(aforoEditado,id_tienda,localida)
+                                                viewModelFiltros.guardar_aforo(
+                                                    aforoEditado,
+                                                    id_tienda,
+                                                    localida
+                                                )
                                             },
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -1324,7 +1353,7 @@ object constantes_expandibles_generales {
     @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun verificar_activo_pago(
-        iduser:String,
+        iduser: String,
         logo: Int,
         nombre_metodo: String,
         enable: Boolean,
@@ -1405,7 +1434,7 @@ object constantes_expandibles_generales {
 
                 spacer_horizonta(10.dp)
 
-                textoMetodoPago(true,nombre_metodo.capitalizeFirst()) {
+                textoMetodoPago(true, nombre_metodo.capitalizeFirst()) {
                     if (enable) mostrarCampos = !mostrarCampos
                 }
 
@@ -2012,6 +2041,7 @@ object constantes_expandibles_generales {
             )
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun expandibles_wrapp_socio_geinzz_horario_atencion(
@@ -2059,7 +2089,8 @@ object constantes_expandibles_generales {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             texto_generico_one_line(
-                                "Horario de hoy $dia :  ", style = MaterialTheme.typography.bodyMedium
+                                "Horario de hoy $dia :  ",
+                                style = MaterialTheme.typography.bodyMedium
                             )
                             retornar_color_estado_tienda_Box(
                                 "",
@@ -2102,6 +2133,316 @@ object constantes_expandibles_generales {
                     }
                 }
 
+            }
+        }
+    }
+
+    @Composable
+    fun expandible_wrapp_cambiar_subcateogira_negocio(
+        subcateogira: List<String>,
+        estado_Carga_subacategoria: viewmodel_eres_socio.Estado_carga_subcategoiras,
+        categoria: String, expandido: Boolean, onClickExpand: () -> Unit,
+        actualziar_campos: (lista: List<String>) -> Unit
+    ) {
+        var lista_actualizada by remember(subcateogira) {
+            mutableStateOf(subcateogira)
+        }
+        val hayCambios by remember(subcateogira, lista_actualizada) {
+            derivedStateOf {
+                subcateogira.map { it.lowercase() }.toSet() !=
+                        lista_actualizada.map { it.lowercase() }.toSet()
+            }
+        }
+        ConstraintLayout(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .animateContentSize()
+                .padding(horizontal = 10.dp, vertical = 15.dp)
+        ) {
+            val (texto, btn) = createRefs()
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(15.dp),
+                modifier = Modifier.constrainAs(texto) {
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                }
+
+            ) {
+                item {
+
+                    AnimatedContent(
+                        targetState = expandido, transitionSpec = {
+                            fadeIn() togetherWith fadeOut()
+                        }) { estado ->
+                        if (!estado) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() }) {
+                                        onClickExpand()
+                                    }) {
+
+                                texto_generico_one_line(
+                                    "Categoria y subcategoiras : ${categoria.capitalizeFirst()} ${
+                                        getCategoriaIcon(
+                                            categoria
+                                        )
+                                    }",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+
+                        } else {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .fillParentMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable(
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() }) {
+                                            onClickExpand()
+                                        }, contentAlignment = Alignment.Center
+                                ) {
+                                    texto_generico_one_line(
+                                        "Categoria y subcategoiras",
+                                        style = MaterialTheme.typography.titleLarge
+                                    )
+                                }
+                                spacer_vertical(5.dp)
+                                texto_generico_multilinea(
+                                    "Actualmente estas en $categoria y en la subcategorias :${
+                                        subcateogira.joinToString(
+                                            ", "
+                                        ) { it.capitalizeFirst() }
+                                    }"
+                                )
+                                texto_generico_multilinea(
+                                    "Actualiza en tiempo real tus subcategorías para que los clientes identifiquen rápidamente los productos o servicios que ofreces.",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+
+                                when (estado_Carga_subacategoria) {
+
+                                    viewmodel_eres_socio.Estado_carga_subcategoiras.cagando -> {
+                                        Box(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            CircularProgressIndicator()
+                                        }
+                                    }
+
+                                    viewmodel_eres_socio.Estado_carga_subcategoiras.empty,
+                                    viewmodel_eres_socio.Estado_carga_subcategoiras.idle -> {
+                                        Text("No hay subcategorías disponibles")
+                                    }
+
+                                    is viewmodel_eres_socio.Estado_carga_subcategoiras.succes -> {
+                                        val lista = estado_Carga_subacategoria.lista_datos
+
+                                        chips_subcategorias_negocio(
+                                            subcategorias_usuario = subcateogira,
+                                            lista_db = lista,
+                                            onSeleccionCambia = { nuevaLista ->
+                                                lista_actualizada = nuevaLista
+                                            }
+                                        )
+
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        if (hayCambios) {
+
+                                            Button(
+                                                onClick = {
+                                                    actualziar_campos(lista_actualizada)
+                                                },
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                texto_generico_one_line(
+                                                    "Guardar cambios",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = Color.White
+                                                )
+                                            }
+
+                                            texto_generico_multilinea(
+                                                "Al guardar los cambios, asegúrate de actualizar tu descripción o agregar nuevo contenido para que el asistente de WhatsApp refleje en tiempo real lo más reciente de tu negocio.",
+                                                style = MaterialTheme.typography.labelSmall
+                                            )
+                                        }
+                                    }
+
+                                    else -> {}
+                                }
+
+
+                                spacer_vertical(7.dp)
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    @Composable
+    fun expandible_wrapp_ubicacion_direccion_referencia(
+        expandido: Boolean,
+        direccion: String,
+        ref: String,
+        lat: Double,
+        long: Double,
+        onClickExpand: () -> Unit,
+        actualiza_direccion: (String) -> Unit,
+        actualiza_referencia: (String) -> Unit
+    ) {
+
+        // 🔥 estados originales (base de comparación)
+        var direccion_original by remember { mutableStateOf(direccion) }
+        var referencia_original by remember { mutableStateOf(ref) }
+
+        // 🔥 estados editables
+        var direccion_var by remember(direccion) { mutableStateOf(direccion) }
+        var referencia_var by remember(ref) { mutableStateOf(ref) }
+
+        // 🔥 detectar cambios
+        val hayCambioDireccion by remember(direccion_original, direccion_var) {
+            derivedStateOf {
+                direccion_original.trim() != direccion_var.trim()
+            }
+        }
+
+        val hayCambioReferencia by remember(referencia_original, referencia_var) {
+            derivedStateOf {
+                referencia_original.trim() != referencia_var.trim()
+            }
+        }
+
+        ConstraintLayout(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .animateContentSize()
+                .padding(horizontal = 10.dp, vertical = 15.dp)
+        ) {
+            val (texto, btn) = createRefs()
+
+            AnimatedContent(
+                targetState = expandido,
+                transitionSpec = { fadeIn() togetherWith fadeOut() }
+            ) { estado ->
+
+                if (!estado) {
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) { onClickExpand() }
+                    ) {
+                        texto_generico_one_line(
+                            "Ubicacion : 📍 $direccion",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+                } else {
+
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ) { onClickExpand() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            texto_generico_one_line(
+                                "Ubicacion",
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        }
+
+                        texto_generico_multilinea(
+                            "Si cambias de ubicación, actualiza tu dirección, referencia y coordenadas en tiempo real para que tus clientes siempre puedan encontrarte.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        spacer_vertical(5.dp)
+                        // 🔹 DIRECCIÓN
+                        custom_textField_150(
+                            false,
+                            rounder = 35,
+                            value = direccion_var,
+                            onValueChange = {
+                                direccion_var = it
+                            },
+                            labelText = "Direccion del negocio",
+                            placeholderText = "Direccion del negocio"
+                        )
+
+                        if (hayCambioDireccion) {
+                            Button(
+                                onClick = {
+                                    actualiza_direccion(direccion_var.trim())
+
+                                    // 🔥 sincroniza estado → oculta botón
+                                    direccion_original = direccion_var.trim()
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                texto_generico_one_line(
+                                    "Guardar cambios",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.White
+                                )
+                            }
+                        }
+
+                        // 🔹 REFERENCIA
+                        custom_textField_150(
+                            false,
+                            rounder = 35,
+                            value = referencia_var,
+                            onValueChange = {
+                                referencia_var = it
+                            },
+                            labelText = "Referencia del negocio",
+                            placeholderText = "Referencia del negocio"
+                        )
+
+                        if (hayCambioReferencia) {
+                            Button(
+                                onClick = {
+                                    actualiza_referencia(referencia_var.trim())
+
+                                    // 🔥 sincroniza estado → oculta botón
+                                    referencia_original = referencia_var.trim()
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                texto_generico_one_line(
+                                    "Guardar cambios",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

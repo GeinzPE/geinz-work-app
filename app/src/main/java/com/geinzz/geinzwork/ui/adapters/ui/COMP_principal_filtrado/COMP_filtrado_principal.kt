@@ -226,6 +226,7 @@ fun custom_texFiel(
 
 @Composable
 fun custom_textField_150(
+    mostrar_contado_palabras: Boolean=true,
     rounder: Int = 50,
     value: String,
     onValueChange: (String) -> Unit,
@@ -266,6 +267,7 @@ fun custom_textField_150(
                 focusedLabelColor = MaterialTheme.colorScheme.primary
             )
         )
+if(mostrar_contado_palabras){
 
         // 📊 contador de caracteres
         Text(
@@ -276,6 +278,7 @@ fun custom_textField_150(
             color = if (isOverLimit) Color.Red else Color.Gray,
             style = MaterialTheme.typography.labelSmall
         )
+}
     }
 }
 @Composable
@@ -357,7 +360,7 @@ fun tags_subcateogiras(
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Text(
-                        text = cap,
+                        text = cap.capitalizeFirst(),
                         modifier = Modifier.padding(horizontal = 7.dp, vertical = 5.dp),
                         color = MaterialTheme.colorScheme.onBackground,
                         style = MaterialTheme.typography.bodySmall

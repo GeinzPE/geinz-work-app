@@ -31,7 +31,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,15 +54,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.geinzz.geinzwork.R
 
 import com.geinzz.geinzwork.data.model.datos_recarga
-import com.geinzz.geinzwork.data.model.historial_recargas
+import com.geinzz.geinzwork.data.model.obj_para_recargas
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constante_abrir_navegador.openCustomTab
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
@@ -72,10 +69,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_creadtior_quees_geinzz
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.baners_geinz_work
-import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog
-import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
-import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
-import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas.generarIdRecarga
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import com.geinzz.geinzwork.viewModels.viewmodel_recargas
 import com.google.firebase.auth.FirebaseAuth
@@ -83,13 +76,14 @@ import com.google.firebase.auth.FirebaseAuth
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun pantala_recarga(
-    localida_user:String,
+    datos_para_pantalla_recarga: obj_para_recargas,
+    localida_user: String,
     viewmodel_paramo: viewmodel_eres_socio,
     nombre_tienda: String,
     localida_tienda: String,
     id_tienda: String,
     monedas_user: Int,
-    cargando:(Boolean)-> Unit
+    cargando: (Boolean) -> Unit
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
@@ -129,6 +123,7 @@ fun pantala_recarga(
                 is viewmodel_eres_socio.CargaPaquetesPago.Success -> {
 //                    cargando(false)
                     val datos = curren_state.datos // ✅ aquí no hay cast
+                    Log.d("datos_obnitos","$datos")
                     LazyColumn(
                         state = listState,
                         verticalArrangement = Arrangement.spacedBy(30.dp),
@@ -213,9 +208,22 @@ fun pantala_recarga(
                             }
                         }
                         items(datos) { i ->
-                            item_pantalla_recarga(i) { id_plan->
-                                val url_pago="https://geinzwork.firebaseapp.com/pagos.html?orderId=${id_tienda}&plan=${id_plan}"
-                                openCustomTab(context,url_pago)
+                            item_pantalla_recarga(i) { id_plan,precio_soles,nombre_plan->
+                             viewmodel_recarga_insta.agregarPagoTienda(
+                                 idTienda = datos_para_pantalla_recarga.id_tienda,
+                                 nombreUser = datos_para_pantalla_recarga.nombre_tienda,
+                                 planSelect = id_plan,
+                                 localdiad = datos_para_pantalla_recarga.localidad_tienda,
+                                 saldoTienda = datos_para_pantalla_recarga.saldo_tienda,
+                                 categoriaTienda = datos_para_pantalla_recarga.categoria_tenda,
+                                 logoTienda = datos_para_pantalla_recarga.logo_tienda,
+                                 nombrePlan =nombre_plan,
+                                 precio_soles,
+                                 onResult = { id_pago,bool ->
+                                     val url_pago="https://geinzwork.firebaseapp.com/pagos.html?orderId=${id_pago}"
+                                     openCustomTab(context,url_pago)
+                                 }
+                             )
 
 
 //                                val datos_recarga = historial_recargas(
@@ -281,7 +289,7 @@ fun pantala_recarga(
 @Composable
 fun item_pantalla_recarga(
     i: datos_recarga,
-    plan_select: (plan: String) -> Unit
+    plan_select: (plan: String,precio_soles:Int,nombre_plan:String) -> Unit
 ) {
 
     Column(
@@ -422,7 +430,7 @@ fun item_pantalla_recarga(
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary)
                 .clickable() {
-                    plan_select(i.id_plan_select)
+                    plan_select(i.id_plan_select,i.precio_soles.toInt(),i.nombre_plan)
                 }
                 .fillMaxWidth(), contentAlignment = Alignment.Center
         ) {

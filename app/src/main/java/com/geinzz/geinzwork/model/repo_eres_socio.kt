@@ -86,6 +86,7 @@ class repo_eres_socio {
         "nuevo", "solo", "oferta", "hoy", "ahora", "descubre", "pruebalo", "ven"
     )
 
+
     val normalizacion = mapOf(
         "llevarte" to "llevar",
         "lleva" to "llevar",
@@ -104,13 +105,18 @@ class repo_eres_socio {
         FirebaseSecundario.getFirestore()
     }
 
-    suspend fun agregar_descripcion_seo_bot(id_tienda: String, localidad: String, texto: String): Boolean {
+    suspend fun agregar_descripcion_seo_bot(
+        id_tienda: String,
+        localidad: String,
+        texto: String
+    ): Boolean {
         val ref = db.collection("Tiendas")
             .document(localidad)
             .collection(localidad)
             .document(id_tienda)
 
-        val data = mapOf("descripcion_seo" to texto) // Usando el nombre de campo que mencionaste antes
+        val data =
+            mapOf("descripcion_seo" to texto) // Usando el nombre de campo que mencionaste antes
 
         return try {
             ref.set(data, SetOptions.merge()).await()
@@ -119,6 +125,97 @@ class repo_eres_socio {
         } catch (e: Exception) {
             println("Error al actualizar SEO: ${e.message}")
             false // Falló
+        }
+    }
+
+    suspend fun obtener_subcateogiras(cat: String): List<String> {
+        return try {
+            val doc = db.collection("Tiendas")
+                .document("categorias")
+                .collection("categorias")
+                .document(cat)
+                .get()
+                .await()
+
+            val lista = doc.get("subcategorias") as? List<*>
+
+            lista
+                ?.mapNotNull { it as? String }
+                ?.map { it.lowercase().trim() } // 🔥 normalización aquí
+                ?: emptyList()
+
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun guardar_cambios_subcategoria_negocio(
+        idTienda: String,
+        localidad: String,
+        lista: List<String>
+    ) {
+        try {
+
+            val ref = db.collection("Tiendas")
+                .document(localidad)
+                .collection(localidad)
+                .document(idTienda)
+            val algoliaDoc = db.collection("lugares")
+                .document(idTienda)
+
+            // 🔥 normalizar a lowercase y limpiar
+            val listaNormalizada = lista
+                .map { it.lowercase().trim() }
+                .distinct()
+
+            val data = hashMapOf(
+                "subcategoria" to listaNormalizada
+            )
+            val algolia = hashMapOf(
+                "tag" to listaNormalizada
+            )
+
+            ref.set(data, SetOptions.merge()).await()
+            algoliaDoc.set(algolia, SetOptions.merge()).await()
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    suspend fun guardar_direccion_negocio(
+        idTienda: String,
+        localidad: String,
+        direccion: String
+    ) {
+        try {
+            val ref = db.collection("Tiendas")
+                .document(localidad)
+                .collection(localidad)
+                .document(idTienda)
+
+            ref.update("ubicacion.dirección", direccion).await()
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    suspend fun guardar_referencia_negocio(
+        idTienda: String,
+        localidad: String, ref: String
+    ) {
+        try {
+
+            val ref_db = db.collection("Tiendas")
+                .document(localidad)
+                .collection(localidad)
+                .document(idTienda)
+
+            ref_db.update("ubicacion.referencia", ref).await()
+
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -180,7 +277,7 @@ class repo_eres_socio {
                 val ubicacion = data?.get("ubicacion") as? Map<String, Any>
                 val ubi_container = ubicacion.to_ubicacion_container()
 
-                val msje_bot_whatsapp =data?.get("descripcion_seo") as? String?:""
+                val msje_bot_whatsapp = data?.get("descripcion_seo") as? String ?: ""
 
 
                 // 🔥 ESCUCHAR ESTADISTICAS EN TIEMPO REAL
@@ -240,7 +337,7 @@ class repo_eres_socio {
                                     localidad_tienda = localidadTienda,
                                     fecha_ingreso = fecha_ingreso,
                                     descripcion = descripcion,
-                                    descripcion_chat_bot_whatsapp=msje_bot_whatsapp,
+                                    descripcion_chat_bot_whatsapp = msje_bot_whatsapp,
                                     lista_ids_propietarios = propietario_id,
                                     saldo_disponible_tienda = saldo_tienda,
                                     compartidos = compartidos,
@@ -2007,7 +2104,7 @@ class repo_eres_socio {
             val monedas_agregadas = (data["monedas_agregadas"] as? Number)?.toString() ?: "0"
             val monedas_inicial = (data["monedas_inicial"] as? Number)?.toString() ?: "0"
             val precio_soles = (data["precio_soles"] as? Number)?.toString() ?: "0"
-            val id_plan =(data["nombre_plan"]) as? String?:""
+            val id_plan = (data["nombre_plan"]) as? String ?: ""
             lista.add(
                 datos_recarga(
                     id_plan,
@@ -2140,7 +2237,6 @@ class repo_eres_socio {
 
         return palabrasNormalizadas.distinct()
     }
-
 
 
 }

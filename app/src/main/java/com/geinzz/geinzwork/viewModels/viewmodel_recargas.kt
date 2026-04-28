@@ -13,6 +13,7 @@ import com.geinzz.geinzwork.data.model.historial_recargas
 import com.geinzz.geinzwork.data.model.recargar_monedas_tienda
 import com.geinzz.geinzwork.model.repo_recargas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.notificacionesFCM.enviar_notificacion_lista_dispo
+import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -105,6 +106,52 @@ class viewmodel_recargas : ViewModel() {
                 Log.e("error", "Error al procesar la recarga: ${e.message}")
             }
         }
+    }
+
+    fun agregarPagoTienda(
+        idTienda: String,
+        nombreUser: String,
+        planSelect: String,
+        localdiad: String,
+        saldoTienda: Int,
+        categoriaTienda: String,
+        logoTienda: String,
+        nombrePlan: String,
+        precio_soles:Int,
+        onResult: (String?, Boolean) -> Unit
+    ) {
+        val functions = FirebaseFunctions.getInstance()
+        val data = hashMapOf(
+            "id_tienda" to idTienda,
+            "nombre_user" to nombreUser,
+            "plan_select" to planSelect,
+            "localdiad" to localdiad,
+            "saldo_tienda" to saldoTienda,
+            "categoira_tienda" to categoriaTienda,
+            "logo_tienda" to logoTienda,
+            "nombre_plan" to nombrePlan,
+            "monto_pagar_de_plan" to precio_soles
+        )
+
+        functions
+            .getHttpsCallable("agregar_pago_para_el_usuario_tienda")
+            .call(data)
+            .addOnSuccessListener { result ->
+
+                val dataResult = result.data as Map<*, *>
+
+                val idPago = dataResult["id_pago"]?.toString()
+                val reutilizado = dataResult["reutilizado"] == true
+
+                println("✅ ID PAGO: $idPago")
+                println("♻️ Reutilizado: $reutilizado")
+
+                onResult(idPago, reutilizado)
+            }
+            .addOnFailureListener { e ->
+                println("❌ ERROR AL CREAR PAGO: ${e.message}")
+                onResult(null, false)
+            }
     }
     fun obtner_saldo_actual_reactivo(id_tienda: String,localidad: String){
         viewModelScope.launch {

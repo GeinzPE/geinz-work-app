@@ -63,6 +63,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -810,6 +811,89 @@ fun chips_filtrado(
         )
     }
 
+}
+
+@Composable
+fun chips_subcategorias_negocio(
+    listState: LazyListState = rememberLazyListState(),
+    subcategorias_usuario: List<String>,
+    lista_db: List<String>,
+    onSeleccionCambia: (List<String>) -> Unit,
+    color_left: List<Color> = strat_subcategoria_shadow,
+    color_right: List<Color> = end_subcategoria_shadow,
+) {
+    val seleccionadas = remember(subcategorias_usuario) {
+        mutableStateListOf<String>().apply { addAll(subcategorias_usuario) }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        val showLeftShadow by remember {
+            derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0 }
+        }
+        val showRightShadow by remember {
+            derivedStateOf {
+                val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                val total = listState.layoutInfo.totalItemsCount
+                lastVisible != null && lastVisible < total - 1
+            }
+        }
+        val alphaLeft by animateFloatAsState(
+            targetValue = if (showLeftShadow) 1f else 0f,
+            animationSpec = tween(400), label = "alphaLeft"
+        )
+        val alphaRight by animateFloatAsState(
+            targetValue = if (showRightShadow) 1f else 0f,
+            animationSpec = tween(400), label = "alphaRight"
+        )
+
+        LazyRow(state = listState, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            items(lista_db) { subcategoria ->
+                val estaSeleccionada = seleccionadas.contains(subcategoria.lowercase())
+
+                chisp_filtrado_busqueda(
+                    carta_selecionada = estaSeleccionada,
+                    filtrado = subcategoria,
+                    btn_visible = false,
+                    clik_card = {
+                        if (estaSeleccionada) {
+                            seleccionadas.remove(subcategoria)
+                        } else {
+                            seleccionadas.add(subcategoria)
+                        }
+                        onSeleccionCambia(seleccionadas.toList())
+                    },
+                    {}
+                )
+            }
+        }
+
+        // Sombra izquierda
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(40.dp)
+                .align(Alignment.CenterStart)
+                .zIndex(1f)
+                .alpha(alphaLeft)
+                .background(Brush.horizontalGradient(colors = color_left))
+        )
+
+        // Sombra derecha
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(40.dp)
+                .align(Alignment.CenterEnd)
+                .zIndex(1f)
+                .alpha(alphaRight)
+                .background(Brush.horizontalGradient(colors = color_right))
+        )
+    }
 }
 
 @Composable

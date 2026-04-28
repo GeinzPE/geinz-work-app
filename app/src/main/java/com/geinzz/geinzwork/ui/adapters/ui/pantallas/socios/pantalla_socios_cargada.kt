@@ -1,10 +1,8 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios
 
-import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -33,24 +31,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.OpenInFull
-import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -77,7 +68,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
@@ -85,7 +75,6 @@ import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.data.model.OpcionPromocionIA
 import com.geinzz.geinzwork.data.model.cambiar_datos_pago_contacto
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.datos_generaciones_sin_publicaicones
@@ -93,13 +82,13 @@ import com.geinzz.geinzwork.data.model.datos_grafico
 import com.geinzz.geinzwork.data.model.datos_para_generacion_dialog_historial_IA
 import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.data.model.datos_tienda_fechas
-import com.geinzz.geinzwork.data.model.lista_genereracione
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.servicio_comodidad
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constante_abrir_navegador.openCustomTab
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandible_wrap_socio_atrubitos
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandibles_wrapp_socio_contacto_tienda
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.expandibles_wrapp_socio_geinzz
@@ -152,8 +141,8 @@ fun pantalla_carga_socios(
     navegarcrear_pùblicidad_titulo_descripcion: (String, String, String, String?, i: datos_generaciones_sin_publicaicones) -> Unit,
     navegarcrear_pùblicidad_wsap: (String, String, String?) -> Unit,
     navegarcrear_pùblicidad_compartiro: (String, String, String?) -> Unit,
-    ocultar_button_bar:()-> Unit,
-    mostrar_buttom_bar:()-> Unit
+    ocultar_button_bar: () -> Unit,
+    mostrar_buttom_bar: () -> Unit
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
     val viewmodel: viewmodel_eres_socio = viewModel()
@@ -346,14 +335,20 @@ fun pantalla_carga_socios(
     var mostrar_webview_politicas_devoluciones by remember { mutableStateOf(false) }
     var mostrar_webview_libro_recalmaciones by remember { mutableStateOf(false) }
     var mostra_bottom_sheet_historial_de_gen_IA by remember { mutableStateOf(false) }
+    var cambiar_subcateogira_de_negocio by remember { mutableStateOf(false) }
+    var cambiar_direccion_ref_lat_lng by remember { mutableStateOf(false) }
+    var mostrar_snacbar_con_datos_cambiados by remember { mutableStateOf(false) }
 
-    LaunchedEffect (mostrar_webview_politicas_devoluciones) {
-        Log.d("cambiamos_btn_devolcuinos","$mostrar_webview_politicas_devoluciones")
+    val estado_Carga_subacategoria by viewmodel.estado_Carga_subacategoria.collectAsState()
+    LaunchedEffect(cambiar_subcateogira_de_negocio) {
+        viewmodel.obtener_subcategorias(datos.categoira_tienda)
     }
 
-    LaunchedEffect (mostra_bottom_sheet_historial_de_gen_IA) {
-        Log.d("cambiamos_btn_terminos_condiciones","$mostra_bottom_sheet_historial_de_gen_IA")
-    }
+
+
+//    LaunchedEffect(mostra_bottom_sheet_historial_de_gen_IA) {
+//        Log.d("cambiamos_btn_terminos_condiciones", "$mostra_bottom_sheet_historial_de_gen_IA")
+//    }
     val elTextoCambio by remember(descripcion_chat_bot) {
         derivedStateOf {
             descripcion_chat_bot != (datos.descripcion_chat_bot_whatsapp ?: "")
@@ -913,7 +908,12 @@ fun pantalla_carga_socios(
                                                                 )
                                                             Log.d("data_para_ia", data_para_ia)
                                                             viewmodel_generacones_IA.obtener_descripcion_generada_con_datos(
-                                                                data_para_ia,datos.localidad_tienda,datos.nombre,datos.id_tienda,"30",datos.saldo_disponible_tienda.toInt()
+                                                                data_para_ia,
+                                                                datos.localidad_tienda,
+                                                                datos.nombre,
+                                                                datos.id_tienda,
+                                                                "30",
+                                                                datos.saldo_disponible_tienda.toInt()
                                                             )
                                                         },
                                                         texto_button = "generar con IA",
@@ -935,7 +935,7 @@ fun pantalla_carga_socios(
                                                             if (uri != null) {
                                                                 cambiar_imagen_para_el_bot_whatsapp =
                                                                     true
-                                                                uri_para_bot_whatsapp=uri
+                                                                uri_para_bot_whatsapp = uri
                                                             }
                                                         },
                                                         usuario_borro_los_cambios = {
@@ -954,9 +954,11 @@ fun pantalla_carga_socios(
                                                                     context
                                                                 ) {
                                                                     subiendoImagen = false
-                                                                    cambiar_imagen_para_el_bot_whatsapp = false
+                                                                    cambiar_imagen_para_el_bot_whatsapp =
+                                                                        false
 
-                                                                    imagen_subida_correctamente=true
+                                                                    imagen_subida_correctamente =
+                                                                        true
                                                                     scope.launch {
                                                                         snackbarHostState.showSnackbar(
                                                                             message = "Imagen subida correctamente",
@@ -972,7 +974,9 @@ fun pantalla_carga_socios(
 
                                                             if (subiendoImagen) {
                                                                 Row(
-                                                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                                    horizontalArrangement = Arrangement.spacedBy(
+                                                                        8.dp
+                                                                    ),
                                                                     verticalAlignment = Alignment.CenterVertically
                                                                 ) {
                                                                     texto_generico_one_line(
@@ -1183,9 +1187,8 @@ fun pantalla_carga_socios(
 
 
 
+
                     spacer_vertical(10.dp)
-
-
                     Cartas_expandibles(
                         modifier = Modifier.padding(
                             vertical = 10.dp
@@ -1193,7 +1196,80 @@ fun pantalla_carga_socios(
                     ) {
                         Box(
                             modifier = Modifier
-                                .animateContentSize() // ← Animación suave
+                                .animateContentSize()
+                        ) {
+
+                            constantes_expandibles_generales.expandible_wrapp_cambiar_subcateogira_negocio(
+                                datos.subcategorias_tienda,
+                                estado_Carga_subacategoria,
+                                categoria = datos.categoira_tienda,
+                                expandido = cambiar_subcateogira_de_negocio,
+                                onClickExpand = {
+                                    cambiar_subcateogira_de_negocio =
+                                        !cambiar_subcateogira_de_negocio
+                                }, { lista ->
+                                    viewmodel.guardar_cambios_subcateogira(
+                                        datos.id_tienda,
+                                        datos.localidad_tienda,
+                                        lista
+                                    )
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "Cambios guardados correctamente",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                })
+                        }
+                    }
+
+
+                    spacer_vertical(10.dp)
+                    Cartas_expandibles(
+                        modifier = Modifier.padding(
+                            vertical = 10.dp
+                        )
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .animateContentSize()
+                        ) {
+                            constantes_expandibles_generales.expandible_wrapp_ubicacion_direccion_referencia(
+                                expandido = cambiar_direccion_ref_lat_lng,
+                                direccion = datos.ubicacion.direccion,
+                                ref = datos.ubicacion.referencia,
+                                lat = datos.ubicacion.lat,
+                                long = datos.ubicacion.long,
+                                onClickExpand = {
+                                    cambiar_direccion_ref_lat_lng = !cambiar_direccion_ref_lat_lng
+                                }, actualiza_direccion = { direccion ->
+                                    viewmodel.actualiza_direccion_de_tienda(
+                                        datos.id_tienda,
+                                        datos.localidad_tienda,
+                                        direccion,
+                                        "dir"
+                                    )
+                                    mostrar_snacbar_con_datos_cambiados=true
+                                }, actualiza_referencia = { referencia ->
+                                    viewmodel.actualiza_direccion_de_tienda(
+                                        datos.id_tienda,
+                                        datos.localidad_tienda,
+                                        referencia,
+                                        "ref"
+                                    )
+                                    mostrar_snacbar_con_datos_cambiados=true
+                                })
+                        }
+                    }
+                    spacer_vertical(5.dp)
+                    Cartas_expandibles(
+                        modifier = Modifier.padding(
+                            vertical = 10.dp
+                        )
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .animateContentSize()
                         ) {
                             expandibles_wrapp_socio_geinzz_horario_atencion(
                                 tick = _tick,
@@ -2007,7 +2083,6 @@ fun pantalla_carga_socios(
                     spacer_vertical(20.dp)
 
 
-
 //                    spacer_vertical(10.dp)
 //
 //                    Button(
@@ -2105,12 +2180,21 @@ fun pantalla_carga_socios(
             }
         }
 
-        if(mostarr_botom_sheet_legal_ayuda_geinz){
+        if (mostarr_botom_sheet_legal_ayuda_geinz) {
             bottom_sheet_centro_de_Ayudas_pra_geinz({
-                mostarr_botom_sheet_legal_ayuda_geinz=false
-            },{url->
+                mostarr_botom_sheet_legal_ayuda_geinz = false
+            }, { url ->
                 openCustomTab(context, url)
             })
+        }
+        if(mostrar_snacbar_con_datos_cambiados){
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = "Cambios guardados correctamente",
+                    duration = SnackbarDuration.Short
+                )
+            }
+            mostrar_snacbar_con_datos_cambiados=false
         }
 
 //        when {

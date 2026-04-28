@@ -101,6 +101,7 @@ import androidx.navigation.NavHostController
 import com.geinzz.geinzwork.data.model.DatosPublicidadIA
 import com.geinzz.geinzwork.data.model.datos_generaciones_sin_publicaicones
 import com.geinzz.geinzwork.data.model.items_pantallas_promociones
+import com.geinzz.geinzwork.data.model.obj_para_recargas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.cuenta_user.firebaseAuth
 import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_promocionar
 import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_recientes
@@ -145,6 +146,7 @@ fun login_socios(
             items_pantallas_promociones()
         )
     }
+    var datos_para_pantalla_recarga by remember { mutableStateOf(obj_para_recargas()) }
     var pantallaSeleccionada by remember { mutableStateOf("Inicio") }
     val viewmodel_pantalla_promocionar: viewmodel_pantallas_promocionar = viewModel()
     val mostarr_bundel_recientes by viewmodel_pantalla_promocionar.estado_envio_recientes.collectAsState()
@@ -575,6 +577,15 @@ fun login_socios(
                                             state.datos.servicios_comodidades
 
                                         )
+
+                                        datos_para_pantalla_recarga=obj_para_recargas(
+                                            id_tienda = state.datos.id_tienda,
+                                            nombre_tienda = state.datos.nombre,
+                                            localidad_tienda = state.datos.localidad_tienda,
+                                            saldo_tienda = state.datos.saldo_disponible_tienda.toInt(),
+                                            categoria_tenda = state.datos.categoira_tienda,
+                                            logo_tienda = state.datos.obtener_img_tiendas.logo_tienda
+                                        )
                                     }
                                     nombre_tienda = state.datos.nombre
                                     localidad_tienda = state.datos.localidad_tienda
@@ -925,6 +936,7 @@ fun login_socios(
 
                                     "Recargas" -> {
                                         pantala_recarga(
+                                            datos_para_pantalla_recarga,
                                             localidad_user,
                                             viewmodel_paramo = viewmodel,
                                             nombre_tienda = nombre_tienda,
