@@ -1,7 +1,10 @@
 package com.geinzz.geinzwork.herramientas_geinz.constantes
 
+import android.Manifest
+import android.app.Activity
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
@@ -70,41 +73,69 @@ import kotlin.collections.forEach
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocationOff
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.core.content.ContextCompat
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.servicio_comodidad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_textField_150
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_textField_readonly
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.chips_filtrado
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.crearBitmapPin
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.chips_subcategorias_negocio
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.HorarioSemanal123
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.getCategoriaIcon
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_botonm_filtrado_v1
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_left
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_right
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.shadow_top_filtrado_v1
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.verificarGPS
+import com.geinzz.geinzwork.utils.localizate_geinz.verificarUbiActiva
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_recargas
+import com.google.android.gms.location.LocationServices
+import com.mapbox.geojson.Point
+import com.mapbox.maps.CameraOptions
+import com.mapbox.maps.MapView
+import com.mapbox.maps.extension.compose.MapEffect
+import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.style.MapStyle
+import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
+import com.mapbox.maps.extension.style.layers.properties.generated.TextAnchor
+import com.mapbox.maps.plugin.PuckBearing
+import com.mapbox.maps.plugin.animation.MapAnimationOptions
+import com.mapbox.maps.plugin.animation.easeTo
+import com.mapbox.maps.plugin.annotation.annotations
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+import com.mapbox.maps.plugin.gestures.addOnMapClickListener
+import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
+import com.mapbox.maps.plugin.locationcomponent.location
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 object constantes_expandibles_generales {
@@ -147,9 +178,6 @@ object constantes_expandibles_generales {
 
                         if (!estado) {
 
-                            // COMO NO ESTÁS EN EL SCOPE DEL LAZYROW
-                            // NO PUEDES USAR items()
-                            // → debes usar Column/Row/FlowRow
 
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(15.dp),
@@ -253,7 +281,7 @@ object constantes_expandibles_generales {
 
                         } else {
 
-                            // 🔹 Vista expandida (tu contenido original)
+
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -464,7 +492,7 @@ object constantes_expandibles_generales {
                             }
 
                         } else {
-                            // 🔹 Vista expandida (tu contenido original)
+
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -900,13 +928,13 @@ object constantes_expandibles_generales {
 
     fun normalizar(texto: String): String {
         return texto
-            .lowercase()   // todo en minúsculas
+            .lowercase()
             .replace("á", "a")
             .replace("é", "e")
             .replace("í", "i")
             .replace("ó", "o")
             .replace("ú", "u")
-            .trim()        // quita espacios extras
+            .trim()
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -1164,12 +1192,10 @@ object constantes_expandibles_generales {
         guardar_dado_datos: (String) -> Unit
     ) {
 
-        // 🔹 Estado editable sincronizado con el valor original
         var aforoEditado by remember(aforo_max) {
             mutableStateOf(aforo_max)
         }
 
-        // 🔹 Detecta cambios reales
         val hayCambios by remember(aforo_max, aforoEditado) {
             mutableStateOf(aforoEditado.trim() != aforo_max.trim())
         }
@@ -2294,9 +2320,9 @@ object constantes_expandibles_generales {
         }
     }
 
-
     @Composable
     fun expandible_wrapp_ubicacion_direccion_referencia(
+        context: Context,
         expandido: Boolean,
         direccion: String,
         ref: String,
@@ -2304,27 +2330,95 @@ object constantes_expandibles_generales {
         long: Double,
         onClickExpand: () -> Unit,
         actualiza_direccion: (String) -> Unit,
-        actualiza_referencia: (String) -> Unit
+        actualiza_referencia: (String) -> Unit,
+        onTocandoMapa: (Boolean) -> Unit,
+        cambiar_lat_lng: (Double?, Double?) -> Unit
     ) {
+        val mapViewState = remember { mutableStateOf<MapView?>(null) }
+        val managerLauncher = remember { mutableStateOf<PointAnnotationManager?>(null) }
+        val managerNuevoPunto = remember { mutableStateOf<PointAnnotationManager?>(null) }
 
-        // 🔥 estados originales (base de comparación)
-        var direccion_original by remember { mutableStateOf(direccion) }
-        var referencia_original by remember { mutableStateOf(ref) }
+        val fusedLocationClient = remember {
+            LocationServices.getFusedLocationProviderClient(context)
+        }
 
-        // 🔥 estados editables
-        var direccion_var by remember(direccion) { mutableStateOf(direccion) }
-        var referencia_var by remember(ref) { mutableStateOf(ref) }
+        var tienePermiso by remember {
+            mutableStateOf(
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            )
+        }
 
-        // 🔥 detectar cambios
-        val hayCambioDireccion by remember(direccion_original, direccion_var) {
-            derivedStateOf {
-                direccion_original.trim() != direccion_var.trim()
+        // ── Estado del GPS (se refresca cuando el switch se activa) ─────────────
+        var gpsActivo by remember {
+            mutableStateOf(verificarUbiActiva(context))
+        }
+
+        var estadoSwitch by remember { mutableStateOf(false) }
+        var tocandoMapa by remember { mutableStateOf(false) }
+        var latNueva by remember { mutableStateOf<Double?>(null) }
+        var lngNueva by remember { mutableStateOf<Double?>(null) }
+        var mapaListo by remember { mutableStateOf(false) }
+        var mostrarMapa by remember { mutableStateOf(false) }
+
+        // ── LAUNCHER permiso de ubicación ───────────────────────────────────────
+        val permisoLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            if (granted) {
+                tienePermiso = true
+                gpsActivo = verificarUbiActiva(context)
+            } else {
+                tienePermiso = false
+                estadoSwitch = false
+                mapaListo = false
+                mostrarMapa = false
+                latNueva = null
+                lngNueva = null
+                Toast.makeText(context, "Se necesita permiso de ubicación", Toast.LENGTH_SHORT).show()
             }
         }
 
+        // ── LAUNCHER diálogo de Google para activar GPS ──────────────────────────
+        val launcher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartIntentSenderForResult()
+        ) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                Log.d("GPS", "✅ El usuario activó el GPS")
+                gpsActivo = true
+            } else {
+                Log.d("GPS", "❌ El usuario canceló el diálogo de ubicación")
+                gpsActivo = false
+            }
+        }
+
+        var direccion_original by remember { mutableStateOf(direccion) }
+        var referencia_original by remember { mutableStateOf(ref) }
+        var direccion_var by remember(direccion) { mutableStateOf(direccion) }
+        var referencia_var by remember(ref) { mutableStateOf(ref) }
+
+        val hayCambioDireccion by remember(direccion_original, direccion_var) {
+            derivedStateOf { direccion_original.trim() != direccion_var.trim() }
+        }
         val hayCambioReferencia by remember(referencia_original, referencia_var) {
-            derivedStateOf {
-                referencia_original.trim() != referencia_var.trim()
+            derivedStateOf { referencia_original.trim() != referencia_var.trim() }
+        }
+
+        LaunchedEffect(estadoSwitch) {
+            if (estadoSwitch && !tienePermiso) {
+                permisoLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+            if (estadoSwitch) {
+                gpsActivo = verificarUbiActiva(context)
+            }
+        }
+
+        LaunchedEffect(mapaListo) {
+            if (mapaListo) {
+                delay(3000)
+                mostrarMapa = true
             }
         }
 
@@ -2343,7 +2437,6 @@ object constantes_expandibles_generales {
             ) { estado ->
 
                 if (!estado) {
-
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -2357,7 +2450,6 @@ object constantes_expandibles_generales {
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
-
                 } else {
 
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -2381,15 +2473,15 @@ object constantes_expandibles_generales {
                             "Si cambias de ubicación, actualiza tu dirección, referencia y coordenadas en tiempo real para que tus clientes siempre puedan encontrarte.",
                             style = MaterialTheme.typography.bodyMedium
                         )
+
                         spacer_vertical(5.dp)
-                        // 🔹 DIRECCIÓN
+
                         custom_textField_150(
+                            modifier = Modifier,
                             false,
                             rounder = 35,
                             value = direccion_var,
-                            onValueChange = {
-                                direccion_var = it
-                            },
+                            onValueChange = { direccion_var = it },
                             labelText = "Direccion del negocio",
                             placeholderText = "Direccion del negocio"
                         )
@@ -2398,8 +2490,6 @@ object constantes_expandibles_generales {
                             Button(
                                 onClick = {
                                     actualiza_direccion(direccion_var.trim())
-
-                                    // 🔥 sincroniza estado → oculta botón
                                     direccion_original = direccion_var.trim()
                                 },
                                 modifier = Modifier.fillMaxWidth()
@@ -2412,14 +2502,12 @@ object constantes_expandibles_generales {
                             }
                         }
 
-                        // 🔹 REFERENCIA
                         custom_textField_150(
+                            modifier = Modifier,
                             false,
                             rounder = 35,
                             value = referencia_var,
-                            onValueChange = {
-                                referencia_var = it
-                            },
+                            onValueChange = { referencia_var = it },
                             labelText = "Referencia del negocio",
                             placeholderText = "Referencia del negocio"
                         )
@@ -2428,8 +2516,6 @@ object constantes_expandibles_generales {
                             Button(
                                 onClick = {
                                     actualiza_referencia(referencia_var.trim())
-
-                                    // 🔥 sincroniza estado → oculta botón
                                     referencia_original = referencia_var.trim()
                                 },
                                 modifier = Modifier.fillMaxWidth()
@@ -2441,9 +2527,382 @@ object constantes_expandibles_generales {
                                 )
                             }
                         }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            texto_generico_one_line(
+                                "Cambia tu punto",
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            Switch(
+                                checked = estadoSwitch,
+                                onCheckedChange = { checked ->
+                                    if (checked) {
+                                        tienePermiso = ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.ACCESS_FINE_LOCATION
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                        gpsActivo = verificarUbiActiva(context)
+                                        estadoSwitch = true
+                                    } else {
+                                        estadoSwitch = false
+                                        latNueva = null
+                                        lngNueva = null
+                                        mapaListo = false
+                                        mostrarMapa = false
+                                    }
+                                },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                                    checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                                    uncheckedTrackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                )
+                            )
+                        }
+
+                        texto_generico_multilinea(
+                            "📍 ¿Cambiaste de local? Actualiza tu punto en el mapa para que tus clientes siempre puedan encontrarte sin perderse.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+
+                        if (estadoSwitch && tienePermiso) {
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(250.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .pointerInput(Unit) {
+                                        awaitPointerEventScope {
+                                            while (true) {
+                                                val event = awaitPointerEvent()
+                                                val tocando = event.changes.any { it.pressed }
+                                                tocandoMapa = tocando
+                                                onTocandoMapa(tocando)
+                                            }
+                                        }
+                                    }
+                            ) {
+                                MapboxMap(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(300.dp)
+                                ) {
+                                    MapStyle("mapbox://styles/benjaminlopez/cmm9c0hlt003901s54utw9p30")
+
+                                    val estadoSwitchState = rememberUpdatedState(estadoSwitch)
+
+                                    MapEffect(Unit) { mapView ->
+                                        val mapboxMap = mapView.getMapboxMap()
+                                        mapViewState.value = mapView
+
+                                        managerLauncher.value = mapView.annotations.createPointAnnotationManager()
+                                        managerNuevoPunto.value = mapView.annotations.createPointAnnotationManager()
+
+                                        mapView.location.updateSettings {
+                                            enabled = true
+                                            pulsingEnabled = true
+                                            puckBearingEnabled = true
+                                            puckBearing = PuckBearing.HEADING
+                                            locationPuck = createDefault2DPuck(withBearing = true)
+                                        }
+
+                                        fun colocarPinNegocio(punto: Point) {
+                                            managerLauncher.value?.deleteAll()
+                                            val bitmap = crearBitmapPin()
+                                            val imageId = "pin_negocio"
+                                            mapboxMap.getStyle { s ->
+                                                s.removeStyleImage(imageId)
+                                                s.addImage(imageId, bitmap)
+                                                managerLauncher.value?.create(
+                                                    PointAnnotationOptions()
+                                                        .withPoint(punto)
+                                                        .withIconImage(imageId)
+                                                        .withIconAnchor(IconAnchor.BOTTOM)
+                                                        .withIconSize(1.2)
+                                                        .withTextField("Tu negocio 📍")
+                                                        .withTextOffset(listOf(0.0, -4.5))
+                                                        .withTextSize(11.0)
+                                                        .withTextColor(Color.Black.hashCode())
+                                                        .withTextHaloColor(Color.White.hashCode())
+                                                        .withTextHaloWidth(1.5)
+                                                        .withTextAnchor(TextAnchor.BOTTOM)
+                                                )
+                                            }
+                                        }
+
+                                        fun colocarPinNuevoPunto(punto: Point) {
+                                            managerNuevoPunto.value?.deleteAll()
+                                            val bitmap = crearBitmapPin()
+                                            val imageId = "pin_nuevo"
+                                            mapboxMap.getStyle { s ->
+                                                s.removeStyleImage(imageId)
+                                                s.addImage(imageId, bitmap)
+                                                managerNuevoPunto.value?.create(
+                                                    PointAnnotationOptions()
+                                                        .withPoint(punto)
+                                                        .withIconImage(imageId)
+                                                        .withIconAnchor(IconAnchor.BOTTOM)
+                                                        .withIconSize(1.2)
+                                                        .withTextField("Nuevo punto 🆕")
+                                                        .withTextOffset(listOf(0.0, -4.5))
+                                                        .withTextSize(11.0)
+                                                        .withTextColor(Color.Black.hashCode())
+                                                        .withTextHaloColor(Color.White.hashCode())
+                                                        .withTextHaloWidth(1.5)
+                                                        .withTextAnchor(TextAnchor.BOTTOM)
+                                                )
+                                            }
+                                        }
+
+                                        mapboxMap.addOnStyleLoadedListener {
+                                            val puntoInicial = Point.fromLngLat(long, lat)
+                                            mapboxMap.setCamera(
+                                                CameraOptions.Builder()
+                                                    .center(puntoInicial)
+                                                    .zoom(15.0)
+                                                    .build()
+                                            )
+                                            colocarPinNegocio(puntoInicial)
+                                            mapaListo = true
+                                        }
+
+                                        mapboxMap.addOnMapClickListener { point ->
+                                            if (!estadoSwitchState.value) return@addOnMapClickListener false
+                                            val latClick = point.latitude()
+                                            val lngClick = point.longitude()
+                                            colocarPinNuevoPunto(point)
+                                            latNueva = latClick
+                                            lngNueva = lngClick
+                                            false
+                                        }
+                                    }
+                                }
+
+                                // Overlay de carga
+                                this@Column.AnimatedVisibility(
+                                    visible = !mostrarMapa,
+                                    modifier = Modifier.matchParentSize(),
+                                    enter = fadeIn(),
+                                    exit = fadeOut()
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .matchParentSize()
+                                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                                            texto_generico_one_line(
+                                                "Cargando mapa...",
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            // ── BOTÓN UBICARME: cambia según estado del GPS ──────────
+                            Button(
+                                onClick = {
+                                    if (gpsActivo) {
+                                        val mapView = mapViewState.value ?: return@Button
+                                        val mapboxMap = mapView.getMapboxMap()
+                                        mapView.location.updateSettings {
+                                            enabled = true
+                                            pulsingEnabled = true
+                                            puckBearingEnabled = true
+                                            puckBearing = PuckBearing.HEADING
+                                            locationPuck = createDefault2DPuck(withBearing = true)
+                                        }
+                                        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                                            location?.let {
+                                                val punto = Point.fromLngLat(it.longitude, it.latitude)
+                                                mapboxMap.easeTo(
+                                                    CameraOptions.Builder()
+                                                        .center(punto)
+                                                        .zoom(15.0)
+                                                        .build(),
+                                                    MapAnimationOptions.mapAnimationOptions { duration(600) }
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        // GPS apagado → lanza diálogo de Google directamente
+                                        verificarGPS(context, launcher)
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (gpsActivo)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                                ),
+                                border = if (!gpsActivo)
+                                    BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                                else null
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    texto_generico_one_line(
+                                        if (gpsActivo) "📍 Ubicarme"
+                                        else "📡 Encender GPS para ubicarme",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = if (gpsActivo) Color.White
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                    )
+                                }
+                            }
+
+                            // Coordenadas actuales
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                custom_textField_readonly(
+                                    modifier = Modifier.weight(1f),
+                                    rounder = 35,
+                                    value = lat.toString(),
+                                    labelText = "Lat actual",
+                                    placeholderText = "Lat actual"
+                                )
+                                custom_textField_readonly(
+                                    modifier = Modifier.weight(1f),
+                                    rounder = 35,
+                                    value = long.toString(),
+                                    labelText = "Lng actual",
+                                    placeholderText = "Lng actual"
+                                )
+                                Button(
+                                    onClick = {
+                                        val punto = Point.fromLngLat(long, lat)
+                                        mapViewState.value?.getMapboxMap()?.easeTo(
+                                            CameraOptions.Builder()
+                                                .center(punto)
+                                                .zoom(17.0)
+                                                .build(),
+                                            MapAnimationOptions.mapAnimationOptions { duration(600) }
+                                        )
+                                    }
+                                ) {
+                                    texto_generico_one_line(
+                                        "Ir",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+
+                            // Nuevo punto seleccionado
+                            if (latNueva != null && lngNueva != null) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    custom_textField_150(
+                                        modifier = Modifier.weight(1f),
+                                        false,
+                                        rounder = 35,
+                                        value = latNueva.toString(),
+                                        onValueChange = { latNueva = it.toDoubleOrNull() ?: latNueva },
+                                        labelText = "Lat nueva",
+                                        placeholderText = "Lat nueva"
+                                    )
+                                    custom_textField_150(
+                                        modifier = Modifier.weight(1f),
+                                        false,
+                                        rounder = 35,
+                                        value = lngNueva.toString(),
+                                        onValueChange = { lngNueva = it.toDoubleOrNull() ?: lngNueva },
+                                        labelText = "Lng nueva",
+                                        placeholderText = "Lng nueva"
+                                    )
+                                    Button(
+                                        onClick = {
+                                            val punto = Point.fromLngLat(lngNueva!!, latNueva!!)
+                                            mapViewState.value?.getMapboxMap()?.easeTo(
+                                                CameraOptions.Builder()
+                                                    .center(punto)
+                                                    .zoom(17.0)
+                                                    .build(),
+                                                MapAnimationOptions.mapAnimationOptions { duration(600) }
+                                            )
+                                        }
+                                    ) {
+                                        texto_generico_one_line(
+                                            "Ir",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+
+                                texto_generico_multilinea(
+                                    "✏️ Recuerda actualizar tu dirección y referencia cada vez que muevas tu punto, así tu perfil siempre muestra datos correctos y tus clientes llegan sin confusiones.",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Button(
+                                        onClick = {
+                                            managerNuevoPunto.value?.deleteAll()
+                                            latNueva = null
+                                            lngNueva = null
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                                    ) {
+                                        texto_generico_one_line(
+                                            "✕ Deseleccionar",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.White
+                                        )
+                                    }
+
+                                    Button(
+                                        onClick = {
+                                            val latGuardar = latNueva
+                                            val lngGuardar = lngNueva
+                                            managerNuevoPunto.value?.deleteAll()
+                                            latNueva = null
+                                            lngNueva = null
+                                            cambiar_lat_lng(latGuardar, lngGuardar)
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.primary
+                                        )
+                                    ) {
+                                        texto_generico_one_line(
+                                            "💾 Guardar",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
+
         }
     }
+
 }

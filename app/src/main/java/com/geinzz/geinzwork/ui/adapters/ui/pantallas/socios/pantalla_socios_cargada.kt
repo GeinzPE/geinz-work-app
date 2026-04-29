@@ -3,6 +3,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -145,6 +146,9 @@ fun pantalla_carga_socios(
     mostrar_buttom_bar: () -> Unit
 ) {
     val firebaseAuth = FirebaseAuth.getInstance()
+    val context = LocalContext.current
+
+
     val viewmodel: viewmodel_eres_socio = viewModel()
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
     val viewmodel_recargas: viewmodel_recargas = viewModel()
@@ -175,7 +179,7 @@ fun pantalla_carga_socios(
     var lista_servicios_comodidades by remember {
         mutableStateOf<List<servicio_comodidad>>(emptyList())
     }
-    val context = LocalContext.current
+
     var valor_img_completa by remember { mutableStateOf("") }
     var mostrarDialogozoom by remember { mutableStateOf(false) }
     var logoOriginal by rememberSaveable { mutableStateOf<String?>(null) }
@@ -345,7 +349,6 @@ fun pantalla_carga_socios(
     }
 
 
-
 //    LaunchedEffect(mostra_bottom_sheet_historial_de_gen_IA) {
 //        Log.d("cambiamos_btn_terminos_condiciones", "$mostra_bottom_sheet_historial_de_gen_IA")
 //    }
@@ -409,8 +412,13 @@ fun pantalla_carga_socios(
         targetValue = targetAlpha,
         animationSpec = tween(durationMillis = 500)
     )
+    var tocandoMapa by remember { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            userScrollEnabled = !tocandoMapa
+        ) {
             item {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -1235,6 +1243,7 @@ fun pantalla_carga_socios(
                                 .animateContentSize()
                         ) {
                             constantes_expandibles_generales.expandible_wrapp_ubicacion_direccion_referencia(
+                                context,
                                 expandido = cambiar_direccion_ref_lat_lng,
                                 direccion = datos.ubicacion.direccion,
                                 ref = datos.ubicacion.referencia,
@@ -1249,7 +1258,7 @@ fun pantalla_carga_socios(
                                         direccion,
                                         "dir"
                                     )
-                                    mostrar_snacbar_con_datos_cambiados=true
+                                    mostrar_snacbar_con_datos_cambiados = true
                                 }, actualiza_referencia = { referencia ->
                                     viewmodel.actualiza_direccion_de_tienda(
                                         datos.id_tienda,
@@ -1257,7 +1266,31 @@ fun pantalla_carga_socios(
                                         referencia,
                                         "ref"
                                     )
-                                    mostrar_snacbar_con_datos_cambiados=true
+                                    mostrar_snacbar_con_datos_cambiados = true
+                                }, { tocando ->
+                                    tocandoMapa = tocando
+                                }, { lat, lng ->
+                                    if (lat != null && lng != null) {
+                                        viewmodel.guarda_lat_lng(
+                                            lat,
+                                            lng,
+                                            datos.id_tienda,
+                                            datos.localidad_tienda
+                                        )
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = "Cambios guardados correctamente",
+                                                duration = SnackbarDuration.Short
+                                            )
+                                        }
+                                    }else{
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = "Algo salió mal al guardar \uD83D\uDE15 Inténtalo de nuevo en unos minutos.",
+                                                duration = SnackbarDuration.Short
+                                            )
+                                        }
+                                    }
                                 })
                         }
                     }
@@ -2187,14 +2220,14 @@ fun pantalla_carga_socios(
                 openCustomTab(context, url)
             })
         }
-        if(mostrar_snacbar_con_datos_cambiados){
+        if (mostrar_snacbar_con_datos_cambiados) {
             scope.launch {
                 snackbarHostState.showSnackbar(
                     message = "Cambios guardados correctamente",
                     duration = SnackbarDuration.Short
                 )
             }
-            mostrar_snacbar_con_datos_cambiados=false
+            mostrar_snacbar_con_datos_cambiados = false
         }
 
 //        when {

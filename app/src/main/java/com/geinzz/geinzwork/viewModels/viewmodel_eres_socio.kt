@@ -143,6 +143,17 @@ class viewmodel_eres_socio : ViewModel() {
         }
     }
 
+
+    fun guarda_lat_lng(lat: Double,lng: Double,id_tienda: String,localidad: String){
+        viewModelScope.launch {
+            try {
+                instace_repo.guardar_lat_lng(lat,lng,id_tienda,localidad)
+            }catch (e: Exception){
+                Log.d("error_al_guardar","error cordenasd $e")
+            }
+        }
+    }
+
     fun actualiza_direccion_de_tienda(
         idTienda: String,
         localidad: String,

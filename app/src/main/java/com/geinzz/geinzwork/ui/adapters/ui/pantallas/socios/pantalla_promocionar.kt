@@ -447,7 +447,7 @@ fun pantalla_promocionar(
         mutableStateOf(
             predeterminado.compartir
                 ?.takeIf { it.isNotBlank() }
-                ?: "Hola, quiero esta oferta que vi en Geinz:"
+                ?: "Mira esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25"
         )
     }
     val estado_texto_whatsapp_con_ia by viewmodel_pantalla_promocionar.estado_texto_whatsap_con_ia.collectAsState()
@@ -456,7 +456,7 @@ fun pantalla_promocionar(
         mutableStateOf(
             predeterminado.whatsapp
                 ?.takeIf { it.isNotBlank() }
-                ?: "Mira esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25"
+                ?: "Hola, quiero esta oferta que vi Geinz:"
         )
     }
     var msj_perzonalizado_whatsapp_ia_bool by rememberSaveable { mutableStateOf(false) }
@@ -1139,8 +1139,8 @@ fun pantalla_promocionar(
                 mensaje_perzonalizado = false
                 msje_titulo_descripcion = false
                 filtro_cercania = false
-                mensaje_perzonalizado_txt = "Mira esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25"
-                mensaje_perzonalizado_txt_compartir = "Hola, quiero esta oferta que vi Geinz:"
+                mensaje_perzonalizado_txt = "Hola, quiero esta oferta que vi Geinz:"
+                mensaje_perzonalizado_txt_compartir = "Mira esta promo en Geinz ❤\uFE0F\u200D\uD83D\uDD25"
 
                 viewmodel_pantalla_promocionar.limpiar_precios()
                 rango_detectado = ""

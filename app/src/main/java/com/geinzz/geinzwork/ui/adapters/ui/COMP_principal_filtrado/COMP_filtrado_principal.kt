@@ -225,7 +225,7 @@ fun custom_texFiel(
 }
 
 @Composable
-fun custom_textField_150(
+fun custom_textField_150(modifier: Modifier= Modifier,
     mostrar_contado_palabras: Boolean=true,
     rounder: Int = 50,
     value: String,
@@ -240,7 +240,7 @@ fun custom_textField_150(
     val maxLength = 200
     val isOverLimit = value.length > maxLength
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = modifier.fillMaxWidth()) {
 
         OutlinedTextField(
             value = value,
@@ -281,6 +281,37 @@ if(mostrar_contado_palabras){
 }
     }
 }
+
+@Composable
+fun custom_textField_readonly(
+    modifier: Modifier = Modifier,
+    rounder: Int = 50,
+    value: String,
+    labelText: String,
+    placeholderText: String
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = {},
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+        shape = RoundedCornerShape(rounder),
+        label = { retornar_pleaceholder_label(labelText) },
+        placeholder = { retornar_pleaceholder_label(placeholderText) },
+        textStyle = MaterialTheme.typography.bodyMedium,
+        readOnly = true,
+        enabled = false, // 🔥 desactiva teclado y foco completamente
+        colors = OutlinedTextFieldDefaults.colors(
+            disabledTextColor = MaterialTheme.colorScheme.onBackground,
+            disabledBorderColor = Color(0xFF75707A),
+            disabledLabelColor = MaterialTheme.colorScheme.onBackground,
+            disabledPlaceholderColor = MaterialTheme.colorScheme.onBackground,
+        )
+    )
+}
+
+
 @Composable
 fun existencia_dato() {
     Text(

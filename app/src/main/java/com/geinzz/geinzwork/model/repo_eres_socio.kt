@@ -52,6 +52,9 @@ import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
@@ -146,6 +149,28 @@ class repo_eres_socio {
 
         } catch (e: Exception) {
             emptyList()
+        }
+    }
+    suspend fun guardar_lat_lng(lat: Double, lng: Double, idTienda: String, localidad: String) {
+
+        val ref = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(idTienda)
+
+        val algoliaDoc = db.collection("lugares")
+            .document(idTienda)
+
+        val campos = mapOf(
+            "ubicacion.latitud" to lat,
+            "ubicacion.longitud" to lng
+        )
+
+        coroutineScope {
+            listOf(
+                async { ref.update(campos).await() },
+                async { algoliaDoc.update(campos).await() }
+            ).awaitAll()
         }
     }
 

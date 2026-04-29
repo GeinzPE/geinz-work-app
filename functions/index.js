@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { onRequest, onCall } = require("firebase-functions/v2/https");
+const { onRequest, onCall ,HttpsError } = require("firebase-functions/v2/https");
 const {
   onDocumentCreated,
   onDocumentWritten,
@@ -23,7 +23,7 @@ admin.initializeApp();
 
 const axios = require("axios");
 
-const CULQI_KEY = process.env.CULQI_KEY; // 🔹 v2: se usa env variable
+const CULQI_KEY = process.env.CULQI_KEY;
 const PHONE_ID = process.env.ID_NUMBER_WHATSAPP;
 const WHATSAPP_TOKEN = process.env.ID_API_WHATSAPP;
 const PDFDocument = require("pdfkit");
@@ -84,7 +84,6 @@ exports.crearOrdenCulqi = onCall({ region: "us-central1" }, async (req) => {
         localidad: localidad,
         culqi_order_id: response.data.id, // id interno de Culqi
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
-
         paidAt: null,
       });
 
@@ -98,6 +97,7 @@ exports.crearOrdenCulqi = onCall({ region: "us-central1" }, async (req) => {
       checkout_url: response.data.url_pe, // ✅ página de pago
       qr_url: response.data.qr, // ✅ imagen del QR (bonus)
       orderId,
+      culqi_order_id: response.data.id,
     };
   } catch (error) {
     console.error(
@@ -306,23 +306,39 @@ async function emitirBoletaNubefact({
 }
 
 async function enviarWhatsApp(numero, mensaje) {
-  const telefono = `51${numero}`;
+  try {
+    const telefono = `51${numero}`;
 
-  await axios.post(
-    `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
-    {
-      messaging_product: "whatsapp",
-      to: `51${numero}`,
-      type: "text",
-      text: { body: mensaje },
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-        "Content-Type": "application/json",
+    console.log("📲 Enviando WhatsApp a:", telefono);
+
+    const res = await axios.post(
+      `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
+      {
+        messaging_product: "whatsapp",
+        to: telefono,
+        type: "text",
+        text: { body: mensaje },
       },
-    },
-  );
+      {
+        headers: {
+          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("✅ WhatsApp enviado:", res.data);
+
+    return true;
+
+  } catch (error) {
+    console.error(
+      "❌ ERROR WHATSAPP:",
+      error.response?.data || error.message
+    );
+
+    return false; // 🔥 no rompas todo tu flujo
+  }
 }
 
 async function sumarSaldo(userId, monedas) {
@@ -380,7 +396,7 @@ async function agregar_historial_de_pagos_tienda({
   console.log("🚀 INICIANDO PROCESO PAGO COMPLETO");
 
   try {
-    // 1️⃣ HISTORIAL PRIMERO (más importante)
+    // HISTORIAL PRIMERO (más importante)
     const historialRef = db
       .collection("Tiendas")
       .doc(localidad_tienda)
@@ -423,7 +439,7 @@ async function agregar_historial_de_pagos_tienda({
     await historialRef.set(data);
     console.log("✅ HISTORIAL GUARDADO");
 
-    // 2️⃣ LUEGO ACTUALIZAS PAGO
+    //  LUEGO ACTUALIZAS PAGO
     const pagoRef = db
       .collection("Tiendas")
       .doc(localidad_tienda)
@@ -449,7 +465,7 @@ async function agregar_historial_de_pagos_tienda({
         pago_actual_id: admin.firestore.FieldValue.delete(),
       });
 
-    // 4️⃣ OBTENER PROPIETARIOS
+    //  OBTENER PROPIETARIOS
     const tiendaDoc = await db
       .collection("Tiendas")
       .doc(localidad_tienda)
@@ -468,7 +484,7 @@ async function agregar_historial_de_pagos_tienda({
       "🛍️ Atrae más clientes con tus nuevas opciones.",
       "📊 Haz que tu tienda crezca con esta recarga.",
     ];
-    // 5️⃣ ENVIAR NOTIFICACIONES
+    // ENVIAR NOTIFICACIONES
     for (const propietarioId of propietarios) {
       const tokenDoc = await db
         .collection("Trabajadores_Usuarios_Drivers")
@@ -516,7 +532,7 @@ exports.confirmarPago = onCall(async (req) => {
     monto_anterior,
     id_select_boleta_pago,
   } = req.data;
-  // 👇 AGREGA ESTO PARA VER QUÉ LLEGA
+
   console.log("=== CONFIRMAR PAGO ===");
   console.log("token:", token);
   console.log("monto:", monto);
@@ -535,7 +551,6 @@ exports.confirmarPago = onCall(async (req) => {
         capture: true,
         description: "Compra de monedas Geinz",
         antifraud_details: {
-          // ← esto faltaba
           address: "Barranca",
           address_city: "Barranca",
           country_code: "PE",
@@ -556,27 +571,24 @@ exports.confirmarPago = onCall(async (req) => {
 
     console.log("CULQI RESPONSE:", charge);
 
-    // 🚨 VALIDACIÓN REAL DE PAGO
-    if (charge.outcome?.code !== "AUT0000") {
-      throw new Error("Pago no aprobado");
-    }
     await agregar_historial_de_pagos_tienda({
       id_transaccion: id_select_boleta_pago,
       tipo_transaccion: "recarga",
-      metodo_pago: "yape", // o dinámico si lo tienes
-      nombre_tienda: nombre_tienda, // 🔥 ideal: tráelo de DB
+      metodo_pago: "yape",
+      nombre_tienda: nombre_tienda,
       id_tienda: userId,
-      localidad_tienda: localidad, // 🔥 dinámico mejor
+      localidad_tienda: localidad,
       tipo_paquete: nombre_paquete,
       monto_aumentado: monedas,
       precio_soles: monto.toString(),
       estado: "Aceptado",
-      monto_anterior: monto_anterior, // 🔥 puedes mejorarlo leyendo antes
+      monto_anterior: monto_anterior,
     });
 
     const numero = await sumarSaldo(userId, monedas);
 
     try {
+      /*
       const pdfUrl = await emitirBoletaNubefact({
         userId,
         monedas,
@@ -585,9 +597,21 @@ exports.confirmarPago = onCall(async (req) => {
         email: "cliente@geinz.com",
         nombre: "Consumidor Final",
       });
-
+*/
       if (typeof numero === "string" && numero.length >= 9) {
-        await enviarPDFWhatsApp(numero, pdfUrl);
+        // await enviarPDFWhatsApp(numero, pdfUrl);
+        enviarWhatsApp(
+          937659216,
+          `✅ *Pago exitoso en Geinz*\n` +
+            `🏪 *Negocio:* ${nombre_tienda}\n` +
+            `🆔 *ID Negocio:* ${userId}\n` +
+            `📦 *Paquete:* ${nombre_paquete}\n` +
+            `💰 *Monto pagado:* S/ ${monto}\n` +
+            `🪙 *Monedas acreditadas:* ${monedas}\n` +
+            `🧾 *ID Transacción:* ${id_select_boleta_pago}\n` +
+            `💳 *ID Cargo Culqi:* ${charge.id}\n` +
+            `📅 *Fecha:* ${new Date().toLocaleString("es-PE", { timeZone: "America/Lima" })}`,
+        );
       }
     } catch (nubefactErr) {
       console.error(
@@ -601,8 +625,23 @@ exports.confirmarPago = onCall(async (req) => {
       chargeId: charge.id,
     };
   } catch (error) {
-    console.error("ERROR CHARGE:", error.response?.data || error.message);
-    throw new Error(JSON.stringify(error.response?.data || error.message));
+    const culqiError = error.response?.data;
+
+    console.error("ERROR CHARGE:", culqiError || error.message);
+
+    const motivo = culqiError?.user_message || "Error en el pago";
+
+    await enviarWhatsApp(
+      "937659216",
+      `❌ *Pago rechazado en Geinz*\n\n` +
+        `🏪 *Negocio:* ${nombre_tienda}\n` +
+        `🆔 *ID:* ${userId}\n` +
+        `💰 *Monto:* S/ ${monto}\n` +
+        `⚠️ *Motivo:* ${motivo}\n` +
+        `📅 *Fecha:* ${new Date().toLocaleString("es-PE", { timeZone: "America/Lima" })}`,
+    );
+
+    throw new HttpsError("failed-precondition", motivo);
   }
 });
 
@@ -623,7 +662,7 @@ exports.verificar_usuario_asistente = onRequest(async (req, res) => {
 
     const doc = await ref.get();
 
-    // 🔹 SI EXISTE
+    // SI EXISTE
     if (doc.exists) {
       const data = doc.data();
 
@@ -637,7 +676,7 @@ exports.verificar_usuario_asistente = onRequest(async (req, res) => {
       });
     }
 
-    // 🔹 SI NO EXISTE → CREAR
+    // SI NO EXISTE → CREAR
     const nuevoUsuario = {
       nombre_user: nombre_user || "Usuario",
       numero_user: numero_usuario,
@@ -697,7 +736,7 @@ exports.agregar_pago_para_el_usuario_tienda = onCall(async (req) => {
 
     let pagoRef;
 
-    // 🔥 SI YA EXISTE PAGO PENDIENTE → REUTILIZAR
+    // SI YA EXISTE PAGO PENDIENTE → REUTILIZAR
     if (tiendaData.pago_actual_id) {
       pagoRef = pagosRef.doc(tiendaData.pago_actual_id);
 
@@ -723,7 +762,7 @@ exports.agregar_pago_para_el_usuario_tienda = onCall(async (req) => {
       };
     }
 
-    // 🔥 SI NO EXISTE → CREAR NUEVO
+    //  SI NO EXISTE → CREAR NUEVO
     pagoRef = pagosRef.doc();
 
     const data = {
@@ -771,7 +810,6 @@ const API_KEY = process.env.ALGOLIA_API_KEY || "";
 const client = algoliasearch(APP_ID, API_KEY);
 const index = client.initIndex("lugares");
 
-// 🔀 Shuffle correcto (Fisher-Yates)
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -867,22 +905,22 @@ function rankear(resultados, nombreBuscado) {
 
     let score = 0;
 
-    // 🔥 match exacto completo
+    // match exacto completo
     if (nombreDB.includes(buscado)) score += 3;
 
-    // 🔥 coincidencias por palabra
+    //coincidencias por palabra
     let matches = 0;
     palabras.forEach((p) => {
       if (nombreDB.includes(p)) matches++;
     });
     score += matches;
 
-    // 🔥 bonus si contiene TODAS
+    //  bonus si contiene TODAS
     if (palabras.every((p) => nombreDB.includes(p))) {
       score += 2;
     }
 
-    // 🔥 similitud general
+    // similitud general
     score += similitud(nombreDB, buscado);
 
     return { tienda, score };
@@ -928,7 +966,7 @@ exports.buscarTiendasSmart = onRequest(async (req, res) => {
 
     console.log("🧠 MODO:", modoDifuso ? "INTELIGENTE" : "RAPIDO");
 
-    // 🔥 DECISIÓN
+    //  DECISIÓN
     if (modoDifuso) {
       resultados = await buscarInteligente(ref, nombre_negocio);
     } else {
@@ -941,10 +979,10 @@ exports.buscarTiendasSmart = onRequest(async (req, res) => {
 
     console.log("📊 RESULTADOS:", resultados.length);
 
-    // 🧠 ordenar
+    //  ordenar
     let ordenados = rankear(resultados, nombre_negocio);
 
-    // 🕒 horario
+    //  horario
     const response = ordenados.map((tienda) => ({
       id: tienda.id,
       name: tienda.nombre_tienda,
@@ -958,7 +996,7 @@ exports.buscarTiendasSmart = onRequest(async (req, res) => {
       tipo: "tienda",
     }));
 
-    // 🟢 abiertos primero
+    // abiertos primero
     const abiertos = response.filter((t) => t.open_state === true);
     const baseFinal = abiertos.length > 0 ? abiertos : response;
 
@@ -1005,7 +1043,7 @@ exports.buscarTiendas = onRequest(async (req, res) => {
     console.log("📊 TOTAL INICIAL:", resultados.length);
 
     // =========================
-    // 🔍 FILTRO NOMBRE
+    // FILTRO NOMBRE
     // =========================
     if (nombre_negocio) {
       const nombre = normalizar(nombre_negocio);
@@ -1021,7 +1059,7 @@ exports.buscarTiendas = onRequest(async (req, res) => {
     }
 
     // =========================
-    // 🏷 FILTRO CATEGORIA (FLEXIBLE)
+    // FILTRO CATEGORIA (FLEXIBLE)
     // =========================
     if (categoria) {
       const cat = normalizar(categoria);
@@ -1035,7 +1073,7 @@ exports.buscarTiendas = onRequest(async (req, res) => {
     }
 
     // =========================
-    // 🍕 FILTRO SUBCATEGORIA
+    //  FILTRO SUBCATEGORIA
     // =========================
     if (subcategoria) {
       const palabrasBusqueda = normalizar(subcategoria).split(" ");
@@ -1053,7 +1091,7 @@ exports.buscarTiendas = onRequest(async (req, res) => {
       console.log("🍕 SUBCATEGORIA:", resultados.length);
     }
     // =========================
-    // 🕒 HORARIO PERÚ
+    // HORARIO PERÚ
     // =========================
     const now = new Date();
     const peru = new Date(
@@ -1064,7 +1102,7 @@ exports.buscarTiendas = onRequest(async (req, res) => {
       "domingo",
       "lunes",
       "martes",
-      "miércoles", // sin tilde 🔥
+      "miércoles",
       "jueves",
       "viernes",
       "sábado",
@@ -1124,17 +1162,17 @@ exports.buscarTiendas = onRequest(async (req, res) => {
     });
 
     // =========================
-    // 🔥 PRIORIDAD: ABIERTOS
+    // PRIORIDAD: ABIERTOS
     // =========================
     let abiertos = response.filter((t) => t.open_state);
 
     console.log("🟢 ABIERTOS:", abiertos.length);
 
-    // 🔥 fallback si no hay abiertos
+    // fallback si no hay abiertos
     let baseFinal = abiertos.length > 0 ? abiertos : response;
 
     // =========================
-    // 🎯 RANDOM + MAX 3
+    // RANDOM + MAX 3
     // =========================
     const final = shuffle(baseFinal).slice(0, 3);
 
@@ -1144,7 +1182,7 @@ exports.buscarTiendas = onRequest(async (req, res) => {
       data: final,
     });
   } catch (error) {
-    console.error("❌ ERROR:", error);
+    console.error("ERROR:", error);
 
     return res.status(500).json({
       ok: false,
@@ -1177,7 +1215,7 @@ exports.buscar_tienda_por_categorias_y_subcategoria = onRequest(
         .collection(localidad)
         .where("categoria_tienda", "==", categoria);
 
-      // 👉 subcategoria opcional
+      // subcategoria opcional
       if (subcategoria) {
         query = query.where("subcategoria", "array-contains", subcategoria);
       }
@@ -1192,7 +1230,7 @@ exports.buscar_tienda_por_categorias_y_subcategoria = onRequest(
       console.log("📊 RESULTADOS:", resultados.length);
 
       // =========================
-      // 🔥 MAP + HORARIO
+      //  MAP + HORARIO
       // =========================
       const response = resultados.map((tienda) => {
         const estado = verificar_apertura_tienda(tienda.horario_atencion);
@@ -1212,14 +1250,14 @@ exports.buscar_tienda_por_categorias_y_subcategoria = onRequest(
       });
 
       // =========================
-      // 🟢 PRIORIDAD ABIERTOS
+      // PRIORIDAD ABIERTOS
       // =========================
       const abiertos = response.filter((t) => t.open_state === true);
 
       const baseFinal = abiertos.length > 0 ? abiertos : response;
 
       // =========================
-      // 🎯 RANDOM + LIMITE
+      // RANDOM + LIMITE
       // =========================
       const final = baseFinal.sort(() => Math.random() - 0.5).slice(0, 3);
 
@@ -1230,7 +1268,7 @@ exports.buscar_tienda_por_categorias_y_subcategoria = onRequest(
         data: final,
       });
     } catch (error) {
-      console.error("❌ ERROR:", error);
+      console.error("ERROR:", error);
       return res.status(500).json({
         ok: false,
         error: "Error interno",
@@ -1243,7 +1281,6 @@ exports.agregar_usuario_de_geinz_bot = onRequest(async (req, res) => {
   try {
     const { nombre_user, id_user, numero_user, from_user_id } = req.body;
 
-    // 🔍 Validación básica
     if (!numero_user) {
       return res.status(400).json({
         ok: false,
@@ -1251,7 +1288,6 @@ exports.agregar_usuario_de_geinz_bot = onRequest(async (req, res) => {
       });
     }
 
-    // 📍 Ruta: /Trabajadores_Usuarios_Drivers/usuario_bot_geinz/usuario_bot_geinz/{numero_user}
     const ref = admin
       .firestore()
       .collection("Trabajadores_Usuarios_Drivers")
@@ -1259,7 +1295,6 @@ exports.agregar_usuario_de_geinz_bot = onRequest(async (req, res) => {
       .collection("usuario_bot_geinz")
       .doc(numero_user);
 
-    // 📦 Datos
     const data = {
       nombre_user: nombre_user || null,
       id_user: id_user || null,
@@ -1284,12 +1319,10 @@ exports.agregar_usuario_de_geinz_bot = onRequest(async (req, res) => {
 });
 
 function verificar_apertura_tienda(horario_atencion) {
-  // 👉 si no hay datos
   if (!horario_atencion) return null;
 
   const now = new Date();
 
-  // 🔥 hora Perú
   const peru = new Date(
     now.toLocaleString("en-US", { timeZone: "America/Lima" }),
   );
@@ -1309,7 +1342,6 @@ function verificar_apertura_tienda(horario_atencion) {
 
   const horario = horario_atencion[diaActual];
 
-  // 👉 si no hay horario ese día
   if (!horario || horario.cerrado === true) {
     return false;
   }
@@ -1325,21 +1357,17 @@ function verificar_apertura_tienda(horario_atencion) {
     const apertura = ha * 60 + ma;
     const cierre = hc * 60 + mc;
 
-    // 🔥 CASO NORMAL (ej: 9:00 - 18:00)
     if (apertura <= cierre) {
       if (minutosActual >= apertura && minutosActual <= cierre) {
         return true;
       }
-    }
-    // 🔥 CASO CRUZADO (ej: 20:00 - 02:00)
-    else {
+    } else {
       if (minutosActual >= apertura || minutosActual <= cierre) {
         return true;
       }
     }
   }
 
-  // 👉 no está dentro de ningún bloque
   return false;
 }
 
@@ -1350,7 +1378,7 @@ exports.obtenerCategorias = onRequest(async (req, res) => {
       .collection("Tiendas")
       .doc("categorias")
       .collection("categorias")
-      .select() // 👈 solo metadata ligera
+      .select()
       .get();
 
     const categorias = [];
@@ -1412,7 +1440,6 @@ exports.obtener_subcategoira_de_cat = onRequest(async (req, res) => {
 
 exports.obtener_lugares_seguros = onRequest(async (req, res) => {
   try {
-    // 1. Recibimos localidad y la categoria_limpia del clasificador
     const { localidad, categoria } = req.body;
 
     let query = admin
@@ -1421,8 +1448,6 @@ exports.obtener_lugares_seguros = onRequest(async (req, res) => {
       .doc("salud_seguridad")
       .collection(localidad);
 
-    // 2. Aplicamos el WHERE solo si la categoría no es "general"
-    // Si es "general", traerá todos los contactos de la localidad
     if (categoria && categoria !== "general") {
       query = query.where("categoria", "==", categoria);
     }
@@ -1446,7 +1471,6 @@ exports.obtener_lugares_seguros = onRequest(async (req, res) => {
       };
     });
 
-    // Cache de 5 minutos para ahorrar lecturas de Firestore
     res.set("Cache-Control", "public, max-age=300");
 
     return res.status(200).json({
@@ -1493,7 +1517,6 @@ function seleccionarAleatorioPonderado(lista, limite) {
   const copia = [...lista];
 
   while (seleccionados.length < limite && copia.length > 0) {
-    // suma total de scores
     const totalScore = copia.reduce(
       (sum, item) => sum + (item.score > 0 ? item.score : 1),
       0,
@@ -1505,7 +1528,7 @@ function seleccionarAleatorioPonderado(lista, limite) {
 
       if (r <= 0) {
         seleccionados.push(copia[i]);
-        copia.splice(i, 1); // evitar repetidos
+        copia.splice(i, 1);
         break;
       }
     }
@@ -1542,7 +1565,7 @@ exports.obtener_lugares_turisticos_directos = onRequest(async (req, res) => {
     console.log("📊 TOTAL INICIAL:", resultados.length);
 
     // =========================
-    // 🧠 FUNCIONES BASE
+    // FUNCIONES BASE
     // =========================
 
     function matchNombre(target, busqueda) {
@@ -1564,7 +1587,7 @@ exports.obtener_lugares_turisticos_directos = onRequest(async (req, res) => {
     }
 
     // =========================
-    // 🔍 FILTRO DINÁMICO
+    // FILTRO DINÁMICO
     // =========================
     let filtrados = resultados.filter((lugar) => {
       const nombreOK = matchNombre(
@@ -1580,7 +1603,7 @@ exports.obtener_lugares_turisticos_directos = onRequest(async (req, res) => {
     console.log("🔎 FILTRO INICIAL:", filtrados.length);
 
     // =========================
-    // ⚠️ FALLBACK
+    //FALLBACK
     // =========================
     if (filtrados.length === 0 && nombre_negocio && subcategoria) {
       console.log("⚠️ fallback → solo nombre");
@@ -1605,7 +1628,7 @@ exports.obtener_lugares_turisticos_directos = onRequest(async (req, res) => {
     }
 
     // =========================
-    // 🔥 SCORE + RANDOM
+    // SCORE + RANDOM
     // =========================
     const LIMITE = 4;
 
@@ -1617,7 +1640,7 @@ exports.obtener_lugares_turisticos_directos = onRequest(async (req, res) => {
     filtrados = seleccionarAleatorioPonderado(filtrados, LIMITE);
 
     // =========================
-    // 🔥 RESPUESTA FINAL
+    //RESPUESTA FINAL
     // =========================
     const data = filtrados.map((lugar) => ({
       id: lugar.id,
@@ -1633,7 +1656,7 @@ exports.obtener_lugares_turisticos_directos = onRequest(async (req, res) => {
       data,
     });
   } catch (error) {
-    console.error("❌ ERROR:", error);
+    console.error("ERROR:", error);
     return res.status(500).json({
       ok: false,
       error: error.message,
@@ -1670,7 +1693,7 @@ exports.webhookCulqi = onRequest(
 
       const event = body;
 
-      console.log("🔥 WEBHOOK RECIBIDO:");
+      console.log("WEBHOOK RECIBIDO:");
       console.log("Body:", JSON.stringify(event));
 
       if (!event || !event.type) {
@@ -1678,7 +1701,7 @@ exports.webhookCulqi = onRequest(
         return res.status(200).send("ok");
       }
 
-      if (event.type === "order.status_changed") {
+      if (event.type === "order.status.changed") {
         const order = event.data;
 
         console.log("Estado:", order?.payment_status);
@@ -1809,7 +1832,7 @@ exports.banUser = onRequest(async (req, res) => {
   try {
     const db = admin.firestore();
 
-    // 🔥 NUEVA RUTA CORRECTA
+    //NUEVA RUTA CORRECTA
     const userRef = db
       .collection("Trabajadores_Usuarios_Drivers")
       .doc("usuario_bot_geinz")
@@ -2083,7 +2106,7 @@ function capitalizeFirstLetter(str) {
 
 exports.eliminarPromocionesExpiradasCadaMinuto = onSchedule(
   {
-    schedule: "0 0 * * *", // ⏱️ cada minuto
+    schedule: "0 0 * * *",
     timeZone: "America/Lima",
     region: "us-central1",
   },
@@ -2100,7 +2123,7 @@ exports.eliminarPromocionesExpiradasCadaMinuto = onSchedule(
       .get();
 
     if (snapshot.empty) {
-      console.log("ℹ️ No hay promociones activas");
+      console.log("No hay promociones activas");
       return;
     }
 
@@ -2744,52 +2767,8 @@ exports.tiendasGeo = onRequest(async (req, res) => {
 function normalizar(texto) {
   return texto
     .toLowerCase()
-    .normalize("NFD") // separa tildes
-    .replace(/[\u0300-\u036f]/g, "") // elimina tildes
-    .replace(/[^\w\s]/gi, "") // elimina puntos, comas, etc
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\s]/gi, "")
     .trim();
 }
-
-/*
-
-exports.enviarNotificacion = onRequest(async (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
-
-  if (req.method !== "POST") {
-    return res.status(405).send("Método no permitido"); 
-  }
-
-  try {
-    const {
-      token,
-      title,
-      body,
-      link = "",
-      image = "",
-      idTienda = "",
-      idAnuncio = "",
-    } = req.body;
-
-    const mensaje = {
-      token: token,
-      data: {
-        title: String(title),
-        body: String(body),
-        link: String(link),
-        image: String(image),
-        idTienda: String(idTienda),
-        idAnuncio: String(idAnuncio),
-      },
-      android: {
-        priority: "high",
-      },
-    };
-
-    const respuesta = await admin.messaging().send(mensaje);
-    res.status(200).send("Notificación enviada: " + respuesta);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error.message);
-  }
-});
-*/
