@@ -277,7 +277,7 @@ fun pantala_recarga(
                     .graphicsLayer { alpha = alphaAnim } // aplicamos el fade
             )
             if(abrir_para_que_monedas){
-                bottom_sheet_creadtior_quees_geinzz{abrir_para_que_monedas=false}
+                bottom_sheet_creadtior_quees_geinzz(onDismissRequest = {abrir_para_que_monedas=false})
             }
         }
     }

@@ -578,22 +578,23 @@ fun pantalla_promocionar(
         pantalla_horarios(
             nombre = "Todo el día",
             texto = "Tu publicación se mostrará durante todo el día para todos los compradores 🕛 ",
-            horario_mostrado = "00:00 - 23:59"
+            horario_mostrado = "00:00 - 23:59","todo_dia"
+
         ),
         pantalla_horarios(
             nombre = "Mañana",
             texto = "Tu publicación solo se mostrará durante el turno de la mañana para compradores interesados 🌞 ",
-            horario_mostrado = "06:00 - 12:00"
+            horario_mostrado = "06:00 - 12:00","manana"
         ),
         pantalla_horarios(
             nombre = "Tarde",
             texto = "Tu publicación solo se mostrará durante el turno de la tarde 🌤 ",
-            horario_mostrado = "12:00 - 18:00"
+            horario_mostrado = "12:00 - 18:00","tarde"
         ),
         pantalla_horarios(
             nombre = "Noche",
             texto = "Tu publicación solo se mostrará durante el turno de la noche 🌙",
-            horario_mostrado = "18:00 - 23:59"
+            horario_mostrado = "18:00 - 23:59","noche"
         )
     )
 
@@ -2996,9 +2997,9 @@ fun pantalla_promocionar(
                                     ),
 
                                     horario_deseado = horario_deseado(
-                                        seleccion = if (horario_deseado) turnoSeleccionado?.nombre
+                                        seleccion = if (horario_deseado) turnoSeleccionado?.estado_guardado_db
                                             ?: "" else "",
-                                        horario = if (horario_deseado) turnoSeleccionado?.horario_mostrado
+                                        horario = if (horario_deseado) turnoSeleccionado?.estado_guardado_db
                                             ?: "" else ""
                                     ), metodos_pagos = metodos_pagos_agregados_publiaciones(
                                         yape = if (metodos_de_pago) metodo_yape else false,

@@ -220,6 +220,12 @@ fun ui_promos_cerca_de_ti(
     var dias_restantes by remember { mutableStateOf("") }
     var promoSeleccionada by remember { mutableStateOf<obj_completo?>(null) }
 
+//    val resultado = viewModel.resultado
+//    val res_filtrado_algolia =viewModel.resultado_encontrado_algolia
+//    LaunchedEffect(resultado,res_filtrado_algolia) {
+//        Log.d("resultado", "$resultado")
+//        Log.d("resultado_filtraod", "$res_filtrado_algolia")
+//    }
 
     var promoSeleccionada_unica by remember {
         mutableStateOf<dataclass_promociones_cerca_de_ti?>(
@@ -572,77 +578,76 @@ fun ui_promos_cerca_de_ti(
                             .flatMap { categorias }
                             .distinct()
 
-//                        item {
-//                            Column(modifier = Modifier.padding(horizontal = 10.dp)) {
-//
-//                                OutlinedTextField(
-//                                    value = valor_a_buscar,
-//                                    onValueChange = {
-//                                        valor_a_buscar = it
-//                                        if (valor_a_buscar.isEmpty()) {
-//                                            viewModel.resetear_respuesta_de_gemini()
-//                                        }
-//                                    },
-//                                    placeholder = {
-//                                        texto_generico_one_line(
-//                                            "¿Qué buscas?",
-//                                            style = MaterialTheme.typography.bodyMedium,
-//                                            color = Color.Gray
-//                                        )
-//                                    },
-//                                    modifier = Modifier
-//                                        .fillMaxWidth(),
-//                                    shape = RoundedCornerShape(50),
-////                                    leadingIcon = {
-////                                        IconButton(
-////                                            onClick = {
-////                                            }
-////                                        ) {
-////                                            Icon(
-////                                                imageVector = Icons.Default.Clear,
-////                                                contentDescription = "Hablar", tint = Color.Gray
-////                                            )
-////                                        }
-////                                    },
-//                                    trailingIcon = {
+                        item {
+                            Column(modifier = Modifier.padding(horizontal = 10.dp)) {
+
+                                OutlinedTextField(
+                                    value = valor_a_buscar,
+                                    onValueChange = {
+                                        valor_a_buscar = it
+                                        if (valor_a_buscar.isEmpty()) {
+                                            viewModel.resetear_respuesta_de_gemini()
+                                        }
+                                    },
+                                    placeholder = {
+                                        texto_generico_one_line(
+                                            "¿Qué buscas?",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.Gray
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    shape = RoundedCornerShape(50),
+//                                    leadingIcon = {
 //                                        IconButton(
 //                                            onClick = {
-//                                                if (mostrar_lupa_busqueda) {
-//                                                    viewModel.procesar_NLP(
-//                                                        valor_a_buscar,
-//                                                        subCategoriaSeleccionada
-//                                                    )
-//                                                }
 //                                            }
 //                                        ) {
-//
-//                                            AnimatedContent(
-//                                                targetState = mostrar_carga_Respuesta_gemini,
-//                                                label = "icon_animation"
-//                                            ) { cargando ->
-//
-//                                                if (cargando) {
-//                                                    CircularProgressIndicator(
-//                                                        modifier = Modifier.size(24.dp),
-//                                                        strokeWidth = 2.dp
-//                                                    )
-//                                                } else {
-//                                                    Icon(
-//                                                        imageVector = Icons.Default.Search,
-//                                                        contentDescription = "Buscar",
-//                                                        tint = Color.Gray
-//                                                    )
-//                                                }
-//                                            }
+//                                            Icon(
+//                                                imageVector = Icons.Default.Clear,
+//                                                contentDescription = "Hablar", tint = Color.Gray
+//                                            )
 //                                        }
-//                                    }
-//                                )
-//
-////                                respuesta_gemini_NLP?.let { respuesta ->
-////                                    texto_generico_multilinea(respuesta.toString())
-////                                }
-//                            }
-//                        }
+//                                    },
+                                    trailingIcon = {
+                                        IconButton(
+                                            onClick = {
+                                                if (mostrar_lupa_busqueda) {
+                                                    viewModel.procesar_nlp_open_ia(
+                                                        valor_a_buscar,
+                                                    )
+                                                }
+                                            }
+                                        ) {
+
+                                            AnimatedContent(
+                                                targetState = mostrar_carga_Respuesta_gemini,
+                                                label = "icon_animation"
+                                            ) { cargando ->
+
+                                                if (cargando) {
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(24.dp),
+                                                        strokeWidth = 2.dp
+                                                    )
+                                                } else {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Search,
+                                                        contentDescription = "Buscar",
+                                                        tint = Color.Gray
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                )
+
+                                respuesta_gemini_NLP?.let { respuesta ->
+                                    texto_generico_multilinea(respuesta.toString())
+                                }
+                            }
+                        }
 
                         item {
                             val itemFiltros = tiendas_con_mas_de_una_promo(
@@ -651,17 +656,22 @@ fun ui_promos_cerca_de_ti(
                                 logo_img = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0"
                             )
                             LazyRow(
-                                modifier = Modifier.animateContentSize().padding(top = 5.dp),
+                                modifier = Modifier
+                                    .animateContentSize()
+                                    .padding(top = 5.dp),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 contentPadding = PaddingValues(horizontal = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically
-                                                            ) {
+                            ) {
 
                                 // 🔥 Nuevo item de filtros generales
                                 item {
 
                                     // 🔹 Logueamos que no hay tienda seleccionada
-                                    Log.d("DEBUG_FILTROS", "No hay tienda seleccionada, mostrando FILTROS_GENERALES")
+                                    Log.d(
+                                        "DEBUG_FILTROS",
+                                        "No hay tienda seleccionada, mostrando FILTROS_GENERALES"
+                                    )
 
                                     val condicion =
                                         (rango_precio != null && rango_precio != "Sin precio") ||
@@ -671,9 +681,18 @@ fun ui_promos_cerca_de_ti(
 
                                     // 🔹 Logueamos el estado de cada filtro
                                     Log.d("DEBUG_FILTROS", "Rango precio activo: ${rango_precio}")
-                                    Log.d("DEBUG_FILTROS", "Métodos seleccionados: ${listaSeleccionada.isNotEmpty()}")
-                                    Log.d("DEBUG_FILTROS", "Comodidades seleccionadas: ${lista_comodidades_Select.isNotEmpty()}")
-                                    Log.d("DEBUG_FILTROS", "Resultados Gemini: ${lista_resultados_gemini.isNotEmpty()}")
+                                    Log.d(
+                                        "DEBUG_FILTROS",
+                                        "Métodos seleccionados: ${listaSeleccionada.isNotEmpty()}"
+                                    )
+                                    Log.d(
+                                        "DEBUG_FILTROS",
+                                        "Comodidades seleccionadas: ${lista_comodidades_Select.isNotEmpty()}"
+                                    )
+                                    Log.d(
+                                        "DEBUG_FILTROS",
+                                        "Resultados Gemini: ${lista_resultados_gemini.isNotEmpty()}"
+                                    )
                                     Log.d("DEBUG_FILTROS", "Condición general: $condicion")
 
                                     estilo_ig_header(
@@ -683,7 +702,10 @@ fun ui_promos_cerca_de_ti(
                                         seleccionada = false,
                                         img_clikeada = { id ->
 
-                                            Log.d("DEBUG_FILTROS", "Click en FILTROS_GENERALES, id: $id")
+                                            Log.d(
+                                                "DEBUG_FILTROS",
+                                                "Click en FILTROS_GENERALES, id: $id"
+                                            )
                                             mostar_bottom_sheet_datos = true
                                         }
                                     )
@@ -801,7 +823,7 @@ fun ui_promos_cerca_de_ti(
                                     lista_comodidades_Select.isEmpty() &&
                                     (rango_precio == null || rango_precio == "Sin precio") &&
                                     lista_resultados_gemini.isEmpty()
-                                ){
+                                ) {
                                     // 🔹 Si no hay filtros → mostrar tiendas
                                     items(tiendasConMasDeUnaPromo) { tienda ->
                                         estilo_ig_header(
@@ -1308,10 +1330,6 @@ fun parseDiasHorasRestantes(diasRestantesStr: String): Pair<Int, String> {
         0 to "dias"
     }
 }
-
-
-
-
 
 
 @RequiresApi(Build.VERSION_CODES.O)

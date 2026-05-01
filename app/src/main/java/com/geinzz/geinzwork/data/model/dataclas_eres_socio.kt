@@ -117,6 +117,20 @@ data class agregar_promociones(
     val servicios_comoidades: ComodidadesAgregadas
 )
 
+data class PromoAlgolia(
+    val objectID: String, // id_promocion
+    val id_promocion: String,
+    val id_tienda: String,
+    val localidad: String,
+    val terminos_clave: List<String>,
+    val categoria: String,
+    val pagos: List<String>,
+    val comodidades: List<String>,
+    val precio: String,
+    val timestamp_inicio: Timestamp,
+    val timestamp_fin: Timestamp
+)
+
 data class metodos_pagos_agregados_publiaciones(
     val yape: Boolean = false,
     val plin: Boolean = false,
@@ -586,7 +600,7 @@ data class Res_precios(
     val rango: String? = null // null si hay más de uno
 )
 
-data class pantalla_horarios(val nombre: String, val texto: String, val horario_mostrado: String)
+data class pantalla_horarios(val nombre: String, val texto: String, val horario_mostrado: String,val estado_guardado_db: String)
 
 data class carta_promociones_geinz_vista_previa(
     val lista_img_uri: List<Uri> = emptyList(),

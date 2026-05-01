@@ -648,9 +648,9 @@ fun ExpandDropDown_horario_publicacion(
                     DropdownMenuItem(
                         text = { Text(option.nombre) },
                         onClick = {
-                            selected = option.nombre
+                            selected = option.estado_guardado_db
                             expanded = false
-                            selecionado(option) // <-- enviamos todo el objeto
+                            selecionado(option)
                         }
                     )
                 }

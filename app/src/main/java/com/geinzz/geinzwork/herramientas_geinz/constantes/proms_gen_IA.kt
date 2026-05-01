@@ -1075,22 +1075,12 @@ Texto: "$textoUsuario"
 
 fun construir_prompt_NLP_para_busqueda(textoUsuario: String, categoria: String): String {
     return """
-    Extrae términos de búsqueda del siguiente texto en categoría $categoria.
-    
-    Reglas:
-    - Solo productos, cantidades, marcas y precios que aparezcan literalmente en el texto.
-    - No inventes términos.
-    - No agregues explicaciones.
-    - No agregues texto adicional.
-    - No uses markdown.
-    - No nombre del negocio 
-    - No ubicacion
-    - Todo en minuscula y evita diminutivos
-    
-    La respuesta debe ser únicamente un arreglo de strings.
-    Debe empezar con [ y terminar con ] NO AGREGES MAS TEXTO SOLO EL ARRAY.
-    
-    Texto: "$textoUsuario"
+    Extrae sustantivos de producto del texto. Categoría: $categoria.
+    - Sin cantidades, tamaños, precios, adjetivos, marcas ni duplicados
+    - Minúsculas, sin tildes, sin diminutivos, sin plurales (usa singular)
+    - Solo términos que aparecen en el texto
+    Ejemplo: "2 Papas Reg., 4 Gaseosas Pers." → ["papa","gaseosa"]
+    Responde SOLO el array JSON. Texto: "$textoUsuario"
     """.trimIndent()
 }
 

@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.getValue
 
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -17,19 +18,24 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.EstadisticasPromo
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.DatosResponse
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.PromoConMatch
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.ResAlgoliaFiltrado
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.RespuestaGemini
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
 import com.geinzz.geinzwork.model.repo_promos_cercanas
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.String
 import kotlin.collections.Set
 
@@ -92,6 +98,15 @@ class viewmodel_promos_cercanas : ViewModel() {
     fun setComodidadesDesdeLista(lista: List<String>) {
         _comodidadesSeleccionadas.value = lista.toSet()
     }
+
+    var resultado by mutableStateOf<DatosResponse?>(null)
+        private set
+
+    var resultado_encontrado_algolia by mutableStateOf<ResAlgoliaFiltrado?>(null)
+        private set
+
+    var loading by mutableStateOf(false)
+        private set
 
 
     fun togleRango_select(metodo: String) {
@@ -284,43 +299,71 @@ class viewmodel_promos_cercanas : ViewModel() {
         tipo_filtrado: String,
     ) {
         viewModelScope.launch {
+            Log.d("PROMOS_FLOW", "🚀 INICIO obtener_promociones")
+            Log.d("PROMOS_FLOW", "📍 localidad: $localidad | tipo: $tipo_filtrado")
+
             _estadoPromos.value = estado_carga_promociones.loading
+            Log.d("PROMOS_FLOW", "⏳ Estado: LOADING")
 
             try {
+                Log.d("PROMOS_FLOW", "📡 Llamando repo.obtener_promos...")
+
                 val resultado = repo.obtener_promos(tipo_filtrado, localidad, null)
 
+                Log.d("PROMOS_FLOW", "📦 Resultado recibido: ${resultado.size}")
+
                 if (resultado.isEmpty()) {
+                    Log.d("PROMOS_FLOW", "⚠️ Lista vacía de promociones")
+
                     _estadoPromos.value =
                         estado_carga_promociones.empty("No hay promociones cerca de ti")
+
+                    Log.d("PROMOS_FLOW", "📭 Estado: EMPTY")
                     return@launch
                 }
 
-                // 🔥 LISTA BASE (NO SE TOCA)
+                // 🔥 LISTA BASE
                 listaCompleta.value = resultado
+                Log.d("PROMOS_FLOW", "🧱 listaCompleta size: ${resultado.size}")
 
                 // 🔥 LISTA VISIBLE
                 listaFiltrada.value = resultado
+                Log.d("PROMOS_FLOW", "👁 listaFiltrada size: ${listaFiltrada.value.size}")
 
-                // 🔥 CATEGORÍAS (DESDE LISTA COMPLETA)
-                categoriasDisponibles.value =
-                    resultado.flatMap {
-                        it.dataclass_promociones_cerca_de_ti
-                            .informacion_publcacion
-                            .categoria
-                            .split(",")
-                    }
-                        .map { it.trim() }
-                        .distinct()
+                // 🔥 CATEGORÍAS
+                val categorias = resultado.flatMap {
+                    it.dataclass_promociones_cerca_de_ti
+                        .informacion_publcacion
+                        .categoria
+                        .split(",")
+                }
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .distinct()
+
+                categoriasDisponibles.value = categorias
+
+                Log.d("PROMOS_FLOW", "🏷 categorías: $categorias")
 
                 _estadoPromos.value =
                     estado_carga_promociones.succes(listaFiltrada.value)
 
+                Log.d("PROMOS_FLOW", "✅ Estado: SUCCESS")
+
             } catch (e: Exception) {
+                Log.e("PROMOS_FLOW", "❌ ERROR en obtener_promociones", e)
+
                 _estadoPromos.value =
                     estado_carga_promociones.error("Error al cargar promociones")
+
+                Log.d("PROMOS_FLOW", "💥 Estado: ERROR")
+            } finally {
+                Log.d("PROMOS_FLOW", "🏁 FIN obtener_promociones")
             }
         }
     }
+
+
 
     fun filtrarPromociones(
         categoria: String,
@@ -566,6 +609,36 @@ class viewmodel_promos_cercanas : ViewModel() {
             } catch (e: Exception) {
                 Log.e("NLP_ERROR", "Error parseando JSON", e)
                 _respuesta_gemini.value = estado_Carga_respuesta_gemini.error("se produjo un error")
+            }
+        }
+    }
+
+
+    fun procesar_nlp_open_ia(texto: String) {
+        viewModelScope.launch {
+            try {
+                loading = true
+
+                // ⏳ SOLO OPENAI
+                val resultadoLocal = repo.obtener_respuesta_open_ia(texto)
+                Log.d("OPENAI", "$resultadoLocal")
+
+                if (resultadoLocal != null) {
+                    resultado = resultadoLocal
+
+                    // 🔥 ALGOLIA separado (no bloquea OpenAI)
+                    resultado_encontrado_algolia =
+                        withContext(Dispatchers.IO) {
+                            repo.send_get_resul_algoalia(resultadoLocal)
+                        }
+
+                    Log.d("ALGOLIA", "$resultado_encontrado_algolia")
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                loading = false
             }
         }
     }

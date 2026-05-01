@@ -1208,6 +1208,15 @@ class repo_eres_socio {
         }
     }
 
+
+    suspend fun guardar_promo_para_filtrado(
+        id_tienda: String,
+        localidad: String,
+        idPromo: String,
+    ){
+
+    }
+
     suspend fun subirImagenesConReintento(
         intentos: Int = 3,
         bloque: suspend () -> List<String>
@@ -1399,6 +1408,20 @@ class repo_eres_socio {
             val ref2 = db.collection("Tiendas").document(localidad).collection(localidad)
                 .document(i.informacion.id_tienda).collection("promociones_geinz")
                 .document(i.informacion.id_promocion)
+            val array_extraido = try {
+                withTimeout(20_000) {
+                    extraer_datos_de_texto_completo(
+                        i.informacion.titulo + i.informacion.descripcion,
+                        i.informacion.categoria
+                    )
+                }
+            } catch (e: TimeoutCancellationException) {
+                Log.e("TIMEOUT", "extraer_datos_de_texto_completo tardó demasiado")
+                emptyList<String>()
+            }
+            val subir_algolia_promociones= db.collection("promociones_algolia").document(i.informacion.id_promocion)
+
+
 
 
             val hasmap_metodos_pago = hashMapOf<String, Any>(
@@ -1424,17 +1447,50 @@ class repo_eres_socio {
                 "aire_acondicionado" to i.servicios_comoidades.aireAcondicionado
             )
 
-            val array_extraido = try {
-                withTimeout(20_000) {
-                    extraer_datos_de_texto_completo(
-                        i.informacion.titulo + i.informacion.descripcion,
-                        i.informacion.categoria
-                    )
+            val partes = i.precio_publicacion.rango.split("-")
+
+            val precioMin = partes.getOrNull(0)?.trim()?.toIntOrNull() ?: 0
+            val precioMax = partes.getOrNull(1)?.trim()?.toIntOrNull() ?: 0
+            val objetoAlgolia = hashMapOf<String, Any>(
+                "objectID" to i.informacion.id_promocion,
+                "id_promocion" to i.informacion.id_promocion,
+                "id_tienda" to i.informacion.id_tienda,
+                "localidad" to localidad,
+
+                // 🔍 búsqueda
+                "terminos_clave" to array_extraido,
+
+                // filtros
+                "categoria" to i.informacion.categoria,
+
+                "pagos" to listOfNotNull(
+                    if (i.metodos_pagos.yape) "yape" else null,
+                    if (i.metodos_pagos.plin) "plin" else null,
+                    if (i.metodos_pagos.efectivo) "efectivo" else null,
+                    if (i.metodos_pagos.visa) "visa" else null,
+                    if (i.metodos_pagos.mastercard) "mastercard" else null
+                ),
+                "comodidades" to hashmap_comodidades.filterValues { it as Boolean }.keys.toList(),
+                "horario_publicacion" to i.horario_deseado.seleccion.lowercase(),
+                "precio" to i.precio_publicacion.precio.toInt(),
+
+                "precioMin" to precioMin,
+
+                "precioMax" to precioMax,
+
+                "timestamp_fin" to when {
+                    i.datos_hora_fecha.dias.activo -> i.datos_hora_fecha.dias.timestamp_fin.seconds * 1000
+                    i.datos_hora_fecha.horas.activo -> i.datos_hora_fecha.horas.timestamp_fin.seconds * 1000
+                    else -> System.currentTimeMillis()
+                },
+                "timestamp_inicio" to when {
+                    i.datos_hora_fecha.dias.activo -> i.datos_hora_fecha.dias.timestamp_inicio.seconds * 1000
+                    i.datos_hora_fecha.horas.activo -> i.datos_hora_fecha.horas.timestamp_inicio.seconds * 1000
+                    else -> System.currentTimeMillis()
                 }
-            } catch (e: TimeoutCancellationException) {
-                Log.e("TIMEOUT", "extraer_datos_de_texto_completo tardó demasiado")
-                emptyList<String>()
-            }
+
+            )
+
             val hashMap = hashMapOf<String, Any>(
                 "estado" to i.estado,
                 "tipo_hora_dias" to i.formato_fecha_hora,
@@ -1445,13 +1501,9 @@ class repo_eres_socio {
                 "horario_publicacion" to i.horario_deseado.seleccion,
                 "precio_publicacion" to i.precio_publicacion.precio,
                 "rango_establecido" to i.precio_publicacion.rango,
-                "pagos" to i.metodos_pagos,
+//                "pagos" to i.metodos_pagos,
                 "pagos" to hasmap_metodos_pago,
                 "comodidades" to hashmap_comodidades,
-                "tiene_wifi" to i.servicios_comoidades.wifi,
-                "tiene_estacionamiento" to i.servicios_comoidades.estacionamiento,
-                "acepta_yape" to i.metodos_pagos.yape,
-                "acepta_efectivo" to i.metodos_pagos.efectivo,
                 "terminos_clave" to array_extraido
 
             )
@@ -1498,7 +1550,7 @@ class repo_eres_socio {
             }
 
 
-
+            subir_algolia_promociones.set(objetoAlgolia).await()
             ref.set(hashMap, SetOptions.merge()).await()
             ref2.set(hashMap, SetOptions.merge()).await()
 

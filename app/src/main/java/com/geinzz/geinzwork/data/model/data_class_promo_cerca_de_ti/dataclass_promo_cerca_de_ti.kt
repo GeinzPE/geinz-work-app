@@ -85,3 +85,45 @@ data class PromoConMatch(
     val promo: obj_completo,
     val porcentaje: Int
 )
+
+
+data class TextoRequest(
+    val texto: String
+)
+
+data class datos_envidiadosbody_algolia(
+    val productos: List<String>,
+    val precio_max : Int,
+    val metodos_pago: List<String>,
+    val comodidades : List<String>
+)
+
+data class DatosResponse(
+    val productos: List<String>,
+    val precio_max: Int?,
+    val metodos_pago: List<String>,
+    val comodidades: List<String>
+)
+
+data class ResAlgoliaFiltrado(
+    val total: Int,
+    val resultados: List<Resultado>
+)
+
+data class Resultado(
+    val id: String,
+    val score: Int,
+    val detalle: Detalle,
+    val precio: Int,
+    val precioMin: Int,
+    val precioMax: Int,
+    val rango: String
+)
+
+data class Detalle(
+    val texto: Int,
+    val terminos: String,
+    val precio: Int,
+    val pagos: Int,
+    val comodidades: Int
+)

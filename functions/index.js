@@ -1,5 +1,9 @@
 require("dotenv").config();
-const { onRequest, onCall ,HttpsError } = require("firebase-functions/v2/https");
+const {
+  onRequest,
+  onCall,
+  HttpsError,
+} = require("firebase-functions/v2/https");
 const {
   onDocumentCreated,
   onDocumentWritten,
@@ -31,7 +35,260 @@ const fs = require("fs");
 const path = require("path");
 
 const db = admin.firestore();
+const OpenAI = require("openai");
+const APP_ID = process.env.ALGOLIA_APP_ID || "";
+const API_KEY = process.env.ALGOLIA_API_KEY || "";
 
+const client = algoliasearch(APP_ID, API_KEY);
+const index_Algolia_promos = client.initIndex("promociones_index");
+const index = client.initIndex("lugares");
+const openai = new OpenAI({
+  apiKey: process.env.API_KEYO_OPEN_IA,
+});
+
+// ==================== clasificador_IA ====================
+exports.extraerDatos = onRequest(async (req, res) => {
+  try {
+    // 🔒 Solo POST
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Método no permitido" });
+    }
+
+    const { texto } = req.body;
+
+    if (!texto) {
+      return res.status(400).json({ error: "Falta 'texto'" });
+    }
+
+    const prompt = `
+Extrae del texto y responde SOLO en JSON válido.
+
+- "productos": array de sustantivos en singular ,simples separados, sin unirlos con guiones y sin palabras irrelevantes
+- "precio_max": número entero sin dobule o null si en caso no hay numero en el texto   
+- "metodos_pago": solo de esta lista → ["yape","plin","efectivo","agora","visa","mastercard"]
+- "comodidades": array, detecta implícitamente cuáles aplican → ["aire_acondicionado",
+"camaras_seguridad","enchufe","estacionamiento",
+"ingreso_con_mascotas","mesa_para_ninos",
+"sala_espera","sala_juegos",
+"servicios_higienicos","wifi",
+"zona_expandida"]
+
+Texto: "${texto}"
+`;
+    // 🚀 OpenAI
+    const response = await openai.chat.completions.create({
+      model: "gpt-5-nano",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Eres un extractor de datos. Respondes SOLO con JSON válido, sin texto adicional.",
+        },
+        { role: "user", content: prompt },
+      ],
+    });
+
+    const content = response.choices?.[0]?.message?.content;
+
+    if (!content) {
+      return res.status(500).json({
+        error: "Respuesta vacía del modelo",
+      });
+    }
+
+    // 🛡️ Parseo seguro
+    let resultado;
+
+    try {
+      resultado = JSON.parse(content);
+    } catch (err) {
+      logger.error("Error parseando JSON:", content);
+
+      return res.status(500).json({
+        error: "Respuesta inválida del modelo",
+        raw: content,
+      });
+    }
+
+    return res.status(200).json(resultado);
+  } catch (error) {
+    logger.error("Error general:", error);
+
+    return res.status(500).json({
+      error: "Error interno",
+      detail: error.message,
+    });
+  }
+});
+
+exports.filtrar_por_datos = onRequest(async (req, res) => {
+  try {
+    console.log("📥 REQUEST BODY:", JSON.stringify(req.body, null, 2));
+
+    const resultado = req.body.resultado || req.body;
+    let filters = [];
+
+    // 🕐 Hora Perú
+    const ahora = new Date();
+    const horaPeru = new Date(
+      ahora.toLocaleString("en-US", { timeZone: "America/Lima" }),
+    ).getHours();
+
+    let horarioActual = "";
+    if (horaPeru >= 6 && horaPeru < 12) horarioActual = "manana";
+    else if (horaPeru < 18) horarioActual = "tarde";
+    else horarioActual = "noche";
+
+    console.log("⏰ Horario:", horarioActual);
+
+    // 🔹 PRECIO (si existe)
+    const rawPrecio = resultado?.precio ?? resultado?.precio_max;
+
+    const precioInput =
+      rawPrecio != null && rawPrecio !== "" ? Number(rawPrecio) : null;
+
+    if (Number.isFinite(precioInput)) {
+      filters.push(`precioMin <= ${precioInput}`);
+      filters.push(`precioMax >= ${precioInput}`);
+    }
+
+    // 🔹 HORARIO
+    filters.push(
+      `(horario_publicacion:${horarioActual} OR horario_publicacion:todo_dia)`,
+    );
+
+    // 🔹 EXPIRACIÓN
+    filters.push(`timestamp_fin > ${Date.now()}`);
+
+    const productosQuery = (resultado?.productos || [])
+      .map((p) => p.toLowerCase().trim())
+      .filter((p) => p.length > 0);
+
+    const query = productosQuery.join(" ");
+    const finalFilters = filters.join(" AND ");
+
+    console.log("🧩 Filtros:", finalFilters);
+    console.log("🔎 Query:", query);
+
+    // 🔍 ÚNICA BÚSQUEDA
+    const response = await index_Algolia_promos.search(query, {
+      filters: finalFilters,
+      hitsPerPage: 20,
+      getRankingInfo: true,
+      optionalWords: query,
+      removeWordsIfNoResults: "allOptional",
+    });
+
+    console.log("📦 Hits:", response.hits.length);
+
+    const pagosQuery = resultado?.metodos_pago || [];
+    const comodidadesQuery = resultado?.comodidades || [];
+
+    // 🔥 SCORING
+    let resultados = response.hits.map((h) => {
+      let score = 0;
+
+      // ✔ TEXTO (40pts)
+      const textScore = h._rankingInfo?.nbTypos === 0 ? 40 : 20;
+
+      // ✔ MATCH TÉRMINOS (20pts)
+      const terminosDB = (h.terminos_clave || []).map((t) =>
+        t.toLowerCase().trim(),
+      );
+
+      const matchCount = productosQuery.filter((p) =>
+        terminosDB.some((t) => t.includes(p) || p.includes(t)),
+      ).length;
+
+      let matchScore = 0;
+      if (productosQuery.length > 0) {
+        const matchRatio = matchCount / productosQuery.length;
+        matchScore = Math.round(matchRatio * 20);
+      }
+
+      // ✔ PRECIO (20pts)
+      let precioScore = 0;
+      if (precioInput != null) {
+        const dentroRango =
+          precioInput >= h.precioMin && precioInput <= h.precioMax;
+
+        if (dentroRango) {
+          precioScore = 20;
+        } else {
+          const diff = Math.min(
+            Math.abs(precioInput - h.precioMin),
+            Math.abs(precioInput - h.precioMax),
+          );
+
+          precioScore = Math.max(0, 20 - diff * 1.5);
+        }
+      }
+
+      // ✔ PAGOS (10pts)
+      let pagoScore = 0;
+      if (pagosQuery.length > 0) {
+        const pagosDB = (h.pagos || []).map((p) => p.toLowerCase());
+
+        const pagoMatch = pagosQuery.filter((p) =>
+          pagosDB.includes(p.toLowerCase()),
+        ).length;
+
+        pagoScore = Math.round((pagoMatch / pagosQuery.length) * 10);
+      }
+
+      // ✔ COMODIDADES (10pts)
+      let comodidadScore = 0;
+      if (comodidadesQuery.length > 0) {
+        const comodDB = (h.comodidades || []).map((c) => c.toLowerCase());
+
+        const comodMatch = comodidadesQuery.filter((c) =>
+          comodDB.includes(c.toLowerCase()),
+        ).length;
+
+        comodidadScore = Math.round(
+          (comodMatch / comodidadesQuery.length) * 10,
+        );
+      }
+
+      score = textScore + matchScore + precioScore + pagoScore + comodidadScore;
+
+      return {
+        id: h.objectID,
+        score: Math.min(100, Math.round(score)),
+        matchCount, // 👈 importante para filtrar después
+        detalle: {
+          texto: textScore,
+          terminos: `${matchCount}/${productosQuery.length} (${matchScore}pts)`,
+          precio: precioScore,
+          pagos: pagoScore,
+          comodidades: comodidadScore,
+        },
+        precio: h.precio,
+        precioMin: h.precioMin,
+        precioMax: h.precioMax,
+        rango: `${h.precioMin}-${h.precioMax}`,
+      };
+    });
+
+    // 🔥 FILTRO DE CALIDAD (CLAVE)
+    if (productosQuery.length > 0) {
+      resultados = resultados.filter((r) => r.matchCount > 0);
+    }
+
+    // 🔥 ORDENAR
+    resultados.sort((a, b) => b.score - a.score);
+
+    console.log("🏆 TOP:", resultados.slice(0, 3));
+
+    return res.status(200).json({
+      total: resultados.length,
+      resultados,
+    });
+  } catch (error) {
+    console.error("❌ ERROR:", error);
+    return res.status(500).json({ error: error.message });
+  }
+});
 // ==================== culqui ====================
 exports.crearOrdenCulqi = onCall({ region: "us-central1" }, async (req) => {
   const { monto, userId, monedas, nombre, email, localidad } = req.data;
@@ -324,18 +581,14 @@ async function enviarWhatsApp(numero, mensaje) {
           Authorization: `Bearer ${WHATSAPP_TOKEN}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     console.log("✅ WhatsApp enviado:", res.data);
 
     return true;
-
   } catch (error) {
-    console.error(
-      "❌ ERROR WHATSAPP:",
-      error.response?.data || error.message
-    );
+    console.error("❌ ERROR WHATSAPP:", error.response?.data || error.message);
 
     return false; // 🔥 no rompas todo tu flujo
   }
@@ -805,10 +1058,6 @@ exports.agregar_pago_para_el_usuario_tienda = onCall(async (req) => {
 });
 
 // ==================== Algolia ====================
-const APP_ID = process.env.ALGOLIA_APP_ID || "";
-const API_KEY = process.env.ALGOLIA_API_KEY || "";
-const client = algoliasearch(APP_ID, API_KEY);
-const index = client.initIndex("lugares");
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -1193,20 +1442,32 @@ exports.buscarTiendas = onRequest(async (req, res) => {
 
 exports.buscar_tienda_por_categorias_y_subcategoria = onRequest(
   async (req, res) => {
+    console.log("======================================");
+    console.log("🚀 INICIO buscar_tienda_por_categorias_y_subcategoria");
+
     try {
+      console.log("📥 BODY RECIBIDO:", req.body);
+
       const { localidad, categoria, subcategoria } = {
         localidad: limpiar(req.body.localidad),
         categoria: limpiar(req.body.categoria),
-        subcategoria: req.body.subcategoria
-          ? limpiar(req.body.subcategoria)
-          : null,
+        subcategoria: req.body.subcategoria || null,
       };
+
+      console.log("🧹 PARAMS LIMPIOS:");
+      console.log("➡️ localidad:", localidad);
+      console.log("➡️ categoria:", categoria);
+      console.log("➡️ subcategoria:", subcategoria);
+
       if (!localidad || !categoria) {
+        console.log("❌ FALTAN PARAMETROS OBLIGATORIOS");
         return res.status(400).json({
           ok: false,
           error: "localidad y categoria son obligatorias",
         });
       }
+
+      console.log("📡 CONSTRUYENDO QUERY FIRESTORE...");
 
       let query = admin
         .firestore()
@@ -1215,25 +1476,44 @@ exports.buscar_tienda_por_categorias_y_subcategoria = onRequest(
         .collection(localidad)
         .where("categoria_tienda", "==", categoria);
 
+      console.log("🔎 Query base aplicada (categoria)");
+
       // subcategoria opcional
       if (subcategoria) {
+        console.log("🔎 Agregando filtro subcategoria:", subcategoria);
         query = query.where("subcategoria", "array-contains", subcategoria);
+      } else {
+        console.log("⚠️ No se aplicó filtro de subcategoria");
       }
 
+      console.log("⏳ Ejecutando query...");
       const snapshot = await query.get();
 
-      let resultados = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      console.log("📊 DOCUMENTOS OBTENIDOS:", snapshot.size);
 
-      console.log("📊 RESULTADOS:", resultados.length);
+      let resultados = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        console.log("📄 DOC:", doc.id, data);
+
+        return {
+          id: doc.id,
+          ...data,
+        };
+      });
+
+      console.log("📊 TOTAL RESULTADOS:", resultados.length);
 
       // =========================
-      //  MAP + HORARIO
+      // MAP + HORARIO
       // =========================
+      console.log("🧠 PROCESANDO HORARIOS...");
+
       const response = resultados.map((tienda) => {
         const estado = verificar_apertura_tienda(tienda.horario_atencion);
+
+        console.log("🏪 TIENDA:", tienda.nombre_tienda);
+        console.log("⏰ horario:", tienda.horario_atencion);
+        console.log("🟢 estado abierto:", estado);
 
         return {
           id: tienda.id,
@@ -1249,17 +1529,31 @@ exports.buscar_tienda_por_categorias_y_subcategoria = onRequest(
         };
       });
 
+      console.log("📦 RESPONSE GENERADO:", response);
+
       // =========================
       // PRIORIDAD ABIERTOS
       // =========================
       const abiertos = response.filter((t) => t.open_state === true);
 
+      console.log("🟢 TIENDAS ABIERTAS:", abiertos.length);
+
       const baseFinal = abiertos.length > 0 ? abiertos : response;
+
+      if (abiertos.length > 0) {
+        console.log("✅ Se priorizan tiendas abiertas");
+      } else {
+        console.log("⚠️ No hay abiertas, se usan todas");
+      }
 
       // =========================
       // RANDOM + LIMITE
       // =========================
+      console.log("🎲 Aplicando random + límite 3");
+
       const final = baseFinal.sort(() => Math.random() - 0.5).slice(0, 3);
+
+      console.log("🏁 RESULTADO FINAL:", final);
 
       return res.json({
         ok: true,
@@ -1268,7 +1562,8 @@ exports.buscar_tienda_por_categorias_y_subcategoria = onRequest(
         data: final,
       });
     } catch (error) {
-      console.error("ERROR:", error);
+      console.error("💥 ERROR GENERAL:", error);
+
       return res.status(500).json({
         ok: false,
         error: "Error interno",

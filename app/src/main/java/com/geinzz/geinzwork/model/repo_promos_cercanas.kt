@@ -5,7 +5,12 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import com.geinzz.geinzwork.data.model.DatosDemograficosUsuario
 import com.geinzz.geinzwork.data.model.EstadisticasPromo
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.DatosResponse
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.ResAlgoliaFiltrado
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.RespuestaGemini
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.TextoRequest
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.datos_envidiadosbody_algolia
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.estadisticas_publiccaciones
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.img_content
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.informacion_publcacion
@@ -16,6 +21,7 @@ import com.geinzz.geinzwork.data.model.msjes_predeteminados_generales
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.tiempoRestante
 import com.geinzz.geinzwork.herramientas_geinz.constantes.construirPromptNLP
 import com.geinzz.geinzwork.herramientas_geinz.constantes.construir_promp_NLP_depromo_y_oferta
+import com.geinzz.geinzwork.retrofit.objet_retrofit
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.ai.ai
@@ -47,6 +53,15 @@ class repo_promos_cercanas {
         val result = model.generateContent(prompt)
         return result.text
     }
+
+    suspend fun obtener_respuesta_open_ia(texto:String): DatosResponse{
+        return objet_retrofit.api.extraerDatos(TextoRequest(texto))
+    }
+
+    suspend fun send_get_resul_algoalia(data: DatosResponse): ResAlgoliaFiltrado {
+        return objet_retrofit.api.Consultar_algolia(data)
+    }
+
 
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -139,12 +154,12 @@ class repo_promos_cercanas {
                 val horasMap = datos_hora_fecha["horas"] as? Map<*, *> ?: emptyMap<String, Any>()
                 val diasMap = datos_hora_fecha["dias"] as? Map<*, *> ?: emptyMap<String, Any>()
                 val horario_de_publicacion =doc.get("horario_publicacion") as? String?:""
-                val horarioActual = verificar_horairo_cel().trim()
+                val horarioActual = verificar_horairo_cel_para_publicidad().trim()
                 val horarioPublicacion = horario_de_publicacion.trim()
 
                 if (
                     horarioPublicacion.isNotEmpty() &&
-                    horarioPublicacion != "Todo el día" &&
+                    horarioPublicacion != "todo_dia" &&
                     horarioPublicacion != horarioActual
                 ) {
                     Log.d("PROMO_ITEM", "⛔ DESCARTADA por horario: $horarioPublicacion != $horarioActual")
@@ -301,6 +316,16 @@ class repo_promos_cercanas {
             in 6..11 -> "Mañana"
             in 12..18 -> "Tarde"
             else -> "Noche"
+        }
+        return horario
+    }
+
+    fun verificar_horairo_cel_para_publicidad():String{
+        val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val horario = when (hora) {
+            in 6..11 -> "manana"
+            in 12..18 -> "tarde"
+            else -> "noche"
         }
         return horario
     }
