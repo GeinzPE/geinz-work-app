@@ -6,11 +6,17 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -98,14 +104,14 @@ import kotlinx.coroutines.delay
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun desing_principal_promos_cerncas(
-    compartir: Boolean,contacto_directo: Boolean,
+    compartir: Boolean, contacto_directo: Boolean,
     onDismiss: () -> Unit,
     list: List<Uri>,
     texto_promo: String,
     titulo_promo: String,
     i: compartir_contacto_pulicaciones
 ) {
-    Log.d("parmotrospoados","$i $list")
+    Log.d("parmotrospoados", "$i $list")
     var mostrarLoader by remember { mutableStateOf(true) }
 
     var feedVisible by remember {
@@ -142,17 +148,18 @@ fun desing_principal_promos_cerncas(
                     exit = fadeOut(animationSpec = tween(200))
                 ) {
 
-                    ZoomableGalleryFullScreen_promociones_vista_previa(compartir,contacto_directo,
-                            i = i,
-                            titulo = titulo_promo,
-                            txt = texto_promo,
-                            imagenes = list,
-                            startIndex = 0,
-                            onDismiss = {
-                                onDismiss()
-                            },
+                    ZoomableGalleryFullScreen_promociones_vista_previa(
+                        compartir, contacto_directo,
+                        i = i,
+                        titulo = titulo_promo,
+                        txt = texto_promo,
+                        imagenes = list,
+                        startIndex = 0,
+                        onDismiss = {
+                            onDismiss()
+                        },
 
-                            )
+                        )
 
 
                 }
@@ -175,7 +182,7 @@ fun desing_principal_promos_cerncas(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ZoomableGalleryFullScreen_promociones_vista_previa(
-    compartir: Boolean,contacto_directo: Boolean,
+    compartir: Boolean, contacto_directo: Boolean,
     i: compartir_contacto_pulicaciones,
     titulo: String, txt: String,
     imagenes: List<Uri>,
@@ -232,8 +239,6 @@ fun ZoomableGalleryFullScreen_promociones_vista_previa(
             .fillMaxSize()
             .padding(top = 25.dp, bottom = 10.dp)
     ) {
-
-
 
 
         com.google.accompanist.pager.HorizontalPager(
@@ -401,6 +406,7 @@ fun ZoomableGalleryFullScreen_promociones_vista_previa(
                         fontSize = 12.sp,
                         color = backgroundColor
                     )
+                    spacer_horizonta(10.dp)
                     Spacer(modifier = Modifier.weight(1f))
                     if (contacto_directo) {
                         BotonCompartirReddit(
@@ -558,7 +564,6 @@ fun DialogVistaPreviaPromocion(
 }
 
 
-
 @Composable
 fun GaleriaHorizontalInstagram_promos_cercanas(
     imagenes: List<Uri>,
@@ -619,5 +624,44 @@ fun GaleriaHorizontalInstagram_promos_cercanas(
 //            }
 //        }
 
+    }
+}
+
+@Composable
+fun LoadingOutlinedField(
+    loading: Boolean,
+    content: @Composable () -> Unit
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "breathing_border")
+
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 800,
+                easing = FastOutSlowInEasing
+            ),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
+
+    val primaryColor = MaterialTheme.colorScheme.primary
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(50))
+            .border(
+                width = if (loading) 2.dp else 1.dp,
+                color = if (loading)
+                    primaryColor.copy(alpha = alpha)
+                else
+                    Color.LightGray,
+                shape = RoundedCornerShape(50)
+            )
+    ) {
+        content()
     }
 }

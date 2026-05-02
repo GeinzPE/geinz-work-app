@@ -51,11 +51,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -139,6 +142,8 @@ fun ui_promos_cerca_de_ti(
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
 
     val estado by viewModel.estadoPromos.collectAsState()
+    val estadoTienda by viewModel.estado_Carga_tienda_select.collectAsState()
+
     var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
 
     val respuesta_gemini_NLP by viewModel.respuesta_gemini.collectAsState()
@@ -220,6 +225,9 @@ fun ui_promos_cerca_de_ti(
     var dias_restantes by remember { mutableStateOf("") }
     var promoSeleccionada by remember { mutableStateOf<obj_completo?>(null) }
 
+    val hayMasPaginas by viewModel.hayMasPaginas.collectAsState()
+    val cargandoPagina by viewModel.cargandoPagina.collectAsState()
+
 //    val resultado = viewModel.resultado
 //    val res_filtrado_algolia =viewModel.resultado_encontrado_algolia
 //    LaunchedEffect(resultado,res_filtrado_algolia) {
@@ -287,67 +295,6 @@ fun ui_promos_cerca_de_ti(
     }
     var mostrar_carga_Respuesta_gemini by remember { mutableStateOf(false) }
     var mostrar_lupa_busqueda by remember { mutableStateOf(true) }
-
-    LaunchedEffect(respuesta_gemini_NLP) {
-        when (respuesta_gemini_NLP) {
-            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.empty -> {
-
-            }
-
-            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.error -> {}
-            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.loading -> {
-                mostrar_carga_Respuesta_gemini = true
-                mostrar_lupa_busqueda = false
-
-            }
-
-            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes -> {
-                val respuesta =
-                    (respuesta_gemini_NLP as viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes).items
-                if (respuesta != null) {
-                    viewModel.guardar_texto_user_buscado(valor_a_buscar)
-                    limpiar_campo_de_busqueda = true
-                    mostrar_lupa_busqueda = true
-                    mostrar_carga_Respuesta_gemini = false
-                    focusManager.clearFocus()
-                    terminoNLP = respuesta.principal
-                    atributosNLP = respuesta.atributos
-
-                    viewModel.setComodidadesDesdeLista(respuesta.comodidades)
-                    viewModel.setPagosDesdeLista(respuesta.metodo_pago)
-
-                    val rangoPrecio = respuesta.precio?.let { precio ->
-                        when (precio) {
-                            in 0.0..10.0 -> "0 - 10"
-                            in 10.01..20.0 -> "10 - 20"
-                            in 20.01..30.0 -> "20 - 30"
-                            in 30.01..50.0 -> "30 - 50"
-                            in 50.01..80.0 -> "50 - 80"
-                            in 80.01..120.0 -> "80 - 120"
-                            in 120.01..200.0 -> "120 - 200"
-                            in 200.01..350.0 -> "200 - 350"
-                            in 350.01..500.0 -> "350 - 500"
-                            in 500.01..1000.0 -> "500 - 1000"
-                            in 1000.01..2500.0 -> "1000 - 2500"
-                            in 2500.01..5000.0 -> "2500 - 5000"
-                            else -> "Sin rango"
-                        }
-                    } ?: "Sin precio"
-
-                    viewModel.setearRangoPrecioDesdeNLP(rangoPrecio)
-
-                    Log.d("datos_entrantes", "$respuesta")
-                }
-            }
-
-            null -> {}
-            else -> {}
-        }
-
-    }
-
-
-
 
     LaunchedEffect(datos_promo_parametros) {
 
@@ -445,7 +392,7 @@ fun ui_promos_cerca_de_ti(
     }
 
     LaunchedEffect(localidad) {
-        viewModel.obtener_promociones("barranca", "Todos")
+        viewModel.obtener_promociones_2da("barranca", "", null)
     }
     LaunchedEffect(show_bottom_sheeet) {
         if (show_bottom_sheeet) {
@@ -505,6 +452,99 @@ fun ui_promos_cerca_de_ti(
             valor_a_buscar = ""
         }
     }
+    val esPrimeraCarga by viewModel.esPrimeraCarga.collectAsState()
+
+    var promos by remember { mutableStateOf<List<obj_completo>>(emptyList()) }
+    var promosFiltradas by remember { mutableStateOf<List<obj_completo>>(emptyList()) }
+
+    var estado_caundo_busca_tienda by remember { mutableStateOf(false) }
+
+    LaunchedEffect(respuesta_gemini_NLP) {
+        when (respuesta_gemini_NLP) {
+            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.loading -> {
+                mostrar_carga_Respuesta_gemini = true
+                mostrar_lupa_busqueda = false
+            }
+
+            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes -> {
+
+                mostrar_carga_Respuesta_gemini = false
+                mostrar_lupa_busqueda = true  // ✅ reactiva el botón
+
+                val cantidad = (respuesta_gemini_NLP as viewmodel_promos_cercanas
+                .estado_Carga_respuesta_gemini.succes).cantidad
+
+                val msje = if (cantidad > 0) {
+                    "Tengo $cantidad resultados para tu búsqueda"
+                } else {
+                    "losiento no encontre nada para ti"
+                }
+
+
+                val result = snackbarHostState.showSnackbar(
+                    message =msje,
+                    actionLabel = if (cantidad > 0) {
+                        "Ver"
+                    } else {
+                        ""
+                    },
+                    duration = if (cantidad > 0) SnackbarDuration.Indefinite else SnackbarDuration.Short
+                )
+
+
+                viewModel.resetear_respuesta_de_gemini()
+                if (result == SnackbarResult.ActionPerformed) {
+                    promos = promosFiltradas
+                }
+
+            }
+
+            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.error -> {
+                mostrar_carga_Respuesta_gemini = false
+                mostrar_lupa_busqueda = true  // ✅ reactiva también en error
+            }
+
+            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.empty -> {
+                mostrar_carga_Respuesta_gemini = false
+                mostrar_lupa_busqueda = true  // ✅ reactiva también en vacío
+            }
+
+            // idle o null → reseteo limpio
+            else -> {
+                mostrar_carga_Respuesta_gemini = false
+                mostrar_lupa_busqueda = true  // ✅ siempre activo en reposo
+            }
+        }
+    }
+
+    LaunchedEffect(estado) {
+        if (estado is viewmodel_promos_cercanas.estado_carga_promociones.succes) {
+            promos = (estado as viewmodel_promos_cercanas.estado_carga_promociones.succes).items
+        }
+    }
+    LaunchedEffect(estadoTienda) {
+        if (estadoTienda is viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.succes) {
+
+            promosFiltradas =
+                (estadoTienda as viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.succes).items
+            estado_caundo_busca_tienda = false
+            val result = snackbarHostState.showSnackbar(
+                message = "Resultados filtrados listos",
+                actionLabel = "Ver ${promosFiltradas.size} promociones",
+                duration = SnackbarDuration.Indefinite
+            )
+
+            if (result == SnackbarResult.ActionPerformed) {
+                promos = promosFiltradas
+            }
+            viewModel.resetear_respuesta_de_gemini()
+        }
+
+        if (estadoTienda is viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.loading) {
+            estado_caundo_busca_tienda = true
+        }
+
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -515,9 +555,19 @@ fun ui_promos_cerca_de_ti(
 
             // ---------- LOADING ----------
             viewmodel_promos_cercanas.estado_carga_promociones.loading -> {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                if (esPrimeraCarga) {
+                    // Primera vez → CircularProgressIndicator normal
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                } else {
+                    LinearProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.TopCenter)
+                    )
+                }
+
             }
 
             // ---------- EMPTY ----------
@@ -546,13 +596,9 @@ fun ui_promos_cerca_de_ti(
 
             // ---------- SUCCESS ----------
             is viewmodel_promos_cercanas.estado_carga_promociones.succes -> {
-
-                val promos =
-                    (estado as viewmodel_promos_cercanas.estado_carga_promociones.succes).items
                 val tiendasConMasDeUnaPromo: List<tiendas_con_mas_de_una_promo> = promos
                     .flatMap { it.lista_tiendas_con_mas_promo }
-                    .distinctBy { it.id } // eliminamos duplicados por id
-
+                    .distinctBy { it.id }
                 Box(modifier = Modifier.fillMaxSize()) {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -573,21 +619,15 @@ fun ui_promos_cerca_de_ti(
                             }
                         }
 
-
-                        val subcategorias = listOf("Todos") + promos
-                            .flatMap { categorias }
-                            .distinct()
-
                         item {
-                            Column(modifier = Modifier.padding(horizontal = 10.dp)) {
-
+                            LoadingOutlinedField(
+                                loading = mostrar_carga_Respuesta_gemini
+                            ) {
                                 OutlinedTextField(
                                     value = valor_a_buscar,
                                     onValueChange = {
                                         valor_a_buscar = it
-                                        if (valor_a_buscar.isEmpty()) {
-                                            viewModel.resetear_respuesta_de_gemini()
-                                        }
+
                                     },
                                     placeholder = {
                                         texto_generico_one_line(
@@ -599,17 +639,6 @@ fun ui_promos_cerca_de_ti(
                                     modifier = Modifier
                                         .fillMaxWidth(),
                                     shape = RoundedCornerShape(50),
-//                                    leadingIcon = {
-//                                        IconButton(
-//                                            onClick = {
-//                                            }
-//                                        ) {
-//                                            Icon(
-//                                                imageVector = Icons.Default.Clear,
-//                                                contentDescription = "Hablar", tint = Color.Gray
-//                                            )
-//                                        }
-//                                    },
                                     trailingIcon = {
                                         IconButton(
                                             onClick = {
@@ -640,12 +669,13 @@ fun ui_promos_cerca_de_ti(
                                                 }
                                             }
                                         }
-                                    }
+                                    },
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = Color.Transparent,
+                                        unfocusedBorderColor = Color.Transparent,
+                                        disabledBorderColor = Color.Transparent
+                                    ),
                                 )
-
-                                respuesta_gemini_NLP?.let { respuesta ->
-                                    texto_generico_multilinea(respuesta.toString())
-                                }
                             }
                         }
 
@@ -696,6 +726,7 @@ fun ui_promos_cerca_de_ti(
                                     Log.d("DEBUG_FILTROS", "Condición general: $condicion")
 
                                     estilo_ig_header(
+                                        false,
                                         "FILTROS_GENERALES",
                                         condicion,
                                         i = itemFiltros,
@@ -824,22 +855,28 @@ fun ui_promos_cerca_de_ti(
                                     (rango_precio == null || rango_precio == "Sin precio") &&
                                     lista_resultados_gemini.isEmpty()
                                 ) {
-                                    // 🔹 Si no hay filtros → mostrar tiendas
                                     items(tiendasConMasDeUnaPromo) { tienda ->
                                         estilo_ig_header(
+                                            estado_caundo_busca_tienda,
                                             "",
                                             false,
                                             i = tienda,
                                             seleccionada = tienda.id == tiendaSeleccionada,
                                             img_clikeada = { id ->
                                                 if (tiendaSeleccionada == id) {
-                                                    // 🔥 Si ya está seleccionada → deseleccionar
                                                     tiendaSeleccionada = null
-                                                    viewModel.mostrarTodasLasPromociones()
+                                                    viewModel.obtener_promociones_2da(
+                                                        localidad,
+                                                        "",
+                                                        null
+                                                    )
                                                 } else {
-                                                    // 🔥 Si no está seleccionada → seleccionar
                                                     tiendaSeleccionada = id
-                                                    viewModel.filtrar_promociones_por_id(id)
+                                                    viewModel.obtener_promociones_2da(
+                                                        localidad,
+                                                        "",
+                                                        tiendaSeleccionada
+                                                    )
                                                 }
                                             }
                                         )
@@ -1060,6 +1097,42 @@ fun ui_promos_cerca_de_ti(
                             }
 
 
+                        }
+                        // 🔹 Trigger de carga al llegar al último item
+                        item {
+                            if (hayMasPaginas) {
+                                LaunchedEffect(promos.size) {
+                                    viewModel.cargarSiguientePagina(
+                                        localidad,
+                                        "",
+                                        tiendaSeleccionada
+                                    )
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(24.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (cargandoPagina) {
+                                        CircularProgressIndicator(modifier = Modifier.size(28.dp))
+                                    }
+                                }
+                            } else {
+                                // 🔹 Mensaje de fin de lista
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "Ya viste todas las promos 🎉",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.Gray
+                                    )
+                                }
+                            }
                         }
 
                     }
@@ -1392,6 +1465,7 @@ fun compartir_hosting_promo(
 
 @Composable
 fun estilo_ig_header(
+    cargando: Boolean,
     termino_condicion: String,
     condicon: Boolean,
     i: tiendas_con_mas_de_una_promo,
@@ -1421,20 +1495,28 @@ fun estilo_ig_header(
             modifier = Modifier.size(76.dp)
         ) {
 
-            // 🔹 Ring IG morado
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .scale(scaleAnim)
-                    .alpha(alphaAnim)
-                    .border(
-                        width = 3.dp,
-                        color = Color(0xFF7B2CBF),
-                        shape = CircleShape
-                    )
-            )
+            if (cargando && seleccionada) {
+                // 🔄 Ring tipo loading SOLO para el seleccionado
+                CircularProgressIndicator(
+                    strokeWidth = 3.dp,
+                    modifier = Modifier.size(76.dp)
+                )
+            } else if (seleccionada) {
+                // 🔹 Ring morado cuando está seleccionado
+                Box(
+                    modifier = Modifier
+                        .size(76.dp)
+                        .scale(scaleAnim)
+                        .alpha(alphaAnim)
+                        .border(
+                            width = 3.dp,
+                            color = Color(0xFF7B2CBF),
+                            shape = CircleShape
+                        )
+                )
+            }
 
-            // 🔹 Imagen
+            // 🔹 Imagen centrada
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(i.logo_img)
@@ -1443,7 +1525,7 @@ fun estilo_ig_header(
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(70.dp)
+                    .size(70.dp) // 👈 más pequeño que el ring
                     .clip(CircleShape)
                     .clickable(
                         indication = null,
@@ -1452,21 +1534,6 @@ fun estilo_ig_header(
                         img_clikeada(i.id)
                     }
             )
-            this@Column.AnimatedVisibility(
-                condicon && termino_condicion.equals("FILTROS_GENERALES"),
-                enter = fadeIn(),
-                exit = fadeOut(),
-                modifier = Modifier
-                    .padding(end = 10.dp)
-                    .align(Alignment.BottomEnd)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(18.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF2E7D32))
-                )
-            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))

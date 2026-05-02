@@ -55,7 +55,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
     indeximg_seleccionado: Int,
     onDismiss: () -> Unit,
 ) {
-    Log.d("lodisias_restantes_publica","${promoSeleccionada.fecha_fin}")
+    Log.d("lodisias_restantes_publica","${promoSeleccionada}")
 
     val context = LocalContext.current
     val listaPromos by viewModel.promosCargadas.collectAsState()
@@ -230,6 +230,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
 
 
                         val datos = compartir_contacto_pulicaciones(
+                            promo.informacion_publcacion.contactar,promo.informacion_publcacion.compartir,
                             promo.informacion_publcacion.id_promocion,
                             iod_tienda = promo.informacion_publcacion.id_tienda,
                             localidad_tineda = localidad_general,

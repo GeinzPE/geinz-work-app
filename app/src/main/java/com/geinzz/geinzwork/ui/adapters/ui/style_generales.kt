@@ -1156,6 +1156,7 @@ fun ZoomableGalleryFullScreen_promociones(
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     if (!i.dias_restantes.equals("Expirado")) {
+                        if(i.se_puede_contacta){
                         BotonCompartirReddit(
                             icon = R.drawable.icono_whatsapp_blanco_tasns,
                             descripcion = "contactados",
@@ -1168,6 +1169,9 @@ fun ZoomableGalleryFullScreen_promociones(
                                     i.iod_tienda, i.categoria
                                 )
                             })
+                        }
+
+                        if(i.se_puede_compratir){
                         BotonCompartirReddit(
                             icon = R.drawable.comparir_icon,
                             descripcion = "compartidos",
@@ -1180,6 +1184,7 @@ fun ZoomableGalleryFullScreen_promociones(
                                     i.iod_tienda
                                 )
                             })
+                        }
                     }
                 }
             }

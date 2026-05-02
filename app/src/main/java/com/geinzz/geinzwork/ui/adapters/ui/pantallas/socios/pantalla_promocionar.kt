@@ -4061,6 +4061,7 @@ fun pantalla_promocionar(
             val fechafin = calcularTimestampFinal(hora_escrita, fecha_fin)
             val timeporestante = tiempoRestante(fechafin)
             val compartir_publicaiones = compartir_contacto_pulicaciones(
+                mensaje_perzonalizado==true,mensaje_perzonalizado_compartir==true,
                 id_promocion = "123456789",
                 iod_tienda = i.id_tienda,
                 localidad_tineda = i.localidad_tienda,

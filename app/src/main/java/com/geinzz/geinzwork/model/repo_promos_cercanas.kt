@@ -27,8 +27,10 @@ import com.google.firebase.Timestamp
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
@@ -43,7 +45,7 @@ import kotlin.math.floor
 
 class repo_promos_cercanas {
     val db = FirebaseFirestore.getInstance()
-
+    private var randomInicioGlobal: Double = Math.random()
 
     suspend fun extraer_con_gemini(texto_user:String,categoria_select:String): String?{
         val model = Firebase.ai(
@@ -252,6 +254,421 @@ class repo_promos_cercanas {
             Log.e("ERROR_PROMO", "❌ Error al obtener promociones", e)
             emptyList()
         }
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun obtener_promos_paginado(
+        tienda_seleccionada: String?,
+        tipo_seleccionado: String,
+        localidad: String,
+        tiendaSeleccionada1: String?,
+        ultimoDocumento: DocumentSnapshot?,  // 🔥 cursor de paginación
+        limite: Int = 5
+    ): Pair<List<obj_completo>, DocumentSnapshot?> {  // 🔥 devuelve también el nuevo cursor
+
+        return try {
+
+            if (tienda_seleccionada != null) {
+
+                var query = db
+                    .collection("Tiendas")
+                    .document(localidad)
+                    .collection("promos_ofertas")
+                    .whereEqualTo("estado", "activo")
+                    .whereEqualTo("informacion.id_tienda", tienda_seleccionada)
+                    .orderBy("random")
+                    .limit(limite.toLong())
+
+                if (ultimoDocumento != null) {
+                    query = query.startAfter(ultimoDocumento)
+                }
+
+                val snapshot = query.get().await()
+
+                val documentosFinales = snapshot.documents
+
+                if (documentosFinales.isEmpty()) {
+                    return Pair(emptyList(), null)
+                }
+
+                // 👉 procesas documentosFinales igual que ya hace
+            }
+            // 🔹 Construir query con paginación
+            var query = db
+                .collection("Tiendas")
+                .document(localidad)
+                .collection("promos_ofertas")
+                .whereEqualTo("estado", "activo")
+                .orderBy("random")
+                .startAt(randomInicioGlobal)
+                .limit((limite * 8).toLong()) // pedimos más para compensar los que se filtran por expiración/horario
+
+            // 🔹 Si hay cursor → continuamos desde ahí
+            if (ultimoDocumento != null) {
+                query = query.startAfter(ultimoDocumento)
+            }
+
+
+            val snapshot = query.get().await()
+
+            var documentosFinales = snapshot.documents
+
+            if (snapshot.size() < limite) {
+
+                val query2 = db
+                    .collection("Tiendas")
+                    .document(localidad)
+                    .collection("promos_ofertas")
+                    .whereEqualTo("estado", "activo")
+                    .orderBy("random")
+                    .endBefore(randomInicioGlobal)
+                    .limit((limite * 5).toLong())
+
+                val snapshot2 = query2.get().await()
+
+                documentosFinales = (snapshot.documents + snapshot2.documents)
+                    .distinctBy { it.id } // 🔥 evitar duplicados
+            }
+
+            Log.d("PROMOS_DEBUG", "📦 Docs finales: ${documentosFinales.size}")
+
+            if (documentosFinales.isEmpty()) {
+                return Pair(emptyList(), null)
+            }
+
+            // 🔹 Para las tiendas con más de una promo necesitamos un query separado (solo IDs)
+            val snapshotCompleto = db
+                .collection("Tiendas")
+                .document(localidad)
+                .collection("promos_ofertas")
+                .whereEqualTo("estado", "activo")
+                .get()
+                .await()
+
+            val promosPorTienda = snapshotCompleto.documents.mapNotNull { doc ->
+                val infoMap = doc.get("informacion") as? Map<*, *> ?: return@mapNotNull null
+                val imgMap = doc.get("img_container") as? Map<*, *> ?: emptyMap<String, Any>()
+                val idTienda = infoMap["id_tienda"] as? String ?: return@mapNotNull null
+                val nombreTienda = infoMap["nombre_tienda"] as? String ?: ""
+                val logo = imgMap["logo_img"] as? String ?: ""
+                Triple(idTienda, nombreTienda, logo)
+            }.groupBy { it.first }
+
+            val listaTiendasConMasDeUnaPromo = promosPorTienda
+                .filter { it.value.size > 1 }
+                .map { (idTienda, promos) ->
+                    val p = promos.first()
+                    tiendas_con_mas_de_una_promo(id = idTienda, nombre_tienda = p.second, logo_img = p.third)
+                }
+
+            var ultimoDocValido: DocumentSnapshot? = null
+            val resultado = mutableListOf<obj_completo>()
+
+            for (doc in documentosFinales) {
+                val infoMap = doc.get("informacion") as? Map<*, *> ?: continue
+                val categoria_params = infoMap["categoria"] as? String ?: ""
+
+                if (tipo_seleccionado != "Todos" && categoria_params != tipo_seleccionado) continue
+
+                val idTiendaInfo = infoMap["id_tienda"] as? String ?: ""
+                if (tiendaSeleccionada1 != null && idTiendaInfo != tiendaSeleccionada1) continue
+
+                val tipo_hora_dias = doc.get("tipo_hora_dias") as? String ?: ""
+                val datos_hora_fecha = doc.get("datos_hora_fecha") as? Map<*, *> ?: emptyMap<String, Any>()
+                val horasMap = datos_hora_fecha["horas"] as? Map<*, *> ?: emptyMap<String, Any>()
+                val diasMap = datos_hora_fecha["dias"] as? Map<*, *> ?: emptyMap<String, Any>()
+
+                val horario_de_publicacion = doc.get("horario_publicacion") as? String ?: ""
+                val horarioActual = verificar_horairo_cel_para_publicidad().trim()
+                if (horario_de_publicacion.isNotEmpty() &&
+                    horario_de_publicacion != "todo_dia" &&
+                    horario_de_publicacion.trim() != horarioActual) continue
+
+                val timestampFin = when (tipo_hora_dias) {
+                    "horas" -> horasMap["timestamp_fin"] as? Timestamp
+                    "dias"  -> diasMap["timestamp_fin"] as? Timestamp
+                    else    -> null
+                }
+
+                val tiempo = timestampFin?.let { tiempoRestante(it) } ?: "Expirado"
+                if (tiempo == "Expirado") continue
+
+                // ✅ Doc válido → guardamos como nuevo cursor
+                ultimoDocValido = doc
+
+                val imgMap = doc.get("img_container") as? Map<*, *> ?: emptyMap<String, Any>()
+                val mensaje_predeterminado = doc.get("mensaje_predeterminado") as? Map<*, *> ?: emptyMap<String, Any>()
+                val compartir = mensaje_predeterminado["compartir"] as? Map<*, *> ?: emptyMap<String, Any>()
+                val whatsapp = mensaje_predeterminado["whatsapp"] as? Map<*, *> ?: emptyMap<String, Any>()
+                val terminos_clave = doc.get("terminos_clave") as? List<String> ?: emptyList()
+                val comodidades_filtro = doc.get("comodidades") as? Map<String, Boolean> ?: emptyMap()
+                val pagos = doc.get("pagos") as? Map<String, Boolean> ?: emptyMap()
+                val rango_precio = doc.get("rango_establecido") as? String ?: ""
+                val precio = doc.get("precio_publicacion") as? String ?: ""
+
+                val informacion = informacion_publcacion(
+                    descripcion = infoMap["descripcion"] as? String ?: "",
+                    numero = infoMap["numero"] as? String ?: "",
+                    titulo = infoMap["titulo"] as? String ?: "",
+                    nombre_tienda = infoMap["nombre_tienda"] as? String ?: "",
+                    id_promocion = doc.id,
+                    id_tienda = idTiendaInfo,
+                    categoria = categoria_params,
+                    compartir = infoMap["compartir"] as? Boolean ?: false,
+                    contactar = infoMap["contactar"] as? Boolean ?: false,
+                    msjes_predeteminados_generales = msjes_predeteminados_generales(
+                        compartir = mensaje_predeterminado(msje_predermindo = compartir["msje_predermindo"] as? String ?: "", activo_o_no = true),
+                        whatsapp  = mensaje_predeterminado(msje_predermindo = whatsapp["msje_predermindo"] as? String ?: "", activo_o_no = true)
+                    )
+                )
+
+                val img = img_content(
+                    logo_img = imgMap["logo_img"] as? String ?: "",
+                    lista_img = imgMap["lista_img"] as? List<String> ?: emptyList()
+                )
+
+                val promo = dataclass_promociones_cerca_de_ti(
+                    informacion_publcacion = informacion,
+                    img = img,
+                    exclussivo = doc.getBoolean("exclusivo") ?: false,
+                    dias_restantes = tiempo,
+                    estadisticas = estadisticas_publiccaciones(),
+                    texto_msje_whatsapp = informacion.msjes_predeteminados_generales,
+                    timestampFin ?: Timestamp.now(),
+                    doc.getString("estado") ?: "",
+                    comodidades_filtro, pagos, rango_precio, precio, terminos_clave
+                )
+
+                resultado.add(
+                    obj_completo(
+                        dataclass_promociones_cerca_de_ti = promo,
+                        lista_filtrado = listOfNotNull(categoria_params),
+                        lista_tiendas_con_mas_promo = listaTiendasConMasDeUnaPromo
+                    )
+                )
+
+                // 🔹 Ya tenemos suficientes válidos → parar
+                if (resultado.size >= limite) break
+            }
+
+            Pair(resultado, ultimoDocValido)
+
+        } catch (e: Exception) {
+            Log.e("ERROR_PROMO", "❌ Error al obtener promociones", e)
+            Pair(emptyList(), null)
+        }
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun obtener_promos_paginado2(
+        tienda_seleccionada: String?,
+        tipo_seleccionado: String,
+        localidad: String,
+        ultimoDocumento: DocumentSnapshot?,
+        limite: Int = 5
+    ): Pair<List<obj_completo>, DocumentSnapshot?> {
+
+        return try {
+
+            val baseRef = db
+                .collection("Tiendas")
+                .document(localidad)
+                .collection("promos_ofertas")
+
+            // 🔹 Obtener tiendas con más de una promo
+            val snapshotCompleto = baseRef
+                .whereEqualTo("estado", "activo")
+                .get()
+                .await()
+
+            val promosPorTienda = snapshotCompleto.documents.mapNotNull { doc ->
+                val infoMap = doc.get("informacion") as? Map<*, *> ?: return@mapNotNull null
+                val imgMap = doc.get("img_container") as? Map<*, *> ?: emptyMap<String, Any>()
+
+                val idTienda = infoMap["id_tienda"] as? String ?: return@mapNotNull null
+                val nombreTienda = infoMap["nombre_tienda"] as? String ?: ""
+                val logo = imgMap["logo_img"] as? String ?: ""
+
+                Triple(idTienda, nombreTienda, logo)
+            }.groupBy { it.first }
+
+            val listaTiendasConMasDeUnaPromo = promosPorTienda
+                .filter { it.value.size > 1 }
+                .map { (idTienda, promos) ->
+                    val p = promos.first()
+                    tiendas_con_mas_de_una_promo(
+                        id = idTienda,
+                        nombre_tienda = p.second,
+                        logo_img = p.third
+                    )
+                }
+
+            Log.d("PROMOS_DEBUG", "🏪 Tiendas con +1 promo: ${listaTiendasConMasDeUnaPromo.size}")
+
+            // 🔥 CASO 1: TIENDA SELECCIONADA
+            if (tienda_seleccionada != null) {
+
+                Log.d("PROMOS_DEBUG", "🎯 MODO TIENDA: $tienda_seleccionada")
+
+                var query = baseRef
+                    .whereEqualTo("estado", "activo")
+                    .whereEqualTo("informacion.id_tienda", tienda_seleccionada)
+                    .orderBy("random")
+                    .limit(limite.toLong())
+
+                if (ultimoDocumento != null) {
+                    query = query.startAfter(ultimoDocumento)
+                }
+
+                val snapshot = query.get().await()
+
+                Log.d("PROMOS_DEBUG", "📦 Docs tienda: ${snapshot.size()}")
+
+                if (snapshot.isEmpty) {
+                    return Pair(emptyList(), null)
+                }
+
+                return procesarDocs(
+                    snapshot.documents,
+                    limite,
+                    listaTiendasConMasDeUnaPromo
+                )
+            }
+
+            // 🔥 CASO 2: RANDOM
+            Log.d("PROMOS_DEBUG", "🎲 MODO RANDOM")
+
+            var query = baseRef
+                .whereEqualTo("estado", "activo")
+                .orderBy("random")
+                .startAt(randomInicioGlobal)
+                .limit((limite * 8).toLong())
+
+            if (ultimoDocumento != null) {
+                query = query.startAfter(ultimoDocumento)
+            }
+
+            val snapshot = query.get().await()
+
+            var documentosFinales = snapshot.documents
+
+            // 🔁 fallback circular
+            if (snapshot.size() < limite) {
+                Log.d("PROMOS_DEBUG", "🔁 Activando fallback")
+
+                val query2 = baseRef
+                    .whereEqualTo("estado", "activo")
+                    .orderBy("random")
+                    .endBefore(randomInicioGlobal)
+                    .limit((limite * 5).toLong())
+
+                val snapshot2 = query2.get().await()
+
+                documentosFinales = (snapshot.documents + snapshot2.documents)
+                    .distinctBy { it.id }
+            }
+
+            Log.d("PROMOS_DEBUG", "📦 Docs finales: ${documentosFinales.size}")
+
+            if (documentosFinales.isEmpty()) {
+                return Pair(emptyList(), null)
+            }
+
+            return procesarDocs(
+                documentosFinales,
+                limite,
+                listaTiendasConMasDeUnaPromo
+            )
+
+        } catch (e: Exception) {
+            Log.e("ERROR_PROMO", "❌ Error al obtener promociones", e)
+            Pair(emptyList(), null)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun procesarDocs(
+        docs: List<DocumentSnapshot>,
+        limite: Int,
+        listaTiendasConMasDeUnaPromo: List<tiendas_con_mas_de_una_promo>
+    ): Pair<List<obj_completo>, DocumentSnapshot?> {
+
+        var ultimoDocValido: DocumentSnapshot? = null
+        val resultado = mutableListOf<obj_completo>()
+
+        for (doc in docs) {
+
+            val infoMap = doc.get("informacion") as? Map<*, *> ?: continue
+            val categoria = infoMap["categoria"] as? String ?: ""
+
+            val tipoHora = doc.get("tipo_hora_dias") as? String ?: ""
+            val datos = doc.get("datos_hora_fecha") as? Map<*, *> ?: emptyMap<String, Any>()
+            val horas = datos["horas"] as? Map<*, *> ?: emptyMap<String, Any>()
+            val dias = datos["dias"] as? Map<*, *> ?: emptyMap<String, Any>()
+
+            val timestampFin = when (tipoHora) {
+                "horas" -> horas["timestamp_fin"] as? Timestamp
+                "dias"  -> dias["timestamp_fin"] as? Timestamp
+                else    -> null
+            }
+
+            val tiempo = timestampFin?.let { tiempoRestante(it) } ?: "Expirado"
+            if (tiempo == "Expirado") continue
+
+            ultimoDocValido = doc
+
+            val imgMap = doc.get("img_container") as? Map<*, *> ?: emptyMap<String, Any>()
+
+            val informacion = informacion_publcacion(
+                descripcion = infoMap["descripcion"] as? String ?: "",
+                numero = infoMap["numero"] as? String ?: "",
+                titulo = infoMap["titulo"] as? String ?: "",
+                nombre_tienda = infoMap["nombre_tienda"] as? String ?: "",
+                id_promocion = doc.id,
+                id_tienda = infoMap["id_tienda"] as? String ?: "",
+                categoria = categoria,
+                compartir = infoMap["compartir"] as? Boolean ?: false,
+                contactar = infoMap["contactar"] as? Boolean ?: false,
+                msjes_predeteminados_generales = msjes_predeteminados_generales()
+            )
+
+            val img = img_content(
+                logo_img = imgMap["logo_img"] as? String ?: "",
+                lista_img = imgMap["lista_img"] as? List<String> ?: emptyList()
+            )
+
+            val promo = dataclass_promociones_cerca_de_ti(
+                informacion_publcacion = informacion,
+                img = img,
+                exclussivo = doc.getBoolean("exclusivo") ?: false,
+                dias_restantes = tiempo,
+                estadisticas = estadisticas_publiccaciones(),
+                texto_msje_whatsapp = informacion.msjes_predeteminados_generales,
+                timestampFin ?: Timestamp.now(),
+                doc.getString("estado") ?: "",
+                emptyMap(),
+                emptyMap(),
+                "",
+                "",
+                emptyList()
+            )
+
+            resultado.add(
+                obj_completo(
+                    dataclass_promociones_cerca_de_ti = promo,
+                    lista_filtrado = listOf(categoria),
+                    lista_tiendas_con_mas_promo = listaTiendasConMasDeUnaPromo
+                )
+            )
+
+            if (resultado.size >= limite) break
+        }
+
+        Log.d("PROMOS_DEBUG", "✅ Resultado final: ${resultado.size}")
+
+        return Pair(resultado, ultimoDocValido)
     }
 
     suspend fun obtener_categorias_firebase(): List<String> {

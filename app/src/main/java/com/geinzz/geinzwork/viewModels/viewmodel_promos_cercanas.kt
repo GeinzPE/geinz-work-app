@@ -25,6 +25,7 @@ import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.RespuestaGem
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
 import com.geinzz.geinzwork.model.repo_promos_cercanas
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -79,7 +80,11 @@ class viewmodel_promos_cercanas : ViewModel() {
 
 
     fun resetear_respuesta_de_gemini() {
-        _respuesta_gemini.value = null
+        _respuesta_gemini.value = estado_Carga_respuesta_gemini.idle
+    }
+
+    fun resetear_Estado_respuesta_IA(){
+
     }
 
     private val _porcentajesMatch =
@@ -364,6 +369,161 @@ class viewmodel_promos_cercanas : ViewModel() {
     }
 
 
+    private val PAGINA_SIZE = 5
+    private var ultimoDocumento: DocumentSnapshot? = null
+
+    private val _hayMasPaginas = MutableStateFlow(true)
+    val hayMasPaginas: StateFlow<Boolean> = _hayMasPaginas
+
+    private val _cargandoPagina = MutableStateFlow(false)
+    val cargandoPagina: StateFlow<Boolean> = _cargandoPagina
+
+    private val _promosAcumuladas = MutableStateFlow<List<obj_completo>>(emptyList())
+
+    private val _esPrimeraCarga = MutableStateFlow(true)
+    val esPrimeraCarga: StateFlow<Boolean> = _esPrimeraCarga
+
+
+    private val _estado_Carga_tienda_select =
+        MutableStateFlow<estado_carga_tienda_Seleccionada>(estado_carga_tienda_Seleccionada.idle)
+    val estado_Carga_tienda_select: StateFlow<estado_carga_tienda_Seleccionada> =
+        _estado_Carga_tienda_select
+    fun obtener_promociones_2da(localidad: String, tipo_filtrado: String, tienda_seleccionada: String?) {
+
+        ultimoDocumento = null
+        _hayMasPaginas.value = true
+        _promosAcumuladas.value = emptyList()
+        listaCompleta.value = emptyList()
+
+        viewModelScope.launch {
+
+            // ✅ Decidir qué estado de carga activar según si hay tienda o no
+            if (tienda_seleccionada != null) {
+                _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.loading
+                // El estado general NO se toca → la lista general sigue visible
+            } else {
+                _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.idle
+                if (_esPrimeraCarga.value) {
+                    _estadoPromos.value = estado_carga_promociones.loading
+                }
+            }
+
+            try {
+                val (nueva, nuevoCursor) = repo.obtener_promos_paginado2(
+                    tienda_seleccionada,
+                    tipo_filtrado,
+                    localidad,
+                    ultimoDocumento,
+                    PAGINA_SIZE
+                )
+
+                if (nueva.isEmpty()) {
+                    if (tienda_seleccionada != null) {
+                        // ✅ Vacío solo en el estado de tienda, no toca el general
+                        _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.empty(
+                            "No hay promos para esta tienda"
+                        )
+                    } else {
+                        _estadoPromos.value = estado_carga_promociones.empty("No hay promociones cerca de ti")
+                        _hayMasPaginas.value = false
+                        _esPrimeraCarga.value = false
+                    }
+                    return@launch
+                }
+
+                ultimoDocumento = nuevoCursor
+                _hayMasPaginas.value = nuevoCursor != null
+
+                _promosAcumuladas.value = nueva
+                listaCompleta.value = nueva
+                listaFiltrada.value = nueva
+
+                val categorias = nueva.flatMap {
+                    it.dataclass_promociones_cerca_de_ti.informacion_publcacion.categoria.split(",")
+                }.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+                categoriasDisponibles.value = categorias
+
+                if (tienda_seleccionada != null) {
+                    // ✅ Éxito solo en estado de tienda
+                    _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.succes(nueva)
+                } else {
+                    // ✅ Éxito en estado general
+                    _estadoPromos.value = estado_carga_promociones.succes(nueva)
+                    _esPrimeraCarga.value = false
+                }
+
+            } catch (e: Exception) {
+                if (tienda_seleccionada != null) {
+                    _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.idle
+                } else {
+                    _estadoPromos.value = estado_carga_promociones.error("Error al cargar promociones")
+                    _esPrimeraCarga.value = false
+                }
+            }
+        }
+    }
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun cargarSiguientePagina(localidad: String, tipo_filtrado: String,id_tienda_select: String?) {
+        if (_cargandoPagina.value || !_hayMasPaginas.value) return
+
+        viewModelScope.launch {
+            _cargandoPagina.value = true
+
+            try {
+                val (nuevas, nuevoCursor) = repo.obtener_promos_paginado2(
+                    id_tienda_select,tipo_filtrado, localidad,  ultimoDocumento, PAGINA_SIZE
+                )
+
+                if (nuevas.isEmpty()) {
+                    _hayMasPaginas.value = false
+                    return@launch
+                }
+
+                ultimoDocumento = nuevoCursor
+                _hayMasPaginas.value = nuevoCursor != null
+
+                // 🔹 Acumular sin duplicados
+                val idsExistentes = _promosAcumuladas.value
+                    .map { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
+                    .toSet()
+
+                val sinDuplicados = nuevas.filter {
+                    it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion !in idsExistentes
+                }
+
+                val listaActualizada = _promosAcumuladas.value + sinDuplicados
+                _promosAcumuladas.value = listaActualizada
+                listaCompleta.value = listaActualizada
+                listaFiltrada.value = listaActualizada
+
+                _estadoPromos.value = estado_carga_promociones.succes(listaActualizada)
+
+            } catch (e: Exception) {
+                Log.e("PAGINACION", "Error cargando siguiente página", e)
+            } finally {
+                _cargandoPagina.value = false
+            }
+        }
+    }
+
+
+
+    fun filtrar_promociones_por_id(id: String) {
+        val base = listaCompleta.value
+
+        listaFiltrada.value = base.filter { obj ->
+            obj.dataclass_promociones_cerca_de_ti
+                .informacion_publcacion
+                .id_tienda == id
+        }
+
+        _estadoPromos.value =
+            if (listaFiltrada.value.isEmpty()) {
+                estado_carga_promociones.empty("Esta tienda no tiene promociones activas")
+            } else {
+                estado_carga_promociones.succes(listaFiltrada.value)
+            }
+    }
 
     fun filtrarPromociones(
         categoria: String,
@@ -522,22 +682,6 @@ class viewmodel_promos_cercanas : ViewModel() {
     }
 
 
-    fun filtrar_promociones_por_id(id: String) {
-        val base = listaCompleta.value
-
-        listaFiltrada.value = base.filter { obj ->
-            obj.dataclass_promociones_cerca_de_ti
-                .informacion_publcacion
-                .id_tienda == id
-        }
-
-        _estadoPromos.value =
-            if (listaFiltrada.value.isEmpty()) {
-                estado_carga_promociones.empty("Esta tienda no tiene promociones activas")
-            } else {
-                estado_carga_promociones.succes(listaFiltrada.value)
-            }
-    }
 
     fun mostrarTodasLasPromociones() {
         val base = listaCompleta.value
@@ -567,58 +711,58 @@ class viewmodel_promos_cercanas : ViewModel() {
         }
     }
 
-
-    fun procesar_NLP(texto: String, categoria: String) {
-        viewModelScope.launch {
-            _respuesta_gemini.value = estado_Carga_respuesta_gemini.loading
-            try {
-                val respuesta_NLP = repo.extraer_con_gemini(texto, categoria)
-
-                if (!respuesta_NLP.isNullOrEmpty()) {
-
-                    // Extrae solo el JSON válido
-                    val jsonRegex = "\\{.*\\}".toRegex(RegexOption.DOT_MATCHES_ALL)
-                    val match = jsonRegex.find(respuesta_NLP)
-                    val limpio = match?.value ?: ""
-
-                    if (limpio.isNotEmpty()) {
-                        val gson = Gson()
-                        val objeto = gson.fromJson(limpio, RespuestaGemini::class.java)
-                        Log.d("NLP_OBJETO", objeto.toString())
-                        _respuesta_gemini.value = estado_Carga_respuesta_gemini.succes(objeto)
-
-                        _respuesta_gemini.value?.let { estado ->
-                            if (estado is estado_Carga_respuesta_gemini.succes) {
-                                _listaResultados.value = buildList {
-                                    estado.items?.principal?.let { add(it) }
-                                    estado.items?.atributos?.let { addAll(it) }
-                                }
-                            }
-                        }
-
-
-                    } else {
-                        _respuesta_gemini.value =
-                            estado_Carga_respuesta_gemini.empty("no entendí nada")
-                    }
-
-                } else {
-                    _respuesta_gemini.value = estado_Carga_respuesta_gemini.empty("no entendí nada")
-                }
-
-            } catch (e: Exception) {
-                Log.e("NLP_ERROR", "Error parseando JSON", e)
-                _respuesta_gemini.value = estado_Carga_respuesta_gemini.error("se produjo un error")
-            }
-        }
-    }
+//
+//    fun procesar_NLP(texto: String, categoria: String) {
+//        viewModelScope.launch {
+//            _respuesta_gemini.value = estado_Carga_respuesta_gemini.loading
+//            try {
+//                val respuesta_NLP = repo.extraer_con_gemini(texto, categoria)
+//
+//                if (!respuesta_NLP.isNullOrEmpty()) {
+//
+//                    // Extrae solo el JSON válido
+//                    val jsonRegex = "\\{.*\\}".toRegex(RegexOption.DOT_MATCHES_ALL)
+//                    val match = jsonRegex.find(respuesta_NLP)
+//                    val limpio = match?.value ?: ""
+//
+//                    if (limpio.isNotEmpty()) {
+//                        val gson = Gson()
+//                        val objeto = gson.fromJson(limpio, RespuestaGemini::class.java)
+//                        Log.d("NLP_OBJETO", objeto.toString())
+//                        _respuesta_gemini.value = estado_Carga_respuesta_gemini.succes(objeto)
+//
+//                        _respuesta_gemini.value?.let { estado ->
+//                            if (estado is estado_Carga_respuesta_gemini.succes) {
+//                                _listaResultados.value = buildList {
+//                                    estado.items?.principal?.let { add(it) }
+//                                    estado.items?.atributos?.let { addAll(it) }
+//                                }
+//                            }
+//                        }
+//
+//
+//                    } else {
+//                        _respuesta_gemini.value =
+//                            estado_Carga_respuesta_gemini.empty("no entendí nada")
+//                    }
+//
+//                } else {
+//                    _respuesta_gemini.value = estado_Carga_respuesta_gemini.empty("no entendí nada")
+//                }
+//
+//            } catch (e: Exception) {
+//                Log.e("NLP_ERROR", "Error parseando JSON", e)
+//                _respuesta_gemini.value = estado_Carga_respuesta_gemini.error("se produjo un error")
+//            }
+//        }
+//    }
 
 
     fun procesar_nlp_open_ia(texto: String) {
         viewModelScope.launch {
             try {
                 loading = true
-
+                _respuesta_gemini.value = estado_Carga_respuesta_gemini.loading
                 // ⏳ SOLO OPENAI
                 val resultadoLocal = repo.obtener_respuesta_open_ia(texto)
                 Log.d("OPENAI", "$resultadoLocal")
@@ -631,12 +775,21 @@ class viewmodel_promos_cercanas : ViewModel() {
                         withContext(Dispatchers.IO) {
                             repo.send_get_resul_algoalia(resultadoLocal)
                         }
+                    val resultadosOrdenados = resultado_encontrado_algolia?.resultados
+                        ?.sortedByDescending { it.score }
+                        ?.map { resultado ->
+                            resultado.id to resultado.score
+                        }
+                    _respuesta_gemini.value = estado_Carga_respuesta_gemini.succes(
+                        resultadosOrdenados?.size ?: 0
+                    )
 
-                    Log.d("ALGOLIA", "$resultado_encontrado_algolia")
+                    Log.d("ALGOLIA", "$resultadosOrdenados")
                 }
 
             } catch (e: Exception) {
                 e.printStackTrace()
+                _respuesta_gemini.value = estado_Carga_respuesta_gemini.error("se produjo un error")
             } finally {
                 loading = false
             }
@@ -703,12 +856,20 @@ class viewmodel_promos_cercanas : ViewModel() {
 
     sealed class estado_Carga_respuesta_gemini {
         object loading : estado_Carga_respuesta_gemini()
-        data class succes(val items: RespuestaGemini?) : estado_Carga_respuesta_gemini()
+        data class succes (val cantidad:Int): estado_Carga_respuesta_gemini()
         data class error(val texto_error: String) : estado_Carga_respuesta_gemini()
         data class empty(val text_vacio: String) : estado_Carga_respuesta_gemini()
         object idle : estado_Carga_respuesta_gemini()
     }
 
+
+    sealed class estado_carga_tienda_Seleccionada {
+        object loading:estado_carga_tienda_Seleccionada()
+        data class succes(val items: List<obj_completo>) :estado_carga_tienda_Seleccionada()
+        data class error(val texto_error: String) : estado_carga_tienda_Seleccionada()
+        data class empty(val text_vacio: String) : estado_carga_tienda_Seleccionada()
+        object idle : estado_carga_tienda_Seleccionada()
+    }
 
     sealed class estado_carga_promociones {
         object loading : estado_carga_promociones()

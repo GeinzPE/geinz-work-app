@@ -1075,7 +1075,7 @@ Texto: "$textoUsuario"
 
 fun construir_prompt_NLP_para_busqueda(textoUsuario: String, categoria: String): String {
     return """
-    Extrae sustantivos de producto del texto. Categoría: $categoria.
+    Extrae sustantivos de producto del texto la categoria del negocio es $categoria.
     - Sin cantidades, tamaños, precios, adjetivos, marcas ni duplicados
     - Minúsculas, sin tildes, sin diminutivos, sin plurales (usa singular)
     - Solo términos que aparecen en el texto

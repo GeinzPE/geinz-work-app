@@ -1471,7 +1471,7 @@ class repo_eres_socio {
                     if (i.metodos_pagos.mastercard) "mastercard" else null
                 ),
                 "comodidades" to hashmap_comodidades.filterValues { it as Boolean }.keys.toList(),
-                "horario_publicacion" to i.horario_deseado.seleccion.lowercase(),
+                "horario_publicacion" to if(i.horario_deseado.seleccion.isNotEmpty())i.horario_deseado.seleccion.lowercase() else "todo_dia",
                 "precio" to i.precio_publicacion.precio.toInt(),
 
                 "precioMin" to precioMin,
@@ -1498,14 +1498,13 @@ class repo_eres_socio {
                 "informacion" to i.informacion,
                 "ubicacion" to i.ubicacion,
                 "mensaje_predeterminado" to i.mensaje_predeterminado,
-                "horario_publicacion" to i.horario_deseado.seleccion,
+                "horario_publicacion" to if(i.horario_deseado.seleccion.isNotEmpty())i.horario_deseado.seleccion.lowercase() else "todo_dia",
                 "precio_publicacion" to i.precio_publicacion.precio,
                 "rango_establecido" to i.precio_publicacion.rango,
-//                "pagos" to i.metodos_pagos,
                 "pagos" to hasmap_metodos_pago,
                 "comodidades" to hashmap_comodidades,
-                "terminos_clave" to array_extraido
-
+                "terminos_clave" to array_extraido,
+                "random" to Math.random()
             )
 
             // 🤖 SOLO SI EXISTE IA

@@ -60,10 +60,9 @@ exports.extraerDatos = onRequest(async (req, res) => {
       return res.status(400).json({ error: "Falta 'texto'" });
     }
 
-    const prompt = `
-Extrae del texto y responde SOLO en JSON válido.
+    const prompt = `Extrae del texto y responde SOLO en JSON válido.
 
-- "productos": array de sustantivos en singular ,simples separados, sin unirlos con guiones y sin palabras irrelevantes
+- "productos": Extrae el SERVICIO o PRODUCTO o LUGAR que necesita,nunca inventes nada solo lo que sale del texto, nunca personas o palabras vacías
 - "precio_max": número entero sin dobule o null si en caso no hay numero en el texto   
 - "metodos_pago": solo de esta lista → ["yape","plin","efectivo","agora","visa","mastercard"]
 - "comodidades": array, detecta implícitamente cuáles aplican → ["aire_acondicionado",
@@ -73,8 +72,7 @@ Extrae del texto y responde SOLO en JSON válido.
 "servicios_higienicos","wifi",
 "zona_expandida"]
 
-Texto: "${texto}"
-`;
+Texto: "${texto}"`;
     // 🚀 OpenAI
     const response = await openai.chat.completions.create({
       model: "gpt-5-nano",
@@ -365,126 +363,6 @@ exports.crearOrdenCulqi = onCall({ region: "us-central1" }, async (req) => {
   }
 });
 
-async function getImageBuffer(url) {
-  const res = await axios.get(url, { responseType: "arraybuffer" });
-  return Buffer.from(res.data, "binary");
-}
-
-async function generarPDF({ userId, monedas, chargeId, monto }) {
-  const doc = new PDFDocument({ margin: 30 });
-
-  const fileName = `boleta-${Date.now()}.pdf`;
-  const filePath = path.join("/tmp", fileName);
-
-  doc.pipe(fs.createWriteStream(filePath));
-
-  const logo = await getImageBuffer(
-    "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo%20geinz.png?alt=media&token=4b90f507-8914-4f75-ae8e-0a1a0acda2a5",
-  );
-
-  // 🟨 HEADER IZQUIERDA
-  doc.image(logo, 30, 30, { width: 80 });
-
-  doc
-    .fontSize(10)
-    .text("GEINZ TECNOLOGIA E.I.R.L.", 120, 30)
-    .text("RUC: 20615632580")
-    .text("CALLE 1 - SAN MATEO")
-    .text("BARRANCA - LIMA")
-    .text("Email: soybenjadesing@gmail.com");
-
-  // 🧾 CAJA DERECHA (tipo SUNAT)
-  doc.roundedRect(380, 30, 180, 80, 5).stroke();
-
-  doc
-    .fontSize(10)
-    .text("R.U.C. 20615632580", 390, 40)
-    .fontSize(12)
-    .text("BOLETA DE VENTA", 390, 60)
-    .text("ELECTRÓNICA", 390, 75)
-    .fontSize(10)
-    .text("B001 - 0000001", 390, 95);
-
-  // 👤 CLIENTE
-  doc
-    .moveDown(4)
-    .fontSize(9)
-    .text(`Cliente: ${userId}`)
-    .text(`DNI: -`)
-    .text(`Fecha: ${new Date().toLocaleDateString()}`);
-
-  // 📋 TABLA
-  const startY = 180;
-
-  // encabezado tabla
-  doc.rect(30, startY, 530, 20).stroke();
-
-  doc
-    .fontSize(8)
-    .text("CANT.", 35, startY + 5)
-    .text("DESCRIPCIÓN", 100, startY + 5)
-    .text("P. UNIT", 400, startY + 5)
-    .text("IMPORTE", 480, startY + 5);
-
-  // fila
-  doc.rect(30, startY + 20, 530, 200).stroke();
-
-  doc
-    .fontSize(9)
-    .text("1", 35, startY + 30)
-    .text("Compra de monedas GEINZ", 100, startY + 30)
-    .text(`S/ ${monto}`, 400, startY + 30)
-    .text(`S/ ${monto}`, 480, startY + 30);
-
-  // 💰 TOTALES
-  const totalY = startY + 230;
-
-  doc
-    .fontSize(9)
-    .text("OP. GRAVADA:", 350, totalY)
-    .text(`S/ ${(monto / 1.18).toFixed(2)}`, 480, totalY)
-
-    .text("IGV (18%):", 350, totalY + 15)
-    .text(`S/ ${(monto - monto / 1.18).toFixed(2)}`, 480, totalY + 15)
-
-    .fontSize(11)
-    .text("TOTAL:", 350, totalY + 35)
-    .text(`S/ ${monto}`, 480, totalY + 35);
-
-  // 🔳 QR (simulado por ahora)
-  doc
-    .rect(30, totalY, 80, 80)
-    .stroke()
-    .fontSize(6)
-    .text("QR", 55, totalY + 35);
-
-  // 📄 FOOTER
-  doc
-    .fontSize(6)
-    .text(
-      "Representación impresa de la boleta electrónica. Consulte en SUNAT.",
-      30,
-      doc.page.height - 40,
-    );
-
-  doc.end();
-
-  return filePath;
-}
-
-async function subirPDF(filePath, fileName) {
-  const bucket = admin.storage().bucket();
-
-  await bucket.upload(filePath, {
-    destination: `boletas/${fileName}`,
-    metadata: { contentType: "application/pdf" },
-    public: true,
-  });
-
-  const url = `https://storage.googleapis.com/${bucket.name}/boletas/${fileName}`;
-  return url;
-}
-
 async function enviarPDFWhatsApp(numero, pdfUrl) {
   await axios.post(
     `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
@@ -514,52 +392,188 @@ async function emitirBoletaNubefact({
   email,
   nombre,
 }) {
+  // 1. Definir y calcular variables necesarias (Evita el error 'not defined')
+  const montoNum = Number(monto);
+  const tasaIgv = 0.18;
+  const valorUnitario = montoNum / (1 + tasaIgv); // Monto sin IGV
+  const igvTotal = montoNum - valorUnitario;
+
   const response = await axios.post(
     "https://api.nubefact.com/api/v1/02bb7d82-0b0c-4006-82a5-74b7437bea0b",
     {
+      operacion: "generar_comprobante", //
+      tipo_de_comprobante: 2, // 2 = BOLETA
+      serie: "BBB1", //
+      numero: 0, // NubeFacT asigna el siguiente correlativo[cite: 1]
+      sunat_transaction: 1, // Venta interna[cite: 1]
+      
+      // Para boletas menores a S/ 700.00 se usa "-" y "0"[cite: 1]
+      cliente_tipo_de_documento: "-", //[cite: 1]
+      cliente_numero_de_documento: "0", //[cite: 1]
+      cliente_denominacion: nombre || "Consumidor final", //[cite: 1]
+      cliente_direccion: "", // OBLIGATORIO aunque sea String vacío[cite: 1]
+      cliente_email: email || "",
+      
+      fecha_de_emision: new Date().toLocaleDateString("es-PE").replace(/\//g, "-"), // Formato DD-MM-YYYY[cite: 1]
+      moneda: 1, // 1 = SOLES[cite: 1]
+      porcentaje_de_igv: 18.0, //[cite: 1]
+      
+      // Totales del comprobante (Numeric con 2 decimales)[cite: 1]
+      total_gravada: valorUnitario.toFixed(2), //[cite: 1]
+      total_igv: igvTotal.toFixed(2), //[cite: 1]
+      total: montoNum.toFixed(2), //[cite: 1]
+      
+      enviar_automaticamente_a_la_sunat: true, //[cite: 1]
+      enviar_automaticamente_al_cliente: !!email, //[cite: 1]
+      codigo_unico: chargeId, // Para evitar duplicidad[cite: 1]
+
+      items: [
+        {
+          unidad_de_medida: "ZZ", // ZZ = SERVICIO[cite: 1]
+          codigo: "MON001",
+          descripcion: `Paquete de ${monedas} monedas Geinz`, //[cite: 1]
+          cantidad: 1, //[cite: 1]
+          valor_unitario: valorUnitario.toFixed(2), // Precio sin IGV[cite: 1]
+          precio_unitario: montoNum.toFixed(2), // Precio con IGV[cite: 1]
+          subtotal: valorUnitario.toFixed(2), //[cite: 1]
+          tipo_de_igv: 1, // 1 = Gravado - Operación Onerosa[cite: 1]
+          igv: igvTotal.toFixed(2), //[cite: 1]
+          total: montoNum.toFixed(2), //[cite: 1]
+          anticipo_regularizacion: false //[cite: 1]
+        }
+      ]
+    },
+    {
+      headers: {
+        // Formato correcto de autenticación[cite: 1]
+        Authorization: `Token token="8eee1a640fd7485cbc1da29427f59792b196deb29b954a6eb131bdb8562492fa"`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return response.data.enlace_del_pdf; // Retorna el enlace generado[cite: 1]
+}
+
+
+/**
+ * Emite un comprobante electrónico (Boleta o Factura) vía NubeFacT.
+ * 
+ * @param {Object} params - Datos del comprobante.
+ * @param {number} params.tipoComprobante - 1 para FACTURA, 2 para BOLETA.
+ * @param {string} params.documento - RUC (11 dígitos) para factura o DNI/S.N. para boleta.
+ * @param {string} params.nombre - Razón Social o Nombre del cliente.
+ * @param {string} params.direccion - Dirección (obligatorio para Factura, opcional para Boleta).
+ * @param {number} params.monto - Monto total de la venta (incluido IGV).
+ * @param {string} params.email - Correo del cliente para envío automático.
+ * @param {string} params.chargeId - ID único de transacción para evitar duplicados.[cite: 1]
+ */
+async function emitirComprobanteGeinz({
+  tipoComprobante,
+  documento,
+  nombre,
+  direccion,
+  monto,
+  email,
+  chargeId,
+  monedas
+}) {
+  // LOGS DE ENTRADA: Para verificar qué argumentos recibe la función
+  console.log("=== INICIANDO EMISIÓN NUBEFACT ===");
+  console.log("Argumentos recibidos:", {
+    tipoComprobante, // 1 para Factura, 2 para Boleta[cite: 1]
+    documento,
+    nombre,
+    direccion,
+    monto,
+    email,
+    chargeId,
+    monedas
+  });
+
+  try {
+    const montoNum = Number(monto);
+    const valorUnitario = montoNum / 1.18;
+    const igvTotal = montoNum - valorUnitario;
+
+    const esFactura = tipoComprobante === 1;
+    
+    // Mapeo dinámico del tipo de documento del cliente
+    let tipoDocCliente = "-";
+    if (esFactura) {
+      tipoDocCliente = 6; // RUC[cite: 1]
+    } else if (documento && documento.length === 8) {
+      tipoDocCliente = 1; // DNI[cite: 1]
+    }
+
+    const payload = {
       operacion: "generar_comprobante",
-      tipo_de_comprobante: 2,
-      serie: "B001",
+      tipo_de_comprobante: tipoComprobante, 
+      serie: esFactura ? "FFF1" : "BBB1",
       numero: 0,
       sunat_transaction: 1,
-      cliente_tipo_de_documento: 0,
-      cliente_numero_de_documento: "", // ← agrega esto
-      cliente_denominacion: nombre || "Consumidor final",
+      
+      cliente_tipo_de_documento: tipoDocCliente, 
+      cliente_numero_de_documento: documento || "0",
+      cliente_denominacion: nombre || "Consumidor Final",
+      cliente_direccion: direccion || "",
       cliente_email: email || "",
+      
+      fecha_de_emision: new Date().toISOString().split('T')[0], // Formato AAAA-MM-DD
+      moneda: 1,
+      porcentaje_de_igv: 18.0,
+      
+      total_gravada: valorUnitario.toFixed(2),
+      total_igv: igvTotal.toFixed(2),
+      total: montoNum.toFixed(2),
+      
       items: [
         {
           unidad_de_medida: "ZZ",
           codigo: "MON001",
-          descripcion: `Paquete de ${monedas} monedas Geinz`,
+          descripcion: `Compra de ${monedas} monedas Geinz`,
           cantidad: 1,
-          valor_unitario: (monto / 1.18).toFixed(6),
-          precio_unitario: Number(monto).toFixed(6),
-          descuento: "0.00",
-          subtotal: (monto / 1.18).toFixed(6),
+          valor_unitario: valorUnitario.toFixed(2),
+          precio_unitario: montoNum.toFixed(2),
+          subtotal: valorUnitario.toFixed(2),
           tipo_de_igv: 1,
-          igv: (monto - monto / 1.18).toFixed(6),
-          total: Number(monto).toFixed(6),
+          igv: igvTotal.toFixed(2),
+          total: montoNum.toFixed(2),
           anticipo_regularizacion: false,
         },
       ],
-      moneda: 1,
-      porcentaje_de_igv: 18.0,
-      total_gravada: (monto / 1.18).toFixed(6),
-      total_igv: (monto - monto / 1.18).toFixed(6),
-      total: Number(monto).toFixed(6),
       enviar_automaticamente_a_la_sunat: true,
       enviar_automaticamente_al_cliente: !!email,
       codigo_unico: chargeId,
-    },
-    {
-      headers: {
-        Authorization: `Token token="8eee1a640fd7485cbc1da29427f59792b196deb29b954a6eb131bdb8562492fa"`,
-        "Content-Type": "application/json",
-      },
-    },
-  );
+    };
 
-  return response.data.enlace_del_pdf;
+    console.log("Payload final a enviar a NubeFacT:", JSON.stringify(payload, null, 2));
+
+    const response = await axios.post(
+      "https://api.nubefact.com/api/v1/02bb7d82-0b0c-4006-82a5-74b7437bea0b",
+      payload,
+      {
+        headers: {
+          Authorization: `Token token="8eee1a640fd7485cbc1da29427f59792b196deb29b954a6eb131bdb8562492fa"`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("✅ Respuesta exitosa de NubeFacT:", response.data);
+    return response.data.enlace_del_pdf;
+
+  } catch (error) {
+    // LOG DE ERROR: Captura errores de validación de NubeFacT (como RUC inválido)
+    console.error("❌ ERROR EN NUBEFACT:");
+    if (error.response) {
+      console.error("Data del error:", error.response.data);
+      console.error("Status:", error.response.status);
+    } else {
+      console.error("Mensaje de error:", error.message);
+    }
+    throw error;
+  }
 }
 
 async function enviarWhatsApp(numero, mensaje) {
@@ -774,6 +788,9 @@ async function agregar_historial_de_pagos_tienda({
 exports.confirmarPago = onCall(async (req) => {
   console.log("=====================");
   const {
+    tipo_comprobante,
+    ruc,
+    direccion_negocio,
     token,
     monto,
     email,
@@ -786,13 +803,25 @@ exports.confirmarPago = onCall(async (req) => {
     id_select_boleta_pago,
   } = req.data;
 
-  console.log("=== CONFIRMAR PAGO ===");
-  console.log("token:", token);
-  console.log("monto:", monto);
-  console.log("email:", email);
-  console.log("userId:", userId);
-  console.log("monedas:", monedas);
-  console.log("=====================");
+console.log("Tipo Comprobante (1:Fact, 2:Bol):", tipo_comprobante);
+  console.log("Datos Cliente:", {
+    ruc_dni: ruc,
+    nombre: nombre_tienda,
+    direccion: direccion_negocio,
+    email: email
+  });
+  console.log("Datos Transacción:", {
+    id_transaccion_geinz: id_select_boleta_pago,
+    monto_soles: monto,
+    monedas_a_recargar: monedas,
+    paquete: nombre_paquete,
+    culqi_token: token
+  });
+  console.log("Contexto Usuario:", {
+    userId: userId,
+    saldo_previo: monto_anterior,
+    ubicacion: localidad
+  });
   try {
     const response = await axios.post(
       "https://api.culqi.com/v2/charges",
@@ -841,18 +870,19 @@ exports.confirmarPago = onCall(async (req) => {
     const numero = await sumarSaldo(userId, monedas);
 
     try {
-      /*
-      const pdfUrl = await emitirBoletaNubefact({
-        userId,
+      
+      const pdfUrl = await emitirComprobanteGeinz({
+        tipoComprobante:tipo_comprobante,
+        documento : ruc,
+        nombre: nombre_tienda,
+        direccion: direccion_negocio,
         monedas,
         chargeId: charge.id,
         monto,
         email: "cliente@geinz.com",
-        nombre: "Consumidor Final",
       });
-*/
       if (typeof numero === "string" && numero.length >= 9) {
-        // await enviarPDFWhatsApp(numero, pdfUrl);
+       await enviarPDFWhatsApp(numero, pdfUrl);
         enviarWhatsApp(
           937659216,
           `✅ *Pago exitoso en Geinz*\n` +

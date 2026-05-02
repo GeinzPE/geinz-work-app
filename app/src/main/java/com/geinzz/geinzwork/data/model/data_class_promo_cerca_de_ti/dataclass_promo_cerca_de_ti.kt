@@ -63,6 +63,7 @@ data class ubicacion(
 
 
 data class compartir_contacto_pulicaciones(
+    val se_puede_contacta: Boolean,val se_puede_compratir: Boolean,
     val id_promocion: String = "",
     val iod_tienda: String = "",
     val localidad_tineda: String = "",
