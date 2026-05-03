@@ -55,7 +55,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
     indeximg_seleccionado: Int,
     onDismiss: () -> Unit,
 ) {
-    Log.d("lodisias_restantes_publica","${promoSeleccionada}")
+    Log.d("lodisias_restantes_publica", "${promoSeleccionada}")
 
     val context = LocalContext.current
     val listaPromos by viewModel.promosCargadas.collectAsState()
@@ -75,7 +75,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
     var feedVisible by remember {
         mutableStateOf<List<dataclass_promociones_cerca_de_ti>>(emptyList())
     }
-    var dias_restantes by remember() {mutableStateOf("") }
+    var dias_restantes by remember() { mutableStateOf("") }
 
 
     // Inicializar feed (promo seleccionada primero)
@@ -101,7 +101,11 @@ fun ZoomableGalleryFullScreenVerticalPager(
 
     // ---------------- CARGA INICIAL ----------------
     LaunchedEffect(Unit) {
-        viewModel.cargarSiguienteBloque(localidad_general,categoria_select_filtro,tiendaSeleccionada1)
+        viewModel.cargarSiguienteBloque(
+            localidad_general,
+            categoria_select_filtro,
+            tiendaSeleccionada1
+        )
     }
 
     // ---------------- BOTTOM SHEET ----------------
@@ -129,7 +133,11 @@ fun ZoomableGalleryFullScreenVerticalPager(
             !solicitandoBloque
         ) {
             solicitandoBloque = true
-            viewModel.cargarSiguienteBloque(localidad_general,categoria_select_filtro,tiendaSeleccionada1)
+            viewModel.cargarSiguienteBloque(
+                localidad_general,
+                categoria_select_filtro,
+                tiendaSeleccionada1
+            )
         }
     }
 
@@ -184,7 +192,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
     var mostrarLoader by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        dias_restantes=   constantes_datos_expirados_fechas_publicaciones.tiempoRestante(
+        dias_restantes = constantes_datos_expirados_fechas_publicaciones.tiempoRestante(
             promoSeleccionada.fecha_fin
         )
         delay(3000) // ⏱️ 3 segundos
@@ -228,9 +236,9 @@ fun ZoomableGalleryFullScreenVerticalPager(
                         }
 
 
-
                         val datos = compartir_contacto_pulicaciones(
-                            promo.informacion_publcacion.contactar,promo.informacion_publcacion.compartir,
+                            promo.informacion_publcacion.contactar,
+                            promo.informacion_publcacion.compartir,
                             promo.informacion_publcacion.id_promocion,
                             iod_tienda = promo.informacion_publcacion.id_tienda,
                             localidad_tineda = localidad_general,
@@ -249,7 +257,8 @@ fun ZoomableGalleryFullScreenVerticalPager(
 
                         val stats = viewModel.statsCache[promo.informacion_publcacion.id_promocion]
 
-                        ZoomableGalleryFullScreen_promociones(es_la_misma_tienda_o_no,
+                        ZoomableGalleryFullScreen_promociones(
+                            es_la_misma_tienda_o_no,
                             stats,
                             i = datos,
                             titulo = promo.informacion_publcacion.titulo,
@@ -290,7 +299,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
                                 )
 
                             },
-                            click_contacto_directo = { id, numero, localidad, id_tienda,categoira ->
+                            click_contacto_directo = { id, numero, localidad, id_tienda, categoira ->
                                 val expirada = promoEstaExpirada(promo.fecha_fin)
                                 if (expirada) {
                                     Toast.makeText(

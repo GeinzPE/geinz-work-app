@@ -119,6 +119,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_datos_promociones
 import com.geinzz.geinzwork.viewModels.viewmodel_promos_cercanas
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -159,6 +160,7 @@ fun ui_promos_cerca_de_ti(
     var lista_img by remember {
         mutableStateOf<List<String>>(emptyList())
     }
+
     var mostrar_bottom_shet_registrate by remember { mutableStateOf(false) }
     val comodidad_selet by viewModel.comodidadesSeleccionadas.collectAsState()
     val metodo_pago by viewModel.metodosPagoSeleccionados.collectAsState()
@@ -166,6 +168,7 @@ fun ui_promos_cerca_de_ti(
     val lista_resultados_gemini by viewModel.listaResultados.collectAsState()
     var limpiar_campo_de_busqueda by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
+
     LaunchedEffect(rango_precio) {
         if (rango_precio != null) {
             Log.d("rango_precio_select", "$rango_precio")
@@ -269,6 +272,10 @@ fun ui_promos_cerca_de_ti(
     val porcentajes by viewModel.porcentajesMatch.collectAsState()
 
     var cargaFinalizada by remember { mutableStateOf(false) }
+    val tiendasConMasDeUnaPromo by viewModel.tiendas_con_mas_de_una_promo.collectAsState()
+    LaunchedEffect(tiendasConMasDeUnaPromo) {
+        Log.d("tiendasConMasDeUnaPromo", "${tiendasConMasDeUnaPromo.toString()}")
+    }
     var mostar_bottom_sheet_datos by remember { mutableStateOf(false) }
     LaunchedEffect(activar_promo_params) {
 
@@ -458,92 +465,146 @@ fun ui_promos_cerca_de_ti(
     var promosFiltradas by remember { mutableStateOf<List<obj_completo>>(emptyList()) }
 
     var estado_caundo_busca_tienda by remember { mutableStateOf(false) }
+    var loadingSnackbarShown by remember { mutableStateOf(false) }
 
     LaunchedEffect(respuesta_gemini_NLP) {
+
         when (respuesta_gemini_NLP) {
+
             is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.loading -> {
                 mostrar_carga_Respuesta_gemini = true
                 mostrar_lupa_busqueda = false
+
+                if (!loadingSnackbarShown) {
+                    loadingSnackbarShown = true
+
+                    // 🔥 lanzar en otra corrutina (NO bloquear)
+                    launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Buscando resultados...",
+                            duration = SnackbarDuration.Indefinite
+                        )
+                    }
+                }
             }
 
             is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes -> {
 
                 mostrar_carga_Respuesta_gemini = false
-                mostrar_lupa_busqueda = true  // ✅ reactiva el botón
+                mostrar_lupa_busqueda = true
+                loadingSnackbarShown = false
 
                 val cantidad = (respuesta_gemini_NLP as viewmodel_promos_cercanas
                 .estado_Carga_respuesta_gemini.succes).cantidad
-
+                val datos_respuesta = (respuesta_gemini_NLP as viewmodel_promos_cercanas
+                .estado_Carga_respuesta_gemini.succes).items
+                Log.d("datos_respuesta", datos_respuesta.toString())
                 val msje = if (cantidad > 0) {
                     "Tengo $cantidad resultados para tu búsqueda"
                 } else {
-                    "losiento no encontre nada para ti"
+                    "Lo siento, no encontré nada para ti"
                 }
-
+                promosFiltradas = datos_respuesta
+                snackbarHostState.currentSnackbarData?.dismiss()
 
                 val result = snackbarHostState.showSnackbar(
-                    message =msje,
-                    actionLabel = if (cantidad > 0) {
-                        "Ver"
-                    } else {
-                        ""
-                    },
+                    message = msje,
+                    actionLabel = if (cantidad > 0) "Ver" else null,
                     duration = if (cantidad > 0) SnackbarDuration.Indefinite else SnackbarDuration.Short
                 )
 
-
                 viewModel.resetear_respuesta_de_gemini()
+
                 if (result == SnackbarResult.ActionPerformed) {
                     promos = promosFiltradas
                 }
-
             }
 
             is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.error -> {
                 mostrar_carga_Respuesta_gemini = false
-                mostrar_lupa_busqueda = true  // ✅ reactiva también en error
+                mostrar_lupa_busqueda = true
+                loadingSnackbarShown = false
+
+                snackbarHostState.currentSnackbarData?.dismiss()
             }
 
-            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.empty -> {
-                mostrar_carga_Respuesta_gemini = false
-                mostrar_lupa_busqueda = true  // ✅ reactiva también en vacío
-            }
-
-            // idle o null → reseteo limpio
             else -> {
                 mostrar_carga_Respuesta_gemini = false
-                mostrar_lupa_busqueda = true  // ✅ siempre activo en reposo
+                mostrar_lupa_busqueda = true
+                loadingSnackbarShown = false
             }
         }
     }
 
     LaunchedEffect(estado) {
         if (estado is viewmodel_promos_cercanas.estado_carga_promociones.succes) {
-            promos = (estado as viewmodel_promos_cercanas.estado_carga_promociones.succes).items
+            val nuevos = (estado as viewmodel_promos_cercanas.estado_carga_promociones.succes).items
+            promos = nuevos.distinctBy {
+                it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion
+            }
         }
     }
+    var loadingTiendaShown by remember { mutableStateOf(false) }
+    val resultado_open_ia = viewModel.resultado
+    val modoBusquedaIA=viewModel.modoBusquedaIA
     LaunchedEffect(estadoTienda) {
-        if (estadoTienda is viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.succes) {
 
-            promosFiltradas =
-                (estadoTienda as viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.succes).items
-            estado_caundo_busca_tienda = false
-            val result = snackbarHostState.showSnackbar(
-                message = "Resultados filtrados listos",
-                actionLabel = "Ver ${promosFiltradas.size} promociones",
-                duration = SnackbarDuration.Indefinite
-            )
+        when (estadoTienda) {
 
-            if (result == SnackbarResult.ActionPerformed) {
-                promos = promosFiltradas
+            is viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.loading -> {
+                estado_caundo_busca_tienda = true
+
+                if (!loadingTiendaShown) {
+                    loadingTiendaShown = true
+
+                    launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Buscando en la tienda...",
+                            duration = SnackbarDuration.Indefinite
+                        )
+                    }
+                }
             }
-            viewModel.resetear_respuesta_de_gemini()
-        }
 
-        if (estadoTienda is viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.loading) {
-            estado_caundo_busca_tienda = true
-        }
+            is viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.succes -> {
 
+                estado_caundo_busca_tienda = false
+                loadingTiendaShown = false
+
+                val data = estadoTienda as viewmodel_promos_cercanas
+                .estado_carga_tienda_Seleccionada.succes
+
+                promosFiltradas = data.items
+
+                // 🔥 cerrar loading
+                snackbarHostState.currentSnackbarData?.dismiss()
+
+                val result = snackbarHostState.showSnackbar(
+                    message = "Resultados filtrados listos",
+                    actionLabel = "Ver ${promosFiltradas.size} promociones",
+                    duration = SnackbarDuration.Indefinite
+                )
+
+                if (result == SnackbarResult.ActionPerformed) {
+                    promos = promosFiltradas
+                }
+
+                viewModel.resetear_respuesta_de_gemini()
+            }
+
+            is viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.error -> {
+                estado_caundo_busca_tienda = false
+                loadingTiendaShown = false
+
+                // ❌ cerrar snackbar si falla
+                snackbarHostState.currentSnackbarData?.dismiss()
+            }
+
+            else -> {
+                estado_caundo_busca_tienda = false
+                loadingTiendaShown = false
+            }
+        }
     }
     Box(
         modifier = Modifier
@@ -596,9 +657,10 @@ fun ui_promos_cerca_de_ti(
 
             // ---------- SUCCESS ----------
             is viewmodel_promos_cercanas.estado_carga_promociones.succes -> {
-                val tiendasConMasDeUnaPromo: List<tiendas_con_mas_de_una_promo> = promos
-                    .flatMap { it.lista_tiendas_con_mas_promo }
-                    .distinctBy { it.id }
+//                val tiendasConMasDeUnaPromo: List<tiendas_con_mas_de_una_promo> = promos
+
+//                tiendasConMasDeUnaPromo.flatMap { it.lista_tiendas_con_mas_promo }
+//                    .distinctBy { it.id }
                 Box(modifier = Modifier.fillMaxSize()) {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -683,7 +745,8 @@ fun ui_promos_cerca_de_ti(
                             val itemFiltros = tiendas_con_mas_de_una_promo(
                                 id = "FILTROS_GENERALES",
                                 nombre_tienda = "Buscar",
-                                logo_img = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0"
+                                logo_img = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+                                categoira = ""
                             )
                             LazyRow(
                                 modifier = Modifier
@@ -1100,14 +1163,26 @@ fun ui_promos_cerca_de_ti(
                         }
                         // 🔹 Trigger de carga al llegar al último item
                         item {
+
                             if (hayMasPaginas) {
+
                                 LaunchedEffect(promos.size) {
-                                    viewModel.cargarSiguientePagina(
-                                        localidad,
-                                        "",
-                                        tiendaSeleccionada
-                                    )
+
+                                    if (!cargandoPagina) {
+
+                                        if (viewModel.modoBusquedaIA) {
+                                            viewModel.cargarSiguientePaginaPorIds()
+                                        } else {
+                                            viewModel.cargarSiguientePagina(
+                                                localidad,
+                                                "",
+                                                tiendaSeleccionada
+                                            )
+                                        }
+
+                                    }
                                 }
+
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -1118,8 +1193,8 @@ fun ui_promos_cerca_de_ti(
                                         CircularProgressIndicator(modifier = Modifier.size(28.dp))
                                     }
                                 }
+
                             } else {
-                                // 🔹 Mensaje de fin de lista
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -1142,6 +1217,8 @@ fun ui_promos_cerca_de_ti(
 
                 if (mostar_bottom_sheet_datos) {
                     bottom_sheet_filtrados_promos_y_ofertas(
+                        modoBusquedaIA,
+                        resultado_open_ia,
                         comodidad_selet,
                         metodo_pago,
                         rango_precio,

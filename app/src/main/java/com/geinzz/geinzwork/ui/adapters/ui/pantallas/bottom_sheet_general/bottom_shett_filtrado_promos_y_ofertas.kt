@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
 
+import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -66,6 +67,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.DatosResponse
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_close_gris
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
@@ -73,13 +75,15 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_filtrados_promos_y_ofertas(
+    filtrado_ia: Boolean,
+    datos_filtrado:DatosResponse?,
     comodidad_selet: Set<String>, metodo_pago: Set<String>,
     rango_precio: String?,
     viewModel: viewmodel_promos_cercanas,
     onClose: () -> Unit, onAutocompletar: (String) -> Unit
 ) {
     var expandido by remember { mutableStateOf(true) }
-
+    Log.d("datos_padaso","$filtrado_ia $datos_filtrado")
     var categoira_seleccionada by remember { mutableStateOf("Todos") }
     var subcategoria_select by remember { mutableStateOf("") }
     val categorias by viewModel._categoriasDisponibles.collectAsState()
@@ -122,6 +126,49 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
             "500 - 1000", "1000 - 2500", "2500 - 5000",
             "5000 - 10000", "Más de 10000"
         )
+    }
+    val precioDicho = datos_filtrado?.precio_max
+    val metodos_pago_params=datos_filtrado?.metodos_pago
+    val comodidadesParams=datos_filtrado?.comodidades
+
+    LaunchedEffect(metodos_pago_params) {
+        metodos_pago_params?.let { lista ->
+
+            // 🔥 limpiar primero
+            viewModel.limpiarMetodosPago()
+
+            // 🔥 setear todos juntos
+            viewModel.setPagosDesdeLista(lista)
+
+        }
+    }
+
+    var autoComodidadesAplicado by remember { mutableStateOf(false) }
+
+    LaunchedEffect(comodidadesParams) {
+        if (!autoComodidadesAplicado) {
+
+            comodidadesParams?.let { lista ->
+
+                val normalizados = lista.map {
+                    it.lowercase().trim()
+                }
+
+                viewModel.limpiar_comodidad()
+                viewModel.setComodidadesDesdeLista(normalizados)
+
+                autoComodidadesAplicado = true
+            }
+        }
+    }
+
+
+    LaunchedEffect(precioDicho) {
+        val rangoAuto = obtenerRangoDesdePrecio(precioDicho)
+
+        rangoAuto?.let {
+            viewModel.setearRangoPrecioDesdeNLP(it)
+        }
     }
 
 
@@ -171,24 +218,47 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                 }
 
                 item {
-                    texto_generico_one_line("Selecciona tu categoria")
-                    spacer_vertical(10.dp)
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        items(obtener_cateogiras) { categoria ->
-                            val seleccionado = categoira_seleccionada == categoria
-                            chisp_filtrado_busqueda(
-                                carta_selecionada = seleccionado,
-                                filtrado = categoria.capitalizeFirst(),
-                                btn_visible = false,
-                                clik_card = {
-                                    categoira_seleccionada = categoria
-                                },
-                                onClick_delete = {}
-                            )
+                    if(filtrado_ia && datos_filtrado?.productos !=null){
+                        texto_generico_one_line("Resultado de tu busqueda")
+                        spacer_vertical(10.dp)
+
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            items(datos_filtrado.productos) { categoria ->
+                                val seleccionado = categoira_seleccionada == categoria
+                                chisp_filtrado_busqueda(
+                                    carta_selecionada = seleccionado,
+                                    filtrado = categoria.capitalizeFirst(),
+                                    btn_visible = false,
+                                    clik_card = {
+                                        categoira_seleccionada = categoria
+                                    },
+                                    onClick_delete = {}
+                                )
+                            }
+                        }
+                    }else{
+                        texto_generico_one_line("Selecciona tu categoria")
+                        spacer_vertical(10.dp)
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            items(obtener_cateogiras) { categoria ->
+                                val seleccionado = categoira_seleccionada == categoria
+                                chisp_filtrado_busqueda(
+                                    carta_selecionada = seleccionado,
+                                    filtrado = categoria.capitalizeFirst(),
+                                    btn_visible = false,
+                                    clik_card = {
+                                        categoira_seleccionada = categoria
+                                    },
+                                    onClick_delete = {}
+                                )
+                            }
                         }
                     }
+
                 }
                 item {
                     if(categoira_seleccionada!="Todos"){
@@ -269,33 +339,7 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                         }
                     }
                 }
-//                item {
-//                    val subcategorias = listOf("Todos") + promos
-//                        .flatMap { categorias }
-//                        .distinct()
-//                    texto_generico_one_line("Categoria")
-//                    LazyRow(
-//                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-//                                contentPadding = PaddingValues(horizontal = 10.dp)
-//                            ) {
-//                                items(subcategorias) { subcategoria ->
-//                                    val seleccionado = subCategoriaSeleccionada == subcategoria
-//                                    chisp_filtrado_busqueda(
-//                                        carta_selecionada = seleccionado,
-//                                        filtrado = subcategoria.capitalizeFirst(),
-//                                        btn_visible = false,
-//                                        clik_card = {
-//                                            subCategoriaSeleccionada = subcategoria
-//                                            tiendaSeleccionada = null
-//                                            if (subcategoria != "Todos") {
-//
-//                                            }
-//                                        },
-//                                        onClick_delete = {}
-//                                    )
-//                                }
-//                            }
-//                }
+
                 if (listaData.isNotEmpty()) {
                     item {
                         texto_generico_one_line("Resultados de tu busqueda")
@@ -527,4 +571,24 @@ fun chisp_filtrado_busqueda_resultados_busqueda(
 
     }
 
+}
+fun obtenerRangoDesdePrecio(precio: Int?): String? {
+    if (precio == null) return null
+
+    return when (precio) {
+        in 0..10 -> "0 - 10"
+        in 11..20 -> "10 - 20"
+        in 21..30 -> "20 - 30"
+        in 31..50 -> "30 - 50"
+        in 51..80 -> "50 - 80"
+        in 81..120 -> "80 - 120"
+        in 121..200 -> "120 - 200"
+        in 201..350 -> "200 - 350"
+        in 351..500 -> "350 - 500"
+        in 501..1000 -> "500 - 1000"
+        in 1001..2500 -> "1000 - 2500"
+        in 2501..5000 -> "2500 - 5000"
+        in 5001..10000 -> "5000 - 10000"
+        else -> "Más de 10000"
+    }
 }

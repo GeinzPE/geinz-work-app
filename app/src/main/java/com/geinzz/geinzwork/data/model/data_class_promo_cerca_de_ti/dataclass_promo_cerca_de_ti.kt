@@ -6,14 +6,14 @@ import com.google.firebase.Timestamp
 
 data class obj_completo(
     val dataclass_promociones_cerca_de_ti: dataclass_promociones_cerca_de_ti = dataclass_promociones_cerca_de_ti(),
-    val lista_filtrado: List<String> = emptyList(),
     val lista_tiendas_con_mas_promo: List<tiendas_con_mas_de_una_promo> = emptyList()
 )
 
 data class tiendas_con_mas_de_una_promo(
     val id: String = "",
     val logo_img: String = "",
-    val nombre_tienda: String = ""
+    val nombre_tienda: String = "",
+    val categoira: String
 )
 
 data class dataclass_promociones_cerca_de_ti(
@@ -127,4 +127,9 @@ data class Detalle(
     val precio: Int,
     val pagos: Int,
     val comodidades: Int
+)
+
+data class IdScore(
+    val id: String,
+    val score: Int
 )

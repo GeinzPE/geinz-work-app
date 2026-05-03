@@ -62,13 +62,13 @@ exports.extraerDatos = onRequest(async (req, res) => {
 
     const prompt = `Extrae del texto y responde SOLO en JSON válido.
 
-- "productos": Extrae el SERVICIO o PRODUCTO o LUGAR que necesita,nunca inventes nada solo lo que sale del texto, nunca personas o palabras vacías
+- "productos": ARRAY de strings ,Extrae el SERVICIO o PRODUCTO o LUGAR que necesita,nunca inventes nada solo lo que sale del texto, nunca personas o palabras vacías
 - "precio_max": número entero sin dobule o null si en caso no hay numero en el texto   
 - "metodos_pago": solo de esta lista → ["yape","plin","efectivo","agora","visa","mastercard"]
 - "comodidades": array, detecta implícitamente cuáles aplican → ["aire_acondicionado",
-"camaras_seguridad","enchufe","estacionamiento",
-"ingreso_con_mascotas","mesa_para_ninos",
-"sala_espera","sala_juegos",
+"camaras_de_seguridad","enchufe","estacionamiento",
+"ingreso_mascotas","mesa_para_ninos",
+"sala_de_espera","sala_juegos",
 "servicios_higienicos","wifi",
 "zona_expandida"]
 

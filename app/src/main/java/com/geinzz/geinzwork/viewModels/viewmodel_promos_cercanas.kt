@@ -19,11 +19,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.EstadisticasPromo
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.DatosResponse
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.IdScore
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.PromoConMatch
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.ResAlgoliaFiltrado
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.RespuestaGemini
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.tiendas_con_mas_de_una_promo
 import com.geinzz.geinzwork.model.repo_promos_cercanas
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -39,6 +41,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.String
 import kotlin.collections.Set
+import kotlin.text.get
 
 class viewmodel_promos_cercanas : ViewModel() {
 
@@ -48,6 +51,10 @@ class viewmodel_promos_cercanas : ViewModel() {
     private val _promosCargadas =
         MutableStateFlow<List<dataclass_promociones_cerca_de_ti>>(emptyList())
     val promosCargadas: StateFlow<List<dataclass_promociones_cerca_de_ti>> = _promosCargadas
+
+
+    private val _tiendas_con_mas_de_una_promo=MutableStateFlow<List<tiendas_con_mas_de_una_promo>> (emptyList())
+    val tiendas_con_mas_de_una_promo: StateFlow<List<tiendas_con_mas_de_una_promo>> = _tiendas_con_mas_de_una_promo
 
 
     private val _respuesta_gemini = MutableStateFlow<estado_Carga_respuesta_gemini?>(null)
@@ -245,6 +252,8 @@ class viewmodel_promos_cercanas : ViewModel() {
     val estadoPromos: StateFlow<estado_carga_promociones> =
         _estadoPromos.asStateFlow()
 
+
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun agregar_estadisticas_publicacion(
         tipo: String,
@@ -298,79 +307,16 @@ class viewmodel_promos_cercanas : ViewModel() {
         _estadoPromos.value = estado_carga_promociones.succes(listaCompleta.value)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun obtener_promociones(
-        localidad: String,
-        tipo_filtrado: String,
-    ) {
-        viewModelScope.launch {
-            Log.d("PROMOS_FLOW", "🚀 INICIO obtener_promociones")
-            Log.d("PROMOS_FLOW", "📍 localidad: $localidad | tipo: $tipo_filtrado")
 
-            _estadoPromos.value = estado_carga_promociones.loading
-            Log.d("PROMOS_FLOW", "⏳ Estado: LOADING")
-
-            try {
-                Log.d("PROMOS_FLOW", "📡 Llamando repo.obtener_promos...")
-
-                val resultado = repo.obtener_promos(tipo_filtrado, localidad, null)
-
-                Log.d("PROMOS_FLOW", "📦 Resultado recibido: ${resultado.size}")
-
-                if (resultado.isEmpty()) {
-                    Log.d("PROMOS_FLOW", "⚠️ Lista vacía de promociones")
-
-                    _estadoPromos.value =
-                        estado_carga_promociones.empty("No hay promociones cerca de ti")
-
-                    Log.d("PROMOS_FLOW", "📭 Estado: EMPTY")
-                    return@launch
-                }
-
-                // 🔥 LISTA BASE
-                listaCompleta.value = resultado
-                Log.d("PROMOS_FLOW", "🧱 listaCompleta size: ${resultado.size}")
-
-                // 🔥 LISTA VISIBLE
-                listaFiltrada.value = resultado
-                Log.d("PROMOS_FLOW", "👁 listaFiltrada size: ${listaFiltrada.value.size}")
-
-                // 🔥 CATEGORÍAS
-                val categorias = resultado.flatMap {
-                    it.dataclass_promociones_cerca_de_ti
-                        .informacion_publcacion
-                        .categoria
-                        .split(",")
-                }
-                    .map { it.trim() }
-                    .filter { it.isNotEmpty() }
-                    .distinct()
-
-                categoriasDisponibles.value = categorias
-
-                Log.d("PROMOS_FLOW", "🏷 categorías: $categorias")
-
-                _estadoPromos.value =
-                    estado_carga_promociones.succes(listaFiltrada.value)
-
-                Log.d("PROMOS_FLOW", "✅ Estado: SUCCESS")
-
-            } catch (e: Exception) {
-                Log.e("PROMOS_FLOW", "❌ ERROR en obtener_promociones", e)
-
-                _estadoPromos.value =
-                    estado_carga_promociones.error("Error al cargar promociones")
-
-                Log.d("PROMOS_FLOW", "💥 Estado: ERROR")
-            } finally {
-                Log.d("PROMOS_FLOW", "🏁 FIN obtener_promociones")
-            }
-        }
-    }
 
 
     private val PAGINA_SIZE = 5
     private var ultimoDocumento: DocumentSnapshot? = null
+
+    private var listaIds: List<String> = emptyList()
+    private var paginaActual_ = 0
+    private val PAGE_SIZE_IDS = 5
+
 
     private val _hayMasPaginas = MutableStateFlow(true)
     val hayMasPaginas: StateFlow<Boolean> = _hayMasPaginas
@@ -382,12 +328,15 @@ class viewmodel_promos_cercanas : ViewModel() {
 
     private val _esPrimeraCarga = MutableStateFlow(true)
     val esPrimeraCarga: StateFlow<Boolean> = _esPrimeraCarga
-
+    private var listaIdsConScore: List<IdScore> = emptyList()
 
     private val _estado_Carga_tienda_select =
         MutableStateFlow<estado_carga_tienda_Seleccionada>(estado_carga_tienda_Seleccionada.idle)
     val estado_Carga_tienda_select: StateFlow<estado_carga_tienda_Seleccionada> =
         _estado_Carga_tienda_select
+
+    var modoBusquedaIA by mutableStateOf(false)
+
     fun obtener_promociones_2da(localidad: String, tipo_filtrado: String, tienda_seleccionada: String?) {
 
         ultimoDocumento = null
@@ -409,9 +358,8 @@ class viewmodel_promos_cercanas : ViewModel() {
             }
 
             try {
-                val (nueva, nuevoCursor) = repo.obtener_promos_paginado2(
+                val (nueva, nuevoCursor) = repo.obtener_promos_paginado2(esPrimeraCarga.value,
                     tienda_seleccionada,
-                    tipo_filtrado,
                     localidad,
                     ultimoDocumento,
                     PAGINA_SIZE
@@ -438,17 +386,28 @@ class viewmodel_promos_cercanas : ViewModel() {
                 listaCompleta.value = nueva
                 listaFiltrada.value = nueva
 
-                val categorias = nueva.flatMap {
-                    it.dataclass_promociones_cerca_de_ti.informacion_publcacion.categoria.split(",")
-                }.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
-                categoriasDisponibles.value = categorias
+//                val categorias = nueva.flatMap {
+//                    it.dataclass_promociones_cerca_de_ti.informacion_publcacion.categoria.split(",")
+//                }.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+//                categoriasDisponibles.value = categorias
 
                 if (tienda_seleccionada != null) {
                     // ✅ Éxito solo en estado de tienda
                     _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.succes(nueva)
                 } else {
                     // ✅ Éxito en estado general
-                    _estadoPromos.value = estado_carga_promociones.succes(nueva)
+                    if(esPrimeraCarga.value){
+                    val tiendas = nueva
+                        .map { it.lista_tiendas_con_mas_promo }
+                        .firstOrNull { it.isNotEmpty() }
+                        ?: emptyList()
+
+                    _tiendas_con_mas_de_una_promo.value = tiendas
+                    }
+
+                    _estadoPromos.value = estado_carga_promociones.succes(
+                        nueva.distinctBy { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
+                    )
                     _esPrimeraCarga.value = false
                 }
 
@@ -463,7 +422,7 @@ class viewmodel_promos_cercanas : ViewModel() {
         }
     }
     @RequiresApi(Build.VERSION_CODES.O)
-    fun cargarSiguientePagina(localidad: String, tipo_filtrado: String,id_tienda_select: String?) {
+    fun cargarSiguientePagina(localidad: String, tipo_filtrado: String, id_tienda_select: String?) {
         if (_cargandoPagina.value || !_hayMasPaginas.value) return
 
         viewModelScope.launch {
@@ -471,7 +430,7 @@ class viewmodel_promos_cercanas : ViewModel() {
 
             try {
                 val (nuevas, nuevoCursor) = repo.obtener_promos_paginado2(
-                    id_tienda_select,tipo_filtrado, localidad,  ultimoDocumento, PAGINA_SIZE
+                    esPrimeraCarga.value, id_tienda_select, localidad, ultimoDocumento, PAGINA_SIZE
                 )
 
                 if (nuevas.isEmpty()) {
@@ -482,7 +441,6 @@ class viewmodel_promos_cercanas : ViewModel() {
                 ultimoDocumento = nuevoCursor
                 _hayMasPaginas.value = nuevoCursor != null
 
-                // 🔹 Acumular sin duplicados
                 val idsExistentes = _promosAcumuladas.value
                     .map { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
                     .toSet()
@@ -491,7 +449,10 @@ class viewmodel_promos_cercanas : ViewModel() {
                     it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion !in idsExistentes
                 }
 
-                val listaActualizada = _promosAcumuladas.value + sinDuplicados
+                // 🔒 distinctBy como red de seguridad final
+                val listaActualizada = (_promosAcumuladas.value + sinDuplicados)
+                    .distinctBy { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
+
                 _promosAcumuladas.value = listaActualizada
                 listaCompleta.value = listaActualizada
                 listaFiltrada.value = listaActualizada
@@ -505,8 +466,132 @@ class viewmodel_promos_cercanas : ViewModel() {
             }
         }
     }
+//    fun iniciarBusquedaPorIdsConScore(lista: List<IdScore>) {
+//
+//        listaIdsConScore = lista.sortedByDescending { it.score } // 🔥 clave
+//
+//        paginaActual_ = 0
+//
+//        _promosAcumuladas.value = emptyList()
+//        listaCompleta.value = emptyList()
+//        listaFiltrada.value = emptyList()
+//
+//        _hayMasPaginas.value = lista.isNotEmpty()
+//
+//        cargarSiguientePaginaPorIds()
+//    }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun obtenerPrimeraPaginaDesdeIds(
+        lista: List<IdScore>
+    ): List<obj_completo> {
+
+        val ordenados = lista.sortedByDescending { it.score }
+
+        val sub = ordenados.take(PAGE_SIZE_IDS)
+        val subIds = sub.map { it.id }
+
+        val nuevas = repo.obtenerPromosPorIdsProcesadas(
+            ids = subIds,
+            limite = PAGE_SIZE_IDS
+        )
+
+        val mapa = nuevas.associateBy {
+            it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion
+        }
+
+        // 🔥 respetar orden de Algolia
+        return sub.mapNotNull { mapa[it.id] }
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun cargarSiguientePaginaPorIds() {
+
+        if (_cargandoPagina.value || !_hayMasPaginas.value) {
+            Log.d("IDS_DEBUG", "⛔ No carga: cargando=${_cargandoPagina.value}, hayMas=${_hayMasPaginas.value}")
+            return
+        }
+
+        viewModelScope.launch {
+            _cargandoPagina.value = true
+
+            try {
+                val desde = paginaActual_ * PAGE_SIZE_IDS
+                val hasta = minOf(desde + PAGE_SIZE_IDS, listaIdsConScore.size)
+
+                Log.d("IDS_DEBUG", "📄 Página: $paginaActual_")
+                Log.d("IDS_DEBUG", "📌 Rango: $desde -> $hasta")
+                Log.d("IDS_DEBUG", "📊 Total IDs: ${listaIdsConScore.size}")
+
+                if (desde >= listaIdsConScore.size) {
+                    Log.d("IDS_DEBUG", "🚫 No hay más datos")
+                    _hayMasPaginas.value = false
+                    return@launch
+                }
+
+                val sub = listaIdsConScore.subList(desde, hasta)
+                val subIds = sub.map { it.id }
+
+                Log.d("IDS_DEBUG", "🧩 IDs solicitados: $subIds")
+
+                // 🔥 consulta
+                val nuevas = repo.obtenerPromosPorIdsProcesadas(
+                    ids = subIds,
+                    limite = PAGE_SIZE_IDS
+                )
+
+                Log.d("IDS_DEBUG", "📦 Promos recibidas: ${nuevas.size}")
+                Log.d("IDS_DEBUG", "📦 IDs recibidos: ${
+                    nuevas.map { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
+                }")
+
+                // 🧠 ordenar según Algolia
+                val mapa = nuevas.associateBy {
+                    it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion
+                }
+
+                val ordenadas = sub.mapNotNull { mapa[it.id] }
+
+                Log.d("IDS_DEBUG", "✅ Ordenadas: ${
+                    ordenadas.map { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
+                }")
+
+
+// DESPUÉS
+                val idsExistentes = _promosAcumuladas.value
+                    .map { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
+                    .toSet()
+
+                val sinDuplicados = ordenadas.filter {
+                    it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion !in idsExistentes
+                }
+
+                val listaActualizada = _promosAcumuladas.value + sinDuplicados
+
+                Log.d("IDS_DEBUG", "📚 Total acumulado: ${listaActualizada.size}")
+
+                _promosAcumuladas.value = listaActualizada
+                listaCompleta.value = listaActualizada
+                listaFiltrada.value = listaActualizada
+
+                paginaActual_++ // 🔥 corregido
+
+                _hayMasPaginas.value = hasta < listaIdsConScore.size // 🔥 corregido
+
+                Log.d("IDS_DEBUG", "➡️ Hay más páginas: ${_hayMasPaginas.value}")
+
+                _estadoPromos.value =
+                    estado_carga_promociones.succes(listaActualizada)
+
+            } catch (e: Exception) {
+                Log.e("IDS_DEBUG", "❌ Error cargando página", e)
+            } finally {
+                _cargandoPagina.value = false
+            }
+        }
+    }
 
     fun filtrar_promociones_por_id(id: String) {
         val base = listaCompleta.value
@@ -683,6 +768,7 @@ class viewmodel_promos_cercanas : ViewModel() {
 
 
 
+
     fun mostrarTodasLasPromociones() {
         val base = listaCompleta.value
 
@@ -711,51 +797,6 @@ class viewmodel_promos_cercanas : ViewModel() {
         }
     }
 
-//
-//    fun procesar_NLP(texto: String, categoria: String) {
-//        viewModelScope.launch {
-//            _respuesta_gemini.value = estado_Carga_respuesta_gemini.loading
-//            try {
-//                val respuesta_NLP = repo.extraer_con_gemini(texto, categoria)
-//
-//                if (!respuesta_NLP.isNullOrEmpty()) {
-//
-//                    // Extrae solo el JSON válido
-//                    val jsonRegex = "\\{.*\\}".toRegex(RegexOption.DOT_MATCHES_ALL)
-//                    val match = jsonRegex.find(respuesta_NLP)
-//                    val limpio = match?.value ?: ""
-//
-//                    if (limpio.isNotEmpty()) {
-//                        val gson = Gson()
-//                        val objeto = gson.fromJson(limpio, RespuestaGemini::class.java)
-//                        Log.d("NLP_OBJETO", objeto.toString())
-//                        _respuesta_gemini.value = estado_Carga_respuesta_gemini.succes(objeto)
-//
-//                        _respuesta_gemini.value?.let { estado ->
-//                            if (estado is estado_Carga_respuesta_gemini.succes) {
-//                                _listaResultados.value = buildList {
-//                                    estado.items?.principal?.let { add(it) }
-//                                    estado.items?.atributos?.let { addAll(it) }
-//                                }
-//                            }
-//                        }
-//
-//
-//                    } else {
-//                        _respuesta_gemini.value =
-//                            estado_Carga_respuesta_gemini.empty("no entendí nada")
-//                    }
-//
-//                } else {
-//                    _respuesta_gemini.value = estado_Carga_respuesta_gemini.empty("no entendí nada")
-//                }
-//
-//            } catch (e: Exception) {
-//                Log.e("NLP_ERROR", "Error parseando JSON", e)
-//                _respuesta_gemini.value = estado_Carga_respuesta_gemini.error("se produjo un error")
-//            }
-//        }
-//    }
 
 
     fun procesar_nlp_open_ia(texto: String) {
@@ -765,6 +806,7 @@ class viewmodel_promos_cercanas : ViewModel() {
                 _respuesta_gemini.value = estado_Carga_respuesta_gemini.loading
                 // ⏳ SOLO OPENAI
                 val resultadoLocal = repo.obtener_respuesta_open_ia(texto)
+
                 Log.d("OPENAI", "$resultadoLocal")
 
                 if (resultadoLocal != null) {
@@ -777,18 +819,41 @@ class viewmodel_promos_cercanas : ViewModel() {
                         }
                     val resultadosOrdenados = resultado_encontrado_algolia?.resultados
                         ?.sortedByDescending { it.score }
-                        ?.map { resultado ->
-                            resultado.id to resultado.score
+                        ?.map {
+                            IdScore(it.id, it.score)
                         }
-                    _respuesta_gemini.value = estado_Carga_respuesta_gemini.succes(
-                        resultadosOrdenados?.size ?: 0
-                    )
+
+                    resultadosOrdenados?.let { lista ->
+                        viewModelScope.launch {
+                            val primerasPromos = obtenerPrimeraPaginaDesdeIds(lista)
+
+                            // 🔥 ESTO FALTABA - inicializar el acumulado con la primera página
+                            _promosAcumuladas.value = primerasPromos
+                            listaCompleta.value = primerasPromos
+                            listaFiltrada.value = primerasPromos
+
+                            _respuesta_gemini.value = estado_Carga_respuesta_gemini.succes(
+                                cantidad = lista.size,
+                                items = primerasPromos
+                            )
+
+                            listaIdsConScore = lista.sortedByDescending { it.score }
+                            paginaActual_ = 1
+                            _hayMasPaginas.value = listaIdsConScore.size > PAGE_SIZE_IDS
+                            modoBusquedaIA = true
+                        }
+                    }
+
+//                    _respuesta_gemini.value = estado_Carga_respuesta_gemini.succes(
+//                        resultadosOrdenados?.size ?: 0
+//                    )
 
                     Log.d("ALGOLIA", "$resultadosOrdenados")
                 }
 
             } catch (e: Exception) {
                 e.printStackTrace()
+                modoBusquedaIA=false
                 _respuesta_gemini.value = estado_Carga_respuesta_gemini.error("se produjo un error")
             } finally {
                 loading = false
@@ -856,7 +921,7 @@ class viewmodel_promos_cercanas : ViewModel() {
 
     sealed class estado_Carga_respuesta_gemini {
         object loading : estado_Carga_respuesta_gemini()
-        data class succes (val cantidad:Int): estado_Carga_respuesta_gemini()
+        data class succes (val cantidad:Int,val items: List<obj_completo>): estado_Carga_respuesta_gemini()
         data class error(val texto_error: String) : estado_Carga_respuesta_gemini()
         data class empty(val text_vacio: String) : estado_Carga_respuesta_gemini()
         object idle : estado_Carga_respuesta_gemini()
