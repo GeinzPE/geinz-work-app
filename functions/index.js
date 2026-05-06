@@ -36,11 +36,12 @@ const path = require("path");
 
 const db = admin.firestore();
 const OpenAI = require("openai");
+const { ref } = require("process");
 const APP_ID = process.env.ALGOLIA_APP_ID || "";
 const API_KEY = process.env.ALGOLIA_API_KEY || "";
 
 const client = algoliasearch(APP_ID, API_KEY);
-const index_Algolia_promos = client.initIndex("promociones_index");
+const index_Algolia_promos = client.initIndex("promociones_filtrado_index");
 const index = client.initIndex("lugares");
 const openai = new OpenAI({
   apiKey: process.env.API_KEYO_OPEN_IA,
@@ -61,16 +62,17 @@ exports.extraerDatos = onRequest(async (req, res) => {
     }
 
     const prompt = `Extrae del texto y responde SOLO en JSON válido.
-
-- "productos": ARRAY de strings ,Extrae el SERVICIO o PRODUCTO o LUGAR que necesita,nunca inventes nada solo lo que sale del texto, nunca personas o palabras vacías
-- "precio_max": número entero sin dobule o null si en caso no hay numero en el texto   
-- "metodos_pago": solo de esta lista → ["yape","plin","efectivo","agora","visa","mastercard"]
-- "comodidades": array, detecta implícitamente cuáles aplican → ["aire_acondicionado",
-"camaras_de_seguridad","enchufe","estacionamiento",
-"ingreso_mascotas","mesa_para_ninos",
-"sala_de_espera","sala_juegos",
-"servicios_higienicos","wifi",
-"zona_expandida"]
+-"tipo":"app",
+-"nombre":null,
+- "productos":array (producto/servicio/lugar) → corregir ortografía, minúscula, 
+sin tildes, sin personas, sin palabras vacías, no inventar, 
+no duplicar ,sin diminutivo,forma canónica 
+- "precio_max": número entero o null
+- "metodos_pago": solo de ["yape","plin","efectivo","agora","visa","mastercard"], no duplicar  
+- "comodidades": array solo de ["aire_acondicionado","camaras_de_seguridad","enchufe","estacionamiento",
+"ingreso_mascotas","mesa_para_ninos","sala_de_espera","sala_juegos",
+"servicios_higienicos","wifi","zona_expandida"], 
+detectar implícito, no inventar, no duplicar  
 
 Texto: "${texto}"`;
     // 🚀 OpenAI
@@ -124,13 +126,23 @@ exports.filtrar_por_datos = onRequest(async (req, res) => {
     console.log("📥 REQUEST BODY:", JSON.stringify(req.body, null, 2));
 
     const resultado = req.body.resultado || req.body;
+
+    const tipo = resultado?.tipo || "app";
+    const nombreTienda = resultado?.nombre?.toLowerCase().trim() || "";
+
     let filters = [];
 
     // 🕐 Hora Perú
     const ahora = new Date();
-    const horaPeru = new Date(
+
+    const ahoraPeru = new Date(
       ahora.toLocaleString("en-US", { timeZone: "America/Lima" }),
-    ).getHours();
+    );
+
+    const horaPeru = ahoraPeru.getHours();
+
+    console.log("🕒 Hora Perú (Date):", ahoraPeru.toString());
+    console.log("🧮 Date.now():", Date.now());
 
     let horarioActual = "";
     if (horaPeru >= 6 && horaPeru < 12) horarioActual = "manana";
@@ -139,9 +151,8 @@ exports.filtrar_por_datos = onRequest(async (req, res) => {
 
     console.log("⏰ Horario:", horarioActual);
 
-    // 🔹 PRECIO (si existe)
+    // 🔹 PRECIO
     const rawPrecio = resultado?.precio ?? resultado?.precio_max;
-
     const precioInput =
       rawPrecio != null && rawPrecio !== "" ? Number(rawPrecio) : null;
 
@@ -156,19 +167,23 @@ exports.filtrar_por_datos = onRequest(async (req, res) => {
     );
 
     // 🔹 EXPIRACIÓN
-    filters.push(`timestamp_fin > ${Date.now()}`);
+    const timestampFiltro = Date.now();
+    console.log("🧪 Filtro timestamp_fin >", timestampFiltro);
+
+    filters.push(`timestamp_fin > ${timestampFiltro}`);
 
     const productosQuery = (resultado?.productos || [])
       .map((p) => p.toLowerCase().trim())
       .filter((p) => p.length > 0);
 
-    const query = productosQuery.join(" ");
+    const query = nombreTienda || productosQuery.join(" ");
+
     const finalFilters = filters.join(" AND ");
 
     console.log("🧩 Filtros:", finalFilters);
     console.log("🔎 Query:", query);
 
-    // 🔍 ÚNICA BÚSQUEDA
+    // 🔍 BÚSQUEDA
     const response = await index_Algolia_promos.search(query, {
       filters: finalFilters,
       hitsPerPage: 20,
@@ -179,17 +194,23 @@ exports.filtrar_por_datos = onRequest(async (req, res) => {
 
     console.log("📦 Hits:", response.hits.length);
 
+    // 🔥 LOG CLAVE: timestamps de resultados
+    response.hits.forEach((h, i) => {
+      console.log(`📊 Hit ${i}:`, {
+        id: h.objectID,
+        timestamp_fin: h.timestamp_fin,
+        vigente: h.timestamp_fin > timestampFiltro,
+      });
+    });
+
     const pagosQuery = resultado?.metodos_pago || [];
     const comodidadesQuery = resultado?.comodidades || [];
 
-    // 🔥 SCORING
     let resultados = response.hits.map((h) => {
       let score = 0;
 
-      // ✔ TEXTO (40pts)
       const textScore = h._rankingInfo?.nbTypos === 0 ? 40 : 20;
 
-      // ✔ MATCH TÉRMINOS (20pts)
       const terminosDB = (h.terminos_clave || []).map((t) =>
         t.toLowerCase().trim(),
       );
@@ -204,7 +225,6 @@ exports.filtrar_por_datos = onRequest(async (req, res) => {
         matchScore = Math.round(matchRatio * 20);
       }
 
-      // ✔ PRECIO (20pts)
       let precioScore = 0;
       if (precioInput != null) {
         const dentroRango =
@@ -217,32 +237,25 @@ exports.filtrar_por_datos = onRequest(async (req, res) => {
             Math.abs(precioInput - h.precioMin),
             Math.abs(precioInput - h.precioMax),
           );
-
           precioScore = Math.max(0, 20 - diff * 1.5);
         }
       }
 
-      // ✔ PAGOS (10pts)
       let pagoScore = 0;
       if (pagosQuery.length > 0) {
         const pagosDB = (h.pagos || []).map((p) => p.toLowerCase());
-
         const pagoMatch = pagosQuery.filter((p) =>
           pagosDB.includes(p.toLowerCase()),
         ).length;
-
         pagoScore = Math.round((pagoMatch / pagosQuery.length) * 10);
       }
 
-      // ✔ COMODIDADES (10pts)
       let comodidadScore = 0;
       if (comodidadesQuery.length > 0) {
         const comodDB = (h.comodidades || []).map((c) => c.toLowerCase());
-
         const comodMatch = comodidadesQuery.filter((c) =>
           comodDB.includes(c.toLowerCase()),
         ).length;
-
         comodidadScore = Math.round(
           (comodMatch / comodidadesQuery.length) * 10,
         );
@@ -250,40 +263,477 @@ exports.filtrar_por_datos = onRequest(async (req, res) => {
 
       score = textScore + matchScore + precioScore + pagoScore + comodidadScore;
 
+      if (tipo === "app") {
+        return {
+          id: h.objectID,
+          score: Math.min(100, Math.round(score)),
+          matchCount,
+          precio: h.precio,
+        };
+      }
+
       return {
         id: h.objectID,
         score: Math.min(100, Math.round(score)),
-        matchCount, // 👈 importante para filtrar después
-        detalle: {
-          texto: textScore,
-          terminos: `${matchCount}/${productosQuery.length} (${matchScore}pts)`,
-          precio: precioScore,
-          pagos: pagoScore,
-          comodidades: comodidadScore,
-        },
-        precio: h.precio,
-        precioMin: h.precioMin,
-        precioMax: h.precioMax,
-        rango: `${h.precioMin}-${h.precioMax}`,
+        descripcion: h.descripcion || "",
+        name_tienda: h.nombre_tienda || "",
+        img: h.imagen_promo || "",
       };
     });
 
-    // 🔥 FILTRO DE CALIDAD (CLAVE)
-    if (productosQuery.length > 0) {
+    if (tipo !== "bot" && productosQuery.length > 0) {
       resultados = resultados.filter((r) => r.matchCount > 0);
     }
 
-    // 🔥 ORDENAR
     resultados.sort((a, b) => b.score - a.score);
 
-    console.log("🏆 TOP:", resultados.slice(0, 3));
+    if (tipo === "bot") {
+      resultados = resultados.slice(0, 3);
+    }
+
+    console.log("🏆 TOP RESULTADOS:", resultados);
 
     return res.status(200).json({
+      tipo,
       total: resultados.length,
       resultados,
     });
   } catch (error) {
     console.error("❌ ERROR:", error);
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+// ==================== BUSQUEDA_ALGOLIA_BOT_GEINZ ====================
+
+exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
+  try {
+    const { localidad, nombre, subcategoria } = req.body;
+
+    let filters = [];
+
+    filters.push(`categoria:"turismo"`);
+
+    if (localidad) {
+      filters.push(`lugar:"${localidad}"`);
+    }
+
+    if (subcategoria) {
+      filters.push(`tag:"${subcategoria}"`);
+    }
+
+    const query = nombre || "";
+
+    const { hits } = await index.search(query, {
+      filters: filters.join(" AND "),
+      hitsPerPage: 20,
+      typoTolerance: true,
+      ignorePlurals: true,
+      removeStopWords: true,
+    });
+
+    // 🔥 transformar igual que antes
+    const LIMITE = 5;
+
+    const data = hits
+      .sort(() => Math.random() - 0.5)
+      .slice(0, LIMITE)
+      .map((hit) => ({
+        id: hit.objectID,
+        titulo: hit.nombre || "", // 👈 mismo campo que antes
+        descripcion: (hit.descripcion || "").substring(0, 150),
+        img: hit.img || "",
+        tipo: "turismo",
+      }));
+
+    return res.status(200).json({
+      ok: true,
+      total: data.length,
+      data,
+    });
+  } catch (error) {
+    console.error("Error búsqueda algolia turismo:", error);
+    return res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
+exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
+  try {
+    const { localidad, nombre, search } = req.body;
+
+    let filters = [];
+
+    if (localidad) {
+      filters.push(`lugar:"${localidad}"`);
+    }
+
+    const query = nombre || "";
+
+    const { hits } = await index.search(query, {
+      filters: filters.join(" AND "),
+      hitsPerPage: 20,
+      typoTolerance: true,
+      ignorePlurals: true,
+      removeStopWords: true,
+    });
+
+    const ids = hits.map((h) => h.objectID);
+
+    const extraData = await obtenerDatosPorIds(localidad, ids);
+
+    const LIMITE = 5;
+
+    const data = hits
+      .sort(() => Math.random() - 0.5)
+      .slice(0, LIMITE)
+      .map((hit) => {
+        const extra = extraData[hit.objectID] || {};
+
+        const base = {
+          id: hit.objectID,
+          tienda: hit.nombre || "",
+          open_state: verificar_apertura_tienda(extra.horario),
+        };
+
+        // 🔥 MODO SEARCH (RESPUESTA LIGERA)
+        if (search === true) {
+          return base;
+        }
+
+        // 🔥 MODO COMPLETO (NORMAL)
+        return {
+          ...base,
+          desc: (hit.descripcion || "").substring(0, 150),
+          loc: hit.lugar || "",
+          cat: hit.categoria || "",
+          img: hit.imagen_bot || "",
+          wha: extra.whatsapp || "",
+          tipo: "tienda",
+        };
+      });
+
+    return res.status(200).json({
+      ok: true,
+      total: data.length,
+      data,
+    });
+  } catch (error) {
+    console.error("Error búsqueda algolia turismo:", error);
+    return res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
+exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
+  try {
+    const { localidad, categoria, subcategoria } = req.body;
+
+    const query = "";
+
+    let filters = [];
+
+    if (localidad) {
+      filters.push(`lugar:"${localidad}"`);
+    }
+
+    if (categoria) {
+      filters.push(`categoria:"${categoria}"`);
+    }
+
+    if (subcategoria) {
+      filters.push(`tag:"${subcategoria}"`);
+    }
+
+    const { hits } = await index.search(query, {
+      filters: filters.join(" AND "),
+      hitsPerPage: 20,
+      typoTolerance: true,
+      ignorePlurals: true,
+      removeStopWords: true,
+    });
+
+    const ids = hits.map((h) => h.objectID);
+
+    const extraData = await obtenerDatosPorIds(localidad, ids);
+
+    const LIMITE = 5;
+
+    const data = hits
+      .sort(() => Math.random() - 0.5)
+      .slice(0, LIMITE)
+      .map((hit) => {
+        const extra = extraData[hit.objectID] || {};
+
+        return {
+          id: hit.objectID,
+          name: hit.nombre || "",
+          desc: (hit.descripcion || "").substring(0, 150),
+          loc: hit.lugar || "",
+          cat: hit.categoria || "",
+          img: hit.imagen_bot || "",
+
+          wha: extra.whatsapp || "",
+          open_state: verificar_apertura_tienda(extra.horario),
+
+          tipo: "tienda",
+        };
+      });
+
+    return res.status(200).json({
+      ok: true,
+      total: data.length,
+      data,
+    });
+  } catch (error) {
+    console.error("Error búsqueda algolia turismo:", error);
+    return res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
+async function obtenerDatosPorIds(localidad, ids) {
+  const db = admin.firestore();
+
+  const ref = db.collection("Tiendas").doc(localidad).collection(localidad);
+
+  const resultados = {};
+
+  const size = 10;
+  const chunks = [];
+
+  for (let i = 0; i < ids.length; i += size) {
+    chunks.push(ids.slice(i, i + size));
+  }
+
+  // 🚀 ejecutar TODO en paralelo
+  const promises = chunks.map((chunk) =>
+    ref.where(admin.firestore.FieldPath.documentId(), "in", chunk).get(),
+  );
+
+  const snapshots = await Promise.all(promises);
+
+  snapshots.forEach((snapshot) => {
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+
+      resultados[doc.id] = {
+        horario: data.horario_atencion || null,
+        whatsapp: data.metodo_contacto?.whatsapp?.numero || "",
+      };
+    });
+  });
+
+  return resultados;
+}
+
+exports.obtener_lugares_emergencia = onRequest(async (req, res) => {
+  try {
+    const { localidad, categoria } = req.body;
+
+    let filtersArray = [];
+
+    if (localidad) {
+      filtersArray.push(`lugar:"${localidad}"`);
+    }
+
+    if (categoria && categoria !== "general") {
+      filtersArray.push(`categoria:"${categoria}"`);
+    }
+
+    const filters =
+      filtersArray.length > 0 ? filtersArray.join(" AND ") : undefined;
+
+    const result = await index.search("", {
+      filters,
+      hitsPerPage: 20,
+    });
+
+    const data = result.hits.map((d) => {
+      let ubicacion = null;
+
+      if (
+        d.ubicacion &&
+        d.ubicacion.latitud != null &&
+        d.ubicacion.longitud != null
+      ) {
+        ubicacion = {
+          lat: d.ubicacion.latitud,
+          lng: d.ubicacion.longitud,
+        };
+      }
+
+      return {
+        id: d.id ?? d.objectID,
+        c: d.categoria ?? null,
+        n: d.nombre ?? null,
+        num: {
+          llamada: d.llamada ? [d.llamada] : [],
+          whatsapp: d.whatsapp ? [d.whatsapp] : [],
+        },
+        dir: d.dir ?? null,
+        ref: d.ref ?? null,
+        ...(ubicacion && { ub: ubicacion }),
+      };
+    });
+
+    res.set("Cache-Control", "public, max-age=300");
+
+    return res.status(200).json({
+      ok: true,
+      total: data.length,
+      data,
+    });
+  } catch (error) {
+    console.error("ERROR obtener_lugares_emergencia:", error);
+
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error interno al buscar lugares",
+    });
+  }
+});
+
+exports.obtener_cat_sub_promos_algolia = onRequest(async (req, res) => {
+  try {
+    const index = index_Algolia_promos;
+
+    // 1. Obtener categorías
+    const categoriasRes = await index.search("", {
+      facets: ["categoria"],
+      hitsPerPage: 0,
+    });
+
+    const categorias = Object.keys(categoriasRes.facets?.categoria || {});
+
+    // Si no hay categorías
+    if (!categorias.length) {
+      return res.json({});
+    }
+
+    // 2. Hacer queries en paralelo 🚀
+    const promesas = categorias.map((cat) => {
+      // Escapar comillas por seguridad
+      const catSafe = cat.replace(/"/g, '\\"');
+
+      return index
+        .search("", {
+          filters: `categoria:"${catSafe}"`,
+          facets: ["terminos_clave"],
+          hitsPerPage: 0,
+        })
+        .then((resCat) => ({
+          categoria: cat,
+          tags: Object.keys(resCat.facets?.terminos_clave || {}),
+        }));
+    });
+
+    const resultados = await Promise.all(promesas);
+
+    // 3. Construir objeto final limpio
+    const resultadoFinal = {};
+
+    resultados.forEach(({ categoria, tags }) => {
+      resultadoFinal[categoria] = tags
+        .map((t) => t.trim().toLowerCase())
+        .filter((t) => t.length > 0);
+    });
+
+    res.json(resultadoFinal);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error interno" });
+  }
+});
+
+exports.obtener_filtrado_manual_alogolia = onRequest(async (req, res) => {
+  try {
+    const index = index_Algolia_promos;
+
+    const {
+      categoria,
+      subcategorias,
+      rango_precio,
+      pagos,
+      comodidades,
+      localidad,
+    } = req.body;
+
+    let filters = [];
+
+    // 🔥 categoría
+    if (categoria) {
+      filters.push(`categoria:"${categoria}"`);
+    }
+
+    // 🔥 subcategorías
+    if (subcategorias?.length > 0) {
+      const subFilter = subcategorias
+        .map(s => `terminos_clave:"${s}"`)
+        .join(" OR ");
+      filters.push(`(${subFilter})`);
+    }
+
+    // 🔥 rango precio
+    if (rango_precio) {
+      if (rango_precio === "0 - 10") filters.push("precio >= 0 AND precio <= 10");
+      if (rango_precio === "10 - 20") filters.push("precio >= 10 AND precio <= 20");
+      if (rango_precio === "20 - 30") filters.push("precio >= 20 AND precio <= 30");
+      if (rango_precio === "30 - 50") filters.push("precio >= 30 AND precio <= 50");
+      if (rango_precio === "50 - 80") filters.push("precio >= 50 AND precio <= 80");
+      if (rango_precio === "Mayor a 5000") filters.push("precio > 5000");
+    }
+
+    // 🔥 pagos
+    if (pagos?.length > 0) {
+      const pagosFilter = pagos.map(p => `pagos:"${p}"`).join(" OR ");
+      filters.push(`(${pagosFilter})`);
+    }
+
+    // 🔥 comodidades
+    if (comodidades?.length > 0) {
+      const comodFilter = comodidades.map(c => `comodidades:"${c}"`).join(" OR ");
+      filters.push(`(${comodFilter})`);
+    }
+
+    // 🔥 localidad
+    if (localidad) {
+      filters.push(`localidad:"${localidad}"`);
+    }
+
+    const finalFilters = filters.join(" AND ");
+
+    console.log("FILTERS:", finalFilters);
+
+    const response = await index.search("", {
+      filters: finalFilters,
+      hitsPerPage: 50,
+    });
+
+    // 🔥 NORMALIZACIÓN (IMPORTANTE)
+    const resultados = response.hits.map(h => ({
+      id: h.objectID || "",
+      score: 0, // puedes calcular si quieres
+      precio: h.precio ?? 0,
+      precioMin: h.precioMin ?? 0,
+      precioMax: h.precioMax ?? 0,
+      rango: h.rango ?? "",
+    }));
+
+    return res.status(200).json({
+      ok: true,
+      total: resultados.length,
+      resultados,
+    });
+
+  } catch (error) {
+    console.error(error);
     return res.status(500).json({ error: error.message });
   }
 });
@@ -364,24 +814,44 @@ exports.crearOrdenCulqi = onCall({ region: "us-central1" }, async (req) => {
 });
 
 async function enviarPDFWhatsApp(numero, pdfUrl) {
-  await axios.post(
-    `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
-    {
-      messaging_product: "whatsapp",
-      to: `51${numero}`,
-      type: "document",
-      document: {
-        link: pdfUrl,
-        filename: "boleta_geinz.pdf",
+  try {
+    const telefono = `51${numero}`;
+
+    console.log("📄 Enviando PDF a WhatsApp:", {
+      telefono,
+      pdfUrl,
+    });
+
+    const res = await axios.post(
+      `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
+      {
+        messaging_product: "whatsapp",
+        to: telefono,
+        type: "document",
+        document: {
+          link: pdfUrl,
+          filename: "boleta_geinz.pdf",
+        },
       },
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-    },
-  );
+      {
+        headers: {
+          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("✅ PDF enviado correctamente:", res.data);
+
+    return true;
+  } catch (error) {
+    console.error(
+      "❌ ERROR ENVIANDO PDF WHATSAPP:",
+      error.response?.data || error.message
+    );
+
+    return false;
+  }
 }
 
 async function emitirBoletaNubefact({
@@ -406,23 +876,25 @@ async function emitirBoletaNubefact({
       serie: "BBB1", //
       numero: 0, // NubeFacT asigna el siguiente correlativo[cite: 1]
       sunat_transaction: 1, // Venta interna[cite: 1]
-      
+
       // Para boletas menores a S/ 700.00 se usa "-" y "0"[cite: 1]
       cliente_tipo_de_documento: "-", //[cite: 1]
       cliente_numero_de_documento: "0", //[cite: 1]
       cliente_denominacion: nombre || "Consumidor final", //[cite: 1]
       cliente_direccion: "", // OBLIGATORIO aunque sea String vacío[cite: 1]
       cliente_email: email || "",
-      
-      fecha_de_emision: new Date().toLocaleDateString("es-PE").replace(/\//g, "-"), // Formato DD-MM-YYYY[cite: 1]
+
+      fecha_de_emision: new Date().toLocaleDateString("en-CA", {
+  timeZone: "America/Lima",
+}), // Formato DD-MM-YYYY[cite: 1]
       moneda: 1, // 1 = SOLES[cite: 1]
       porcentaje_de_igv: 18.0, //[cite: 1]
-      
+
       // Totales del comprobante (Numeric con 2 decimales)[cite: 1]
       total_gravada: valorUnitario.toFixed(2), //[cite: 1]
       total_igv: igvTotal.toFixed(2), //[cite: 1]
       total: montoNum.toFixed(2), //[cite: 1]
-      
+
       enviar_automaticamente_a_la_sunat: true, //[cite: 1]
       enviar_automaticamente_al_cliente: !!email, //[cite: 1]
       codigo_unico: chargeId, // Para evitar duplicidad[cite: 1]
@@ -439,9 +911,9 @@ async function emitirBoletaNubefact({
           tipo_de_igv: 1, // 1 = Gravado - Operación Onerosa[cite: 1]
           igv: igvTotal.toFixed(2), //[cite: 1]
           total: montoNum.toFixed(2), //[cite: 1]
-          anticipo_regularizacion: false //[cite: 1]
-        }
-      ]
+          anticipo_regularizacion: false, //[cite: 1]
+        },
+      ],
     },
     {
       headers: {
@@ -449,16 +921,15 @@ async function emitirBoletaNubefact({
         Authorization: `Token token="8eee1a640fd7485cbc1da29427f59792b196deb29b954a6eb131bdb8562492fa"`,
         "Content-Type": "application/json",
       },
-    }
+    },
   );
 
   return response.data.enlace_del_pdf; // Retorna el enlace generado[cite: 1]
 }
 
-
 /**
  * Emite un comprobante electrónico (Boleta o Factura) vía NubeFacT.
- * 
+ *
  * @param {Object} params - Datos del comprobante.
  * @param {number} params.tipoComprobante - 1 para FACTURA, 2 para BOLETA.
  * @param {string} params.documento - RUC (11 dígitos) para factura o DNI/S.N. para boleta.
@@ -476,7 +947,7 @@ async function emitirComprobanteGeinz({
   monto,
   email,
   chargeId,
-  monedas
+  monedas,
 }) {
   // LOGS DE ENTRADA: Para verificar qué argumentos recibe la función
   console.log("=== INICIANDO EMISIÓN NUBEFACT ===");
@@ -488,16 +959,19 @@ async function emitirComprobanteGeinz({
     monto,
     email,
     chargeId,
-    monedas
+    monedas,
   });
 
+  const fechaPeru = new Date().toLocaleDateString("en-CA", {
+    timeZone: "America/Lima",
+  });
   try {
     const montoNum = Number(monto);
     const valorUnitario = montoNum / 1.18;
     const igvTotal = montoNum - valorUnitario;
 
     const esFactura = tipoComprobante === 1;
-    
+
     // Mapeo dinámico del tipo de documento del cliente
     let tipoDocCliente = "-";
     if (esFactura) {
@@ -508,25 +982,27 @@ async function emitirComprobanteGeinz({
 
     const payload = {
       operacion: "generar_comprobante",
-      tipo_de_comprobante: tipoComprobante, 
+      tipo_de_comprobante: tipoComprobante,
       serie: esFactura ? "FFF1" : "BBB1",
       numero: 0,
       sunat_transaction: 1,
-      
-      cliente_tipo_de_documento: tipoDocCliente, 
+
+      cliente_tipo_de_documento: tipoDocCliente,
       cliente_numero_de_documento: documento || "0",
       cliente_denominacion: nombre || "Consumidor Final",
       cliente_direccion: direccion || "",
       cliente_email: email || "",
-      
-      fecha_de_emision: new Date().toISOString().split('T')[0], // Formato AAAA-MM-DD
+
+      fecha_de_emision: new Date().toLocaleDateString("en-CA", {
+        timeZone: "America/Lima",
+      }), // Formato AAAA-MM-DD
       moneda: 1,
       porcentaje_de_igv: 18.0,
-      
+
       total_gravada: valorUnitario.toFixed(2),
       total_igv: igvTotal.toFixed(2),
       total: montoNum.toFixed(2),
-      
+
       items: [
         {
           unidad_de_medida: "ZZ",
@@ -547,7 +1023,10 @@ async function emitirComprobanteGeinz({
       codigo_unico: chargeId,
     };
 
-    console.log("Payload final a enviar a NubeFacT:", JSON.stringify(payload, null, 2));
+    console.log(
+      "Payload final a enviar a NubeFacT:",
+      JSON.stringify(payload, null, 2),
+    );
 
     const response = await axios.post(
       "https://api.nubefact.com/api/v1/02bb7d82-0b0c-4006-82a5-74b7437bea0b",
@@ -557,12 +1036,11 @@ async function emitirComprobanteGeinz({
           Authorization: `Token token="8eee1a640fd7485cbc1da29427f59792b196deb29b954a6eb131bdb8562492fa"`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     console.log("✅ Respuesta exitosa de NubeFacT:", response.data);
     return response.data.enlace_del_pdf;
-
   } catch (error) {
     // LOG DE ERROR: Captura errores de validación de NubeFacT (como RUC inválido)
     console.error("❌ ERROR EN NUBEFACT:");
@@ -803,24 +1281,24 @@ exports.confirmarPago = onCall(async (req) => {
     id_select_boleta_pago,
   } = req.data;
 
-console.log("Tipo Comprobante (1:Fact, 2:Bol):", tipo_comprobante);
+  console.log("Tipo Comprobante (1:Fact, 2:Bol):", tipo_comprobante);
   console.log("Datos Cliente:", {
     ruc_dni: ruc,
     nombre: nombre_tienda,
     direccion: direccion_negocio,
-    email: email
+    email: email,
   });
   console.log("Datos Transacción:", {
     id_transaccion_geinz: id_select_boleta_pago,
     monto_soles: monto,
     monedas_a_recargar: monedas,
     paquete: nombre_paquete,
-    culqi_token: token
+    culqi_token: token,
   });
   console.log("Contexto Usuario:", {
     userId: userId,
     saldo_previo: monto_anterior,
-    ubicacion: localidad
+    ubicacion: localidad,
   });
   try {
     const response = await axios.post(
@@ -870,10 +1348,9 @@ console.log("Tipo Comprobante (1:Fact, 2:Bol):", tipo_comprobante);
     const numero = await sumarSaldo(userId, monedas);
 
     try {
-      
       const pdfUrl = await emitirComprobanteGeinz({
-        tipoComprobante:tipo_comprobante,
-        documento : ruc,
+        tipoComprobante: tipo_comprobante,
+        documento: ruc,
         nombre: nombre_tienda,
         direccion: direccion_negocio,
         monedas,
@@ -882,7 +1359,7 @@ console.log("Tipo Comprobante (1:Fact, 2:Bol):", tipo_comprobante);
         email: "cliente@geinz.com",
       });
       if (typeof numero === "string" && numero.length >= 9) {
-       await enviarPDFWhatsApp(numero, pdfUrl);
+        await enviarPDFWhatsApp(numero, pdfUrl);
         enviarWhatsApp(
           937659216,
           `✅ *Pago exitoso en Geinz*\n` +
@@ -2429,6 +2906,90 @@ function capitalizeFirstLetter(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+async function recalcularCategoria(db, ciudad, categoria) {
+  const snapshot = await db
+    .collection("Tiendas")
+    .doc(ciudad)
+    .collection("promos_ofertas")
+    .where("informacion.categoria", "==", categoria)
+    .get();
+
+  const tags = new Set();
+
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+
+    (data.terminos_clave || [])
+      .filter((t) => t)
+      .map((t) => t.toLowerCase().trim())
+      .forEach((t) => tags.add(t));
+  });
+
+  const tagsArray = Array.from(tags);
+
+  const ref = db
+    .collection("Tiendas")
+    .doc(ciudad)
+    .collection("cache_filtrado")
+    .doc("filtrado");
+
+  if (tagsArray.length === 0) {
+    // 🔥 BORRAR categoría si ya no existe
+    await ref.update({
+      [categoria]: admin.firestore.FieldValue.delete(),
+    });
+
+    console.log(`🗑️ Categoría eliminada del cache: ${categoria}`);
+  } else {
+    // 🔥 ACTUALIZAR normal
+    await ref.set(
+      {
+        [categoria]: tagsArray,
+      },
+      { merge: true },
+    );
+
+    console.log(`✅ Cache actualizado [${categoria}]:`, tagsArray);
+  }
+}
+
+exports.onPromocionChange = onDocumentWritten(
+  {
+    document: "Tiendas/{localidad}/promos_ofertas/{promoId}",
+    region: "us-central1",
+  },
+  async (event) => {
+    console.log("🔥 CAMBIO EN PROMO");
+
+    const after = event.data.after?.data();
+
+    if (!after) {
+      console.log("🗑️ Eliminado");
+      return;
+    }
+
+    const categoria = after?.informacion?.categoria;
+    const localidad = event.params.localidad;
+
+    if (!categoria) {
+      console.log("⏳ Aún no está lista la promo");
+      return;
+    }
+
+    // 🔥 SOLO recalcular si ya tiene términos clave
+    if (!after.terminos_clave || after.terminos_clave.length === 0) {
+      console.log("⏳ Aún no hay términos clave");
+      return;
+    }
+
+    const db = admin.firestore();
+
+    console.log("✅ Recalculando categoría:", categoria);
+
+    await recalcularCategoria(db, localidad, categoria);
+  },
+);
+
 exports.eliminarPromocionesExpiradasCadaMinuto = onSchedule(
   {
     schedule: "0 0 * * *",
@@ -2453,6 +3014,7 @@ exports.eliminarPromocionesExpiradasCadaMinuto = onSchedule(
     }
 
     let eliminadas = 0;
+    const categoriasAfectadas = new Set(); // acumula sin duplicados
 
     for (const doc of snapshot.docs) {
       const data = doc.data();
@@ -2483,28 +3045,50 @@ exports.eliminarPromocionesExpiradasCadaMinuto = onSchedule(
           .collection("promociones_geinz")
           .doc(promoId);
 
-        // 1️⃣ Copiar promo
+        // 1️⃣ mover a historial
         await destinoRef.set({
           ...data,
           estado: "expirada",
           eliminada_en: admin.firestore.FieldValue.serverTimestamp(),
         });
 
-        // 2️⃣ Copiar estadísticas
+        // 2️⃣ copiar stats
         await copiarSubcolecciones(doc.ref, destinoRef);
 
-        // 🆕 3️⃣ BORRAR estadísticas originales
+        // 3️⃣ borrar stats
         await borrarSubcolecciones(doc.ref);
 
-        // 4️⃣ Eliminar promo activa
+        // 4️⃣ borrar Firestore activo
         await doc.ref.delete();
 
+        // 5️⃣ borrar en Algolia
+        await index_Algolia_promos.deleteObject(promoId);
+
+        // 6️⃣ acumular categoría (NO recalcular aquí todavía)
+        const categoria = data?.informacion?.categoria;
+        if (categoria) {
+          categoriasAfectadas.add(categoria);
+        }
+
         eliminadas++;
-        console.log(`🗑️ Promo procesada: ${promoId}`);
+        console.log(`🗑️ Promo eliminada: ${promoId}`);
       }
     }
 
-    console.log(`✅ Total promociones procesadas: ${eliminadas}`);
+    // 7️⃣ DESPUÉS del loop — recalcular UNA VEZ por categoría única
+    if (categoriasAfectadas.size > 0) {
+      console.log(`🔄 Recalculando ${categoriasAfectadas.size} categorías...`);
+
+      await Promise.all(
+        Array.from(categoriasAfectadas).map((cat) =>
+          recalcularCategoria(db, "barranca", cat),
+        ),
+      );
+    }
+
+    console.log(
+      `✅ Eliminadas: ${eliminadas} | Categorías recalculadas: ${categoriasAfectadas.size}`,
+    );
   },
 );
 
