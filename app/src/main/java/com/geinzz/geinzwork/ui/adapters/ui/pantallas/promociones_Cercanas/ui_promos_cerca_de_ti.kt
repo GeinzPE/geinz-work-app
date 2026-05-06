@@ -149,9 +149,6 @@ fun ui_promos_cerca_de_ti(
 
     val respuesta_gemini_NLP by viewModel.respuesta_gemini.collectAsState()
 
-    var mostar_respuesta_gemini by remember(respuesta_gemini_NLP) {
-        mutableStateOf(respuesta_gemini_NLP != null)
-    }
 
     var tienda_seleccionada_ccon_mas_de_una_promo by remember { mutableStateOf(false) }
 
@@ -162,18 +159,15 @@ fun ui_promos_cerca_de_ti(
     }
 
     var mostrar_bottom_shet_registrate by remember { mutableStateOf(false) }
+    val categoriaSeleccionada by viewModel.categoria_seleccionada.collectAsState()
+    val subcategoriasSeleccionadas by viewModel.subcategoria_seleccionada.collectAsState()
+    val rango_precio by viewModel.rangoPrecioSeleccionado.collectAsState()
     val comodidad_selet by viewModel.comodidadesSeleccionadas.collectAsState()
     val metodo_pago by viewModel.metodosPagoSeleccionados.collectAsState()
-    val rango_precio by viewModel.rangoPrecioSeleccionado.collectAsState()
+
     val lista_resultados_gemini by viewModel.listaResultados.collectAsState()
     var limpiar_campo_de_busqueda by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
-
-    LaunchedEffect(rango_precio) {
-        if (rango_precio != null) {
-            Log.d("rango_precio_select", "$rango_precio")
-        }
-    }
 
 
     val lista_filtrados_pagos = remember {
@@ -219,7 +213,6 @@ fun ui_promos_cerca_de_ti(
     var id_tienda_select by remember { mutableStateOf("") }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
-    val categorias by viewModel._categoriasDisponibles.collectAsState()
     val viewmodel_repo_datos_promo: viewmodel_datos_promociones = viewModel()
     val datos_promo_parametros by viewmodel_repo_datos_promo.datos_promocion_parametro.collectAsState()
     var tiendaSeleccionada by remember { mutableStateOf<String?>(null) }
@@ -447,11 +440,11 @@ fun ui_promos_cerca_de_ti(
 
         Log.d("FILTRO_DEBUG", "Con filtros → llamando filtrarPromociones")
 
-        viewModel.filtrarPromociones(
-            subCategoriaSeleccionada,
-            terminoNLP,
-            atributosNLP
-        )
+//        viewModel.filtrarPromociones(
+//            subCategoriaSeleccionada,
+//            terminoNLP,
+//            atributosNLP
+//        )
     }
 
     LaunchedEffect(limpiar_campo_de_busqueda) {
@@ -466,7 +459,12 @@ fun ui_promos_cerca_de_ti(
 
     var estado_caundo_busca_tienda by remember { mutableStateOf(false) }
     var loadingSnackbarShown by remember { mutableStateOf(false) }
-
+    val hayFiltros =
+        categoriaSeleccionada.isNotEmpty() ||
+                subcategoriasSeleccionadas.isNotEmpty() ||
+                rango_precio?.isNotEmpty() == true ||
+                comodidad_selet?.isNotEmpty() == true ||
+                metodo_pago?.isNotEmpty() == true
     LaunchedEffect(respuesta_gemini_NLP) {
 
         when (respuesta_gemini_NLP) {
@@ -487,6 +485,7 @@ fun ui_promos_cerca_de_ti(
                     }
                 }
             }
+
 
             is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes -> {
 
@@ -520,6 +519,30 @@ fun ui_promos_cerca_de_ti(
                 }
             }
 
+            is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.empty -> {
+
+                mostrar_carga_Respuesta_gemini = false
+                mostrar_lupa_busqueda = true
+                loadingSnackbarShown = false
+
+                val mensaje = (respuesta_gemini_NLP as viewmodel_promos_cercanas
+                .estado_Carga_respuesta_gemini.empty).text_vacio
+
+                snackbarHostState.currentSnackbarData?.dismiss()
+
+                snackbarHostState.showSnackbar(
+                    message = if (mensaje.isNotEmpty())
+                        mensaje
+                    else
+                        "Lo siento, no encontré nada para ti",
+                    duration = SnackbarDuration.Short
+                )
+
+//                promos = emptyList()
+
+                viewModel.resetear_respuesta_de_gemini()
+            }
+
             is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.error -> {
                 mostrar_carga_Respuesta_gemini = false
                 mostrar_lupa_busqueda = true
@@ -546,7 +569,7 @@ fun ui_promos_cerca_de_ti(
     }
     var loadingTiendaShown by remember { mutableStateOf(false) }
     val resultado_open_ia = viewModel.resultado
-    val modoBusquedaIA=viewModel.modoBusquedaIA
+    val modoBusquedaIA = viewModel.modoBusquedaIA
     LaunchedEffect(estadoTienda) {
 
         when (estadoTienda) {
@@ -664,7 +687,7 @@ fun ui_promos_cerca_de_ti(
                 Box(modifier = Modifier.fillMaxSize()) {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(20.dp),
-                        modifier = Modifier.padding(vertical = 5.dp)
+                        modifier = Modifier.padding(vertical = 5.dp).animateContentSize(),
                     ) {
                         item {
                             Column(modifier = Modifier.padding(horizontal = 10.dp)) {
@@ -682,62 +705,65 @@ fun ui_promos_cerca_de_ti(
                         }
 
                         item {
-                            LoadingOutlinedField(
-                                loading = mostrar_carga_Respuesta_gemini
-                            ) {
-                                OutlinedTextField(
-                                    value = valor_a_buscar,
-                                    onValueChange = {
-                                        valor_a_buscar = it
+                            if (!hayFiltros){
+                                LoadingOutlinedField(
+                                    loading = mostrar_carga_Respuesta_gemini
+                                ) {
+                                    OutlinedTextField(
+                                        value = valor_a_buscar,
+                                        onValueChange = {
+                                            valor_a_buscar = it
 
-                                    },
-                                    placeholder = {
-                                        texto_generico_one_line(
-                                            "¿Qué buscas?",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = Color.Gray
-                                        )
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth(),
-                                    shape = RoundedCornerShape(50),
-                                    trailingIcon = {
-                                        IconButton(
-                                            onClick = {
-                                                if (mostrar_lupa_busqueda) {
-                                                    viewModel.procesar_nlp_open_ia(
-                                                        valor_a_buscar,
-                                                    )
+                                        },
+                                        placeholder = {
+                                            texto_generico_one_line(
+                                                "¿Qué buscas?",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = Color.Gray
+                                            )
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth(),
+                                        shape = RoundedCornerShape(50),
+                                        trailingIcon = {
+                                            IconButton(
+                                                onClick = {
+                                                    if (mostrar_lupa_busqueda) {
+                                                        viewModel.procesar_nlp_open_ia(
+                                                            valor_a_buscar,
+                                                        )
+                                                    }
+                                                }
+                                            ) {
+
+                                                AnimatedContent(
+                                                    targetState = mostrar_carga_Respuesta_gemini,
+                                                    label = "icon_animation"
+                                                ) { cargando ->
+
+                                                    if (cargando) {
+                                                        CircularProgressIndicator(
+                                                            modifier = Modifier.size(24.dp),
+                                                            strokeWidth = 2.dp
+                                                        )
+                                                    } else {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Search,
+                                                            contentDescription = "Buscar",
+                                                            tint = Color.Gray
+                                                        )
+                                                    }
                                                 }
                                             }
-                                        ) {
+                                        },
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = Color.Transparent,
+                                            unfocusedBorderColor = Color.Transparent,
+                                            disabledBorderColor = Color.Transparent
+                                        ),
+                                    )
+                                }
 
-                                            AnimatedContent(
-                                                targetState = mostrar_carga_Respuesta_gemini,
-                                                label = "icon_animation"
-                                            ) { cargando ->
-
-                                                if (cargando) {
-                                                    CircularProgressIndicator(
-                                                        modifier = Modifier.size(24.dp),
-                                                        strokeWidth = 2.dp
-                                                    )
-                                                } else {
-                                                    Icon(
-                                                        imageVector = Icons.Default.Search,
-                                                        contentDescription = "Buscar",
-                                                        tint = Color.Gray
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = Color.Transparent,
-                                        unfocusedBorderColor = Color.Transparent,
-                                        disabledBorderColor = Color.Transparent
-                                    ),
-                                )
                             }
                         }
 

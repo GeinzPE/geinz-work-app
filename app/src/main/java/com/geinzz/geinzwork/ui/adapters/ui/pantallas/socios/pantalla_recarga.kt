@@ -5,11 +5,13 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -54,6 +56,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -112,7 +115,7 @@ fun pantala_recarga(
     }
     Crossfade(targetState = estado) { curren_state ->
 
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.fillMaxSize().animateContentSize(), contentAlignment = Alignment.Center) {
 
             when (curren_state) {
                 is viewmodel_eres_socio.CargaPaquetesPago.Loading -> {
@@ -205,6 +208,52 @@ fun pantala_recarga(
                                         }
                                     }
                                 }
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(18.dp))
+                                    .background(
+                                        Color.White
+                                    )
+                                    .border(
+                                        width = 1.dp,
+                                        color = Color(0x22000000),
+                                        shape = RoundedCornerShape(18.dp)
+                                    )
+                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
+
+                                    Text(
+                                        text = "Recarga tus créditos de forma segura",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color.Black
+                                        )
+                                    )
+
+                                    Text(
+                                        text = "Procesado con pasarela Culqi + respaldo BCP",
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            color = Color(0xFF6B6B6B)
+                                        )
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(12.dp))
+
+                                Image(
+                                    painter = painterResource(R.drawable.con_reslado_culqui_bcp),
+                                    contentDescription = "Culqi BCP",
+                                    modifier = Modifier
+                                        .height(50.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                )
                             }
                         }
                         items(datos) { i ->

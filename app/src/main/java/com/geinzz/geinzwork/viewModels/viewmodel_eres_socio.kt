@@ -31,6 +31,7 @@ import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen_cinco
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen_nueve
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenParaWhatsappDB
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.model.repo_generaciones_IA
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.generarIdFirebase
@@ -774,7 +775,7 @@ class viewmodel_eres_socio : ViewModel() {
                 }
 
                 // 🔄 2. Subir imágenes CON REINTENTO
-                val urls = instace_repo.subirImagenesConReintento(intentos = 3) {
+                val (urls,img_bot) = instace_repo.subirImagenesConReintento(intentos = 3) {
                     instace_repo.subirImagenesAFirebase(
                         context = context,
                         imagenes = imagenes,
@@ -782,6 +783,10 @@ class viewmodel_eres_socio : ViewModel() {
                         idPromo = idPromo
                     )
                 }
+
+
+
+
 
                 // 🔒 3. Verificación estricta
                 if (urls.size != imagenes.size) {
@@ -793,6 +798,7 @@ class viewmodel_eres_socio : ViewModel() {
                 // 💾 4. Guardar URLs en Firestore
                 val resCompletado =
                     instace_repo.guardarImagenesEnFirestore_promociones(
+
                         id_tienda = idSocio,
                         logo_tienda = img_tienda,
                         localidad = localidad,
@@ -803,13 +809,14 @@ class viewmodel_eres_socio : ViewModel() {
 
 
 
+
                 if (!resCompletado.isSuccess) {
                     _subidaPromoState.value =
                         SubidaPromoState.Error("Error al guardar las imágenes")
                     return@launch
                 } else {
                     // ✅ 5. Crear promoción SOLO si TODO salió bien
-                    val resPromo = crear_promociones(urls, i, localidad)
+                    val resPromo = crear_promociones(img_bot,urls, i, localidad)
 
                     if (!resPromo.isSuccess) {
                         _subidaPromoState.value =
@@ -857,6 +864,7 @@ class viewmodel_eres_socio : ViewModel() {
 
 
     suspend fun crear_promociones(
+        img_bot:String?,
         lista_img_subida: List<String>,
         i: agregar_promociones,
         localidad: String
@@ -864,6 +872,7 @@ class viewmodel_eres_socio : ViewModel() {
         val tieneNueva = _tiene_nueva_generacion.value
         val datos_si_paso_IA = datos_publicidad_IA_params.value
         return instace_repo.crear_promocion(
+            img_bot,
             datos_si_paso_IA,
             tieneNueva,
             lista_img_subida,

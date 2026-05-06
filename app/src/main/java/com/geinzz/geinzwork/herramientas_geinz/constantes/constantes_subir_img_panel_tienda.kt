@@ -176,20 +176,20 @@ object constantes_subir_img_panel_tienda {
 
                 // 🔥 actualizar Firestore UNA SOLA VEZ
 
-                    firestore
-                        .collection("Tiendas")
-                        .document(localidad)
-                        .collection(localidad)
-                        .document(idTienda)
-                        .update("img_tienda.lista_img.$tipo", urlsFinales)
-                        .addOnSuccessListener {
-                            Log.d(TAG, "🔥 Firestore actualizado ($tipo)")
-                            onFinish(urlsFinales)
-                        }
-                        .addOnFailureListener {
-                            Log.e(TAG, "❌ Error Firestore", it)
-                            onFinish(urlsFinales) // devolvemos igual
-                        }
+                firestore
+                    .collection("Tiendas")
+                    .document(localidad)
+                    .collection(localidad)
+                    .document(idTienda)
+                    .update("img_tienda.lista_img.$tipo", urlsFinales)
+                    .addOnSuccessListener {
+                        Log.d(TAG, "🔥 Firestore actualizado ($tipo)")
+                        onFinish(urlsFinales)
+                    }
+                    .addOnFailureListener {
+                        Log.e(TAG, "❌ Error Firestore", it)
+                        onFinish(urlsFinales) // devolvemos igual
+                    }
 
             }
         }

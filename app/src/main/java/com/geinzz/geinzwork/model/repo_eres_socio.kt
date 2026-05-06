@@ -24,6 +24,7 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.timestampEn30Dias
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles_generales.normalizar
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenParaWhatsappDB
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenWebPSinRecorte
 import com.geinzz.geinzwork.herramientas_geinz.constantes.construirPromptNLP
 import com.geinzz.geinzwork.herramientas_geinz.constantes.construir_prompt_NLP_para_busqueda
@@ -113,13 +114,11 @@ class repo_eres_socio {
         localidad: String,
         texto: String
     ): Boolean {
-        val ref = db.collection("Tiendas")
-            .document(localidad)
-            .collection(localidad)
+        val ref = db.collection("lugares")
             .document(id_tienda)
 
         val data =
-            mapOf("descripcion_seo" to texto) // Usando el nombre de campo que mencionaste antes
+            mapOf("descripcion" to texto) // Usando el nombre de campo que mencionaste antes
 
         return try {
             ref.set(data, SetOptions.merge()).await()
@@ -151,6 +150,7 @@ class repo_eres_socio {
             emptyList()
         }
     }
+
     suspend fun guardar_lat_lng(lat: Double, lng: Double, idTienda: String, localidad: String) {
 
         val ref = db.collection("Tiendas")
@@ -1141,38 +1141,54 @@ class repo_eres_socio {
         imagenes: List<ImagenReview>,
         idSocio: String,
         idPromo: String
-    ): List<String> {
+    ): Pair<List<String>, String?> {
 
         val storageRef = FirebaseStorage.getInstance().reference
         val urls = mutableListOf<String>()
 
+        // ✅ obtener primera imagen válida UNA sola vez
+        val primeraUri = imagenes.firstOrNull { it.uri != null }?.uri
+
+        var botUrl: String? = null
+
+        // 🤖 subir BOT una sola vez
+        if (primeraUri != null) {
+            val bytesPreview = procesarImagenParaWhatsappDB(context, primeraUri)
+            val nombreArchivo = "bot_${System.currentTimeMillis()}.jpg"
+
+            val refBot = storageRef.child(
+                "tiendas/$idSocio/imagenes/promociones_geinz/$idPromo/$nombreArchivo"
+            )
+
+            refBot.putBytes(bytesPreview).await()
+            botUrl = refBot.downloadUrl.await().toString()
+        }
+
+        // 🖼️ subir imágenes normales
         imagenes.forEachIndexed { index, img ->
 
             val uri = img.uri ?: return@forEachIndexed
 
-            // 🔥 procesas la imagen en WebP / alta calidad
             val bytes = procesarImagenWebPSinRecorte(context, uri)
 
-            // 📛 img1.webp, img2.webp, img3.webp...
             val nombreImg = "img${index + 1}.webp"
 
             val ref = storageRef.child(
                 "tiendas/$idSocio/imagenes/promociones_geinz/$idPromo/$nombreImg"
             )
 
-            // ⬆️ Subir bytes
             ref.putBytes(bytes).await()
 
-            // 🔗 URL pública
             val downloadUrl = ref.downloadUrl.await()
             urls.add(downloadUrl.toString())
         }
 
-        return urls
+        return Pair(urls, botUrl)
     }
 
 
     suspend fun guardarImagenesEnFirestore_promociones(
+
         id_tienda: String,
         logo_tienda: String,
         localidad: String,
@@ -1213,21 +1229,23 @@ class repo_eres_socio {
         id_tienda: String,
         localidad: String,
         idPromo: String,
-    ){
+    ) {
 
     }
 
     suspend fun subirImagenesConReintento(
         intentos: Int = 3,
-        bloque: suspend () -> List<String>
-    ): List<String> {
+        bloque: suspend () -> Pair<List<String>, String?>
+    ): Pair<List<String>, String?> {
+
         repeat(intentos - 1) {
             try {
                 return bloque()
             } catch (_: Exception) {
             }
         }
-        return bloque() // último intento
+
+        return bloque()
     }
 
 
@@ -1324,6 +1342,14 @@ class repo_eres_socio {
             // Actualiza dinámicamente el campo
             ref.update(tipo, cambio).await()
 
+            if (tipo == "nombre_tienda") {
+                val ref_aloglia = db.collection("lugares").document(id_tienda)
+                val hasmap = hashMapOf<String, Any>(
+                    "nombre" to cambio
+                )
+                ref_aloglia.set(hasmap, SetOptions.merge()).await()
+            }
+
             println("Campo '$tipo' actualizado correctamente a '$cambio'.")
         } catch (e: Exception) {
             println("Error al actualizar el campo: ${e.message}")
@@ -1377,6 +1403,7 @@ class repo_eres_socio {
     }
 
     suspend fun crear_promocion(
+        img_bot:String?,
         datos_si_paso_IA: DatosPublicidadIA,
         tuvi_nueva_genearcion: Boolean,
         lista_img_subida: List<String>,
@@ -1419,9 +1446,8 @@ class repo_eres_socio {
                 Log.e("TIMEOUT", "extraer_datos_de_texto_completo tardó demasiado")
                 emptyList<String>()
             }
-            val subir_algolia_promociones= db.collection("promociones_algolia").document(i.informacion.id_promocion)
-
-
+            val subir_algolia_promociones =
+                db.collection("promociones_filtrado_algolia").document(i.informacion.id_promocion)
 
 
             val hasmap_metodos_pago = hashMapOf<String, Any>(
@@ -1452,7 +1478,10 @@ class repo_eres_socio {
             val precioMin = partes.getOrNull(0)?.trim()?.toIntOrNull() ?: 0
             val precioMax = partes.getOrNull(1)?.trim()?.toIntOrNull() ?: 0
             val objetoAlgolia = hashMapOf<String, Any>(
+                "imagen_promo" to (img_bot ?: lista_img_subida.firstOrNull() ?: ""),
                 "objectID" to i.informacion.id_promocion,
+                "descripcion" to i.informacion.descripcion,
+                "nombre_tienda" to i.informacion.nombre_tienda,
                 "id_promocion" to i.informacion.id_promocion,
                 "id_tienda" to i.informacion.id_tienda,
                 "localidad" to localidad,
@@ -1471,7 +1500,7 @@ class repo_eres_socio {
                     if (i.metodos_pagos.mastercard) "mastercard" else null
                 ),
                 "comodidades" to hashmap_comodidades.filterValues { it as Boolean }.keys.toList(),
-                "horario_publicacion" to if(i.horario_deseado.seleccion.isNotEmpty())i.horario_deseado.seleccion.lowercase() else "todo_dia",
+                "horario_publicacion" to if (i.horario_deseado.seleccion.isNotEmpty()) i.horario_deseado.seleccion.lowercase() else "todo_dia",
                 "precio" to i.precio_publicacion.precio.toInt(),
 
                 "precioMin" to precioMin,
@@ -1498,7 +1527,7 @@ class repo_eres_socio {
                 "informacion" to i.informacion,
                 "ubicacion" to i.ubicacion,
                 "mensaje_predeterminado" to i.mensaje_predeterminado,
-                "horario_publicacion" to if(i.horario_deseado.seleccion.isNotEmpty())i.horario_deseado.seleccion.lowercase() else "todo_dia",
+                "horario_publicacion" to if (i.horario_deseado.seleccion.isNotEmpty()) i.horario_deseado.seleccion.lowercase() else "todo_dia",
                 "precio_publicacion" to i.precio_publicacion.precio,
                 "rango_establecido" to i.precio_publicacion.rango,
                 "pagos" to hasmap_metodos_pago,

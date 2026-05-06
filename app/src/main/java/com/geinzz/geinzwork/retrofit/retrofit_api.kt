@@ -2,9 +2,11 @@ package com.geinzz.geinzwork.retrofit
 
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.DatosResponse
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.ResAlgoliaFiltrado
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.ResAlgoliaFiltrado_manual
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.RespuestaGemini
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.TextoRequest
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.datos_envidiadosbody_algolia
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.datos_para_filtrado_manual
 import retrofit2.http.Body
 import retrofit2.http.POST
 
@@ -17,4 +19,7 @@ interface retrofit_api {
 
     @POST("filtrar_por_datos")
     suspend fun Consultar_algolia(@Body request: DatosResponse): ResAlgoliaFiltrado
+
+    @POST("obtener_filtrado_manual_alogolia")
+    suspend fun construir_filtrado_manual(@Body request: datos_para_filtrado_manual): ResAlgoliaFiltrado
 }

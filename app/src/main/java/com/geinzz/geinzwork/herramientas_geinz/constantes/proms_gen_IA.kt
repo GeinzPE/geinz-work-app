@@ -130,7 +130,7 @@ D:
 Responde SOLO en JSON válido (sin texto adicional):
 
 {
-  "titulo": "máx 15 palabras, para estilo de $tipo",
+  "titulo": "máx 15 palabras, para estilo de $tipo incluye precio en soles si existe",
   "descripcion": "máx 3 líneas, estilo venta"
 }
 
@@ -1075,11 +1075,18 @@ Texto: "$textoUsuario"
 
 fun construir_prompt_NLP_para_busqueda(textoUsuario: String, categoria: String): String {
     return """
-    Extrae sustantivos de producto del texto la categoria del negocio es $categoria.
-    - Sin cantidades, tamaños, precios, adjetivos, marcas ni duplicados
-    - Minúsculas, sin tildes, sin diminutivos, sin plurales (usa singular)
-    - Solo términos que aparecen en el texto
-    Ejemplo: "2 Papas Reg., 4 Gaseosas Pers." → ["papa","gaseosa"]
+    Extrae términos clave de búsqueda para una promoción. Categoría: $categoria
+
+    Extrae SOLO lo que un usuario escribiría en un buscador para encontrar esto:
+    - Lugares, destinos o direcciones si los hay
+    - Productos o servicios específicos (no genéricos)
+    - Especialidades o rubros del negocio
+
+    Descarta: precios, descuentos, cantidades, adjetivos, palabras genéricas 
+    (como "oferta", "promo", "compra", "viaje", "boleto", "servicio", "producto")
+
+    Reglas: minúsculas, sin tildes, singular, sin duplicados, máximo 6 términos.
+
     Responde SOLO el array JSON. Texto: "$textoUsuario"
     """.trimIndent()
 }

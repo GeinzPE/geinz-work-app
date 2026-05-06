@@ -628,14 +628,12 @@ object constantes_pantalla_socios {
                     Log.d(TAG, "✅ Imagen subida: $downloadUrl")
 
                     val firestoreRef = FirebaseFirestore.getInstance()
-                        .collection("Tiendas")
-                        .document(localidad_tienda)
-                        .collection(localidad_tienda)
+                        .collection("lugares")
                         .document(id_tienda)
 
                     // 🔥 GUARDAR EN MAPA img_tienda → imagen_bot
                     val updateData = mapOf(
-                        "img_tienda.imagen_bot" to downloadUrl.toString()
+                        "imagen_bot" to downloadUrl.toString()
                     )
 
                     firestoreRef.update(updateData)

@@ -90,6 +90,9 @@ class viewmodel_agregar_propiedades : ViewModel() {
         }
     }
 
+
+
+
     fun generar_titulo_para_Casa(
         tipo_realizado: String,
         tipo_operacion: String,
@@ -187,6 +190,15 @@ class viewmodel_agregar_propiedades : ViewModel() {
             } catch (e: Exception) {
                 Log.d("error_agrega", "$e")
                 _estadoAgregar.value = agregar_lugares.error
+            }
+        }
+    }
+    fun obtener_datos_aloglia(){
+        viewModelScope.launch {
+            try {
+                instania_repo_agregar_inmubes.agregar_datos_algolia()
+            }catch (e: Exception){
+
             }
         }
     }

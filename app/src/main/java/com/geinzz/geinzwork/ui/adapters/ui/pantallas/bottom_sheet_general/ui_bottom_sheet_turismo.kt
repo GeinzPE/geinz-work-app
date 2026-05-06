@@ -458,7 +458,8 @@ fun card_img_container(
         botom_shet_turismobtn(
             "ver en mapa",
             Icons.Filled.Map,
-            if (sub_categoria_selecionada.isNotEmpty() && !bloqueo_ver_mapa) true else false
+//            if (sub_categoria_selecionada.isNotEmpty() && !bloqueo_ver_mapa) true else false
+            false
         ),
         botom_shet_turismobtn("compartir", Icons.Filled.Share, true)
     )
@@ -619,8 +620,8 @@ fun card_img_container(
                         }else{
                             scope.launch {
                                 snackbarHostState.showSnackbar(
-                                    message = "El mapa solo funciona dentro de el apartado de turismo",
-                                    duration = SnackbarDuration.Short
+                                    message = "El mapa está en desarrollo para una mejor experiencia en Geinz",
+                                            duration = SnackbarDuration.Short
                                 )
                             }
                         }
@@ -634,7 +635,7 @@ fun card_img_container(
             }, error_clikero = {
                 scope.launch {
                     snackbarHostState.showSnackbar(
-                        message = "El mapa solo funciona dentro de el apartado de turismo",
+                        message = "El mapa está en desarrollo para una mejor experiencia en Geinz",
                         duration = SnackbarDuration.Short
                     )
                 }

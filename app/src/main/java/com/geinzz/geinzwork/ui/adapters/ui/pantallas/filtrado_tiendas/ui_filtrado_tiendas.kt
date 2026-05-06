@@ -521,58 +521,58 @@ var generador_qr by remember { mutableStateOf("") }
 
             }
         }
-        if (btn_mostrar_mapa) {
-            open_map_perzonlizado(
-                modifier = Modifier
-                    .offset { IntOffset(offsetX.value.toInt(), offsetY.value.toInt()) }
-                    .zIndex(1f)
-                    .pointerInput(Unit) {
-                        detectDragGestures(
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-
-                                val newX = (offsetX.value + dragAmount.x)
-                                    .coerceIn(
-                                        paddingPx,
-                                        screenWidth - bubbleSizePx - paddingPx
-                                    )
-                                val newY = (offsetY.value + dragAmount.y)
-                                    .coerceIn(
-                                        paddingPx,
-                                        screenHeight - bubbleSizePx - paddingPx
-                                    )
-
-                                scope.launch {
-                                    offsetX.snapTo(newX)
-                                    offsetY.snapTo(newY)
-                                }
-                            },
-                            onDragEnd = {
-                                val middle = screenWidth / 2
-                                val targetX = if (offsetX.value < middle) {
-                                    paddingPx
-                                } else {
-                                    screenWidth - bubbleSizePx - paddingPx
-                                }
-                                scope.launch {
-                                    offsetX.animateTo(
-                                        targetX,
-                                        animationSpec = tween(
-                                            durationMillis = 400,
-                                            easing = FastOutSlowInEasing
-                                        )
-                                    )
-                                }
-                            }
-                        )
-                    },
-                tipo = "tiendas",
-                abrir_mapa = { tipo ->
-                    abrir_mapa(tipo, localida)
-                }
-            )
-
-        }
+//        if (btn_mostrar_mapa) {
+//            open_map_perzonlizado(
+//                modifier = Modifier
+//                    .offset { IntOffset(offsetX.value.toInt(), offsetY.value.toInt()) }
+//                    .zIndex(1f)
+//                    .pointerInput(Unit) {
+//                        detectDragGestures(
+//                            onDrag = { change, dragAmount ->
+//                                change.consume()
+//
+//                                val newX = (offsetX.value + dragAmount.x)
+//                                    .coerceIn(
+//                                        paddingPx,
+//                                        screenWidth - bubbleSizePx - paddingPx
+//                                    )
+//                                val newY = (offsetY.value + dragAmount.y)
+//                                    .coerceIn(
+//                                        paddingPx,
+//                                        screenHeight - bubbleSizePx - paddingPx
+//                                    )
+//
+//                                scope.launch {
+//                                    offsetX.snapTo(newX)
+//                                    offsetY.snapTo(newY)
+//                                }
+//                            },
+//                            onDragEnd = {
+//                                val middle = screenWidth / 2
+//                                val targetX = if (offsetX.value < middle) {
+//                                    paddingPx
+//                                } else {
+//                                    screenWidth - bubbleSizePx - paddingPx
+//                                }
+//                                scope.launch {
+//                                    offsetX.animateTo(
+//                                        targetX,
+//                                        animationSpec = tween(
+//                                            durationMillis = 400,
+//                                            easing = FastOutSlowInEasing
+//                                        )
+//                                    )
+//                                }
+//                            }
+//                        )
+//                    },
+//                tipo = "tiendas",
+//                abrir_mapa = { tipo ->
+//                    abrir_mapa(tipo, localida)
+//                }
+//            )
+//
+//        }
 
         if (mostrandoCargaGlobal) {
             Log.d("entramos", "global sii")
@@ -984,10 +984,10 @@ fun item_tiendas(
         viewModelFiltros.cast_horario_atencion_horario_tienda_box(horario_box)
     }
     // --- Escuchar el Flow para sincronizar si viene desde otro lado ---
-    val mapa by viewModelFiltros.favoritos.collectAsState()
-    LaunchedEffect(mapa, item_tiendas.id_tienda) {
-        favoritoEstado = mapa[item_tiendas.id_tienda] ?: favoritoEstado
-    }
+//    val mapa by viewModelFiltros.favoritos.collectAsState()
+//    LaunchedEffect(mapa, item_tiendas.id_tienda) {
+//        favoritoEstado = mapa[item_tiendas.id_tienda] ?: favoritoEstado
+//    }
     LaunchedEffect(item_tiendas.id_tienda) {
         if (id_user.isNotEmpty()) {
             viewModelFiltros.verificar_existe_favoritoMap(id_user, item_tiendas.id_tienda)

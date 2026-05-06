@@ -8,11 +8,14 @@ import com.geinzz.geinzwork.data.model.EstadisticasPromo
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.DatosResponse
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.IdScore
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.ResAlgoliaFiltrado
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.ResAlgoliaFiltrado_manual
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.RespuestaGemini
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.TextoRequest
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.datos_envidiadosbody_algolia
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.datos_para_filtrado_manual
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.estadisticas_publiccaciones
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.filtrado_feed_promociones
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.img_content
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.informacion_publcacion
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
@@ -64,6 +67,10 @@ class repo_promos_cercanas {
 
     suspend fun send_get_resul_algoalia(data: DatosResponse): ResAlgoliaFiltrado {
         return objet_retrofit.api.Consultar_algolia(data)
+    }
+
+    suspend fun send_params_filter_manual(data:datos_para_filtrado_manual): ResAlgoliaFiltrado {
+        return objet_retrofit.api.construir_filtrado_manual(data)
     }
 
 
@@ -769,17 +776,33 @@ class repo_promos_cercanas {
         return procesadas
     }
 
-    suspend fun obtener_categorias_firebase(): List<String> {
+    suspend fun obtener_categorias_firebase(): List<filtrado_feed_promociones> {
         val snapshot = FirebaseFirestore.getInstance()
             .collection("Tiendas")
-            .document("categorias")
-            .collection("categorias")
+            .document("barranca")
+            .collection("cache_filtrado")
+            .document("filtrado")
             .get()
             .await()
 
-        return snapshot.documents.map { it.id }
-    }
+        val data = snapshot.data ?: return emptyList()
 
+        return data.map { (categoria, lista) ->
+
+            val subcategorias = (lista as? List<*>)
+                ?.filterIsInstance<String>()
+                ?.map { it.lowercase().trim() }
+                ?.toSet() // 🔥 elimina duplicados
+                ?.toList()
+                ?.sorted() // opcional (ordenado)
+                ?: emptyList()
+
+            filtrado_feed_promociones(
+                categoria = categoria,
+                subcategoria = subcategorias
+            )
+        }
+    }
     suspend fun obtener_subcategorias(categoria: String): List<String> {
         return try {
             val snapshot = FirebaseFirestore.getInstance()

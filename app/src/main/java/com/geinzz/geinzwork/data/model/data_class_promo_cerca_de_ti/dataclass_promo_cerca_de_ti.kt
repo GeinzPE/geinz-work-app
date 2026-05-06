@@ -100,12 +100,19 @@ data class datos_envidiadosbody_algolia(
 )
 
 data class DatosResponse(
+    val tipo : String="app",
+    val nombre: String="",
     val productos: List<String>,
     val precio_max: Int?,
     val metodos_pago: List<String>,
     val comodidades: List<String>
 )
 
+data class ResAlgoliaFiltrado_manual(
+    val ok: Boolean,
+    val total: Int,
+    val data: List<Resultado>
+)
 data class ResAlgoliaFiltrado(
     val total: Int,
     val resultados: List<Resultado>
@@ -132,4 +139,18 @@ data class Detalle(
 data class IdScore(
     val id: String,
     val score: Int
+)
+
+data class filtrado_feed_promociones(
+    val categoria: String,
+    val subcategoria: List<String>,
+)
+
+data class datos_para_filtrado_manual(
+    val categoria: String,
+    val subcategorias: List<String> = emptyList(),
+    val rango_precio: String? = null,
+    val pagos: List<String> = emptyList(),
+    val comodidades: List<String> = emptyList(),
+    val localidad: String
 )

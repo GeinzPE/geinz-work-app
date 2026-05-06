@@ -154,4 +154,51 @@ class repo_agregar_inmubles {
 
         return combinaciones.distinct()
     }
+
+    suspend fun agregar_datos_algolia() {
+        try {
+            val snapshot = db
+                .collection("Tiendas")
+                .document("barranca")
+                .collection("barranca")
+                .get()
+                .await()
+
+            for (doc in snapshot.documents) {
+
+                val descripcionSeo = doc.getString("descripcion_seo") ?: ""
+                val descripcionNormal = doc.getString("descripcion") ?: ""
+                val idTienda = doc.id // 👈 mejor usar el ID real del doc
+
+                val imgTienda = doc.get("img_tienda") as? Map<*, *>
+                val imagenBot = imgTienda?.get("imagen_bot") as? String ?: ""
+
+                // 🔥 PRIORIDAD
+                val descripcionFinal = if (descripcionSeo.isNotEmpty()) {
+                    descripcionSeo
+                } else {
+                    descripcionNormal
+                }
+
+                val refAlgolia = db.collection("lugares").document(idTienda)
+
+                val data = mutableMapOf<String, Any>(
+                    "descripcion" to descripcionFinal
+                )
+
+                // 👇 solo agregar imagen si existe
+                if (imagenBot.isNotEmpty()) {
+                    data["imagen_bot"] = imagenBot
+                }
+
+                // 🔥 MERGE (NO BORRA NADA)
+                refAlgolia.set(data, SetOptions.merge()).await()
+
+                Log.d("ALGOLIA_SYNC", "Actualizado: $idTienda")
+            }
+
+        } catch (e: Exception) {
+            Log.e("ERROR", e.message.toString())
+        }
+    }
 }

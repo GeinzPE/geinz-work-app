@@ -2392,4 +2392,3 @@ fun pantalla_carga_socios(
 
 
 }
-

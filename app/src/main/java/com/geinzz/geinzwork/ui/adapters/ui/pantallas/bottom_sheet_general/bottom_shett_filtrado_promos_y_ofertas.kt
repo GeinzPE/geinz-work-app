@@ -14,6 +14,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,6 +26,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -33,6 +36,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -68,6 +72,7 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.DatosResponse
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.datos_para_filtrado_manual
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_close_gris
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
@@ -76,35 +81,31 @@ import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 @Composable
 fun bottom_sheet_filtrados_promos_y_ofertas(
     filtrado_ia: Boolean,
-    datos_filtrado:DatosResponse?,
+    datos_filtrado: DatosResponse?,
     comodidad_selet: Set<String>, metodo_pago: Set<String>,
     rango_precio: String?,
     viewModel: viewmodel_promos_cercanas,
     onClose: () -> Unit, onAutocompletar: (String) -> Unit
 ) {
     var expandido by remember { mutableStateOf(true) }
-    Log.d("datos_padaso","$filtrado_ia $datos_filtrado")
-    var categoira_seleccionada by remember { mutableStateOf("Todos") }
-    var subcategoria_select by remember { mutableStateOf("") }
-    val categorias by viewModel._categoriasDisponibles.collectAsState()
-    val obtener_cateogiras by viewModel.obtener_categorias.collectAsState()
-    val subcategorias_obtenidas by viewModel.obtener_subcategorias.collectAsState()
+    Log.d("datos_padaso", "$filtrado_ia $datos_filtrado")
 
-    val obtener_datos_respuesta_gemini by viewModel.respuesta_gemini.collectAsState()
+    var verTodos by remember { mutableStateOf(false) }
+    val obtener_cateogiras by viewModel.obtener_categorias.collectAsState()
+    Log.d("obtener_cateogiras", "$obtener_cateogiras")
+
+    val categoriaSeleccionada by viewModel.categoria_seleccionada.collectAsState()
+    val subcategoriasSeleccionadas by viewModel.subcategoria_seleccionada.collectAsState()
+    val rango_precio by viewModel.rangoPrecioSeleccionado.collectAsState()
+    val comodidad_selet by viewModel.comodidadesSeleccionadas.collectAsState()
+    val metodo_pago by viewModel.metodosPagoSeleccionados.collectAsState()
     val listaData by viewModel.listaResultados.collectAsState()
 
     val texto_ser_guardado by viewModel.texto_usser_buscado.collectAsState()
-
-    LaunchedEffect(categoira_seleccionada) {
-        if(categoira_seleccionada!="Todos"){
-        viewModel.obtener_subcategorias(categoira_seleccionada)
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.obtener_filtrado_Categorias()
-    }
-
+    val subcategorias_obtenidas = obtener_cateogiras
+        .firstOrNull { it.categoria == categoriaSeleccionada }
+        ?.subcategoria
+        ?: emptyList()
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
@@ -128,8 +129,8 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
         )
     }
     val precioDicho = datos_filtrado?.precio_max
-    val metodos_pago_params=datos_filtrado?.metodos_pago
-    val comodidadesParams=datos_filtrado?.comodidades
+    val metodos_pago_params = datos_filtrado?.metodos_pago
+    val comodidadesParams = datos_filtrado?.comodidades
 
     LaunchedEffect(metodos_pago_params) {
         metodos_pago_params?.let { lista ->
@@ -187,6 +188,12 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
             img_con_texto(R.drawable.icon_ingreso_animales, "ingreso_mascotas"),
         )
     }
+    val limite = 10
+    val subcategoriasVisibles = if (verTodos) {
+        subcategorias_obtenidas
+    } else {
+        subcategorias_obtenidas.take(limite)
+    }
 
 
     ModalBottomSheet(
@@ -199,7 +206,9 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
         FuenteControladaApp {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp, top = 20.dp, bottom = 10.dp).animateContentSize()
+                modifier = Modifier
+                    .padding(start = 10.dp, end = 10.dp, top = 20.dp, bottom = 10.dp)
+                    .animateContentSize()
             ) {
                 item {
                     Text(
@@ -218,7 +227,7 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                 }
 
                 item {
-                    if(filtrado_ia && datos_filtrado?.productos !=null){
+                    if (filtrado_ia && datos_filtrado?.productos != null) {
                         texto_generico_one_line("Resultado de tu busqueda")
                         spacer_vertical(10.dp)
 
@@ -226,32 +235,33 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
                             items(datos_filtrado.productos) { categoria ->
-                                val seleccionado = categoira_seleccionada == categoria
+                                val seleccionado = categoriaSeleccionada == categoria
                                 chisp_filtrado_busqueda(
                                     carta_selecionada = seleccionado,
                                     filtrado = categoria.capitalizeFirst(),
                                     btn_visible = false,
                                     clik_card = {
-                                        categoira_seleccionada = categoria
+                                        viewModel.toggleCategoria(categoria)
+
                                     },
                                     onClick_delete = {}
                                 )
                             }
                         }
-                    }else{
+                    } else {
                         texto_generico_one_line("Selecciona tu categoria")
                         spacer_vertical(10.dp)
                         LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
                             items(obtener_cateogiras) { categoria ->
-                                val seleccionado = categoira_seleccionada == categoria
+                                val seleccionado = categoriaSeleccionada == categoria.categoria
                                 chisp_filtrado_busqueda(
                                     carta_selecionada = seleccionado,
-                                    filtrado = categoria.capitalizeFirst(),
+                                    filtrado = categoria.categoria.capitalizeFirst(),
                                     btn_visible = false,
                                     clik_card = {
-                                        categoira_seleccionada = categoria
+                                        viewModel.toggleCategoria(categoria.categoria)
                                     },
                                     onClick_delete = {}
                                 )
@@ -261,23 +271,71 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
 
                 }
                 item {
-                    if(categoira_seleccionada!="Todos"){
-                        texto_generico_one_line("Subcategorias")
-                        spacer_vertical(10.dp)
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            items(subcategorias_obtenidas) { subcategoria ->
-                                val seleccionado = subcategoria_select == subcategoria
-                                chisp_filtrado_busqueda(
-                                    carta_selecionada = seleccionado,
-                                    filtrado = subcategoria.capitalizeFirst(),
-                                    btn_visible = false,
-                                    clik_card = {
-                                        subcategoria_select = subcategoria
-                                    },
-                                    onClick_delete = {}
-                                )
+                    if (categoriaSeleccionada != "Todos") {
+
+
+                        if (!verTodos) {
+                            // 🔹 MODO HORIZONTAL
+                            texto_generico_one_line("Subcategorias")
+                            spacer_vertical(10.dp)
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            ) {
+
+                                items(subcategoriasVisibles) { subcategoria ->
+
+                                    val seleccionado =
+                                        subcategoriasSeleccionadas.contains(subcategoria)
+
+                                    chisp_filtrado_busqueda(
+                                        carta_selecionada = seleccionado,
+                                        filtrado = subcategoria.capitalizeFirst(),
+                                        btn_visible = false,
+                                        clik_card = {
+                                            viewModel.toggle_subcategoria(subcategoria)
+                                        },
+                                        onClick_delete = {}
+                                    )
+                                }
+
+
+                                // 🔥 BOTÓN VER TODOS
+                                if (subcategorias_obtenidas.size > limite) {
+                                    item {
+                                        chisp_filtrado_busqueda(
+                                            carta_selecionada = false,
+                                            filtrado = "Ver todos",
+                                            btn_visible = false,
+                                            clik_card = {
+                                                verTodos = true
+                                            },
+                                            onClick_delete = {}
+                                        )
+                                    }
+                                }
+                            }
+
+                        } else {
+                            FlowRow(
+                                maxItemsInEachRow = 3,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                subcategorias_obtenidas.forEach { subcategoria ->
+
+                                    val seleccionado =
+                                        subcategoriasSeleccionadas.contains(subcategoria)
+
+                                    chisp_filtrado_busqueda(
+                                        carta_selecionada = seleccionado,
+                                        filtrado = subcategoria.capitalizeFirst(),
+                                        btn_visible = false,
+                                        clik_card = {
+                                            viewModel.toggle_subcategoria(subcategoria)
+                                        },
+                                        onClick_delete = {}
+                                    )
+                                }
                             }
                         }
                     }
@@ -430,6 +488,24 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
 //                            )
 //                        }
                 }
+                if (categoriaSeleccionada.isNotEmpty() || !rango_precio.isNullOrEmpty() || !comodidad_selet.isNullOrEmpty() || !metodo_pago.isNullOrEmpty())
+                    item {
+                        Button(onClick = {
+                            val data = datos_para_filtrado_manual(
+                                categoria = categoriaSeleccionada,
+                                subcategorias = subcategoriasSeleccionadas.toList(),
+                                rango_precio = rango_precio,
+                                pagos = metodo_pago.toList(),
+                                comodidades = comodidad_selet.toList(),
+                                localidad = "barranca"
+                            )
+                            viewModel.busqueda_manual_filtrado(data)
+                            onClose()
+                        }, modifier = Modifier.fillMaxWidth()) {
+                            texto_generico_one_line("Aplicar Filtros")
+                        }
+                    }
+
             }
         }
     }
@@ -572,6 +648,7 @@ fun chisp_filtrado_busqueda_resultados_busqueda(
     }
 
 }
+
 fun obtenerRangoDesdePrecio(precio: Int?): String? {
     if (precio == null) return null
 

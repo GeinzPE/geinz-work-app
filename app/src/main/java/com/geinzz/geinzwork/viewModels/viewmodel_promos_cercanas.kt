@@ -24,6 +24,8 @@ import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.PromoConMatc
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.ResAlgoliaFiltrado
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.RespuestaGemini
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.datos_para_filtrado_manual
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.filtrado_feed_promociones
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.tiendas_con_mas_de_una_promo
 import com.geinzz.geinzwork.model.repo_promos_cercanas
@@ -69,12 +71,14 @@ class viewmodel_promos_cercanas : ViewModel() {
         texto_usser_buscado.value = txt
     }
 
-    private val _obtener_categorias = MutableStateFlow<List<String>>(emptyList())
-    val obtener_categorias: StateFlow<List<String>> = _obtener_categorias
+    private val _obtener_categorias = MutableStateFlow<List<filtrado_feed_promociones>>(emptyList())
+    val obtener_categorias: StateFlow<List<filtrado_feed_promociones>> = _obtener_categorias
 
+    init {
+        Log.d("VM_INIT", "🔥 ViewModel creado - cargando categorias")
+        obtener_filtrado_Categorias()
+    }
 
-    private val _obtener_subcategorias = MutableStateFlow<List<String>>(emptyList())
-    val obtener_subcategorias: StateFlow<List<String>> = _obtener_subcategorias
 
 
     fun eliminarItem(item: String) {
@@ -166,6 +170,7 @@ class viewmodel_promos_cercanas : ViewModel() {
     private val _rangoPrecioSeleccionado = MutableStateFlow<String?>(null)
     val rangoPrecioSeleccionado: StateFlow<String?> = _rangoPrecioSeleccionado
 
+
     fun setearRangoPrecioDesdeNLP(rango: String?) {
         _rangoPrecioSeleccionado.value =
             if (_rangoPrecioSeleccionado.value == rango) {
@@ -175,7 +180,29 @@ class viewmodel_promos_cercanas : ViewModel() {
             }
     }
 
+    private val _subcategoria_seleccionada =
+        MutableStateFlow<List<String>>(emptyList())
 
+    val subcategoria_seleccionada: StateFlow<List<String>> =
+        _subcategoria_seleccionada
+
+    fun toggle_subcategoria(item: String) {
+        val actuales = _subcategoria_seleccionada.value.toMutableList()
+
+        _subcategoria_seleccionada.value =
+            if (actuales.contains(item)) {
+                actuales - item
+            } else {
+                actuales + item
+            }
+    }
+    private val _categoria_seleccionada = MutableStateFlow("")
+    val categoria_seleccionada: StateFlow<String> = _categoria_seleccionada
+
+    fun toggleCategoria(cat: String) {
+        _categoria_seleccionada.value =
+            if (_categoria_seleccionada.value == cat) "" else cat
+    }
     @RequiresApi(Build.VERSION_CODES.O)
     fun cargarSiguienteBloque(
         localidad: String,
@@ -242,8 +269,7 @@ class viewmodel_promos_cercanas : ViewModel() {
     private val categoriasDisponibles =
         MutableStateFlow<List<String>>(emptyList())
 
-    val _categoriasDisponibles: StateFlow<List<String>> =
-        categoriasDisponibles.asStateFlow()
+
 
     private val _estadoPromos =
         MutableStateFlow<estado_carga_promociones>(
@@ -286,22 +312,22 @@ class viewmodel_promos_cercanas : ViewModel() {
         }
     }
 
-    fun obtener_subcategorias(categoira: String) {
-        viewModelScope.launch {
-            try {
-                val res = repo.obtener_subcategorias(categoira)
-                if (res.isNotEmpty()) {
-                    _obtener_subcategorias.value = res
-                } else {
-                    _obtener_subcategorias.value = emptyList()
-                }
-            } catch (e: Exception) {
-                Log.d("error_obtenr_cat", "$e")
-                _obtener_subcategorias.value = emptyList()
-
-            }
-        }
-    }
+//    fun obtener_subcategorias(categoira: String) {
+//        viewModelScope.launch {
+//            try {
+//                val res = repo.obtener_subcategorias(categoira)
+//                if (res.isNotEmpty()) {
+//                    _obtener_subcategorias.value = res
+//                } else {
+//                    _obtener_subcategorias.value = emptyList()
+//                }
+//            } catch (e: Exception) {
+//                Log.d("error_obtenr_cat", "$e")
+//                _obtener_subcategorias.value = emptyList()
+//
+//            }
+//        }
+//    }
 
     fun retornar_lista_nuevamente() {
         _estadoPromos.value = estado_carga_promociones.succes(listaCompleta.value)
@@ -610,161 +636,161 @@ class viewmodel_promos_cercanas : ViewModel() {
             }
     }
 
-    fun filtrarPromociones(
-        categoria: String,
-        terminoNLP: String?,
-        atributosNLP: List<String?>
-    ) {
-
-        val base = listaCompleta.value
-
-        val metodoPago = metodosPagoSeleccionados.value
-        val comodidades = comodidadesSeleccionadas.value
-        val rangoPrecio = rangoPrecioSeleccionado.value
-
-        val listaUsuario = buildList {
-            terminoNLP?.let { termino ->
-                normalizar(termino)
-                    .split(" ")
-                    .filter { it.length > 2 }
-                    .forEach { add(it) }
-            }
-
-            atributosNLP.filterNotNull().forEach {
-                add(normalizar(it))
-            }
-        }
-
-        val filtradaConScore = base.mapNotNull { obj ->
-
-            val data = obj.dataclass_promociones_cerca_de_ti
-
-            // ✅ 1. CATEGORÍA
-            val cumpleCategoria = if (categoria == "Todos") {
-                true
-            } else {
-                data.informacion_publcacion.categoria
-                    .split(",")
-                    .any { it.trim().equals(categoria, ignoreCase = true) }
-            }
-
-            // ✅ 2. MÉTODOS DE PAGO
-            val cumpleMetodoPago = if (metodoPago.isEmpty()) {
-                true
-            } else {
-                metodoPago.any { metodo ->
-                    data.pagos[metodo] == true
-                }
-            }
-
-            // ✅ 3. COMODIDADES
-            val cumpleComodidades = if (comodidades.isEmpty()) {
-                true
-            } else {
-                comodidades.any { comod ->
-                    data.comodidades[comod] == true
-                }
-            }
-
-            // ✅ 4. PRECIO
-            val cumplePrecio = if (rangoPrecio.isNullOrEmpty()) {
-                true
-            } else {
-                val precio = data.precio.toDoubleOrNull()
-
-                if (precio == null) {
-                    false
-                } else {
-                    when (rangoPrecio) {
-                        "0 - 10" -> precio in 0.0..10.0
-                        "10 - 20" -> precio in 10.0..20.0
-                        "20 - 30" -> precio in 20.0..30.0
-                        "30 - 50" -> precio in 30.0..50.0
-                        "50 - 80" -> precio in 50.0..80.0
-                        "80 - 120" -> precio in 80.0..120.0
-                        "120 - 200" -> precio in 120.0..200.0
-                        "200 - 350" -> precio in 200.0..350.0
-                        "350 - 500" -> precio in 350.0..500.0
-                        "500 - 1000" -> precio in 500.0..1000.0
-                        "1000 - 2500" -> precio in 1000.0..2500.0
-                        "2500 - 5000" -> precio in 2500.0..5000.0
-                        "Mayor a 5000" -> precio > 5000.0
-                        else -> true
-                    }
-                }
-            }
-
-            // ✅ 5. NLP + SCORE
-            // ✅ 5. NLP + SCORE
-
-            val scoreNLP = if (listaUsuario.isEmpty()) {
-                1.0
-            } else {
-                calcularCoincidencia(listaUsuario, data.terminos_clave)
-            }
-
-            val cumpleNLP = listaUsuario.isEmpty() || scoreNLP >= 0.4
-
-            if (
-                cumpleCategoria &&
-                cumpleMetodoPago &&
-                cumpleComodidades &&
-                cumplePrecio &&
-                cumpleNLP
-            ) {
-
-                val porcentaje = if (listaUsuario.isEmpty()) {
-                    100
-                } else {
-                    (scoreNLP * 100).toInt()
-                }
-
-                // 🔥 LOG COMPLETO DEBUG
-                Log.d("DEBUG_MATCH", "----------------------------")
-                Log.d("DEBUG_MATCH", "Promo: ${data.informacion_publcacion.titulo}")
-                Log.d("DEBUG_MATCH", "Usuario términos: $listaUsuario")
-                Log.d("DEBUG_MATCH", "Promo términos: ${data.terminos_clave}")
-                Log.d("DEBUG_MATCH", "Score decimal: $scoreNLP")
-                Log.d("DEBUG_MATCH", "Porcentaje final: $porcentaje%")
-                Log.d("DEBUG_MATCH", "----------------------------")
-
-                Pair(obj, porcentaje)
-
-            } else {
-                null
-            }
-
-
-        }.sortedByDescending { it.second }
-
-        // 🔥 Construimos lista limpia + mapa %
-        val mapaPorcentajes = mutableMapOf<String, Int>()
-
-        val soloPromos = filtradaConScore.map { pair ->
-
-            val promo = pair.first
-            val porcentaje = pair.second
-
-            val id = promo.dataclass_promociones_cerca_de_ti
-                .informacion_publcacion.id_promocion
-
-            mapaPorcentajes[id] = porcentaje
-
-            // 🔥 LOG DEL %
-            Log.d(
-                "MATCH_NLP",
-                "Promo: ${promo.dataclass_promociones_cerca_de_ti.informacion_publcacion.titulo} -> $porcentaje%"
-            )
-
-            promo
-        }
-
-        // ✅ Actualizamos estados
-        listaFiltrada.value = soloPromos
-        _porcentajesMatch.value = mapaPorcentajes
-        _estadoPromos.value =
-            estado_carga_promociones.succes(soloPromos)
-    }
+//    fun filtrarPromociones(
+//        categoria: String,
+//        terminoNLP: String?,
+//        atributosNLP: List<String?>
+//    ) {
+//
+//        val base = listaCompleta.value
+//
+//        val metodoPago = metodosPagoSeleccionados.value
+//        val comodidades = comodidadesSeleccionadas.value
+//        val rangoPrecio = rangoPrecioSeleccionado.value
+//
+//        val listaUsuario = buildList {
+//            terminoNLP?.let { termino ->
+//                normalizar(termino)
+//                    .split(" ")
+//                    .filter { it.length > 2 }
+//                    .forEach { add(it) }
+//            }
+//
+//            atributosNLP.filterNotNull().forEach {
+//                add(normalizar(it))
+//            }
+//        }
+//
+//        val filtradaConScore = base.mapNotNull { obj ->
+//
+//            val data = obj.dataclass_promociones_cerca_de_ti
+//
+//            // ✅ 1. CATEGORÍA
+//            val cumpleCategoria = if (categoria == "Todos") {
+//                true
+//            } else {
+//                data.informacion_publcacion.categoria
+//                    .split(",")
+//                    .any { it.trim().equals(categoria, ignoreCase = true) }
+//            }
+//
+//            // ✅ 2. MÉTODOS DE PAGO
+//            val cumpleMetodoPago = if (metodoPago.isEmpty()) {
+//                true
+//            } else {
+//                metodoPago.any { metodo ->
+//                    data.pagos[metodo] == true
+//                }
+//            }
+//
+//            // ✅ 3. COMODIDADES
+//            val cumpleComodidades = if (comodidades.isEmpty()) {
+//                true
+//            } else {
+//                comodidades.any { comod ->
+//                    data.comodidades[comod] == true
+//                }
+//            }
+//
+//            // ✅ 4. PRECIO
+//            val cumplePrecio = if (rangoPrecio.isNullOrEmpty()) {
+//                true
+//            } else {
+//                val precio = data.precio.toDoubleOrNull()
+//
+//                if (precio == null) {
+//                    false
+//                } else {
+//                    when (rangoPrecio) {
+//                        "0 - 10" -> precio in 0.0..10.0
+//                        "10 - 20" -> precio in 10.0..20.0
+//                        "20 - 30" -> precio in 20.0..30.0
+//                        "30 - 50" -> precio in 30.0..50.0
+//                        "50 - 80" -> precio in 50.0..80.0
+//                        "80 - 120" -> precio in 80.0..120.0
+//                        "120 - 200" -> precio in 120.0..200.0
+//                        "200 - 350" -> precio in 200.0..350.0
+//                        "350 - 500" -> precio in 350.0..500.0
+//                        "500 - 1000" -> precio in 500.0..1000.0
+//                        "1000 - 2500" -> precio in 1000.0..2500.0
+//                        "2500 - 5000" -> precio in 2500.0..5000.0
+//                        "Mayor a 5000" -> precio > 5000.0
+//                        else -> true
+//                    }
+//                }
+//            }
+//
+//            // ✅ 5. NLP + SCORE
+//            // ✅ 5. NLP + SCORE
+//
+//            val scoreNLP = if (listaUsuario.isEmpty()) {
+//                1.0
+//            } else {
+//                calcularCoincidencia(listaUsuario, data.terminos_clave)
+//            }
+//
+//            val cumpleNLP = listaUsuario.isEmpty() || scoreNLP >= 0.4
+//
+//            if (
+//                cumpleCategoria &&
+//                cumpleMetodoPago &&
+//                cumpleComodidades &&
+//                cumplePrecio &&
+//                cumpleNLP
+//            ) {
+//
+//                val porcentaje = if (listaUsuario.isEmpty()) {
+//                    100
+//                } else {
+//                    (scoreNLP * 100).toInt()
+//                }
+//
+//                // 🔥 LOG COMPLETO DEBUG
+//                Log.d("DEBUG_MATCH", "----------------------------")
+//                Log.d("DEBUG_MATCH", "Promo: ${data.informacion_publcacion.titulo}")
+//                Log.d("DEBUG_MATCH", "Usuario términos: $listaUsuario")
+//                Log.d("DEBUG_MATCH", "Promo términos: ${data.terminos_clave}")
+//                Log.d("DEBUG_MATCH", "Score decimal: $scoreNLP")
+//                Log.d("DEBUG_MATCH", "Porcentaje final: $porcentaje%")
+//                Log.d("DEBUG_MATCH", "----------------------------")
+//
+//                Pair(obj, porcentaje)
+//
+//            } else {
+//                null
+//            }
+//
+//
+//        }.sortedByDescending { it.second }
+//
+//        // 🔥 Construimos lista limpia + mapa %
+//        val mapaPorcentajes = mutableMapOf<String, Int>()
+//
+//        val soloPromos = filtradaConScore.map { pair ->
+//
+//            val promo = pair.first
+//            val porcentaje = pair.second
+//
+//            val id = promo.dataclass_promociones_cerca_de_ti
+//                .informacion_publcacion.id_promocion
+//
+//            mapaPorcentajes[id] = porcentaje
+//
+//            // 🔥 LOG DEL %
+//            Log.d(
+//                "MATCH_NLP",
+//                "Promo: ${promo.dataclass_promociones_cerca_de_ti.informacion_publcacion.titulo} -> $porcentaje%"
+//            )
+//
+//            promo
+//        }
+//
+//        // ✅ Actualizamos estados
+//        listaFiltrada.value = soloPromos
+//        _porcentajesMatch.value = mapaPorcentajes
+//        _estadoPromos.value =
+//            estado_carga_promociones.succes(soloPromos)
+//    }
 
 
 
@@ -799,6 +825,55 @@ class viewmodel_promos_cercanas : ViewModel() {
 
 
 
+    fun busqueda_manual_filtrado(data:datos_para_filtrado_manual){
+        viewModelScope.launch {
+            try {
+                loading = true
+                _respuesta_gemini.value = estado_Carga_respuesta_gemini.loading
+                resultado_encontrado_algolia =
+                    withContext(Dispatchers.IO) {
+                repo.send_params_filter_manual(data)
+                    }
+                val resultadosOrdenados = resultado_encontrado_algolia?.resultados
+                    ?.sortedByDescending { it.score }
+                    ?.map {
+                        IdScore(it.id, it.score)
+                    }
+                if (resultadosOrdenados.isNullOrEmpty()) {
+                    _respuesta_gemini.value =
+                        estado_Carga_respuesta_gemini.empty("No encontré resultados")
+
+                    modoBusquedaIA = false
+
+
+                    return@launch
+                }
+                resultadosOrdenados?.let { lista ->
+                    viewModelScope.launch {
+                        val primerasPromos = obtenerPrimeraPaginaDesdeIds(lista)
+
+//                             🔥 ESTO FALTABA - inicializar el acumulado con la primera página
+                        _promosAcumuladas.value = primerasPromos
+                        listaCompleta.value = primerasPromos
+                        listaFiltrada.value = primerasPromos
+
+                        _respuesta_gemini.value = estado_Carga_respuesta_gemini.succes(
+                            cantidad = lista.size,
+                            items = primerasPromos
+                        )
+
+                        listaIdsConScore = lista.sortedByDescending { it.score }
+                        paginaActual_ = 1
+                        _hayMasPaginas.value = listaIdsConScore.size > PAGE_SIZE_IDS
+                        modoBusquedaIA = true
+                    }
+                }
+
+            }catch (e: Exception){
+                Log.d("e","error_eviar $e")
+            }
+        }
+    }
     fun procesar_nlp_open_ia(texto: String) {
         viewModelScope.launch {
             try {
@@ -823,11 +898,20 @@ class viewmodel_promos_cercanas : ViewModel() {
                             IdScore(it.id, it.score)
                         }
 
+                    if (resultadosOrdenados.isNullOrEmpty()) {
+                        _respuesta_gemini.value =
+                            estado_Carga_respuesta_gemini.empty("No encontré resultados")
+
+                        modoBusquedaIA = false
+
+
+                        return@launch
+                    }
                     resultadosOrdenados?.let { lista ->
                         viewModelScope.launch {
                             val primerasPromos = obtenerPrimeraPaginaDesdeIds(lista)
 
-                            // 🔥 ESTO FALTABA - inicializar el acumulado con la primera página
+//                             🔥 ESTO FALTABA - inicializar el acumulado con la primera página
                             _promosAcumuladas.value = primerasPromos
                             listaCompleta.value = primerasPromos
                             listaFiltrada.value = primerasPromos
@@ -844,9 +928,6 @@ class viewmodel_promos_cercanas : ViewModel() {
                         }
                     }
 
-//                    _respuesta_gemini.value = estado_Carga_respuesta_gemini.succes(
-//                        resultadosOrdenados?.size ?: 0
-//                    )
 
                     Log.d("ALGOLIA", "$resultadosOrdenados")
                 }
