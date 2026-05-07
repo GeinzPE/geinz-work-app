@@ -290,14 +290,17 @@ exports.filtrar_por_datos = onRequest(async (req, res) => {
     if (tipo === "bot") {
       resultados = resultados.slice(0, 3);
     }
-
-    console.log("🏆 TOP RESULTADOS:", resultados);
-
-    return res.status(200).json({
+    const data = {
       tipo,
       total: resultados.length,
       resultados,
-    });
+    };
+
+    if (tipo === "bot") {
+  data.momento_dia = horarioActual;
+}
+    console.log("🏆 TOP RESULTADOS:", resultados);
+return res.status(200).json(data);
   } catch (error) {
     console.error("❌ ERROR:", error);
     return res.status(500).json({ error: error.message });
@@ -332,7 +335,6 @@ exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
       removeStopWords: true,
     });
 
-    // 🔥 transformar igual que antes
     const LIMITE = 5;
 
     const data = hits
@@ -340,7 +342,7 @@ exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
       .slice(0, LIMITE)
       .map((hit) => ({
         id: hit.objectID,
-        titulo: hit.nombre || "", // 👈 mismo campo que antes
+        titulo: hit.nombre || "",
         descripcion: (hit.descripcion || "").substring(0, 150),
         img: hit.img || "",
         tipo: "turismo",
@@ -349,10 +351,13 @@ exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
     return res.status(200).json({
       ok: true,
       total: data.length,
+      momento_dia: obtenerMomentoDia(),
       data,
     });
+
   } catch (error) {
     console.error("Error búsqueda algolia turismo:", error);
+
     return res.status(500).json({
       ok: false,
       error: error.message,
@@ -365,6 +370,9 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
     const { localidad, nombre, search } = req.body;
 
     let filters = [];
+
+    // 🔥 SOLO UNA VEZ
+    const momento_dia = obtenerMomentoDia();
 
     if (localidad) {
       filters.push(`lugar:"${localidad}"`);
@@ -417,11 +425,13 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
 
     return res.status(200).json({
       ok: true,
+      momento_dia:momento_dia,
       total: data.length,
       data,
     });
   } catch (error) {
     console.error("Error búsqueda algolia turismo:", error);
+
     return res.status(500).json({
       ok: false,
       error: error.message,
@@ -436,6 +446,9 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
     const query = "";
 
     let filters = [];
+
+    // 🔥 SOLO UNA VEZ
+    const momento_dia = obtenerMomentoDia();
 
     if (localidad) {
       filters.push(`lugar:"${localidad}"`);
@@ -486,11 +499,13 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
 
     return res.status(200).json({
       ok: true,
+      momento_dia:momento_dia,
       total: data.length,
       data,
     });
   } catch (error) {
     console.error("Error búsqueda algolia turismo:", error);
+
     return res.status(500).json({
       ok: false,
       error: error.message,
@@ -675,30 +690,37 @@ exports.obtener_filtrado_manual_alogolia = onRequest(async (req, res) => {
     // 🔥 subcategorías
     if (subcategorias?.length > 0) {
       const subFilter = subcategorias
-        .map(s => `terminos_clave:"${s}"`)
+        .map((s) => `terminos_clave:"${s}"`)
         .join(" OR ");
       filters.push(`(${subFilter})`);
     }
 
     // 🔥 rango precio
     if (rango_precio) {
-      if (rango_precio === "0 - 10") filters.push("precio >= 0 AND precio <= 10");
-      if (rango_precio === "10 - 20") filters.push("precio >= 10 AND precio <= 20");
-      if (rango_precio === "20 - 30") filters.push("precio >= 20 AND precio <= 30");
-      if (rango_precio === "30 - 50") filters.push("precio >= 30 AND precio <= 50");
-      if (rango_precio === "50 - 80") filters.push("precio >= 50 AND precio <= 80");
+      if (rango_precio === "0 - 10")
+        filters.push("precio >= 0 AND precio <= 10");
+      if (rango_precio === "10 - 20")
+        filters.push("precio >= 10 AND precio <= 20");
+      if (rango_precio === "20 - 30")
+        filters.push("precio >= 20 AND precio <= 30");
+      if (rango_precio === "30 - 50")
+        filters.push("precio >= 30 AND precio <= 50");
+      if (rango_precio === "50 - 80")
+        filters.push("precio >= 50 AND precio <= 80");
       if (rango_precio === "Mayor a 5000") filters.push("precio > 5000");
     }
 
     // 🔥 pagos
     if (pagos?.length > 0) {
-      const pagosFilter = pagos.map(p => `pagos:"${p}"`).join(" OR ");
+      const pagosFilter = pagos.map((p) => `pagos:"${p}"`).join(" OR ");
       filters.push(`(${pagosFilter})`);
     }
 
     // 🔥 comodidades
     if (comodidades?.length > 0) {
-      const comodFilter = comodidades.map(c => `comodidades:"${c}"`).join(" OR ");
+      const comodFilter = comodidades
+        .map((c) => `comodidades:"${c}"`)
+        .join(" OR ");
       filters.push(`(${comodFilter})`);
     }
 
@@ -717,7 +739,7 @@ exports.obtener_filtrado_manual_alogolia = onRequest(async (req, res) => {
     });
 
     // 🔥 NORMALIZACIÓN (IMPORTANTE)
-    const resultados = response.hits.map(h => ({
+    const resultados = response.hits.map((h) => ({
       id: h.objectID || "",
       score: 0, // puedes calcular si quieres
       precio: h.precio ?? 0,
@@ -731,12 +753,62 @@ exports.obtener_filtrado_manual_alogolia = onRequest(async (req, res) => {
       total: resultados.length,
       resultados,
     });
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: error.message });
   }
 });
+
+exports.agregar_historial_usuario = onRequest(async (req, res) => {
+  try {
+    const { numeroUser, contexto } = req.body;
+
+    // 🔍 Validación
+    if (!numeroUser) {
+      return res.status(400).json({ ok: false, error: "Falta numeroUser" });
+    }
+
+    // 🔥 Parse seguro del contexto
+    let contextoObj = null;
+
+    if (contexto) {
+      try {
+        contextoObj =
+          typeof contexto === "string" ? JSON.parse(contexto) : contexto;
+      } catch (e) {
+        console.error("❌ Error parseando contexto:", e);
+      }
+    }
+
+    // 📍 Referencia
+    const ref = admin
+      .firestore()
+      .doc(
+        `Trabajadores_Usuarios_Drivers/usuario_bot_geinz/usuario_bot_geinz/${numeroUser}`,
+      );
+
+    // 💾 Guardado con MERGE (NO sobreescribe todo)
+    await ref.set(
+      {
+        contexto: contextoObj,
+        updated_at: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }, // 🔥 CLAVE
+    );
+
+    return res.status(200).json({
+      ok: true,
+      mensaje: "Historial guardado correctamente",
+    });
+  } catch (error) {
+    console.error("🔥 ERROR GENERAL:", error);
+    return res.status(500).json({
+      ok: false,
+      error: "Error interno",
+    });
+  }
+});
+
 // ==================== culqui ====================
 exports.crearOrdenCulqi = onCall({ region: "us-central1" }, async (req) => {
   const { monto, userId, monedas, nombre, email, localidad } = req.data;
@@ -838,7 +910,7 @@ async function enviarPDFWhatsApp(numero, pdfUrl) {
           Authorization: `Bearer ${WHATSAPP_TOKEN}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     console.log("✅ PDF enviado correctamente:", res.data);
@@ -847,7 +919,7 @@ async function enviarPDFWhatsApp(numero, pdfUrl) {
   } catch (error) {
     console.error(
       "❌ ERROR ENVIANDO PDF WHATSAPP:",
-      error.response?.data || error.message
+      error.response?.data || error.message,
     );
 
     return false;
@@ -885,8 +957,8 @@ async function emitirBoletaNubefact({
       cliente_email: email || "",
 
       fecha_de_emision: new Date().toLocaleDateString("en-CA", {
-  timeZone: "America/Lima",
-}), // Formato DD-MM-YYYY[cite: 1]
+        timeZone: "America/Lima",
+      }), // Formato DD-MM-YYYY[cite: 1]
       moneda: 1, // 1 = SOLES[cite: 1]
       porcentaje_de_igv: 18.0, //[cite: 1]
 
@@ -1433,6 +1505,7 @@ exports.verificar_usuario_asistente = onRequest(async (req, res) => {
         estado_cuenta: data.status || "activo",
         fecha_bloqueo: data.fecha_bloqueo || null,
         motivo_bloqueo: data.motivo_bloqueo || "",
+        contexto: data.contexto || null,
       });
     }
 
@@ -1454,6 +1527,7 @@ exports.verificar_usuario_asistente = onRequest(async (req, res) => {
       estado_cuenta: "activo",
       fecha_bloqueo: null,
       motivo_bloqueo: "",
+      contexto: data.contexto || null,
     });
   } catch (error) {
     console.error(error);
@@ -2171,6 +2245,18 @@ function verificar_apertura_tienda(horario_atencion) {
   }
 
   return false;
+}
+function obtenerMomentoDia() {
+  const hora = Number(
+    new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      hour12: false,
+      timeZone: "America/Lima",
+    }).format(new Date()),
+  );
+
+  if (hora < 12) return hora >= 6 ? "manana" : "noche";
+  return hora < 18 ? "tarde" : "noche";
 }
 
 exports.obtenerCategorias = onRequest(async (req, res) => {
