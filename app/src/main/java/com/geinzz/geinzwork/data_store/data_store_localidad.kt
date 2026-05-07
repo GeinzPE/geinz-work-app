@@ -250,6 +250,7 @@ object data_store_localidad {
     }
 
     fun get_dialog_notifi(context: Context): Flow<Boolean> {
+        Log.d("datapara_ver","$MOSTRAR_DIALOG_NOTI")
         return context.dataStore.data.map { pref ->
             pref[MOSTRAR_DIALOG_NOTI] ?: false
         }

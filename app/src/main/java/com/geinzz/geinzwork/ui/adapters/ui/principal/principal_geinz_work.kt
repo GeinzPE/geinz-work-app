@@ -262,7 +262,12 @@ fun pantalla_principal(
     val dialgo_notificacion by data_store_localidad.getNotificacion(context)
         .collectAsState(initial = false)
     val dialogo_notifi_ret by data_store_localidad.get_dialog_notifi(context)
-        .collectAsState(initial = false)
+        .collectAsState(initial = null)
+
+    LaunchedEffect(dialogo_notifi_ret) {
+
+    Log.d("nviomoticiaon","$dialgo_notificacion")
+    }
 
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     var id_respado_user by remember { mutableStateOf("") }
@@ -322,7 +327,7 @@ fun pantalla_principal(
         }
     }
 
-    if (!dialogo_notifi_ret) {
+    if (dialogo_notifi_ret==false) {
         permiso_primario_notifi(
             clik_si = {
                 scope.launch {
