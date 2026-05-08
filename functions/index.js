@@ -35,6 +35,7 @@ const fs = require("fs");
 const path = require("path");
 
 const db = admin.firestore();
+const FieldValue = admin.firestore.FieldValue; // 👈 solo aquí
 const OpenAI = require("openai");
 const { ref } = require("process");
 const APP_ID = process.env.ALGOLIA_APP_ID || "";
@@ -297,10 +298,10 @@ exports.filtrar_por_datos = onRequest(async (req, res) => {
     };
 
     if (tipo === "bot") {
-  data.momento_dia = horarioActual;
-}
+      data.momento_dia = horarioActual;
+    }
     console.log("🏆 TOP RESULTADOS:", resultados);
-return res.status(200).json(data);
+    return res.status(200).json(data);
   } catch (error) {
     console.error("❌ ERROR:", error);
     return res.status(500).json({ error: error.message });
@@ -308,6 +309,45 @@ return res.status(200).json(data);
 });
 
 // ==================== BUSQUEDA_ALGOLIA_BOT_GEINZ ====================
+
+exports.buscarNegocios_para_solucionar = onRequest(
+  { cors: true },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Método no permitido" });
+    }
+
+    const { termino } = req.body;
+
+    if (!termino || !termino.trim()) {
+      return res.status(400).json({ error: "Término requerido" });
+    }
+
+    try {
+      const { hits } = await index.search(termino.trim(), {
+        restrictSearchableAttributes: ["nombre"],
+        typoTolerance: true,
+        minWordSizefor1Typo: 4,
+        minWordSizefor2Typos: 8,
+        hitsPerPage: 10,
+        attributesToRetrieve: ["nombre", "img","id_tienda"],
+        attributesToHighlight: [],
+      });
+
+      const resultados = hits.map((hit) => ({
+        nombre: hit.nombre || "",
+        logo: hit.img || "",
+          id_tienda: hit.id_tienda || hit.objectID || "",
+
+      }));
+
+      return res.status(200).json({ ok: true, resultados });
+    } catch (err) {
+      logger.error("buscarNegocios error:", err);
+      return res.status(500).json({ error: "Error al buscar" });
+    }
+  },
+);
 
 exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
   try {
@@ -354,7 +394,6 @@ exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
       momento_dia: obtenerMomentoDia(),
       data,
     });
-
   } catch (error) {
     console.error("Error búsqueda algolia turismo:", error);
 
@@ -371,7 +410,6 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
 
     let filters = [];
 
-    // 🔥 SOLO UNA VEZ
     const momento_dia = obtenerMomentoDia();
 
     if (localidad) {
@@ -380,13 +418,34 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
 
     const query = nombre || "";
 
-    const { hits } = await index.search(query, {
+    let { hits } = await index.search(query, {
       filters: filters.join(" AND "),
       hitsPerPage: 20,
       typoTolerance: true,
       ignorePlurals: true,
       removeStopWords: true,
     });
+
+    // 🔥 FALLBACK: buscar en "nombre" y "parecidas" si no hay resultados
+    if (hits.length === 0 && query) {
+      const { hits: hitsFallback } = await index.search("", {
+        filters: filters.join(" AND "),
+        hitsPerPage: 100,
+      });
+
+      const queryNorm = query.toLowerCase().trim();
+
+      hits = hitsFallback.filter((h) => {
+        const enNombre = (h.nombre || "").toLowerCase().includes(queryNorm);
+        const enParecidas =
+          Array.isArray(h.parecidas) &&
+          h.parecidas.some(
+            (p) => typeof p === "string" && p.toLowerCase().includes(queryNorm)
+          );
+
+        return enNombre || enParecidas;
+      });
+    }
 
     const ids = hits.map((h) => h.objectID);
 
@@ -425,7 +484,7 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
 
     return res.status(200).json({
       ok: true,
-      momento_dia:momento_dia,
+      momento_dia: momento_dia,
       total: data.length,
       data,
     });
@@ -460,6 +519,33 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
 
     if (subcategoria) {
       filters.push(`tag:"${subcategoria}"`);
+    }
+    if (categoria) {
+      const refCat = db.collection("estadisticas").doc(categoria);
+
+      // Crea el doc si no existe, si ya existe no hace nada
+      refCat
+        .set({ categoria }, { merge: true })
+        .catch((e) => console.error("Stats init:", e));
+
+      refCat
+        .collection("busquedas_categoria")
+        .add({
+          timestamp: FieldValue.serverTimestamp(),
+          localidad: localidad || null,
+        })
+        .catch((e) => console.error("Stats cat:", e));
+
+      if (subcategoria) {
+        refCat
+          .collection("busquedas_subcategoria")
+          .add({
+            subcategoria: subcategoria,
+            timestamp: FieldValue.serverTimestamp(),
+            localidad: localidad || null,
+          })
+          .catch((e) => console.error("Stats sub:", e));
+      }
     }
 
     const { hits } = await index.search(query, {
@@ -499,7 +585,7 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
 
     return res.status(200).json({
       ok: true,
-      momento_dia:momento_dia,
+      momento_dia: momento_dia,
       total: data.length,
       data,
     });
@@ -512,6 +598,94 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
     });
   }
 });
+
+exports.agregar_error_firebase_bot = onRequest(async (req, res) => {
+  try {
+    // =========================
+    // VALIDAR MÉTODO
+    // =========================
+    if (req.method !== "POST") {
+      return res.status(405).json({
+        ok: false,
+        message: "Método no permitido",
+      });
+    }
+
+    // =========================
+    // BODY
+    // =========================
+    const {
+      usuario = "",
+      numero = "",
+      busqueda = "",
+      rama = "",
+      tipo = "",
+      nombre_detectado = null,
+      categoria = null,
+      subcategoria = null,
+    } = req.body;
+
+    // =========================
+    // VALIDACIÓN
+    // =========================
+    if (!usuario.trim()) {
+      return res.status(400).json({
+        ok: false,
+        message: "Usuario requerido",
+      });
+    }
+
+    // =========================
+    // REF FIREBASE
+    // =========================
+    const ref = db.collection("error_bot").doc();
+
+    // =========================
+    // PAYLOAD
+    // =========================
+    const payload = {
+      id: ref.id,
+
+      usuario,
+      numero,
+      busqueda,
+      rama,
+      estado:false,
+      data: {
+        tipo,
+        nombre_detectado,
+        categoria,
+        subcategoria,
+      },
+
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    // =========================
+    // GUARDAR
+    // =========================
+    await ref.set(payload);
+
+    // =========================
+    // RESPUESTA
+    // =========================
+    return res.status(201).json({
+      ok: true,
+      message: "Error guardado correctamente",
+      id: ref.id,
+    });
+
+  } catch (error) {
+    console.error("Error Firebase:", error);
+
+    return res.status(500).json({
+      ok: false,
+      message: "Error interno",
+      error: error.message,
+    });
+  }
+});
+
 
 async function obtenerDatosPorIds(localidad, ids) {
   const db = admin.firestore();
