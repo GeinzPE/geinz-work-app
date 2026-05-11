@@ -47,6 +47,7 @@ const index = client.initIndex("lugares");
 const openai = new OpenAI({
   apiKey: process.env.API_KEYO_OPEN_IA,
 });
+const similarity = require("string-similarity-js");
 
 // ==================== clasificador_IA ====================
 exports.extraerDatos = onRequest(async (req, res) => {
@@ -330,15 +331,14 @@ exports.buscarNegocios_para_solucionar = onRequest(
         minWordSizefor1Typo: 4,
         minWordSizefor2Typos: 8,
         hitsPerPage: 10,
-        attributesToRetrieve: ["nombre", "img","id_tienda"],
+        attributesToRetrieve: ["nombre", "img", "id_tienda"],
         attributesToHighlight: [],
       });
 
       const resultados = hits.map((hit) => ({
         nombre: hit.nombre || "",
         logo: hit.img || "",
-          id_tienda: hit.id_tienda || hit.objectID || "",
-
+        id_tienda: hit.id_tienda || hit.objectID || "",
       }));
 
       return res.status(200).json({ ok: true, resultados });
@@ -349,147 +349,302 @@ exports.buscarNegocios_para_solucionar = onRequest(
   },
 );
 
-exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
-  try {
-    const { localidad, nombre, subcategoria } = req.body;
-
-    let filters = [];
-
-    filters.push(`categoria:"turismo"`);
-
-    if (localidad) {
-      filters.push(`lugar:"${localidad}"`);
-    }
-
-    if (subcategoria) {
-      filters.push(`tag:"${subcategoria}"`);
-    }
-
-    const query = nombre || "";
-
-    const { hits } = await index.search(query, {
-      filters: filters.join(" AND "),
-      hitsPerPage: 20,
-      typoTolerance: true,
-      ignorePlurals: true,
-      removeStopWords: true,
-    });
-
-    const LIMITE = 5;
-
-    const data = hits
-      .sort(() => Math.random() - 0.5)
-      .slice(0, LIMITE)
-      .map((hit) => ({
-        id: hit.objectID,
-        titulo: hit.nombre || "",
-        descripcion: (hit.descripcion || "").substring(0, 150),
-        img: hit.img || "",
-        tipo: "turismo",
-      }));
-
-    return res.status(200).json({
-      ok: true,
-      total: data.length,
-      momento_dia: obtenerMomentoDia(),
-      data,
-    });
-  } catch (error) {
-    console.error("Error búsqueda algolia turismo:", error);
-
-    return res.status(500).json({
-      ok: false,
-      error: error.message,
-    });
-  }
-});
 
 exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
   try {
     const { localidad, nombre, search } = req.body;
 
-    let filters = [];
+    // =========================================================
+    // 🔥 FILTROS
+    // =========================================================
 
-    const momento_dia = obtenerMomentoDia();
+    const filters = [];
 
     if (localidad) {
       filters.push(`lugar:"${localidad}"`);
     }
 
-    const query = nombre || "";
+    // =========================================================
+    // 🔥 QUERY
+    // =========================================================
 
-    let { hits } = await index.search(query, {
-      filters: filters.join(" AND "),
-      hitsPerPage: 20,
-      typoTolerance: true,
-      ignorePlurals: true,
-      removeStopWords: true,
-    });
+    const query = (nombre || "").toLowerCase().trim();
 
-    // 🔥 FALLBACK: buscar en "nombre" y "parecidas" si no hay resultados
-    if (hits.length === 0 && query) {
-      const { hits: hitsFallback } = await index.search("", {
-        filters: filters.join(" AND "),
-        hitsPerPage: 100,
-      });
-
-      const queryNorm = query.toLowerCase().trim();
-
-      hits = hitsFallback.filter((h) => {
-        const enNombre = (h.nombre || "").toLowerCase().includes(queryNorm);
-        const enParecidas =
-          Array.isArray(h.parecidas) &&
-          h.parecidas.some(
-            (p) => typeof p === "string" && p.toLowerCase().includes(queryNorm)
-          );
-
-        return enNombre || enParecidas;
+    if (!query) {
+      return res.status(200).json({
+        ok: true,
+        total: 0,
+        data: [],
       });
     }
 
+    // =========================================================
+    // 🔥 BÚSQUEDA NORMAL ALGOLIA
+    // =========================================================
+
+    let { hits } = await index.search(query, {
+      filters: filters.join(" AND "),
+
+      hitsPerPage: 10,
+
+      typoTolerance: true,
+      ignorePlurals: true,
+      removeStopWords: true,
+
+      attributesToRetrieve: [
+        "objectID",
+        "nombre",
+        "descripcion",
+        "lugar",
+        "categoria",
+        "imagen_bot",
+        "parecidas",
+        "tag",
+      ],
+    });
+
+    // =========================================================
+    // 🔥 RESULTADOS NORMALES
+    // =========================================================
+
+    if (hits.length > 0) {
+      hits = hits.map((h) => ({
+        ...h,
+        similarity: 1,
+        match_keyword: query,
+      }));
+    }
+
+    // =========================================================
+    // 🔥 FALLBACK INTELIGENTE
+    // =========================================================
+
+    if (hits.length === 0) {
+      const { hits: hitsFallback } = await index.search("", {
+        filters: filters.join(" AND "),
+
+        hitsPerPage: 150,
+
+        attributesToRetrieve: [
+          "objectID",
+          "nombre",
+          "descripcion",
+          "lugar",
+          "categoria",
+          "imagen_bot",
+          "parecidas",
+          "tag",
+        ],
+      });
+
+      hits = hitsFallback
+        .map((h) => {
+          let bestScore = 0;
+          let bestKeyword = null;
+
+          // =====================================================
+          // 🔥 NOMBRE
+          // =====================================================
+
+          if (typeof h.nombre === "string") {
+            const value = h.nombre.toLowerCase();
+
+            let score = similarity.stringSimilarity(
+              query,
+              value,
+            );
+
+            if (value.includes(query)) {
+              score += 0.20;
+            }
+
+            if (score > bestScore) {
+              bestScore = score;
+              bestKeyword = h.nombre;
+            }
+          }
+
+          // =====================================================
+          // 🔥 PARECIDAS
+          // =====================================================
+
+          if (Array.isArray(h.parecidas)) {
+            for (const p of h.parecidas) {
+              if (typeof p !== "string") continue;
+
+              const value = p.toLowerCase();
+
+              let score = similarity.stringSimilarity(
+                query,
+                value,
+              );
+
+              if (value.includes(query)) {
+                score += 0.20;
+              }
+
+              if (score > bestScore) {
+                bestScore = score;
+                bestKeyword = p;
+              }
+            }
+          }
+
+          // =====================================================
+          // 🔥 TAGS
+          // =====================================================
+
+          if (Array.isArray(h.tag)) {
+            for (const t of h.tag) {
+              if (typeof t !== "string") continue;
+
+              const value = t.toLowerCase();
+
+              let score = similarity.stringSimilarity(
+                query,
+                value,
+              );
+
+              if (value.includes(query)) {
+                score += 0.15;
+              }
+
+              if (score > bestScore) {
+                bestScore = score;
+                bestKeyword = t;
+              }
+            }
+          }
+
+          // =====================================================
+          // 🔥 CATEGORÍA
+          // =====================================================
+
+          if (typeof h.categoria === "string") {
+            const value = h.categoria.toLowerCase();
+
+            let score = similarity.stringSimilarity(
+              query,
+              value,
+            );
+
+            if (value.includes(query)) {
+              score += 0.10;
+            }
+
+            if (score > bestScore) {
+              bestScore = score;
+              bestKeyword = h.categoria;
+            }
+          }
+
+          // =====================================================
+          // 🔥 FILTRO FINAL
+          // =====================================================
+
+          if (bestScore >= 0.35) {
+            return {
+              ...h,
+              similarity: bestScore,
+              match_keyword: bestKeyword,
+            };
+          }
+
+          return null;
+        })
+
+        .filter(Boolean)
+
+        // 🔥 MEJORES RESULTADOS PRIMERO
+        .sort((a, b) => b.similarity - a.similarity)
+
+        // 🔥 LIMITAR
+        .slice(0, 10);
+    }
+
+    // =========================================================
+    // 🔥 IDS
+    // =========================================================
+
     const ids = hits.map((h) => h.objectID);
+
+    // =========================================================
+    // 🔥 EXTRA DATA
+    // =========================================================
 
     const extraData = await obtenerDatosPorIds(localidad, ids);
 
-    const LIMITE = 5;
+    // =========================================================
+    // 🔥 RESPUESTA FINAL
+    // =========================================================
 
-    const data = hits
-      .sort(() => Math.random() - 0.5)
-      .slice(0, LIMITE)
-      .map((hit) => {
-        const extra = extraData[hit.objectID] || {};
+    const data = hits.map((hit) => {
+      const extra = extraData[hit.objectID] || {};
 
-        const base = {
-          id: hit.objectID,
-          tienda: hit.nombre || "",
-          open_state: verificar_apertura_tienda(extra.horario),
-        };
+      const base = {
+        id: hit.objectID,
 
-        // 🔥 MODO SEARCH (RESPUESTA LIGERA)
-        if (search === true) {
-          return base;
-        }
+        tienda: hit.nombre || "",
 
-        // 🔥 MODO COMPLETO (NORMAL)
-        return {
-          ...base,
-          desc: (hit.descripcion || "").substring(0, 150),
-          loc: hit.lugar || "",
-          cat: hit.categoria || "",
-          img: hit.imagen_bot || "",
-          wha: extra.whatsapp || "",
-          tipo: "tienda",
-        };
-      });
+        open_state: verificar_apertura_tienda(
+          extra.horario,
+        ),
+
+        match_keyword: hit.match_keyword || null,
+
+        similarity: Number(
+          (hit.similarity || 0).toFixed(2),
+        ),
+      };
+
+      // =====================================================
+      // 🔥 RESPUESTA SIMPLE
+      // =====================================================
+
+      if (search === true) {
+        return base;
+      }
+
+      // =====================================================
+      // 🔥 RESPUESTA COMPLETA
+      // =====================================================
+
+      return {
+        ...base,
+
+        desc: (hit.descripcion || "").substring(
+          0,
+          150,
+        ),
+
+        loc: hit.lugar || "",
+
+        cat: hit.categoria || "",
+
+        img: hit.imagen_bot || "",
+
+        wha: extra.whatsapp || "",
+
+        tipo: "tienda",
+      };
+    });
+
+    // =========================================================
+    // 🔥 RESPONSE
+    // =========================================================
 
     return res.status(200).json({
       ok: true,
-      momento_dia: momento_dia,
+
       total: data.length,
+
       data,
     });
   } catch (error) {
-    console.error("Error búsqueda algolia turismo:", error);
+    console.error(
+      "❌ Error búsqueda tienda:",
+      error,
+    );
 
     return res.status(500).json({
       ok: false,
@@ -650,7 +805,7 @@ exports.agregar_error_firebase_bot = onRequest(async (req, res) => {
       numero,
       busqueda,
       rama,
-      estado:false,
+      estado: false,
       data: {
         tipo,
         nombre_detectado,
@@ -674,7 +829,6 @@ exports.agregar_error_firebase_bot = onRequest(async (req, res) => {
       message: "Error guardado correctamente",
       id: ref.id,
     });
-
   } catch (error) {
     console.error("Error Firebase:", error);
 
@@ -685,7 +839,6 @@ exports.agregar_error_firebase_bot = onRequest(async (req, res) => {
     });
   }
 });
-
 
 async function obtenerDatosPorIds(localidad, ids) {
   const db = admin.firestore();
