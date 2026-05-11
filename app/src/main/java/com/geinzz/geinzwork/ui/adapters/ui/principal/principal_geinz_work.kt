@@ -188,6 +188,7 @@ fun pantalla_principal(
     geinz_inmobiliaria:(String,String)-> Unit,
     navegacion_para_promos:(localida:String,id_prmo: String)-> Unit
 ) {
+
     firebaseAuth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -216,6 +217,7 @@ fun pantalla_principal(
     val promo by deepLinkVM.promo.collectAsState()
 
     var mostrarDialog by remember { mutableStateOf(false) }
+    val cargar_precio_activacione by viewmodel.preciosState.collectAsState()
 
 
     val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(
@@ -591,6 +593,7 @@ fun pantalla_principal(
                 if (mostrar_widget_tienda && isConnected) {
                     spacer_vertical(10.dp)
                     baner_widget_tienda_geinz_baner(
+                        cargar_precio_activacione,
                         viewmodel_recargas,
                         switchActivo, motivo_cierre,
                         context = context,

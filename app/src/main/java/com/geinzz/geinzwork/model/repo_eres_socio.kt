@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import com.geinzz.geinzwork.data.model.DatosDemograficosUsuario
 import com.geinzz.geinzwork.data.model.DatosPublicidadIA
+import com.geinzz.geinzwork.data.model.PreciosApp
 import com.geinzz.geinzwork.data.model.agregar_promociones
 import com.geinzz.geinzwork.data.model.contenido_publicidad
 import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
@@ -107,6 +108,21 @@ class repo_eres_socio {
 
     private val db_sec: FirebaseFirestore by lazy {
         FirebaseSecundario.getFirestore()
+    }
+//    (cargar_precio_activacione?.publicidad?.mensajeWC ?:100).toString(),
+//    cargar_precio_activacione
+    suspend fun obtener_precios_generales(): PreciosApp? {
+        return try {
+            val document = db_sec.collection("precio_apartado").document("app").get().await()
+            if (document.exists()) {
+                document.toObject(PreciosApp::class.java)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            println("Error: 13123213${e.message}")
+            null
+        }
     }
 
     suspend fun agregar_descripcion_seo_bot(

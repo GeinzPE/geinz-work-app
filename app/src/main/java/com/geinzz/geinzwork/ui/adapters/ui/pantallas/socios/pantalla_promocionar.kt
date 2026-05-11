@@ -265,6 +265,8 @@ fun pantalla_promocionar(
     var tipo_notificacion_params_seleccionada by remember { mutableStateOf("") }
     var tipo_defecto by remember { mutableStateOf("") }
     var idSeleccionado by remember { mutableStateOf<String?>(null) }
+    val cargar_precio_activacione by viewmodel_socios.preciosState.collectAsState()
+
 //val tituloDescripcion_por_imagen by viewmodel_socios.tituloDescripcion.collectAsState()
     LaunchedEffect(predeterminado.id_generacion_sin_publicar) {
         Log.d("nomralid", "${predeterminado.id_generacion_sin_publicar}")
@@ -478,9 +480,9 @@ fun pantalla_promocionar(
     var diasEntre by remember { mutableStateOf<Int?>(null) }
     var dias_restantes_pr by remember { mutableStateOf(0) }
     val formato_notificacion_nombre_precio = listOf(
-        nombre_precio_notificaciones("Basico", 5),
-        nombre_precio_notificaciones("Avanzado", 15),
-        nombre_precio_notificaciones("Premium", 25)
+        nombre_precio_notificaciones("Basico", (cargar_precio_activacione?.planesNotificaciones?.formatoBasico ?:100)),
+        nombre_precio_notificaciones("Avanzado", (cargar_precio_activacione?.planesNotificaciones?.formatoAvanzado ?:100)),
+        nombre_precio_notificaciones("Premium", (cargar_precio_activacione?.planesNotificaciones?.formatoPrimiun ?:100))
     )
     val lista_tipo_promocion =
         listOf(nombre_precio_notificaciones("horas", 3), nombre_precio_notificaciones("dias", 30))
@@ -492,8 +494,8 @@ fun pantalla_promocionar(
     )
 
     val prioridad_notificacion_precio_nombre = listOf(
-        nombre_precio_notificaciones("high", 20),
-        nombre_precio_notificaciones("normal", 10),
+        nombre_precio_notificaciones("high", (cargar_precio_activacione?.planesNotificaciones?.prioridadAlta ?:100)),
+        nombre_precio_notificaciones("normal", (cargar_precio_activacione?.planesNotificaciones?.prioridadNormal?:100)),
     )
 
     val seleccionInicial: OpcionPromocionIA? = predeterminado.datos_generaciones?.let { datos ->
@@ -861,7 +863,7 @@ fun pantalla_promocionar(
     LaunchedEffect(hora_escrita) {
         if (hora_escrita.isNotEmpty()) {
             if (hora_escrita.toInt() != 0) {
-                monedas_costo_publicidad = cobroMonedas("horas", hora_escrita.toInt()).toString()
+                monedas_costo_publicidad = cobroMonedas("horas", hora_escrita.toInt(),(cargar_precio_activacione?.publicidad?.publicacion24h ?:100),(cargar_precio_activacione?.publicidad?.publicacionPorHora ?:100)).toString()
             }
         }
     }
@@ -1268,6 +1270,7 @@ fun pantalla_promocionar(
         animationSpec = tween(durationMillis = 500)
     )
     var precio_por_notificacion_general by remember { mutableStateOf(0) }
+
     val botonHabilitado by derivedStateOf {
         val horas = hora_escrita.toLongOrNull() ?: 0L // si está vacío o inválido, lo considera 0
         viewmodel_pantalla_promocionar.titulo.isNotEmpty() &&
@@ -1423,7 +1426,7 @@ fun pantalla_promocionar(
                                 val primeraImagen = imagenes.firstOrNull()
                                 primeraImagen?.uri?.let { uri ->
                                     viewmodel_pantalla_promocionar.generar_texto_descripcion_con_IA_desde_imagen(
-                                        i.localidad_tienda, i.id_tienda, i.nombre_tienda, 50, i.saldo.toInt(),
+                                        i.localidad_tienda, i.id_tienda, i.nombre_tienda, (cargar_precio_activacione?.publicidad?.iaImagenTexto ?:100), i.saldo.toInt(),
                                         tipo_promp_para_mandar_img_IA,
                                         context,
                                         uri
@@ -1432,7 +1435,7 @@ fun pantalla_promocionar(
                                 }else{
                                     mostar_scope_falta_de_saldo=true
                                 }
-                            }, "Generar contenido", "50")
+                            }, "Generar contenido", (cargar_precio_activacione?.publicidad?.iaImagenTexto ?:100).toString())
                         }
                         spacer_vertical(10.dp)
 
@@ -1639,7 +1642,7 @@ fun pantalla_promocionar(
                                                         descripcionUsuario = viewmodel_pantalla_promocionar.descripcion,
                                                         nombreTienda = i.nombre_tienda,
                                                         localidad = i.localidad_tienda,
-                                                        "30",
+                                                        (cargar_precio_activacione?.publicidad?.mejoraTextoX3 ?:100).toString(),
                                                         "Gen IA (Promociones X3)"
                                                     )
                                                     listaOpcionesIA = emptyList()
@@ -1701,7 +1704,7 @@ fun pantalla_promocionar(
                                                 )
                                                 spacer_horizonta(5.dp)
                                                 texto_generico_one_line(
-                                                    "30",
+                                                    (cargar_precio_activacione?.publicidad?.mejoraTextoX3 ?:100).toString(),
                                                     style = MaterialTheme.typography.bodyMedium
                                                 )
                                                 spacer_horizonta(5.dp)
@@ -1868,6 +1871,7 @@ fun pantalla_promocionar(
                                                 onClick = {
                                                     if (!cargando) {
                                                         viewmodel_pantalla_promocionar.mejorar_texto_perzonalizado_whatsapp(
+                                                            (cargar_precio_activacione?.publicidad?.mensajeWC ?:100).toString(),
                                                             monedas_tienda,
                                                             localidad_tienda = i.localidad_tienda,
                                                             id_tienda = i.id_tienda,
@@ -1925,7 +1929,7 @@ fun pantalla_promocionar(
                                                         )
                                                         spacer_horizonta(5.dp)
                                                         texto_generico_one_line(
-                                                            "10",
+                                                            (cargar_precio_activacione?.publicidad?.mensajeWC ?:100).toString(),
                                                             style = MaterialTheme.typography.bodyMedium
                                                         )
                                                         spacer_horizonta(5.dp)
@@ -2038,6 +2042,7 @@ fun pantalla_promocionar(
                                                 onClick = {
                                                     if (!cargando) {
                                                         viewmodel_pantalla_promocionar.mejorar_texto_perzonalizado_compatir(
+                                                            (cargar_precio_activacione?.publicidad?.mensajeWC ?:100).toString(),
                                                             monedas_tienda,
                                                             localidad_tienda = i.localidad_tienda,
                                                             id_tienda = i.id_tienda,
@@ -2095,7 +2100,7 @@ fun pantalla_promocionar(
                                                         )
                                                         spacer_horizonta(5.dp)
                                                         texto_generico_one_line(
-                                                            "10",
+                                                            (cargar_precio_activacione?.publicidad?.mensajeWC ?:100).toString(),
                                                             style = MaterialTheme.typography.bodyMedium
                                                         )
                                                         spacer_horizonta(5.dp)
@@ -2595,7 +2600,7 @@ fun pantalla_promocionar(
                             horizontalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
                             texto_generico_one_line(
-                                "inversión por hora : 3/h",
+                                "inversión por hora : ${ (cargar_precio_activacione?.publicidad?.publicacionPorHora ?:100).toString()}/h",
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             Image(
@@ -2687,7 +2692,7 @@ fun pantalla_promocionar(
                             horizontalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
                             texto_generico_one_line(
-                                "inversión por días : 30",
+                                "inversión por días : ${(cargar_precio_activacione?.publicidad?.publicacion24h ?:100).toString()}",
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             Image(
@@ -2756,7 +2761,7 @@ fun pantalla_promocionar(
                         ) {
                             val monedas_total = cobroMonedas(
                                 "dias",
-                                dias_restantes_pr
+                                dias_restantes_pr,(cargar_precio_activacione?.publicidad?.publicacion24h ?:100),(cargar_precio_activacione?.publicidad?.publicacionPorHora ?:100),
                             ).toString()
                             monedas_costo_publicidad = monedas_total
                             Row(
@@ -3411,6 +3416,7 @@ fun pantalla_promocionar(
                                                             tipo_promp_seleccionado_IA_notificicaciones?.let { tipoSeleccionado ->
 
                                                                 viewmodel_pantalla_promocionar.mejorar_mejorar_notificacion_con_IA_corta(
+                                                                    (cargar_precio_activacione?.planesNotificaciones?.mejoraIaTD ?:100).toString(),
                                                                     tipo_select_IA = textoTipo,
                                                                     tipoSeleccionado = tipoSeleccionado,
                                                                     saldo_tienda = monedas_tienda,
@@ -3487,7 +3493,7 @@ fun pantalla_promocionar(
                                                                 )
                                                                 spacer_horizonta(5.dp)
                                                                 texto_generico_one_line(
-                                                                    "20",
+                                                                    (cargar_precio_activacione?.planesNotificaciones?.mejoraIaTD ?:100).toString(),
                                                                     style = MaterialTheme.typography.bodyMedium
                                                                 )
                                                                 spacer_horizonta(5.dp)
@@ -3677,6 +3683,7 @@ fun pantalla_promocionar(
                                                         onClick = {
                                                             if (!cargando) {
                                                                 viewmodel_pantalla_promocionar.mejorar_texto_perzonalizado_whatsapp_notificacion(
+                                                                    (cargar_precio_activacione?.planesNotificaciones?.mejoraDescripcionWsap ?:100).toString(),
                                                                     monedas_tienda,
                                                                     localidad_tienda = i.localidad_tienda,
                                                                     id_tienda = i.id_tienda,
@@ -3738,7 +3745,7 @@ fun pantalla_promocionar(
                                                                 )
                                                                 spacer_horizonta(5.dp)
                                                                 texto_generico_one_line(
-                                                                    "10",
+                                                                    (cargar_precio_activacione?.planesNotificaciones?.mejoraDescripcionWsap ?:100).toString(),
                                                                     style = MaterialTheme.typography.bodyMedium
                                                                 )
                                                                 spacer_horizonta(5.dp)
@@ -4793,11 +4800,11 @@ fun SelectorOpcionesPromocionIA(
 }
 
 
-fun cobroMonedas(tipo: String, dias_horas: Int): Int {
+fun cobroMonedas(tipo: String, dias_horas: Int,precio_dias_:Int,precio_horas:Int): Int {
     Log.d("hrgdfjbvsdfigbisd", "$tipo $dias_horas")
     return when (tipo.lowercase()) {
-        "dias" -> dias_horas * 30
-        "horas" -> dias_horas * 3
+        "dias" -> dias_horas * precio_dias_
+        "horas" -> dias_horas * precio_horas
         else -> throw IllegalArgumentException("Tipo inválido: $tipo")
     }
 }

@@ -528,6 +528,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
 
     fun mejorar_mejorar_notificacion_con_IA_corta(
+        precio_moneda:String,
         tipo_select_IA: String,
         tipoSeleccionado: repo_pantallas_promocionar.TipoGeneracionIA,
         saldo_tienda: Int,
@@ -593,10 +594,10 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                             localidad_tienda = localidad_tienda,
                             id_tienda = id_tienda,
                             nombre_tienda = nombre_tienda,
-                            monto_descuento = "20",
+                            monto_descuento = precio_moneda,
                             tipo = tipo_select_IA,
                             precio_soles = constantes_cobro_monedas
-                                .calcular_precio_soles("20")
+                                .calcular_precio_soles(precio_moneda)
                                 .toString(),
                             estado = "Aceptado",
                             monto_restante = saldo_tienda - 20
@@ -604,7 +605,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
                         viewmodel_recargas.restar_puntos_recarga(
                             historial_descuento,
-                            "20",
+                            precio_moneda,
                             id_tienda,
                             localidad_tienda
                         )
@@ -631,6 +632,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
 
     fun mejorar_texto_perzonalizado_whatsapp(
+        monto_descuento:String,
         saldo_tienda: Int,
         localidad_tienda: String,
         id_tienda: String,
@@ -694,10 +696,10 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                         localidad_tienda = localidad_tienda,
                         id_tienda = id_tienda,
                         nombre_tienda = nombre_tienda,
-                        monto_descuento = "10",
+                        monto_descuento = monto_descuento,
                         tipo = "Gen IA (Mensaje WhatsApp personalizado)",
                         precio_soles = constantes_cobro_monedas
-                            .calcular_precio_soles("10")
+                            .calcular_precio_soles(monto_descuento)
                             .toString(),
                         estado = "Aceptado",
                         monto_restante = saldo_tienda - 10
@@ -705,7 +707,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
                     viewmodel_recargas.restar_puntos_recarga(
                         historial,
-                        "10",
+                        monto_descuento,
                         id_tienda,
                         localidad_tienda
                     )
@@ -726,6 +728,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
 
     fun mejorar_texto_perzonalizado_whatsapp_notificacion(
+        descuento_monedas:String,
         saldo_tienda: Int,
         localidad_tienda: String,
         id_tienda: String,
@@ -789,10 +792,10 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                         localidad_tienda = localidad_tienda,
                         id_tienda = id_tienda,
                         nombre_tienda = nombre_tienda,
-                        monto_descuento = "10",
+                        monto_descuento = descuento_monedas,
                         tipo = "Gen IA (Mensaje WhatsApp personalizado)",
                         precio_soles = constantes_cobro_monedas
-                            .calcular_precio_soles("10")
+                            .calcular_precio_soles(descuento_monedas)
                             .toString(),
                         estado = "Aceptado",
                         monto_restante = saldo_tienda - 10
@@ -800,7 +803,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
                     viewmodel_recargas.restar_puntos_recarga(
                         historial,
-                        "10",
+                        descuento_monedas,
                         id_tienda,
                         localidad_tienda
                     )
@@ -821,6 +824,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
 
     fun mejorar_texto_perzonalizado_compatir(
+        monoto_monedas:String,
         saldo_tienda: Int,
         localidad_tienda: String,
         id_tienda: String,
@@ -883,10 +887,10 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                         localidad_tienda = localidad_tienda,
                         id_tienda = id_tienda,
                         nombre_tienda = nombre_tienda,
-                        monto_descuento = "10",
+                        monto_descuento = monoto_monedas,
                         tipo = "Gen IA (Mensaje para compartir)",
                         precio_soles = constantes_cobro_monedas
-                            .calcular_precio_soles("10")
+                            .calcular_precio_soles(monoto_monedas)
                             .toString(),
                         estado = "Aceptado",
                         monto_restante = saldo_tienda - 10
@@ -894,7 +898,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
                     viewmodel_recargas.restar_puntos_recarga(
                         historial,
-                        "10",
+                        monoto_monedas,
                         id_tienda,
                         localidad_tienda
                     )
@@ -913,6 +917,18 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         }
     }
 
+    fun calcularDescuentoPorBloques(bloques: Int): Double {
+        return when {
+            bloques >= 50 -> 0.50  // 50% descuento
+            bloques >= 30 -> 0.35  // 35% descuento
+            bloques >= 20 -> 0.25  // 25% descuento
+            bloques >= 10 -> 0.15  // 15% descuento
+            bloques >= 5  -> 0.10  // 10% descuento
+            else          -> 0.0   // sin descuento
+        }
+    }
+
+
 
     fun calcularBloques(seguidores: Int): Int {
         if (seguidores < 10) return 0
@@ -930,9 +946,13 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         if (bloques == 0) return 0
 
         val costoPorBloque = costoTipo + costoPrioridad + costoFormato
-        return bloques * costoPorBloque
-    }
+        val costoTotal = bloques * costoPorBloque
 
+        val descuento = calcularDescuentoPorBloques(bloques)
+        val costoFinal = costoTotal * (1.0 - descuento)
+
+        return costoFinal.toInt()
+    }
 
     fun validarTexto(titulo: String, descripcion: String) {
         val resultado = valida_notificacion(titulo, descripcion)

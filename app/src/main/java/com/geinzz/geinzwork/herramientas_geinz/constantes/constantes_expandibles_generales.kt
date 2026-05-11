@@ -104,6 +104,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_textFi
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_textField_readonly
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.retornar_color_estado_tienda_Box
 import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.Descuentos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_sin_ubi__rutas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.crearBitmapPin
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas.chips_subcategorias_negocio
@@ -220,6 +221,7 @@ object constantes_expandibles_generales {
     @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun expandibles_wrapp_socio_geinzz_datos_tienda(
+        lista_descuentos: List<Descuentos>,
         nombre_tienda: String,
         viewmodel_recargas: viewmodel_recargas,
         viewModelFiltros: viewmodel_eres_socio,
@@ -415,7 +417,7 @@ object constantes_expandibles_generales {
             }
         }
         if (por_renovar) {
-            dialog_renovar_plan(
+            dialog_renovar_plan(lista_descuentos,
                 saldo_disponible = datos_tienda_fechas.saldo_cuenta_tienda?.toLongOrNull() ?: 0L,
                 ondimis = { por_renovar = !por_renovar },
                 comprar = { total_cancelar, meses_agregados ->

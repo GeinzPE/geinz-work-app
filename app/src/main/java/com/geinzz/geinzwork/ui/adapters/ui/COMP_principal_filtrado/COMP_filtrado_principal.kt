@@ -99,6 +99,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
@@ -145,6 +146,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.PreciosApp
 import com.geinzz.geinzwork.data.model.datos_grafico
 import com.geinzz.geinzwork.data.model.datos_tienda
 import com.geinzz.geinzwork.data.model.datos_tienda_fechas
@@ -153,6 +155,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.Horario
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.widget_tienda
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.Descuentos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_cantidad_slado_geinz
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_renovar_plan
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.eres_socio_geinz
@@ -1922,6 +1925,7 @@ fun baner_servicios_basicos_(texto1:String,descripcion:String,img:Int,listener_s
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun baner_widget_tienda_geinz_baner(
+    cargar_precio_activacione: PreciosApp?,
     viewmodel_recargas:viewmodel_recargas,
     switchActivo: Boolean,
     motivo_cierre: String,
@@ -1979,6 +1983,54 @@ fun baner_widget_tienda_geinz_baner(
     val hCierrePM = remember { mutableStateOf(bloqueTarde?.h_cierre ?: "") }
 
     var por_removar by remember { mutableStateOf(false) }
+
+    val lista_descuentos = listOf(
+
+        Descuentos(
+            meses = "20 días",
+            icono_descuento = null,
+            descuento_off = "",
+            precio_anterior = "",
+            procentaje_ahorro = "",
+            porcentaje_int = 0, meses_agregados = "20 días"
+        ),
+        Descuentos(
+            meses = "1 mes",
+            icono_descuento = Icons.Filled.LocalFireDepartment,
+            descuento_off = "-5%off",
+            precio_anterior =(cargar_precio_activacione?.planesActivacion["1_mes"] ?: 0).toString(),
+            procentaje_ahorro = "5%",
+            porcentaje_int = 5, "1 mes"
+        ),
+
+        Descuentos(
+            meses = "2 meses",
+            icono_descuento = Icons.Filled.LocalFireDepartment,
+            descuento_off = "-10%off",
+            precio_anterior = (cargar_precio_activacione?.planesActivacion["2_meses"] ?: 0).toString(),
+            procentaje_ahorro = "10%",
+            porcentaje_int = 10, "2 mes"
+        ),
+
+        Descuentos(
+            meses = "3 meses",
+            icono_descuento = Icons.Filled.LocalFireDepartment,
+            descuento_off = "-20%off",
+            precio_anterior = (cargar_precio_activacione?.planesActivacion["3_meses"] ?: 0).toString(),
+            procentaje_ahorro = "20%",
+            porcentaje_int = 20, "3 mes"
+        ),
+
+        Descuentos(
+            meses = "4 meses",
+            icono_descuento = Icons.Filled.LocalFireDepartment,
+            descuento_off = "-30%off",
+            precio_anterior = (cargar_precio_activacione?.planesActivacion["4_meses"] ?: 0).toString(),
+            procentaje_ahorro = "30%",
+            porcentaje_int = 30, "4 mes"
+        )
+    )
+
 
     val puntosSeguros = item.total_puntos.toLongOrNull() ?: 0L
 // 🔥 Esto mantiene sincronizado el estado cuando Firebase cambia
@@ -2448,6 +2500,7 @@ fun baner_widget_tienda_geinz_baner(
     }
     if (por_removar) {
         dialog_renovar_plan(
+            lista_descuentos,
             puntosSeguros,
             { por_removar = !por_removar },
             { total_cancelar, meses_agregados ->

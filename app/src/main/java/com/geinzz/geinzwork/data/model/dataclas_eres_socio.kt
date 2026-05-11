@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.time.LocalDate
 import java.time.LocalDateTime
+import com.google.firebase.firestore.PropertyName
 
 data class datos_tienda(
     val id_tienda: String = "",
@@ -720,3 +721,63 @@ data class EstadoUI(
     val color: Color
 )
 
+
+
+
+data class PreciosApp(
+    @get:PropertyName("planes_activacion") @set:PropertyName("planes_activacion")
+    var planesActivacion: Map<String, Int> = emptyMap(),
+
+    @get:PropertyName("planes_bot_promo") @set:PropertyName("planes_bot_promo")
+    var planesBotPromo: PlanesBotPromo = PlanesBotPromo(),
+
+    @get:PropertyName("planes_bot_tiendas") @set:PropertyName("planes_bot_tiendas")
+    var planesBotTiendas: PlanesBotTiendas = PlanesBotTiendas(),
+
+    @get:PropertyName("planes_notificaciones") @set:PropertyName("planes_notificaciones")
+    var planesNotificaciones: PlanesNotificaciones = PlanesNotificaciones(),
+
+    @get:PropertyName("publicidad") @set:PropertyName("publicidad")
+    var publicidad: Publicidad = Publicidad()
+)
+
+data class PlanesBotPromo(val ficha: Int = 0)
+
+data class PlanesBotTiendas(
+    @get:PropertyName("ficha_primiun_wsap") @set:PropertyName("ficha_primiun_wsap")
+    var fichaPrimiunWsap: Int = 0
+)
+
+data class PlanesNotificaciones(
+    @get:PropertyName("envio_por_seguidores") @set:PropertyName("envio_por_seguidores")
+    var envioPorSeguidores: Int = 0,
+    @get:PropertyName("formato_avanzado") @set:PropertyName("formato_avanzado")
+    var formatoAvanzado: Int = 0,
+    @get:PropertyName("formato_basico") @set:PropertyName("formato_basico")
+    var formatoBasico: Int = 0,
+    @get:PropertyName("formato_primiun") @set:PropertyName("formato_primiun")
+    var formatoPrimiun: Int = 0,
+    @get:PropertyName("mejora_descripcion_wsap") @set:PropertyName("mejora_descripcion_wsap")
+    var mejoraDescripcionWsap: Int = 0,
+    @get:PropertyName("mejora_ia_t_d") @set:PropertyName("mejora_ia_t_d")
+    var mejoraIaTD: Int = 0,
+    @get:PropertyName("prioridad_alta") @set:PropertyName("prioridad_alta")
+    var prioridadAlta: Int = 0,
+    @get:PropertyName("prioridad_normal") @set:PropertyName("prioridad_normal")
+    var prioridadNormal: Int = 0
+)
+
+data class Publicidad(
+    @get:PropertyName("ceo_descripcion") @set:PropertyName("ceo_descripcion")
+    var ceoDescripcion: Int = 0,
+    @get:PropertyName("ia_imagen_texto") @set:PropertyName("ia_imagen_texto")
+    var iaImagenTexto: Int = 0,
+    @get:PropertyName("mejora_texto_x3") @set:PropertyName("mejora_texto_x3")
+    var mejoraTextoX3: Int = 0,
+    @get:PropertyName("mensaje_w_c") @set:PropertyName("mensaje_w_c")
+    var mensajeWC: Int = 0,
+    @get:PropertyName("publicacion_24h") @set:PropertyName("publicacion_24h")
+    var publicacion24h: Int = 0,
+    @get:PropertyName("publicacion_por_hora") @set:PropertyName("publicacion_por_hora")
+    var publicacionPorHora: Int = 0
+)

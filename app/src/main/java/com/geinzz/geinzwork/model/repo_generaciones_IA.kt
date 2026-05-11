@@ -53,6 +53,8 @@ import java.io.IOException
 import java.time.ZoneId
 
 import android.provider.MediaStore
+import com.geinzz.geinzwork.data.model.PreciosApp
+import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
 import com.geinzz.geinzwork.herramientas_geinz.constantes.proms_gen_IA.generar_texto_desde_imagen
 
 import kotlinx.coroutines.withContext
@@ -65,6 +67,22 @@ class repo_generaciones_IA {
 
     private val db = FirebaseFirestore.getInstance()
 
+    private val db2= FirebaseSecundario.getFirestore()
+
+
+    suspend fun obtener_precios_generales(): PreciosApp? {
+        return try {
+            val document = db2.collection("precio_apartado").document("app").get().await()
+            if (document.exists()) {
+                document.toObject(PreciosApp::class.java)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            println("Error: ${e.message}")
+            null
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("SuspiciousIndentation")

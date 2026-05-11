@@ -138,6 +138,7 @@ val lista_descuentos = listOf(
 
 @Composable
 fun dialog_renovar_plan(
+    lista_descuentos: List<Descuentos>,
     saldo_disponible: Long,
     ondimis: () -> Unit,
     comprar: (String, String) -> Unit
@@ -155,7 +156,7 @@ fun dialog_renovar_plan(
     AlertDialog(
         onDismissRequest = { ondimis() },
         confirmButton = {
-            Log.d("sdasdfdgafg2423", "$clikeado $saldo_dispopnible")
+
             if (clikeado && !saldo_dispopnible.contains("Te falta")) {
                 btn_aceptar_etc_dialog_general(txt_btn = "continuar") {
                     ondimis()

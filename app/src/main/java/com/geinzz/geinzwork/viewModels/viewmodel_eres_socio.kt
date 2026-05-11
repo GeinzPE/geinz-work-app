@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.DatosPublicidadIA
+import com.geinzz.geinzwork.data.model.PreciosApp
 import com.geinzz.geinzwork.data.model.agregar_promociones
 import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
 import com.geinzz.geinzwork.data.model.datos_generaciones_sin_publicaicones
@@ -52,6 +53,8 @@ import kotlinx.coroutines.withContext
 
 @RequiresApi(Build.VERSION_CODES.O)
 class viewmodel_eres_socio : ViewModel() {
+
+
     val instace_repo = repo_eres_socio()
 
 
@@ -77,6 +80,25 @@ class viewmodel_eres_socio : ViewModel() {
     val datos_publicidad_IA_params = MutableStateFlow(DatosPublicidadIA())
 
     val datos_notificaciones = MutableStateFlow(datos_notificacion())
+
+    private val _preciosState = MutableStateFlow<PreciosApp?>(null)
+    val preciosState: StateFlow<PreciosApp?> = _preciosState
+
+    init {
+        obtener_todos_precios()
+    }
+    fun obtener_todos_precios() {
+        viewModelScope.launch {
+            try {
+                val resultado = instace_repo.obtener_precios_generales()
+                _preciosState.value = resultado
+            } catch (e: Exception) {
+                Log.d("error", "adasdadasdadasd$e")
+            } finally {
+
+            }
+        }
+    }
 
     // StateFlow privado (mutable)
     private val _estado_Carga_subacategoria =

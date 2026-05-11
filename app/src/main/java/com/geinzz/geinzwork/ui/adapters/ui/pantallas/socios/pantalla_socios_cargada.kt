@@ -37,6 +37,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.Button
@@ -106,6 +107,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.text_expandib
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.Descuentos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_mostar_leyendas_graficos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialogo_cerrar_seccion_teinda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
@@ -162,6 +164,7 @@ fun pantalla_carga_socios(
         "QR creacion de ruta",
         "QR vistas de perfil"
     )
+    val cargar_precio_activacione by viewmodel_generacones_IA.preciosState.collectAsState()
     var fecha_termino by remember { mutableStateOf("") }
     var fotosAmbientales by remember { mutableStateOf<List<String>>(emptyList()) }
     var fotosServicios by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -227,6 +230,53 @@ fun pantalla_carga_socios(
             viewmodel.carga_img_tipo("servicios_productos", id_tienda)
         }
     }
+
+    val lista_descuentos = listOf(
+
+        Descuentos(
+            meses = "20 días",
+            icono_descuento = null,
+            descuento_off = "",
+            precio_anterior = "",
+            procentaje_ahorro = "",
+            porcentaje_int = 0, meses_agregados = "20 días"
+        ),
+        Descuentos(
+            meses = "1 mes",
+            icono_descuento = Icons.Filled.LocalFireDepartment,
+            descuento_off = "-5%off",
+            precio_anterior =(cargar_precio_activacione?.planesActivacion["1_mes"] ?: 0).toString(),
+            procentaje_ahorro = "5%",
+            porcentaje_int = 5, "1 mes"
+        ),
+
+        Descuentos(
+            meses = "2 meses",
+            icono_descuento = Icons.Filled.LocalFireDepartment,
+            descuento_off = "-10%off",
+            precio_anterior = (cargar_precio_activacione?.planesActivacion["2_meses"] ?: 0).toString(),
+            procentaje_ahorro = "10%",
+            porcentaje_int = 10, "2 mes"
+        ),
+
+        Descuentos(
+            meses = "3 meses",
+            icono_descuento = Icons.Filled.LocalFireDepartment,
+            descuento_off = "-20%off",
+            precio_anterior = (cargar_precio_activacione?.planesActivacion["3_meses"] ?: 0).toString(),
+            procentaje_ahorro = "20%",
+            porcentaje_int = 20, "3 mes"
+        ),
+
+        Descuentos(
+            meses = "4 meses",
+            icono_descuento = Icons.Filled.LocalFireDepartment,
+            descuento_off = "-30%off",
+            precio_anterior = (cargar_precio_activacione?.planesActivacion["4_meses"] ?: 0).toString(),
+            procentaje_ahorro = "30%",
+            porcentaje_int = 30, "4 mes"
+        )
+    )
 
     var values by remember { mutableStateOf(listOf<Float>()) }
 
@@ -1350,6 +1400,7 @@ fun pantalla_carga_socios(
                                 .animateContentSize() // ← Animación suave
                         ) {
                             expandibles_wrapp_socio_geinzz_datos_tienda(
+                                lista_descuentos,
                                 nombre_negocio, viewmodel_recargas = viewmodel_recargas,
                                 viewModelFiltros = viewmodel,
                                 context = context,

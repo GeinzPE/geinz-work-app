@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.NotificacionIA
 import com.geinzz.geinzwork.data.model.NotificacionIA_dialog
+import com.geinzz.geinzwork.data.model.PreciosApp
 import com.geinzz.geinzwork.data.model.datos_gen_IA_Tiendas
 import com.geinzz.geinzwork.data.model.dialog_generaciones_IA_promo_noti
 import com.geinzz.geinzwork.data.model.historial_descuento
@@ -102,6 +103,9 @@ class viewmodel_generaciones_IA : ViewModel() {
     var dias_restantes by mutableStateOf<Int?>(null)
 
 
+    init {
+        obtener_todos_precios()
+    }
     // Lista filtrada que la UI va a observar
     var listaFiltrada by mutableStateOf<List<datos_gen_IA_Tiendas>>(emptyList())
         private set
@@ -125,13 +129,37 @@ class viewmodel_generaciones_IA : ViewModel() {
     }
 
 
-    fun obtener_descripcion_generada_con_datos(data: String,localidad_tienda:String,nombre_tienda:String,id_tienda:String,total_cobrar:String,saldo_tienda: Int) {
+    private val _preciosState = MutableStateFlow<PreciosApp?>(null)
+    val preciosState: StateFlow<PreciosApp?> = _preciosState
+    fun obtener_todos_precios() {
+        viewModelScope.launch {
+
+            try {
+                val resultado = insta_repo.obtener_precios_generales()
+                _preciosState.value = resultado
+            } catch (e: Exception) {
+                Log.d("error", "$e")
+            } finally {
+
+            }
+        }
+    }
+
+    fun obtener_descripcion_generada_con_datos(
+        data: String,
+        localidad_tienda: String,
+        nombre_tienda: String,
+        id_tienda: String,
+        total_cobrar: String,
+        saldo_tienda: Int
+    ) {
         viewModelScope.launch {
             _estado_carga_generacion_desk_whatsap.value = Estado_generacion_IA_whsatp.loading
             try {
                 val texto_generado = insta_repo.generar_descripcion_con_IA_whatsapp_bot(data)
                 if (texto_generado.isNotEmpty()) {
-                    _estado_carga_generacion_desk_whatsap.value = Estado_generacion_IA_whsatp.succes(texto_generado)
+                    _estado_carga_generacion_desk_whatsap.value =
+                        Estado_generacion_IA_whsatp.succes(texto_generado)
                     val historial = historial_descuento(
                         tipo_transaccion = "descuento",
                         fecha = obtenerFechaActual(),
@@ -154,8 +182,9 @@ class viewmodel_generaciones_IA : ViewModel() {
                         id_tienda,
                         localidad_tienda
                     )
-                }else{
-                    _estado_carga_generacion_desk_whatsap.value = Estado_generacion_IA_whsatp.empty(texto_generado)
+                } else {
+                    _estado_carga_generacion_desk_whatsap.value =
+                        Estado_generacion_IA_whsatp.empty(texto_generado)
                 }
 
             } catch (e: Exception) {
@@ -164,10 +193,11 @@ class viewmodel_generaciones_IA : ViewModel() {
         }
     }
 
-    fun resetear_valor_generacion_desk_whatsapp(){
+    fun resetear_valor_generacion_desk_whatsapp() {
         _estado_carga_generacion_desk_whatsap.value = Estado_generacion_IA_whsatp.Idle
 
     }
+
 
     private fun aplicarFiltros(): List<datos_gen_IA_Tiendas> {
         // Partimos de la lista madre
