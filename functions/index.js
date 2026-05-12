@@ -280,6 +280,7 @@ exports.filtrar_por_datos = onRequest(async (req, res) => {
         descripcion: h.descripcion || "",
         name_tienda: h.nombre_tienda || "",
         img: h.imagen_promo || "",
+
       };
     });
 
@@ -400,6 +401,8 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
         "imagen_bot",
         "parecidas",
         "tag",
+        "plantilla",
+        "msje_whatsapp",
       ],
     });
 
@@ -625,6 +628,10 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
 
         wha: extra.whatsapp || "",
 
+        pla: hit.plantilla || false,
+
+        msje_pla_wa: hit.msje_whatsapp || "",
+
         tipo: "tienda",
       };
     });
@@ -730,10 +737,10 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
           loc: hit.lugar || "",
           cat: hit.categoria || "",
           img: hit.imagen_bot || "",
-
           wha: extra.whatsapp || "",
           open_state: verificar_apertura_tienda(extra.horario),
-
+          pla: hit.plantilla || false,
+          msje_pla_wa: hit.msje_whatsapp || "",
           tipo: "tienda",
         };
       });
@@ -1762,14 +1769,14 @@ exports.confirmarPago = onCall(async (req) => {
         enviarWhatsApp(
           937659216,
           `✅ *Pago exitoso en Geinz*\n` +
-            `🏪 *Negocio:* ${nombre_tienda}\n` +
-            `🆔 *ID Negocio:* ${userId}\n` +
-            `📦 *Paquete:* ${nombre_paquete}\n` +
-            `💰 *Monto pagado:* S/ ${monto}\n` +
-            `🪙 *Monedas acreditadas:* ${monedas}\n` +
-            `🧾 *ID Transacción:* ${id_select_boleta_pago}\n` +
-            `💳 *ID Cargo Culqi:* ${charge.id}\n` +
-            `📅 *Fecha:* ${new Date().toLocaleString("es-PE", { timeZone: "America/Lima" })}`,
+          `🏪 *Negocio:* ${nombre_tienda}\n` +
+          `🆔 *ID Negocio:* ${userId}\n` +
+          `📦 *Paquete:* ${nombre_paquete}\n` +
+          `💰 *Monto pagado:* S/ ${monto}\n` +
+          `🪙 *Monedas acreditadas:* ${monedas}\n` +
+          `🧾 *ID Transacción:* ${id_select_boleta_pago}\n` +
+          `💳 *ID Cargo Culqi:* ${charge.id}\n` +
+          `📅 *Fecha:* ${new Date().toLocaleString("es-PE", { timeZone: "America/Lima" })}`,
         );
       }
     } catch (nubefactErr) {
@@ -1793,11 +1800,11 @@ exports.confirmarPago = onCall(async (req) => {
     await enviarWhatsApp(
       "937659216",
       `❌ *Pago rechazado en Geinz*\n\n` +
-        `🏪 *Negocio:* ${nombre_tienda}\n` +
-        `🆔 *ID:* ${userId}\n` +
-        `💰 *Monto:* S/ ${monto}\n` +
-        `⚠️ *Motivo:* ${motivo}\n` +
-        `📅 *Fecha:* ${new Date().toLocaleString("es-PE", { timeZone: "America/Lima" })}`,
+      `🏪 *Negocio:* ${nombre_tienda}\n` +
+      `🆔 *ID:* ${userId}\n` +
+      `💰 *Monto:* S/ ${monto}\n` +
+      `⚠️ *Motivo:* ${motivo}\n` +
+      `📅 *Fecha:* ${new Date().toLocaleString("es-PE", { timeZone: "America/Lima" })}`,
     );
 
     throw new HttpsError("failed-precondition", motivo);
