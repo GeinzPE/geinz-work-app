@@ -69,30 +69,19 @@ class repo_pantalla_recientes {
                 val lista = img_container.get("lista_img") as? List<String> ?: emptyList()
                 val informacion = doc.get("informacion") as? Map<String, Any> ?: emptyMap()
                 val tipo_hora_dias = doc.get("tipo_hora_dias") as? String ?: ""
-                val hora_fecha_general =
-                    doc.get("datos_hora_fecha") as? Map<String, Any> ?: emptyMap()
-                val horasMap = hora_fecha_general["horas"] as? Map<String, Any> ?: emptyMap()
-                val diasMap = hora_fecha_general["dias"] as? Map<String, Any> ?: emptyMap()
-
-                val estado_publicacion = doc.get("estado") as? String ?: ""
-                val hora_inicio = horasMap["hora_inicio"] as? String ?: ""
-                val hora_fin = horasMap["hora_fin"] as? String ?: ""
-                val dia_inicio = diasMap["fecha_inicio"] as? String ?: ""
-                val dia_fin = diasMap["fecha_fin"] as? String ?: ""
-                val timestamp_inicio = (horasMap["timestamp_inicio"] as? Timestamp)
                 val id_promo = informacion["id_promocion"] as? String ?: ""
-                val timestampFin = when (tipo_hora_dias) {
-                    "horas" -> (horasMap["timestamp_fin"] as? Timestamp)
-                    "dias" -> (diasMap["timestamp_fin"] as? Timestamp)
-                    else -> null
-                }
+                val estado_publicacion = doc.get("estado") as? String ?: ""
 
+                val diasMap = doc.get("datos_hora_fecha") as? Map<String, Any> ?: emptyMap()
 
-//                val tiempo = timestampFin?.let { tiempoRestante(it) } ?: "Expirado"
+                val dia_inicio = diasMap["fecha_inicio"] as? String ?: ""
+
+                val timestamp_inicio = diasMap["timestamp_inicio"] as? Timestamp
+
+                val timestampFin = diasMap["timestamp_fin"] as? Timestamp
+
                 val tiempo = timestampFin?.let {
-                    tiempoRestante(
-                        it
-                    )
+                    tiempoRestante(it)
                 } ?: "Expirado"
 
                 val fechaOrden = timestampFin?.toDate()?.time ?: 0L
@@ -197,8 +186,6 @@ class repo_pantalla_recientes {
             val precio_publicacio = data["precio_publicacion"] as? String ?: ""
             val rango_establecido = data["rango_establecido"] as? String ?: ""
             val horario_publicacion = data["horario_publicacion"] as? String ?: ""
-            val tipoHoraDias = data["tipo_hora_dias"] as? String ?: ""
-
             val estado = data["estado"] as? String ?: ""
             val enPausa = estado.equals("pausado", ignoreCase = true)
 
@@ -206,8 +193,6 @@ class repo_pantalla_recientes {
                 ?.get("lista_img") as? List<String> ?: emptyList()
 
             val datosHoraFecha = data["datos_hora_fecha"] as? Map<*, *> ?: emptyMap<Any, Any>()
-            val diasMap = datosHoraFecha["dias"] as? Map<*, *> ?: emptyMap<Any, Any>()
-            val horasMap = datosHoraFecha["horas"] as? Map<*, *> ?: emptyMap<Any, Any>()
 
             val info = data["informacion"] as? Map<*, *> ?: emptyMap<Any, Any>()
 
@@ -219,16 +204,15 @@ class repo_pantalla_recientes {
             val descripcion = info["descripcion"] as? String ?: ""
             val numero = info["numero"] as? String ?: ""
 
-            val metodos_pagos =data["pagos"]as? Map<*, *> ?: emptyMap<Any, Any>()
+            val pagos =data["pagos"]as? List<String>?: emptyList()
 
-            val comodidades =data["comodidades"]as? Map<*, *> ?: emptyMap<Any, Any>()
+            val comodidades =data["comodidades"]as? List<String>?: emptyList()
 
-            val fechaInicioTs = ((if (tipoHoraDias == "horas") horasMap else diasMap)
-                ["timestamp_inicio"] as? Timestamp) ?: Timestamp.now()
+            val fechaInicioTs =datosHoraFecha.get("timestamp_inicio")  as? Timestamp?: Timestamp.now()
 
-            val fechaFinTs = ((if (tipoHoraDias == "horas") horasMap else diasMap)
-                ["timestamp_fin"] as? Timestamp) ?: Timestamp.now()
+            val fechaFinTs =datosHoraFecha.get("timestamp_fin")  as? Timestamp?: Timestamp.now()
 
+            val tipoHoraDias=data.get("tipo_hora_dias") as? String?:""
             // 🔥 TRANSFORMACIÓN AQUÍ
             val fechaInicio = fechaInicioTs.formatoFechaHora()
             val fechaFin = fechaFinTs.formatoFechaHora()
@@ -244,6 +228,7 @@ class repo_pantalla_recientes {
                 mensajeMap["whatsapp"] as? Map<*, *> ?: emptyMap<Any, Any>()
 
 
+
             val mensajesPredeterminados = msjes_predeteminados_generales(
                 compartir = mensaje_predeterminado(
                     msje_predermindo = compartirMap["msje_predermindo"] as? String ?: "",
@@ -256,38 +241,36 @@ class repo_pantalla_recientes {
             )
 
 
-            val obtener_metodos_pagos=metodos_pagos_agregados_publiaciones(
-                yape = metodos_pagos["yape"] as? Boolean?:false,
-                plin = metodos_pagos["plin"] as? Boolean?:false,
-                agora = metodos_pagos["yape"] as? Boolean?:false,
-                efectivo = metodos_pagos["efectivo"] as? Boolean?:false,
-                visa = metodos_pagos["visa"] as? Boolean?:false,
-                mastercard = metodos_pagos["mastercard"] as? Boolean?:false
+            val obtener_metodos_pagos = metodos_pagos_agregados_publiaciones(
+                yape = pagos.contains("yape"),
+                plin = pagos.contains("plin"),
+                agora = pagos.contains("agora"),
+                efectivo = pagos.contains("efectivo"),
+                visa = pagos.contains("visa"),
+                mastercard = pagos.contains("mastercard")
             )
 
-            val obtener_comodidades=ComodidadesAgregadas(
-                zonaExpandida =  comodidades["zona_expandida"] as? Boolean?:false,
-                wifi =  comodidades["true"] as? Boolean?:false,
-                serviciosHigienicos =  comodidades["servicios_higienicos"] as? Boolean?:false,
-                camarasSeguridad =  comodidades["camaras_seguridad"] as? Boolean?:false,
-                salaEspera =  comodidades["sala_espera"] as? Boolean?:false,
-                salaJuegos =  comodidades["sala_juegos"] as? Boolean?:false,
-                mesaParaNinos =  comodidades["mesa_para_ninos"] as? Boolean?:false,
-                ingresoConMascotas =  comodidades["ingreso_con_mascotas"] as? Boolean?:false,
-                estacionamiento =  comodidades["estacionamiento"] as? Boolean?:false,
-                enchufe =  comodidades["enchufe"] as? Boolean?:false,
-                aireAcondicionado =  comodidades["aire_acondicionado"] as? Boolean?:false,
+            val obtener_comodidades = ComodidadesAgregadas(
+                zonaExpandida = "zona_expandida" in comodidades,
+                wifi = "wifi" in comodidades,
+                serviciosHigienicos = "servicios_higienicos" in comodidades,
+                camarasSeguridad = "camaras_seguridad" in comodidades,
+                salaEspera = "sala_espera" in comodidades,
+                salaJuegos = "sala_juegos" in comodidades,
+                mesaParaNinos = "mesa_para_ninos" in comodidades,
+                ingresoConMascotas = "ingreso_con_mascotas" in comodidades,
+                estacionamiento = "estacionamiento" in comodidades,
+                enchufe = "enchufe" in comodidades,
+                aireAcondicionado = "aire_acondicionado" in comodidades
             )
 
             val tiempoPromo = calcularTiempoPromo(
                 inicio = fechaInicioTs,
                 fin = fechaFinTs,
-                tipo = tipoHoraDias
             )
             val costoPromo = calcularCostoPromo(
                 inicio = fechaInicioTs,
                 fin = fechaFinTs,
-                tipo = tipoHoraDias
             )
             val estadisticas =
                 obtener_estadisticas_promocion(estado, id_tienda, id_promo, localidad)

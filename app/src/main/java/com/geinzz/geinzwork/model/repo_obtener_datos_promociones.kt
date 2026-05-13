@@ -329,8 +329,8 @@ class repo_obtener_datos_promociones {
         val datos_hora_fecha = datos.get("datos_hora_fecha") as? Map<*, *> ?: emptyMap<String, Any>()
         val horasMap = datos_hora_fecha["horas"] as? Map<*, *> ?: emptyMap<String, Any>()
         val diasMap = datos_hora_fecha["dias"] as? Map<*, *> ?: emptyMap<String, Any>()
-        val comodidades_filtro =datos.get("comodidades") as? Map<String, Boolean> ?:emptyMap()
-        val pagos =datos.get("pagos") as? Map<String, Boolean> ?:emptyMap()
+        val comodidades_filtro =datos.get("comodidades") as? List<String> ?:emptyList()
+        val pagos =datos.get("pagos") as? List<String> ?:emptyList()
         val rango_precio =datos.get("rango_establecido") as?String?:""
         val precio =datos.get("precio_publicacion") as?String?:""
         val timestampFin = when (tipo_hora_dias) {

@@ -117,13 +117,24 @@ object mostrarFechaDialog_horaDialog {
         val formatter = DateTimeFormatter.ofPattern("HH:mm")
         return horaFin.format(formatter)          // Devolver solo hora y minutos
     }
+//
+//    @RequiresApi(Build.VERSION_CODES.O)
+//    fun obtenerTimestampHoraFin(horas: Int): Timestamp {
+//        val ahora = LocalDateTime.now()
+//        val fin = ahora.plusHours(horas.toLong())
+//        val instant = fin
+//            .atZone(ZoneId.systemDefault())
+//            .toInstant()
+//
+//        return Timestamp(instant.epochSecond, instant.nano)
+//    }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun obtenerTimestampHoraFin(horas: Int): Timestamp {
-        val ahora = LocalDateTime.now()
-        val fin = ahora.plusHours(horas.toLong())
-
-        val instant = fin
+    fun obtenerTimestampFin(valor: Int, tipo: String): Timestamp {
+        val instant = when (tipo) {
+            "dias" -> LocalDateTime.now().plusDays(valor.toLong())
+            else   -> LocalDateTime.now().plusHours(valor.toLong())
+        }
             .atZone(ZoneId.systemDefault())
             .toInstant()
 

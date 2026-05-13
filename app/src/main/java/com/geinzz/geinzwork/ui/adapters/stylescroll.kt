@@ -45,6 +45,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ZoomableGalleryFullScreenVerticalPager(
+    promociones_de_una_tienda: String,
     es_la_misma_tienda_o_no: Boolean,
     tiendaSeleccionada1: String?,
     categoria_select_filtro: String,
@@ -77,10 +78,9 @@ fun ZoomableGalleryFullScreenVerticalPager(
     }
     var dias_restantes by remember() { mutableStateOf("") }
 
-
     // Inicializar feed (promo seleccionada primero)
-    LaunchedEffect(listaPromos) {
-        if (!feedInicializado && listaPromos.isNotEmpty()) {
+    LaunchedEffect(listaPromos, promociones_de_una_tienda) { // 🔹 agregar promociones_de_una_tienda como key
+        if (listaPromos.isNotEmpty()) {
             val resto = listaPromos
                 .filter {
                     it.informacion_publcacion.id_promocion !=
@@ -93,6 +93,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
         }
     }
 
+
     // ---------------- PAGER ----------------
     val pagerState = rememberPagerState(
         initialPage = 0,
@@ -101,10 +102,11 @@ fun ZoomableGalleryFullScreenVerticalPager(
 
     // ---------------- CARGA INICIAL ----------------
     LaunchedEffect(Unit) {
+        viewModel.resetPromos()
         viewModel.cargarSiguienteBloque(
             localidad_general,
             categoria_select_filtro,
-            tiendaSeleccionada1
+            promociones_de_una_tienda
         )
     }
 
@@ -136,7 +138,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
             viewModel.cargarSiguienteBloque(
                 localidad_general,
                 categoria_select_filtro,
-                tiendaSeleccionada1
+                promociones_de_una_tienda
             )
         }
     }

@@ -14,8 +14,10 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,6 +44,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -70,6 +74,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.SubcomposeAsyncImage
 import com.geinzz.geinzwork.R
@@ -662,15 +667,23 @@ object constantes_pantalla_socios {
         subiendo_imagen: Boolean,
         imagenInicial: String?,
         onImagenChange: (Uri?) -> Unit,
-        usuario_borro_los_cambios: () -> Unit
+        usuario_borro_los_cambios: () -> Unit,
+        onGuardarImagen: () -> Unit = {}   // 🔥
     ) {
 
-        // 🔥 estado visual sincronizado con backend
-        var imagenActual by remember(imagenInicial) { mutableStateOf(imagenInicial) }
+        Log.d("imagenInicial","$imagenInicial")
 
+        val WaBotGreenDeep     = Color(0xFF22B05B)
+        // 🔥 estado visual sincronizado con backend
+        var imagenActual by remember { mutableStateOf(imagenInicial) }
         // 🔥 historial
         val historial = remember { mutableStateListOf<String?>() }
 
+        LaunchedEffect(imagenInicial) {
+            if (imagenInicial != null && imagenActual == null) {
+                imagenActual = imagenInicial
+            }
+        }
         // 🔥 limpiar historial cuando se sube correctamente
         LaunchedEffect(imagen_subida_correctamente) {
             if (imagen_subida_correctamente) {
@@ -695,7 +708,6 @@ object constantes_pantalla_socios {
                 .fillMaxWidth()
                 .height(200.dp)
         ) {
-
             SubcomposeAsyncImage(
                 model = imagenActual ?: "",
                 contentDescription = null,
@@ -718,18 +730,17 @@ object constantes_pantalla_socios {
             if (!imagen_subida_correctamente && !subiendo_imagen && historial.isNotEmpty()) {
                 Box(
                     modifier = Modifier
-                        .align(Alignment.BottomEnd)
+                        .align(Alignment.BottomStart)   // 🔥 cambiar a Start
                         .padding(8.dp)
                         .clip(RoundedCornerShape(50))
                         .background(Color.Black.copy(alpha = 0.6f))
                         .clickable {
                             val anterior = historial.removeLast()
                             imagenActual = anterior
-
                             onImagenChange(anterior?.let { Uri.parse(it) })
                             usuario_borro_los_cambios()
                         }
-                        .padding(horizontal = 2.dp, vertical = 2.dp)
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
                 ) {
                     Text("↩", color = Color.White)
                 }
@@ -747,8 +758,27 @@ object constantes_pantalla_socios {
                     CircularProgressIndicator()
                 }
             }
+
+            AnimatedVisibility(
+                visible  = !imagen_subida_correctamente
+                        && !subiendo_imagen
+                        && imagenActual != imagenInicial,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp),
+                enter    = fadeIn(tween(220)) + expandVertically(tween(240)),
+                exit     = fadeOut(tween(180)) + shrinkVertically(tween(200))
+            ) {
+                Button(
+                    onClick = { onGuardarImagen() },
+                    shape   = RoundedCornerShape(20.dp),
+                    colors  = ButtonDefaults.buttonColors(containerColor = WaBotGreenDeep)
+                ) {
+                    Text("Guardar", fontSize = 11.sp, color = Color.White)
+                }
+            }
         }
     }
+
+
     @Composable
     fun estadisticas_aplicables(
         mostrar_qr_externo: Boolean,

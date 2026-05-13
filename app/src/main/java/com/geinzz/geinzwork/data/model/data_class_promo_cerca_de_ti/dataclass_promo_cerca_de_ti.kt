@@ -25,8 +25,8 @@ data class dataclass_promociones_cerca_de_ti(
     val texto_msje_whatsapp: msjes_predeteminados_generales = msjes_predeteminados_generales(),
     val fecha_fin: Timestamp = Timestamp.now(),
     val estado_publicacion: String = "",
-    val comodidades: Map<String, Boolean> = emptyMap(),
-    val pagos: Map<String, Boolean> = emptyMap(),
+    val comodidades: List<String> =emptyList(),
+    val pagos: List<String> = emptyList(),
     val rango: String = "", val precio: String = "",
     val terminos_clave : List<String> =emptyList()
 )

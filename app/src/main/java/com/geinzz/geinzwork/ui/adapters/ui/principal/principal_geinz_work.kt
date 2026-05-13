@@ -499,7 +499,7 @@ fun pantalla_principal(
             id = "1",
             titulo = "Ofertas y Promociones",
             descripcion = "Encuentra las mejores promos de tus negocios favoritos y adquierelo ya",
-            imagen = R.drawable.servicios_basicos,
+            imagen = R.drawable.pantalla_promos_geinz,
             onClick = { geinz_inmobiliaria(localidad_defaul, "") }
         ),
 

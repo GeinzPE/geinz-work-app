@@ -16,6 +16,7 @@ import androidx.lifecycle.viewModelScope
 import com.geinzz.geinzwork.data.model.DatosPublicidadIA
 import com.geinzz.geinzwork.data.model.PreciosApp
 import com.geinzz.geinzwork.data.model.agregar_promociones
+import com.geinzz.geinzwork.data.model.data_whatsapp_info
 import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
 import com.geinzz.geinzwork.data.model.datos_generaciones_sin_publicaicones
 import com.geinzz.geinzwork.data.model.datos_notificacion
@@ -84,9 +85,13 @@ class viewmodel_eres_socio : ViewModel() {
     private val _preciosState = MutableStateFlow<PreciosApp?>(null)
     val preciosState: StateFlow<PreciosApp?> = _preciosState
 
+    private val _estado_imagen_bot = MutableStateFlow("")
+    val estado_imagen_bot: StateFlow<String> = _estado_imagen_bot
+
     init {
         obtener_todos_precios()
     }
+
     fun obtener_todos_precios() {
         viewModelScope.launch {
             try {
@@ -100,6 +105,69 @@ class viewmodel_eres_socio : ViewModel() {
         }
     }
 
+
+    fun obtener_imange_bot(id_tienda: String) {
+
+        viewModelScope.launch {
+
+            try {
+
+                val imagen =
+                    instace_repo.obtener_imange_bot(id_tienda)
+
+                _estado_imagen_bot.value = imagen
+
+            } catch (e: Exception) {
+
+                Log.d("error_imagen_bot", "$e")
+
+                _estado_imagen_bot.value = ""
+
+            }
+        }
+    }
+
+    private val _obtener_estado_msje_whataspp_bot =
+        MutableStateFlow(data_whatsapp_info())
+
+    val obtener_estado_msje_whataspp_bot:
+            StateFlow<data_whatsapp_info> =
+        _obtener_estado_msje_whataspp_bot
+
+    fun obtener_descripcion_Seo_bot(id_tienda: String) {
+
+        viewModelScope.launch {
+
+            try {
+
+                val res =
+                    instace_repo.obtener_descripcion_Seo_whatsapp(id_tienda)
+
+                Log.d("res", "$res")
+
+                _obtener_estado_msje_whataspp_bot.value = res
+
+            } catch (e: Exception) {
+
+                Log.d("error", "adasdadasdadasd$e")
+
+                _obtener_estado_msje_whataspp_bot.value =
+                    data_whatsapp_info()
+
+            }
+        }
+    }
+
+
+    fun cambiar_numero_msje_algolia(data: String,tipo: String){
+        viewModelScope.launch {
+            try {
+
+            }catch (e: Exception){
+
+            }
+        }
+    }
     // StateFlow privado (mutable)
     private val _estado_Carga_subacategoria =
         MutableStateFlow<Estado_carga_subcategoiras>(Estado_carga_subcategoiras.idle)
@@ -167,12 +235,12 @@ class viewmodel_eres_socio : ViewModel() {
     }
 
 
-    fun guarda_lat_lng(lat: Double,lng: Double,id_tienda: String,localidad: String){
+    fun guarda_lat_lng(lat: Double, lng: Double, id_tienda: String, localidad: String) {
         viewModelScope.launch {
             try {
-                instace_repo.guardar_lat_lng(lat,lng,id_tienda,localidad)
-            }catch (e: Exception){
-                Log.d("error_al_guardar","error cordenasd $e")
+                instace_repo.guardar_lat_lng(lat, lng, id_tienda, localidad)
+            } catch (e: Exception) {
+                Log.d("error_al_guardar", "error cordenasd $e")
             }
         }
     }
@@ -207,17 +275,38 @@ class viewmodel_eres_socio : ViewModel() {
     }
 
 
-    fun guadardar_descripcion_whattsapp_bot(id_tienda: String, localidad: String, texto: String) {
+    fun guadardar_descripcion_whattsapp_bot(
+        id_tienda: String,
+        localidad: String,
+        texto: String,
+        tipo: String
+    ) {
+
         viewModelScope.launch {
+
+            Log.d(
+                "dadadadd",
+                "$id_tienda , $localidad , $texto , $tipo"
+            )
+
             try {
+
                 _estado_subido_desc_para_bot.value =
-                    instace_repo.agregar_descripcion_seo_bot(id_tienda, localidad, texto)
+                    instace_repo.agregar_numero_mesje(
+                        id_tienda = id_tienda,
+                        data = texto,
+                        tipo = tipo
+                    )
+
             } catch (e: Exception) {
+
                 Log.d("error_data", "$e")
 
+                _estado_subido_desc_para_bot.value = false
             }
         }
     }
+
 
     fun generarIdNotificacion(
         idForzado: String?,
@@ -797,7 +886,7 @@ class viewmodel_eres_socio : ViewModel() {
                 }
 
                 // 🔄 2. Subir imágenes CON REINTENTO
-                val (urls,img_bot) = instace_repo.subirImagenesConReintento(intentos = 3) {
+                val (urls, img_bot) = instace_repo.subirImagenesConReintento(intentos = 3) {
                     instace_repo.subirImagenesAFirebase(
                         context = context,
                         imagenes = imagenes,
@@ -805,9 +894,6 @@ class viewmodel_eres_socio : ViewModel() {
                         idPromo = idPromo
                     )
                 }
-
-
-
 
 
                 // 🔒 3. Verificación estricta
@@ -838,7 +924,7 @@ class viewmodel_eres_socio : ViewModel() {
                     return@launch
                 } else {
                     // ✅ 5. Crear promoción SOLO si TODO salió bien
-                    val resPromo = crear_promociones(img_bot,urls, i, localidad)
+                    val resPromo = crear_promociones(img_bot, urls, i, localidad)
 
                     if (!resPromo.isSuccess) {
                         _subidaPromoState.value =
@@ -886,7 +972,7 @@ class viewmodel_eres_socio : ViewModel() {
 
 
     suspend fun crear_promociones(
-        img_bot:String?,
+        img_bot: String?,
         lista_img_subida: List<String>,
         i: agregar_promociones,
         localidad: String

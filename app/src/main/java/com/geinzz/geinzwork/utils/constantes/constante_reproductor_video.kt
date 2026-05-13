@@ -2,8 +2,14 @@ package com.geinzz.geinzwork.utils.constantes
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -27,10 +33,12 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.FullscreenExit
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.VolumeOff
@@ -49,8 +57,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
@@ -70,6 +80,7 @@ import coil3.request.ImageRequest
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
+import com.geinzz.geinzwork.data.model.metodos_pagos_agregados_publiaciones
 import com.github.panpf.zoomimage.ZoomImage
 import com.github.panpf.zoomimage.compose.rememberZoomState
 import kotlinx.coroutines.delay
@@ -515,6 +526,7 @@ object constantes_reprodutor_video {
 
     @Composable
     fun GaleriaHorizontalInstagram_promociones_solo_imagen(
+        pagos: List<String>,
         imagenes: List<String>,
         modifier: Modifier = Modifier,
         img_clikeble_valor: (Int) -> Unit,
@@ -570,6 +582,131 @@ object constantes_reprodutor_video {
                         color = Color.White,
                         style = MaterialTheme.typography.labelSmall
                     )
+                }
+            }
+            metodos_pagos_colocados(
+                pagos = pagos,
+                modifier = Modifier.align(Alignment.BottomStart).padding(5.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun metodos_pagos_colocados(
+    pagos: List<String>,
+    modifier: Modifier = Modifier
+) {
+
+    val expanded = remember {
+        mutableStateOf(false)
+    }
+
+    val obtener_metodos_pagos = metodos_pagos_agregados_publiaciones(
+        yape = pagos.contains("yape"),
+        plin = pagos.contains("plin"),
+        agora = pagos.contains("agora"),
+        efectivo = pagos.contains("efectivo"),
+        visa = pagos.contains("visa"),
+        mastercard = pagos.contains("mastercard")
+    )
+
+    val metodosPagoIcons = listOfNotNull(
+        if (obtener_metodos_pagos.yape) R.drawable.yape_logo else null,
+        if (obtener_metodos_pagos.plin) R.drawable.logo_plin else null,
+        if (obtener_metodos_pagos.agora) R.drawable.logo_agora else null,
+        if (obtener_metodos_pagos.efectivo) R.drawable.efectivo_logo else null,
+        if (obtener_metodos_pagos.visa) R.drawable.visa_logo else null,
+        if (obtener_metodos_pagos.mastercard) R.drawable.master_car_logo else null
+    )
+
+    Row(
+        modifier = modifier
+            .clip(CircleShape)
+            .background(Color.Black.copy(alpha = 0.90f))
+            .clickable {
+                expanded.value = !expanded.value
+            }
+            .padding(horizontal = 8.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        // BOTÓN PRINCIPAL
+        Box(
+            modifier = Modifier
+                .size(26.dp)
+                .background(
+                    Color.White.copy(alpha = 0.12f),
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+
+            Icon(
+                imageVector =
+                    if (expanded.value)
+                        Icons.Default.Close
+                    else
+                        Icons.Default.Payments,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(16.dp)
+            )
+        }
+
+        // EXPANSIÓN SECUENCIAL
+        AnimatedVisibility(
+            visible = expanded.value,
+            enter = expandHorizontally(
+                animationSpec = tween(
+                    durationMillis = 450,
+                    easing = FastOutSlowInEasing
+                )
+            ) + fadeIn(
+                animationSpec = tween(450)
+            ),
+            exit = shrinkHorizontally(
+                animationSpec = tween(350)
+            ) + fadeOut(
+                animationSpec = tween(250)
+            )
+        ) {
+
+            Row(
+                modifier = Modifier.padding(start = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                metodosPagoIcons.forEachIndexed { index, icono ->
+
+                    val visible by animateFloatAsState(
+                        targetValue = 1f,
+                        animationSpec = tween(
+                            durationMillis = 300,
+                            delayMillis = index * 90,
+                            easing = FastOutSlowInEasing
+                        ),
+                        label = ""
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .graphicsLayer {
+                                alpha = visible
+                                translationX = (1f - visible) * 40f
+                            }
+                            .size(28.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = icono),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clip(CircleShape)
+                        )
+                    }
                 }
             }
         }

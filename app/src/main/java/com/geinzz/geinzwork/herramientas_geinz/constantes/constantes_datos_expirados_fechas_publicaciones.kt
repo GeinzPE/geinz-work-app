@@ -106,44 +106,27 @@ object constantes_datos_expirados_fechas_publicaciones {
     @RequiresApi(Build.VERSION_CODES.O)
     fun calcularTiempoPromo(
         inicio: Timestamp,
-        fin: Timestamp,
-        tipo: String
+        fin: Timestamp
     ): TiempoPromo {
 
-        val zone = ZoneId.systemDefault()
+        val diferenciaMs = fin.toDate().time - inicio.toDate().time
 
-        return if (tipo == "horas") {
+        val horas = diferenciaMs / 3_600_000.0
 
-            // 🔹 HORAS → por tiempo real
-            val ahoraMs = Timestamp.now().toDate().time
-            val inicioMs = inicio.toDate().time
-            val finMs = fin.toDate().time
-
-            val totalHoras = (finMs - inicioMs) / 3_600_000.0
-            val horasPasadas =
-                (minOf(ahoraMs, finMs) - inicioMs) / 3_600_000.0
+        return if (horas < 24) {
 
             TiempoPromo(
-                duracion = String.format("%.1f horas", totalHoras),
-                transcurrido = String.format("%.1f horas", max(0.0, horasPasadas))
+                duracion = "${max(0, horas.toInt())} horas",
+                transcurrido = "En curso"
             )
 
         } else {
 
-            // 🔹 DÍAS → CALENDARIO (ESTO ES LO CORRECTO)
-            val inicioDate = inicio.toDate().toInstant().atZone(zone).toLocalDate()
-            val finDate = fin.toDate().toInstant().atZone(zone).toLocalDate()
-            val hoyDate = LocalDate.now(zone)
-
-            val totalDias = ChronoUnit.DAYS.between(inicioDate, finDate)
-            val diasPasados = ChronoUnit.DAYS.between(
-                inicioDate,
-                minOf(hoyDate, finDate)
-            )
+            val dias = (horas / 24.0).toInt()
 
             TiempoPromo(
-                duracion = "$totalDias días",
-                transcurrido = "$diasPasados días"
+                duracion = "$dias días",
+                transcurrido = "En curso"
             )
         }
     }
@@ -152,46 +135,36 @@ object constantes_datos_expirados_fechas_publicaciones {
     @RequiresApi(Build.VERSION_CODES.O)
     fun calcularCostoPromo(
         inicio: Timestamp,
-        fin: Timestamp,
-        tipo: String
+        fin: Timestamp
     ): CostoPromo {
 
-        return if (tipo == "horas") {
+        val zone = ZoneId.systemDefault()
 
-            // 🔹 COBRO POR TIEMPO REAL
-            val ahoraMs = Timestamp.now().toDate().time
-            val inicioMs = inicio.toDate().time
-            val finMs = fin.toDate().time
+        val inicioDate = inicio.toDate()
+            .toInstant()
+            .atZone(zone)
+            .toLocalDate()
 
-            val totalHoras = (finMs - inicioMs) / 3_600_000.0
-            val horasConsumidas =
-                (minOf(ahoraMs, finMs) - inicioMs) / 3_600_000.0
+        val finDate = fin.toDate()
+            .toInstant()
+            .atZone(zone)
+            .toLocalDate()
 
-            CostoPromo(
-                total = max(0.0, totalHoras) * 3.0,
-                consumido = max(0.0, horasConsumidas) * 3.0
-            )
+        val hoyDate = LocalDate.now(zone)
 
-        } else {
+        val totalDias =
+            ChronoUnit.DAYS.between(inicioDate, finDate)
 
-            // 🔹 COBRO POR DÍA CALENDARIO (NO por horas)
-            val zone = ZoneId.systemDefault()
-
-            val inicioDate = inicio.toDate().toInstant().atZone(zone).toLocalDate()
-            val finDate = fin.toDate().toInstant().atZone(zone).toLocalDate()
-            val hoyDate = LocalDate.now(zone)
-
-            val totalDias = ChronoUnit.DAYS.between(inicioDate, finDate)
-            val diasConsumidos = ChronoUnit.DAYS.between(
+        val diasConsumidos =
+            ChronoUnit.DAYS.between(
                 inicioDate,
                 minOf(hoyDate, finDate)
             ) + 1
 
-            CostoPromo(
-                total = max(0, totalDias) * 30.0,
-                consumido = max(0, diasConsumidos) * 30.0
-            )
-        }
+        return CostoPromo(
+            total = max(0, totalDias).toDouble() * 30.0,
+            consumido = max(0, diasConsumidos).toDouble() * 30.0
+        )
     }
 
     fun obtenerFechaFinDosDias(): Timestamp {

@@ -203,44 +203,43 @@ class viewmodel_promos_cercanas : ViewModel() {
         _categoria_seleccionada.value =
             if (_categoria_seleccionada.value == cat) "" else cat
     }
+    private var ultimaTiendaCargada: String = ""
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun cargarSiguienteBloque(
         localidad: String,
         categoria_filtrado: String,
-        tiendaSeleccionada1: String?,
+        tiendaSeleccionada1: String,
+    ) {
+        // 🔹 Si cambió la tienda, limpiar sin importar si estaba cargando
+        if (ultimaTiendaCargada != tiendaSeleccionada1) {
+            _promosCargadas.value = emptyList()
+            ultimaTiendaCargada = tiendaSeleccionada1
+            cargando = false
+        }
 
-        ) {
         if (cargando) return
         cargando = true
 
         viewModelScope.launch {
             try {
-                val todasLasPromos =
-                    repo.obtener_promos(categoria_filtrado, localidad, tiendaSeleccionada1)
-//                Log.d("ViewModelPromos", "Total promos obtenidas de DB: ${todasLasPromos.size}")
+                val todasLasPromos = repo.obtener_promos(categoria_filtrado, localidad, tiendaSeleccionada1)
 
-                // 🔹 eliminar duplicados globalmente por id_promocion
                 val todasFiltradas = todasLasPromos
                     .map { it.dataclass_promociones_cerca_de_ti }
                     .distinctBy { it.informacion_publcacion.id_promocion }
 
-//                Log.d("ViewModelPromos", "Promos únicas tras distinctBy: ${todasFiltradas.size} -> IDs: ${todasFiltradas.map { it.informacion_publcacion.id_promocion }}")
+                val existentesIds = _promosCargadas.value
+                    .map { it.informacion_publcacion.id_promocion }
+                    .toSet()
 
-                // 🔹 Filtrar las promos que ya se cargaron
-                val existentesIds =
-                    _promosCargadas.value.map { it.informacion_publcacion.id_promocion }.toSet()
-                val nuevasDisponibles =
-                    todasFiltradas.filter { it.informacion_publcacion.id_promocion !in existentesIds }
-                        .shuffled() // 🔹 orden aleatorio real cada vez
-
-//                Log.d("ViewModelPromos", "Promos disponibles tras filtrar existentes: ${nuevasDisponibles.map { it.informacion_publcacion.id_promocion }}")
-
-                // 🔹 Tomar solo hasta "bloque" elementos
-                val nuevasFiltradas = nuevasDisponibles.take(bloque)
+                val nuevasFiltradas = todasFiltradas
+                    .filter { it.informacion_publcacion.id_promocion !in existentesIds }
+                    .shuffled()
+                    .take(bloque)
 
                 if (nuevasFiltradas.isNotEmpty()) {
                     _promosCargadas.value = _promosCargadas.value + nuevasFiltradas
-//                    Log.d("ViewModelPromos", "Total promos cargadas en StateFlow: ${_promosCargadas.value.size} -> IDs: ${_promosCargadas.value.map { it.informacion_publcacion.id_promocion }}")
                 } else {
                     Log.d("ViewModelPromos", "No hay más promos nuevas para cargar.")
                 }
@@ -257,6 +256,9 @@ class viewmodel_promos_cercanas : ViewModel() {
     fun resetPromos() {
         _promosCargadas.value = emptyList()
         paginaActual = 0
+        cargando = false
+        ultimaTiendaCargada = "" // 🔹 esto faltaba
+
     }
 
 

@@ -189,8 +189,15 @@ data class generaciones_con_ia_notificaciones_solo_generaciones(
 data class contenido_publicidad(val titulo: String, val descripcion: String)
 
 data class datos_fecha_hora_tipo(
-    val horas: fechas_horas_promociones,
-    val dias: fechas_promociones
+    val fecha_inicio: String = "",
+    val fecha_fin: String = "",
+    val hora_inicio: String = "",
+    val hora_fin: String = "",
+    val activo: Boolean = false,
+    val timestamp_inicio: Timestamp = Timestamp.now(),
+    val timestamp_fin: Timestamp = Timestamp.now()
+//    val horas: fechas_horas_promociones,
+//    val dias: fechas_promociones
 )
 
 data class fechas_horas_promociones(
@@ -780,4 +787,11 @@ data class Publicidad(
     var publicacion24h: Int = 0,
     @get:PropertyName("publicacion_por_hora") @set:PropertyName("publicacion_por_hora")
     var publicacionPorHora: Int = 0
+)
+
+
+data class data_whatsapp_info(
+    val descripcion_seo: String = "",
+    val msje_whatsapp: String = "",
+    val numero_whatsapp: String = ""
 )

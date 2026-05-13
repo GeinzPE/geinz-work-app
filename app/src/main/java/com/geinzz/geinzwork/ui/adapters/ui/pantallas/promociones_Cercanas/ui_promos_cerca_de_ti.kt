@@ -4,22 +4,19 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
-
+import androidx.compose.runtime.key
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,7 +24,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,16 +34,10 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,7 +45,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -90,19 +79,18 @@ import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.RespuestaGemini
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.tiendas_con_mas_de_una_promo
 import com.geinzz.geinzwork.data.model.localizate_geinz.img_con_texto
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.data.model.metodos_pagos_agregados_publiaciones
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.ui.adapters.ZoomableGalleryFullScreenVerticalPager
 import com.geinzz.geinzwork.ui.adapters.promoEstaExpirada
-import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrado_busqueda
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
@@ -113,7 +101,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.utils.constantes.constantes_reprodutor_video.GaleriaHorizontalInstagram_promociones_solo_imagen
-import com.geinzz.geinzwork.utils.constantes.constantes_reprodutor_video.VideoPlayerWithControls
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_datos_promociones
@@ -216,6 +203,8 @@ fun ui_promos_cerca_de_ti(
     val viewmodel_repo_datos_promo: viewmodel_datos_promociones = viewModel()
     val datos_promo_parametros by viewmodel_repo_datos_promo.datos_promocion_parametro.collectAsState()
     var tiendaSeleccionada by remember { mutableStateOf<String?>(null) }
+
+    var tienda_seleccionada_clik_baner by remember { mutableStateOf<String?>(null) }
     var nombre_tienda by remember { mutableStateOf("") }
     var img_tienda by remember { mutableStateOf("") }
     var dias_restantes by remember { mutableStateOf("") }
@@ -687,7 +676,9 @@ fun ui_promos_cerca_de_ti(
                 Box(modifier = Modifier.fillMaxSize()) {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(20.dp),
-                        modifier = Modifier.padding(vertical = 5.dp).animateContentSize(),
+                        modifier = Modifier
+                            .padding(vertical = 5.dp)
+                            .animateContentSize(),
                     ) {
                         item {
                             Column(modifier = Modifier.padding(horizontal = 10.dp)) {
@@ -705,7 +696,7 @@ fun ui_promos_cerca_de_ti(
                         }
 
                         item {
-                            if (!hayFiltros){
+                            if (!hayFiltros) {
                                 LoadingOutlinedField(
                                     loading = mostrar_carga_Respuesta_gemini
                                 ) {
@@ -1073,6 +1064,7 @@ fun ui_promos_cerca_de_ti(
                             val idPromo = item.dataclass_promociones_cerca_de_ti
                                 .informacion_publcacion.id_promocion
 
+                            Log.d("pagospromops", "${item.dataclass_promociones_cerca_de_ti.pagos}")
                             val porcentajeMatch = porcentajes[idPromo] ?: 0
                             val index = promos.indexOfFirst {
                                 it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion ==
@@ -1089,12 +1081,13 @@ fun ui_promos_cerca_de_ti(
                                 carta_promocion_geinz(
                                     porcentajeMatch,
                                     i = item.dataclass_promociones_cerca_de_ti,
-                                    img_clikeble = { id_promo, listaimg, select ->
+                                    img_clikeble = { id_promo, listaimg, select, id_tienda ->
                                         if (uid_respald_user.isNotEmpty()) {
                                             Log.d(
                                                 "mostramosooom",
                                                 "$id_promo ${listaimg.size} $select"
                                             )
+                                            tienda_seleccionada_clik_baner = id_tienda
                                             promoSeleccionada = item
                                             // ✅ Usar el index calculado
                                             promoSeleccionada_unica =
@@ -1259,20 +1252,26 @@ fun ui_promos_cerca_de_ti(
 
 //                if (mostrar_zoom_img && promoSeleccionada != null) {
                 if (mostrar_zoom_img) {
-                    ZoomableGalleryFullScreenVerticalPager(
-                        if (tiendaSeleccionada != null) true else false,
-                        tiendaSeleccionada1 = tiendaSeleccionada,
-                        categoria_select_filtro = subCategoriaSeleccionada,
-                        id_user = uid_respald_user,
-                        viewModel = viewModel,
-                        localidad_general = localidad,
-                        promoSeleccionada = promoSeleccionada_unica!!,
-                        indeximg_seleccionado = index_galeria_img,
-                        onDismiss = { mostrar_zoom_img = false; promoSeleccionada = null },
-                    )
+                    key(tienda_seleccionada_clik_baner) { // 🔹 fuerza recreación al cambiar tienda
+                        ZoomableGalleryFullScreenVerticalPager(
+                            promociones_de_una_tienda = tienda_seleccionada_clik_baner ?: "",
+                            es_la_misma_tienda_o_no = tienda_seleccionada_clik_baner != null,
+                            tiendaSeleccionada1 = tiendaSeleccionada,
+                            categoria_select_filtro = subCategoriaSeleccionada,
+                            id_user = uid_respald_user,
+                            viewModel = viewModel,
+                            localidad_general = localidad,
+                            promoSeleccionada = promoSeleccionada_unica!!,
+                            indeximg_seleccionado = index_galeria_img,
+                            onDismiss = {
+                                mostrar_zoom_img = false
+                                promoSeleccionada = null
+                                tienda_seleccionada_clik_baner = null
+                            },
+                        )
+                    }
                     return
                 }
-
                 if (mostrar_bottom_shet_registrate) {
                     bottom_sheet_registrate(
                         ondimis = {
@@ -1314,7 +1313,7 @@ fun ui_promos_cerca_de_ti(
 fun carta_promocion_geinz(
     porcentajeMatch: Int,
     i: dataclass_promociones_cerca_de_ti,
-    img_clikeble: (id: String, lista: List<String>, Int) -> Unit,
+    img_clikeble: (id: String, lista: List<String>, Int, id_tienda: String) -> Unit,
     share_promo: (String, String, String) -> Unit,
     whatsap_promo: (String, id_tienda: String, categoira: String) -> Unit,
     mostrar_perfil: (String, id_promo: String) -> Unit
@@ -1353,13 +1352,23 @@ fun carta_promocion_geinz(
 
         ) {
             GaleriaHorizontalInstagram_promociones_solo_imagen(
+                i.pagos,
                 imagenes = i.img.lista_img,
                 modifier = Modifier.fillMaxSize(), img_clikeble_valor = { select ->
-                    img_clikeble(i.informacion_publcacion.id_promocion, i.img.lista_img, select)
+                    img_clikeble(
+                        i.informacion_publcacion.id_promocion,
+                        i.img.lista_img,
+                        select,
+                        i.informacion_publcacion.id_tienda
+                    )
                 }, long_listatener = {
                     Log.d("LONG_PRESS", "Long press en la galería")
                 })
-            texto_generico_one_line("provavilidad de $porcentajeMatch", color = Color.Black)
+
+
+
+
+//            texto_generico_one_line("provavilidad de $porcentajeMatch", color = Color.Black)
         }
 
         Row(
@@ -1493,6 +1502,7 @@ fun carta_promocion_geinz(
 
     }
 }
+
 
 fun parseDiasHorasRestantes(diasRestantesStr: String): Pair<Int, String> {
     // Ejemplos de strings que podrías tener: "3 días restantes" o "5 horas restantes"

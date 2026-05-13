@@ -207,7 +207,7 @@ import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaD
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaActual
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraActual
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerHoraFin
-import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerTimestampHoraFin
+//import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerTimestampHoraFin
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerTimestampHoraInicio
 import com.geinzz.geinzwork.utils.constantes.constantes_cobro_monedas
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_carga_ucrop_img
@@ -2948,25 +2948,15 @@ fun pantalla_promocionar(
                                             ?: ""
                                     ),
                                     datos_hora_fecha = datos_fecha_hora_tipo(
-                                        horas = fechas_horas_promociones(
-                                            hora_inicio = if (seleccion.tipo == "horas") obtenerHoraActual() else "",
-                                            hora_fin = if (seleccion.tipo == "horas") obtenerHoraFin(
-                                                hora_escrita.toInt()
-                                            ) else "",
-                                            activo = if (seleccion.tipo == "horas") true else false,
-                                            timestamp_inicio = if (seleccion.tipo == "horas") obtenerTimestampHoraInicio() else Timestamp.now(),
-                                            timestamp_fin = if (seleccion.tipo == "horas") obtenerTimestampHoraFin(
-                                                hora_escrita.toInt()
-                                            ) else Timestamp.now()
-                                        ),
-                                        dias = fechas_promociones(
-                                            fecha_inicio = if (seleccion.tipo == "dias") fecha_inicio else "",
-                                            fecha_fin = if (seleccion.tipo == "dias") fecha_fin else "",
-                                            activo = if (seleccion.tipo == "dias") true else false,
-                                            timestamp_inicio = if (seleccion.tipo == "dias") mostrarFechaDialog_horaDialog.obtenerTimestampInicio() else Timestamp.now(),
-                                            timestamp_fin = if (seleccion.tipo == "dias") mostrarFechaDialog_horaDialog.obtenerTimestampFinDias(
-                                                dias_restantes_pr
-                                            ) else Timestamp.now()
+                                        fecha_inicio = fecha_inicio,
+                                        fecha_fin = fecha_fin,
+                                        hora_inicio = obtenerHoraActual(),
+                                        hora_fin =  obtenerHoraFin(hora_escrita.toInt()),
+                                        activo = true,
+                                        timestamp_inicio =  Timestamp.now(),
+                                        timestamp_fin = mostrarFechaDialog_horaDialog.obtenerTimestampFin(
+                                            valor = if (seleccion.tipo == "dias") dias_restantes_pr else hora_escrita.toInt(),
+                                            tipo  = seleccion.tipo
                                         )
                                     ),
                                     mensaje_predeterminado = msjes_predeteminados_generales(

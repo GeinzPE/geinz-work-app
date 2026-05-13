@@ -111,6 +111,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.Descuentos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_mostar_leyendas_graficos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialogo_cerrar_seccion_teinda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.WhatsAppDanielBottomSheet
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_centro_de_Ayudas_pra_geinz
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_historial_pago
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.ui_bottom_sheet_generaciones_IA
@@ -195,6 +196,8 @@ fun pantalla_carga_socios(
     val fecha_tienda_fin by fecha_finalizado_flow.collectAsState()
     var subiendoImagen by remember { mutableStateOf(false) }
     var imagen_subida_correctamente by remember { mutableStateOf(false) }
+    var uri_imagen_bot by remember { mutableStateOf<Uri?>(null) }
+    var ver_assitent by remember { mutableStateOf(false) }
     LaunchedEffect(uid_respald_user) {
         if (uid_respald_user.isNotEmpty()) {
             viewmodel.verificar_cuenta_vinculada(
@@ -202,6 +205,15 @@ fun pantalla_carga_socios(
                 datos.id_tienda,
                 datos.localidad_tienda
             )
+
+        }
+    }
+
+    LaunchedEffect(cambiar_estados_bot_whattsapp) {
+        if (cambiar_estados_bot_whattsapp) {
+            imagen_subida_correctamente = false
+            uri_imagen_bot = null
+            subiendoImagen = false
         }
     }
 
@@ -245,7 +257,8 @@ fun pantalla_carga_socios(
             meses = "1 mes",
             icono_descuento = Icons.Filled.LocalFireDepartment,
             descuento_off = "-5%off",
-            precio_anterior =(cargar_precio_activacione?.planesActivacion["1_mes"] ?: 0).toString(),
+            precio_anterior = (cargar_precio_activacione?.planesActivacion["1_mes"]
+                ?: 0).toString(),
             procentaje_ahorro = "5%",
             porcentaje_int = 5, "1 mes"
         ),
@@ -254,7 +267,8 @@ fun pantalla_carga_socios(
             meses = "2 meses",
             icono_descuento = Icons.Filled.LocalFireDepartment,
             descuento_off = "-10%off",
-            precio_anterior = (cargar_precio_activacione?.planesActivacion["2_meses"] ?: 0).toString(),
+            precio_anterior = (cargar_precio_activacione?.planesActivacion["2_meses"]
+                ?: 0).toString(),
             procentaje_ahorro = "10%",
             porcentaje_int = 10, "2 mes"
         ),
@@ -263,7 +277,8 @@ fun pantalla_carga_socios(
             meses = "3 meses",
             icono_descuento = Icons.Filled.LocalFireDepartment,
             descuento_off = "-20%off",
-            precio_anterior = (cargar_precio_activacione?.planesActivacion["3_meses"] ?: 0).toString(),
+            precio_anterior = (cargar_precio_activacione?.planesActivacion["3_meses"]
+                ?: 0).toString(),
             procentaje_ahorro = "20%",
             porcentaje_int = 20, "3 mes"
         ),
@@ -272,7 +287,8 @@ fun pantalla_carga_socios(
             meses = "4 meses",
             icono_descuento = Icons.Filled.LocalFireDepartment,
             descuento_off = "-30%off",
-            precio_anterior = (cargar_precio_activacione?.planesActivacion["4_meses"] ?: 0).toString(),
+            precio_anterior = (cargar_precio_activacione?.planesActivacion["4_meses"]
+                ?: 0).toString(),
             procentaje_ahorro = "30%",
             porcentaje_int = 30, "4 mes"
         )
@@ -939,11 +955,11 @@ fun pantalla_carga_socios(
                                                     if ((mostrar_btn_guardar_chatbot_IA || elTextoCambio) && !estado_subido_para_whatsapp_bot) {
                                                         Button(
                                                             onClick = {
-                                                                viewmodel.guadardar_descripcion_whattsapp_bot(
-                                                                    id_tienda,
-                                                                    datos.localidad_tienda,
-                                                                    descripcion_chat_bot
-                                                                )
+//                                                                viewmodel.guadardar_descripcion_whattsapp_bot(
+//                                                                    id_tienda,
+//                                                                    datos.localidad_tienda,
+//                                                                    descripcion_chat_bot
+//                                                                )
                                                             },
                                                             modifier = Modifier.fillMaxWidth(),
                                                             shape = CircleShape
@@ -977,7 +993,6 @@ fun pantalla_carga_socios(
                                                         texto_button = "generar con IA",
                                                         cantidad_monedas = "30"
                                                     )
-
                                                     spacer_vertical(15.dp)
                                                     texto_generico_multilinea(
                                                         "Agrega una imagen para que el asistente de Geinz pueda mostrar tu negocio de forma más atractiva.",
@@ -1333,7 +1348,7 @@ fun pantalla_carga_socios(
                                                 duration = SnackbarDuration.Short
                                             )
                                         }
-                                    }else{
+                                    } else {
                                         scope.launch {
                                             snackbarHostState.showSnackbar(
                                                 message = "Algo salió mal al guardar \uD83D\uDE15 Inténtalo de nuevo en unos minutos.",
@@ -2383,6 +2398,57 @@ fun pantalla_carga_socios(
                 }
             )
         }
+        // 2. Pásalos al WhatsAppDanielBottomSheet
+        if (cambiar_estados_bot_whattsapp) {
+            WhatsAppDanielBottomSheet(
+                numero_whatsapp = datos.metodo_contacto_tienda.whatsapp.numero,
+                sucategoira     = datos.subcategorias_tienda,
+                metodos_pago    = datos.metodos_pago,
+                servicios_comodidades = datos.servicios_comodidades,
+                localidad_tienda = datos.localidad_tienda,
+                nombre_tienda   = datos.nombre,
+                id_tienda       = datos.id_tienda,
+                saldo_tienda    = datos.saldo_disponible_tienda,
+                onDismiss       = { cambiar_estados_bot_whattsapp = false },
+                onActivate      = {},
+
+                // ✅ igual que antes: guarda la Uri cuando el usuario elige imagen
+                onImagenChange = { uri ->
+                    if (uri != null) {
+                        uri_imagen_bot = uri
+                    }
+                },
+
+                usuario_borro_los_cambios = {
+                    uri_imagen_bot = null
+                },
+
+                imagen_subida_correctamente = imagen_subida_correctamente,
+                subiendo_imagen             = subiendoImagen,
+
+                // ✅ igual que antes: sube cuando presiona "Guardar" dentro del componente
+                onGuardarImagen = {
+                    subiendoImagen = true
+                    agregarImagenParaBot(
+                        datos.localidad_tienda,
+                        datos.id_tienda,
+                        uri_imagen_bot,
+                        context
+                    ) {
+                        subiendoImagen = false
+                        imagen_subida_correctamente = true  // se pone true
+                        uri_imagen_bot = null
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = "Imagen subida correctamente",
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    }
+                }
+            )
+        }
+
 
         if (mostrarDialogozoom) {
             ZoomableGalleryFullScreen(

@@ -10,6 +10,7 @@ import com.geinzz.geinzwork.data.model.DatosPublicidadIA
 import com.geinzz.geinzwork.data.model.PreciosApp
 import com.geinzz.geinzwork.data.model.agregar_promociones
 import com.geinzz.geinzwork.data.model.contenido_publicidad
+import com.geinzz.geinzwork.data.model.data_whatsapp_info
 import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
 import com.geinzz.geinzwork.data.model.datos_notificacion
 import com.geinzz.geinzwork.data.model.datos_publicaciones_realizadas
@@ -109,7 +110,8 @@ class repo_eres_socio {
     private val db_sec: FirebaseFirestore by lazy {
         FirebaseSecundario.getFirestore()
     }
-//    (cargar_precio_activacione?.publicidad?.mensajeWC ?:100).toString(),
+
+    //    (cargar_precio_activacione?.publicidad?.mensajeWC ?:100).toString(),
 //    cargar_precio_activacione
     suspend fun obtener_precios_generales(): PreciosApp? {
         return try {
@@ -125,24 +127,95 @@ class repo_eres_socio {
         }
     }
 
-    suspend fun agregar_descripcion_seo_bot(
+
+    suspend fun obtener_descripcion_Seo_whatsapp(
+        id_tienda: String
+    ): data_whatsapp_info {
+
+        return try {
+
+            val ref = db.collection("lugares")
+                .document(id_tienda)
+                .get()
+                .await()
+
+            data_whatsapp_info(
+                descripcion_seo = ref.getString("descripcion") ?: "",
+                msje_whatsapp = ref.getString("msje_whatsapp") ?: "",
+                numero_whatsapp = ref.getString("whatsapp") ?: ""
+            )
+
+        } catch (e: Exception) {
+
+            data_whatsapp_info()
+
+        }
+    }
+
+    suspend fun obtener_imange_bot(id_tienda: String): String {
+
+        return try {
+
+            val ref = db.collection("lugares")
+                .document(id_tienda)
+                .get()
+                .await()
+
+            val imagenBot = ref.getString("imagen_bot") ?: ""
+            val imagenNormal = ref.getString("img") ?: ""
+
+            when {
+                imagenBot.isNotBlank() -> imagenBot
+                imagenNormal.isNotBlank() -> imagenNormal
+                else -> ""
+            }
+
+        } catch (e: Exception) {
+
+            ""
+
+        }
+    }
+
+
+
+    suspend fun agregar_numero_mesje(
         id_tienda: String,
-        localidad: String,
-        texto: String
+        data: String,
+        tipo: String,
     ): Boolean {
+
         val ref = db.collection("lugares")
             .document(id_tienda)
 
-        val data =
-            mapOf("descripcion" to texto) // Usando el nombre de campo que mencionaste antes
+        val campo = when (tipo) {
+
+            "desc" -> "descripcion"
+
+            "wsap" -> "numero_whatsapp"
+
+            "msje" -> "msje_whatsapp"
+
+            else -> return false
+        }
+
+        val body = mapOf(
+            campo to data
+        )
 
         return try {
-            ref.set(data, SetOptions.merge()).await()
-            println("SEO actualizado correctamente")
-            true // Éxito
+
+            ref.set(body, SetOptions.merge()).await()
+
+            println("$campo actualizado correctamente")
+
+            true
+
         } catch (e: Exception) {
-            println("Error al actualizar SEO: ${e.message}")
-            false // Falló
+
+            println("Error al actualizar $campo: ${e.message}")
+
+            false
         }
     }
 
@@ -1419,7 +1492,7 @@ class repo_eres_socio {
     }
 
     suspend fun crear_promocion(
-        img_bot:String?,
+        img_bot: String?,
         datos_si_paso_IA: DatosPublicidadIA,
         tuvi_nueva_genearcion: Boolean,
         lista_img_subida: List<String>,
@@ -1447,7 +1520,6 @@ class repo_eres_socio {
                 .document(localidad)
                 .collection("promos_ofertas")
                 .document(i.informacion.id_promocion)
-
             val ref2 = db.collection("Tiendas").document(localidad).collection(localidad)
                 .document(i.informacion.id_tienda).collection("promociones_geinz")
                 .document(i.informacion.id_promocion)
@@ -1501,7 +1573,7 @@ class repo_eres_socio {
                 "id_promocion" to i.informacion.id_promocion,
                 "id_tienda" to i.informacion.id_tienda,
                 "localidad" to localidad,
-
+                "activo" to true,
                 // 🔍 búsqueda
                 "terminos_clave" to array_extraido,
 
@@ -1523,16 +1595,21 @@ class repo_eres_socio {
 
                 "precioMax" to precioMax,
 
-                "timestamp_fin" to when {
-                    i.datos_hora_fecha.dias.activo -> i.datos_hora_fecha.dias.timestamp_fin.seconds * 1000
-                    i.datos_hora_fecha.horas.activo -> i.datos_hora_fecha.horas.timestamp_fin.seconds * 1000
-                    else -> System.currentTimeMillis()
-                },
-                "timestamp_inicio" to when {
-                    i.datos_hora_fecha.dias.activo -> i.datos_hora_fecha.dias.timestamp_inicio.seconds * 1000
-                    i.datos_hora_fecha.horas.activo -> i.datos_hora_fecha.horas.timestamp_inicio.seconds * 1000
-                    else -> System.currentTimeMillis()
-                }
+                "timestamp_fin" to
+//                        when {
+                        i.datos_hora_fecha.timestamp_inicio.seconds * 1000
+//                    i.datos_hora_fecha.dias.activo -> i.datos_hora_fecha.dias.timestamp_fin.seconds * 1000
+//                    i.datos_hora_fecha.horas.activo -> i.datos_hora_fecha.horas.timestamp_fin.seconds * 1000
+//                    else -> System.currentTimeMillis()
+//                }
+                ,
+                "timestamp_inicio" to
+                        i.datos_hora_fecha.timestamp_fin.seconds * 1000
+//                        when {
+//                    i.datos_hora_fecha.dias.activo -> i.datos_hora_fecha.dias.timestamp_inicio.seconds * 1000
+//                    i.datos_hora_fecha.horas.activo -> i.datos_hora_fecha.horas.timestamp_inicio.seconds * 1000
+//                    else -> System.currentTimeMillis()
+//                }
 
             )
 
@@ -1546,52 +1623,58 @@ class repo_eres_socio {
                 "horario_publicacion" to if (i.horario_deseado.seleccion.isNotEmpty()) i.horario_deseado.seleccion.lowercase() else "todo_dia",
                 "precio_publicacion" to i.precio_publicacion.precio,
                 "rango_establecido" to i.precio_publicacion.rango,
-                "pagos" to hasmap_metodos_pago,
-                "comodidades" to hashmap_comodidades,
+                "pagos" to listOfNotNull(
+                    if (i.metodos_pagos.yape) "yape" else null,
+                    if (i.metodos_pagos.plin) "plin" else null,
+                    if (i.metodos_pagos.efectivo) "efectivo" else null,
+                    if (i.metodos_pagos.visa) "visa" else null,
+                    if (i.metodos_pagos.mastercard) "mastercard" else null
+                ),
+                "comodidades" to hashmap_comodidades.filterValues { it as Boolean }.keys.toList(),
                 "terminos_clave" to array_extraido,
                 "random" to Math.random()
             )
 
             // 🤖 SOLO SI EXISTE IA
-            if (tuvi_nueva_genearcion) {
-                val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
-                    .document(i.informacion.id_tienda).collection("gen_con_IA_historial")
-                    .document(i.informacion.id_promocion)
-                val hashmpa_gen_con_IA = hashMapOf<String, Any>(
-                    "fecha" to Timestamp.now(),
-                    "img_container" to lista_img_subida.first(),
-                    "caudidad" to timestampEn30Dias(30),
-                    "id_promo_o_noti" to i.informacion.id_promocion,
-                    "tipo" to "publicacion",
-                    "generacions_con_IA" to i.generaciones_con_ia
-                )
-                val descripcionAcortada = acortarDescripcionNotificacion(
-                    i.informacion.descripcion
-                )
-
-                val nombreGeneracion = crear_notificacion_conIA_corta(
-                    i.informacion.titulo,
-                    descripcionAcortada
-                )
-                nombreGeneracion.let {
-                    hashmpa_gen_con_IA["nombre_generacion"] = it
-                }
-
-                gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
-            } else if (tieneDatos && !datos_si_paso_IA.id_generacion_sin_publicar.isNullOrBlank()) {
-                val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
-                    .document(i.informacion.id_tienda).collection("gen_con_IA_historial")
-                    .document(datos_si_paso_IA.id_generacion_sin_publicar)
-                val hashmpa_gen_con_IA = hashMapOf<String, Any>(
-                    "fecha" to Timestamp.now(),
-                    "img_container" to lista_img_subida.first(),
-                    "caudidad" to timestampEn30Dias(30),
-                    "tipo" to "publicacion",
-
-                    )
-
-                gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
-            }
+//            if (tuvi_nueva_genearcion) {
+//                val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
+//                    .document(i.informacion.id_tienda).collection("gen_con_IA_historial")
+//                    .document(i.informacion.id_promocion)
+//                val hashmpa_gen_con_IA = hashMapOf<String, Any>(
+//                    "fecha" to Timestamp.now(),
+//                    "img_container" to lista_img_subida.first(),
+//                    "caudidad" to timestampEn30Dias(30),
+//                    "id_promo_o_noti" to i.informacion.id_promocion,
+//                    "tipo" to "publicacion",
+//                    "generacions_con_IA" to i.generaciones_con_ia
+//                )
+//                val descripcionAcortada = acortarDescripcionNotificacion(
+//                    i.informacion.descripcion
+//                )
+//
+//                val nombreGeneracion = crear_notificacion_conIA_corta(
+//                    i.informacion.titulo,
+//                    descripcionAcortada
+//                )
+//                nombreGeneracion.let {
+//                    hashmpa_gen_con_IA["nombre_generacion"] = it
+//                }
+//
+//                gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
+//            } else if (tieneDatos && !datos_si_paso_IA.id_generacion_sin_publicar.isNullOrBlank()) {
+//                val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
+//                    .document(i.informacion.id_tienda).collection("gen_con_IA_historial")
+//                    .document(datos_si_paso_IA.id_generacion_sin_publicar)
+//                val hashmpa_gen_con_IA = hashMapOf<String, Any>(
+//                    "fecha" to Timestamp.now(),
+//                    "img_container" to lista_img_subida.first(),
+//                    "caudidad" to timestampEn30Dias(30),
+//                    "tipo" to "publicacion",
+//
+//                    )
+//
+//                gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
+//            }
 
 
             subir_algolia_promociones.set(objetoAlgolia).await()
