@@ -23,6 +23,11 @@ const textToSpeech = require("@google-cloud/text-to-speech");
 const ttsClient = new textToSpeech.TextToSpeechClient();
 const geofire = require("geofire-common");
 
+// ✅ importar nueva function
+const { obtener_creditos_tienda } = require("./test_db2");
+
+// ✅ exportar nueva function
+exports.obtener_creditos_tienda = obtener_creditos_tienda;
 admin.initializeApp();
 
 const axios = require("axios");
@@ -280,7 +285,6 @@ exports.filtrar_por_datos = onRequest(async (req, res) => {
         descripcion: h.descripcion || "",
         name_tienda: h.nombre_tienda || "",
         img: h.imagen_promo || "",
-
       };
     });
 
@@ -349,7 +353,6 @@ exports.buscarNegocios_para_solucionar = onRequest(
     }
   },
 );
-
 
 exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
   try {
@@ -452,13 +455,10 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
           if (typeof h.nombre === "string") {
             const value = h.nombre.toLowerCase();
 
-            let score = similarity.stringSimilarity(
-              query,
-              value,
-            );
+            let score = similarity.stringSimilarity(query, value);
 
             if (value.includes(query)) {
-              score += 0.20;
+              score += 0.2;
             }
 
             if (score > bestScore) {
@@ -477,13 +477,10 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
 
               const value = p.toLowerCase();
 
-              let score = similarity.stringSimilarity(
-                query,
-                value,
-              );
+              let score = similarity.stringSimilarity(query, value);
 
               if (value.includes(query)) {
-                score += 0.20;
+                score += 0.2;
               }
 
               if (score > bestScore) {
@@ -503,10 +500,7 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
 
               const value = t.toLowerCase();
 
-              let score = similarity.stringSimilarity(
-                query,
-                value,
-              );
+              let score = similarity.stringSimilarity(query, value);
 
               if (value.includes(query)) {
                 score += 0.15;
@@ -526,13 +520,10 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
           if (typeof h.categoria === "string") {
             const value = h.categoria.toLowerCase();
 
-            let score = similarity.stringSimilarity(
-              query,
-              value,
-            );
+            let score = similarity.stringSimilarity(query, value);
 
             if (value.includes(query)) {
-              score += 0.10;
+              score += 0.1;
             }
 
             if (score > bestScore) {
@@ -589,15 +580,11 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
 
         tienda: hit.nombre || "",
 
-        open_state: verificar_apertura_tienda(
-          extra.horario,
-        ),
+        open_state: verificar_apertura_tienda(extra.horario),
 
         match_keyword: hit.match_keyword || null,
 
-        similarity: Number(
-          (hit.similarity || 0).toFixed(2),
-        ),
+        similarity: Number((hit.similarity || 0).toFixed(2)),
       };
 
       // =====================================================
@@ -615,10 +602,7 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
       return {
         ...base,
 
-        desc: (hit.descripcion || "").substring(
-          0,
-          150,
-        ),
+        desc: (hit.descripcion || "").substring(0, 150),
 
         loc: hit.lugar || "",
 
@@ -648,10 +632,7 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
       data,
     });
   } catch (error) {
-    console.error(
-      "❌ Error búsqueda tienda:",
-      error,
-    );
+    console.error("❌ Error búsqueda tienda:", error);
 
     return res.status(500).json({
       ok: false,
@@ -1769,14 +1750,14 @@ exports.confirmarPago = onCall(async (req) => {
         enviarWhatsApp(
           937659216,
           `✅ *Pago exitoso en Geinz*\n` +
-          `🏪 *Negocio:* ${nombre_tienda}\n` +
-          `🆔 *ID Negocio:* ${userId}\n` +
-          `📦 *Paquete:* ${nombre_paquete}\n` +
-          `💰 *Monto pagado:* S/ ${monto}\n` +
-          `🪙 *Monedas acreditadas:* ${monedas}\n` +
-          `🧾 *ID Transacción:* ${id_select_boleta_pago}\n` +
-          `💳 *ID Cargo Culqi:* ${charge.id}\n` +
-          `📅 *Fecha:* ${new Date().toLocaleString("es-PE", { timeZone: "America/Lima" })}`,
+            `🏪 *Negocio:* ${nombre_tienda}\n` +
+            `🆔 *ID Negocio:* ${userId}\n` +
+            `📦 *Paquete:* ${nombre_paquete}\n` +
+            `💰 *Monto pagado:* S/ ${monto}\n` +
+            `🪙 *Monedas acreditadas:* ${monedas}\n` +
+            `🧾 *ID Transacción:* ${id_select_boleta_pago}\n` +
+            `💳 *ID Cargo Culqi:* ${charge.id}\n` +
+            `📅 *Fecha:* ${new Date().toLocaleString("es-PE", { timeZone: "America/Lima" })}`,
         );
       }
     } catch (nubefactErr) {
@@ -1800,11 +1781,11 @@ exports.confirmarPago = onCall(async (req) => {
     await enviarWhatsApp(
       "937659216",
       `❌ *Pago rechazado en Geinz*\n\n` +
-      `🏪 *Negocio:* ${nombre_tienda}\n` +
-      `🆔 *ID:* ${userId}\n` +
-      `💰 *Monto:* S/ ${monto}\n` +
-      `⚠️ *Motivo:* ${motivo}\n` +
-      `📅 *Fecha:* ${new Date().toLocaleString("es-PE", { timeZone: "America/Lima" })}`,
+        `🏪 *Negocio:* ${nombre_tienda}\n` +
+        `🆔 *ID:* ${userId}\n` +
+        `💰 *Monto:* S/ ${monto}\n` +
+        `⚠️ *Motivo:* ${motivo}\n` +
+        `📅 *Fecha:* ${new Date().toLocaleString("es-PE", { timeZone: "America/Lima" })}`,
     );
 
     throw new HttpsError("failed-precondition", motivo);
@@ -3284,8 +3265,19 @@ exports.share = onRequest(async (req, res) => {
     // ============================
     //        URL DESTINO
     // ============================
-    let destino = `https://geinzworkapp.web.app/${tipo}?id=${id}`;
+    let destino;
 
+    if (tipo === "prms") {
+      destino =
+        `https://geinzworkapp.web.app/promociones.html` +
+        `?l=${localidad}` +
+        `&pi=${id_promo_compartida}`;
+    } else {
+      destino = `https://geinzworkapp.web.app/${tipo}?id=${id}`;
+
+      if (localidad) destino += `&localidad=${localidad}`;
+      if (categoria) destino += `&categoria=${categoria}`;
+    }
     if (localidad) destino += `&localidad=${localidad}`;
     if (categoria) destino += `&categoria=${categoria}`;
     if (tipo === "p" && indice) {
