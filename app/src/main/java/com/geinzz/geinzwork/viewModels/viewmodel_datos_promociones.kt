@@ -142,14 +142,64 @@ class viewmodel_datos_promociones : ViewModel() {
         localidad: String,
         id_promo: String
     ) {
-        Log.d("parmaeonsotrnaioe","$localidad $id_promo")
+
+        Log.d("PROMO_PARAM", "════════════════════════════")
+        Log.d("PROMO_PARAM", "▶ INICIO obtener_datos_promociones_por_paramtros")
+        Log.d("PROMO_PARAM", "📍 localidad=$localidad")
+        Log.d("PROMO_PARAM", "🆔 id_promo=$id_promo")
+
         viewModelScope.launch {
+
+            Log.d("PROMO_PARAM", "🚀 viewModelScope.launch iniciado")
+
             try {
-                _datos_promocion_parametro.value =
-                    repo.obtener_datos_promociones_scroll_infinito_compartido(localidad, id_promo)
+
+                Log.d(
+                    "PROMO_PARAM",
+                    "📡 Llamando repo.obtener_datos_promociones_scroll_infinito_compartido..."
+                )
+
+                val resultado =
+                    repo.obtener_datos_promociones_scroll_infinito_compartido(
+                        localidad,
+                        id_promo
+                    )
+
+                Log.d(
+                    "PROMO_PARAM",
+                    "✅ Resultado obtenido correctamente"
+                )
+
+                Log.d(
+                    "PROMO_PARAM",
+                    "📦 resultado=$resultado"
+                )
+
+                _datos_promocion_parametro.value = resultado
+
+                Log.d(
+                    "PROMO_PARAM",
+                    "📝 LiveData actualizado correctamente"
+                )
+
             } catch (e: Exception) {
-                Log.d("error_opbtner_prom", "error $e")
+
+                Log.e(
+                    "PROMO_PARAM",
+                    "❌ Error al obtener promociones por parámetros",
+                    e
+                )
+
+                Log.d(
+                    "PROMO_PARAM",
+                    "⚠️ mensaje error=${e.message}"
+                )
             }
+
+            Log.d(
+                "PROMO_PARAM",
+                "🏁 FIN coroutine obtener_datos_promociones_por_paramtros"
+            )
         }
     }
 }

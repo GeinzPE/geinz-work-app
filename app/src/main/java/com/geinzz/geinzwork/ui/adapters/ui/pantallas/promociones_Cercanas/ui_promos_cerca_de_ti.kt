@@ -292,37 +292,46 @@ fun ui_promos_cerca_de_ti(
         if (activar_promo_params.isEmpty()) {
             Log.w(
                 "PROMO_FLOW",
-                "⛔ Se ignora datos_promo_parametros porque activar_promo_params está vacío"
+                "⛔ activar_promo_params vacío"
             )
+            return@LaunchedEffect
+        }
+
+        val idPromo = datos_promo_parametros.informacion_publcacion.id_promocion
+
+        Log.d("PROMO_FLOW", "🆔 idPromo recibido = '$idPromo'")
+
+        // ⏳ TODAVÍA CARGANDO
+        if (idPromo.isEmpty()) {
+
+            Log.d(
+                "PROMO_FLOW",
+                "⏳ Esperando datos reales de Firestore..."
+            )
+
             return@LaunchedEffect
         }
 
         cargaFinalizada = true
 
-        val idPromo =
-            datos_promo_parametros.informacion_publcacion.id_promocion
-        val estado_publicaicones = datos_promo_parametros.estado_publicacion
+        val estado_publicaicones =
+            datos_promo_parametros.estado_publicacion
 
         if (estado_publicaicones.equals("pausado", ignoreCase = true)) {
+
+            Log.e("PROMO_FLOW", "⛔ publicación pausada")
+
             promoExpirada = true
+
             texto_snackbar =
-                "Esta publicación no está disponible en este momento. Inténtalo más tarde."
-            return@LaunchedEffect
-        }
-
-        Log.d("PROMO_FLOW", "🆔 idPromo recibido = '$idPromo'")
-
-        // ❌ NO EXISTE
-        if (idPromo.isEmpty()) {
-            Log.e("PROMO_FLOW", "❌ idPromo vacío → promo NO existe")
-            promoExpirada = true
-            texto_snackbar = "Este contenido ya no está disponible"
+                "Esta publicación no está disponible en este momento."
 
             return@LaunchedEffect
         }
 
         // ⏱️ VALIDAR EXPIRACIÓN
-        val expirada = promoEstaExpirada(datos_promo_parametros.fecha_fin)
+        val expirada =
+            promoEstaExpirada(datos_promo_parametros.fecha_fin)
 
         Log.d(
             "PROMO_FLOW",
@@ -330,20 +339,28 @@ fun ui_promos_cerca_de_ti(
         )
 
         if (expirada) {
-            Log.e("PROMO_FLOW", "⛔ Promo EXPIRADA")
+
+            Log.e("PROMO_FLOW", "⛔ Promo expirada")
+
             promoExpirada = true
+
             return@LaunchedEffect
         }
 
-        // ✅ EXISTE y NO está expirada → UI
+        // ✅ TODO OK
         Log.d("PROMO_FLOW", "✅ Promo válida → mostrar UI")
 
         promoExpirada = false
+        tienda_seleccionada_clik_baner = datos_promo_parametros
+            .informacion_publcacion
+            .id_tienda  // ← el campo donde guardas el id de la tienda
+
         mostrar_zoom_img = true
         promoSeleccionada_unica = datos_promo_parametros
 
-        // 📊 ESTADÍSTICAS (SOLO UNA VEZ)
+        // 📊 estadísticas
         if (!estadisticasAgregadas) {
+
             Log.d("PROMO_FLOW", "📊 Agregando estadísticas")
 
             viewModel.agregar_estadisticas_publicacion(
@@ -352,19 +369,24 @@ fun ui_promos_cerca_de_ti(
                 localidad,
                 uid_respald_user
             )
+
             viewModel.agregar_estadisticas_publicacion(
                 "vistas",
                 activar_promo_params,
                 localidad,
                 uid_respald_user
             )
+
             estadisticasAgregadas = true
+
         } else {
-            Log.d("PROMO_FLOW", "ℹ Estadísticas ya agregadas")
+
+            Log.d(
+                "PROMO_FLOW",
+                "ℹ estadísticas ya agregadas"
+            )
         }
     }
-
-
 
     LaunchedEffect(estado, promoExpirada) {
         if (
@@ -1539,9 +1561,6 @@ fun compartir_hosting_promo(
             "puerto supe" -> "pue"
             else -> localidad_tienda
         }
-        val repo_erese_socio = repo_eres_socio()
-
-
         val link =
             "https://geinzworkapp.web.app/share?" +
                     "t=prms" +

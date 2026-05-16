@@ -462,20 +462,18 @@ fun nativationWrapper(
                             navController.navigate(ui_salud_seguridad(localida))
                         },
                         listner_sevicios_tramites = { localidad, id ->
-                      navController.navigate(ui_servicios_tramites(localidad))
-//                            navController.navigate(promociones_y_ofertas(localidad,id))
-
+                            navController.navigate(ui_servicios_tramites(localidad))
                         },
                         abrir_guardar_datos = {
-//                                                    enviar_notificacion_lista_dispo(
-//                                                        id_user,
-//                                                        "Mira ese nuevo negocio en geinz notificacion de prueva ",
-//                                                        "Encuentralo a unos pasos cerca de ti "
-//                                                    )
-//                            navController.navigate(ui_agregar_lugares)
+                        //                                                    enviar_notificacion_lista_dispo(
+                        //                                                        id_user,
+                        //                                                        "Mira ese nuevo negocio en geinz notificacion de prueva ",
+                        //                                                        "Encuentralo a unos pasos cerca de ti "
+                        //                                                    )
+                        //                            navController.navigate(ui_agregar_lugares)
                             navController.navigate(agregar_pripiedads)
 
-//                            navController.navigate(map_box)
+                        //                            navController.navigate(map_box)
                             //                            pasar_teindas_nuevas()
 
                         },
@@ -489,18 +487,18 @@ fun nativationWrapper(
                         },
                         abir_butom_Var = { isvisble_buttomvar = true },
                         cerrar_buttom_var = { isvisble_buttomvar = false },
-                        {
+                        onback_preset = {
                             navController.navigate("pantalla_principal") {
                                 popUpTo("pantalla_principal") {
                                     inclusive = true
                                 }
                                 launchSingleTop = true
                             }
-                        }, geinz_inmobiliaria = { localidad,id ->
-//                            navController.navigate(geinz_inmobiliaria(localidad_selec = localidad))
-                               navController.navigate(promociones_y_ofertas(localidad, id))
+                        }, geinz_inmobiliaria = { localidad, id ->
+                        //                            navController.navigate(geinz_inmobiliaria(localidad_selec = localidad))
+                            navController.navigate(promociones_y_ofertas(localidad, id))
 
-                        },{localidad, id_prmo ->
+                        }, navegacion_para_promos = { localidad, id_prmo ->
                             navController.navigate(promociones_y_ofertas(localidad,id_prmo))
                         }
                     )

@@ -888,190 +888,6 @@ fun pantalla_carga_socios(
                                             }
                                         }
 
-
-                                        spacer_vertical(20.dp)
-
-                                        Column(
-                                            modifier = Modifier
-                                                .clip(
-                                                    RoundedCornerShape(
-                                                        10.dp
-                                                    )
-                                                )
-                                                .background(
-                                                    MaterialTheme.colorScheme.surfaceVariant
-                                                )
-                                                .fillMaxWidth(),
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(40.dp)
-                                                    .clickable {
-                                                        cambiar_estados_bot_whattsapp =
-                                                            !cambiar_estados_bot_whattsapp
-                                                    }
-                                                    .padding(
-                                                        horizontal = 16.dp
-                                                    ),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                                ) {
-                                                    texto_generico_one_line(
-                                                        "Asistente de whatsApp"
-                                                    )
-                                                    Image(
-                                                        painter = painterResource(R.drawable.whatsapp_icon),
-                                                        modifier = Modifier.size(25.dp),
-                                                        contentDescription = null
-                                                    )
-                                                }
-                                            }
-
-                                            AnimatedVisibility(
-                                                cambiar_estados_bot_whattsapp,
-                                                modifier = Modifier.padding(10.dp)
-                                            ) {
-                                                Column(
-                                                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                                                ) {
-                                                    texto_generico_multilinea(
-                                                        "Optimiza tu perfil para la IA: Mejora la información de tu negocio para que nuestro asistente de WhatsApp te recomiende con prioridad y atraiga más clientes.",
-                                                        style = MaterialTheme.typography.bodyMedium
-                                                    )
-                                                    custom_textField_150(
-                                                        rounder = 10,
-                                                        value = descripcion_chat_bot,
-                                                        onValueChange = {
-                                                            descripcion_chat_bot = it
-                                                        },
-                                                        labelText = "Descripción SEO para WhatsApp",
-                                                        placeholderText = "Descripción SEO para WhatsApp"
-                                                    )
-                                                    if ((mostrar_btn_guardar_chatbot_IA || elTextoCambio) && !estado_subido_para_whatsapp_bot) {
-                                                        Button(
-                                                            onClick = {
-//                                                                viewmodel.guadardar_descripcion_whattsapp_bot(
-//                                                                    id_tienda,
-//                                                                    datos.localidad_tienda,
-//                                                                    descripcion_chat_bot
-//                                                                )
-                                                            },
-                                                            modifier = Modifier.fillMaxWidth(),
-                                                            shape = CircleShape
-                                                        ) {
-                                                            texto_generico_one_line(
-                                                                "Guardar cambios",
-                                                                style = MaterialTheme.typography.bodyMedium
-                                                            )
-                                                        }
-                                                        spacer_vertical(10.dp)
-                                                    }
-                                                    boton_generador_por_IA(
-                                                        cargando = estaCargandoIA,
-                                                        onclick = {
-                                                            val data_para_ia =
-                                                                viewmodel.prepararInputParaIA(
-                                                                    datos.subcategorias_tienda,
-                                                                    metodos_pago,
-                                                                    datos.servicios_comodidades
-                                                                )
-                                                            Log.d("data_para_ia", data_para_ia)
-                                                            viewmodel_generacones_IA.obtener_descripcion_generada_con_datos(
-                                                                data_para_ia,
-                                                                datos.localidad_tienda,
-                                                                datos.nombre,
-                                                                datos.id_tienda,
-                                                                "30",
-                                                                datos.saldo_disponible_tienda.toInt()
-                                                            )
-                                                        },
-                                                        texto_button = "generar con IA",
-                                                        cantidad_monedas = "30"
-                                                    )
-                                                    spacer_vertical(15.dp)
-                                                    texto_generico_multilinea(
-                                                        "Agrega una imagen para que el asistente de Geinz pueda mostrar tu negocio de forma más atractiva.",
-                                                        style = MaterialTheme.typography.bodyMedium
-                                                    )
-                                                    spacer_vertical(10.dp)
-
-                                                    Box_para_imagen_general_de_Bot_whatsapp(
-                                                        imagen_subida_correctamente,
-                                                        subiendoImagen,
-                                                        imagenInicial = datos.obtener_img_tiendas.logo_whatsapp_bot,
-                                                        onImagenChange = { uri ->
-                                                            if (uri != null) {
-                                                                cambiar_imagen_para_el_bot_whatsapp =
-                                                                    true
-                                                                uri_para_bot_whatsapp = uri
-                                                            }
-                                                        },
-                                                        usuario_borro_los_cambios = {
-                                                            cambiar_imagen_para_el_bot_whatsapp =
-                                                                false
-                                                        })
-
-                                                    if (cambiar_imagen_para_el_bot_whatsapp) {
-                                                        Button(
-                                                            onClick = {
-                                                                subiendoImagen = true
-                                                                agregarImagenParaBot(
-                                                                    datos.localidad_tienda,
-                                                                    datos.id_tienda,
-                                                                    uri_para_bot_whatsapp,
-                                                                    context
-                                                                ) {
-                                                                    subiendoImagen = false
-                                                                    cambiar_imagen_para_el_bot_whatsapp =
-                                                                        false
-
-                                                                    imagen_subida_correctamente =
-                                                                        true
-                                                                    scope.launch {
-                                                                        snackbarHostState.showSnackbar(
-                                                                            message = "Imagen subida correctamente",
-                                                                            duration = SnackbarDuration.Short
-                                                                        )
-                                                                    }
-                                                                }
-                                                            },
-                                                            modifier = Modifier.fillMaxWidth(),
-                                                            shape = CircleShape,
-                                                            enabled = !subiendoImagen // 🔥 desactiva mientras sube
-                                                        ) {
-
-                                                            if (subiendoImagen) {
-                                                                Row(
-                                                                    horizontalArrangement = Arrangement.spacedBy(
-                                                                        8.dp
-                                                                    ),
-                                                                    verticalAlignment = Alignment.CenterVertically
-                                                                ) {
-                                                                    texto_generico_one_line(
-                                                                        "Subiendo...",
-                                                                        style = MaterialTheme.typography.bodyMedium
-                                                                    )
-                                                                }
-
-                                                            } else {
-                                                                texto_generico_one_line(
-                                                                    "Guardar cambios",
-                                                                    style = MaterialTheme.typography.bodyMedium
-                                                                )
-                                                            }
-                                                        }
-                                                    }
-
-
-                                                }
-                                            }
-                                        }
-
                                     }
 
                                     spacer_vertical(10.dp)
@@ -1258,7 +1074,10 @@ fun pantalla_carga_socios(
                     }
 
 
-
+                    BannerAsistenteDaniel(
+                        onClick={ cambiar_estados_bot_whattsapp =
+                            !cambiar_estados_bot_whattsapp}
+                    )
 
 
                     spacer_vertical(10.dp)
@@ -2398,7 +2217,7 @@ fun pantalla_carga_socios(
                 }
             )
         }
-        // 2. Pásalos al WhatsAppDanielBottomSheet
+
         if (cambiar_estados_bot_whattsapp) {
             WhatsAppDanielBottomSheet(
                 numero_whatsapp = datos.metodo_contacto_tienda.whatsapp.numero,

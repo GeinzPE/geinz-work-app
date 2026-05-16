@@ -82,9 +82,16 @@ class repo_promos_cercanas {
         tiendaSeleccionada1: String,
     ): List<obj_completo> {
 
-        Log.d("PROMOS_DEBUG", "▶ obtener_promos | tipo=$tipo_seleccionado | localidad=$localidad")
+        Log.d("PROMOS_DEBUG", "════════════════════════════════════")
+        Log.d("PROMOS_DEBUG", "▶ INICIO obtener_promos")
+        Log.d("PROMOS_DEBUG", "tipo_seleccionado=$tipo_seleccionado")
+        Log.d("PROMOS_DEBUG", "localidad=$localidad")
+        Log.d("PROMOS_DEBUG", "tiendaSeleccionada1=$tiendaSeleccionada1")
 
         return try {
+
+            Log.d("PROMOS_DEBUG", "📡 Consultando Firestore...")
+
             val snapshot = db
                 .collection("Tiendas")
                 .document(localidad)
@@ -95,22 +102,52 @@ class repo_promos_cercanas {
             Log.d("PROMOS_DEBUG", "📦 Total docs Firestore: ${snapshot.size()}")
 
             val promosPorTienda = snapshot.documents.mapNotNull { doc ->
-                val infoMap = doc.get("informacion") as? Map<*, *> ?: return@mapNotNull null
+
+                Log.d("PROMOS_DEBUG", "🔍 Analizando tienda promo doc=${doc.id}")
+
+                val infoMap = doc.get("informacion") as? Map<*, *> ?: run {
+                    Log.d("PROMOS_DEBUG", "⛔ infoMap null en ${doc.id}")
+                    return@mapNotNull null
+                }
+
                 val imgMap = doc.get("img_container") as? Map<*, *> ?: emptyMap<String, Any>()
 
-                val idTienda = infoMap["id_tienda"] as? String ?: return@mapNotNull null
+                val idTienda = infoMap["id_tienda"] as? String ?: run {
+                    Log.d("PROMOS_DEBUG", "⛔ id_tienda null en ${doc.id}")
+                    return@mapNotNull null
+                }
+
                 val nombreTienda = infoMap["nombre_tienda"] as? String ?: ""
                 val logo = imgMap["logo_img"] as? String ?: ""
 
+                Log.d(
+                    "PROMOS_DEBUG",
+                    "🏪 Tienda detectada -> id=$idTienda | nombre=$nombreTienda"
+                )
+
                 Triple(idTienda, nombreTienda, logo)
+
             }.groupBy { it.first }
 
-            Log.d("PROMOS_DEBUG", "🏪 Tiendas encontradas: ${promosPorTienda.size}")
+            Log.d("PROMOS_DEBUG", "🏪 Total tiendas agrupadas: ${promosPorTienda.size}")
 
             val listaTiendasConMasDeUnaPromo = promosPorTienda
-                .filter { it.value.size > 1 }
+                .filter {
+                    Log.d(
+                        "PROMOS_DEBUG",
+                        "📊 Tienda ${it.key} tiene ${it.value.size} promos"
+                    )
+                    it.value.size > 1
+                }
                 .map { (idTienda, promos) ->
+
+                    Log.d(
+                        "PROMOS_DEBUG",
+                        "✅ Tienda con múltiples promos -> $idTienda"
+                    )
+
                     val p = promos.first()
+
                     tiendas_con_mas_de_una_promo(
                         id = idTienda,
                         nombre_tienda = p.second,
@@ -119,84 +156,177 @@ class repo_promos_cercanas {
                     )
                 }
 
-            snapshot.documents.mapNotNull { doc ->
+            Log.d(
+                "PROMOS_DEBUG",
+                "📋 listaTiendasConMasDeUnaPromo size=${listaTiendasConMasDeUnaPromo.size}"
+            )
 
-                Log.d("PROMO_ITEM", "──────────────")
+            val resultado = snapshot.documents.mapNotNull { doc ->
+
+                Log.d("PROMO_ITEM", "════════════════════════════")
                 Log.d("PROMO_ITEM", "📄 Promo ID: ${doc.id}")
 
                 val estado = doc.getString("estado") ?: "expirado"
+
                 Log.d("PROMO_ITEM", "estado=$estado")
 
                 if (estado != "activo") {
-                    Log.d("PROMO_ITEM", "⛔ DESCARTADA: no activa")
+                    Log.d("PROMO_ITEM", "⛔ DESCARTADA: estado no activo")
                     return@mapNotNull null
                 }
 
                 val infoMap = doc.get("informacion") as? Map<*, *> ?: run {
-                    Log.d("PROMO_ITEM", "⛔ sin informacion")
+                    Log.d("PROMO_ITEM", "⛔ informacion null")
                     return@mapNotNull null
                 }
 
-                // 🔹 Filtro por tienda SIEMPRE
+                Log.d("PROMO_ITEM", "ℹ️ informacion encontrada")
+
+                // 🔹 Filtro por tienda
                 val idTiendaInfo = infoMap["id_tienda"] as? String ?: ""
+
+                Log.d(
+                    "PROMO_ITEM",
+                    "🏪 idTiendaInfo=$idTiendaInfo | tiendaSeleccionada1=$tiendaSeleccionada1"
+                )
+
                 if (idTiendaInfo != tiendaSeleccionada1) {
-                    Log.d("PROMO_ITEM", "⛔ DESCARTADA: filtro por tienda (seleccionada=$tiendaSeleccionada1)")
+                    Log.d("PROMO_ITEM", "⛔ DESCARTADA por tienda")
                     return@mapNotNull null
                 }
 
                 val categoria_params = infoMap["categoria"] as? String ?: ""
-                Log.d("PROMO_ITEM", "categoria=$categoria_params")
+
+                Log.d(
+                    "PROMO_ITEM",
+                    "📂 categoria promo=$categoria_params | filtro=$tipo_seleccionado"
+                )
 
                 if (tipo_seleccionado != "Todos" && categoria_params != tipo_seleccionado) {
-                    Log.d("PROMO_ITEM", "⛔ DESCARTADA: filtro categoria (seleccion=$tipo_seleccionado)")
+                    Log.d("PROMO_ITEM", "⛔ DESCARTADA por categoría")
                     return@mapNotNull null
                 }
 
                 val tipo_hora_dias = doc.get("tipo_hora_dias") as? String ?: ""
-                Log.d("PROMO_ITEM", "tipo_hora_dias=$tipo_hora_dias")
 
-                val datos_hora_fecha = doc.get("datos_hora_fecha") as? Map<*, *> ?: emptyMap<String, Any>()
+                Log.d("PROMO_ITEM", "🕒 tipo_hora_dias=$tipo_hora_dias")
+
+                val datos_hora_fecha =
+                    doc.get("datos_hora_fecha") as? Map<*, *> ?: emptyMap<String, Any>()
+
                 val timestampFin = datos_hora_fecha.get("timestamp_fin") as? Timestamp
-                val horario_de_publicacion = doc.get("horario_publicacion") as? String ?: ""
+
+                Log.d("PROMO_ITEM", "📅 timestampFin=$timestampFin")
+
+                val horario_de_publicacion =
+                    doc.get("horario_publicacion") as? String ?: ""
+
                 val horarioActual = verificar_horairo_cel_para_publicidad().trim()
                 val horarioPublicacion = horario_de_publicacion.trim()
+
+                Log.d(
+                    "PROMO_ITEM",
+                    "🕓 horarioPublicacion=$horarioPublicacion | horarioActual=$horarioActual"
+                )
 
                 if (
                     horarioPublicacion.isNotEmpty() &&
                     horarioPublicacion != "todo_dia" &&
                     horarioPublicacion != horarioActual
                 ) {
-                    Log.d("PROMO_ITEM", "⛔ DESCARTADA por horario: $horarioPublicacion != $horarioActual")
+
+                    Log.d(
+                        "PROMO_ITEM",
+                        "⛔ DESCARTADA por horario: $horarioPublicacion != $horarioActual"
+                    )
+
                     return@mapNotNull null
                 }
 
+                val tiempo = timestampFin?.let {
 
+                    Log.d("PROMO_ITEM", "⏳ Calculando tiempo restante...")
 
-                Log.d("PROMO_ITEM", "timestampFin=$timestampFin")
+                    tiempoRestante(it)
 
-                val tiempo = timestampFin?.let { tiempoRestante(it) } ?: "Expirado"
-                Log.d("PROMO_ITEM", "tiempoRestante=$tiempo")
+                } ?: "Expirado"
+
+                Log.d("PROMO_ITEM", "⌛ tiempoRestante=$tiempo")
 
                 if (tiempo == "Expirado") {
-                    Log.d("PROMO_ITEM", "⛔ DESCARTADA: expirada")
+                    Log.d("PROMO_ITEM", "⛔ DESCARTADA: promo expirada")
                     return@mapNotNull null
                 }
 
                 Log.d("PROMO_ITEM", "✅ PROMO VÁLIDA")
 
-                val terminos_clave = doc.get("terminos_clave") as? List<String> ?: emptyList()
-                val imgMap = doc.get("img_container") as? Map<*, *> ?: emptyMap<String, Any>()
-                val mensaje_predeterminado = doc.get("mensaje_predeterminado") as? Map<*, *> ?: emptyMap<String, Any>()
-                val compartir = mensaje_predeterminado["compartir"] as? Map<*, *> ?: emptyMap<String, Any>()
-                val whatsapp = mensaje_predeterminado["whatsapp"] as? Map<*, *> ?: emptyMap<String, Any>()
+                val terminos_clave =
+                    doc.get("terminos_clave") as? List<String> ?: emptyList()
 
-                val comodidades_filtro = doc.get("comodidades") as? List<String> ?: emptyList()
-                val pagos = doc.get("pagos") as? List<String> ?: emptyList()
-                val rango_precio = doc.get("rango_establecido") as? String ?: ""
-                val precio = doc.get("precio_publicacion") as? String ?: ""
+                Log.d(
+                    "PROMO_ITEM",
+                    "🏷️ terminos_clave size=${terminos_clave.size}"
+                )
 
-                val msje_compartir = compartir["msje_predermindo"] as? String ?: ""
-                val msje_whatsapp = whatsapp["msje_predermindo"] as? String ?: ""
+                val imgMap =
+                    doc.get("img_container") as? Map<*, *> ?: emptyMap<String, Any>()
+
+                Log.d(
+                    "PROMO_ITEM",
+                    "🖼️ imgMap keys=${imgMap.keys}"
+                )
+
+                val mensaje_predeterminado =
+                    doc.get("mensaje_predeterminado") as? Map<*, *> ?: emptyMap<String, Any>()
+
+                val compartir =
+                    mensaje_predeterminado["compartir"] as? Map<*, *> ?: emptyMap<String, Any>()
+
+                val whatsapp =
+                    mensaje_predeterminado["whatsapp"] as? Map<*, *> ?: emptyMap<String, Any>()
+
+                val comodidades_filtro =
+                    doc.get("comodidades") as? List<String> ?: emptyList()
+
+                val pagos =
+                    doc.get("pagos") as? List<String> ?: emptyList()
+
+                val rango_precio =
+                    doc.get("rango_establecido") as? String ?: ""
+
+                val precio =
+                    doc.get("precio_publicacion") as? String ?: ""
+
+                Log.d(
+                    "PROMO_ITEM",
+                    "💰 precio=$precio | rango_precio=$rango_precio"
+                )
+
+                Log.d(
+                    "PROMO_ITEM",
+                    "💳 pagos=${pagos.joinToString()}"
+                )
+
+                Log.d(
+                    "PROMO_ITEM",
+                    "🛋️ comodidades=${comodidades_filtro.joinToString()}"
+                )
+
+                val msje_compartir =
+                    compartir["msje_predermindo"] as? String ?: ""
+
+                val msje_whatsapp =
+                    whatsapp["msje_predermindo"] as? String ?: ""
+
+                Log.d(
+                    "PROMO_ITEM",
+                    "📨 msje_compartir length=${msje_compartir}"
+                )
+
+                Log.d(
+                    "PROMO_ITEM",
+                    "📲 msje_whatsapp length=${msje_whatsapp}"
+                )
 
                 val informacion = informacion_publcacion(
                     descripcion = infoMap["descripcion"] as? String ?: "",
@@ -220,9 +350,19 @@ class repo_promos_cercanas {
                     )
                 )
 
+                Log.d(
+                    "PROMO_ITEM",
+                    "📝 informacion creada -> titulo=${informacion.titulo}"
+                )
+
                 val img = img_content(
                     logo_img = imgMap["logo_img"] as? String ?: "",
                     lista_img = imgMap["lista_img"] as? List<String> ?: emptyList()
+                )
+
+                Log.d(
+                    "PROMO_ITEM",
+                    "🖼️ lista_img size=${img.lista_img.size}"
                 )
 
                 val promo = dataclass_promociones_cerca_de_ti(
@@ -241,18 +381,31 @@ class repo_promos_cercanas {
                     terminos_clave
                 )
 
+                Log.d(
+                    "PROMO_ITEM",
+                    "🎉 Promo creada correctamente -> ${informacion.id_promocion}"
+                )
+
                 obj_completo(
                     dataclass_promociones_cerca_de_ti = promo,
                     lista_tiendas_con_mas_promo = listaTiendasConMasDeUnaPromo
                 )
             }.shuffled()
 
+            Log.d(
+                "PROMOS_DEBUG",
+                "✅ TOTAL PROMOS RETORNADAS: ${resultado.size}"
+            )
+
+            resultado
+
         } catch (e: Exception) {
+
             Log.e("ERROR_PROMO", "❌ Error al obtener promociones", e)
+
             emptyList()
         }
     }
-
 
 //    @RequiresApi(Build.VERSION_CODES.O)
 //    suspend fun obtener_promos_paginado(
@@ -615,6 +768,11 @@ class repo_promos_cercanas {
             ultimoDocValido = doc
 
             val imgMap = doc.get("img_container") as? Map<*, *> ?: emptyMap<String, Any>()
+            val mensaje_predeterminado=doc.get("mensaje_predeterminado") as? Map<*,*>?:emptyMap<String, Any>()
+
+            val compartir=mensaje_predeterminado.get("compartir") as? Map<*,*>?:emptyMap<String, Any>()
+
+            val whatsapp=mensaje_predeterminado.get("whatsapp") as? Map<*,*>?:emptyMap<String, Any>()
 
             val informacion = informacion_publcacion(
                 descripcion = infoMap["descripcion"] as? String ?: "",
@@ -626,7 +784,17 @@ class repo_promos_cercanas {
                 categoria = categoria,
                 compartir = infoMap["compartir"] as? Boolean ?: false,
                 contactar = infoMap["contactar"] as? Boolean ?: false,
-                msjes_predeteminados_generales = msjes_predeteminados_generales()
+
+                msjes_predeteminados_generales = msjes_predeteminados_generales(
+                    compartir = mensaje_predeterminado(
+                        msje_predermindo = compartir.get("msje_predermindo") as? String?:"",
+                        activo_o_no = compartir.get("activo_o_no") as? Boolean?:false
+                    ),
+                    whatsapp = mensaje_predeterminado(
+                        msje_predermindo = whatsapp.get("msje_predermindo") as? String?:"",
+                        activo_o_no =whatsapp.get("activo_o_no") as? Boolean?:false
+                    )
+                )
             )
 
             val img = img_content(
