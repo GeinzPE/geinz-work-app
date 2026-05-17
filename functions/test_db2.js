@@ -92,3 +92,191 @@ exports.obtener_creditos_tienda = onRequest(
     }
   },
 );
+
+exports.descontar_creditos_tienda = onRequest(
+  {
+    cors: true,
+    region: "us-central1",
+    memory: "512MiB",
+  },
+  async (req, res) => {
+
+    // =========================
+    // 🔒 SOLO POST
+    // =========================
+    if (req.method !== "POST") {
+      return res.status(405).json({
+        ok: false,
+        error: "Método no permitido",
+      });
+    }
+
+    try {
+
+      // =========================
+      // 📦 BODY
+      // =========================
+      const { id, monedas } = req.body;
+
+      console.log("🚀 BODY:", req.body);
+
+      // =========================
+      // 🔍 VALIDACIONES
+      // =========================
+      if (!id) {
+        return res.status(400).json({
+          ok: false,
+          error: "ID requerido",
+        });
+      }
+
+      const descuento = Number(monedas);
+
+      if (isNaN(descuento) || descuento <= 0) {
+        return res.status(400).json({
+          ok: false,
+          error: "Cantidad inválida",
+        });
+      }
+
+      // =========================
+      // 🔥 INIT DB2
+      // =========================
+      const database = initDb2();
+
+      if (!database) {
+        return res.status(500).json({
+          ok: false,
+          error: "DB2 no inicializada",
+        });
+      }
+
+      // =========================
+      // 📄 REF PRINCIPAL
+      // =========================
+      const ref = database
+        .collection("creditos_tienda")
+        .doc(id);
+
+      // =========================
+      // 🔥 TRANSACTION
+      // =========================
+      const result = await database.runTransaction(async (tx) => {
+
+        // =========================
+        // 📥 GET DOC
+        // =========================
+        const snap = await tx.get(ref);
+
+        if (!snap.exists) {
+
+          console.log("❌ Tienda no existe:", id);
+
+          return {
+            ok: false,
+            error: "La tienda no existe",
+          };
+        }
+
+        // =========================
+        // 💳 CREDITOS ACTUALES
+        // =========================
+        const creditosActuales = Number(
+          snap.get("creditos") || 0
+        );
+
+        console.log("💰 Créditos actuales:", creditosActuales);
+
+        // =========================
+        // ❌ CREDITOS INSUFICIENTES
+        // =========================
+        if (creditosActuales < descuento) {
+
+          console.log("⚠️ Créditos insuficientes");
+
+          return {
+            ok: false,
+            error: "Créditos insuficientes",
+            creditos_actuales: creditosActuales,
+          };
+        }
+
+        // =========================
+        // ➖ NUEVO SALDO
+        // =========================
+        const nuevosCreditos =
+          creditosActuales - descuento;
+
+        // =========================
+        // ⏱️ TIMESTAMP
+        // =========================
+        const now =
+          admin.firestore.Timestamp.now();
+
+        // =========================
+        // 🔥 UPDATE CREDITOS
+        // =========================
+        tx.update(ref, {
+          creditos: nuevosCreditos,
+          updatedAt: now,
+        });
+
+        // =========================
+        // 🔥 NUEVO HISTORIAL
+        // 👇 SIEMPRE CREA UNO NUEVO
+        // =========================
+        const historialRef = ref
+          .collection("historial_hot")
+          .doc();
+
+        tx.set(historialRef, {
+          timestamp: now,
+          monedas_descontadas: descuento,
+          creditos_antes: creditosActuales,
+          creditos_despues: nuevosCreditos,
+          tipo: "recomendacion_asistente",
+        });
+
+        console.log("🔥 Historial creado:", historialRef.id);
+
+        // =========================
+        // ✅ RETURN
+        // =========================
+        return {
+          ok: true,
+          id,
+          historial_id: historialRef.id,
+          creditos_anteriores: creditosActuales,
+          descontado: descuento,
+          creditos_actuales: nuevosCreditos,
+        };
+      });
+
+      // =========================
+      // ❌ ERROR RESULT
+      // =========================
+      if (!result.ok) {
+        return res.status(400).json(result);
+      }
+
+      // =========================
+      // ✅ SUCCESS
+      // =========================
+      console.log("✅ Descuento completado:", result);
+
+      return res.status(200).json(result);
+
+    } catch (e) {
+
+      console.error(
+        "❌ Error en descontar_creditos_tienda:",
+        e
+      );
+
+      return res.status(500).json({
+        ok: false,
+        error: e.message,
+      });
+    }
+  },
+);

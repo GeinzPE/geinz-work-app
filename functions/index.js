@@ -22,13 +22,15 @@ const client_specth = new speech.SpeechClient();
 const textToSpeech = require("@google-cloud/text-to-speech");
 const ttsClient = new textToSpeech.TextToSpeechClient();
 const geofire = require("geofire-common");
-const { 
+const {
   obtener_creditos_tienda,
-  obtener_creditos_tienda_fn   // ✅ esta es la que usas internamente
+  obtener_creditos_tienda_fn, // ✅ esta es la que usas internamente
+  descontar_creditos_tienda,
 } = require("./test_db2");
 
 // ✅ exportar el endpoint HTTP igual que antes
 exports.obtener_creditos_tienda = obtener_creditos_tienda;
+exports.descontar_creditos_tienda = descontar_creditos_tienda;
 admin.initializeApp();
 
 const axios = require("axios");
@@ -564,10 +566,37 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
     const ids = hits.map((h) => h.objectID);
 
     // =========================================================
-    // 🔥 EXTRA DATA
+    // 🔥 IDS CON Y SIN FLAG
     // =========================================================
 
-    const extraData = await obtenerDatosPorIds(localidad, ids);
+    const idsConFlag = hits
+      .filter((h) => h.plantilla === true)
+      .map((h) => h.objectID);
+
+    const idsSinFlag = hits
+      .filter((h) => h.plantilla !== true)
+      .map((h) => h.objectID);
+
+    // =========================================================
+    // 🔥 EXTRA DATA + CRÉDITOS EN PARALELO
+    // =========================================================
+
+    const [extraData, creditosResults] = await Promise.all([
+      obtenerDatosPorIds(localidad, ids),
+      idsConFlag.length > 0
+        ? Promise.all(
+            idsConFlag.map((id) =>
+              obtener_creditos_tienda_fn(id)
+                .then((r) => ({ id, mayor_a_100: r?.mayor_a_100 === true }))
+                .catch(() => ({ id, mayor_a_100: false })),
+            ),
+          )
+        : Promise.resolve([]),
+    ]);
+
+    const creditosMap = Object.fromEntries(
+      creditosResults.map(({ id, mayor_a_100 }) => [id, mayor_a_100]),
+    );
 
     // =========================================================
     // 🔥 RESPUESTA FINAL
@@ -575,6 +604,14 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
 
     const data = hits.map((hit) => {
       const extra = extraData[hit.objectID] || {};
+
+      // ✅ pla true solo si tiene plantilla Y más de 100 créditos
+      const tienePlan =
+        hit.plantilla === true && creditosMap[hit.objectID] === true;
+
+      // ✅ era plantilla pero sin créditos suficientes
+      const eraPlantillaSinCreditos =
+        hit.plantilla === true && creditosMap[hit.objectID] !== true;
 
       const base = {
         id: hit.objectID,
@@ -613,7 +650,9 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
 
         wha: extra.whatsapp || "",
 
-        pla: hit.plantilla || false,
+        pla: tienePlan,
+
+        ...(eraPlantillaSinCreditos && { era_plantilla: true }),
 
         msje_pla_wa: hit.msje_whatsapp || "",
 
@@ -651,23 +690,33 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
     const momento_dia = obtenerMomentoDia();
 
     if (localidad) filters.push(`lugar:"${localidad.toLowerCase().trim()}"`);
-    if (categoria) filters.push(`categoria:"${categoria.toLowerCase().trim()}"`);
-    if (subcategoria) filters.push(`tag:"${subcategoria.toLowerCase().trim()}"`);
+    if (categoria)
+      filters.push(`categoria:"${categoria.toLowerCase().trim()}"`);
+    if (subcategoria)
+      filters.push(`tag:"${subcategoria.toLowerCase().trim()}"`);
 
     if (categoria) {
       const refCat = db.collection("estadisticas").doc(categoria);
-      refCat.set({ categoria }, { merge: true }).catch((e) => console.error("Stats init:", e));
-      refCat.collection("busquedas_categoria").add({
-        timestamp: FieldValue.serverTimestamp(),
-        localidad: localidad || null,
-      }).catch((e) => console.error("Stats cat:", e));
-
-      if (subcategoria) {
-        refCat.collection("busquedas_subcategoria").add({
-          subcategoria,
+      refCat
+        .set({ categoria }, { merge: true })
+        .catch((e) => console.error("Stats init:", e));
+      refCat
+        .collection("busquedas_categoria")
+        .add({
           timestamp: FieldValue.serverTimestamp(),
           localidad: localidad || null,
-        }).catch((e) => console.error("Stats sub:", e));
+        })
+        .catch((e) => console.error("Stats cat:", e));
+
+      if (subcategoria) {
+        refCat
+          .collection("busquedas_subcategoria")
+          .add({
+            subcategoria,
+            timestamp: FieldValue.serverTimestamp(),
+            localidad: localidad || null,
+          })
+          .catch((e) => console.error("Stats sub:", e));
       }
     }
 
@@ -696,14 +745,14 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
             idsConFlag.map((id) =>
               obtener_creditos_tienda_fn(id)
                 .then((r) => ({ id, mayor_a_100: r?.mayor_a_100 === true }))
-                .catch(() => ({ id, mayor_a_100: false }))
-            )
+                .catch(() => ({ id, mayor_a_100: false })),
+            ),
           )
         : Promise.resolve([]),
     ]);
 
     const creditosMap = Object.fromEntries(
-      creditosResults.map(({ id, mayor_a_100 }) => [id, mayor_a_100])
+      creditosResults.map(({ id, mayor_a_100 }) => [id, mayor_a_100]),
     );
 
     const data = hits
@@ -715,12 +764,9 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
         const tienePlan =
           hit.plantilla === true && creditosMap[hit.objectID] === true;
 
-        // 🔔 log asíncrono — no bloquea la respuesta
-        if (tienePlan) {
-          console.log(
-            `📣 NOTIFICACIÓN: tienda "${hit.nombre || hit.objectID}" fue buscada y se mostró con plan activo | cat: ${categoria} | sub: ${subcategoria || "-"} | localidad: ${localidad}`
-          );
-        }
+        // ✅ era plantilla pero sin créditos suficientes
+        const eraPlantillaSinCreditos =
+          hit.plantilla === true && creditosMap[hit.objectID] !== true;
 
         return {
           id: hit.objectID,
@@ -732,6 +778,7 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
           wha: extra.whatsapp || "",
           open_state: verificar_apertura_tienda(extra.horario),
           pla: tienePlan,
+          ...(eraPlantillaSinCreditos && { era_plantilla: true }),
           msje_pla_wa: hit.msje_whatsapp || "",
           tipo: "tienda",
         };
@@ -742,23 +789,23 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
 
     // ✅ solo los que tienen plantilla Y créditos > 100
     const conFlagValidos = data.filter(
-      (d) => idsConFlagSet.has(d.id) && creditosMap[d.id] === true
+      (d) => idsConFlagSet.has(d.id) && creditosMap[d.id] === true,
     );
 
     // ✅ sin flag + los que tienen plantilla pero sin saldo → grupo normal
     const sinFlag = data.filter(
       (d) =>
         idsSinFlagSet.has(d.id) ||
-        (idsConFlagSet.has(d.id) && creditosMap[d.id] !== true)
+        (idsConFlagSet.has(d.id) && creditosMap[d.id] !== true),
     );
 
-    const topFlag   = conFlagValidos.slice(0, 3);
+    const topFlag = conFlagValidos.slice(0, 3);
     const topNormal = sinFlag.slice(0, 2);
 
     const mezclados = [];
     const maxLen = Math.max(topFlag.length, topNormal.length);
     for (let i = 0; i < maxLen; i++) {
-      if (i < topFlag.length)   mezclados.push(topFlag[i]);
+      if (i < topFlag.length) mezclados.push(topFlag[i]);
       if (i < topNormal.length) mezclados.push(topNormal[i]);
     }
 
@@ -770,7 +817,6 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
       total: dataFinal.length,
       data: dataFinal,
     });
-
   } catch (error) {
     console.error("Error búsqueda algolia turismo:", error);
     return res.status(500).json({ ok: false, error: error.message });
@@ -2997,6 +3043,105 @@ exports.webhookCulqi = onRequest(
 // ==================== Notificaciones ====================
 // ==================== Notificaciones ====================
 
+exports.enviar_notificacion_con_solo_id = onRequest(async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+
+  if (req.method !== "POST") {
+    return res.status(405).send("Método no permitido");
+  }
+
+  try {
+    const { id_tienda, localidad, nombre_negocio } = req.body;
+
+    if (!id_tienda || !localidad) {
+      return res.status(400).json({
+        ok: false,
+        error: "Faltan parámetros: id_tienda y localidad son requeridos.",
+      });
+    }
+
+    const localidadLower = localidad.toLowerCase().trim();
+
+    // 1️⃣ Obtener documento de la tienda
+    const tiendaSnap = await db
+      .collection("Tiendas")
+      .doc(localidadLower)
+      .collection(localidadLower)
+      .doc(id_tienda)
+      .get();
+
+    if (!tiendaSnap.exists) {
+      return res.status(404).json({
+        ok: false,
+        error: "Tienda no encontrada.",
+      });
+    }
+
+    const propietario_ids = tiendaSnap.data().propietario_id || [];
+
+    if (propietario_ids.length === 0) {
+      return res.status(404).json({
+        ok: false,
+        error: "La tienda no tiene propietarios registrados.",
+      });
+    }
+
+    // 2️⃣ Obtener tokens de cada propietario
+    const tokensSnaps = await Promise.all(
+      propietario_ids.map((uid) =>
+        db
+          .collection("Trabajadores_Usuarios_Drivers")
+          .doc("users")
+          .collection("tokens")
+          .doc(uid)
+          .get()
+          .catch(() => null),
+      ),
+    );
+
+    // 3️⃣ Extraer tokens válidos
+    const todosLosTokens = tokensSnaps.flatMap((snap) => {
+      if (!snap?.exists) return [];
+      return Object.values(snap.data()?.tokens || {}).filter(Boolean);
+    });
+
+    if (todosLosTokens.length === 0) {
+      return res.status(404).json({
+        ok: false,
+        error: "No se encontraron tokens para los propietarios.",
+      });
+    }
+
+    // 4️⃣ Enviar notificación a cada token
+    await Promise.all(
+      todosLosTokens.map((token) =>
+        enviarNotificacionFCM_tienda({
+          token,
+          title: `📢 ${nombre_negocio}, te están buscando`,
+          body: `El asistente Daniel 🤖 recomendó a ${nombre_negocio} a un usuario interesado. pero debido a que tu plantilla premium no tenía saldo activo, no se mostró el acceso directo a tu WhatsApp 📲 y se compartió tu perfil de Geinz 🏪. Verifica tu saldo 💳 para seguir conectando con clientes potenciales directo desde whatsapp🚀`,
+          link: "https://geinzworkapp.web.app/share?t=scr&id=rec",
+          logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+          idTienda: id_tienda,
+          idAnuncio: "",
+          tipo_notificacion: "logo",
+          prioridad: "high",
+        }),
+      ),
+    );
+
+    return res.status(200).json({
+      ok: true,
+      total_tokens: todosLosTokens.length,
+    });
+  } catch (error) {
+    console.error("🔥 Error en enviar_notificacion_con_solo_id:", error);
+
+    return res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
 exports.enviarNotificacion = onRequest(async (req, res) => {
   res.set("Access-Control-Allow-Origin", "*");
 
