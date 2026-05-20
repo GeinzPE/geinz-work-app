@@ -22,16 +22,17 @@ const client_specth = new speech.SpeechClient();
 const textToSpeech = require("@google-cloud/text-to-speech");
 const ttsClient = new textToSpeech.TextToSpeechClient();
 const geofire = require("geofire-common");
+admin.initializeApp();
 const {
   obtener_creditos_tienda,
   obtener_creditos_tienda_fn, // ✅ esta es la que usas internamente
   descontar_creditos_tienda,
+  eliminar_deuda_actual,
 } = require("./test_db2");
 
 // ✅ exportar el endpoint HTTP igual que antes
 exports.obtener_creditos_tienda = obtener_creditos_tienda;
 exports.descontar_creditos_tienda = descontar_creditos_tienda;
-admin.initializeApp();
 
 const axios = require("axios");
 
@@ -1205,78 +1206,130 @@ exports.agregar_historial_usuario = onRequest(async (req, res) => {
 });
 
 // ==================== culqui ====================
-exports.crearOrdenCulqi = onCall({ region: "us-central1" }, async (req) => {
-  const { monto, userId, monedas, nombre, email, localidad } = req.data;
+// ─── BACKEND: crearOrdenCulqi ───
+exports.crearOrdenCulqi = onCall(async (req) => {
+  const { monto, userId, nombre, email, orderId } = req.data;
 
-  console.log("=== PARAMETROS RECIBIDOS ===");
-  console.log("monto:", monto);
-  console.log("userId:", userId);
-  console.log("monedas:", monedas);
-  console.log("nombre:", nombre);
-  console.log("email:", email);
-  console.log("localidad:", localidad);
-  console.log("===========================");
+  // ─── LOG AQUÍ ───
+  console.log("📥 Datos recibidos:");
+  console.log("  monto:", monto);
+  console.log("  tipo monto:", typeof monto);
+  console.log("  amount calculado:", Math.round(monto * 100));
+  console.log("  userId:", userId);
+  // ────────────────
 
-  const montoInt = parseInt(monto) * 100;
-  const orderId = "order_" + Date.now();
+  const orderNumber = `ORD-${userId.slice(0, 8)}-${Date.now().toString().slice(-8)}`;
 
-  try {
-    const response = await axios.post(
-      "https://api.culqi.com/v2/orders",
-      {
-        amount: montoInt,
-        currency_code: "PEN",
-        description: "Compra de monedas",
-        order_number: orderId,
-        expiration_date: Math.floor(Date.now() / 1000) + 24 * 60 * 60,
-        client_details: {
-          first_name: nombre || "Cliente",
-          last_name: "Geinz",
-          email: email || "cliente@geinz.com",
-          phone_number: "999999999",
-        },
+  const response = await axios.post(
+    "https://api.culqi.com/v2/orders",
+    {
+      amount: Math.round(monto * 100),
+      currency_code: "PEN",
+      description: `Monedas Geinz - ${nombre}`,
+      order_number: orderNumber,
+      client_details: {
+        first_name: nombre || "Cliente",
+        last_name: "Geinz",
+        email: email || "cliente@geinz.com",
+        phone_number: "999999999",
       },
-      {
-        headers: {
-          Authorization: `Bearer ${CULQI_KEY}`,
-          "Content-Type": "application/json",
-        },
+      expiration_date: Math.floor(Date.now() / 1000) + 900,
+      confirm: false,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${CULQI_KEY}`,
+        "Content-Type": "application/json",
       },
-    );
+    },
+  );
 
+  // ─── LOG AQUÍ ───
+  console.log("✅ Respuesta Culqi:");
+  console.log("  amount:", response.data.amount);
+  console.log("  state:", response.data.state);
+  console.log("  order_id:", response.data.id);
+  // ────────────────
+
+  const culqi_order_id = response.data.id;
+
+  if (orderId) {
     await db
-      .collection("ordenes_pagos")
+      .collection("Tiendas")
+      .doc("barranca")
+      .collection("pagos_tiendas")
       .doc(orderId)
-      .set({
-        orderId: orderId,
-        userId: userId,
-        monedas: monedas,
-        monto: parseInt(monto), // en soles (no en centavos)
-        estado: "pendiente",
-        localidad: localidad,
-        culqi_order_id: response.data.id, // id interno de Culqi
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        paidAt: null,
-      });
+      .set(
+        { order_number_culqi: orderNumber, culqi_order_id },
+        { merge: true },
+      );
+  }
 
-    console.log("Respuesta Culqi COMPLETA:", JSON.stringify(response.data));
-    console.log("CULQUI KEY", CULQI_KEY);
-    console.log("qr value:", response.data.qr);
-    console.log("url_pe value:", response.data.url_pe);
-    console.log("Todas las keys:", Object.keys(response.data));
+  return { culqi_order_id };
+});
+exports.culqiWebhook = onRequest(async (req, res) => {
+  try {
+    const event = req.body;
+    console.log("Webhook Culqi:", JSON.stringify(event));
 
-    return {
-      checkout_url: response.data.url_pe, // ✅ página de pago
-      qr_url: response.data.qr, // ✅ imagen del QR (bonus)
-      orderId,
-      culqi_order_id: response.data.id,
-    };
-  } catch (error) {
-    console.error(
-      "Error crearOrdenCulqi:",
-      error.response?.data || error.message,
+    if (event.type !== "order.status.changed") return res.sendStatus(200);
+    if (event.data?.object?.state !== "paid") return res.sendStatus(200);
+
+    const order = event.data.object;
+    const orderNumber = order.order_number; // "ORD-{8chars}-{8nums}"
+
+    console.log("Order number recibido:", orderNumber);
+
+    // Buscar en pagos_tiendas por order_number
+    const pagosRef = db
+      .collection("Tiendas")
+      .doc("barranca")
+      .collection("pagos_tiendas");
+
+    const query = await pagosRef
+      .where("order_number_culqi", "==", orderNumber)
+      .limit(1)
+      .get();
+
+    if (query.empty) {
+      console.log("❌ No se encontró orden:", orderNumber);
+      return res.sendStatus(200);
+    }
+
+    const pagoDoc = query.docs[0];
+    const datos = pagoDoc.data();
+    const userId = datos.id_tienda;
+
+    if (datos.estado === "pagado") {
+      console.log("⚠️ Ya estaba pagado");
+      return res.sendStatus(200);
+    }
+
+    await sumarSaldo(userId, datos.monedas_a_recargar || datos.monedas);
+
+    await agregar_historial_de_pagos_tienda({
+      id_transaccion: pagoDoc.id,
+      tipo_transaccion: "recarga",
+      metodo_pago: "billetera_movil",
+      nombre_tienda: datos.nombre_user,
+      id_tienda: userId,
+      localidad_tienda: datos.localdiad,
+      tipo_paquete: datos.plan_select,
+      monto_aumentado: datos.monedas_a_recargar || datos.monedas,
+      precio_soles: (order.amount / 100).toString(),
+      estado: "Aceptado",
+      monto_anterior: datos.saldo_tienda || 0,
+    });
+
+    await enviarWhatsApp(
+      "937659216",
+      `✅ *Pago Billetera exitoso*\n🏪 ${datos.nombre_user}\n💰 S/ ${order.amount / 100}\n🪙 ${datos.monedas_a_recargar || datos.monedas} monedas`,
     );
-    throw new Error(JSON.stringify(error.response?.data || error.message));
+
+    return res.sendStatus(200);
+  } catch (err) {
+    console.error("Webhook error:", err);
+    return res.sendStatus(500);
   }
 });
 
@@ -1741,6 +1794,9 @@ exports.confirmarPago = onCall(async (req) => {
     email,
     userId,
     monedas,
+    monedas_originales,
+    deuda_pendiente,
+    tiene_deuda,
     nombre_tienda,
     localidad,
     nombre_paquete,
@@ -1748,7 +1804,15 @@ exports.confirmarPago = onCall(async (req) => {
     id_select_boleta_pago,
   } = req.data;
 
+  const tieneDeudaBool = tiene_deuda === true || tiene_deuda === "true";
+  const deudaPendienteNum = Number(deuda_pendiente || 0);
   console.log("Tipo Comprobante (1:Fact, 2:Bol):", tipo_comprobante);
+  console.log("🔍 Deuda check:", {
+    tiene_deuda,
+    deuda_pendiente,
+    tipo_tiene_deuda: typeof tiene_deuda,
+    tipo_deuda_pendiente: typeof deuda_pendiente,
+  });
   console.log("Datos Cliente:", {
     ruc_dni: ruc,
     nombre: nombre_tienda,
@@ -1813,6 +1877,101 @@ exports.confirmarPago = onCall(async (req) => {
     });
 
     const numero = await sumarSaldo(userId, monedas);
+
+    if (tieneDeudaBool && deudaPendienteNum > 0) {
+      try {
+        console.log("💳 Eliminando deuda pendiente:", deuda_pendiente);
+
+        const resultadoDeuda = await eliminar_deuda_actual(userId);
+
+        if (!resultadoDeuda.ok) {
+          console.error(
+            "❌ No se pudo eliminar la deuda:",
+            resultadoDeuda.error,
+          );
+        } else {
+          console.log("✅ deuda eliminada:", resultadoDeuda);
+        }
+
+        console.log("✅ deuda eliminada");
+
+        /* ═══════════════════════════════════════
+       HISTORIAL DESCUENTO DEUDA
+    ════════════════════════════════════════ */
+
+        const deuda_soles = (Number(deuda_pendiente || 0) / 100).toFixed(2);
+
+        await agregar_historial_de_pagos_tienda({
+          id_transaccion: `${id_select_boleta_pago}_deuda`,
+
+          tipo_transaccion: "descuento_deuda",
+
+          metodo_pago: "saldo_automatico",
+
+          nombre_tienda: nombre_tienda,
+
+          id_tienda: userId,
+
+          localidad_tienda: localidad,
+
+          tipo_paquete: "Débito automático Geinz",
+
+          monto_aumentado: Number(deuda_pendiente || 0),
+
+          precio_soles: deuda_soles,
+
+          estado: "Aceptado",
+
+          monto_anterior: 0,
+        });
+
+        console.log("🧾 historial deuda guardado");
+
+        // 🔔 Notificación deuda cancelada
+        try {
+          const tiendaDoc = await db
+            .collection("Tiendas")
+            .doc(localidad)
+            .collection(localidad)
+            .doc(userId)
+            .get();
+
+          const propietarios = tiendaDoc.data()?.propietario_id || [];
+
+          for (const propietarioId of propietarios) {
+            const tokenDoc = await db
+              .collection("Trabajadores_Usuarios_Drivers")
+              .doc("users")
+              .collection("tokens")
+              .doc(propietarioId)
+              .get();
+
+            const tokens = Object.values(tokenDoc.data()?.tokens || {});
+
+            for (const token of tokens) {
+              await enviarNotificacionFCM_tienda({
+                token,
+                title: "✅ ¡Deuda cancelada exitosamente!",
+                body: `Tu deuda de ${deudaPendienteNum} créditos fue saldada automáticamente con tu recarga. Ya estás al día 🎉`,
+                link: "https://geinzworkapp.web.app/share?t=scr&id=rec",
+                logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+                idTienda: userId,
+                idAnuncio: "",
+                tipo_notificacion: "logo",
+                prioridad: "high",
+              });
+            }
+          }
+        } catch (notiDeudaErr) {
+          console.error(
+            "⚠️ Error enviando notificación de deuda cancelada:",
+            notiDeudaErr,
+          );
+        }
+      } catch (deudaErr) {
+        console.error("❌ Error eliminando deuda:", deudaErr);
+      }
+    }
 
     try {
       const pdfUrl = await emitirComprobanteGeinz({
@@ -3142,6 +3301,149 @@ exports.enviar_notificacion_con_solo_id = onRequest(async (req, res) => {
     });
   }
 });
+
+exports.enviar_notificacion_deuda_acumulada = onRequest(async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+
+  // ✅ PREFLIGHT
+  if (req.method === "OPTIONS") {
+    return res.status(204).send("");
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).send("Método no permitido");
+  }
+
+  try {
+    const {
+      id_tienda,
+      localidad,
+      nombre_negocio,
+      deuda,
+
+      // ✅ DINÁMICOS
+      titulo,
+      mensaje,
+      link,
+    } = req.body;
+
+    if (!id_tienda || !localidad || deuda === undefined) {
+      return res.status(400).json({
+        ok: false,
+        error:
+          "Faltan parámetros: id_tienda, localidad y deuda son requeridos.",
+      });
+    }
+
+    const localidadLower = localidad.toLowerCase().trim();
+
+    /* ═══════════════════════════════
+         OBTENER TIENDA
+      ═══════════════════════════════ */
+
+    const tiendaSnap = await db
+      .collection("Tiendas")
+      .doc(localidadLower)
+      .collection(localidadLower)
+      .doc(id_tienda)
+      .get();
+
+    if (!tiendaSnap.exists) {
+      return res.status(404).json({
+        ok: false,
+        error: "Tienda no encontrada.",
+      });
+    }
+
+    const propietario_ids = tiendaSnap.data().propietario_id || [];
+
+    if (propietario_ids.length === 0) {
+      return res.status(404).json({
+        ok: false,
+        error: "La tienda no tiene propietarios registrados.",
+      });
+    }
+
+    /* ═══════════════════════════════
+         TOKENS
+      ═══════════════════════════════ */
+
+    const tokensSnaps = await Promise.all(
+      propietario_ids.map((uid) =>
+        db
+          .collection("Trabajadores_Usuarios_Drivers")
+          .doc("users")
+          .collection("tokens")
+          .doc(uid)
+          .get()
+          .catch(() => null),
+      ),
+    );
+
+    const todosLosTokens = tokensSnaps.flatMap((snap) => {
+      if (!snap?.exists) return [];
+
+      return Object.values(snap.data()?.tokens || {}).filter(Boolean);
+    });
+
+    if (todosLosTokens.length === 0) {
+      return res.status(404).json({
+        ok: false,
+        error: "No se encontraron tokens para los propietarios.",
+      });
+    }
+
+    /* ═══════════════════════════════
+         ENVIAR NOTIFICACIONES
+      ═══════════════════════════════ */
+
+    await Promise.all(
+      todosLosTokens.map((token) =>
+        enviarNotificacionFCM_tienda({
+          token,
+
+          // ✅ DINÁMICOS
+          title: titulo || `⚠️ ${nombre_negocio}, tienes una deuda acumulada`,
+
+          body:
+            mensaje ||
+            `🚨 Tu negocio tiene una deuda acumulada de ${deuda} créditos 💳
+📲 Tu WhatsApp sigue recibiendo clientes y clicks directos gracias a tu plantilla premium 🚀
+Recarga tu saldo para seguir recibiendo pedidos sin interrupciones 🔥
+⚠️ Si la deuda supera los 300 créditos, tu cuenta pasará automáticamente al plan gratis y el saldo pendiente se descontará en tu próxima recarga.`,
+
+          link: link || "https://geinzworkapp.web.app/share?t=scr&id=rec",
+
+          // ✅ LO DEMÁS IGUAL
+          logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+
+          idTienda: id_tienda,
+
+          idAnuncio: "",
+
+          tipo_notificacion: "logo",
+
+          prioridad: "high",
+        }),
+      ),
+    );
+
+    return res.status(200).json({
+      ok: true,
+      total_tokens: todosLosTokens.length,
+    });
+  } catch (error) {
+    console.error("🔥 Error en enviar_notificacion_deuda_acumulada:", error);
+
+    return res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
 exports.enviarNotificacion = onRequest(async (req, res) => {
   res.set("Access-Control-Allow-Origin", "*");
 
@@ -3983,8 +4285,8 @@ exports.resetearEstadoNotificacionesYPanel = onSchedule(
           if (tipos.has("panel")) {
             await enviarNotificacionFCM_tienda({
               token,
-              title: "⏰ Tu panel vencio hoy 😣",
-              body: "⚡ Renueva tu panel para seguir teniendo control de tu negocio 📈💼",
+              title: "⏰ Tu panel de Geinz ya vencio  😣",
+              body: "⚡ Renueva tu panel para seguir teniendo control de tu negocio en tiempo real desde Geinz📈💼",
               link: "https://geinzworkapp.web.app/share?t=scr&id=pnl",
               logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
               idTienda: "",
