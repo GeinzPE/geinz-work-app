@@ -104,7 +104,7 @@ import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun iu_favoritos(
@@ -906,7 +906,7 @@ fun TextoFavoritosConFiltros(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun carta_desing_fv(
     HorarioDia_box: HorarioDia_box,

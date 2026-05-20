@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,11 +17,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.geinzz.geinzwork.R
 
 // ── COLORES ──────────────────────────────────────────────
 private val ColorPurple       = Color(0xFF8400F0)
@@ -65,6 +68,7 @@ fun BannerAsistenteDaniel(
             .clip(RoundedCornerShape(20.dp))
             .background(ColorBg)
             .clickable { onClick() }
+
     ) {
         // glow izquierdo
         Box(
@@ -111,31 +115,31 @@ fun BannerAsistenteDaniel(
                 verticalArrangement = Arrangement.Center
             ) {
                 // chip plan
-                if (chipVisible) {
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(ColorChipBg)
-                            .padding(horizontal = 10.dp, vertical = 3.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(6.dp)
-                                .clip(CircleShape)
-                                .background(planDotColor)
-                        )
-                        Text(
-                            text = "Asistente activo · $planLabel",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = ColorChipText,
-                            letterSpacing = 0.4.sp
-                        )
-                    }
-                    Spacer(Modifier.height(5.dp))
-                }
+//                if (chipVisible) {
+//                    Row(
+//                        modifier = Modifier
+//                            .clip(RoundedCornerShape(999.dp))
+//                            .background(ColorChipBg)
+//                            .padding(horizontal = 10.dp, vertical = 3.dp),
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+//                    ) {
+//                        Box(
+//                            modifier = Modifier
+//                                .size(6.dp)
+//                                .clip(CircleShape)
+//                                .background(planDotColor)
+//                        )
+//                        Text(
+//                            text = "Asistente activo · $planLabel",
+//                            fontSize = 10.sp,
+//                            fontWeight = FontWeight.Medium,
+//                            color = ColorChipText,
+//                            letterSpacing = 0.4.sp
+//                        )
+//                    }
+//                    Spacer(Modifier.height(5.dp))
+//                }
 
                 // título
                 Text(
@@ -201,32 +205,17 @@ fun BannerAsistenteDaniel(
                         )
                 )
 
-                // avatar circular
-                Box(
-                    modifier = Modifier
-                        .padding(bottom = 6.dp)
-                        .size(72.dp)
-                        .clip(CircleShape)
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    Color(0xFF3B0764),
-                                    Color(0xFF6B21A8),
-                                    ColorPurple
-                                )
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    // Ícono de robot como placeholder
-                    // Reemplaza con AsyncImage si tienes URL de foto
-                    Text(
-                        text = "D",
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFFE9D5FF)
+
+                    Image(
+                        painter = painterResource(R.drawable.foto_perfil_daniel),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(bottom = 6.dp)
+                            .size(72.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
                     )
-                }
+
             }
         }
     }

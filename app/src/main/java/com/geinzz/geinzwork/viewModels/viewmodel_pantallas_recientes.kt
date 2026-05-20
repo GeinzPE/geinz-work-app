@@ -67,7 +67,7 @@ class viewmodel_pantallas_recientes : ViewModel() {
 
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun cargarDatosPromocion(idTienda: String, localidad: String, idPromo: String) {
         viewModelScope.launch {
             _estadoPromocion.value = EstadoDatosPromocion.Loading
@@ -85,7 +85,7 @@ class viewmodel_pantallas_recientes : ViewModel() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun cargar_datos_notificacion(idTienda: String, localidad: String, idPromo: String){
         viewModelScope.launch {
                 _estado_notificacion.value= EstadoDatosNotificacion.Loading

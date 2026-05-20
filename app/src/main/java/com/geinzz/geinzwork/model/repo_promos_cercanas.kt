@@ -75,7 +75,6 @@ class repo_promos_cercanas {
 
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun obtener_promos(
         tipo_seleccionado: String,
         localidad: String,
@@ -407,7 +406,7 @@ class repo_promos_cercanas {
         }
     }
 
-//    @RequiresApi(Build.VERSION_CODES.O)
+
 //    suspend fun obtener_promos_paginado(
 //        tienda_seleccionada: String?,
 //        tipo_seleccionado: String,
@@ -614,7 +613,6 @@ class repo_promos_cercanas {
 //    }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun obtener_promos_paginado2(
         es_primera_carga: Boolean,
         tienda_seleccionada: String?,
@@ -743,7 +741,6 @@ class repo_promos_cercanas {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun procesarDocs(
         docs: List<DocumentSnapshot>,
         limite: Int,
@@ -904,7 +901,6 @@ class repo_promos_cercanas {
         return Pair(resultado, ultimoDocValido)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun obtenerPromosPorIdsProcesadas(
         ids: List<String>,
         limite: Int
@@ -1004,7 +1000,6 @@ class repo_promos_cercanas {
         return horario
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun agregar_contador_estadisticas_publicacion(
         tipoEvento: String,
         id_promo: String,
@@ -1093,7 +1088,6 @@ class repo_promos_cercanas {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun obtenerDatosUsuario(
         idUser: String,
         onResult: (DatosDemograficosUsuario?) -> Unit

@@ -112,7 +112,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.geinzz.geinzwork.BuildConfig.MAPBOX_ACCESS_TOKEN
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.EstadoMapa
 import com.geinzz.geinzwork.data.model.categorias_diltrado_mapa_inmobiliara
@@ -212,7 +211,7 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 @SuppressLint("MissingPermission")
-@RequiresApi(Build.VERSION_CODES.O)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun mapa_inmobilia(

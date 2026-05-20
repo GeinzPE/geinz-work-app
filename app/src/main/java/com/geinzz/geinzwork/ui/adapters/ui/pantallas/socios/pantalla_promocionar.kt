@@ -235,7 +235,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.plus
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun pantalla_promocionar(
     viewmodel_pantalla_promocionar: viewmodel_pantallas_promocionar,
@@ -1271,12 +1270,17 @@ fun pantalla_promocionar(
     )
     var precio_por_notificacion_general by remember { mutableStateOf(0) }
 
-    val botonHabilitado by derivedStateOf {
-        val horas = hora_escrita.toLongOrNull() ?: 0L // si está vacío o inválido, lo considera 0
-        viewmodel_pantalla_promocionar.titulo.isNotEmpty() &&
-                viewmodel_pantalla_promocionar.descripcion.isNotEmpty() &&
-                ((seleccion.tipo == "horas" && horas > 0L) ||
-                        (seleccion.tipo == "dias" && fecha_fin.isNotEmpty()))
+    val botonHabilitado by remember {
+        derivedStateOf {
+            val horas = hora_escrita.toLongOrNull() ?: 0L
+
+            viewmodel_pantalla_promocionar.titulo.isNotEmpty() &&
+                    viewmodel_pantalla_promocionar.descripcion.isNotEmpty() &&
+                    (
+                            (seleccion.tipo == "horas" && horas > 0L) ||
+                                    (seleccion.tipo == "dias" && fecha_fin.isNotEmpty())
+                            )
+        }
     }
 
 
@@ -4209,7 +4213,7 @@ fun pantalla_promocionar(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun RequisitosNotificacion(
     categoria: String, context: Context, localidad_tienda: String, id_tienda: String,
@@ -4591,7 +4595,7 @@ fun SelectorFotoUnica(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun DateButton(
     titulo: String,
@@ -5139,7 +5143,7 @@ fun CambiarStatusBar(showHeader: Boolean) {
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 fun compartirLugarFirebaseHosttiendas(
     categoria: String,
     context: Context,

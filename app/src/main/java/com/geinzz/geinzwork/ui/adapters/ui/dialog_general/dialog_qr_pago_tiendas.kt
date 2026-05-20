@@ -38,7 +38,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.ZoomableGalleryFullScreen
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun dialog_qr_pago_tienda(id_user:String,item_metodos_pago: item_metodos_pago, ondimis: () -> Unit) {
     var mostar_numero_completo by remember { mutableStateOf(false) }

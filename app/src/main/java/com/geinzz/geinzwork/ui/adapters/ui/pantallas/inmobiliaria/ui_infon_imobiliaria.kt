@@ -82,7 +82,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-import com.geinzz.geinzwork.BuildConfig
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.completeta_info_inmuebles
 import com.geinzz.geinzwork.data.model.dataclass_seguridad.dialog_seguridad_salud_algolia
@@ -128,7 +127,6 @@ import com.geinzz.geinzwork.utils.constantes.constantes_reprodutor_video.Galeria
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_inmobiliara
 import kotlin.String
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ui_info_imobiliara(

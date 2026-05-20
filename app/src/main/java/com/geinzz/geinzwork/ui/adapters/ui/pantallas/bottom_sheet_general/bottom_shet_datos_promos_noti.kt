@@ -120,7 +120,7 @@ import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_datos_promos_noti(
@@ -944,7 +944,7 @@ fun EstadisticasTikTokCuadro_dentro(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 fun compartir_hosting_promo(
     msje: String,
     context: Context,

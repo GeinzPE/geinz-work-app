@@ -101,7 +101,6 @@ import com.github.panpf.zoomimage.ZoomImage
 import com.github.panpf.zoomimage.compose.rememberZoomState
 import kotlinx.coroutines.delay
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun desing_principal_promos_cerncas(
     compartir: Boolean, contacto_directo: Boolean,
@@ -178,7 +177,6 @@ fun desing_principal_promos_cerncas(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ZoomableGalleryFullScreen_promociones_vista_previa(

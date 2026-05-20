@@ -12,7 +12,6 @@ import androidx.annotation.RequiresApi
 import com.geinzz.geinzwork.model.repo_eres_socio
 import java.net.URLEncoder
 
-    @RequiresApi(Build.VERSION_CODES.O)
 object open_fb_tk_ig {
 
     val repo_socios= repo_eres_socio()

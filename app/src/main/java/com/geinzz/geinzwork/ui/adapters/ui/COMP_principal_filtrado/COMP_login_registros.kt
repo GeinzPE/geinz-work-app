@@ -866,7 +866,6 @@ fun DatePickerExample(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DatePickerExample_promociones(
@@ -950,7 +949,6 @@ fun DatePickerExample_promociones(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun calcularDiasEntreFechas(fechaInicio: String, fechaFin: String): Int {
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 

@@ -98,7 +98,6 @@ import kotlinx.coroutines.launch
 
 private lateinit var firebaseAuth: FirebaseAuth
 
-@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("MissingPermission", "SuspiciousIndentation")
 @Composable
 fun bottom_navigation(
@@ -596,7 +595,6 @@ fun bottom_navigation(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun handleScanResult(
     id_user:String,
     context: Context,

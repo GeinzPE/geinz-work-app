@@ -116,7 +116,6 @@ import java.security.SecureRandom
 
 
 @SuppressLint("CoroutineCreationDuringComposition")
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun datos_teindas() {
     val lista_metood_pago = listOf("Yape", "Plin", "Efectivo", "Agora", "visa/Mastercard")
@@ -1004,7 +1003,6 @@ fun datos_teindas() {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HorarioSemanal(viewmodel_agregar_datos: viewmodel_agregar_datos) {
 

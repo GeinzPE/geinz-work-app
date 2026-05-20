@@ -113,7 +113,6 @@ import com.geinzz.geinzwork.viewModels.viewmodel_novedades_tiendas
 import kotlinx.coroutines.delay
 import java.net.URLEncoder
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun nuevos_negocios(
     verificar_inter: Boolean,
@@ -343,7 +342,7 @@ fun carga_inicial() {
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun item_tiendas_registradas(
     horario_box1: HorarioDia_box,

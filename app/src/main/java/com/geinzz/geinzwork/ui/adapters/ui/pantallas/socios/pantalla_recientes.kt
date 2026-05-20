@@ -73,7 +73,7 @@ import com.geinzz.geinzwork.viewModels.viewmodel_pantallas_recientes
 import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.launch
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun PantallaRecientes(
     estado_notificacion_promocion_publicados:String,

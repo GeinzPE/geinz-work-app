@@ -141,7 +141,6 @@ import java.net.URLEncoder
 import kotlin.text.isNotEmpty
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun Pantalla_filtrado_tiendas(
@@ -962,7 +961,7 @@ fun Text_fiel_filtrado(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun item_tiendas(
     generador_qr:String,

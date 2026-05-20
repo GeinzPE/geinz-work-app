@@ -209,7 +209,6 @@ import com.mapbox.maps.extension.style.expressions.generated.Expression.Companio
 import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.not
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 
-@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("MissingPermission")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

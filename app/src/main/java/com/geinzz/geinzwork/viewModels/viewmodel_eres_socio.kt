@@ -52,7 +52,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 class viewmodel_eres_socio : ViewModel() {
 
 
@@ -88,6 +88,12 @@ class viewmodel_eres_socio : ViewModel() {
     private val _estado_imagen_bot = MutableStateFlow("")
     val estado_imagen_bot: StateFlow<String> = _estado_imagen_bot
 
+
+    private val _estado_activacion_daniel_pro = MutableStateFlow(false)
+    val estado_activacion_daniel_pro: StateFlow<Boolean> = _estado_activacion_daniel_pro
+
+
+
     init {
         obtener_todos_precios()
     }
@@ -105,6 +111,60 @@ class viewmodel_eres_socio : ViewModel() {
         }
     }
 
+    fun limpiar_estado(){
+        _estado_activacion_daniel_pro.value=false
+    }
+
+    fun activar_plan_pro(
+        id_tienda: String,
+        localidad: String,
+        saldo_actual: Int
+    ) {
+        viewModelScope.launch {
+            try {
+
+                _estado_activacion_daniel_pro.value = false // loading/reset
+
+                val ok = instace_repo.crear_copia_saldo_ativar_bot(
+                    id_tienda,
+                    localidad,
+                    saldo_actual
+                )
+
+                _estado_activacion_daniel_pro.value = ok
+
+                Log.d("PLAN_PRO_VM", "Resultado PRO: $ok")
+
+            } catch (e: Exception) {
+                _estado_activacion_daniel_pro.value = false
+                Log.d("errorbot", "$e")
+            }
+        }
+    }
+    fun activar_plan_free_boot(
+        id_tienda: String,
+        localidad: String
+    ) {
+        viewModelScope.launch {
+            try {
+
+                _estado_activacion_daniel_pro.value = false
+
+                val ok = instace_repo.activar_plan_free_bot(
+                    id_tienda,
+                    localidad
+                )
+
+                _estado_activacion_daniel_pro.value = ok
+
+                Log.d("PLAN_FREE_VM", "Resultado FREE: $ok")
+
+            } catch (e: Exception) {
+                _estado_activacion_daniel_pro.value = false
+                Log.d("errorbot", "$e")
+            }
+        }
+    }
 
     fun obtener_imange_bot(id_tienda: String) {
 
@@ -159,15 +219,16 @@ class viewmodel_eres_socio : ViewModel() {
     }
 
 
-    fun cambiar_numero_msje_algolia(data: String,tipo: String){
+    fun cambiar_numero_msje_algolia(data: String, tipo: String) {
         viewModelScope.launch {
             try {
 
-            }catch (e: Exception){
+            } catch (e: Exception) {
 
             }
         }
     }
+
     // StateFlow privado (mutable)
     private val _estado_Carga_subacategoria =
         MutableStateFlow<Estado_carga_subcategoiras>(Estado_carga_subcategoiras.idle)
@@ -789,7 +850,7 @@ class viewmodel_eres_socio : ViewModel() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.R)
+
     fun cambiar_titular_yape_plin(
         context: Context,
         uri: Uri,
@@ -864,7 +925,6 @@ class viewmodel_eres_socio : ViewModel() {
 //            }
 //        }
 //    }
-    @RequiresApi(Build.VERSION_CODES.R)
     fun subir_img_firestore_promociones(
         i: agregar_promociones,
         img_tienda: String,

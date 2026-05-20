@@ -35,7 +35,7 @@ class viewmodel_recargas : ViewModel() {
     val stateHistorial: StateFlow<state_historial_financiero> =
         _stateHistorial.asStateFlow()
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     private val formatterFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
     private val _saldo = MutableStateFlow(0)
@@ -72,7 +72,7 @@ class viewmodel_recargas : ViewModel() {
 
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun historialFechaToLocalDate(fecha: String): LocalDate? {
         return runCatching {
             LocalDate.parse(fecha, formatterFecha)
@@ -80,7 +80,7 @@ class viewmodel_recargas : ViewModel() {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun recargar_puntos(i: historial_recargas, id_user: String) {
         viewModelScope.launch {
             try {
@@ -225,7 +225,7 @@ class viewmodel_recargas : ViewModel() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun filtrarHistorial(
         lista: List<historial_financiero>,
         filtro: String
@@ -279,7 +279,7 @@ class viewmodel_recargas : ViewModel() {
         return listaFiltrada.sortedByDescending { it.dateTime }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun agruparHistorialPorFecha(
         lista: List<historial_financiero>
     ): Map<String, List<historial_financiero>> {

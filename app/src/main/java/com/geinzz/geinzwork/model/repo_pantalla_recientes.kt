@@ -164,7 +164,7 @@ class repo_pantalla_recientes {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     suspend fun obtenerDatosPromocion(
         id_tienda: String,
         localidad: String,

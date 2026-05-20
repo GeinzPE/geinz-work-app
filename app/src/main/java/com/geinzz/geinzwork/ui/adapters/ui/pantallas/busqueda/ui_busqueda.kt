@@ -167,7 +167,6 @@ import java.util.Date
 import java.util.Locale
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun ui_pantalla_busqueda(

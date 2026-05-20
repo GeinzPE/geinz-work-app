@@ -1829,7 +1829,7 @@ fun baner_servicios_basicos_(texto1:String,descripcion:String,img:Int,listener_s
     }
 }
 
-//@RequiresApi(Build.VERSION_CODES.O)
+//
 //@Composable
 //fun baner_widget_tienda_geinz(
 //    viewModel_filtado_tiendas: viewModel_filtado_tiendas,
@@ -1922,7 +1922,7 @@ fun baner_servicios_basicos_(texto1:String,descripcion:String,img:Int,listener_s
 //    }
 //}
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun baner_widget_tienda_geinz_baner(
     cargar_precio_activacione: PreciosApp?,

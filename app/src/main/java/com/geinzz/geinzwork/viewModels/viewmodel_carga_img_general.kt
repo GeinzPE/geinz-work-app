@@ -24,7 +24,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 class viewmodel_carga_img_general(
     private val context: Context,
 ) : ViewModel() {
@@ -151,7 +151,6 @@ class viewmodel_carga_img_general(
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun obtner_datos_tienda(id_tienda: String, localidad: String) {
         try {
             viewModelScope.launch {

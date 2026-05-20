@@ -217,8 +217,7 @@ object constantes_expandibles_generales {
         }
     }
 
-
-    @RequiresApi(Build.VERSION_CODES.O)
+    
     @Composable
     fun expandibles_wrapp_socio_geinzz_datos_tienda(
         lista_descuentos: List<Descuentos>,
@@ -435,7 +434,7 @@ object constantes_expandibles_generales {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     @Composable
     fun expandibles_wrapp_socio_contacto_tienda(
         viewModelFiltros: viewmodel_eres_socio,
@@ -691,7 +690,7 @@ object constantes_expandibles_generales {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     @Composable
     fun expandibles_wrapp_socio_metodos_pago_tienda(
         id_user: String,
@@ -939,7 +938,7 @@ object constantes_expandibles_generales {
             .trim()
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     @Composable
     fun expandible_wrap_socio_atrubitos(
         id_tienda: String, localidad: String,
@@ -1183,7 +1182,7 @@ object constantes_expandibles_generales {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     @Composable
     fun expandido_wrap_socio_atributos(
         id_tienda: String, localida: String,
@@ -1378,7 +1377,7 @@ object constantes_expandibles_generales {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     @Composable
     fun verificar_activo_pago(
         iduser: String,
@@ -2069,8 +2068,7 @@ object constantes_expandibles_generales {
             )
         }
     }
-
-    @RequiresApi(Build.VERSION_CODES.O)
+    
     @Composable
     fun expandibles_wrapp_socio_geinzz_horario_atencion(
         tick: Long,

@@ -109,7 +109,7 @@ import kotlinx.coroutines.launch
 import kotlin.collections.getOrNull
 
 object constantes_pantalla_socios {
-    @RequiresApi(Build.VERSION_CODES.O)
+
     @Composable
     fun BtnSoporte(tipo: String, context: Context, id_user: String) {
 
@@ -228,7 +228,7 @@ object constantes_pantalla_socios {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.R)
+
     @Composable
     fun BoxFotosTipos(
         id_user: String,
@@ -460,7 +460,6 @@ object constantes_pantalla_socios {
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun BoxTipo_promociones(
         id_user: String,
@@ -713,7 +712,7 @@ object constantes_pantalla_socios {
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(20.dp))
+                    .clip(RoundedCornerShape(topEnd = 0.dp , topStart = 7.dp, bottomStart = 20.dp, bottomEnd = 20.dp))
                     .clickable(
                         enabled = !subiendo_imagen,
                         indication = null,
@@ -735,7 +734,7 @@ object constantes_pantalla_socios {
                         .clip(RoundedCornerShape(50))
                         .background(Color.Black.copy(alpha = 0.6f))
                         .clickable {
-                            val anterior = historial.removeLast()
+                            val anterior = historial.removeAt(historial.lastIndex)
                             imagenActual = anterior
                             onImagenChange(anterior?.let { Uri.parse(it) })
                             usuario_borro_los_cambios()

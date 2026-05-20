@@ -95,7 +95,7 @@ import com.valentinilk.shimmer.shimmer
 import org.checkerframework.framework.qual.ConditionalPostconditionAnnotation
 import java.net.URLEncoder
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun CollageGoogleMapsStyle(
     id_user: String,
@@ -158,7 +158,7 @@ fun CollageGoogleMapsStyle(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun CollageGoogleMapsStyle_sin_scroll(
     id_user: String,
@@ -216,7 +216,7 @@ fun CollageGoogleMapsStyle_sin_scroll(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun CollageGoogleMapsStyle_sin_scroll_promociones(
     id_user: String,
@@ -638,7 +638,7 @@ fun GaleriaInstagram(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun ZoomableGalleryFullScreen(
@@ -773,7 +773,7 @@ fun ZoomableGalleryFullScreen(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun ZoomableGalleryFullScreen_para_promociones(
@@ -1271,7 +1271,7 @@ fun PegasooPagerIndicator(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 fun compartir_hosting_promo(
     id_user: String,
     nombre_tienda: String,

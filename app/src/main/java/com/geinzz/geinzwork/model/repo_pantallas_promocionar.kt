@@ -580,7 +580,6 @@ class repo_pantallas_promocionar {
         CERRAR_ANUNCIO("cerrar_anuncio")
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun registrarEventoNotificacion(
         localidadTienda: String,
         idTienda: String,
@@ -716,7 +715,7 @@ class repo_pantallas_promocionar {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun obtenerDatosUsuario(
         idUser: String,
         onResult: (DatosDemograficosUsuario?) -> Unit

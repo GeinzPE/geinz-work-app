@@ -286,7 +286,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     private val _estadoImagen = MutableStateFlow<ImagenEstado>(ImagenEstado.Idle)
     val estadoImagen: StateFlow<ImagenEstado> = _estadoImagen
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     val insta_repo_eres_socio = repo_eres_socio()
     private val palabrasBloqueadasNormalizadas: List<Pair<String, Regex>> =
         palabrasBloqueadas.map { palabra ->
@@ -445,7 +445,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         _estado_promociones_ia.value = EstadoIA.Idle
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun enviar_notificacion(
         saldo_tienda: Int,
         localidad_tienda: String,

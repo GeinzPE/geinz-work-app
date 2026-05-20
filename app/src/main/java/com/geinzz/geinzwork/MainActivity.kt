@@ -44,15 +44,12 @@ import java.net.URLEncoder
 
 
 class MainActivity : AppCompatActivity() {
-
-
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var datosViewModel: viewModel_usuarios_general
     private lateinit var deepLinkViewModel: DeepLinkViewModel
     private lateinit var navController: androidx.navigation.NavHostController
     lateinit var cropLauncher: ActivityResultLauncher<Intent>
     private val uiActionVM: UiActionViewModel by viewModels()
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (FirebaseApp.getApps(this).isEmpty()) {
@@ -126,7 +123,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun manejarDeepLink(uri: Uri) {
         Log.d("navegacion_rq", uri.toString())
         val repo_eres_socio=repo_eres_socio()

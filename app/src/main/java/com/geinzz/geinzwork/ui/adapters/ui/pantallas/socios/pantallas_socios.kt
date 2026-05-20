@@ -109,7 +109,6 @@ import com.google.firebase.auth.FirebaseAuth
 
 
 @OptIn(ExperimentalAnimationApi::class)
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun login_socios(
     isConnected: Boolean,
@@ -153,7 +152,6 @@ fun login_socios(
 
     var mostrar_bundle_desbloqueo by remember { mutableStateOf(false) }
     var mostrar_bundle_recargas by remember { mutableStateOf(false) }
-    var campoBloqueante by mutableStateOf<viewmodel_pantallas_promocionar.CampoPendiente?>(null)
     var estado_notificacion_promocion_publicados by remember { mutableStateOf("") }
 
 
@@ -219,8 +217,7 @@ fun login_socios(
             viewmodel_pantalla_promocionar.hayCambiosSinGuardar()
         ) {
             pantallaDestino = nuevaPantalla
-            campoBloqueante =
-                viewmodel_pantalla_promocionar.obtenerCampoModificado()
+            viewmodel_pantalla_promocionar.obtenerCampoModificado()
             mostrarDialogoSalir = true
         } else {
             pantallaSeleccionada = nuevaPantalla
@@ -236,13 +233,10 @@ fun login_socios(
                 viewmodel_pantalla_promocionar.hayCambiosSinGuardar()
             ) {
                 pantallaDestino = "Inicio"
-                campoBloqueante =
-                    viewmodel_pantalla_promocionar.obtenerCampoModificado()
+                viewmodel_pantalla_promocionar.obtenerCampoModificado()
                 mostrarDialogoSalir = true
-
             } else if (pantallaSeleccionada != "Inicio") {
                 pantallaSeleccionada = "Inicio"
-
             } else {
                 navController.navigate("pantalla_principal") {
                     popUpTo("pantalla_principal") { inclusive = true }

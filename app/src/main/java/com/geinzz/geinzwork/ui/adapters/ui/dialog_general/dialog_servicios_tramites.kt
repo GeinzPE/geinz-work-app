@@ -84,7 +84,6 @@ import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite
 import com.geinzz.geinzwork.viewModels.viewmodel_inmobiliaria
 import okhttp3.internal.wait
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun dialog_servicios_tramite(
     viewmode_servicios_tramite: viewmode_servicios_tramite,

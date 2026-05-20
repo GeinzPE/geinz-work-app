@@ -628,7 +628,7 @@ object constantes {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun obtenerEstado(view: View, id: String) {
         val db = FirebaseFirestore.getInstance().collection(Variables.trabajadores_usuariosDB)
             .document(Variables.trabajadoresDB).collection(Variables.trabajadoresDB).document(id)

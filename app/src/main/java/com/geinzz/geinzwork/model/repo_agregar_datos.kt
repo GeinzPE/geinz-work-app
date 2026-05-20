@@ -139,7 +139,7 @@ class repo_agregar_datos(context: Context) {
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun agregar_por_14_dias_a_nuevos(data_class_tienda_geinz: nuevas_teindas_dias) {
 
         val hoy = LocalDate.now()

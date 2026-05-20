@@ -73,7 +73,7 @@ object mostrarFechaDialog_horaDialog {
     private fun ontimeSelect24Hours(time:String,Editext:EditText){
         Editext.setText(time)
     }
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun calcularDiasRestantes(fechaVencimientoStr: String): Long {
         try {
             val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -110,7 +110,7 @@ object mostrarFechaDialog_horaDialog {
         return formato.format(horaActual)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun obtenerHoraFin(horas: Int): String {
         val horaActual = LocalTime.now()          // Hora actual
         val horaFin = horaActual.plusHours(horas.toLong()) // Sumar horas
@@ -118,7 +118,7 @@ object mostrarFechaDialog_horaDialog {
         return horaFin.format(formatter)          // Devolver solo hora y minutos
     }
 //
-//    @RequiresApi(Build.VERSION_CODES.O)
+//
 //    fun obtenerTimestampHoraFin(horas: Int): Timestamp {
 //        val ahora = LocalDateTime.now()
 //        val fin = ahora.plusHours(horas.toLong())
@@ -129,7 +129,7 @@ object mostrarFechaDialog_horaDialog {
 //        return Timestamp(instant.epochSecond, instant.nano)
 //    }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun obtenerTimestampFin(valor: Int, tipo: String): Timestamp {
         val instant = when (tipo) {
             "dias" -> LocalDateTime.now().plusDays(valor.toLong())
@@ -141,7 +141,7 @@ object mostrarFechaDialog_horaDialog {
         return Timestamp(instant.epochSecond, instant.nano)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun obtenerTimestampHoraInicio(): Timestamp {
         val ahora = LocalDateTime.now()
 
@@ -153,7 +153,7 @@ object mostrarFechaDialog_horaDialog {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun obtenerTimestampInicio(): Timestamp {
         val instant = LocalDateTime.now()
             .atZone(ZoneId.systemDefault())
@@ -162,7 +162,7 @@ object mostrarFechaDialog_horaDialog {
         return Timestamp(instant.epochSecond, instant.nano)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun obtenerTimestampFinDias(dias: Int): Timestamp {
         val instant = LocalDateTime.now()
             .plusDays(dias.toLong())
@@ -172,7 +172,7 @@ object mostrarFechaDialog_horaDialog {
         return Timestamp(instant.epochSecond, instant.nano)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun obtenerTimestampFecha(fecha: String): Timestamp {
         val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
         val localDate = LocalDate.parse(fecha, formatter)

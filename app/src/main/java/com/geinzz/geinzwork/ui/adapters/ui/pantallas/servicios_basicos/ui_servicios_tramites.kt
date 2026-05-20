@@ -101,7 +101,6 @@ import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite
 import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite.carga_servicios
 import com.google.firebase.database.core.Context
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ui_servicio_tramite(verificar_intener: Boolean, localida: String, iduser: String) {
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()

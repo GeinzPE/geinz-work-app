@@ -16,6 +16,7 @@ import java.time.LocalDateTime
 import com.google.firebase.firestore.PropertyName
 
 data class datos_tienda(
+    val bot_pro_free: Boolean=false,
     val id_tienda: String = "",
     val nombre: String = "",
     val horario_tiendaMap: HorarioAtencion_box = HorarioAtencion_box(),

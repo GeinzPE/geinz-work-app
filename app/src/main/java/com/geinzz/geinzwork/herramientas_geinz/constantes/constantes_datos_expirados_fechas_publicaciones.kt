@@ -103,7 +103,7 @@ object constantes_datos_expirados_fechas_publicaciones {
         return sdf.format(this.toDate())
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun calcularTiempoPromo(
         inicio: Timestamp,
         fin: Timestamp
@@ -132,7 +132,7 @@ object constantes_datos_expirados_fechas_publicaciones {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun calcularCostoPromo(
         inicio: Timestamp,
         fin: Timestamp

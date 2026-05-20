@@ -177,7 +177,7 @@ import java.net.URL
 import java.net.URLEncoder
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_lugares_turisticos(
@@ -432,7 +432,7 @@ fun bottom_sheet_lugares_turisticos(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun card_img_container(
@@ -1107,7 +1107,6 @@ fun compartir_link_tienda(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun item_cercanos(
     viewmodel_filtrado: viewModel_filtado_tiendas,

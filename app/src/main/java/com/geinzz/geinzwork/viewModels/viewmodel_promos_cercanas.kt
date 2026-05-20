@@ -205,7 +205,6 @@ class viewmodel_promos_cercanas : ViewModel() {
     }
     private var ultimaTiendaCargada: String = ""
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun cargarSiguienteBloque(
         localidad: String,
         categoria_filtrado: String,
@@ -282,7 +281,6 @@ class viewmodel_promos_cercanas : ViewModel() {
 
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun agregar_estadisticas_publicacion(
         tipo: String,
         id_promo: String,
@@ -449,7 +447,6 @@ class viewmodel_promos_cercanas : ViewModel() {
             }
         }
     }
-    @RequiresApi(Build.VERSION_CODES.O)
     fun cargarSiguientePagina(localidad: String, tipo_filtrado: String, id_tienda_select: String?) {
         if (_cargandoPagina.value || !_hayMasPaginas.value) return
 
@@ -510,7 +507,7 @@ class viewmodel_promos_cercanas : ViewModel() {
 //    }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     suspend fun obtenerPrimeraPaginaDesdeIds(
         lista: List<IdScore>
     ): List<obj_completo> {
@@ -534,7 +531,6 @@ class viewmodel_promos_cercanas : ViewModel() {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun cargarSiguientePaginaPorIds() {
 
         if (_cargandoPagina.value || !_hayMasPaginas.value) {

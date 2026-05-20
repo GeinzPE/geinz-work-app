@@ -149,7 +149,7 @@ class info : Fragment() {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+    
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         firebaseAuth = FirebaseAuth.getInstance()
@@ -718,7 +718,7 @@ class info : Fragment() {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+    
     private fun confSwipe(idTrabajador: String, img: String) {
         binding.swipe.setOnRefreshListener {
             binding.swipe.setColorSchemeResources(R.color.violeta)
@@ -802,7 +802,7 @@ class info : Fragment() {
         dialog.show() // Asegúrate de mostrar el diálogo aquí
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+    
     @SuppressLint("SuspiciousIndentation")
     private fun obtenerPerfil(id: String) {
         val placeholderPortada =

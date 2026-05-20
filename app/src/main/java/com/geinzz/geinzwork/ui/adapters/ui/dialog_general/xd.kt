@@ -47,8 +47,6 @@ data class BuyerPersona(
     val recomendacion: String
 )
 
-
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun GraficosPromosMPAndroidChart(
     estadistica: EstadisticaAccion,
@@ -600,7 +598,6 @@ fun GraficosPromosMPAndroidChart(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun generarBuyerPersona(
     estadistica: EstadisticaAccion
 ): BuyerPersona {
@@ -650,7 +647,7 @@ fun generarBuyerPersona(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun BuyerPersonaCard(persona: BuyerPersona) {
 
@@ -702,7 +699,7 @@ fun BuyerPersonaCard(persona: BuyerPersona) {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 fun obtenerDiaSemana(fecha: String): String {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     val date = LocalDate.parse(fecha, formatter)

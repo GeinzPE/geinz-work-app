@@ -64,6 +64,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -111,10 +112,15 @@ fun IniciarSeccion(
     val listaImg = constantes_lista_localidades.lista_img_local
     var show_bottom_sheet by remember { mutableStateOf(false) }
 
-    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-        .requestIdToken(context.getString(R.string.default_web_client_id))
-        .requestEmail()
-        .build()
+
+    val webClientId = stringResource(R.string.default_web_client_id)
+
+    val gso = remember(webClientId) {
+        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(webClientId)
+            .requestEmail()
+            .build()
+    }
     var mostar_errores_bottom_sheet by remember { mutableStateOf(false) }
 
     val googleSignInClient = GoogleSignIn.getClient(context, gso)

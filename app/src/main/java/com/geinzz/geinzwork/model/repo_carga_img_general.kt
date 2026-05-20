@@ -18,7 +18,6 @@ class repo_carga_img_general {
     val db = FirebaseFirestore.getInstance()
     val storage = FirebaseStorage.getInstance()
 
-    @RequiresApi(Build.VERSION_CODES.O)
     val repo_eres_socio= repo_eres_socio()
 
 
@@ -93,9 +92,9 @@ class repo_carga_img_general {
                 }
         }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     val horario=DiaHoy()
-    @RequiresApi(Build.VERSION_CODES.O)
+
     suspend fun obtener_datos_tienda(
         id_tienda: String,
         localidad: String,

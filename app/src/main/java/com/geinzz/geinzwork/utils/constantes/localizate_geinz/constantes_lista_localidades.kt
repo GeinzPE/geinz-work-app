@@ -116,7 +116,6 @@ import kotlinx.coroutines.launch
 
 
 object constantes_lista_localidades {
-    @RequiresApi(Build.VERSION_CODES.O)
     val repo_socios= repo_eres_socio()
     val lista = listOf(
         dataclass_localidad_escudos("Barranca".lowercase(), R.drawable.escudo_barranca),
@@ -347,7 +346,7 @@ object constantes_lista_localidades {
         return normalized.replace(Regex("\\p{InCombiningDiacriticalMarks}+"), "")
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun abrir_google_maps(
         iduser:String,
         tipo:String="tienda",id_tienda:String,localidad:String,
@@ -2622,11 +2621,25 @@ object constantes_lista_localidades {
             }
         }
 
-        fusedLocationClient.requestLocationUpdates(
-            locationRequest,
-            locationCallback,
-            Looper.getMainLooper()
-        )
+        if (
+            ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED ||
+
+            ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+
+        }
     }
 
     fun filtrar_por_radio_interno(

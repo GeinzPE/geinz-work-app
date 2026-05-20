@@ -188,7 +188,6 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.Unit
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun bottom_sheet_tiendas_filtradas(
@@ -678,7 +677,7 @@ fun bottom_sheet_tiendas_filtradas(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun cabezero_tiendas(
     id_user: String,
@@ -887,7 +886,7 @@ fun cabezero_tiendas(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun perfil_img_zooom(
     id_user: String,
@@ -1118,7 +1117,7 @@ fun TextoCopiable(id_tienda: String) {
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun abrir_google_maps(
     iduser: String,
@@ -1324,7 +1323,7 @@ fun Expandible_direccion_ref(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun Expandible_Metodo_contacto(
     iduser: String,
@@ -2161,7 +2160,7 @@ fun tienda_cercana() {
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 fun compartirLugarFirebaseHosttiendas(
     iduser: String,
     categoria: String,

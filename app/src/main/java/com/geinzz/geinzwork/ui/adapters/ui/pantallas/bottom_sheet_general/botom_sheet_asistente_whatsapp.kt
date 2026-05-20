@@ -16,6 +16,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -90,36 +92,37 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.custom_textFi
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.MetricasDanielCard
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.boton_generador_por_IA
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantalla_socios
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import com.geinzz.geinzwork.viewModels.viewmodel_generaciones_IA
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
-private val WaBackground       = Color(0xFF0B141A)
-private val BubbleColor        = Color(0xFF202C33)
-private val DividerColor       = Color(0xFF242626)
-private val TextPrimary        = Color(0xFFE9EDEF)
-private val TextMuted          = Color(0xFF8696A0)
-private val LinkBlue           = Color(0xFF53BDEB)
+private val WaBackground = Color(0xFF0B141A)
+private val BubbleColor = Color(0xFF202C33)
+private val DividerColor = Color(0xFF242626)
+private val TextPrimary = Color(0xFFE9EDEF)
+private val TextMuted = Color(0xFF8696A0)
+private val LinkBlue = Color(0xFF53BDEB)
 
-private val WaBotSurface2      = Color(0xFF1A1A1A)
-private val WaBotSurface3      = Color(0xFF252525)
-private val WaBotBorder        = Color(0xFF2A2A2A)
-private val WaBotGreenDeep     = Color(0xFF22B05B)
-private val WaBotTextPrimary   = Color(0xFFFFFFFF)
+private val WaBotSurface2 = Color(0xFF1A1A1A)
+private val WaBotSurface3 = Color(0xFF252525)
+private val WaBotBorder = Color(0xFF2A2A2A)
+private val WaBotGreenDeep = Color(0xFF22B05B)
+private val WaBotTextPrimary = Color(0xFFFFFFFF)
 private val WaBotTextSecondary = Color(0xFFE0E0E0)
-private val WaBotTextMuted     = Color(0xFF888888)
-private val WaBotTextHint      = Color(0xFFAAAAAA)
+private val WaBotTextMuted = Color(0xFF888888)
+private val WaBotTextHint = Color(0xFFAAAAAA)
 
 // ─── MODELS ───────────────────────────────────────────────────────────────────
 data class PromoPreviewData(
-    val badge: String       = "¡ÚLTIMOS DÍAS!",
-    val title: String       = "Menú Final Four",
+    val badge: String = "¡ÚLTIMOS DÍAS!",
+    val title: String = "Menú Final Four",
     val description: String = "Hamburguesa + 2 Piezas de Pollo en McCombo™ Mediano + 6 McNuggets™ + 1 Card Coleccionable",
-    val price: String       = "S/ 23.90",
-    val botMessage: String  = "Claro ¡Qué tal Benjamin! para tu helado, Alonso Peña RestoBar es una buena opción.",
-    val credits: Int        = 10
+    val price: String = "S/ 23.90",
+    val botMessage: String = "Claro ¡Qué tal Benjamin! para tu helado, Alonso Peña RestoBar es una buena opción.",
+    val credits: Int = 10
 )
 
 enum class PlanType { FREE, PRO }
@@ -129,6 +132,7 @@ data class PlanFeature(val label: String, val included: Boolean)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WhatsAppDanielBottomSheet(
+    plan_free_plan_paga: Boolean,
     numero_whatsapp: String,
     sucategoira: List<String>,
     metodos_pago: modelo_pagos_tienda,
@@ -140,7 +144,6 @@ fun WhatsAppDanielBottomSheet(
     onDismiss: () -> Unit,
     onActivate: () -> Unit = {},
     promoData: PromoPreviewData = PromoPreviewData(),
-    // 🔥 imagen bot — vienen del padre
     imagen_subida_correctamente: Boolean = false,
     subiendo_imagen: Boolean = false,
     onImagenChange: (Uri?) -> Unit = {},
@@ -152,7 +155,9 @@ fun WhatsAppDanielBottomSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val context = LocalContext.current
     val fotoUrlInicial by viewmodel.estado_imagen_bot.collectAsState()
+
     LaunchedEffect(id_tienda) {
+        viewmodel.limpiar_estado()
         viewmodel.obtener_descripcion_Seo_bot(id_tienda)
         viewmodel.resetear_valor_estado_whatsapp_subido_y_gemini()
         viewmodel.obtener_imange_bot(id_tienda)
@@ -162,7 +167,7 @@ fun WhatsAppDanielBottomSheet(
         .obtener_estado_msje_whataspp_bot
         .collectAsState()
 
-    var numero_cambiado    by remember { mutableStateOf(numero_whatsapp) }
+    var numero_cambiado by remember { mutableStateOf(numero_whatsapp) }
     var msje_predeterminado by remember { mutableStateOf("") }
 
     LaunchedEffect(obtener_descripcion) {
@@ -175,9 +180,9 @@ fun WhatsAppDanielBottomSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState       = sheetState,
-        containerColor   = Color.Black,
-        tonalElevation   = 0.dp,
+        sheetState = sheetState,
+        containerColor = Color.Black,
+        tonalElevation = 0.dp,
         dragHandle = {
             Box(
                 modifier = Modifier
@@ -191,31 +196,36 @@ fun WhatsAppDanielBottomSheet(
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
     ) {
         BottomSheetContent(
-            context                      = context,
-            descripcion_negocio_seo      = obtener_descripcion.descripcion_seo,
-            msje_personalizado_contacto  = msje_predeterminado,
-            numero_whatsapp              = numero_cambiado,
-            sucategoira                  = sucategoira,
-            metodos_pago                 = metodos_pago,
-            servicios_comodidades        = servicios_comodidades,
-            localidad_tienda             = localidad_tienda,
-            nombre_tienda                = nombre_tienda,
-            id_tienda                    = id_tienda,
-            saldo_tienda                 = saldo_tienda,
-            viewmodel                    = viewmodel,
-            viewmodel_generacones_IA     = viewmodel_generacones_IA,
-            promoData                    = promoData,
-            onActivate                   = onActivate,
-            fotoUrlInicial               = fotoUrlInicial,
-            // 🔥 imagen
-            imagen_subida_correctamente  = imagen_subida_correctamente,
-            subiendo_imagen              = subiendo_imagen,
-            onImagenChange               = onImagenChange,
-            usuario_borro_los_cambios    = usuario_borro_los_cambios,
-            nuevo_cambio_whatsap         = { numero_cambiado = it },
+            plan_free_plan_paga = plan_free_plan_paga,
+            context = context,
+            descripcion_negocio_seo = obtener_descripcion.descripcion_seo,
+            msje_personalizado_contacto = msje_predeterminado,
+            numero_whatsapp = numero_cambiado,
+            sucategoira = sucategoira,
+            metodos_pago = metodos_pago,
+            servicios_comodidades = servicios_comodidades,
+            localidad_tienda = localidad_tienda,
+            nombre_tienda = nombre_tienda,
+            id_tienda = id_tienda,
+            saldo_tienda = saldo_tienda,
+            viewmodel = viewmodel,
+            viewmodel_generacones_IA = viewmodel_generacones_IA,
+            promoData = promoData,
+            onActivate = onActivate,
+            fotoUrlInicial = fotoUrlInicial,
+            imagen_subida_correctamente = imagen_subida_correctamente,
+            subiendo_imagen = subiendo_imagen,
+            onImagenChange = onImagenChange,
+            usuario_borro_los_cambios = usuario_borro_los_cambios,
+            nuevo_cambio_whatsap = { numero_cambiado = it },
             nuevo_cambio_whatsap_msje_predetermiando = { msje_predeterminado = it },
             guardar_cambios_firebase_numero_des = { data, tipo ->
-                viewmodel.guadardar_descripcion_whattsapp_bot(id_tienda, localidad_tienda, data, tipo)
+                viewmodel.guadardar_descripcion_whattsapp_bot(
+                    id_tienda,
+                    localidad_tienda,
+                    data,
+                    tipo
+                )
             },
             onGuardarImagen = onGuardarImagen
         )
@@ -225,6 +235,7 @@ fun WhatsAppDanielBottomSheet(
 // ─── CONTENT ──────────────────────────────────────────────────────────────────
 @Composable
 private fun BottomSheetContent(
+    plan_free_plan_paga: Boolean,
     context: Context,
     descripcion_negocio_seo: String,
     msje_personalizado_contacto: String,
@@ -241,7 +252,6 @@ private fun BottomSheetContent(
     promoData: PromoPreviewData,
     onActivate: () -> Unit,
     fotoUrlInicial: String = "",
-    // 🔥 imagen
     imagen_subida_correctamente: Boolean,
     subiendo_imagen: Boolean,
     onImagenChange: (Uri?) -> Unit,
@@ -252,13 +262,30 @@ private fun BottomSheetContent(
     onGuardarImagen: () -> Unit = {}
 ) {
     var mostrar_btn_guardar_chatbot_IA by remember { mutableStateOf(false) }
-    var selectedPlan       by remember { mutableStateOf<PlanType?>(null) }
-    var creditosAceptados  by remember { mutableStateOf(false) }
+    var planActivoLocal by remember { mutableStateOf(plan_free_plan_paga) }
+    var selectedPlan by remember { mutableStateOf<PlanType?>(null) }
+    var creditosAceptados by remember { mutableStateOf(plan_free_plan_paga) }
+    var activando by remember { mutableStateOf(false) }
+
     var plantillaExpandida by remember { mutableStateOf(false) }
-    var seoExpandido       by remember { mutableStateOf(false) }
+    var seoExpandido by remember { mutableStateOf(false) }
     var descripcion_chat_bot by remember { mutableStateOf(descripcion_negocio_seo) }
     var descripcion_guardada by remember { mutableStateOf(descripcion_negocio_seo) }
     val scrollState = rememberScrollState()
+
+    val estado_activacion_data by viewmodel.estado_activacion_daniel_pro.collectAsState()
+    val estado_subido_para_whatsapp_bot by viewmodel.estado_subido_desc_para_bot.collectAsState()
+    val estado_descripcion_generadad_whatsapp by viewmodel_generacones_IA.estado_carga_generaciones_desk_whatsapp.collectAsState()
+
+    // 🔥 Toast activación exitosa + apaga loading
+    var estadoActivacionAnterior by remember { mutableStateOf(false) }
+    LaunchedEffect(estado_activacion_data) {
+        if (estado_activacion_data && !estadoActivacionAnterior) {
+            activando = false
+            Toast.makeText(context, "✅ Activación exitosa", Toast.LENGTH_SHORT).show()
+        }
+        estadoActivacionAnterior = estado_activacion_data
+    }
 
     LaunchedEffect(descripcion_negocio_seo) {
         descripcion_chat_bot = descripcion_negocio_seo
@@ -269,26 +296,30 @@ private fun BottomSheetContent(
         derivedStateOf { descripcion_chat_bot.trim() != descripcion_guardada.trim() }
     }
 
-    val botonHabilitado = when (selectedPlan) {
-        PlanType.FREE -> false
-        PlanType.PRO  -> creditosAceptados
-        null          -> false
+    // 🔥 lógica botón: mismo plan ya activo = disabled, distinto = enabled
+    val botonHabilitado = when {
+        activando -> false                                          // mientras carga, siempre disabled
+        !planActivoLocal && selectedPlan == PlanType.FREE -> false // ya está en free
+        planActivoLocal && selectedPlan == PlanType.PRO -> false   // ya está en pro
+        selectedPlan == PlanType.FREE -> true                       // viene de pro, puede bajar a free
+        selectedPlan == PlanType.PRO -> creditosAceptados           // quiere activar pro
+        else -> false
     }
 
-    val estado_subido_para_whatsapp_bot by viewmodel.estado_subido_desc_para_bot.collectAsState()
-    val estado_descripcion_generadad_whatsapp by viewmodel_generacones_IA.estado_carga_generaciones_desk_whatsapp.collectAsState()
-
-    val estaCargandoIA = estado_descripcion_generadad_whatsapp is viewmodel_generaciones_IA.Estado_generacion_IA_whsatp.loading
+    val estaCargandoIA =
+        estado_descripcion_generadad_whatsapp is viewmodel_generaciones_IA.Estado_generacion_IA_whsatp.loading
 
     LaunchedEffect(estado_descripcion_generadad_whatsapp) {
         when (estado_descripcion_generadad_whatsapp) {
             is viewmodel_generaciones_IA.Estado_generacion_IA_whsatp.succes -> {
-                val data = (estado_descripcion_generadad_whatsapp as viewmodel_generaciones_IA.Estado_generacion_IA_whsatp.succes).txt
+                val data =
+                    (estado_descripcion_generadad_whatsapp as viewmodel_generaciones_IA.Estado_generacion_IA_whsatp.succes).txt
                 if (!data.isNullOrEmpty()) {
                     descripcion_chat_bot = data
                     mostrar_btn_guardar_chatbot_IA = true
                 }
             }
+
             else -> Unit
         }
     }
@@ -296,7 +327,8 @@ private fun BottomSheetContent(
     var estadoAnterior by remember { mutableStateOf(false) }
     LaunchedEffect(estado_subido_para_whatsapp_bot) {
         if (estado_subido_para_whatsapp_bot && !estadoAnterior) {
-            Toast.makeText(context, "Se actualizó la descripción correctamente", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Se actualizó la descripción correctamente", Toast.LENGTH_SHORT)
+                .show()
             descripcion_guardada = descripcion_chat_bot
             viewmodel.resetear_valor_estado_whatsapp_subido_y_gemini()
         }
@@ -311,121 +343,145 @@ private fun BottomSheetContent(
             .padding(horizontal = 16.dp)
             .padding(bottom = 24.dp)
     ) {
-        SheetHeader()
+        SheetHeader(planActivoLocal)
 
         Spacer(Modifier.height(12.dp))
         HorizontalDivider(color = WaBotBorder, thickness = 0.5.dp)
         Spacer(Modifier.height(12.dp))
 
-        Text("Optimiza tu perfil de WhatsApp para ", color = WaBotTextHint, fontSize = 13.sp, lineHeight = 20.sp)
+        Text(
+            "Optimiza tu perfil de WhatsApp para ",
+            color = WaBotTextHint,
+            fontSize = 13.sp,
+            lineHeight = 20.sp
+        )
         Row {
-            Text("Daniel", color = WaBotTextSecondary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            Text(", informa sobre tu negocio y atrae más clientes.", color = WaBotTextHint, fontSize = 13.sp, lineHeight = 20.sp)
+            Text(
+                "Daniel",
+                color = WaBotTextSecondary,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                ", informa sobre tu negocio y atrae más clientes.",
+                color = WaBotTextHint,
+                fontSize = 13.sp,
+                lineHeight = 20.sp
+            )
         }
 
         SeoExpandableCard(
             estado_subido_para_whatsapp_bot = estado_subido_para_whatsapp_bot,
-            elTextoCambio                   = elTextoCambio,
-            mostrar_btn_guardar_chatbot_IA  = mostrar_btn_guardar_chatbot_IA,
-            sucategoira                     = sucategoira,
-            metodos_pago                    = metodos_pago,
-            servicios_comodidades           = servicios_comodidades,
-            localidad_tienda                = localidad_tienda,
-            nombre_tienda                   = nombre_tienda,
-            id_tienda                       = id_tienda,
-            saldo_tienda                    = saldo_tienda,
-            viewmodel                       = viewmodel,
-            estaCargandoIA                  = estaCargandoIA,
-            viewmodel_generacones_IA        = viewmodel_generacones_IA,
-            seoExpandido                    = seoExpandido,
-            onSeoToggle                     = { seoExpandido = !seoExpandido },
-            descripcion_chat_bot            = descripcion_chat_bot,
-            onDescripcionChange             = { descripcion_chat_bot = it }
+            elTextoCambio = elTextoCambio,
+            mostrar_btn_guardar_chatbot_IA = mostrar_btn_guardar_chatbot_IA,
+            sucategoira = sucategoira,
+            metodos_pago = metodos_pago,
+            servicios_comodidades = servicios_comodidades,
+            localidad_tienda = localidad_tienda,
+            nombre_tienda = nombre_tienda,
+            id_tienda = id_tienda,
+            saldo_tienda = saldo_tienda,
+            viewmodel = viewmodel,
+            estaCargandoIA = estaCargandoIA,
+            viewmodel_generacones_IA = viewmodel_generacones_IA,
+            seoExpandido = seoExpandido,
+            onSeoToggle = { seoExpandido = !seoExpandido },
+            descripcion_chat_bot = descripcion_chat_bot,
+            onDescripcionChange = { descripcion_chat_bot = it }
         )
 
         Spacer(Modifier.height(14.dp))
 
         TemplateCard(
-            msje_personalizado_contacto              = msje_personalizado_contacto,
-            numero_whatsapp                          = numero_whatsapp,
-            sucategoira                              = sucategoira,
-            metodos_pago                             = metodos_pago,
-            servicios_comodidades                    = servicios_comodidades,
-            localidad_tienda                         = localidad_tienda,
-            nombre_tienda                            = nombre_tienda,
-            id_tienda                                = id_tienda,
-            saldo_tienda                             = saldo_tienda,
-            viewmodel                                = viewmodel,
-            estaCargandoIA                           = estaCargandoIA,
-            viewmodel_generacones_IA                 = viewmodel_generacones_IA,
-            fotoUrlInicial                           = fotoUrlInicial,
-            // 🔥 imagen
-            imagen_subida_correctamente              = imagen_subida_correctamente,
-            subiendo_imagen                          = subiendo_imagen,
-            onImagenChange                           = onImagenChange,
-            usuario_borro_los_cambios                = usuario_borro_los_cambios,
-            promoData                                = promoData,
-            plantillaExpandida                       = plantillaExpandida,
-            onPlantillaToggle                        = { plantillaExpandida = !plantillaExpandida },
-            selectedPlan                             = selectedPlan,
-            onPlanSelected                           = { plan ->
+            context = context,
+            plan_free_plan_paga = planActivoLocal,
+            msje_personalizado_contacto = msje_personalizado_contacto,
+            numero_whatsapp = numero_whatsapp,
+            sucategoira = sucategoira,
+            metodos_pago = metodos_pago,
+            servicios_comodidades = servicios_comodidades,
+            localidad_tienda = localidad_tienda,
+            nombre_tienda = nombre_tienda,
+            id_tienda = id_tienda,
+            saldo_tienda = saldo_tienda,
+            viewmodel = viewmodel,
+            estaCargandoIA = estaCargandoIA,
+            viewmodel_generacones_IA = viewmodel_generacones_IA,
+            fotoUrlInicial = fotoUrlInicial,
+            imagen_subida_correctamente = imagen_subida_correctamente,
+            subiendo_imagen = subiendo_imagen,
+            onImagenChange = onImagenChange,
+            usuario_borro_los_cambios = usuario_borro_los_cambios,
+            promoData = promoData,
+            plantillaExpandida = plantillaExpandida,
+            onPlantillaToggle = { plantillaExpandida = !plantillaExpandida },
+            selectedPlan = selectedPlan,
+            onPlanSelected = { plan ->
                 selectedPlan = plan
                 if (plan == PlanType.FREE) creditosAceptados = false
             },
-            creditosAceptados                        = creditosAceptados,
-            onCreditosAceptadosChange                = { creditosAceptados = it },
-            nuevo_cambio_whatsap                     = nuevo_cambio_whatsap,
+            creditosAceptados = creditosAceptados,
+            onCreditosAceptadosChange = { creditosAceptados = it },
+            nuevo_cambio_whatsap = nuevo_cambio_whatsap,
             nuevo_cambio_whatsap_msje_predetermiando = nuevo_cambio_whatsap_msje_predetermiando,
-            guardar_cambios_firebase_numero_des      = guardar_cambios_firebase_numero_des,
-            onGuardarImagen = onGuardarImagen
+            guardar_cambios_firebase_numero_des = guardar_cambios_firebase_numero_des,
+            onGuardarImagen = onGuardarImagen,
+            activando = activando,
+            activar_plan = { plan ->
+                activando = true // 🔥 inicia loading
+                when (plan) {
+                    PlanType.PRO -> viewmodel.activar_plan_pro(
+                        id_tienda,
+                        localidad_tienda,
+                        saldo_tienda.toInt()
+                    )
+
+                    PlanType.FREE -> viewmodel.activar_plan_free_boot(id_tienda, localidad_tienda)
+                    null -> {
+                        activando = false
+                    }
+                }
+                planActivoLocal = plan == PlanType.PRO
+                onActivate()
+            },
+            pro_enable = botonHabilitado,
         )
 
-        Spacer(Modifier.height(12.dp))
-
-        Button(
-            onClick   = onActivate,
-            enabled   = botonHabilitado,
-            modifier  = Modifier.fillMaxWidth().height(48.dp),
-            shape     = RoundedCornerShape(14.dp),
-            colors    = ButtonDefaults.buttonColors(
-                containerColor         = MaterialTheme.colorScheme.primary,
-                contentColor           = Color.White,
-                disabledContainerColor = Color(0xFF1A1A1A),
-                disabledContentColor   = Color(0xFF444444)
-            ),
-            elevation = ButtonDefaults.buttonElevation(0.dp)
-        ) {
-            Text(
-                text = when (selectedPlan) {
-                    PlanType.FREE -> "Plan gratis · Ya activo"
-                    PlanType.PRO  -> if (creditosAceptados) "Activar Plan Pro" else "Acepta los créditos"
-                    null          -> "Selecciona un plan"
-                },
-                fontSize      = 14.sp,
-                fontWeight    = FontWeight.Bold,
-                letterSpacing = 0.sp
-            )
+        if (planActivoLocal) {
+            MetricasDanielCard(id_tienda)
         }
+
+        Spacer(Modifier.height(12.dp))
     }
 }
 
 // ─── HEADER ───────────────────────────────────────────────────────────────────
 @Composable
-private fun SheetHeader() {
+private fun SheetHeader(pla: Boolean) {
+    val textoPlan = if (pla) "ACTIVO (PRO)" else "ACTIVO (FREE)"
+
     Row(
-        modifier              = Modifier.fillMaxWidth(),
-        verticalAlignment     = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Image(
-            painter            = painterResource(R.drawable.foto_perfil_daniel),
+            painter = painterResource(R.drawable.foto_perfil_daniel),
             contentDescription = null,
-            modifier           = Modifier.size(44.dp).clip(CircleShape),
-            contentScale       = ContentScale.Crop
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop
         )
         Column(modifier = Modifier.weight(1f)) {
-            Text("Asistente Daniel",     color = WaBotTextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.3).sp)
-            Text("WhatsApp Business AI", color = WaBotTextMuted,  fontSize = 11.sp)
+            Text(
+                "Asistente Daniel",
+                color = WaBotTextPrimary,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = (-0.3).sp
+            )
+            Text("WhatsApp Business AI", color = WaBotTextMuted, fontSize = 11.sp)
         }
         Box(
             modifier = Modifier
@@ -434,9 +490,23 @@ private fun SheetHeader() {
                 .border(0.5.dp, WaBotBorder, RoundedCornerShape(20.dp))
                 .padding(horizontal = 10.dp, vertical = 4.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(WaBotGreenDeep))
-                Text("ACTIVO", color = WaBotGreenDeep, fontSize = 16.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .clip(CircleShape)
+                        .background(WaBotGreenDeep)
+                )
+                Text(
+                    textoPlan,
+                    color = WaBotGreenDeep,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.5.sp
+                )
             }
         }
     }
@@ -445,6 +515,8 @@ private fun SheetHeader() {
 // ─── TEMPLATE CARD ────────────────────────────────────────────────────────────
 @Composable
 private fun TemplateCard(
+    context: Context,
+    plan_free_plan_paga: Boolean,
     msje_personalizado_contacto: String,
     numero_whatsapp: String,
     sucategoira: List<String>,
@@ -458,7 +530,6 @@ private fun TemplateCard(
     estaCargandoIA: Boolean,
     viewmodel_generacones_IA: viewmodel_generaciones_IA,
     fotoUrlInicial: String,
-    // 🔥 imagen
     imagen_subida_correctamente: Boolean,
     subiendo_imagen: Boolean,
     onImagenChange: (Uri?) -> Unit,
@@ -474,42 +545,71 @@ private fun TemplateCard(
     nuevo_cambio_whatsap_msje_predetermiando: (String) -> Unit,
     guardar_cambios_firebase_numero_des: (String, String) -> Unit,
     onGuardarImagen: () -> Unit = {},
+    activando: Boolean,
+    activar_plan: (PlanType?) -> Unit,
+    pro_enable: Boolean,
 ) {
+    LaunchedEffect(plan_free_plan_paga) {
+        if (selectedPlan == null) {
+            if (plan_free_plan_paga) onPlanSelected(PlanType.PRO)
+            else onPlanSelected(PlanType.FREE)
+        }
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape    = RoundedCornerShape(16.dp),
-        colors   = CardDefaults.cardColors(containerColor = WaBotSurface2),
-        border   = BorderStroke(0.5.dp, WaBotBorder)
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = WaBotSurface2),
+        border = BorderStroke(0.5.dp, WaBotBorder)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
 
             Row(
-                modifier              = Modifier.fillMaxWidth().clickable { onPlantillaToggle() },
-                verticalAlignment     = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable (indication = null, interactionSource = remember { MutableInteractionSource() }) { onPlantillaToggle() },
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Box(
-                    modifier         = Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(WaBotGreenDeep),
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(WaBotGreenDeep),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(imageVector = Icons.Default.ChatBubbleOutline, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    Icon(
+                        imageVector = Icons.Default.ChatBubbleOutline,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Plantilla Profesional",            color = WaBotTextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    Text("Contacto directo · más interacción", color = WaBotTextMuted,  fontSize = 11.sp)
+                    Text(
+                        "Plantilla Profesional",
+                        color = WaBotTextPrimary,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "Contacto directo · más interacción",
+                        color = WaBotTextMuted,
+                        fontSize = 11.sp
+                    )
                 }
                 Icon(
-                    imageVector        = if (plantillaExpandida) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    imageVector = if (plantillaExpandida) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint               = WaBotTextMuted,
-                    modifier           = Modifier.size(20.dp)
+                    tint = WaBotTextMuted,
+                    modifier = Modifier.size(20.dp)
                 )
             }
 
             AnimatedVisibility(
                 visible = plantillaExpandida,
-                enter   = expandVertically(tween(300), Alignment.Top) + fadeIn(tween(260)),
-                exit    = shrinkVertically(tween(260), Alignment.Top) + fadeOut(tween(200))
+                enter = expandVertically(tween(300), Alignment.Top) + fadeIn(tween(260)),
+                exit = shrinkVertically(tween(260), Alignment.Top) + fadeOut(tween(200))
             ) {
                 Column {
                     Spacer(Modifier.height(16.dp))
@@ -517,33 +617,82 @@ private fun TemplateCard(
                     Spacer(Modifier.height(12.dp))
 
                     PlansSection(
-                        msje_personaliazdo_contaco               = msje_personalizado_contacto,
-                        numero_whatsapp_tienda                   = numero_whatsapp,
-                        onNumeroWhatsappChange                   = nuevo_cambio_whatsap,
-                        onMensajePersonalizadoChange             = nuevo_cambio_whatsap_msje_predetermiando,
-                        onGuardarCambios                         = guardar_cambios_firebase_numero_des,
-                        sucategoira                              = sucategoira,
-                        metodos_pago                             = metodos_pago,
-                        servicios_comodidades                    = servicios_comodidades,
-                        localidad_tienda                         = localidad_tienda,
-                        nombre_tienda                            = nombre_tienda,
-                        id_tienda                                = id_tienda,
-                        saldo_tienda                             = saldo_tienda,
-                        viewmodel                                = viewmodel,
-                        estaCargandoIA                           = estaCargandoIA,
-                        viewmodel_generacones_IA                 = viewmodel_generacones_IA,
-                        fotoUrlInicial                           = fotoUrlInicial,
-                        // 🔥 imagen
-                        imagen_subida_correctamente              = imagen_subida_correctamente,
-                        subiendo_imagen                          = subiendo_imagen,
-                        onImagenChange                           = onImagenChange,
-                        usuario_borro_los_cambios                = usuario_borro_los_cambios,
-                        selectedPlan                             = selectedPlan,
-                        onPlanSelected                           = onPlanSelected,
-                        creditosAceptados                        = creditosAceptados,
-                        onCreditosAceptadosChange                = onCreditosAceptadosChange,
+                        msje_personaliazdo_contaco = msje_personalizado_contacto,
+                        numero_whatsapp_tienda = numero_whatsapp,
+                        onNumeroWhatsappChange = nuevo_cambio_whatsap,
+                        onMensajePersonalizadoChange = nuevo_cambio_whatsap_msje_predetermiando,
+                        onGuardarCambios = guardar_cambios_firebase_numero_des,
+                        sucategoira = sucategoira,
+                        metodos_pago = metodos_pago,
+                        servicios_comodidades = servicios_comodidades,
+                        localidad_tienda = localidad_tienda,
+                        nombre_tienda = nombre_tienda,
+                        id_tienda = id_tienda,
+                        saldo_tienda = saldo_tienda,
+                        viewmodel = viewmodel,
+                        estaCargandoIA = estaCargandoIA,
+                        viewmodel_generacones_IA = viewmodel_generacones_IA,
+                        fotoUrlInicial = fotoUrlInicial,
+                        imagen_subida_correctamente = imagen_subida_correctamente,
+                        subiendo_imagen = subiendo_imagen,
+                        onImagenChange = onImagenChange,
+                        usuario_borro_los_cambios = usuario_borro_los_cambios,
+                        selectedPlan = selectedPlan,
+                        onPlanSelected = onPlanSelected,
+                        creditosAceptados = creditosAceptados,
+                        onCreditosAceptadosChange = onCreditosAceptadosChange,
                         onGuardarImagen = onGuardarImagen
                     )
+
+                    spacer_vertical(20.dp)
+
+                    // 🔥 Botón con loading
+                    Button(
+                        onClick = {
+                            if (saldo_tienda.toInt() >= 300) {
+                                activar_plan(selectedPlan)
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Para activar el plan pro necesitas un minimo de 300 creditos",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        },
+                        enabled = pro_enable && !activando,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = Color.White,
+                            disabledContainerColor = Color(0xFF1A1A1A),
+                            disabledContentColor = Color(0xFF444444)
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(0.dp)
+                    ) {
+                        if (activando) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = when {
+                                    plan_free_plan_paga && selectedPlan == PlanType.PRO -> "Plan Pro · Ya activo"
+                                    !plan_free_plan_paga && selectedPlan == PlanType.FREE -> "Plan Gratis · Ya activo"
+                                    selectedPlan == PlanType.FREE -> "Activar Plan Gratis"
+                                    selectedPlan == PlanType.PRO -> if (creditosAceptados) "Activar Plan Pro" else "Acepta los créditos"
+                                    else -> "Selecciona un plan"
+                                },
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.sp
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -569,7 +718,6 @@ private fun PlansSection(
     estaCargandoIA: Boolean,
     viewmodel_generacones_IA: viewmodel_generaciones_IA,
     fotoUrlInicial: String,
-    // 🔥 imagen
     imagen_subida_correctamente: Boolean,
     subiendo_imagen: Boolean,
     onImagenChange: (Uri?) -> Unit,
@@ -582,15 +730,17 @@ private fun PlansSection(
 ) {
     val previewPlan = selectedPlan ?: PlanType.FREE
 
-    // 🔥 valores originales capturados una sola vez
-    val numeroOriginal  = remember { numero_whatsapp_tienda }
+    val numeroOriginal = remember { numero_whatsapp_tienda }
     val mensajeOriginal = remember { msje_personaliazdo_contaco }
 
-    val numeroCambio  = numero_whatsapp_tienda    != numeroOriginal
+    val numeroCambio = numero_whatsapp_tienda != numeroOriginal
     val mensajeCambio = msje_personaliazdo_contaco != mensajeOriginal
 
-    // ── Vista previa ──────────────────────────────────────────────────────────
-    texto_generico_one_line("VISTA PREVIA EN WHATSAPP", color = WaBotTextMuted, style = MaterialTheme.typography.bodyMedium)
+    texto_generico_one_line(
+        "VISTA PREVIA EN WHATSAPP",
+        color = WaBotTextMuted,
+        style = MaterialTheme.typography.bodyMedium
+    )
     spacer_vertical(10.dp)
 
     Row(
@@ -601,24 +751,39 @@ private fun PlansSection(
             .padding(3.dp),
         horizontalArrangement = Arrangement.spacedBy(3.dp)
     ) {
-        PreviewToggleButton(label = "Gratis", isActive = previewPlan == PlanType.FREE, modifier = Modifier.weight(1f)) { onPlanSelected(PlanType.FREE) }
-        PreviewToggleButton(label = "Pro",    isActive = previewPlan == PlanType.PRO,  modifier = Modifier.weight(1f)) { onPlanSelected(PlanType.PRO)  }
+        PreviewToggleButton(
+            label = "Gratis",
+            isActive = previewPlan == PlanType.FREE,
+            modifier = Modifier.weight(1f)
+        ) { onPlanSelected(PlanType.FREE) }
+        PreviewToggleButton(
+            label = "Pro",
+            isActive = previewPlan == PlanType.PRO,
+            modifier = Modifier.weight(1f)
+        ) { onPlanSelected(PlanType.PRO) }
     }
 
     Spacer(Modifier.height(10.dp))
 
-    AnimatedVisibility(visible = previewPlan == PlanType.FREE, enter = fadeIn(tween(200)) + expandVertically(tween(220)), exit = fadeOut(tween(180)) + shrinkVertically(tween(200))) {
+    AnimatedVisibility(
+        visible = previewPlan == PlanType.FREE,
+        enter = fadeIn(tween(200)) + expandVertically(tween(220)),
+        exit = fadeOut(tween(180)) + shrinkVertically(tween(200))
+    ) {
         WhatsAppBubbleRestauranteScreen()
     }
 
-    AnimatedVisibility(visible = previewPlan == PlanType.PRO, enter = fadeIn(tween(200)) + expandVertically(tween(220)), exit = fadeOut(tween(180)) + shrinkVertically(tween(200))) {
-        // 🔥 los 4 parámetros de imagen llegan correctamente aquí
+    AnimatedVisibility(
+        visible = previewPlan == PlanType.PRO,
+        enter = fadeIn(tween(200)) + expandVertically(tween(220)),
+        exit = fadeOut(tween(180)) + shrinkVertically(tween(200))
+    ) {
         WhatsAppBubbleScreen(
-            fotoUrlInicial              = fotoUrlInicial,
+            fotoUrlInicial = fotoUrlInicial,
             imagen_subida_correctamente = imagen_subida_correctamente,
-            subiendo_imagen             = subiendo_imagen,
-            onImagenChange              = onImagenChange,
-            usuario_borro_los_cambios   = usuario_borro_los_cambios,
+            subiendo_imagen = subiendo_imagen,
+            onImagenChange = onImagenChange,
+            usuario_borro_los_cambios = usuario_borro_los_cambios,
             onGuardarImagen = onGuardarImagen
         )
     }
@@ -627,118 +792,147 @@ private fun PlansSection(
     HorizontalDivider(color = WaBotSurface3, thickness = 0.5.dp)
     Spacer(Modifier.height(10.dp))
 
-    // ── Selector de plan ──────────────────────────────────────────────────────
-    texto_generico_one_line("ELIGE TU PLAN", color = WaBotTextMuted, style = MaterialTheme.typography.bodyMedium)
+    texto_generico_one_line(
+        "ELIGE TU PLAN",
+        color = WaBotTextMuted,
+        style = MaterialTheme.typography.bodyMedium
+    )
     spacer_vertical(10.dp)
 
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         PlanCard(
-            modifier   = Modifier.weight(1f).fillMaxHeight(),
-            planType   = PlanType.FREE,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            planType = PlanType.FREE,
             isSelected = selectedPlan == PlanType.FREE,
             isFeatured = false,
-            badge      = null,
-            planName   = "Plan gratis",
-            planPrice  = "Sin costo",
-            features   = listOf(
-                PlanFeature("Nombre del negocio",     true),
+            badge = null,
+            planName = "Plan gratis",
+            planPrice = "Sin costo",
+            features = listOf(
+                PlanFeature("Nombre del negocio", true),
                 PlanFeature("Estado abierto/cerrado", true),
-                PlanFeature("Métodos de pago",        true),
-                PlanFeature("Comodidades básicas",    true),
-                PlanFeature("Link a tu perfil",       true),
-                PlanFeature("Imagen dinámica",        false),
-                PlanFeature("Promociones",            false),
-                PlanFeature("Botón de contacto",      false)
+                PlanFeature("Métodos de pago", true),
+                PlanFeature("Comodidades básicas", true),
+                PlanFeature("Link a tu perfil", true),
+                PlanFeature("Imagen dinámica", false),
+                PlanFeature("Promociones", false),
+                PlanFeature("Botón de contacto", false)
             ),
             onClick = { onPlanSelected(PlanType.FREE) }
         )
         PlanCard(
-            modifier   = Modifier.weight(1f).fillMaxHeight(),
-            planType   = PlanType.PRO,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            planType = PlanType.PRO,
             isSelected = selectedPlan == PlanType.PRO,
             isFeatured = false,
-            badge      = "RECOMENDADO",
-            planName   = "Plan Pro",
-            planPrice  = "10 cred / recomend.",
-            features   = listOf(
-                PlanFeature("Todo lo del gratis",     true),
+            badge = "RECOMENDADO",
+            planName = "Plan Pro",
+            planPrice = "10 cred / recomend.",
+            features = listOf(
+                PlanFeature("Todo lo del gratis", true),
                 PlanFeature("Imagen / logo dinámico", true),
-                PlanFeature("Promociones activas",    true),
-                PlanFeature("Formato profesional",    true),
-                PlanFeature("Estado en tiempo real",  true),
-                PlanFeature("Botón contacto WA",      true),
-                PlanFeature("Botón ver perfil app",   true),
-                PlanFeature("Texto más ordenado",     true)
+                PlanFeature("Promociones activas", true),
+                PlanFeature("Formato profesional", true),
+                PlanFeature("Estado en tiempo real", true),
+                PlanFeature("Botón contacto WA", true),
+                PlanFeature("Botón ver perfil app", true),
+                PlanFeature("Texto más ordenado", true)
             ),
             onClick = { onPlanSelected(PlanType.PRO) }
         )
     }
 
-    // ── Sección PRO ───────────────────────────────────────────────────────────
     AnimatedVisibility(
         visible = selectedPlan == PlanType.PRO,
-        enter   = fadeIn(tween(220)) + expandVertically(tween(260), Alignment.Top),
-        exit    = fadeOut(tween(180)) + shrinkVertically(tween(200), Alignment.Top)
+        enter = fadeIn(tween(220)) + expandVertically(tween(260), Alignment.Top),
+        exit = fadeOut(tween(180)) + shrinkVertically(tween(200), Alignment.Top)
     ) {
         Column {
             Spacer(Modifier.height(12.dp))
             HorizontalDivider(color = WaBotSurface3, thickness = 0.5.dp)
             Spacer(Modifier.height(12.dp))
 
-            texto_generico_one_line("DATOS DE CONTACTO PRO", color = WaBotTextMuted, style = MaterialTheme.typography.bodyMedium)
+            texto_generico_one_line(
+                "DATOS DE CONTACTO PRO",
+                color = WaBotTextMuted,
+                style = MaterialTheme.typography.bodyMedium
+            )
             spacer_vertical(10.dp)
 
-            // ── Campo número ──────────────────────────────────────────────────
-            texto_generico_multilinea("Número de WhatsApp al que será redirigido el usuario al hacer clic.", style = MaterialTheme.typography.labelMedium)
+            texto_generico_multilinea(
+                "Número de WhatsApp al que será redirigido el usuario al hacer clic.",
+                style = MaterialTheme.typography.labelMedium
+            )
 
             custom_textField_150(
                 mostrar_contado_palabras = false,
-                rounder                  = 25,
-                value                    = numero_whatsapp_tienda,
-                onValueChange            = onNumeroWhatsappChange,
-                labelText                = "Tu número de WhatsApp",
-                placeholderText          = "Ej: 987654321",
-                keyboardOptions          = KeyboardOptions(keyboardType = KeyboardType.Number)
+                rounder = 25,
+                value = numero_whatsapp_tienda,
+                onValueChange = onNumeroWhatsappChange,
+                labelText = "Tu número de WhatsApp",
+                placeholderText = "Ej: 987654321",
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
             AnimatedVisibility(
                 visible = numeroCambio,
-                enter   = fadeIn(tween(220)) + expandVertically(tween(240)),
-                exit    = fadeOut(tween(180)) + shrinkVertically(tween(200))
+                enter = fadeIn(tween(220)) + expandVertically(tween(240)),
+                exit = fadeOut(tween(180)) + shrinkVertically(tween(200))
             ) {
                 Button(
-                    onClick  = { onGuardarCambios(numero_whatsapp_tienda, "wsap") },
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    shape    = RoundedCornerShape(14.dp),
-                    colors   = ButtonDefaults.buttonColors(containerColor = WaBotGreenDeep)
+                    onClick = { onGuardarCambios(numero_whatsapp_tienda, "wsap") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = WaBotGreenDeep)
                 ) {
-                    Text("Guardar número", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        "Guardar número",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
-            // ── Campo mensaje ─────────────────────────────────────────────────
-            texto_generico_multilinea("Mensaje predeterminado con el que el usuario iniciará la conversación", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 10.dp))
+            texto_generico_multilinea(
+                "Mensaje predeterminado con el que el usuario iniciará la conversación",
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.padding(top = 10.dp)
+            )
 
             custom_textField_150(
-                rounder         = 25,
-                value           = msje_personaliazdo_contaco,
-                onValueChange   = onMensajePersonalizadoChange,
-                labelText       = "Mensaje personalizado de contacto",
+                rounder = 25,
+                value = msje_personaliazdo_contaco,
+                onValueChange = onMensajePersonalizadoChange,
+                labelText = "Mensaje personalizado de contacto",
                 placeholderText = "Ej: Hola! Vi tu negocio en Geinz..."
             )
 
             AnimatedVisibility(
                 visible = mensajeCambio,
-                enter   = fadeIn(tween(220)) + expandVertically(tween(240)),
-                exit    = fadeOut(tween(180)) + shrinkVertically(tween(200))
+                enter = fadeIn(tween(220)) + expandVertically(tween(240)),
+                exit = fadeOut(tween(180)) + shrinkVertically(tween(200))
             ) {
                 Button(
-                    onClick  = { onGuardarCambios(msje_personaliazdo_contaco, "msje") },
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    shape    = RoundedCornerShape(14.dp),
-                    colors   = ButtonDefaults.buttonColors(containerColor = WaBotGreenDeep)
+                    onClick = { onGuardarCambios(msje_personaliazdo_contaco, "msje") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = WaBotGreenDeep)
                 ) {
-                    Text("Guardar mensaje", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        "Guardar mensaje",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
@@ -746,7 +940,6 @@ private fun PlansSection(
             HorizontalDivider(color = WaBotSurface3, thickness = 0.5.dp)
             Spacer(Modifier.height(12.dp))
 
-            // ── Info costos ───────────────────────────────────────────────────
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -756,20 +949,52 @@ private fun PlansSection(
                     .padding(10.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("−10 ", color = WaBotGreenDeep, fontSize = 16.sp, fontWeight = FontWeight.Medium)
-                    Image(painter = painterResource(R.drawable.icon_monedas_3d), contentDescription = null, modifier = Modifier.size(20.dp))
-                    Text(" x recomendacion.", color = if (creditosAceptados) WaBotTextMuted else Color(0xFF555555), fontSize = 16.sp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        "−10 ",
+                        color = WaBotGreenDeep,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Image(
+                        painter = painterResource(R.drawable.icon_monedas_3d),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        " x recomendacion.",
+                        color = if (creditosAceptados) WaBotTextMuted else Color(0xFF555555),
+                        fontSize = 16.sp
+                    )
                 }
                 HorizontalDivider(color = WaBotSurface3, thickness = 0.5.dp)
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("−5 ", color = WaBotGreenDeep, fontSize = 16.sp, fontWeight = FontWeight.Medium)
-                    Image(painter = painterResource(R.drawable.icon_monedas_3d), contentDescription = null, modifier = Modifier.size(20.dp))
-                    Text(" x cliente potencial.", color = if (creditosAceptados) WaBotTextMuted else Color(0xFF555555), fontSize = 16.sp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        "−5 ",
+                        color = WaBotGreenDeep,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Image(
+                        painter = painterResource(R.drawable.icon_monedas_3d),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        " x cliente potencial.",
+                        color = if (creditosAceptados) WaBotTextMuted else Color(0xFF555555),
+                        fontSize = 16.sp
+                    )
                 }
             }
 
-            spacer_vertical(5.dp)
+            spacer_vertical(10.dp)
 
             texto_generico_multilinea(
                 "Ejemplo: Daniel recomendó tu negocio 20 veces y 5 clientes potenciales te escribieron directo a WhatsApp gracias al Plan Pro. Total: 225 créditos = S/ 2.25.",
@@ -778,16 +1003,19 @@ private fun PlansSection(
 
             Spacer(Modifier.height(12.dp))
 
-            // ── Checkbox créditos ─────────────────────────────────────────────
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp))
                     .background(if (creditosAceptados) Color(0xFF0F2A1A) else Color(0xFF141414))
-                    .border(0.5.dp, if (creditosAceptados) WaBotGreenDeep else WaBotBorder, RoundedCornerShape(10.dp))
-                    .clickable { onCreditosAceptadosChange(!creditosAceptados) }
+                    .border(
+                        0.5.dp,
+                        if (creditosAceptados) WaBotGreenDeep else WaBotBorder,
+                        RoundedCornerShape(10.dp)
+                    )
+                    .clickable (indication = null, interactionSource = remember { MutableInteractionSource() }) { onCreditosAceptadosChange(!creditosAceptados) }
                     .padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalAlignment     = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Box(
@@ -795,18 +1023,27 @@ private fun PlansSection(
                         .size(18.dp)
                         .clip(RoundedCornerShape(4.dp))
                         .background(if (creditosAceptados) WaBotGreenDeep else Color.Transparent)
-                        .border(1.5.dp, if (creditosAceptados) WaBotGreenDeep else WaBotTextMuted, RoundedCornerShape(4.dp)),
+                        .border(
+                            1.5.dp,
+                            if (creditosAceptados) WaBotGreenDeep else WaBotTextMuted,
+                            RoundedCornerShape(4.dp)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     if (creditosAceptados) {
-                        Icon(imageVector = Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(12.dp)
+                        )
                     }
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text       = "Acreditar créditos del saldo actual",
-                        color      = if (creditosAceptados) Color(0xFFDDDDDD) else WaBotTextMuted,
-                        fontSize   = 12.sp,
+                        text = "Acreditar créditos del saldo actual",
+                        color = if (creditosAceptados) Color(0xFFDDDDDD) else WaBotTextMuted,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -830,47 +1067,95 @@ private fun PlanCard(
 ) {
     Box(modifier = modifier) {
         Card(
-            onClick  = onClick,
+            onClick = onClick,
             modifier = Modifier.fillMaxWidth(),
-            shape    = RoundedCornerShape(12.dp),
-            colors   = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
-            border   = BorderStroke(if (isSelected) 1.5.dp else 0.5.dp, if (isSelected) WaBotGreenDeep else WaBotBorder)
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
+            border = BorderStroke(
+                if (isSelected) 1.5.dp else 0.5.dp,
+                if (isSelected) WaBotGreenDeep else WaBotBorder
+            )
         ) {
             Column(modifier = Modifier.padding(10.dp)) {
-                Box(modifier = Modifier.fillMaxWidth().height(20.dp), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
                     if (badge != null) {
                         Box(
-                            modifier = Modifier.fillMaxWidth().fillMaxHeight()
-                                .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 6.dp, bottomEnd = 6.dp))
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight()
+                                .clip(
+                                    RoundedCornerShape(
+                                        topStart = 4.dp,
+                                        topEnd = 4.dp,
+                                        bottomStart = 6.dp,
+                                        bottomEnd = 6.dp
+                                    )
+                                )
                                 .background(WaBotGreenDeep),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(badge, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.3.sp)
+                            Text(
+                                badge,
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.3.sp
+                            )
                         }
                     }
                 }
                 Spacer(Modifier.height(6.dp))
-                Text(planName, color = Color(0xFFDDDDDD), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                Text(
+                    planName,
+                    color = Color(0xFFDDDDDD),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium
+                )
                 Spacer(Modifier.height(4.dp))
                 if (planType == PlanType.FREE) {
                     Text("Sin costo", color = WaBotTextMuted, fontSize = 14.sp)
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("10 ", color = WaBotGreenDeep, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                        Image(painter = painterResource(R.drawable.icon_monedas_3d), contentDescription = null, modifier = Modifier.size(18.dp))
+                        Text(
+                            "10 ",
+                            color = WaBotGreenDeep,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Image(
+                            painter = painterResource(R.drawable.icon_monedas_3d),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
                         Text(" x 1 recomendacion.", color = WaBotTextMuted, fontSize = 12.sp)
                     }
                 }
                 Spacer(Modifier.height(8.dp))
                 features.forEach { feature ->
-                    Row(modifier = Modifier.padding(vertical = 3.dp), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Row(
+                        modifier = Modifier.padding(vertical = 3.dp),
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
                         Icon(
-                            imageVector        = if (feature.included) Icons.Default.Check else Icons.Default.Close,
+                            imageVector = if (feature.included) Icons.Default.Check else Icons.Default.Close,
                             contentDescription = null,
-                            tint               = if (feature.included) WaBotGreenDeep else Color(0xFF333333),
-                            modifier           = Modifier.size(12.dp).padding(top = 2.dp)
+                            tint = if (feature.included) WaBotGreenDeep else Color(0xFF333333),
+                            modifier = Modifier
+                                .size(12.dp)
+                                .padding(top = 2.dp)
                         )
-                        Text(text = feature.label, color = if (feature.included) Color(0xFF999999) else Color(0xFF444444), fontSize = 13.sp, lineHeight = 18.sp)
+                        Text(
+                            text = feature.label,
+                            color = if (feature.included) Color(0xFF999999) else Color(0xFF444444),
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp
+                        )
                     }
                 }
             }
@@ -890,12 +1175,21 @@ private fun PreviewToggleButton(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(if (isActive) Color(0xFF1A3A2A) else Color.Transparent)
-            .border(if (isActive) 0.5.dp else 0.dp, if (isActive) WaBotGreenDeep else Color.Transparent, RoundedCornerShape(8.dp))
+            .border(
+                if (isActive) 0.5.dp else 0.dp,
+                if (isActive) WaBotGreenDeep else Color.Transparent,
+                RoundedCornerShape(8.dp)
+            )
             .clickable(onClick = onClick)
             .padding(vertical = 6.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = label, color = if (isActive) WaBotGreenDeep else WaBotTextMuted, fontSize = 13.sp, fontWeight = if (isActive) FontWeight.Medium else FontWeight.Normal)
+        Text(
+            text = label,
+            color = if (isActive) WaBotGreenDeep else WaBotTextMuted,
+            fontSize = 13.sp,
+            fontWeight = if (isActive) FontWeight.Medium else FontWeight.Normal
+        )
     }
 }
 
@@ -907,18 +1201,21 @@ fun WhatsAppBubbleScreen(
     subiendo_imagen: Boolean = false,
     onImagenChange: (Uri?) -> Unit = {},
     usuario_borro_los_cambios: () -> Unit = {},
-            onGuardarImagen: () -> Unit = {}
+    onGuardarImagen: () -> Unit = {}
 ) {
     Box(
-        modifier         = Modifier.fillMaxWidth().background(WaBackground).padding(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(WaBackground)
+            .padding(16.dp),
         contentAlignment = Alignment.BottomEnd
     ) {
         MessageBubble(
-            fotoUrlInicial              = fotoUrlInicial,
+            fotoUrlInicial = fotoUrlInicial,
             imagen_subida_correctamente = imagen_subida_correctamente,
-            subiendo_imagen             = subiendo_imagen,
-            onImagenChange              = onImagenChange,
-            usuario_borro_los_cambios   = usuario_borro_los_cambios,
+            subiendo_imagen = subiendo_imagen,
+            onImagenChange = onImagenChange,
+            usuario_borro_los_cambios = usuario_borro_los_cambios,
             onGuardarImagen = onGuardarImagen
         )
     }
@@ -934,26 +1231,37 @@ fun MessageBubble(
     onGuardarImagen: () -> Unit = {}
 ) {
     Box(contentAlignment = Alignment.TopEnd) {
-        Box(modifier = Modifier.size(width = 8.dp, height = 8.dp).align(Alignment.TopEnd)) {
+        Box(
+            modifier = Modifier
+                .size(width = 8.dp, height = 8.dp)
+                .align(Alignment.TopEnd)
+        ) {
             Canvas(modifier = Modifier.matchParentSize()) {
-                drawPath(path = Path().apply { moveTo(0f, 0f); lineTo(size.width, 0f); lineTo(0f, size.height); close() }, color = BubbleColor)
+                drawPath(path = Path().apply {
+                    moveTo(0f, 0f); lineTo(size.width, 0f); lineTo(0f, size.height); close()
+                }, color = BubbleColor)
             }
         }
         Column(
             modifier = Modifier
                 .widthIn(max = 290.dp)
-                .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 0.dp, bottomStart = 8.dp, bottomEnd = 8.dp))
+                .clip(
+                    RoundedCornerShape(
+                        topStart = 8.dp,
+                        topEnd = 0.dp,
+                        bottomStart = 8.dp,
+                        bottomEnd = 8.dp
+                    )
+                )
                 .background(BubbleColor)
         ) {
-            // 🔥 toda la lógica de imagen delegada al componente reutilizable
             constantes_pantalla_socios.Box_para_imagen_general_de_Bot_whatsapp(
                 imagen_subida_correctamente = imagen_subida_correctamente,
-                subiendo_imagen             = subiendo_imagen,
+                subiendo_imagen = subiendo_imagen,
                 imagenInicial = fotoUrlInicial.takeIf { it.isNotBlank() },
-                onImagenChange              = onImagenChange,
-                usuario_borro_los_cambios   = usuario_borro_los_cambios,
-                        onGuardarImagen             = onGuardarImagen
-
+                onImagenChange = onImagenChange,
+                usuario_borro_los_cambios = usuario_borro_los_cambios,
+                onGuardarImagen = onGuardarImagen
             )
             MessageBody()
             Divider(color = DividerColor, thickness = 0.5.dp)
@@ -967,16 +1275,24 @@ fun MessageBubble(
 // ─── MESSAGE BODY ─────────────────────────────────────────────────────────────
 @Composable
 fun MessageBody() {
-    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp, vertical = 8.dp)
+    ) {
         Spacer(Modifier.height(3.dp))
         Text(
-            text       = "Descripción optimizada por Daniel IA para potenciar la visibilidad y conversión de tu negocio. Basado en análisis SEO, comportamiento de clientes y millones de datos entrenados para generar mensajes más atractivos, estratégicos y orientados a maximizar el ROI y atraer más clientes para ti.",
-            color      = TextPrimary,
-            fontSize   = 15.sp,
+            text = "Descripción optimizada por Daniel IA para potenciar la visibilidad y conversión de tu negocio. Basado en análisis SEO, comportamiento de clientes y millones de datos entrenados para generar mensajes más atractivos, estratégicos y orientados a maximizar el ROI y atraer más clientes para ti.",
+            color = TextPrimary,
+            fontSize = 15.sp,
             lineHeight = 22.sp
         )
         Spacer(Modifier.height(4.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text("Geinz", color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
             Text("18:41", color = TextMuted, fontSize = 12.sp)
         }
@@ -987,11 +1303,18 @@ fun MessageBody() {
 @Composable
 fun LinkRow(label: String) {
     Row(
-        modifier              = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 10.dp),
-        verticalAlignment     = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        Icon(imageVector = Icons.Filled.OpenInNew, contentDescription = null, tint = WaBotGreenDeep, modifier = Modifier.size(14.dp))
+        Icon(
+            imageVector = Icons.Filled.OpenInNew,
+            contentDescription = null,
+            tint = WaBotGreenDeep,
+            modifier = Modifier.size(14.dp)
+        )
         Spacer(Modifier.width(6.dp))
         Text(label, color = WaBotGreenDeep, fontSize = 14.sp)
     }
@@ -1000,7 +1323,13 @@ fun LinkRow(label: String) {
 // ─── BUBBLE FREE ──────────────────────────────────────────────────────────────
 @Composable
 fun WhatsAppBubbleRestauranteScreen() {
-    Box(modifier = Modifier.fillMaxWidth().background(WaBackground).padding(16.dp), contentAlignment = Alignment.BottomEnd) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(WaBackground)
+            .padding(16.dp),
+        contentAlignment = Alignment.BottomEnd
+    ) {
         BubbleRestaurante()
     }
 }
@@ -1008,13 +1337,26 @@ fun WhatsAppBubbleRestauranteScreen() {
 @Composable
 fun BubbleRestaurante() {
     Box(contentAlignment = Alignment.TopEnd) {
-        Canvas(modifier = Modifier.size(width = 8.dp, height = 8.dp).align(Alignment.TopEnd)) {
-            drawPath(path = Path().apply { moveTo(0f, 0f); lineTo(size.width, 0f); lineTo(0f, size.height); close() }, color = BubbleColor)
+        Canvas(
+            modifier = Modifier
+                .size(width = 8.dp, height = 8.dp)
+                .align(Alignment.TopEnd)
+        ) {
+            drawPath(path = Path().apply {
+                moveTo(0f, 0f); lineTo(size.width, 0f); lineTo(0f, size.height); close()
+            }, color = BubbleColor)
         }
         Column(
             modifier = Modifier
                 .widthIn(max = 295.dp)
-                .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 0.dp, bottomStart = 8.dp, bottomEnd = 8.dp))
+                .clip(
+                    RoundedCornerShape(
+                        topStart = 8.dp,
+                        topEnd = 0.dp,
+                        bottomStart = 8.dp,
+                        bottomEnd = 8.dp
+                    )
+                )
                 .background(BubbleColor)
         ) {
             MensajeBody()
@@ -1025,25 +1367,49 @@ fun BubbleRestaurante() {
 @Composable
 private fun MensajeBody() {
     val uriHandler = LocalUriHandler.current
-    val url = "https://geinzworkapp.web.app/share?t=ti&id=JHqbs7ttVXRnsIqsEGWS&l=barranca&c=comida+y+restaurantes"
+    val url =
+        "https://geinzworkapp.web.app/share?t=ti&id=JHqbs7ttVXRnsIqsEGWS&l=barranca&c=comida+y+restaurantes"
 
     val textoConLink = buildAnnotatedString {
         withStyle(SpanStyle(color = TextPrimary, fontSize = 15.sp)) {
             append("Tu contacto personal no será mostrado públicamente. Los clientes podrán comunicarse contigo de forma segura desde Geinz. ✨")
         }
         pushStringAnnotation(tag = "URL", annotation = url)
-        withStyle(SpanStyle(color = LinkBlue, fontSize = 14.sp, textDecoration = TextDecoration.Underline)) { append(url) }
+        withStyle(
+            SpanStyle(
+                color = LinkBlue,
+                fontSize = 14.sp,
+                textDecoration = TextDecoration.Underline
+            )
+        ) {
+            append(url)
+        }
         pop()
     }
 
-    Column(modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 4.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 4.dp)
+    ) {
         ClickableText(
-            text    = textoConLink,
-            style   = TextStyle(lineHeight = 23.sp),
-            onClick = { offset -> textoConLink.getStringAnnotations("URL", offset, offset).firstOrNull()?.let { uriHandler.openUri(it.item) } }
+            text = textoConLink,
+            style = TextStyle(lineHeight = 23.sp),
+            onClick = { offset ->
+                textoConLink.getStringAnnotations("URL", offset, offset).firstOrNull()
+                    ?.let { uriHandler.openUri(it.item) }
+            }
         )
         Spacer(Modifier.height(4.dp))
-        Text("21:03", color = TextMuted, fontSize = 12.sp, modifier = Modifier.fillMaxWidth().wrapContentWidth(Alignment.End).padding(bottom = 4.dp))
+        Text(
+            "21:03",
+            color = TextMuted,
+            fontSize = 12.sp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentWidth(Alignment.End)
+                .padding(bottom = 4.dp)
+        )
     }
 }
 
@@ -1069,74 +1435,108 @@ private fun SeoExpandableCard(
     onDescripcionChange: (String) -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(top = 18.dp),
-        shape    = RoundedCornerShape(16.dp),
-        colors   = CardDefaults.cardColors(containerColor = WaBotSurface2),
-        border   = BorderStroke(0.5.dp, WaBotBorder)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 18.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = WaBotSurface2),
+        border = BorderStroke(0.5.dp, WaBotBorder)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
 
             Row(
-                modifier              = Modifier.fillMaxWidth().clickable { onSeoToggle() },
-                verticalAlignment     = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable (indication = null, interactionSource = remember { MutableInteractionSource() }){ onSeoToggle() },
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Box(
-                    modifier         = Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFF3B82F6)),
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0xFF3B82F6)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(imageVector = Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Descripción SEO",                             color = WaBotTextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                    Text("Optimiza cómo Daniel recomienda tu negocio",  color = WaBotTextMuted,  fontSize = 11.sp)
+                    Text(
+                        "Descripción SEO",
+                        color = WaBotTextPrimary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "Optimiza cómo Daniel recomienda tu negocio",
+                        color = WaBotTextMuted,
+                        fontSize = 11.sp
+                    )
                 }
                 Icon(
-                    imageVector        = if (seoExpandido) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    imageVector = if (seoExpandido) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint               = WaBotTextMuted,
-                    modifier           = Modifier.size(20.dp)
+                    tint = WaBotTextMuted,
+                    modifier = Modifier.size(20.dp)
                 )
             }
 
             AnimatedVisibility(
                 visible = seoExpandido,
-                enter   = expandVertically(tween(300), Alignment.Top) + fadeIn(tween(260)),
-                exit    = shrinkVertically(tween(260), Alignment.Top) + fadeOut(tween(200))
+                enter = expandVertically(tween(300), Alignment.Top) + fadeIn(tween(260)),
+                exit = shrinkVertically(tween(260), Alignment.Top) + fadeOut(tween(200))
             ) {
                 Column {
                     Spacer(Modifier.height(16.dp))
                     HorizontalDivider(color = WaBotSurface3, thickness = 0.5.dp)
                     Spacer(Modifier.height(14.dp))
 
-                    texto_generico_multilinea("Mejora la información de tu negocio para que Daniel IA pueda recomendarte mejor dentro de WhatsApp y atraer más clientes.", style = MaterialTheme.typography.bodyMedium)
+                    texto_generico_multilinea(
+                        "Mejora la información de tu negocio para que Daniel IA pueda recomendarte mejor dentro de WhatsApp y atraer más clientes.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                     Spacer(Modifier.height(14.dp))
 
                     custom_textField_150(
-                        rounder         = 18,
-                        value           = descripcion_chat_bot,
-                        onValueChange   = onDescripcionChange,
-                        labelText       = "Descripción SEO para WhatsApp",
+                        rounder = 18,
+                        value = descripcion_chat_bot,
+                        onValueChange = onDescripcionChange,
+                        labelText = "Descripción SEO para WhatsApp",
                         placeholderText = "Ej: Restaurante familiar especializado en parrillas..."
                     )
 
                     Spacer(Modifier.height(14.dp))
 
-                    val mostrarBotonGuardar = (mostrar_btn_guardar_chatbot_IA || elTextoCambio) && !estado_subido_para_whatsapp_bot
+                    val mostrarBotonGuardar =
+                        (mostrar_btn_guardar_chatbot_IA || elTextoCambio) && !estado_subido_para_whatsapp_bot
 
                     AnimatedVisibility(
                         visible = mostrarBotonGuardar,
-                        enter   = fadeIn(tween(220)) + expandVertically(tween(240)),
-                        exit    = fadeOut(tween(180)) + shrinkVertically(tween(200))
+                        enter = fadeIn(tween(220)) + expandVertically(tween(240)),
+                        exit = fadeOut(tween(180)) + shrinkVertically(tween(200))
                     ) {
                         Column {
                             Button(
-                                onClick  = { viewmodel.guadardar_descripcion_whattsapp_bot(id_tienda, localidad_tienda, descripcion_chat_bot, "desc") },
+                                onClick = {
+                                    viewmodel.guadardar_descripcion_whattsapp_bot(
+                                        id_tienda, localidad_tienda, descripcion_chat_bot, "desc"
+                                    )
+                                },
                                 modifier = Modifier.fillMaxWidth(),
-                                shape    = CircleShape,
-                                colors   = ButtonDefaults.buttonColors(containerColor = WaBotGreenDeep)
+                                shape = CircleShape,
+                                colors = ButtonDefaults.buttonColors(containerColor = WaBotGreenDeep)
                             ) {
-                                Text("Guardar cambios", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Text(
+                                    "Guardar cambios",
+                                    color = Color.White,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                             spacer_vertical(10.dp)
                         }
@@ -1145,13 +1545,24 @@ private fun SeoExpandableCard(
                     spacer_vertical(10.dp)
 
                     boton_generador_por_IA(
-                        cargando      = estaCargandoIA,
-                        onclick       = {
-                            val data_para_ia = viewmodel.prepararInputParaIA(sucategoira, metodos_pago, servicios_comodidades)
+                        cargando = estaCargandoIA,
+                        onclick = {
+                            val data_para_ia = viewmodel.prepararInputParaIA(
+                                sucategoira,
+                                metodos_pago,
+                                servicios_comodidades
+                            )
                             Log.d("data_para_ia", data_para_ia)
-                            viewmodel_generacones_IA.obtener_descripcion_generada_con_datos(data_para_ia, localidad_tienda, nombre_tienda, id_tienda, "30", saldo_tienda.toInt())
+                            viewmodel_generacones_IA.obtener_descripcion_generada_con_datos(
+                                data_para_ia,
+                                localidad_tienda,
+                                nombre_tienda,
+                                id_tienda,
+                                "30",
+                                saldo_tienda.toInt()
+                            )
                         },
-                        texto_button  = "Generar descripción con IA",
+                        texto_button = "Generar descripción con IA",
                         cantidad_monedas = "30"
                     )
                 }

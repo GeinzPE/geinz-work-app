@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.State
 import com.geinzz.geinzwork.data.model.DatosDemograficosUsuario
 import com.geinzz.geinzwork.data.model.DatosPublicidadIA
 import com.geinzz.geinzwork.data.model.PreciosApp
@@ -58,6 +59,8 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
@@ -76,7 +79,6 @@ import kotlin.math.ceil
 import kotlin.math.floor
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 
 class repo_eres_socio {
     val stopWords = setOf(
@@ -106,6 +108,7 @@ class repo_eres_socio {
     private val db = FirebaseFirestore.getInstance()
 
     private var genIAOriginal: generaciones_con_ia? = null
+
 
     private val db_sec: FirebaseFirestore by lazy {
         FirebaseSecundario.getFirestore()
@@ -142,13 +145,133 @@ class repo_eres_socio {
             data_whatsapp_info(
                 descripcion_seo = ref.getString("descripcion") ?: "",
                 msje_whatsapp = ref.getString("msje_whatsapp") ?: "",
-                numero_whatsapp = ref.getString("whatsapp") ?: ""
+                numero_whatsapp = (ref.get("whatsapp") as? Long ?: 0L).toInt().toString()
             )
+
+
+        } catch (e: Exception) {
+            Log.d("daobtenida", "$e")
+            data_whatsapp_info()
+        }
+    }
+
+    suspend fun crear_copia_saldo_ativar_bot(
+        id_tienda: String,
+        localidad: String,
+        saldo_actual: Int
+    ): Boolean {
+
+        val db1_ref = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(id_tienda)
+
+        val da_Algolaia = db.collection("lugares")
+            .document(id_tienda)
+
+        val db2_ref = db_sec.collection("creditos_tienda")
+            .document(id_tienda)
+
+        val hashMap = hashMapOf<String, Any>(
+            "bot_plan_pro" to true
+        )
+
+        val hashMap_algolia = hashMapOf<String, Any>(
+            "plantilla" to true
+        )
+
+        val hasmap_creditos = hashMapOf<String, Any>(
+            "creditos" to saldo_actual,
+            "fecha_activacion_inicial" to com.google.firebase.Timestamp.now()
+        )
+
+        return try {
+
+            db1_ref.set(
+                hashMap,
+                com.google.firebase.firestore.SetOptions.merge()
+            ).await()
+            Log.d("PLAN_PRO", "✅ Tienda actualizada")
+
+            da_Algolaia.set(
+                hashMap_algolia,
+                com.google.firebase.firestore.SetOptions.merge()
+            ).await()
+            Log.d("PLAN_PRO", "✅ Algolia actualizado")
+
+            db2_ref.set(
+                hasmap_creditos,
+                com.google.firebase.firestore.SetOptions.merge()
+            ).await()
+            Log.d("PLAN_PRO", "✅ Créditos guardados")
+
+            true // ✅ TODO OK
 
         } catch (e: Exception) {
 
-            data_whatsapp_info()
+            Log.e("PLAN_PRO", "❌ Error: ${e.message}")
+            e.printStackTrace()
 
+            false // ❌ FALLÓ
+        }
+    }
+
+
+    suspend fun activar_plan_free_bot(
+        id_tienda: String,
+        localidad: String,
+    ): Boolean {
+
+        val db1_ref = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(id_tienda)
+
+        val da_Algolaia = db.collection("lugares")
+            .document(id_tienda)
+
+        val hashMap_algolia = hashMapOf<String, Any>(
+            "plantilla" to false
+        )
+
+        val hashMap = hashMapOf<String, Any>(
+            "bot_plan_pro" to false
+        )
+
+        return try {
+
+            Log.d("PLAN_FREE", "🚀 Activando plan FREE")
+            Log.d("PLAN_FREE", "📌 ID tienda: $id_tienda")
+            Log.d("PLAN_FREE", "📌 Localidad: $localidad")
+
+            // 🔥 actualizar tienda
+            db1_ref.set(
+                hashMap,
+                com.google.firebase.firestore.SetOptions.merge()
+            ).await()
+
+            Log.d("PLAN_FREE", "✅ Tienda actualizada")
+
+            // 🔥 actualizar Algolia / lugares
+            da_Algolaia.set(
+                hashMap_algolia,
+                com.google.firebase.firestore.SetOptions.merge()
+            ).await()
+
+            Log.d("PLAN_FREE", "✅ Algolia actualizado")
+
+            true // ✅ TODO OK
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "PLAN_FREE",
+                "❌ Error al activar plan FREE: ${e.message}"
+            )
+
+            e.printStackTrace()
+
+            false // ❌ FALLÓ
         }
     }
 
@@ -176,7 +299,6 @@ class repo_eres_socio {
 
         }
     }
-
 
 
     suspend fun agregar_numero_mesje(
@@ -359,6 +481,7 @@ class repo_eres_socio {
 
 
                 val data = snapshot.data ?: emptyMap<String, Any>()
+                val bot_plan_pro = data["bot_plan_pro"] as? Boolean ?: false
 
                 val nombre_tienda = data["nombre_tienda"] as? String ?: ""
                 val img_tienda = data["img_tienda"] as? Map<String, Any> ?: emptyMap()
@@ -428,9 +551,11 @@ class repo_eres_socio {
                             val review_qr = obtenerTotal("review_qr")
                             val crear_ruta_qr = obtenerTotal("crear_ruta_qr")
 
+
                             // ✔️ AQUÍ ESTABA EL ERROR → faltaba poner el nombre del último parámetro
                             resultado(
                                 datos_tienda(
+                                    bot_plan_pro,
                                     id_tienda = id_tienda,
                                     nombre = nombre_tienda,
                                     horario_tiendaMap = horarioMap,
@@ -1162,7 +1287,7 @@ class repo_eres_socio {
         ).await()
     }
 
-    @RequiresApi(Build.VERSION_CODES.R)
+
     suspend fun cambiar_NT_yape_plin(
         context: Context,
         id_tienda: String,
@@ -1224,7 +1349,7 @@ class repo_eres_socio {
         ref.update(updates).await()
     }
 
-    @RequiresApi(Build.VERSION_CODES.R)
+
     suspend fun subirImagenesAFirebase(
         context: Context,
         imagenes: List<ImagenReview>,

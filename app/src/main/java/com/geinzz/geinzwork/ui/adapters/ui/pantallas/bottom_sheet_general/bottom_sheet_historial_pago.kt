@@ -93,7 +93,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_historial_pago(
@@ -540,7 +540,7 @@ fun bottom_sheet_historial_pago(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun item_historial_pagos(i: historial_financiero) {
     var expanded by remember { mutableStateOf(false) }
@@ -763,7 +763,7 @@ fun calcularTotalSolesDescuento(lista: List<historial_financiero>): Double {
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 fun convertirHoraAmPm(hora24: String): String {
     return try {
         val formato24 = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
@@ -776,7 +776,7 @@ fun convertirHoraAmPm(hora24: String): String {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 fun formatearFechaLarga(fecha: String): String {
     return try {
         val inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")

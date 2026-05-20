@@ -135,7 +135,7 @@ object constantes_subir_img_panel_tienda {
         )
     }
 
-    @RequiresApi(Build.VERSION_CODES.R)
+
     fun guardarCambiosImagenes(
         tipo: String,
         context: Context,
@@ -236,7 +236,6 @@ object constantes_subir_img_panel_tienda {
 
 
 
-    @RequiresApi(Build.VERSION_CODES.R)
     fun guardandoCambiosPromociones(
         tipo: String,
         context: Context,
@@ -393,7 +392,6 @@ object constantes_subir_img_panel_tienda {
 
 
 
-    @RequiresApi(Build.VERSION_CODES.R)
     fun subir_storage_perfil_img(
         context: Context,
         idTienda: String,
@@ -427,7 +425,7 @@ object constantes_subir_img_panel_tienda {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.R)
+ 
     fun procesarImagenWebPSinRecorte(
         context: Context,
         uri: Uri,
@@ -460,8 +458,15 @@ object constantes_subir_img_panel_tienda {
 
         // 2️⃣ Comprimir WebP
         val output = ByteArrayOutputStream()
+
+        val formato = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Bitmap.CompressFormat.WEBP_LOSSY
+        } else {
+            Bitmap.CompressFormat.WEBP
+        }
+
         bitmapFinal.compress(
-            Bitmap.CompressFormat.WEBP_LOSSY,
+            formato,
             quality,
             output
         )
@@ -470,7 +475,6 @@ object constantes_subir_img_panel_tienda {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.R)
     fun procesarImagenParaWhatsappDB(
         context: Context,
         uri: Uri,

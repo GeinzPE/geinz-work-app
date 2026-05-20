@@ -26,7 +26,6 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.google.firebase.firestore.model.mutation.ArrayTransformOperation
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun dialog_eliminar_favoritos(
     viewModelFiltros: viewModel_filtado_tiendas,localidad_tienda:String,

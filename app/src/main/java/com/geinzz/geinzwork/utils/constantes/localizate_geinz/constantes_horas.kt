@@ -86,10 +86,9 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-
-@RequiresApi(Build.VERSION_CODES.O)
 object constantes_horas {
 
     val motivos = listOf(
@@ -133,22 +132,23 @@ object constantes_horas {
         return resultados[0] / 1000.0 // Pasa de metros a kilómetros
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun fechaActual(): String {
-        val hoy = LocalDate.now()
-        return hoy.toString()
+        val cal = Calendar.getInstance()
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        return sdf.format(cal.time)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun fechaUnaSemanaDespues(): String {
-        val fecha = LocalDate.now().plusWeeks(3)
-        return fecha.toString()
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.WEEK_OF_YEAR, 3)
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        return sdf.format(cal.time)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun horaActual(): String {
-        val hora = LocalTime.now()
-        return hora.format(DateTimeFormatter.ofPattern("HH:mm"))
+        val cal = Calendar.getInstance()
+        val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+        return sdf.format(cal.time)
     }
 
     fun abrirTimePicker(
@@ -170,7 +170,6 @@ object constantes_horas {
     fun timeStampNumero(): String {
         return System.currentTimeMillis().toString()
     }
-
     fun generarIdSeguro(): String {
         val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
         val random = SecureRandom()

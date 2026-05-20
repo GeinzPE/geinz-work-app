@@ -133,7 +133,6 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun pantalla_carga_socios(
     fecha_finalizado_flow: StateFlow<String>,
@@ -414,6 +413,19 @@ fun pantalla_carga_socios(
         viewmodel.obtener_subcategorias(datos.categoira_tienda)
     }
 
+    LaunchedEffect(mostrar_snacbar_con_datos_cambiados) {
+        if (mostrar_snacbar_con_datos_cambiados) {
+
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = "Cambios guardados correctamente",
+                    duration = SnackbarDuration.Short
+                )
+            }
+            mostrar_snacbar_con_datos_cambiados = false
+        }
+    }
+
 
 //    LaunchedEffect(mostra_bottom_sheet_historial_de_gen_IA) {
 //        Log.d("cambiamos_btn_terminos_condiciones", "$mostra_bottom_sheet_historial_de_gen_IA")
@@ -550,8 +562,17 @@ fun pantalla_carga_socios(
                                 .height(170.dp)
                                 .clip(RoundedCornerShape(10.dp))
                                 .clickable {
-                                    mostar_horario__bool =
-                                        !mostar_horario__bool
+                                    if (datos_fechas.dias_restantes != "0") {
+                                        mostar_horario__bool =
+                                            !mostar_horario__bool
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Revuena tu plan para poder ajustar los cambios",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+
                                 }
                         ) {
                             AsyncImage(
@@ -1073,10 +1094,12 @@ fun pantalla_carga_socios(
 
                     }
 
-
+                    spacer_vertical(15.dp)
                     BannerAsistenteDaniel(
-                        onClick={ cambiar_estados_bot_whattsapp =
-                            !cambiar_estados_bot_whattsapp}
+                        onClick = {
+                            cambiar_estados_bot_whattsapp =
+                                !cambiar_estados_bot_whattsapp
+                        }
                     )
 
 
@@ -1097,8 +1120,18 @@ fun pantalla_carga_socios(
                                 categoria = datos.categoira_tienda,
                                 expandido = cambiar_subcateogira_de_negocio,
                                 onClickExpand = {
-                                    cambiar_subcateogira_de_negocio =
-                                        !cambiar_subcateogira_de_negocio
+                                    if (datos_fechas.dias_restantes != "0") {
+                                        cambiar_subcateogira_de_negocio =
+                                            !cambiar_subcateogira_de_negocio
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Revuena tu plan para poder ajustar los cambios",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+
+                                    }
+
                                 }, { lista ->
                                     viewmodel.guardar_cambios_subcateogira(
                                         datos.id_tienda,
@@ -1134,7 +1167,16 @@ fun pantalla_carga_socios(
                                 lat = datos.ubicacion.lat,
                                 long = datos.ubicacion.long,
                                 onClickExpand = {
-                                    cambiar_direccion_ref_lat_lng = !cambiar_direccion_ref_lat_lng
+                                    if (datos_fechas.dias_restantes != "0") {
+                                        cambiar_direccion_ref_lat_lng = !cambiar_direccion_ref_lat_lng
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Revuena tu plan para poder ajustar los cambios",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+
+                                    }
                                 }, actualiza_direccion = { direccion ->
                                     viewmodel.actualiza_direccion_de_tienda(
                                         datos.id_tienda,
@@ -1197,8 +1239,16 @@ fun pantalla_carga_socios(
                                 expandido = mostar_horario_teinda,
                                 datos = datos,
                                 onClickExpand = {
-                                    mostar_horario_teinda =
-                                        !mostar_horario_teinda
+                                    if (datos_fechas.dias_restantes != "0") {
+                                        mostar_horario_teinda =
+                                            !mostar_horario_teinda
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Revuena tu plan para poder ajustar los cambios",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 }, sin_conexion = {
                                     scope.launch {
                                         snackbarHostState.showSnackbar(
@@ -1243,6 +1293,17 @@ fun pantalla_carga_socios(
                             ) {
                                 mostrar_datos_teinda =
                                     !mostrar_datos_teinda
+//                                if (datos_fechas.dias_restantes != "0") {
+//
+//                                } else {
+//                                    Toast.makeText(
+//                                        context,
+//                                        "Revuena tu plan para poder ajustar los cambios",
+//                                        Toast.LENGTH_SHORT
+//                                    ).show()
+//
+//                                }
+
                             }
                         }
                     }
@@ -1265,8 +1326,18 @@ fun pantalla_carga_socios(
                                     datos.localidad_tienda
                                 ),
                                 onClickExpand = {
-                                    mostrar_redes_tienda =
-                                        !mostrar_redes_tienda
+                                    if (datos_fechas.dias_restantes != "0") {
+                                        mostrar_redes_tienda =
+                                            !mostrar_redes_tienda
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Revuena tu plan para poder ajustar los cambios",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+
+                                    }
+
                                 },
                                 cambios_guardados = {
                                     scope.launch {
@@ -1298,8 +1369,18 @@ fun pantalla_carga_socios(
                                     id_tienda,
                                     datos.localidad_tienda
                                 ), onClickExpand = {
-                                    mostar_metodos_pago_tienda =
-                                        !mostar_metodos_pago_tienda
+                                    if (datos_fechas.dias_restantes != "0") {
+                                        mostar_metodos_pago_tienda =
+                                            !mostar_metodos_pago_tienda
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Revuena tu plan para poder ajustar los cambios",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+
+                                    }
+
                                 }, guardar_dado_datos = {
                                     scope.launch {
                                         snackbarHostState.showSnackbar(
@@ -1485,8 +1566,18 @@ fun pantalla_carga_socios(
                                                 texto_params = "Interés real",
                                                 expandido = mostar_interes,
                                                 onClickExpand = {
-                                                    mostar_interes =
-                                                        !mostar_interes
+                                                    if (datos_fechas.dias_restantes != "0") {
+                                                        mostar_interes =
+                                                            !mostar_interes
+                                                    } else {
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Revuena tu plan para poder ajustar los cambios",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+
+                                                    }
+
                                                 }
                                             )
                                         }
@@ -1602,8 +1693,18 @@ fun pantalla_carga_socios(
                                                 texto_params = "Convesion",
                                                 expandido = mostrar_convesion,
                                                 onClickExpand = {
-                                                    mostrar_convesion =
-                                                        !mostrar_convesion
+                                                    if (datos_fechas.dias_restantes != "0") {
+                                                        mostrar_convesion =
+                                                            !mostrar_convesion
+                                                    } else {
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Revuena tu plan para poder ajustar los cambios",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+
+                                                    }
+
                                                 }
                                             )
                                         }
@@ -1716,8 +1817,18 @@ fun pantalla_carga_socios(
                                                 texto_params = "Tráfico externo",
                                                 expandido = mostrar_trafico_externo,
                                                 onClickExpand = {
-                                                    mostrar_trafico_externo =
-                                                        !mostrar_trafico_externo
+                                                    if (datos_fechas.dias_restantes != "0") {
+                                                        mostrar_trafico_externo =
+                                                            !mostrar_trafico_externo
+                                                    } else {
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Revuena tu plan para poder ajustar los cambios",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+
+                                                    }
+
                                                 }
                                             )
                                         }
@@ -1821,8 +1932,16 @@ fun pantalla_carga_socios(
                                                 texto_params = "Actividad de códigos QR",
                                                 expandido = mostrar_qr_externo,
                                                 onClickExpand = {
-                                                    mostrar_qr_externo =
-                                                        !mostrar_qr_externo
+                                                    if (datos_fechas.dias_restantes != "0") {
+                                                        mostrar_qr_externo =
+                                                            !mostrar_qr_externo
+                                                    } else {
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Revuena tu plan para poder ajustar los cambios",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                    }
                                                 }
                                             )
                                         }
@@ -2105,15 +2224,7 @@ fun pantalla_carga_socios(
                 openCustomTab(context, url)
             })
         }
-        if (mostrar_snacbar_con_datos_cambiados) {
-            scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = "Cambios guardados correctamente",
-                    duration = SnackbarDuration.Short
-                )
-            }
-            mostrar_snacbar_con_datos_cambiados = false
-        }
+
 
 //        when {
 //            mostrar_webview_terminos_condiciones -> {
@@ -2219,17 +2330,19 @@ fun pantalla_carga_socios(
         }
 
         if (cambiar_estados_bot_whattsapp) {
+            Log.d("datos.bot_pro_free", "${datos.bot_pro_free}")
             WhatsAppDanielBottomSheet(
+                plan_free_plan_paga = datos.bot_pro_free,
                 numero_whatsapp = datos.metodo_contacto_tienda.whatsapp.numero,
-                sucategoira     = datos.subcategorias_tienda,
-                metodos_pago    = datos.metodos_pago,
+                sucategoira = datos.subcategorias_tienda,
+                metodos_pago = datos.metodos_pago,
                 servicios_comodidades = datos.servicios_comodidades,
                 localidad_tienda = datos.localidad_tienda,
-                nombre_tienda   = datos.nombre,
-                id_tienda       = datos.id_tienda,
-                saldo_tienda    = datos.saldo_disponible_tienda,
-                onDismiss       = { cambiar_estados_bot_whattsapp = false },
-                onActivate      = {},
+                nombre_tienda = datos.nombre,
+                id_tienda = datos.id_tienda,
+                saldo_tienda = datos.saldo_disponible_tienda,
+                onDismiss = { cambiar_estados_bot_whattsapp = false },
+                onActivate = {},
 
                 // ✅ igual que antes: guarda la Uri cuando el usuario elige imagen
                 onImagenChange = { uri ->
@@ -2243,7 +2356,7 @@ fun pantalla_carga_socios(
                 },
 
                 imagen_subida_correctamente = imagen_subida_correctamente,
-                subiendo_imagen             = subiendoImagen,
+                subiendo_imagen = subiendoImagen,
 
                 // ✅ igual que antes: sube cuando presiona "Guardar" dentro del componente
                 onGuardarImagen = {

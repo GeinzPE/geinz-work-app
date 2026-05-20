@@ -119,7 +119,6 @@ class repo_review {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.R)
     suspend fun agregar_review(
         datos_review: datos_review,
         context: Context,
@@ -155,7 +154,6 @@ class repo_review {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.R)
     suspend fun agregar_review_storage(
         context: Context,
         id_tienda: String,

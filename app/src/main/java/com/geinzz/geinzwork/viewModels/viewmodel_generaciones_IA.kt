@@ -44,11 +44,14 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.File
+import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import java.util.Objects
 
 class viewmodel_generaciones_IA : ViewModel() {
@@ -628,60 +631,138 @@ class viewmodel_generaciones_IA : ViewModel() {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun coincideConTiempo(fecha: LocalDate, tiempo: String): Boolean {
-        val hoy = LocalDate.now()
+
+        val calendarHoy = Calendar.getInstance()
         val tiempoClean = tiempo.lowercase().trim()
 
+        fun esMismoDia(c1: Calendar, c2: Calendar): Boolean {
+            return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR) &&
+                    c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR)
+        }
+
+        val calendarFecha = fecha.toCalendar()
+
         return when {
+
             // Hoy
-            tiempoClean == "hoy" -> fecha.isEqual(hoy)
+            tiempoClean == "hoy" -> {
+                esMismoDia(calendarFecha, calendarHoy)
+            }
 
             // Ayer
-            tiempoClean == "ayer" -> fecha.isEqual(hoy.minusDays(1))
+            tiempoClean == "ayer" -> {
 
-            // Hace X días (soporta "día" y "días")
-            tiempoClean.startsWith("hace ") && (tiempoClean.endsWith(" día") || tiempoClean.endsWith(
-                " días"
-            )) -> {
+                val ayer = Calendar.getInstance().apply {
+                    add(Calendar.DAY_OF_YEAR, -1)
+                }
+
+                esMismoDia(calendarFecha, ayer)
+            }
+
+            // Hace X días
+            tiempoClean.startsWith("hace ") &&
+                    (
+                            tiempoClean.endsWith(" día") ||
+                                    tiempoClean.endsWith(" días")
+                            ) -> {
+
                 val diasStr = tiempoClean
                     .removePrefix("hace ")
                     .removeSuffix(" días")
                     .removeSuffix(" día")
                     .trim()
-                val dias = diasStr.toLongOrNull()
-                dias?.let { fecha.isEqual(hoy.minusDays(it)) } ?: false
+
+                val dias = diasStr.toIntOrNull()
+
+                if (dias != null) {
+
+                    val fechaComparar = Calendar.getInstance().apply {
+                        add(Calendar.DAY_OF_YEAR, -dias)
+                    }
+
+                    esMismoDia(calendarFecha, fechaComparar)
+
+                } else {
+                    false
+                }
             }
 
             // Esta semana
             tiempoClean == "esta semana" -> {
-                val inicioSemana = hoy.with(DayOfWeek.MONDAY)
-                val finSemana = hoy.with(DayOfWeek.SUNDAY)
-                !fecha.isBefore(inicioSemana) && !fecha.isAfter(finSemana)
+
+                val inicioSemana = Calendar.getInstance().apply {
+                    firstDayOfWeek = Calendar.MONDAY
+                    set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+
+                val finSemana = Calendar.getInstance().apply {
+                    firstDayOfWeek = Calendar.MONDAY
+                    set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+                    set(Calendar.HOUR_OF_DAY, 23)
+                    set(Calendar.MINUTE, 59)
+                    set(Calendar.SECOND, 59)
+                }
+
+                calendarFecha.time.after(inicioSemana.time) &&
+                        calendarFecha.time.before(finSemana.time)
             }
 
             // Este mes
-            tiempoClean == "este mes" -> fecha.month == hoy.month && fecha.year == hoy.year
+            tiempoClean == "este mes" -> {
+
+                calendarFecha.get(Calendar.MONTH) ==
+                        calendarHoy.get(Calendar.MONTH) &&
+
+                        calendarFecha.get(Calendar.YEAR) ==
+                        calendarHoy.get(Calendar.YEAR)
+            }
 
             // Este año
-            tiempoClean == "este año" -> fecha.year == hoy.year
+            tiempoClean == "este año" -> {
 
-            // Intentar parsear dd/MM/yyyy o yyyy-MM-dd
-            else -> runCatching {
+                calendarFecha.get(Calendar.YEAR) ==
+                        calendarHoy.get(Calendar.YEAR)
+            }
+
+            // Parsear dd/MM/yyyy o yyyy-MM-dd
+            else -> {
+
                 val formatos = listOf(
-                    DateTimeFormatter.ofPattern("dd/MM/yyyy"),
-                    DateTimeFormatter.ISO_LOCAL_DATE
+                    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()),
+                    SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 )
-                formatos.any { fmt ->
-                    runCatching { LocalDate.parse(tiempoClean, fmt) }.getOrNull()
-                        ?.let { fecha.isEqual(it) } ?: false
+
+                formatos.any { formato ->
+
+                    runCatching {
+
+                        val fechaParseada = formato.parse(tiempoClean)
+                            ?: return@any false
+
+                        val calParseada = Calendar.getInstance().apply {
+                            time = fechaParseada
+                        }
+
+                        esMismoDia(calendarFecha, calParseada)
+
+                    }.getOrDefault(false)
                 }
-            }.getOrDefault(false)
+            }
+
         }.also { resultado ->
-            Log.d("FiltroTiempo", "fecha=$fecha, tiempo='$tiempo', hoy=$hoy, resultado=$resultado")
+
+            Log.d(
+                "FiltroTiempo",
+                "fecha=$fecha, tiempo='$tiempo', resultado=$resultado"
+            )
         }
     }
-
 
     fun reproducirMP3(context: Context, audioBytes: ByteArray) {
         try {
@@ -754,7 +835,6 @@ class viewmodel_generaciones_IA : ViewModel() {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun Timestamp.toLocalDate(): LocalDate =
         this.toDate()
             .toInstant()
@@ -804,6 +884,12 @@ class viewmodel_generaciones_IA : ViewModel() {
         data class Empty(
             val message: String
         ) : EstadoGeneracionesIA()
+    }
+
+    fun LocalDate.toCalendar(): Calendar {
+        return Calendar.getInstance().apply {
+            set(this@toCalendar.year, this@toCalendar.monthValue - 1, this@toCalendar.dayOfMonth)
+        }
     }
 
 

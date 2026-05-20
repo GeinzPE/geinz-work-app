@@ -540,7 +540,7 @@ object constantes_trabajadores_info {
         dialog.show()
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
 
     fun mostrarDialoDatosUSer(
         dialog: BottomSheetDialog,

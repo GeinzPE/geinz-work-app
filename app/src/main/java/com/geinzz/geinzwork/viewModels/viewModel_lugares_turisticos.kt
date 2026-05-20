@@ -220,7 +220,6 @@ class viewModel_lugares_turisticos(private val savedStateHandle: SavedStateHandl
 //        }
 //    }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun obtener_tiendas_cercanas(
         lat: Double,
         long: Double,

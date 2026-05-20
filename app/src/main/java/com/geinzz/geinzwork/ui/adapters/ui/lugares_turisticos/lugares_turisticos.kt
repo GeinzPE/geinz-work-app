@@ -83,8 +83,6 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.viewModels.viewModel_lugares_turisticos
 import com.geinzz.geinzwork.viewModels.viewmodel_mapa_personalizado
 
-
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun pantalla_lugares_turisticos(
     id: String = "",
@@ -469,7 +467,6 @@ fun pantalla_lugares_turisticos(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun carta_turismo(
     verificar_intener: Boolean,

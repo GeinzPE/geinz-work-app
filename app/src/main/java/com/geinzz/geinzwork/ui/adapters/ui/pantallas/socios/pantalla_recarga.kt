@@ -76,7 +76,6 @@ import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import com.geinzz.geinzwork.viewModels.viewmodel_recargas
 import com.google.firebase.auth.FirebaseAuth
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun pantala_recarga(
     datos_para_pantalla_recarga: obj_para_recargas,

@@ -140,7 +140,6 @@ import java.util.UUID
 
 private lateinit var firebaseAuth: FirebaseAuth
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_review(
@@ -742,7 +741,6 @@ fun lanzarCrop(uri: Uri, context: Context) {
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("MissingPermission")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

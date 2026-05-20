@@ -67,7 +67,6 @@ class viewmodel_review : ViewModel() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.R)
     fun agregar_review(datos_review: datos_review, context: Context,lista_ImagenReview: List<ImagenReview>) {
         viewModelScope.launch {
             try {

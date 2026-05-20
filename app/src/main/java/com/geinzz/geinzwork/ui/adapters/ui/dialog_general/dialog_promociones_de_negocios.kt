@@ -76,7 +76,7 @@ import com.geinzz.geinzwork.viewModels.viewmodel_datos_promociones
 import com.google.firebase.auth.FirebaseAuth
 import java.net.URLEncoder
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun dialog_promociones_negocios(
     iduser: String,

@@ -78,7 +78,6 @@ import kotlinx.coroutines.launch
 
 var firebaseAuth = FirebaseAuth.getInstance()
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun cuenta_user(
     isConnected: Boolean,
@@ -219,7 +218,6 @@ fun img_fondo_user(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun protada_perfil_user(
     isConnected: Boolean,

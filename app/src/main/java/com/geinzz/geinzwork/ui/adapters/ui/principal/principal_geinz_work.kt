@@ -164,7 +164,6 @@ import com.google.firebase.messaging.FirebaseMessaging
 
 private lateinit var firebaseAuth: FirebaseAuth
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun pantalla_principal(
@@ -1512,7 +1511,7 @@ fun carga_progres_categoria(anchoAnimado: Dp, alturaFija: Dp) {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun nuevos_lugares_agregados_fun(
 //    id_user: String,

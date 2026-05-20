@@ -16,10 +16,9 @@ object notificacionesFCM {
         val enviadosFallidos: Int
     )
 
-    @RequiresApi(Build.VERSION_CODES.O)
     val insta_repo_socio= repo_eres_socio()
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     suspend fun enviar_notificacion_lista_dispo(
         id_promo:String,
         id_tienda: String,

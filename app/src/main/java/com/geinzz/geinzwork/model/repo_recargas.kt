@@ -17,9 +17,12 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.Locale
 
 class repo_recargas {
 
@@ -290,7 +293,7 @@ class repo_recargas {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     suspend fun obtner_historial(
         id_tienda: String,
         localidad: String
@@ -346,25 +349,32 @@ class repo_recargas {
 
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun timestampToLocalDateTime(timestamp: Timestamp): LocalDateTime {
-        return timestamp.toDate()
-            .toInstant()
-            .atZone(ZoneId.systemDefault())
-            .toLocalDateTime()
+        val cal = Calendar.getInstance()
+        cal.time = timestamp.toDate()
+        return LocalDateTime.of(
+            cal.get(Calendar.YEAR),
+            cal.get(Calendar.MONTH) + 1,
+            cal.get(Calendar.DAY_OF_MONTH),
+            cal.get(Calendar.HOUR_OF_DAY),
+            cal.get(Calendar.MINUTE),
+            cal.get(Calendar.SECOND)
+        )
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun formatFecha(dateTime: LocalDateTime): String {
-        return dateTime.toLocalDate()
-            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val cal = Calendar.getInstance()
+        cal.set(dateTime.year, dateTime.monthValue - 1, dateTime.dayOfMonth)
+        return sdf.format(cal.time)
     }
 
-
-    @RequiresApi(Build.VERSION_CODES.O)
     fun formatHora(dateTime: LocalDateTime): String {
-        return dateTime.toLocalTime()
-            .format(DateTimeFormatter.ofPattern("HH:mm"))
+        val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.HOUR_OF_DAY, dateTime.hour)
+        cal.set(Calendar.MINUTE, dateTime.minute)
+        return sdf.format(cal.time)
     }
 
 

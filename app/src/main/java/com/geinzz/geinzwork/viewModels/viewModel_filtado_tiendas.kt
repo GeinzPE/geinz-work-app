@@ -54,7 +54,6 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     val repo_filtrado = repo_filtrado_tiendas()
     val repo_cat_sub = repo_agregar_cat_sub_localizate()
 
-    @RequiresApi(Build.VERSION_CODES.O)
     val repo_erese_socio = repo_eres_socio()
 
 
@@ -527,7 +526,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
 
     val favoritos = MutableStateFlow<Map<String, Boolean>>(emptyMap())
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun guardar_tienda_favorita(id_user: String, item_favoritos: favoritos_guardados) {
         viewModelScope.launch {
             try {
@@ -627,7 +626,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun guardar_tienda_favorita_por_id(
         localidad_tienda: String,
         id_user: String,

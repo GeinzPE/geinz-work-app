@@ -108,7 +108,6 @@ import com.geinzz.geinzwork.viewModels.viewmodel_promos_cercanas
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ui_promos_cerca_de_ti(
     flag_identificador: String,
@@ -1539,8 +1538,6 @@ fun parseDiasHorasRestantes(diasRestantesStr: String): Pair<Int, String> {
     }
 }
 
-
-@RequiresApi(Build.VERSION_CODES.O)
 fun compartir_hosting_promo(
     viewmodelPromosCercanas: viewmodel_promos_cercanas,
     msje: String,

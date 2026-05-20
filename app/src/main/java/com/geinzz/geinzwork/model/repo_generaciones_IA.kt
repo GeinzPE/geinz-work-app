@@ -62,6 +62,8 @@ import kotlinx.coroutines.withContext
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.content
 import org.json.JSONObject
+import java.time.LocalDate
+import java.util.Calendar
 
 class repo_generaciones_IA {
 
@@ -84,7 +86,6 @@ class repo_generaciones_IA {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("SuspiciousIndentation")
     fun obtener_generaciones_IA_realtime(
         id_tienda: String,
@@ -157,7 +158,17 @@ class repo_generaciones_IA {
                             ?: emptyList()
 
                     val fechaHoraRealizado = timestampToFechaHora(fechaNueva)
+                    val calendar = Calendar.getInstance().apply {
+                        time = inicio.toDate()
+                    }
 
+                    val fechaNormal = java.util.GregorianCalendar(
+                        calendar.get(Calendar.YEAR),
+                        calendar.get(Calendar.MONTH),
+                        calendar.get(Calendar.DAY_OF_MONTH)
+                    ).let {
+                        LocalDate.of(it.get(Calendar.YEAR), it.get(Calendar.MONTH) + 1, it.get(Calendar.DAY_OF_MONTH))
+                    }
                     listaFinal.add(
                         datos_gen_IA_Tiendas(
                             inicio = inicio,
@@ -191,10 +202,7 @@ class repo_generaciones_IA {
                                 descripcion_anteriror =
                                     nuevas_generaciones["descripcion_anterior"] as? String ?: ""
                             ), terminos,
-                            fecha_normal = inicio.toDate() // <-- Aquí convertimos a LocalDate
-                                .toInstant()
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDate()
+                            fecha_normal = fechaNormal
                         )
                     )
                 }

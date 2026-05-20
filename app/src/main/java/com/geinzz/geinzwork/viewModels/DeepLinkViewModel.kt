@@ -32,7 +32,6 @@ class DeepLinkViewModel(private val sessionRepository: SessionRepository) : View
         _promo.value = datos_para_promocieons_activas(id, lugar, index.toString(), "")
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun setPromo_notificacion(tipo:String,id_tienda: String, lugar: String, id_promo: String) {
         viewModelScope.launch {
             try {
