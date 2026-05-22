@@ -25,15 +25,28 @@ const geofire = require("geofire-common");
 admin.initializeApp();
 const {
   obtener_creditos_tienda,
-  obtener_creditos_tienda_fn, // ✅ esta es la que usas internamente
+  obtener_creditos_tienda_fn,
   descontar_creditos_tienda,
   eliminar_deuda_actual,
 } = require("./test_db2");
 
-// ✅ exportar el endpoint HTTP igual que antes
+const {
+  generar_texto_ia,
+  generar_texto_compartir_ia,
+  generar_whatsapp_contacto_ia,
+  generar_titulo_descripcion_IA,
+  crearPromocion,extraerTerminosClaveIA
+} = require("./generacions_IA");
+
 exports.obtener_creditos_tienda = obtener_creditos_tienda;
 exports.descontar_creditos_tienda = descontar_creditos_tienda;
 
+exports.generar_texto_ia = generar_texto_ia;
+exports.generar_texto_compartir_ia = generar_texto_compartir_ia;
+exports.generar_whatsapp_contacto_ia = generar_whatsapp_contacto_ia;
+exports.generar_titulo_descripcion_IA = generar_titulo_descripcion_IA;
+exports.crearPromocion = crearPromocion; 
+exports.extraerTerminosClaveIA=extraerTerminosClaveIA;
 const axios = require("axios");
 
 const CULQI_KEY = process.env.CULQI_KEY;
@@ -4156,7 +4169,7 @@ exports.alertaSaldoBajo = onDocumentWritten(
             await enviarNotificacionFCM_tienda({
               token,
               title: `⚠️ ¡Tu saldo está bajo!`,
-              body: `Tu tienda tiene menos de 50 monedas. Mantén tu alcance y visibilidad activo recargando cuando puedas 💼✨`,
+              body: `Tu tienda tiene menos de 50 creaditos. Mantén tu alcance y visibilidad activo recargando cuando puedas 💼✨`,
               link: "https://geinzworkapp.web.app/share?t=scr&id=rec",
               logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
               idTienda,
