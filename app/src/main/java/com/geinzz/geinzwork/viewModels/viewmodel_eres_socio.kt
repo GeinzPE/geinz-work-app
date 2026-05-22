@@ -966,7 +966,6 @@ class viewmodel_eres_socio : ViewModel() {
                 // 💾 4. Guardar URLs en Firestore
                 val resCompletado =
                     instace_repo.guardarImagenesEnFirestore_promociones(
-
                         id_tienda = idSocio,
                         logo_tienda = img_tienda,
                         localidad = localidad,

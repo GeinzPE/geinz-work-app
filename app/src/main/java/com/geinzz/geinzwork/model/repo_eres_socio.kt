@@ -1721,20 +1721,12 @@ class repo_eres_socio {
                 "precioMax" to precioMax,
 
                 "timestamp_fin" to
-//                        when {
                         i.datos_hora_fecha.timestamp_inicio.seconds * 1000
-//                    i.datos_hora_fecha.dias.activo -> i.datos_hora_fecha.dias.timestamp_fin.seconds * 1000
-//                    i.datos_hora_fecha.horas.activo -> i.datos_hora_fecha.horas.timestamp_fin.seconds * 1000
-//                    else -> System.currentTimeMillis()
-//                }
+
                 ,
                 "timestamp_inicio" to
                         i.datos_hora_fecha.timestamp_fin.seconds * 1000
-//                        when {
-//                    i.datos_hora_fecha.dias.activo -> i.datos_hora_fecha.dias.timestamp_inicio.seconds * 1000
-//                    i.datos_hora_fecha.horas.activo -> i.datos_hora_fecha.horas.timestamp_inicio.seconds * 1000
-//                    else -> System.currentTimeMillis()
-//                }
+
 
             )
 
@@ -1760,46 +1752,6 @@ class repo_eres_socio {
                 "random" to Math.random()
             )
 
-            // 🤖 SOLO SI EXISTE IA
-//            if (tuvi_nueva_genearcion) {
-//                val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
-//                    .document(i.informacion.id_tienda).collection("gen_con_IA_historial")
-//                    .document(i.informacion.id_promocion)
-//                val hashmpa_gen_con_IA = hashMapOf<String, Any>(
-//                    "fecha" to Timestamp.now(),
-//                    "img_container" to lista_img_subida.first(),
-//                    "caudidad" to timestampEn30Dias(30),
-//                    "id_promo_o_noti" to i.informacion.id_promocion,
-//                    "tipo" to "publicacion",
-//                    "generacions_con_IA" to i.generaciones_con_ia
-//                )
-//                val descripcionAcortada = acortarDescripcionNotificacion(
-//                    i.informacion.descripcion
-//                )
-//
-//                val nombreGeneracion = crear_notificacion_conIA_corta(
-//                    i.informacion.titulo,
-//                    descripcionAcortada
-//                )
-//                nombreGeneracion.let {
-//                    hashmpa_gen_con_IA["nombre_generacion"] = it
-//                }
-//
-//                gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
-//            } else if (tieneDatos && !datos_si_paso_IA.id_generacion_sin_publicar.isNullOrBlank()) {
-//                val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
-//                    .document(i.informacion.id_tienda).collection("gen_con_IA_historial")
-//                    .document(datos_si_paso_IA.id_generacion_sin_publicar)
-//                val hashmpa_gen_con_IA = hashMapOf<String, Any>(
-//                    "fecha" to Timestamp.now(),
-//                    "img_container" to lista_img_subida.first(),
-//                    "caudidad" to timestampEn30Dias(30),
-//                    "tipo" to "publicacion",
-//
-//                    )
-//
-//                gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
-//            }
 
 
             subir_algolia_promociones.set(objetoAlgolia).await()
