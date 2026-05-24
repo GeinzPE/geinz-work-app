@@ -35,7 +35,7 @@ const {
   generar_texto_compartir_ia,
   generar_whatsapp_contacto_ia,
   generar_titulo_descripcion_IA,
-  crearPromocion,extraerTerminosClaveIA
+  crearPromocion,extraerTerminosClaveIA,generar_descripcion_whatsapp_ia
 } = require("./generacions_IA");
 
 exports.obtener_creditos_tienda = obtener_creditos_tienda;
@@ -47,6 +47,7 @@ exports.generar_whatsapp_contacto_ia = generar_whatsapp_contacto_ia;
 exports.generar_titulo_descripcion_IA = generar_titulo_descripcion_IA;
 exports.crearPromocion = crearPromocion; 
 exports.extraerTerminosClaveIA=extraerTerminosClaveIA;
+exports.generar_descripcion_whatsapp_ia=generar_descripcion_whatsapp_ia;
 const axios = require("axios");
 
 const CULQI_KEY = process.env.CULQI_KEY;

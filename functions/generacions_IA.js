@@ -307,6 +307,7 @@ Descripción: ${descTexto}`.trim();
   }
 });
 
+
 // ─── 5. Generar terminos_calves_filtrado ─────────────────────────────
 
 exports.extraerTerminosClaveIA = onCall(async (request) => {
@@ -366,6 +367,62 @@ Responde SOLO el array JSON. Texto: "${textoUsuario}"
     );
   }
 });
+
+// ─── 6. Generar descripcionSEOIA ─────────────────────────────
+
+exports.generar_descripcion_whatsapp_ia = onCall(async (request) => {
+  const { texto } = request.data;
+
+  if (!texto || !texto.trim()) {
+    throw new HttpsError(
+      "invalid-argument",
+      "El campo texto es requerido",
+    );
+  }
+
+  const prompt = `
+Eres un optimizador SEO local.
+Tarea: Crear descripción de negocio para WhatsApp.
+
+Restricciones:
+1. El texto debe tener más de 120 y menos de 150 caracteres.
+2. Texto plano, sin saludos, sin emojis, sin introducciones.
+3. No repitas el nombre del negocio.
+4. Prioriza beneficios y palabras clave para SEO.
+5. Español neutro.
+6. Devuelve SOLO el texto final en una sola línea.
+7. No uses comillas.
+8. No expliques nada.
+
+Input:
+${texto.trim()}
+`.trim();
+
+  try {
+    const descripcion = await llamarGemini([
+      { text: prompt },
+    ]);
+
+    return {
+      ok: true,
+      descripcion,
+    };
+  } catch (error) {
+    if (error instanceof HttpsError) throw error;
+
+    console.error(
+      "ERROR generar_descripcion_whatsapp_ia:",
+      error,
+    );
+
+    throw new HttpsError(
+      "internal",
+      error.message ||
+        "Error generando descripción para WhatsApp",
+    );
+  }
+});
+
 // ============================================
 // CREAR PROMOCIÓN (SOLO FIRESTORE)
 // ============================================
