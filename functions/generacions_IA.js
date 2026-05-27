@@ -7,7 +7,7 @@ const GEMINIKEY = process.env.PRIVATEKEY_GEMINI;
 const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 const TIMEOUT = 30000;
-
+const { v4: uuidv4 } = require("uuid");
 // ─── Helper: llamada a Gemini ────────────────────────────────────────────────
 
 async function llamarGemini(parts) {
@@ -307,7 +307,6 @@ Descripción: ${descTexto}`.trim();
   }
 });
 
-
 // ─── 5. Generar terminos_calves_filtrado ─────────────────────────────
 
 exports.extraerTerminosClaveIA = onCall(async (request) => {
@@ -374,10 +373,7 @@ exports.generar_descripcion_whatsapp_ia = onCall(async (request) => {
   const { texto } = request.data;
 
   if (!texto || !texto.trim()) {
-    throw new HttpsError(
-      "invalid-argument",
-      "El campo texto es requerido",
-    );
+    throw new HttpsError("invalid-argument", "El campo texto es requerido");
   }
 
   const prompt = `
@@ -399,9 +395,7 @@ ${texto.trim()}
 `.trim();
 
   try {
-    const descripcion = await llamarGemini([
-      { text: prompt },
-    ]);
+    const descripcion = await llamarGemini([{ text: prompt }]);
 
     return {
       ok: true,
@@ -410,15 +404,11 @@ ${texto.trim()}
   } catch (error) {
     if (error instanceof HttpsError) throw error;
 
-    console.error(
-      "ERROR generar_descripcion_whatsapp_ia:",
-      error,
-    );
+    console.error("ERROR generar_descripcion_whatsapp_ia:", error);
 
     throw new HttpsError(
       "internal",
-      error.message ||
-        "Error generando descripción para WhatsApp",
+      error.message || "Error generando descripción para WhatsApp",
     );
   }
 });
@@ -469,8 +459,8 @@ exports.crearPromocion = onCall(async (request) => {
       servicios_comodidades = {},
       terminos_clave_ia,
       imagenes_base64 = [],
-      urls_imagenes = [],   // ✅ nuevo — URLs ya subidas desde el front
-      img_bot: img_bot_param = "",  // ✅ nuevo — bot URL desde el front
+      urls_imagenes = [], // ✅ nuevo — URLs ya subidas desde el front
+      img_bot: img_bot_param = "", // ✅ nuevo — bot URL desde el front
       logo_url = "",
     } = data;
 
@@ -481,7 +471,10 @@ exports.crearPromocion = onCall(async (request) => {
 
     // ✅ Acepta imágenes desde front (urls_imagenes) O base64
     if (imagenes_base64.length === 0 && urls_imagenes.length === 0) {
-      throw new HttpsError("invalid-argument", "Debes subir al menos una imagen");
+      throw new HttpsError(
+        "invalid-argument",
+        "Debes subir al menos una imagen",
+      );
     }
 
     console.log("📌 terminos_clave_ia:", terminos_clave_ia);
@@ -502,7 +495,11 @@ exports.crearPromocion = onCall(async (request) => {
         const bucket = admin.storage().bucket();
         const resultUrls = [];
         for (let idx = 0; idx < imagenes_base64.length; idx++) {
-          const { base64, nombre, mimeType = "image/jpeg" } = imagenes_base64[idx];
+          const {
+            base64,
+            nombre,
+            mimeType = "image/jpeg",
+          } = imagenes_base64[idx];
           const buffer = Buffer.from(base64, "base64");
           const path = `promociones/${localidad}/${id_tienda}/${id_promocion}/${nombre || `img_${idx}.jpg`}`;
           const file = bucket.file(path);
@@ -515,15 +512,21 @@ exports.crearPromocion = onCall(async (request) => {
 
       const subirConReintento = async (intentos = 3) => {
         for (let i = 0; i < intentos - 1; i++) {
-          try { return await subirImagenes(); }
-          catch (e) { console.warn(`Intento ${i + 1} fallido:`, e.message); }
+          try {
+            return await subirImagenes();
+          } catch (e) {
+            console.warn(`Intento ${i + 1} fallido:`, e.message);
+          }
         }
         return await subirImagenes();
       };
 
       urls = await subirConReintento(3);
       if (urls.length !== imagenes_base64.length) {
-        throw new HttpsError("internal", "No se pudieron subir todas las imágenes");
+        throw new HttpsError(
+          "internal",
+          "No se pudieron subir todas las imágenes",
+        );
       }
       img_bot = urls[0] ?? null;
     }
@@ -545,7 +548,8 @@ exports.crearPromocion = onCall(async (request) => {
     // ── PASO 3: Crear promoción completa ──────────────────
     const terminosClave =
       Array.isArray(terminos_clave_ia) && terminos_clave_ia.length > 0
-        ? terminos_clave_ia : [];
+        ? terminos_clave_ia
+        : [];
 
     const comodidadesArray = [];
     const comodidadMap = {
@@ -576,10 +580,16 @@ exports.crearPromocion = onCall(async (request) => {
 
     const nowTimestamp = admin.firestore.Timestamp.now();
     const tsInicio = timestamp_inicio
-      ? new admin.firestore.Timestamp(timestamp_inicio.seconds, timestamp_inicio.nanoseconds)
+      ? new admin.firestore.Timestamp(
+          timestamp_inicio.seconds,
+          timestamp_inicio.nanoseconds,
+        )
       : nowTimestamp;
     const tsFin = timestamp_fin
-      ? new admin.firestore.Timestamp(timestamp_fin.seconds, timestamp_fin.nanoseconds)
+      ? new admin.firestore.Timestamp(
+          timestamp_fin.seconds,
+          timestamp_fin.nanoseconds,
+        )
       : nowTimestamp;
 
     const precioNum = parseInt(precio) || 0;
@@ -620,7 +630,8 @@ exports.crearPromocion = onCall(async (request) => {
         },
         whatsapp: {
           activo_o_no: activo_mensaje_whatsapp,
-          msje_predermindo: mensaje_whatsapp || "Hola, quiero esta oferta que vi Geinz:",
+          msje_predermindo:
+            mensaje_whatsapp || "Hola, quiero esta oferta que vi Geinz:",
         },
       },
       pagos: pagosArray,
@@ -645,7 +656,7 @@ exports.crearPromocion = onCall(async (request) => {
       horario_publicacion: horario_seleccion,
       id_promocion,
       id_tienda,
-      imagen_promo: img_bot || "",   // ✅ usa la bot URL correcta
+      imagen_promo: img_bot || "", // ✅ usa la bot URL correcta
       localidad: localidad.toLowerCase(),
       nombre_tienda: nombre_tienda || "",
       objectID: id_promocion,
@@ -658,7 +669,9 @@ exports.crearPromocion = onCall(async (request) => {
       timestamp_inicio: tsInicio.seconds * 1000,
     };
 
-    const ref3 = db.collection("promociones_filtrado_algolia").doc(id_promocion);
+    const ref3 = db
+      .collection("promociones_filtrado_algolia")
+      .doc(id_promocion);
 
     await Promise.all([
       ref1.set(promocionData, { merge: true }),
@@ -672,9 +685,258 @@ exports.crearPromocion = onCall(async (request) => {
       localidad,
       mensaje: "Promoción guardada exitosamente",
     };
-
   } catch (error) {
     console.error("Error crearPromocion:", error);
     throw new HttpsError("internal", error.message);
+  }
+});
+
+exports.pagar_plan__usuario = onCall(async (request) => {
+  console.log("🚀 [pagar_plan] Iniciando función...");
+  console.log("📥 [pagar_plan] Datos recibidos:", JSON.stringify(request.data));
+
+  try {
+    const { id_tienda, localidad, dias_extra, monedas_costo } = request.data;
+
+    // ─────────────────────────────
+    // VALIDACIONES
+    // ─────────────────────────────
+    console.log(
+      "🔍 [validaciones] id_tienda:",
+      id_tienda,
+      "| localidad:",
+      localidad,
+      "| dias_extra:",
+      dias_extra,
+      "| monedas_costo:",
+      monedas_costo,
+    );
+
+    if (!id_tienda || !localidad) {
+      console.error("❌ [validaciones] Faltan id_tienda o localidad");
+      throw new HttpsError(
+        "invalid-argument",
+        "Faltan parámetros: id_tienda o localidad",
+      );
+    }
+    if (!dias_extra || typeof dias_extra !== "number") {
+      console.error("❌ [validaciones] dias_extra inválido:", dias_extra);
+      throw new HttpsError("invalid-argument", "dias_extra debe ser un número");
+    }
+    if (!monedas_costo || typeof monedas_costo !== "number") {
+      console.error("❌ [validaciones] monedas_costo inválido:", monedas_costo);
+      throw new HttpsError(
+        "invalid-argument",
+        "monedas_costo debe ser un número",
+      );
+    }
+    console.log("✅ [validaciones] OK");
+
+    // ─────────────────────────────
+    // REFERENCIAS FIRESTORE
+    // ─────────────────────────────
+    const refServicio = db
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection("tiendas_servicios_geinz_activos")
+      .doc(id_tienda);
+
+    const refTienda = db
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection(localidad)
+      .doc(id_tienda);
+
+    console.log("📂 [firestore] refServicio:", refServicio.path);
+    console.log("📂 [firestore] refTienda:", refTienda.path);
+
+    const doc = await refServicio.get();
+    console.log("📄 [firestore] doc existe:", doc.exists);
+
+    if (!doc.exists) {
+      console.error(
+        "❌ [firestore] Tienda no encontrada en:",
+        refServicio.path,
+      );
+      throw new HttpsError("not-found", "Tienda no encontrada");
+    }
+
+    const data = doc.data();
+    console.log(
+      "📄 [firestore] panel_admin actual:",
+      JSON.stringify(data?.panel_admin),
+    );
+
+    // ─────────────────────────────
+    // FECHA ACTUAL DEL PLAN
+    // ─────────────────────────────
+    let fechaActual = new Date();
+    console.log("📅 [fecha] fecha base (hoy):", fechaActual.toISOString());
+
+    if (data?.panel_admin?.timestamp_fin?.toDate) {
+      const actual = data.panel_admin.timestamp_fin.toDate();
+      console.log("📅 [fecha] timestamp_fin actual:", actual.toISOString());
+      if (actual > fechaActual) {
+        fechaActual = actual;
+        console.log(
+          "📅 [fecha] Plan aún vigente → extendiendo desde:",
+          actual.toISOString(),
+        );
+      } else {
+        console.log("📅 [fecha] Plan vencido → extendiendo desde hoy");
+      }
+    } else {
+      console.warn("⚠️ [fecha] No hay timestamp_fin → usando fecha de hoy");
+    }
+
+    // ─────────────────────────────
+    // CALCULAR NUEVA FECHA
+    // ─────────────────────────────
+    const nuevaFecha = new Date(fechaActual);
+    nuevaFecha.setDate(nuevaFecha.getDate() + dias_extra);
+
+    const dd = String(nuevaFecha.getDate()).padStart(2, "0");
+    const mm = String(nuevaFecha.getMonth() + 1).padStart(2, "0");
+    const yyyy = nuevaFecha.getFullYear();
+    const fecha_fin = `${dd}/${mm}/${yyyy}`;
+
+    console.log(
+      "📅 [fecha] dias_extra:",
+      dias_extra,
+      "| nueva fecha_fin:",
+      fecha_fin,
+      "| ISO:",
+      nuevaFecha.toISOString(),
+    );
+
+    // ─────────────────────────────
+    // DATOS HORA / FECHA LIMA
+    // ─────────────────────────────
+    const ahora = new Date();
+    const horaStr = ahora.toLocaleTimeString("es-PE", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "America/Lima",
+    });
+    const fechaStr = ahora.toLocaleDateString("es-PE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      timeZone: "America/Lima",
+    });
+
+    console.log(
+      "🕐 [historial] hora Lima:",
+      horaStr,
+      "| fecha Lima:",
+      fechaStr,
+    );
+
+    const id_transaccion = uuidv4();
+    console.log("🔑 [historial] id_transaccion generado:", id_transaccion);
+
+    // ─────────────────────────────
+    // LEER PUNTOS Y NOMBRE (PRIMERO)
+    // ─────────────────────────────
+    console.log("💰 [puntos] Leyendo puntos actuales de:", refTienda.path);
+    const tiendaDoc = await refTienda.get();
+    console.log("💰 [puntos] tiendaDoc existe:", tiendaDoc.exists);
+
+    const tiendaData = tiendaDoc.exists ? tiendaDoc.data() : {};
+    const puntosActuales = tiendaData?.puntos_tienda ?? 0;
+    const nombreTienda = tiendaData?.nombre_tienda ?? "";
+    const monto_restante = puntosActuales - monedas_costo;
+
+    console.log(
+      "💰 [puntos] actuales:",
+      puntosActuales,
+      "| a descontar:",
+      monedas_costo,
+      "| restante:",
+      monto_restante,
+    );
+
+    // ─────────────────────────────
+    // ARMAR DOCUMENTO HISTORIAL
+    // ─────────────────────────────
+    const docHistorial = {
+      id_transaccion,
+      tipo_transacción: "descuento",
+      hora_fecha: {
+        fecha: fechaStr,
+        hora: horaStr,
+      },
+      datos_tienda: {
+        nombre_tienda: nombreTienda,
+        id_tienda,
+        localidad_tienda: localidad,
+      },
+      datos_recarga: {
+        tipo_paquete: `Panel activo por ${dias_extra === 30 ? "1 mes" : dias_extra + " días"}`,
+        monto_descontado: monedas_costo,
+        precio_soles: (monedas_costo / 100).toFixed(2),
+        estado: "Aceptado",
+        monto_restante,
+      },
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    console.log("📦 [historial] docHistorial:", JSON.stringify(docHistorial));
+
+    // ─────────────────────────────
+    // 3 ESCRITURAS EN PARALELO
+    // ─────────────────────────────
+    console.log("✍️ [escrituras] Iniciando Promise.all con 3 operaciones...");
+
+    const rutaHistorial = `${refTienda.path}/historial_financiero/${id_transaccion}`;
+    console.log("✍️ [escrituras] 1 → panel_admin en:", refServicio.path);
+    console.log("✍️ [escrituras] 2 → historial en:", rutaHistorial);
+    console.log("✍️ [escrituras] 3 → puntos_tienda en:", refTienda.path);
+
+    await Promise.all([
+      // 1. Actualizar fecha del panel en tiendas_servicios_geinz_activos
+      refServicio.update({
+        "panel_admin.fecha_fin": fecha_fin,
+        "panel_admin.timestamp_fin":
+          admin.firestore.Timestamp.fromDate(nuevaFecha),
+      }),
+
+      // 2. Guardar historial en historial_financiero
+      refTienda
+        .collection("historial_financiero")
+        .doc(id_transaccion)
+        .set(docHistorial),
+
+      // 3. Descontar puntos en tienda principal
+      refTienda.update({
+        puntos_tienda: admin.firestore.FieldValue.increment(-monedas_costo),
+      }),
+    ]);
+
+    console.log("✅ [escrituras] Las 3 operaciones completadas exitosamente");
+
+    // ─────────────────────────────
+    // RESPUESTA
+    // ─────────────────────────────
+    const respuesta = {
+      success: true,
+      message: "Plan actualizado correctamente",
+      fecha_fin,
+      timestamp_fin: nuevaFecha.getTime(),
+      id_transaccion,
+      puntos_restantes: monto_restante,
+    };
+
+    console.log("📤 [respuesta] Enviando:", JSON.stringify(respuesta));
+    return respuesta;
+  } catch (error) {
+    console.error("❌ [pagar_plan] ERROR CAPTURADO:");
+    console.error("   mensaje:", error.message);
+    console.error("   código:", error.code);
+    console.error("   stack:", error.stack);
+
+    if (error instanceof HttpsError) throw error;
+    throw new HttpsError("internal", "Error interno al procesar pago");
   }
 });

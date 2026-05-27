@@ -23,7 +23,8 @@
     "geofire-common": "^6.0.0",
     "openai": "^6.35.0",
     "pdfkit": "^0.18.0",
-    "string-similarity-js": "^2.1.4"
+    "string-similarity-js": "^2.1.4",
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "eslint": "^8.15.0",

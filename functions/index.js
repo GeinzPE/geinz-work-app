@@ -35,19 +35,21 @@ const {
   generar_texto_compartir_ia,
   generar_whatsapp_contacto_ia,
   generar_titulo_descripcion_IA,
-  crearPromocion,extraerTerminosClaveIA,generar_descripcion_whatsapp_ia
+  crearPromocion,
+  extraerTerminosClaveIA,
+  generar_descripcion_whatsapp_ia,
+  pagar_plan__usuario,
 } = require("./generacions_IA");
-
 exports.obtener_creditos_tienda = obtener_creditos_tienda;
 exports.descontar_creditos_tienda = descontar_creditos_tienda;
-
 exports.generar_texto_ia = generar_texto_ia;
 exports.generar_texto_compartir_ia = generar_texto_compartir_ia;
 exports.generar_whatsapp_contacto_ia = generar_whatsapp_contacto_ia;
 exports.generar_titulo_descripcion_IA = generar_titulo_descripcion_IA;
-exports.crearPromocion = crearPromocion; 
-exports.extraerTerminosClaveIA=extraerTerminosClaveIA;
-exports.generar_descripcion_whatsapp_ia=generar_descripcion_whatsapp_ia;
+exports.crearPromocion = crearPromocion;
+exports.extraerTerminosClaveIA = extraerTerminosClaveIA;
+exports.generar_descripcion_whatsapp_ia = generar_descripcion_whatsapp_ia;
+exports.pagar_plan__usuario = pagar_plan__usuario;
 const axios = require("axios");
 
 const CULQI_KEY = process.env.CULQI_KEY;
@@ -3568,15 +3570,20 @@ exports.banUser = onRequest(async (req, res) => {
 // ==================== SHARE (Tienda + Turismo + Otros) ====================
 exports.share = onRequest(async (req, res) => {
   try {
-    // ============================
-    //        PARÁMETROS
-    // ============================
-    const tipo = req.query.t || req.query.tipo; // SIEMPRE CORTO
+    console.log("=== SHARE LLAMADA ===");
+    console.log("QUERY:", JSON.stringify(req.query));
+
+    const tipo = req.query.t || req.query.tipo;
     const id = req.query.id;
     const localidadRaw = req.query.l || req.query.localidad;
     const categoria = req.query.c || req.query.categoria;
     const indice = req.query.i || req.query.indice;
     const id_promo_compartida = req.query.pi;
+
+    console.log("tipo:", tipo);
+    console.log("id:", id);
+    console.log("localidadRaw:", localidadRaw);
+    console.log("categoria:", categoria);
 
     const mapa_id = {
       nvng: "nuevos_negocios",
@@ -3586,10 +3593,7 @@ exports.share = onRequest(async (req, res) => {
     };
 
     const coll_completa = tipo === "prms" ? "promos_ofertas" : "promo";
-    // const coll_completa_datos_promos_intern= "prn"
-    // ============================
-    //        MAPA LOCALIDADES
-    // ============================
+
     const MAPA_LOCALIDADES = {
       ba: "barranca",
       par: "paramonga",
@@ -3601,26 +3605,13 @@ exports.share = onRequest(async (req, res) => {
     const localidad = MAPA_LOCALIDADES[localidadRaw] || localidadRaw;
     const mapa_ids_scren = mapa_id[id] || id;
 
-    // ============================
-    //        VALIDACIÓN BASE
-    // ============================
+    console.log("localidad resuelta:", localidad);
+
     if (!tipo) {
       return res.status(400).send("Faltan parámetros obligatorios: tipo");
     }
 
-    // ============================
-    //   TIPOS QUE NO USAN LOCALIDAD
-    // ============================
-    const TIPOS_SIN_LOCALIDAD = [
-      "rew",
-      "rewc",
-      "ru",
-      "prf",
-      "prn",
-      "scr",
-      "prms",
-      "in",
-    ];
+    const TIPOS_SIN_LOCALIDAD = ["rew", "rewc", "ru", "prf", "prn", "scr", "prms", "in"];
 
     if (!TIPOS_SIN_LOCALIDAD.includes(tipo) && (!localidad || !categoria)) {
       return res.status(400).send("Faltan parámetros: localidad, categoria.");
@@ -3629,89 +3620,77 @@ exports.share = onRequest(async (req, res) => {
     let ref = null;
     let data = null;
 
-    // ============================
-    //     SELECCIÓN FIRESTORE
-    // ============================
     if (tipo === "ti" || tipo === "p") {
-      ref = admin
-        .firestore()
+      ref = admin.firestore()
         .collection("Tiendas")
         .doc(localidad)
         .collection(localidad)
         .doc(id);
     } else if (tipo === "tu") {
-      ref = admin
-        .firestore()
+      ref = admin.firestore()
         .collection("Tiendas")
         .doc(localidad)
         .collection(categoria)
         .doc(id);
     } else if (tipo === "prms") {
-      ref = admin
-        .firestore()
+      ref = admin.firestore()
         .collection("Tiendas")
         .doc(localidad)
         .collection(coll_completa)
         .doc(id_promo_compartida);
     } else if (tipo === "scr") {
-      ref = admin.firestore().collection("share_screen").doc(mapa_ids_scren);
-    } else if (tipo == "prn") {
-      ref = admin
-        .firestore()
+      ref = admin.firestore()
+        .collection("share_screen")
+        .doc(mapa_ids_scren);
+    } else if (tipo === "prn") {
+      ref = admin.firestore()
         .collection("Tiendas")
         .doc(localidad)
         .collection(localidad)
         .doc(id)
         .collection("notificaciones_enviadas")
         .doc(id_promo_compartida);
-    } else if (tipo == "in") {
-      ref = admin
-        .firestore()
+    } else if (tipo === "in") {
+      ref = admin.firestore()
         .collection("Tiendas")
         .doc(localidad)
         .collection("geinz_inmobiliaria")
         .doc(id);
     }
-    // rew | rewc | ru | prf → NO FIRESTORE
+
+    console.log("ref path:", ref ? ref.path : "null");
 
     if (ref) {
       const snap = await ref.get();
+      console.log("snap.exists:", snap.exists);
       if (!snap.exists) {
         return res.status(404).send("No existe el documento solicitado.");
       }
       data = snap.data();
+      console.log("data keys:", Object.keys(data));
+    } else {
+      console.log("ref es null — tipo no manejado:", tipo);
     }
 
-    // ============================
-    //            TÍTULO
-    // ============================
+    // ── TÍTULO ──
     let titulo = "Geinz";
-
     if (data) {
-      if (tipo === "ti" || tipo === "p") {
+      if (tipo === "ti" || tipo === "p")
         titulo = capitalizeFirstLetter(data.nombre_tienda || "Tienda en Geinz");
-      } else if (tipo === "tu") {
+      else if (tipo === "tu")
         titulo = capitalizeFirstLetter(data.nombre || "Lugar en Geinz");
-      } else if (tipo === "prms") {
-        titulo = capitalizeFirstLetter(
-          data?.informacion?.titulo || "Mira esta promo en Geinz",
-        );
-      } else if (tipo === "scr") {
+      else if (tipo === "prms")
+        titulo = capitalizeFirstLetter(data?.informacion?.titulo || "Mira esta promo en Geinz");
+      else if (tipo === "scr")
         titulo = capitalizeFirstLetter(data.titulo || "Geinz");
-      } else if (tipo == "prn") {
-        titulo = capitalizeFirstLetter(
-          data.datos_de_notificacion.nombre_tienda || "Geinz",
-        );
-      } else if (tipo == "in") {
+      else if (tipo === "prn")
+        titulo = capitalizeFirstLetter(data.datos_de_notificacion.nombre_tienda || "Geinz");
+      else if (tipo === "in")
         titulo = capitalizeFirstLetter(data.nombre || "Geinz");
-      }
     }
 
-    // ============================
-    //            IMAGEN
-    // ============================
+    // ── IMAGEN ──
     let imagen = "https://geinzworkapp.web.app/default.jpg";
-
     if (data) {
       if (tipo === "ti" && data.img_tienda?.logo_tienda) {
         imagen = data.img_tienda.logo_tienda;
@@ -3719,95 +3698,81 @@ exports.share = onRequest(async (req, res) => {
         imagen = data.img.principal;
       } else if (tipo === "p") {
         const promos = data.img_tienda?.lista_img?.promociones;
-        const idImagen = req.query.i || req.query.indice; // string
-        if (promos && idImagen) {
-          imagen = promos[idImagen]; // obtiene la URL correcta
-          if (!imagen && data.img_tienda?.logo_tienda) {
-            imagen = data.img_tienda.logo_tienda; // fallback
-          }
+        const idImagen = req.query.i || req.query.indice;
+        if (promos && idImagen && promos[idImagen]) {
+          imagen = promos[idImagen];
         } else if (data.img_tienda?.logo_tienda) {
           imagen = data.img_tienda.logo_tienda;
         }
       } else if (tipo === "prms") {
         const promos = data.img_container?.lista_img || [];
-        if (promos.length > 0) {
-          imagen = promos[0]; // toma siempre la primera imagen si existe
-        } else if (data.img_container?.logo_img) {
-          imagen = data.img_container.logo_img;
-        } else {
-          imagen = "https://geinzworkapp.web.app/default.jpg";
-        }
+        imagen = promos.length > 0 ? promos[0] : (data.img_container?.logo_img || "https://geinzworkapp.web.app/default.jpg");
       } else if (tipo === "scr") {
-        if (data.img) {
-          imagen = data.img;
-        } else {
-          imagen = "https://geinzworkapp.web.app/default.jpg";
-        }
-      } else if (tipo == "prn") {
-        imagen =
-          data?.datos_de_notificacion?.img_notificacion ||
-          "https://geinzworkapp.web.app/default.jpg";
-      } else if (tipo == "in") {
-        const promos = data.listaImg || [];
-        if (promos.length > 0) {
-          imagen = promos[0]; // toma siempre la primera imagen si existe
-        } else {
-          imagen = "https://geinzworkapp.web.app/default.jpg";
-        }
+        imagen = data.img || "https://geinzworkapp.web.app/default.jpg";
+      } else if (tipo === "prn") {
+        imagen = data?.datos_de_notificacion?.img_notificacion || "https://geinzworkapp.web.app/default.jpg";
+      } else if (tipo === "in") {
+        const imgs = data.listaImg || [];
+        imagen = imgs.length > 0 ? imgs[0] : "https://geinzworkapp.web.app/default.jpg";
       }
     }
 
-    // ============================
-    //        URL DESTINO
-    // ============================
-    let destino;
+    console.log("titulo:", titulo);
+    console.log("imagen:", imagen);
 
+    // ── URL DESTINO ──
+    let destino;
     if (tipo === "prms") {
-      destino =
-        `https://geinzworkapp.web.app/promociones.html` +
-        `?l=${localidad}` +
-        `&pi=${id_promo_compartida}`;
+      destino = `https://geinzworkapp.web.app/promociones.html?l=${localidad}&pi=${id_promo_compartida}`;
     } else {
       destino = `https://geinzworkapp.web.app/${tipo}?id=${id}`;
-
       if (localidad) destino += `&localidad=${localidad}`;
       if (categoria) destino += `&categoria=${categoria}`;
-    }
-    if (localidad) destino += `&localidad=${localidad}`;
-    if (categoria) destino += `&categoria=${categoria}`;
-    if (tipo === "p" && indice) {
-      destino += `&indice=${indice}`;
+      if (tipo === "p" && indice) destino += `&indice=${indice}`;
     }
 
-    // ============================
-    //        HTML + META
-    // ============================
-    const html = `
-      <html>
-        <head>
-          <meta property="og:title" content="${titulo}" />
-          <meta property="og:image" content="${imagen}" />
-          <meta property="og:image:width" content="1200" />
-          <meta property="og:image:height" content="630" />
-          <meta property="og:description" content="Encuéntralo en Geinz" />
-          <meta property="og:type" content="website" />
-        </head>
-        <body>
-          <script>
-            window.location.href = "${destino}";
-          </script>
-        </body>
-      </html>
-    `;
+    console.log("destino:", destino);
 
-    res.set("Content-Type", "text/html");
+    // ── ESCAPADO ──
+    const tituloSafe  = titulo.replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    const imagenSafe  = imagen.replace(/"/g, "%22");
+    const destinoSafe = destino.replace(/"/g, "%22");
+    const ogUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
+
+    // ── HTML ──
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>${tituloSafe}</title>
+  <meta property="og:title"        content="${tituloSafe}" />
+  <meta property="og:description"  content="Encuéntralo en Geinz" />
+  <meta property="og:image"        content="${imagenSafe}" />
+  <meta property="og:image:width"  content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type"   content="image/jpeg" />
+  <meta property="og:type"         content="website" />
+  <meta property="og:url"          content="${ogUrl}" />
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content="${tituloSafe}" />
+  <meta name="twitter:description" content="Encuéntralo en Geinz" />
+  <meta name="twitter:image"       content="${imagenSafe}" />
+  <meta http-equiv="refresh"       content="0; url=${destinoSafe}">
+</head>
+<body>
+  <p style="font-family:sans-serif;color:#888;padding:20px;">Redirigiendo...</p>
+</body>
+</html>`;
+
+    res.set("Content-Type", "text/html; charset=utf-8");
+    res.set("Cache-Control", "public, max-age=60, s-maxage=300");
     res.status(200).send(html);
+
   } catch (e) {
     console.error("ERROR SHARE:", e);
-    res.status(500).send("Error interno");
+    res.status(500).send("Error interno: " + e.message);
   }
 });
-
 function capitalizeFirstLetter(str) {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1);
