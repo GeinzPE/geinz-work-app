@@ -1969,7 +1969,7 @@ exports.confirmarPago = onCall(async (req) => {
                 token,
                 title: "✅ ¡Deuda cancelada exitosamente!",
                 body: `Tu deuda de ${deudaPendienteNum} créditos fue saldada automáticamente con tu recarga. Ya estás al día 🎉`,
-                link: "https://geinzworkapp.web.app/share?t=scr&id=rec",
+                link: "https://geinzworkapp.web.app/api/api/share?t=scr&id=rec",
                 logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
                 idTienda: userId,
                 idAnuncio: "",
@@ -2120,6 +2120,12 @@ exports.agregar_pago_para_el_usuario_tienda = onCall(async (req) => {
   } = req.data;
 
   if (!id_tienda || !nombre_user || !plan_select || !localdiad) {
+    console.error("Faltan datos obligatorios:", {
+      id_tienda,
+      nombre_user,
+      plan_select,
+      localdiad,
+    });
     throw new Error("Faltan datos obligatorios");
   }
 
@@ -3294,7 +3300,7 @@ exports.enviar_notificacion_con_solo_id = onRequest(async (req, res) => {
           token,
           title: `📢 ${nombre_negocio}, te están buscando`,
           body: `El asistente Daniel 🤖 recomendó a ${nombre_negocio} a un usuario interesado. pero debido a que tu plantilla premium no tenía saldo activo, no se mostró el acceso directo a tu WhatsApp 📲 y se compartió tu perfil de Geinz 🏪. Verifica tu saldo 💳 para seguir conectando con clientes potenciales directo desde whatsapp🚀`,
-          link: "https://geinzworkapp.web.app/share?t=scr&id=rec",
+          link: "https://geinzworkapp.web.app/api/api/share?t=scr&id=rec",
           logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
           idTienda: id_tienda,
           idAnuncio: "",
@@ -3430,7 +3436,7 @@ exports.enviar_notificacion_deuda_acumulada = onRequest(async (req, res) => {
 Recarga tu saldo para seguir recibiendo pedidos sin interrupciones 🔥
 ⚠️ Si la deuda supera los 300 créditos, tu cuenta pasará automáticamente al plan gratis y el saldo pendiente se descontará en tu próxima recarga.`,
 
-          link: link || "https://geinzworkapp.web.app/share?t=scr&id=rec",
+          link: link || "https://geinzworkapp.web.app/api/api/share?t=scr&id=rec",
 
           // ✅ LO DEMÁS IGUAL
           logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
@@ -3567,32 +3573,18 @@ exports.banUser = onRequest(async (req, res) => {
     res.status(500).send("<h1>Error interno al procesar el baneo.</h1>");
   }
 });
+
 // ==================== SHARE (Tienda + Turismo + Otros) ====================
 exports.share = onRequest(async (req, res) => {
   try {
-    console.log("=== SHARE LLAMADA ===");
-    console.log("QUERY:", JSON.stringify(req.query));
-
     const tipo = req.query.t || req.query.tipo;
     const id = req.query.id;
     const localidadRaw = req.query.l || req.query.localidad;
     const categoria = req.query.c || req.query.categoria;
     const indice = req.query.i || req.query.indice;
-    const id_promo_compartida = req.query.pi;
+    const pi = req.query.pi;
 
-    console.log("tipo:", tipo);
-    console.log("id:", id);
-    console.log("localidadRaw:", localidadRaw);
-    console.log("categoria:", categoria);
-
-    const mapa_id = {
-      nvng: "nuevos_negocios",
-      seyt: "servicios_y_tramites",
-      lgtr: "lugares_turisticos",
-      nemg: "numeros_servicios_publicos",
-    };
-
-    const coll_completa = tipo === "prms" ? "promos_ofertas" : "promo";
+    if (!tipo) return res.status(400).send("Falta tipo");
 
     const MAPA_LOCALIDADES = {
       ba: "barranca",
@@ -3602,77 +3594,42 @@ exports.share = onRequest(async (req, res) => {
       pue: "puerto supe",
     };
 
+    const mapa_id = {
+      nvng: "nuevos_negocios",
+      seyt: "servicios_y_tramites",
+      lgtr: "lugares_turisticos",
+      nemg: "numeros_servicios_publicos",
+    };
+
     const localidad = MAPA_LOCALIDADES[localidadRaw] || localidadRaw;
     const mapa_ids_scren = mapa_id[id] || id;
 
-    console.log("localidad resuelta:", localidad);
-
-    if (!tipo) {
-      return res.status(400).send("Faltan parámetros obligatorios: tipo");
-    }
-
     const TIPOS_SIN_LOCALIDAD = ["rew", "rewc", "ru", "prf", "prn", "scr", "prms", "in"];
-
     if (!TIPOS_SIN_LOCALIDAD.includes(tipo) && (!localidad || !categoria)) {
       return res.status(400).send("Faltan parámetros: localidad, categoria.");
     }
 
     let ref = null;
-    let data = null;
-
     if (tipo === "ti" || tipo === "p") {
-      ref = admin.firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection(localidad)
-        .doc(id);
+      ref = admin.firestore().collection("Tiendas").doc(localidad).collection(localidad).doc(id);
     } else if (tipo === "tu") {
-      ref = admin.firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection(categoria)
-        .doc(id);
+      ref = admin.firestore().collection("Tiendas").doc(localidad).collection(categoria).doc(id);
     } else if (tipo === "prms") {
-      ref = admin.firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection(coll_completa)
-        .doc(id_promo_compartida);
+      ref = admin.firestore().collection("Tiendas").doc(localidad).collection("promos_ofertas").doc(pi);
     } else if (tipo === "scr") {
-      ref = admin.firestore()
-        .collection("share_screen")
-        .doc(mapa_ids_scren);
+      ref = admin.firestore().collection("share_screen").doc(mapa_ids_scren);
     } else if (tipo === "prn") {
-      ref = admin.firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection(localidad)
-        .doc(id)
-        .collection("notificaciones_enviadas")
-        .doc(id_promo_compartida);
+      ref = admin.firestore().collection("Tiendas").doc(localidad).collection(localidad).doc(id).collection("notificaciones_enviadas").doc(pi);
     } else if (tipo === "in") {
-      ref = admin.firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection("geinz_inmobiliaria")
-        .doc(id);
+      ref = admin.firestore().collection("Tiendas").doc(localidad).collection("geinz_inmobiliaria").doc(id);
     }
 
-    console.log("ref path:", ref ? ref.path : "null");
-
+    let data = null;
     if (ref) {
       const snap = await ref.get();
-      console.log("snap.exists:", snap.exists);
-      if (!snap.exists) {
-        return res.status(404).send("No existe el documento solicitado.");
-      }
-      data = snap.data();
-      console.log("data keys:", Object.keys(data));
-    } else {
-      console.log("ref es null — tipo no manejado:", tipo);
+      if (snap.exists) data = snap.data();
     }
 
-    // ── TÍTULO ──
     let titulo = "Geinz";
     if (data) {
       if (tipo === "ti" || tipo === "p")
@@ -3684,13 +3641,12 @@ exports.share = onRequest(async (req, res) => {
       else if (tipo === "scr")
         titulo = capitalizeFirstLetter(data.titulo || "Geinz");
       else if (tipo === "prn")
-        titulo = capitalizeFirstLetter(data.datos_de_notificacion.nombre_tienda || "Geinz");
+        titulo = capitalizeFirstLetter(data.datos_de_notificacion?.nombre_tienda || "Geinz");
       else if (tipo === "in")
         titulo = capitalizeFirstLetter(data.nombre || "Geinz");
     }
 
-    // ── IMAGEN ──
-    let imagen = "https://geinzworkapp.web.app/default.jpg";
+    let imagen = "https://geinzworkapp.web.app/api/default.jpg";
     if (data) {
       if (tipo === "ti" && data.img_tienda?.logo_tienda) {
         imagen = data.img_tienda.logo_tienda;
@@ -3698,81 +3654,135 @@ exports.share = onRequest(async (req, res) => {
         imagen = data.img.principal;
       } else if (tipo === "p") {
         const promos = data.img_tienda?.lista_img?.promociones;
-        const idImagen = req.query.i || req.query.indice;
-        if (promos && idImagen && promos[idImagen]) {
-          imagen = promos[idImagen];
-        } else if (data.img_tienda?.logo_tienda) {
-          imagen = data.img_tienda.logo_tienda;
-        }
+        if (promos && indice && promos[indice]) imagen = promos[indice];
+        else if (data.img_tienda?.logo_tienda) imagen = data.img_tienda.logo_tienda;
       } else if (tipo === "prms") {
-        const promos = data.img_container?.lista_img || [];
-        imagen = promos.length > 0 ? promos[0] : (data.img_container?.logo_img || "https://geinzworkapp.web.app/default.jpg");
+        const lista = data.img_container?.lista_img || [];
+        imagen = lista.length > 0 ? lista[0] : (data.img_container?.logo_img || imagen);
       } else if (tipo === "scr") {
-        imagen = data.img || "https://geinzworkapp.web.app/default.jpg";
+        imagen = data.img || imagen;
       } else if (tipo === "prn") {
-        imagen = data?.datos_de_notificacion?.img_notificacion || "https://geinzworkapp.web.app/default.jpg";
+        imagen = data?.datos_de_notificacion?.img_notificacion || imagen;
       } else if (tipo === "in") {
         const imgs = data.listaImg || [];
-        imagen = imgs.length > 0 ? imgs[0] : "https://geinzworkapp.web.app/default.jpg";
+        imagen = imgs.length > 0 ? imgs[0] : imagen;
       }
     }
 
-    console.log("titulo:", titulo);
-    console.log("imagen:", imagen);
+    const tituloSafe = titulo.replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    const imagenSafe = imagen.replace(/"/g, "%22");
 
-    // ── URL DESTINO ──
-    let destino;
-    if (tipo === "prms") {
-      destino = `https://geinzworkapp.web.app/promociones.html?l=${localidad}&pi=${id_promo_compartida}`;
-    } else {
-      destino = `https://geinzworkapp.web.app/${tipo}?id=${id}`;
-      if (localidad) destino += `&localidad=${localidad}`;
-      if (categoria) destino += `&categoria=${categoria}`;
-      if (tipo === "p" && indice) destino += `&indice=${indice}`;
-    }
+    // 🔥 DESTINO FINAL (tu redirect real)
+    let destino = `https://geinzworkapp.web.app/redirect/index.html?t=${tipo}`;
 
-    console.log("destino:", destino);
+    if (id) destino += `&id=${encodeURIComponent(id)}`;
+    if (localidad) destino += `&localidad=${encodeURIComponent(localidad)}`;
+    if (categoria) destino += `&c=${encodeURIComponent(categoria)}`;
+    if (indice) destino += `&i=${encodeURIComponent(indice)}`;
+    if (pi) destino += `&pi=${encodeURIComponent(pi)}`;
 
-    // ── ESCAPADO ──
-    const tituloSafe  = titulo.replace(/"/g, "&quot;").replace(/</g, "&lt;");
-    const imagenSafe  = imagen.replace(/"/g, "%22");
-    const destinoSafe = destino.replace(/"/g, "%22");
-    const ogUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
-
-    // ── HTML ──
-    const html = `<!DOCTYPE html>
+    const html = `
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>${tituloSafe}</title>
-  <meta property="og:title"        content="${tituloSafe}" />
-  <meta property="og:description"  content="Encuéntralo en Geinz" />
-  <meta property="og:image"        content="${imagenSafe}" />
-  <meta property="og:image:width"  content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:image:type"   content="image/jpeg" />
-  <meta property="og:type"         content="website" />
-  <meta property="og:url"          content="${ogUrl}" />
-  <meta name="twitter:card"        content="summary_large_image" />
-  <meta name="twitter:title"       content="${tituloSafe}" />
-  <meta name="twitter:description" content="Encuéntralo en Geinz" />
-  <meta name="twitter:image"       content="${imagenSafe}" />
-  <meta http-equiv="refresh"       content="0; url=${destinoSafe}">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>${tituloSafe}</title>
+
+<meta property="og:title" content="${tituloSafe}" />
+<meta property="og:description" content="Encuéntralo en Geinz" />
+<meta property="og:image" content="${imagenSafe}" />
+<meta property="og:type" content="website" />
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#030008;
+  --p:#a855f7;
+  --m:#ec4899;
+  --text:#f8fafc;
+  --muted:#94a3b8;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif;}
+
+body{
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: radial-gradient(circle at 20% 20%, rgba(168,85,247,.15), transparent 40%),
+              radial-gradient(circle at 80% 80%, rgba(236,72,153,.15), transparent 40%),
+              var(--bg);
+  color:var(--text);
+}
+
+.card{
+  text-align:center;
+  padding:40px;
+  border-radius:24px;
+  background:rgba(15,10,25,.6);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(168,85,247,.2);
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
+
+.loader{
+  width:70px;
+  height:70px;
+  margin:0 auto 20px;
+  border-radius:50%;
+  border:3px solid rgba(255,255,255,.1);
+  border-top:3px solid var(--p);
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+
+h1{
+  font-size:20px;
+  margin-bottom:8px;
+}
+
+p{
+  color:var(--muted);
+  font-size:14px;
+}
+</style>
 </head>
+
 <body>
-  <p style="font-family:sans-serif;color:#888;padding:20px;">Redirigiendo...</p>
+
+<div class="card">
+  <div class="loader"></div>
+  <h1>Abriendo Geinz</h1>
+  <p>Redireccionando de forma segura...</p>
+</div>
+
+<script>
+  setTimeout(() => {
+    window.location.replace("${destino}");
+  }, 600);
+</script>
+
 </body>
-</html>`;
+</html>
+`;
 
     res.set("Content-Type", "text/html; charset=utf-8");
-    res.set("Cache-Control", "public, max-age=60, s-maxage=300");
-    res.status(200).send(html);
+    res.set("Cache-Control", "no-cache");
+
+    return res.status(200).send(html);
 
   } catch (e) {
-    console.error("ERROR SHARE:", e);
-    res.status(500).send("Error interno: " + e.message);
+    console.error(e);
+    return res.status(500).send("Error interno");
   }
 });
+
+
 function capitalizeFirstLetter(str) {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -4136,7 +4146,7 @@ exports.alertaSaldoBajo = onDocumentWritten(
               token,
               title: `⚠️ ¡Tu saldo está bajo!`,
               body: `Tu tienda tiene menos de 50 creaditos. Mantén tu alcance y visibilidad activo recargando cuando puedas 💼✨`,
-              link: "https://geinzworkapp.web.app/share?t=scr&id=rec",
+              link: "https://geinzworkapp.web.app/api/api/share?t=scr&id=rec",
               logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
               idTienda,
               idAnuncio: "",
@@ -4252,7 +4262,7 @@ exports.resetearEstadoNotificacionesYPanel = onSchedule(
               token,
               title: "♻️ ¡Tus notificaciones fueron renovadas!",
               body: "✨ Ya puedes enviar nuevas notificaciones y mantener a tus clientes al día 🔔🚀",
-              link: "https://geinzworkapp.web.app/share?t=scr&id=ads",
+              link: "https://geinzworkapp.web.app/api/api/share?t=scr&id=ads",
               logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
               idTienda: "",
               idAnuncio: "",
@@ -4266,7 +4276,7 @@ exports.resetearEstadoNotificacionesYPanel = onSchedule(
               token,
               title: "⏰ Tu panel de Geinz ya vencio  😣",
               body: "⚡ Renueva tu panel para seguir teniendo control de tu negocio en tiempo real desde Geinz📈💼",
-              link: "https://geinzworkapp.web.app/share?t=scr&id=pnl",
+              link: "https://geinzworkapp.web.app/api/api/share?t=scr&id=pnl",
               logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
               idTienda: "",
               idAnuncio: "",
@@ -4286,7 +4296,7 @@ async function enviarNotificacionFCM_tienda({
   token,
   title,
   body,
-  link = "https://geinzworkapp.web.app/share?t=scr&id=ads",
+  link = "https://geinzworkapp.web.app/api/api/share?t=scr&id=ads",
   logo = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
   image = "",
   idTienda,
