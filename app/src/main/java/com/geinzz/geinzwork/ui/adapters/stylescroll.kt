@@ -319,7 +319,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
                                     context,
                                     numero,
                                     "${promo.texto_msje_whatsapp.whatsapp.msje_predermindo}" +
-                                            "https://geinzworkapp.web.app/share?" +
+                                            "https://geinzworkapp.web.app/api/share?" +
                                             "t=prms" +
                                             "&l=$localidad" +
                                             "&pi=$id"

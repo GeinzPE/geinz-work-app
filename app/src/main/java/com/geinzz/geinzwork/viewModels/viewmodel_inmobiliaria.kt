@@ -430,7 +430,7 @@ class viewmodel_inmobiliaria : ViewModel() {
         localidad: String,
         id: String,
     ) {
-        val link = "https://geinzworkapp.web.app/share?" +
+        val link = "https://geinzworkapp.web.app/api/share?" +
                 "t=in" +
                 "&id=${URLEncoder.encode(id, "UTF-8")}" +
                 "&l=${URLEncoder.encode(localidad, "UTF-8")}"

@@ -2173,7 +2173,7 @@ fun compartirLugarFirebaseHosttiendas(
     try {
         val repo_erese_socio = repo_eres_socio()
         // Construimos el link de la Cloud Function
-        val link = "https://geinzworkapp.web.app/share?" +
+        val link = "https://geinzworkapp.web.app/api/share?" +
                 "t=ti" +
                 "&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
                 "&l=${URLEncoder.encode(localidad_tienda, "UTF-8")}" +

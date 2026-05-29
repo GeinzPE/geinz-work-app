@@ -233,7 +233,7 @@ data class informacion_container(
     )
 
 data class horario_deseado(val seleccion: String, val horario: String)
-data class precio_rango_publicacion(val precio: String, val rango: String)
+data class precio_rango_publicacion(val precio: String ="0", val rango: String)
 
 data class msjes_predeteminados_generales(
     val compartir: mensaje_predeterminado = mensaje_predeterminado(),

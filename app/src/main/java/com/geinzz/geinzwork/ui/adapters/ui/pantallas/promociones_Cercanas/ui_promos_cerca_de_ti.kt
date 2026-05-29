@@ -1167,7 +1167,7 @@ fun ui_promos_cerca_de_ti(
                                                 item.dataclass_promociones_cerca_de_ti
                                                     .informacion_publcacion.numero,
                                                 "${item.dataclass_promociones_cerca_de_ti.texto_msje_whatsapp.whatsapp.msje_predermindo}" +
-                                                        "https://geinzworkapp.web.app/share?" +
+                                                        "https://geinzworkapp.web.app/api/share?" +
                                                         "t=prms" +
                                                         "&l=$localidad" +
                                                         "&pi=$id"
@@ -1559,7 +1559,7 @@ fun compartir_hosting_promo(
             else -> localidad_tienda
         }
         val link =
-            "https://geinzworkapp.web.app/share?" +
+            "https://geinzworkapp.web.app/api/share?" +
                     "t=prms" +
                     "&l=$localidad_pasada" +
                     "&pi=$idpromo"

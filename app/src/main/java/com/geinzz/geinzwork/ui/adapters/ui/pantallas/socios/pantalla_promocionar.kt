@@ -2991,7 +2991,7 @@ fun pantalla_promocionar(
                                                 ""
                                     ), precio_publicacion = precio_rango_publicacion(
                                         precio = if (precio_encontrado) precio_detectado
-                                            ?: "" else "",
+                                            ?: "" else "0",
                                         rango = if (precio_encontrado) rango_detectado ?: "" else ""
                                     ),
 
@@ -5153,7 +5153,7 @@ fun compartirLugarFirebaseHosttiendas(
     try {
         val repo_erese_socio = repo_eres_socio()
         // Construimos el link de la Cloud Function
-        val link = "https://geinzworkapp.web.app/share?" +
+        val link = "https://geinzworkapp.web.app/api/share?" +
                 "t=ti" +
                 "&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
                 "&l=${URLEncoder.encode(localidad_tienda, "UTF-8")}" +

@@ -2532,7 +2532,7 @@ fun compartir_link_tienda(
     nombre_tienda: String
 ) {
     // Construimos el link de la Cloud Function
-    val link = "https://geinzworkapp.web.app/share?" +
+    val link = "https://geinzworkapp.web.app/api/share?" +
             "t=ti" +
             "&id=${URLEncoder.encode(id, "UTF-8")}" +
             "&l=${URLEncoder.encode(localidad, "UTF-8")}" +

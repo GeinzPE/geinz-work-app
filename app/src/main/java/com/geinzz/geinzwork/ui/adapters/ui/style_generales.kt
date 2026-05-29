@@ -739,7 +739,7 @@ fun ZoomableGalleryFullScreen(
                                     context = context,
                                     it.numero_tienda,
                                     "Hola, quiero esta oferta que vi en su perfil en Geinz: " +
-                                            "https://geinzworkapp.web.app/share?" +
+                                            "https://geinzworkapp.web.app/api/share?" +
                                             "t=p" +
                                             "&id=${it.id_tienda}" +
                                             "&l=${localidad_pasada}" +
@@ -881,7 +881,7 @@ fun ZoomableGalleryFullScreen_para_promociones(
                                     context = context,
                                     it.numero_tienda,
                                     "Hola, quiero esta oferta que vi en su perfil en Geinz: " +
-                                            "https://geinzworkapp.web.app/share?" +
+                                            "https://geinzworkapp.web.app/api/share?" +
                                             "t=p" +
                                             "&id=${it.id_tienda}" +
                                             "&l=${localidad_pasada}" +
@@ -1294,7 +1294,7 @@ fun compartir_hosting_promo(
         // Construimos el link de la Cloud Function
 
         val link =
-            "https://geinzworkapp.web.app/share?" +
+            "https://geinzworkapp.web.app/api/share?" +
                     "t=p" +
                     "&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
                     "&l=$localidad_pasada" +

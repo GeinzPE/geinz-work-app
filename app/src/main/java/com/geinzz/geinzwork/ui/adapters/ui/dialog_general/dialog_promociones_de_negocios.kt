@@ -182,7 +182,7 @@ fun dialog_promociones_negocios(
 //notificacion_creada de 0 no existe promo directa
                         promo.msje_predetermindao_whatsapp +
                                 "\n\n" +
-                                "https://geinzworkapp.web.app/share?" +
+                                "https://geinzworkapp.web.app/api/share?" +
                                 "t=prn" +
                                 "&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
                                 "&l=${URLEncoder.encode(localidad_pasada, "UTF-8")}" +
@@ -196,7 +196,7 @@ fun dialog_promociones_negocios(
                         buildString {
                             append(promo.msje_predetermindao_whatsapp)
                             append("\n\n")
-                            append("https://geinzworkapp.web.app/share?")
+                            append("https://geinzworkapp.web.app/api/share?")
                             append("t=prn")
                             append("&id=${URLEncoder.encode(id_tienda, "UTF-8")}")
                             append("&l=${URLEncoder.encode(localidad_pasada, "UTF-8")}")
@@ -209,7 +209,7 @@ fun dialog_promociones_negocios(
 
                         buildString {
                             append("¡Hola! Vi su promoción en Geinz y me interesa. ¿Podría darme más información, por favor?\n\n")
-                            append("https://geinzworkapp.web.app/share?")
+                            append("https://geinzworkapp.web.app/api/share?")
                             append("t=p")
                             append("&id=${URLEncoder.encode(id_tienda, "UTF-8")}")
                             append("&l=${URLEncoder.encode(localidad_pasada, "UTF-8")}")

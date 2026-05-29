@@ -972,11 +972,6 @@ class viewmodel_eres_socio : ViewModel() {
                         idPromo = idPromo,
                         urls = urls
                     )
-
-
-
-
-
                 if (!resCompletado.isSuccess) {
                     _subidaPromoState.value =
                         SubidaPromoState.Error("Error al guardar las imágenes")

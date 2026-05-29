@@ -1368,7 +1368,7 @@ fun BubbleRestaurante() {
 private fun MensajeBody() {
     val uriHandler = LocalUriHandler.current
     val url =
-        "https://geinzworkapp.web.app/share?t=ti&id=JHqbs7ttVXRnsIqsEGWS&l=barranca&c=comida+y+restaurantes"
+        "https://geinzworkapp.web.app/api/share?t=ti&id=JHqbs7ttVXRnsIqsEGWS&l=barranca&c=comida+y+restaurantes"
 
     val textoConLink = buildAnnotatedString {
         withStyle(SpanStyle(color = TextPrimary, fontSize = 15.sp)) {

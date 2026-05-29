@@ -1408,8 +1408,18 @@ fun pantalla_carga_socios(
                                 viewModelFiltros = viewmodel,
                                 expandido = mostar_atributos_negocios,
                                 {
-                                    mostar_atributos_negocios =
-                                        !mostar_atributos_negocios
+                                    if (datos_fechas.dias_restantes != "0") {
+                                        mostar_atributos_negocios =
+                                            !mostar_atributos_negocios
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Revuena tu plan para poder ajustar los cambios",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+
+                                    }
+
                                 },
                                 {
                                     scope.launch {
@@ -1439,8 +1449,18 @@ fun pantalla_carga_socios(
                                 viewModelFiltros = viewmodel,
                                 expandido = mostar_socio_atributos,
                                 onClickExpand = {
-                                    mostar_socio_atributos =
-                                        !mostar_socio_atributos
+                                    if (datos_fechas.dias_restantes != "0") {
+                                        mostar_socio_atributos =
+                                            !mostar_socio_atributos
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Revuena tu plan para poder ajustar los cambios",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+
+                                    }
+
                                 },
                                 guardar_dado_datos = {
                                     scope.launch {
