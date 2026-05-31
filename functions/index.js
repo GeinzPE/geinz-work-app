@@ -1463,6 +1463,71 @@ async function emitirBoletaNubefact({
   return response.data.enlace_del_pdf; // Retorna el enlace generado[cite: 1]
 }
 
+// Función helper para guardar PDF en Storage
+async function guardarPDFEnStorage(pdfUrl, idTransaccion, idTienda) {
+  try {
+    const response = await axios.get(pdfUrl, { responseType: 'arraybuffer' });
+    const pdfBuffer = Buffer.from(response.data);
+
+    const bucket = admin.storage().bucket();
+    const filePath = `comprobantes/${idTienda}/${idTransaccion}.pdf`;
+    const file = bucket.file(filePath);
+
+    await file.save(pdfBuffer, {
+      metadata: { contentType: 'application/pdf' },
+      public: true, // 👈 acceso público permanente
+    });
+
+    // URL pública directa de Storage (no expira)
+    const urlPublica = `https://storage.googleapis.com/${bucket.name}/${filePath}`;
+
+    console.log('✅ PDF subido a Storage:', urlPublica);
+    return urlPublica;
+
+  } catch (error) {
+    console.error('❌ Error guardando PDF en Storage:', error);
+    throw error;
+  }
+}
+
+// Función helper para guardar URL en Firestore
+async function guardarURLComprobanteFirestore({
+  idTransaccion,
+  idTienda,
+  localidad,
+  urlPDF,
+}) {
+  // En el historial financiero (merge para no pisar datos)
+  await db
+    .collection('Tiendas')
+    .doc(localidad)
+    .collection(localidad)
+    .doc(idTienda)
+    .collection('historial_financiero')
+    .doc(idTransaccion)
+    .set(
+      {
+        comprobante: {
+          url_pdf: urlPDF,
+          generado_en: admin.firestore.FieldValue.serverTimestamp(),
+        },
+      },
+      { merge: true },
+    );
+
+  // También en pagos_tiendas para acceso rápido
+  await db
+    .collection('Tiendas')
+    .doc(localidad)
+    .collection('pagos_tiendas')
+    .doc(idTransaccion)
+    .set(
+      { url_comprobante: urlPDF },
+      { merge: true },
+    );
+
+  console.log('✅ URL guardada en Firestore');
+}
 /**
  * Emite un comprobante electrónico (Boleta o Factura) vía NubeFacT.
  *
@@ -1819,7 +1884,10 @@ exports.confirmarPago = onCall(async (req) => {
     monto_anterior,
     id_select_boleta_pago,
   } = req.data;
-
+  const ahora = new Date();
+  const mes = String(ahora.getMonth() + 1).padStart(2, '0'); // "05"
+  const anio = ahora.getFullYear();                            // 2026
+  const idConFecha = `${mes}-${anio}-${id_select_boleta_pago}`;
   const tieneDeudaBool = tiene_deuda === true || tiene_deuda === "true";
   const deudaPendienteNum = Number(deuda_pendiente || 0);
   console.log("Tipo Comprobante (1:Fact, 2:Bol):", tipo_comprobante);
@@ -1879,7 +1947,7 @@ exports.confirmarPago = onCall(async (req) => {
     console.log("CULQI RESPONSE:", charge);
 
     await agregar_historial_de_pagos_tienda({
-      id_transaccion: id_select_boleta_pago,
+      id_transaccion: idConFecha,
       tipo_transaccion: "recarga",
       metodo_pago: "yape",
       nombre_tienda: nombre_tienda,
@@ -1989,8 +2057,9 @@ exports.confirmarPago = onCall(async (req) => {
       }
     }
 
+    // Dentro del try de confirmarPago, donde llamas a emitirComprobanteGeinz:
     try {
-      const pdfUrl = await emitirComprobanteGeinz({
+      const urlNubefact = await emitirComprobanteGeinz({
         tipoComprobante: tipo_comprobante,
         documento: ruc,
         nombre: nombre_tienda,
@@ -1998,28 +2067,47 @@ exports.confirmarPago = onCall(async (req) => {
         monedas,
         chargeId: charge.id,
         monto,
-        email: "cliente@geinz.com",
+        email: 'cliente@geinz.com',
       });
-      if (typeof numero === "string" && numero.length >= 9) {
-        await enviarPDFWhatsApp(numero, pdfUrl);
-        enviarWhatsApp(
-          937659216,
-          `✅ *Pago exitoso en Geinz*\n` +
-          `🏪 *Negocio:* ${nombre_tienda}\n` +
-          `🆔 *ID Negocio:* ${userId}\n` +
-          `📦 *Paquete:* ${nombre_paquete}\n` +
-          `💰 *Monto pagado:* S/ ${monto}\n` +
-          `🪙 *Monedas acreditadas:* ${monedas}\n` +
-          `🧾 *ID Transacción:* ${id_select_boleta_pago}\n` +
-          `💳 *ID Cargo Culqi:* ${charge.id}\n` +
-          `📅 *Fecha:* ${new Date().toLocaleString("es-PE", { timeZone: "America/Lima" })}`,
-        );
-      }
-    } catch (nubefactErr) {
-      console.error(
-        "⚠️ Nubefact falló:",
-        nubefactErr.response?.data || nubefactErr.message,
+
+      // 1. Guardar en Storage y obtener URL permanente
+      const urlPDFStorage = await guardarPDFEnStorage(
+        urlNubefact,
+        idConFecha,
+        userId
       );
+
+      // 2. Guardar URL en Firestore (merge sobre el historial ya creado)
+      await guardarURLComprobanteFirestore({
+        idTransaccion: idConFecha,
+        idTienda: userId,
+        localidad,
+        urlPDF: urlPDFStorage,
+      });
+
+      // 3. Enviar plantilla WhatsApp con la URL del PDF
+      if (typeof numero === 'string' && numero.length >= 9) {
+        await enviarPlantillaWhatsApp({
+          numero,
+          nombreTienda: nombre_tienda,
+          monedas,
+          idTransaccion: idConFecha,
+        });
+      }
+
+      // Notificar a admin igual que antes
+      enviarWhatsApp(
+        937659216,
+        `✅ *Pago exitoso en Geinz*\n` +
+        `🏪 *Negocio:* ${nombre_tienda}\n` +
+        `💰 *Monto:* S/ ${monto}\n` +
+        `🪙 *Monedas:* ${monedas}\n` +
+        `🧾 *Comprobante:* ${urlPDFStorage}`,
+      );
+
+    } catch (nubefactErr) {
+      console.error('⚠️ Nubefact/Storage falló:', nubefactErr.response?.data || nubefactErr.message);
+      // El pago ya se procesó, solo log del error
     }
 
     return {
@@ -2047,6 +2135,69 @@ exports.confirmarPago = onCall(async (req) => {
   }
 });
 
+async function enviarPlantillaWhatsApp({ numero, nombreTienda, monedas, idTransaccion }) {
+  try {
+    const telefono = `51${numero}`;
+
+    const res = await axios.post(
+      `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
+      {
+        messaging_product: 'whatsapp',
+        to: telefono,
+        type: 'template',
+        template: {
+          // 👇 El nombre exacto de tu plantilla en Meta
+          name: 'recarga',
+          language: { code: 'es' },
+          components: [
+            {
+              // Header: {{1}} = emojis o texto del título
+              type: 'header',
+              parameters: [
+                { type: 'text', text: '🎉' },
+              ],
+            },
+            {
+              // Body: {{1}} = nombre, {{2}} = monedas
+              type: 'body',
+              parameters: [
+                { type: 'text', text: nombreTienda },
+                { type: 'text', text: `${monedas} créditos en Geinz` },
+              ],
+            },
+            {
+              // Botón URL dinámico "ver comprobante"
+              type: 'button',
+              sub_type: 'url',
+              index: '0',
+              parameters: [
+                // Solo el SUFIJO dinámico de la URL
+                // Si tu URL base en Meta es: https://geinzworkapp.web.app/
+                // y urlComprobante es la URL completa de Storage,
+                // puedes usar la URL completa como sufijo si configuraste
+                // el botón como URL dinámica
+                { type: 'text', text: idTransaccion }, // 👈 solo el ID
+
+              ],
+            },
+          ],
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    console.log('✅ Plantilla WhatsApp enviada:', res.data);
+    return true;
+  } catch (error) {
+    console.error('❌ Error enviando plantilla:', error.response?.data || error.message);
+    return false;
+  }
+}
 // ==================== verificar_usuario_asistente ====================
 exports.verificar_usuario_asistente = onRequest(async (req, res) => {
   try {
@@ -2118,7 +2269,6 @@ exports.agregar_pago_para_el_usuario_tienda = onCall(async (req) => {
     nombre_plan,
     monto_pagar_de_plan,
   } = req.data;
-
   if (!id_tienda || !nombre_user || !plan_select || !localdiad) {
     throw new Error("Faltan datos obligatorios");
   }
