@@ -439,7 +439,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="geinzworkapp.web.app" />
+                    android:host="geinzworkapp.web.app"
+                    android:pathPrefix="/api" />
             </intent-filter>
         </activity>
 
