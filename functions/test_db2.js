@@ -36,6 +36,45 @@ const initDb2 = () => {
 // =====================================================
 // ✅ obtener_creditos_tienda_fn — lógica pura interna
 // =====================================================
+
+async function actualizar_creditos_tienda(id_tienda, saldo_actual) {
+
+  try {
+
+    const db = initDb2();
+
+    if (!db) {
+      throw new Error("Firestore DB2 no inicializado");
+    }
+
+    if (!id_tienda) {
+      throw new Error("id_tienda requerido");
+    }
+
+    await db
+      .collection("creditos_tienda")
+      .doc(id_tienda)
+      .update({
+        creditos: saldo_actual
+      });
+
+    return {
+      ok: true,
+      mensaje: "Créditos actualizados"
+    };
+
+  } catch (error) {
+
+    console.error("❌ Error actualizando créditos:", error);
+
+    return {
+      ok: false,
+      error: error.message
+    };
+  }
+}
+exports.actualizar_creditos_tienda = actualizar_creditos_tienda;
+
 const obtener_creditos_tienda_fn = async (id) => {
   if (!id) return { ok: false, creditos: 0 };
 
@@ -55,7 +94,6 @@ const obtener_creditos_tienda_fn = async (id) => {
     return { ok: false, creditos: 0 };
   }
 };
-
 exports.obtener_creditos_tienda_fn = obtener_creditos_tienda_fn;
 exports.eliminar_deuda_actual = eliminar_deuda_actual;
 // =====================================================

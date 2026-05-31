@@ -7,7 +7,9 @@ const GEMINIKEY = process.env.PRIVATEKEY_GEMINI;
 const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 const TIMEOUT = 30000;
-const { v4: uuidv4 } = require("uuid");
+const {
+  actualizar_creditos_tienda
+} = require("./test_db2");
 // ─── Helper: llamada a Gemini ────────────────────────────────────────────────
 
 async function llamarGemini(parts) {
@@ -49,13 +51,28 @@ function parsearJSON(texto) {
 // ─── 1. Generar título y descripción desde imagen ────────────────────────────
 
 exports.generar_titulo_descripcion_IA = onCall(async (request) => {
-  const { imageBase64, mimeType, tipo } = request.data;
+  console.log("🚀 generar_titulo_descripcion_IA iniciado");
+
+  const {
+    imageBase64,
+    mimeType,
+    tipo,
+    saldo_actual,
+    saldo_descuento,
+    id_tienda,
+    precio_por_moneda,
+    localidad,
+    nombre_tienda, tipo_paquete
+  } = request.data;
+
+  console.log("📥 Datos recibidos:", {
+    tipo, saldo_actual, saldo_descuento, id_tienda,
+    precio_por_moneda, localidad, nombre_tienda,
+    mimeType, imageBase64_length: imageBase64 ? imageBase64.length : 0
+  });
 
   if (!imageBase64) {
-    throw new HttpsError(
-      "invalid-argument",
-      "El campo imageBase64 es requerido",
-    );
+    throw new HttpsError("invalid-argument", "El campo imageBase64 es requerido");
   }
 
   const tipoTexto = tipo && tipo.trim() ? tipo.trim() : "publicación de venta";
@@ -86,38 +103,110 @@ Reglas estrictas:
       },
     ]);
 
+    console.log("🤖 Respuesta RAW Gemini:", texto);
+
     let json;
     try {
       json = parsearJSON(texto);
-    } catch {
-      throw new HttpsError(
-        "internal",
-        "Gemini devolvió JSON inválido: " + texto.slice(0, 100),
-      );
+      console.log("✅ JSON parseado:", json);
+    } catch (e) {
+      throw new HttpsError("internal", "Gemini devolvió JSON inválido: " + texto.slice(0, 100));
     }
 
     if (!json.titulo && !json.descripcion) {
-      throw new HttpsError(
-        "internal",
-        "La respuesta no contiene título ni descripción",
-      );
+      throw new HttpsError("internal", "La respuesta no contiene título ni descripción");
     }
 
+    // ── Cálculo financiero ──────────────────────────────────────────
+    const monto_descontado = saldo_descuento;
+    const monto_restante = saldo_actual - monto_descontado;
+    const precio_soles = (monto_descontado * precio_por_moneda).toFixed(2); // 100 * 0.012 = "1.20"
+
+    console.log("💰 Datos financieros:", { monto_descontado, monto_restante, precio_soles });
+
+    // ── ID transacción ──────────────────────────────────────────────
+    const id_transaccion = uuidv4();
+    console.log("🆔 ID transacción:", id_transaccion);
+
+    // ── Fecha Lima UTC-5 ────────────────────────────────────────────
+    const ahora = new Date();
+    const offset = -5 * 60;
+    const lima = new Date(ahora.getTime() + (offset - ahora.getTimezoneOffset()) * 60000);
+    const fecha = `${String(lima.getMonth() + 1).padStart(2, "0")}/${String(lima.getDate()).padStart(2, "0")}/${lima.getFullYear()}`;
+    const hora = `${String(lima.getHours()).padStart(2, "0")}:${String(lima.getMinutes()).padStart(2, "0")}`;
+
+    console.log("📅 Fecha/Hora Lima:", { fecha, hora });
+
+    // ── 1. Descontar puntos_tienda ──────────────────────────────────
+    const tiendaRef = db
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection(localidad)
+      .doc(id_tienda);
+
+    await tiendaRef.update({
+      puntos_tienda: admin.firestore.FieldValue.increment(-monto_descontado),
+    });
+
+    console.log("✅ puntos_tienda descontado");
+
+    // ── 2. Actualizar creditos_tienda (si tiene bot_plan_pro) ───────
+    const tiendaSnap = await tiendaRef.get();
+    const tieneBotPlanPro = tiendaSnap.exists && tiendaSnap.data()?.bot_plan_pro != null;
+
+    if (tieneBotPlanPro) {
+      const creditosResult = await actualizar_creditos_tienda(id_tienda, monto_restante);
+      console.log("✅ creditos_tienda actualizado:", creditosResult);
+    } else {
+      console.log("ℹ️ Sin bot_plan_pro — creditos_tienda no actualizado");
+    }
+
+    // ── 3. Guardar historial financiero ─────────────────────────────
+    await db
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection(localidad)
+      .doc(id_tienda)
+      .collection("historial_financiero")
+      .doc(id_transaccion)
+      .set({
+        datos_recarga: {
+          estado: "Aceptado",
+          monto_descontado: monto_descontado,
+          monto_restante: monto_restante,
+          precio_soles: precio_soles,
+          tipo_paquete: tipo_paquete || "Gen IA",
+
+        },
+        datos_tienda: {
+          id_tienda: id_tienda,
+          localidad_tienda: localidad,
+          nombre_tienda: nombre_tienda,
+        },
+        hora_fecha: { fecha, hora },
+        id_transaccion: id_transaccion,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        tipo_transacción: "descuento",
+      });
+
+    console.log("✅ Historial financiero guardado");
+
+    // ── Retorno al cliente ──────────────────────────────────────────
     return {
       ok: true,
       titulo: json.titulo || "",
       descripcion: json.descripcion || "",
     };
+
   } catch (error) {
+    console.error("💥 ERROR GENERAL generar_titulo_descripcion_IA:", {
+      message: error?.message,
+      stack: error?.stack,
+    });
     if (error instanceof HttpsError) throw error;
-    console.error("ERROR generar_titulo_descripcion_IA:", error);
-    throw new HttpsError(
-      "internal",
-      error.message || "Error generando contenido desde imagen",
-    );
+    throw new HttpsError("internal", error.message || "Error generando contenido desde imagen");
   }
 });
-
 // ─── 2. Mejorar texto (título + descripción) con enfoque ────────────────────
 
 const TIPOS_VALIDOS = ["VENTA", "ATENCION", "INFORMATIVO"];
@@ -178,20 +267,33 @@ D:`.trim();
 }
 
 exports.generar_texto_ia = onCall(async (request) => {
-  const { tipo, tituloUsuario, descripcionUsuario } = request.data;
+  console.log("🚀 generar_texto_ia iniciado");
+
+  const {
+    tipo,
+    tituloUsuario,
+    descripcionUsuario,
+    saldo_actual,
+    saldo_descuento,
+    id_tienda,
+    precio_por_moneda,
+    localidad,
+    nombre_tienda,
+    tipo_paquete,
+  } = request.data;
+
+  console.log("📥 Datos recibidos:", {
+    tipo, tituloUsuario, descripcionUsuario,
+    saldo_actual, saldo_descuento, id_tienda,
+    precio_por_moneda, localidad, nombre_tienda
+  });
 
   if (!tituloUsuario || !tituloUsuario.trim()) {
-    throw new HttpsError(
-      "invalid-argument",
-      "El campo tituloUsuario es requerido",
-    );
+    throw new HttpsError("invalid-argument", "El campo tituloUsuario es requerido");
   }
 
   if (!descripcionUsuario || !descripcionUsuario.trim()) {
-    throw new HttpsError(
-      "invalid-argument",
-      "El campo descripcionUsuario es requerido",
-    );
+    throw new HttpsError("invalid-argument", "El campo descripcionUsuario es requerido");
   }
 
   const tipoFinal =
@@ -208,36 +310,125 @@ exports.generar_texto_ia = onCall(async (request) => {
   try {
     const respuesta = await llamarGemini([{ text: prompt }]);
 
+    console.log("🤖 Respuesta Gemini:", respuesta);
+
+    // ── Cálculo financiero ──────────────────────────────────────────
+    const monto_descontado = saldo_descuento;
+    const monto_restante = saldo_actual - monto_descontado;
+    const precio_soles = (monto_descontado * precio_por_moneda).toFixed(2);
+
+    console.log("💰 Datos financieros:", { monto_descontado, monto_restante, precio_soles });
+
+    // ── ID transacción ──────────────────────────────────────────────
+    const id_transaccion = uuidv4();
+    console.log("🆔 ID transacción:", id_transaccion);
+
+    // ── Fecha Lima UTC-5 ────────────────────────────────────────────
+    const ahora = new Date();
+    const offset = -5 * 60;
+    const lima = new Date(ahora.getTime() + (offset - ahora.getTimezoneOffset()) * 60000);
+    const fecha = `${String(lima.getMonth() + 1).padStart(2, "0")}/${String(lima.getDate()).padStart(2, "0")}/${lima.getFullYear()}`;
+    const hora = `${String(lima.getHours()).padStart(2, "0")}:${String(lima.getMinutes()).padStart(2, "0")}`;
+
+    console.log("📅 Fecha/Hora Lima:", { fecha, hora });
+
+    // ── 1. Descontar puntos_tienda ──────────────────────────────────
+    const tiendaRef = db
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection(localidad)
+      .doc(id_tienda);
+
+    await tiendaRef.update({
+      puntos_tienda: admin.firestore.FieldValue.increment(-monto_descontado),
+    });
+
+    console.log("✅ puntos_tienda descontado");
+
+    // ── 2. Actualizar creditos_tienda (si tiene bot_plan_pro) ───────
+    const tiendaSnap = await tiendaRef.get();
+    const tieneBotPlanPro = tiendaSnap.exists && tiendaSnap.data()?.bot_plan_pro != null;
+
+    if (tieneBotPlanPro) {
+      const creditosResult = await actualizar_creditos_tienda(id_tienda, monto_restante);
+      console.log("✅ creditos_tienda actualizado:", creditosResult);
+    } else {
+      console.log("ℹ️ Sin bot_plan_pro — creditos_tienda no actualizado");
+    }
+
+    // ── 3. Guardar historial financiero ─────────────────────────────
+    await db
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection(localidad)
+      .doc(id_tienda)
+      .collection("historial_financiero")
+      .doc(id_transaccion)
+      .set({
+        datos_recarga: {
+          estado: "Aceptado",
+          monto_descontado: monto_descontado,
+          monto_restante: monto_restante,
+          precio_soles: precio_soles,
+          tipo_paquete: tipo_paquete || "Gen IA",
+        },
+        datos_tienda: {
+          id_tienda: id_tienda,
+          localidad_tienda: localidad,
+          nombre_tienda: nombre_tienda,
+        },
+        hora_fecha: { fecha, hora },
+        id_transaccion: id_transaccion,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        tipo_transacción: "descuento",
+      });
+
+    console.log("✅ Historial financiero guardado");
+
+    // ── Retorno al cliente ──────────────────────────────────────────
     return { ok: true, respuesta };
+
   } catch (error) {
+    console.error("💥 ERROR GENERAL generar_texto_ia:", {
+      message: error?.message,
+      stack: error?.stack,
+    });
     if (error instanceof HttpsError) throw error;
-    console.error("ERROR generar_texto_ia:", error);
-    throw new HttpsError(
-      "internal",
-      error.message || "Error generando texto IA",
-    );
+    throw new HttpsError("internal", error.message || "Error generando texto IA");
   }
 });
 
 // ─── 3. Generar mensaje para compartir ──────────────────────────────────────
 
 exports.generar_texto_compartir_ia = onCall(async (request) => {
-  const { tituloUsuario, descripcionUsuario } = request.data;
+  console.log("🚀 generar_texto_compartir_ia iniciado");
+
+  const {
+    tituloUsuario,
+    descripcionUsuario,
+    saldo_actual,
+    saldo_descuento,
+    id_tienda,
+    precio_por_moneda,
+    localidad,
+    nombre_tienda,
+    tipo_paquete
+  } = request.data;
+
+  console.log("📥 Datos recibidos:", {
+    tituloUsuario, saldo_actual, saldo_descuento,
+    id_tienda, precio_por_moneda, localidad, nombre_tienda, tipo_paquete
+  });
 
   if (!tituloUsuario || !tituloUsuario.trim()) {
-    throw new HttpsError(
-      "invalid-argument",
-      "El campo tituloUsuario es requerido",
-    );
+    throw new HttpsError("invalid-argument", "El campo tituloUsuario es requerido");
   }
 
-  const descTexto =
-    descripcionUsuario && descripcionUsuario.trim()
-      ? descripcionUsuario.trim()
-      : "";
+  const descTexto = descripcionUsuario && descripcionUsuario.trim()
+    ? descripcionUsuario.trim()
+    : "";
 
-  const prompt =
-    `Crea un mensaje muy corto para compartir en redes o WhatsApp que provoque clic inmediato.
+  const prompt = `Crea un mensaje muy corto para compartir en redes o WhatsApp que provoque clic inmediato.
 
 Reglas estrictas:
 - Máximo 80 caracteres
@@ -256,21 +447,114 @@ Descripción: ${descTexto}`.trim();
   try {
     const mensaje = await llamarGemini([{ text: prompt }]);
 
+    console.log("🤖 Respuesta Gemini:", mensaje);
+
+    // ── Cálculo financiero ──────────────────────────────────────────
+    const monto_descontado = saldo_descuento;
+    const monto_restante = saldo_actual - monto_descontado;
+    const precio_soles = (monto_descontado * precio_por_moneda).toFixed(2);
+
+    console.log("💰 Datos financieros:", { monto_descontado, monto_restante, precio_soles });
+
+    // ── ID transacción ──────────────────────────────────────────────
+    const id_transaccion = uuidv4();
+    console.log("🆔 ID transacción:", id_transaccion);
+
+    // ── Fecha Lima UTC-5 ────────────────────────────────────────────
+    const ahora = new Date();
+    const offset = -5 * 60;
+    const lima = new Date(ahora.getTime() + (offset - ahora.getTimezoneOffset()) * 60000);
+    const fecha = `${String(lima.getMonth() + 1).padStart(2, "0")}/${String(lima.getDate()).padStart(2, "0")}/${lima.getFullYear()}`;
+    const hora = `${String(lima.getHours()).padStart(2, "0")}:${String(lima.getMinutes()).padStart(2, "0")}`;
+
+    console.log("📅 Fecha/Hora Lima:", { fecha, hora });
+
+    // ── 1. Descontar puntos_tienda ──────────────────────────────────
+    const tiendaRef = db
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection(localidad)
+      .doc(id_tienda);
+
+    await tiendaRef.update({
+      puntos_tienda: admin.firestore.FieldValue.increment(-monto_descontado),
+    });
+
+    console.log("✅ puntos_tienda descontado");
+
+    // ── 2. Actualizar creditos_tienda (si tiene bot_plan_pro) ───────
+    const tiendaSnap = await tiendaRef.get();
+    const tieneBotPlanPro = tiendaSnap.exists && tiendaSnap.data()?.bot_plan_pro != null;
+
+    if (tieneBotPlanPro) {
+      const creditosResult = await actualizar_creditos_tienda(id_tienda, monto_restante);
+      console.log("✅ creditos_tienda actualizado:", creditosResult);
+    } else {
+      console.log("ℹ️ Sin bot_plan_pro — creditos_tienda no actualizado");
+    }
+
+    // ── 3. Guardar historial financiero ─────────────────────────────
+    await db
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection(localidad)
+      .doc(id_tienda)
+      .collection("historial_financiero")
+      .doc(id_transaccion)
+      .set({
+        datos_recarga: {
+          estado: "Aceptado",
+          monto_descontado: monto_descontado,
+          monto_restante: monto_restante,
+          precio_soles: precio_soles,
+          tipo_paquete: tipo_paquete || "Gen IA",
+        },
+        datos_tienda: {
+          id_tienda: id_tienda,
+          localidad_tienda: localidad,
+          nombre_tienda: nombre_tienda,
+        },
+        hora_fecha: { fecha, hora },
+        id_transaccion: id_transaccion,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        tipo_transacción: "descuento",
+      });
+
+    console.log("✅ Historial financiero guardado");
+
+    // ── Retorno al cliente ──────────────────────────────────────────
     return { ok: true, mensaje };
+
   } catch (error) {
+    console.error("💥 ERROR GENERAL generar_texto_compartir_ia:", {
+      message: error?.message,
+      stack: error?.stack,
+    });
     if (error instanceof HttpsError) throw error;
-    console.error("ERROR generar_texto_compartir_ia:", error);
-    throw new HttpsError(
-      "internal",
-      error.message || "Error generando mensaje para compartir",
-    );
+    throw new HttpsError("internal", error.message || "Error generando mensaje para compartir");
   }
 });
-
 // ─── 4. Generar mensaje de contacto por WhatsApp ─────────────────────────────
 
 exports.generar_whatsapp_contacto_ia = onCall(async (request) => {
-  const { titulo, descripcion } = request.data;
+  console.log("🚀 generar_whatsapp_contacto_ia iniciado");
+
+  const {
+    titulo,
+    descripcion,
+    saldo_actual,
+    saldo_descuento,
+    id_tienda,
+    precio_por_moneda,
+    localidad,
+    nombre_tienda,
+    tipo_paquete
+  } = request.data;
+
+  console.log("📥 Datos recibidos:", {
+    titulo, saldo_actual, saldo_descuento,
+    id_tienda, precio_por_moneda, localidad, nombre_tienda, tipo_paquete
+  });
 
   if (!titulo || !titulo.trim()) {
     throw new HttpsError("invalid-argument", "El campo titulo es requerido");
@@ -278,8 +562,7 @@ exports.generar_whatsapp_contacto_ia = onCall(async (request) => {
 
   const descTexto = descripcion && descripcion.trim() ? descripcion.trim() : "";
 
-  const prompt =
-    `Actúa como un cliente interesado que va a enviar un mensaje por WhatsApp al vendedor.
+  const prompt = `Actúa como un cliente interesado que va a enviar un mensaje por WhatsApp al vendedor.
 
 Reglas estrictas:
 - Máximo 60 caracteres
@@ -296,14 +579,91 @@ Descripción: ${descTexto}`.trim();
   try {
     const mensaje = await llamarGemini([{ text: prompt }]);
 
+    console.log("🤖 Respuesta Gemini:", mensaje);
+
+    // ── Cálculo financiero ──────────────────────────────────────────
+    const monto_descontado = saldo_descuento;
+    const monto_restante = saldo_actual - monto_descontado;
+    const precio_soles = (monto_descontado * precio_por_moneda).toFixed(2);
+
+    console.log("💰 Datos financieros:", { monto_descontado, monto_restante, precio_soles });
+
+    // ── ID transacción ──────────────────────────────────────────────
+    const id_transaccion = uuidv4();
+    console.log("🆔 ID transacción:", id_transaccion);
+
+    // ── Fecha Lima UTC-5 ────────────────────────────────────────────
+    const ahora = new Date();
+    const offset = -5 * 60;
+    const lima = new Date(ahora.getTime() + (offset - ahora.getTimezoneOffset()) * 60000);
+    const fecha = `${String(lima.getMonth() + 1).padStart(2, "0")}/${String(lima.getDate()).padStart(2, "0")}/${lima.getFullYear()}`;
+    const hora = `${String(lima.getHours()).padStart(2, "0")}:${String(lima.getMinutes()).padStart(2, "0")}`;
+
+    console.log("📅 Fecha/Hora Lima:", { fecha, hora });
+
+    // ── 1. Descontar puntos_tienda ──────────────────────────────────
+    const tiendaRef = db
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection(localidad)
+      .doc(id_tienda);
+
+    await tiendaRef.update({
+      puntos_tienda: admin.firestore.FieldValue.increment(-monto_descontado),
+    });
+
+    console.log("✅ puntos_tienda descontado");
+
+    // ── 2. Actualizar creditos_tienda (si tiene bot_plan_pro) ───────
+    const tiendaSnap = await tiendaRef.get();
+    const tieneBotPlanPro = tiendaSnap.exists && tiendaSnap.data()?.bot_plan_pro != null;
+
+    if (tieneBotPlanPro) {
+      const creditosResult = await actualizar_creditos_tienda(id_tienda, monto_restante);
+      console.log("✅ creditos_tienda actualizado:", creditosResult);
+    } else {
+      console.log("ℹ️ Sin bot_plan_pro — creditos_tienda no actualizado");
+    }
+
+    // ── 3. Guardar historial financiero ─────────────────────────────
+    await db
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection(localidad)
+      .doc(id_tienda)
+      .collection("historial_financiero")
+      .doc(id_transaccion)
+      .set({
+        datos_recarga: {
+          estado: "Aceptado",
+          monto_descontado: monto_descontado,
+          monto_restante: monto_restante,
+          precio_soles: precio_soles,
+          tipo_paquete: tipo_paquete || "Gen IA",
+        },
+        datos_tienda: {
+          id_tienda: id_tienda,
+          localidad_tienda: localidad,
+          nombre_tienda: nombre_tienda,
+        },
+        hora_fecha: { fecha, hora },
+        id_transaccion: id_transaccion,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        tipo_transacción: "descuento",
+      });
+
+    console.log("✅ Historial financiero guardado");
+
+    // ── Retorno al cliente ──────────────────────────────────────────
     return { ok: true, mensaje };
+
   } catch (error) {
+    console.error("💥 ERROR GENERAL generar_whatsapp_contacto_ia:", {
+      message: error?.message,
+      stack: error?.stack,
+    });
     if (error instanceof HttpsError) throw error;
-    console.error("ERROR generar_whatsapp_contacto_ia:", error);
-    throw new HttpsError(
-      "internal",
-      error.message || "Error generando mensaje de WhatsApp",
-    );
+    throw new HttpsError("internal", error.message || "Error generando mensaje de WhatsApp");
   }
 });
 
@@ -370,7 +730,23 @@ Responde SOLO el array JSON. Texto: "${textoUsuario}"
 // ─── 6. Generar descripcionSEOIA ─────────────────────────────
 
 exports.generar_descripcion_whatsapp_ia = onCall(async (request) => {
-  const { texto } = request.data;
+  console.log("🚀 generar_descripcion_whatsapp_ia iniciado");
+
+  const {
+    texto,
+    saldo_actual,
+    saldo_descuento,
+    id_tienda,
+    precio_por_moneda,
+    localidad,
+    nombre_tienda,
+    tipo_paquete
+  } = request.data;
+
+  console.log("📥 Datos recibidos:", {
+    saldo_actual, saldo_descuento, id_tienda,
+    precio_por_moneda, localidad, nombre_tienda, tipo_paquete
+  });
 
   if (!texto || !texto.trim()) {
     throw new HttpsError("invalid-argument", "El campo texto es requerido");
@@ -397,19 +773,91 @@ ${texto.trim()}
   try {
     const descripcion = await llamarGemini([{ text: prompt }]);
 
-    return {
-      ok: true,
-      descripcion,
-    };
+    console.log("🤖 Respuesta Gemini:", descripcion);
+
+    // ── Cálculo financiero ──────────────────────────────────────────
+    const monto_descontado = saldo_descuento;
+    const monto_restante = saldo_actual - monto_descontado;
+    const precio_soles = (monto_descontado * precio_por_moneda).toFixed(2);
+
+    console.log("💰 Datos financieros:", { monto_descontado, monto_restante, precio_soles });
+
+    // ── ID transacción ──────────────────────────────────────────────
+    const id_transaccion = uuidv4();
+    console.log("🆔 ID transacción:", id_transaccion);
+
+    // ── Fecha Lima UTC-5 ────────────────────────────────────────────
+    const ahora = new Date();
+    const offset = -5 * 60;
+    const lima = new Date(ahora.getTime() + (offset - ahora.getTimezoneOffset()) * 60000);
+    const fecha = `${String(lima.getMonth() + 1).padStart(2, "0")}/${String(lima.getDate()).padStart(2, "0")}/${lima.getFullYear()}`;
+    const hora = `${String(lima.getHours()).padStart(2, "0")}:${String(lima.getMinutes()).padStart(2, "0")}`;
+
+    console.log("📅 Fecha/Hora Lima:", { fecha, hora });
+
+    // ── 1. Descontar puntos_tienda ──────────────────────────────────
+    const tiendaRef = db
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection(localidad)
+      .doc(id_tienda);
+
+    await tiendaRef.update({
+      puntos_tienda: admin.firestore.FieldValue.increment(-monto_descontado),
+    });
+
+    console.log("✅ puntos_tienda descontado");
+
+    // ── 2. Actualizar creditos_tienda (si tiene bot_plan_pro) ───────
+    const tiendaSnap = await tiendaRef.get();
+    const tieneBotPlanPro = tiendaSnap.exists && tiendaSnap.data()?.bot_plan_pro != null;
+
+    if (tieneBotPlanPro) {
+      const creditosResult = await actualizar_creditos_tienda(id_tienda, monto_restante);
+      console.log("✅ creditos_tienda actualizado:", creditosResult);
+    } else {
+      console.log("ℹ️ Sin bot_plan_pro — creditos_tienda no actualizado");
+    }
+
+    // ── 3. Guardar historial financiero ─────────────────────────────
+    await db
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection(localidad)
+      .doc(id_tienda)
+      .collection("historial_financiero")
+      .doc(id_transaccion)
+      .set({
+        datos_recarga: {
+          estado: "Aceptado",
+          monto_descontado: monto_descontado,
+          monto_restante: monto_restante,
+          precio_soles: precio_soles,
+          tipo_paquete: tipo_paquete || "Gen IA",
+        },
+        datos_tienda: {
+          id_tienda: id_tienda,
+          localidad_tienda: localidad,
+          nombre_tienda: nombre_tienda,
+        },
+        hora_fecha: { fecha, hora },
+        id_transaccion: id_transaccion,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        tipo_transacción: "descuento",
+      });
+
+    console.log("✅ Historial financiero guardado");
+
+    // ── Retorno al cliente ──────────────────────────────────────────
+    return { ok: true, descripcion };
+
   } catch (error) {
+    console.error("💥 ERROR GENERAL generar_descripcion_whatsapp_ia:", {
+      message: error?.message,
+      stack: error?.stack,
+    });
     if (error instanceof HttpsError) throw error;
-
-    console.error("ERROR generar_descripcion_whatsapp_ia:", error);
-
-    throw new HttpsError(
-      "internal",
-      error.message || "Error generando descripción para WhatsApp",
-    );
+    throw new HttpsError("internal", error.message || "Error generando descripción para WhatsApp");
   }
 });
 
@@ -459,8 +907,8 @@ exports.crearPromocion = onCall(async (request) => {
       servicios_comodidades = {},
       terminos_clave_ia,
       imagenes_base64 = [],
-      urls_imagenes = [], // ✅ nuevo — URLs ya subidas desde el front
-      img_bot: img_bot_param = "", // ✅ nuevo — bot URL desde el front
+      urls_imagenes = [],   // ✅ nuevo — URLs ya subidas desde el front
+      img_bot: img_bot_param = "",  // ✅ nuevo — bot URL desde el front
       logo_url = "",
     } = data;
 
@@ -471,10 +919,7 @@ exports.crearPromocion = onCall(async (request) => {
 
     // ✅ Acepta imágenes desde front (urls_imagenes) O base64
     if (imagenes_base64.length === 0 && urls_imagenes.length === 0) {
-      throw new HttpsError(
-        "invalid-argument",
-        "Debes subir al menos una imagen",
-      );
+      throw new HttpsError("invalid-argument", "Debes subir al menos una imagen");
     }
 
     console.log("📌 terminos_clave_ia:", terminos_clave_ia);
@@ -495,11 +940,7 @@ exports.crearPromocion = onCall(async (request) => {
         const bucket = admin.storage().bucket();
         const resultUrls = [];
         for (let idx = 0; idx < imagenes_base64.length; idx++) {
-          const {
-            base64,
-            nombre,
-            mimeType = "image/jpeg",
-          } = imagenes_base64[idx];
+          const { base64, nombre, mimeType = "image/jpeg" } = imagenes_base64[idx];
           const buffer = Buffer.from(base64, "base64");
           const path = `promociones/${localidad}/${id_tienda}/${id_promocion}/${nombre || `img_${idx}.jpg`}`;
           const file = bucket.file(path);
@@ -512,21 +953,15 @@ exports.crearPromocion = onCall(async (request) => {
 
       const subirConReintento = async (intentos = 3) => {
         for (let i = 0; i < intentos - 1; i++) {
-          try {
-            return await subirImagenes();
-          } catch (e) {
-            console.warn(`Intento ${i + 1} fallido:`, e.message);
-          }
+          try { return await subirImagenes(); }
+          catch (e) { console.warn(`Intento ${i + 1} fallido:`, e.message); }
         }
         return await subirImagenes();
       };
 
       urls = await subirConReintento(3);
       if (urls.length !== imagenes_base64.length) {
-        throw new HttpsError(
-          "internal",
-          "No se pudieron subir todas las imágenes",
-        );
+        throw new HttpsError("internal", "No se pudieron subir todas las imágenes");
       }
       img_bot = urls[0] ?? null;
     }
@@ -548,8 +983,7 @@ exports.crearPromocion = onCall(async (request) => {
     // ── PASO 3: Crear promoción completa ──────────────────
     const terminosClave =
       Array.isArray(terminos_clave_ia) && terminos_clave_ia.length > 0
-        ? terminos_clave_ia
-        : [];
+        ? terminos_clave_ia : [];
 
     const comodidadesArray = [];
     const comodidadMap = {
@@ -580,16 +1014,10 @@ exports.crearPromocion = onCall(async (request) => {
 
     const nowTimestamp = admin.firestore.Timestamp.now();
     const tsInicio = timestamp_inicio
-      ? new admin.firestore.Timestamp(
-          timestamp_inicio.seconds,
-          timestamp_inicio.nanoseconds,
-        )
+      ? new admin.firestore.Timestamp(timestamp_inicio.seconds, timestamp_inicio.nanoseconds)
       : nowTimestamp;
     const tsFin = timestamp_fin
-      ? new admin.firestore.Timestamp(
-          timestamp_fin.seconds,
-          timestamp_fin.nanoseconds,
-        )
+      ? new admin.firestore.Timestamp(timestamp_fin.seconds, timestamp_fin.nanoseconds)
       : nowTimestamp;
 
     const precioNum = parseInt(precio) || 0;
@@ -630,8 +1058,7 @@ exports.crearPromocion = onCall(async (request) => {
         },
         whatsapp: {
           activo_o_no: activo_mensaje_whatsapp,
-          msje_predermindo:
-            mensaje_whatsapp || "Hola, quiero esta oferta que vi Geinz:",
+          msje_predermindo: mensaje_whatsapp || "Hola, quiero esta oferta que vi Geinz:",
         },
       },
       pagos: pagosArray,
@@ -656,7 +1083,7 @@ exports.crearPromocion = onCall(async (request) => {
       horario_publicacion: horario_seleccion,
       id_promocion,
       id_tienda,
-      imagen_promo: img_bot || "", // ✅ usa la bot URL correcta
+      imagen_promo: img_bot || "",   // ✅ usa la bot URL correcta
       localidad: localidad.toLowerCase(),
       nombre_tienda: nombre_tienda || "",
       objectID: id_promocion,
@@ -669,9 +1096,7 @@ exports.crearPromocion = onCall(async (request) => {
       timestamp_inicio: tsInicio.seconds * 1000,
     };
 
-    const ref3 = db
-      .collection("promociones_filtrado_algolia")
-      .doc(id_promocion);
+    const ref3 = db.collection("promociones_filtrado_algolia").doc(id_promocion);
 
     await Promise.all([
       ref1.set(promocionData, { merge: true }),
@@ -685,11 +1110,14 @@ exports.crearPromocion = onCall(async (request) => {
       localidad,
       mensaje: "Promoción guardada exitosamente",
     };
+
   } catch (error) {
     console.error("Error crearPromocion:", error);
     throw new HttpsError("internal", error.message);
   }
 });
+const { v4: uuidv4 } = require("uuid");
+
 
 exports.pagar_plan__usuario = onCall(async (request) => {
   console.log("🚀 [pagar_plan] Iniciando función...");
@@ -701,23 +1129,11 @@ exports.pagar_plan__usuario = onCall(async (request) => {
     // ─────────────────────────────
     // VALIDACIONES
     // ─────────────────────────────
-    console.log(
-      "🔍 [validaciones] id_tienda:",
-      id_tienda,
-      "| localidad:",
-      localidad,
-      "| dias_extra:",
-      dias_extra,
-      "| monedas_costo:",
-      monedas_costo,
-    );
+    console.log("🔍 [validaciones] id_tienda:", id_tienda, "| localidad:", localidad, "| dias_extra:", dias_extra, "| monedas_costo:", monedas_costo);
 
     if (!id_tienda || !localidad) {
       console.error("❌ [validaciones] Faltan id_tienda o localidad");
-      throw new HttpsError(
-        "invalid-argument",
-        "Faltan parámetros: id_tienda o localidad",
-      );
+      throw new HttpsError("invalid-argument", "Faltan parámetros: id_tienda o localidad");
     }
     if (!dias_extra || typeof dias_extra !== "number") {
       console.error("❌ [validaciones] dias_extra inválido:", dias_extra);
@@ -725,10 +1141,7 @@ exports.pagar_plan__usuario = onCall(async (request) => {
     }
     if (!monedas_costo || typeof monedas_costo !== "number") {
       console.error("❌ [validaciones] monedas_costo inválido:", monedas_costo);
-      throw new HttpsError(
-        "invalid-argument",
-        "monedas_costo debe ser un número",
-      );
+      throw new HttpsError("invalid-argument", "monedas_costo debe ser un número");
     }
     console.log("✅ [validaciones] OK");
 
@@ -754,18 +1167,13 @@ exports.pagar_plan__usuario = onCall(async (request) => {
     console.log("📄 [firestore] doc existe:", doc.exists);
 
     if (!doc.exists) {
-      console.error(
-        "❌ [firestore] Tienda no encontrada en:",
-        refServicio.path,
-      );
+      console.error("❌ [firestore] Tienda no encontrada en:", refServicio.path);
       throw new HttpsError("not-found", "Tienda no encontrada");
     }
 
     const data = doc.data();
-    console.log(
-      "📄 [firestore] panel_admin actual:",
-      JSON.stringify(data?.panel_admin),
-    );
+    console.log("📄 [firestore] panel_admin actual:", JSON.stringify(data?.panel_admin));
+    console.log("📄 [firestore] nombre_tienda:", data?.nombre_tienda);
 
     // ─────────────────────────────
     // FECHA ACTUAL DEL PLAN
@@ -778,10 +1186,7 @@ exports.pagar_plan__usuario = onCall(async (request) => {
       console.log("📅 [fecha] timestamp_fin actual:", actual.toISOString());
       if (actual > fechaActual) {
         fechaActual = actual;
-        console.log(
-          "📅 [fecha] Plan aún vigente → extendiendo desde:",
-          actual.toISOString(),
-        );
+        console.log("📅 [fecha] Plan aún vigente → extendiendo desde:", actual.toISOString());
       } else {
         console.log("📅 [fecha] Plan vencido → extendiendo desde hoy");
       }
@@ -800,17 +1205,10 @@ exports.pagar_plan__usuario = onCall(async (request) => {
     const yyyy = nuevaFecha.getFullYear();
     const fecha_fin = `${dd}/${mm}/${yyyy}`;
 
-    console.log(
-      "📅 [fecha] dias_extra:",
-      dias_extra,
-      "| nueva fecha_fin:",
-      fecha_fin,
-      "| ISO:",
-      nuevaFecha.toISOString(),
-    );
+    console.log("📅 [fecha] dias_extra:", dias_extra, "| nueva fecha_fin:", fecha_fin, "| ISO:", nuevaFecha.toISOString());
 
     // ─────────────────────────────
-    // DATOS HORA / FECHA LIMA
+    // DATOS DEL HISTORIAL
     // ─────────────────────────────
     const ahora = new Date();
     const horaStr = ahora.toLocaleTimeString("es-PE", {
@@ -826,63 +1224,47 @@ exports.pagar_plan__usuario = onCall(async (request) => {
       timeZone: "America/Lima",
     });
 
-    console.log(
-      "🕐 [historial] hora Lima:",
-      horaStr,
-      "| fecha Lima:",
-      fechaStr,
-    );
+    console.log("🕐 [historial] hora Lima:", horaStr, "| fecha Lima:", fechaStr);
 
     const id_transaccion = uuidv4();
     console.log("🔑 [historial] id_transaccion generado:", id_transaccion);
 
+    const datosRecarga = {
+      estado: "Aceptado",
+      monto_descontado: monedas_costo,
+      monto_restante: monto_restante,
+      precio_soles: (monedas_costo / 100).toFixed(2),
+      tipo_paquete: `Panel activo por ${dias_extra === 30 ? "1 mes" : dias_extra + " días"}`,
+      datos_tienda: {                          // ← sub-mapa
+        id_tienda,
+        localidad_tienda: localidad,
+        nombre_tienda: nombreTienda,
+      },
+      hora_fecha: {                            // ← sub-mapa
+        fecha: fechaStr,
+        hora: horaStr,
+      },
+      id_transaccion: id_transaccion,
+      timestamp: admin.firestore.Timestamp.now(),
+      tipo_transacción: "descuento",
+    };
+
     // ─────────────────────────────
-    // LEER PUNTOS Y NOMBRE (PRIMERO)
+    // LEER PUNTOS ACTUALES
     // ─────────────────────────────
     console.log("💰 [puntos] Leyendo puntos actuales de:", refTienda.path);
     const tiendaDoc = await refTienda.get();
     console.log("💰 [puntos] tiendaDoc existe:", tiendaDoc.exists);
 
-    const tiendaData = tiendaDoc.exists ? tiendaDoc.data() : {};
-    const puntosActuales = tiendaData?.puntos_tienda ?? 0;
-    const nombreTienda = tiendaData?.nombre_tienda ?? "";
+    const puntosActuales = tiendaDoc.exists
+      ? (tiendaDoc.data()?.puntos_tienda ?? 0)
+      : 0;
+
     const monto_restante = puntosActuales - monedas_costo;
+    datosRecarga.monto_restante = monto_restante;
 
-    console.log(
-      "💰 [puntos] actuales:",
-      puntosActuales,
-      "| a descontar:",
-      monedas_costo,
-      "| restante:",
-      monto_restante,
-    );
-
-    // ─────────────────────────────
-    // ARMAR DOCUMENTO HISTORIAL
-    // ─────────────────────────────
-    const docHistorial = {
-      id_transaccion,
-      tipo_transacción: "descuento",
-      hora_fecha: {
-        fecha: fechaStr,
-        hora: horaStr,
-      },
-      datos_tienda: {
-        nombre_tienda: nombreTienda,
-        id_tienda,
-        localidad_tienda: localidad,
-      },
-      datos_recarga: {
-        tipo_paquete: `Panel activo por ${dias_extra === 30 ? "1 mes" : dias_extra + " días"}`,
-        monto_descontado: monedas_costo,
-        precio_soles: (monedas_costo / 100).toFixed(2),
-        estado: "Aceptado",
-        monto_restante,
-      },
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    };
-
-    console.log("📦 [historial] docHistorial:", JSON.stringify(docHistorial));
+    console.log("💰 [puntos] actuales:", puntosActuales, "| a descontar:", monedas_costo, "| restante:", monto_restante);
+    console.log("📦 [historial] datosRecarga completo:", JSON.stringify(datosRecarga));
 
     // ─────────────────────────────
     // 3 ESCRITURAS EN PARALELO
@@ -895,20 +1277,16 @@ exports.pagar_plan__usuario = onCall(async (request) => {
     console.log("✍️ [escrituras] 3 → puntos_tienda en:", refTienda.path);
 
     await Promise.all([
-      // 1. Actualizar fecha del panel en tiendas_servicios_geinz_activos
       refServicio.update({
         "panel_admin.fecha_fin": fecha_fin,
-        "panel_admin.timestamp_fin":
-          admin.firestore.Timestamp.fromDate(nuevaFecha),
+        "panel_admin.timestamp_fin": admin.firestore.Timestamp.fromDate(nuevaFecha),
       }),
 
-      // 2. Guardar historial en historial_financiero
       refTienda
         .collection("historial_financiero")
         .doc(id_transaccion)
-        .set(docHistorial),
+        .set({ datos_recarga: datosRecarga }),
 
-      // 3. Descontar puntos en tienda principal
       refTienda.update({
         puntos_tienda: admin.firestore.FieldValue.increment(-monedas_costo),
       }),
@@ -930,6 +1308,7 @@ exports.pagar_plan__usuario = onCall(async (request) => {
 
     console.log("📤 [respuesta] Enviando:", JSON.stringify(respuesta));
     return respuesta;
+
   } catch (error) {
     console.error("❌ [pagar_plan] ERROR CAPTURADO:");
     console.error("   mensaje:", error.message);
