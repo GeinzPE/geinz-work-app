@@ -36,7 +36,10 @@ const {
   generar_texto_compartir_ia,
   generar_whatsapp_contacto_ia,
   generar_titulo_descripcion_IA,
-  crearPromocion, extraerTerminosClaveIA, generar_descripcion_whatsapp_ia, pagar_plan__usuario
+  crearPromocion,
+  extraerTerminosClaveIA,
+  generar_descripcion_whatsapp_ia,
+  pagar_plan__usuario,
 } = require("./generacions_IA");
 
 exports.obtener_creditos_tienda = obtener_creditos_tienda;
@@ -377,6 +380,11 @@ exports.buscarNegocios_para_solucionar = onRequest(
 exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
   try {
     const { localidad, nombre, search } = req.body;
+    console.log("🔍 [buscar_tienda] Parámetros recibidos:", {
+      localidad,
+      nombre,
+      search,
+    });
 
     // =========================================================
     // 🔥 FILTROS
@@ -388,13 +396,17 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
       filters.push(`lugar:"${localidad}"`);
     }
 
+    console.log("🔧 [buscar_tienda] Filtros aplicados:", filters);
+
     // =========================================================
     // 🔥 QUERY
     // =========================================================
 
     const query = (nombre || "").toLowerCase().trim();
+    console.log("🔎 [buscar_tienda] Query normalizado:", query);
 
     if (!query) {
+      console.warn("⚠️ [buscar_tienda] Query vacío, retornando lista vacía");
       return res.status(200).json({
         ok: true,
         total: 0,
@@ -406,15 +418,13 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
     // 🔥 BÚSQUEDA NORMAL ALGOLIA
     // =========================================================
 
+    console.log("🚀 [buscar_tienda] Iniciando búsqueda en Algolia...");
     let { hits } = await index.search(query, {
       filters: filters.join(" AND "),
-
       hitsPerPage: 10,
-
       typoTolerance: true,
       ignorePlurals: true,
       removeStopWords: true,
-
       attributesToRetrieve: [
         "objectID",
         "nombre",
@@ -429,6 +439,10 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
       ],
     });
 
+    console.log(
+      `✅ [buscar_tienda] Algolia retornó ${hits.length} hits normales`,
+    );
+
     // =========================================================
     // 🔥 RESULTADOS NORMALES
     // =========================================================
@@ -439,6 +453,10 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
         similarity: 1,
         match_keyword: query,
       }));
+      console.log(
+        "📦 [buscar_tienda] Hits normales mapeados:",
+        hits.map((h) => ({ id: h.objectID, nombre: h.nombre })),
+      );
     }
 
     // =========================================================
@@ -446,11 +464,13 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
     // =========================================================
 
     if (hits.length === 0) {
+      console.log(
+        "🔄 [buscar_tienda] Sin hits normales, iniciando fallback inteligente...",
+      );
+
       const { hits: hitsFallback } = await index.search("", {
         filters: filters.join(" AND "),
-
         hitsPerPage: 150,
-
         attributesToRetrieve: [
           "objectID",
           "nombre",
@@ -460,8 +480,14 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
           "imagen_bot",
           "parecidas",
           "tag",
+          "plantilla", // 👈 agregar
+          "msje_whatsapp", // 👈 agregar
         ],
       });
+
+      console.log(
+        `📥 [buscar_tienda] Fallback: ${hitsFallback.length} candidatos para comparar`,
+      );
 
       hits = hitsFallback
         .map((h) => {
@@ -474,13 +500,8 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
 
           if (typeof h.nombre === "string") {
             const value = h.nombre.toLowerCase();
-
             let score = similarity.stringSimilarity(query, value);
-
-            if (value.includes(query)) {
-              score += 0.2;
-            }
-
+            if (value.includes(query)) score += 0.2;
             if (score > bestScore) {
               bestScore = score;
               bestKeyword = h.nombre;
@@ -494,15 +515,9 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
           if (Array.isArray(h.parecidas)) {
             for (const p of h.parecidas) {
               if (typeof p !== "string") continue;
-
               const value = p.toLowerCase();
-
               let score = similarity.stringSimilarity(query, value);
-
-              if (value.includes(query)) {
-                score += 0.2;
-              }
-
+              if (value.includes(query)) score += 0.2;
               if (score > bestScore) {
                 bestScore = score;
                 bestKeyword = p;
@@ -517,15 +532,9 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
           if (Array.isArray(h.tag)) {
             for (const t of h.tag) {
               if (typeof t !== "string") continue;
-
               const value = t.toLowerCase();
-
               let score = similarity.stringSimilarity(query, value);
-
-              if (value.includes(query)) {
-                score += 0.15;
-              }
-
+              if (value.includes(query)) score += 0.15;
               if (score > bestScore) {
                 bestScore = score;
                 bestKeyword = t;
@@ -539,13 +548,8 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
 
           if (typeof h.categoria === "string") {
             const value = h.categoria.toLowerCase();
-
             let score = similarity.stringSimilarity(query, value);
-
-            if (value.includes(query)) {
-              score += 0.1;
-            }
-
+            if (value.includes(query)) score += 0.1;
             if (score > bestScore) {
               bestScore = score;
               bestKeyword = h.categoria;
@@ -557,23 +561,24 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
           // =====================================================
 
           if (bestScore >= 0.35) {
-            return {
-              ...h,
-              similarity: bestScore,
-              match_keyword: bestKeyword,
-            };
+            console.log(
+              `✅ [fallback] "${h.nombre}" pasó filtro → score: ${bestScore.toFixed(2)}, keyword: ${bestKeyword}`,
+            );
+            return { ...h, similarity: bestScore, match_keyword: bestKeyword };
           }
 
+          console.log(
+            `❌ [fallback] "${h.nombre}" descartado → score: ${bestScore.toFixed(2)}`,
+          );
           return null;
         })
-
         .filter(Boolean)
-
-        // 🔥 MEJORES RESULTADOS PRIMERO
         .sort((a, b) => b.similarity - a.similarity)
-
-        // 🔥 LIMITAR
         .slice(0, 10);
+
+      console.log(
+        `📊 [buscar_tienda] Fallback final: ${hits.length} hits seleccionados`,
+      );
     }
 
     // =========================================================
@@ -581,6 +586,7 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
     // =========================================================
 
     const ids = hits.map((h) => h.objectID);
+    console.log("🆔 [buscar_tienda] IDs a consultar en Firestore:", ids);
 
     // =========================================================
     // 🔥 IDS CON Y SIN FLAG
@@ -589,31 +595,53 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
     const idsConFlag = hits
       .filter((h) => h.plantilla === true)
       .map((h) => h.objectID);
-
     const idsSinFlag = hits
       .filter((h) => h.plantilla !== true)
       .map((h) => h.objectID);
+    console.log("🏷️ [buscar_tienda] IDs con plantilla:", idsConFlag);
+    console.log("🏷️ [buscar_tienda] IDs sin plantilla:", idsSinFlag);
 
     // =========================================================
     // 🔥 EXTRA DATA + CRÉDITOS EN PARALELO
     // =========================================================
 
+    console.log(
+      "⚡ [buscar_tienda] Consultando extraData y créditos en paralelo...",
+    );
     const [extraData, creditosResults] = await Promise.all([
       obtenerDatosPorIds(localidad, ids),
       idsConFlag.length > 0
         ? Promise.all(
-          idsConFlag.map((id) =>
-            obtener_creditos_tienda_fn(id)
-              .then((r) => ({ id, mayor_a_100: r?.mayor_a_100 === true }))
-              .catch(() => ({ id, mayor_a_100: false })),
-          ),
-        )
+            idsConFlag.map((id) =>
+              obtener_creditos_tienda_fn(id)
+                .then((r) => {
+                  const mayor_a_100 = r?.creditos > 100; // 👈 calcular aquí
+                  console.log(
+                    `💰 [creditos] ${id} → creditos: ${r?.creditos} | mayor_a_100: ${mayor_a_100}`,
+                  );
+                  return { id, mayor_a_100 };
+                })
+                .catch((e) => {
+                  console.error(
+                    `❌ [creditos] Error obteniendo créditos para ${id}:`,
+                    e.message,
+                  );
+                  return { id, mayor_a_100: false };
+                }),
+            ),
+          )
         : Promise.resolve([]),
     ]);
+
+    console.log(
+      "✅ [buscar_tienda] extraData obtenida para IDs:",
+      Object.keys(extraData),
+    );
 
     const creditosMap = Object.fromEntries(
       creditosResults.map(({ id, mayor_a_100 }) => [id, mayor_a_100]),
     );
+    console.log("💳 [buscar_tienda] creditosMap:", creditosMap);
 
     // =========================================================
     // 🔥 RESPUESTA FINAL
@@ -621,61 +649,42 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
 
     const data = hits.map((hit) => {
       const extra = extraData[hit.objectID] || {};
-
-      // ✅ pla true solo si tiene plantilla Y más de 100 créditos
       const tienePlan =
         hit.plantilla === true && creditosMap[hit.objectID] === true;
-
-      // ✅ era plantilla pero sin créditos suficientes
       const eraPlantillaSinCreditos =
         hit.plantilla === true && creditosMap[hit.objectID] !== true;
 
+      console.log(
+        `🏪 [buscar_tienda] Mapeando tienda: ${hit.nombre} | plantilla: ${hit.plantilla} | tienePlan: ${tienePlan}`,
+      );
+
       const base = {
         id: hit.objectID,
-
         tienda: hit.nombre || "",
-
         open_state: verificar_apertura_tienda(extra.horario),
-
         match_keyword: hit.match_keyword || null,
-
         similarity: Number((hit.similarity || 0).toFixed(2)),
       };
-
-      // =====================================================
-      // 🔥 RESPUESTA SIMPLE
-      // =====================================================
 
       if (search === true) {
         return base;
       }
 
-      // =====================================================
-      // 🔥 RESPUESTA COMPLETA
-      // =====================================================
-
       return {
         ...base,
-
         desc: (hit.descripcion || "").substring(0, 150),
-
         loc: hit.lugar || "",
-
         cat: hit.categoria || "",
-
         img: hit.imagen_bot || "",
-
         wha: extra.whatsapp || "",
-
         pla: tienePlan,
-
         ...(eraPlantillaSinCreditos && { era_plantilla: true }),
-
         msje_pla_wa: hit.msje_whatsapp || "",
-
         tipo: "tienda",
       };
     });
+
+    console.log(`🎯 [buscar_tienda] Respuesta final: ${data.length} tiendas`);
 
     // =========================================================
     // 🔥 RESPONSE
@@ -683,14 +692,12 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
 
     return res.status(200).json({
       ok: true,
-
       total: data.length,
-
       data,
     });
   } catch (error) {
-    console.error("❌ Error búsqueda tienda:", error);
-
+    console.error("❌ [buscar_tienda] Error general:", error.message);
+    console.error("❌ [buscar_tienda] Stack:", error.stack);
     return res.status(500).json({
       ok: false,
       error: error.message,
@@ -759,12 +766,12 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
       obtenerDatosPorIds(localidad, ids),
       idsConFlag.length > 0
         ? Promise.all(
-          idsConFlag.map((id) =>
-            obtener_creditos_tienda_fn(id)
-              .then((r) => ({ id, mayor_a_100: r?.mayor_a_100 === true }))
-              .catch(() => ({ id, mayor_a_100: false })),
-          ),
-        )
+            idsConFlag.map((id) =>
+              obtener_creditos_tienda_fn(id)
+                .then((r) => ({ id, mayor_a_100: r?.creditos > 100 })) // 👈
+                .catch(() => ({ id, mayor_a_100: false })),
+            ),
+          )
         : Promise.resolve([]),
     ]);
 
@@ -1466,7 +1473,7 @@ async function emitirBoletaNubefact({
 // Función helper para guardar PDF en Storage
 async function guardarPDFEnStorage(pdfUrl, idTransaccion, idTienda) {
   try {
-    const response = await axios.get(pdfUrl, { responseType: 'arraybuffer' });
+    const response = await axios.get(pdfUrl, { responseType: "arraybuffer" });
     const pdfBuffer = Buffer.from(response.data);
 
     const bucket = admin.storage().bucket();
@@ -1474,18 +1481,17 @@ async function guardarPDFEnStorage(pdfUrl, idTransaccion, idTienda) {
     const file = bucket.file(filePath);
 
     await file.save(pdfBuffer, {
-      metadata: { contentType: 'application/pdf' },
+      metadata: { contentType: "application/pdf" },
       public: true, // 👈 acceso público permanente
     });
 
     // URL pública directa de Storage (no expira)
     const urlPublica = `https://storage.googleapis.com/${bucket.name}/${filePath}`;
 
-    console.log('✅ PDF subido a Storage:', urlPublica);
+    console.log("✅ PDF subido a Storage:", urlPublica);
     return urlPublica;
-
   } catch (error) {
-    console.error('❌ Error guardando PDF en Storage:', error);
+    console.error("❌ Error guardando PDF en Storage:", error);
     throw error;
   }
 }
@@ -1499,11 +1505,11 @@ async function guardarURLComprobanteFirestore({
 }) {
   // En el historial financiero (merge para no pisar datos)
   await db
-    .collection('Tiendas')
+    .collection("Tiendas")
     .doc(localidad)
     .collection(localidad)
     .doc(idTienda)
-    .collection('historial_financiero')
+    .collection("historial_financiero")
     .doc(idTransaccion)
     .set(
       {
@@ -1517,16 +1523,13 @@ async function guardarURLComprobanteFirestore({
 
   // También en pagos_tiendas para acceso rápido
   await db
-    .collection('Tiendas')
+    .collection("Tiendas")
     .doc(localidad)
-    .collection('pagos_tiendas')
+    .collection("pagos_tiendas")
     .doc(idTransaccion)
-    .set(
-      { url_comprobante: urlPDF },
-      { merge: true },
-    );
+    .set({ url_comprobante: urlPDF }, { merge: true });
 
-  console.log('✅ URL guardada en Firestore');
+  console.log("✅ URL guardada en Firestore");
 }
 /**
  * Emite un comprobante electrónico (Boleta o Factura) vía NubeFacT.
@@ -1738,6 +1741,7 @@ async function agregar_historial_de_pagos_tienda({
   precio_soles,
   estado,
   monto_anterior,
+  enviarNotificacion = true, // ← NUEVO: por defecto true, pasar false para historial de deuda
 }) {
   console.log("🚀 INICIANDO PROCESO PAGO COMPLETO");
 
@@ -1785,7 +1789,7 @@ async function agregar_historial_de_pagos_tienda({
     await historialRef.set(data);
     console.log("✅ HISTORIAL GUARDADO");
 
-    //  LUEGO ACTUALIZAS PAGO
+    // LUEGO ACTUALIZAS PAGO
     const pagoRef = db
       .collection("Tiendas")
       .doc(localidad_tienda)
@@ -1811,49 +1815,53 @@ async function agregar_historial_de_pagos_tienda({
         pago_actual_id: admin.firestore.FieldValue.delete(),
       });
 
-    //  OBTENER PROPIETARIOS
-    const tiendaDoc = await db
-      .collection("Tiendas")
-      .doc(localidad_tienda)
-      .collection(localidad_tienda)
-      .doc(id_tienda)
-      .get();
-
-    const propietarios = tiendaDoc.data()?.propietario_id || [];
-    const mensajesRandom = [
-      "🚀 Mira tus beneficios y sácales provecho.",
-      "📈 Disfruta tu recarga y haz crecer tu negocio.",
-      "💡 Aprovecha al máximo tus créditos disponibles.",
-      "🔥 Es momento de impulsar tu tienda.",
-      "✨ Dale más visibilidad a tu negocio ahora.",
-      "🎯 Usa tus créditos estratégicamente y destaca.",
-      "🛍️ Atrae más clientes con tus nuevas opciones.",
-      "📊 Haz que tu tienda crezca con esta recarga.",
-    ];
-    // ENVIAR NOTIFICACIONES
-    for (const propietarioId of propietarios) {
-      const tokenDoc = await db
-        .collection("Trabajadores_Usuarios_Drivers")
-        .doc("users")
-        .collection("tokens")
-        .doc(propietarioId)
+    // ── NOTIFICACIONES (solo si está habilitado) ──
+    if (enviarNotificacion) {
+      const tiendaDoc = await db
+        .collection("Tiendas")
+        .doc(localidad_tienda)
+        .collection(localidad_tienda)
+        .doc(id_tienda)
         .get();
 
-      const tokens = Object.values(tokenDoc.data()?.tokens || {});
+      const propietarios = tiendaDoc.data()?.propietario_id || [];
+      const mensajesRandom = [
+        "🚀 Mira tus beneficios y sácales provecho.",
+        "📈 Disfruta tu recarga y haz crecer tu negocio.",
+        "💡 Aprovecha al máximo tus créditos disponibles.",
+        "🔥 Es momento de impulsar tu tienda.",
+        "✨ Dale más visibilidad a tu negocio ahora.",
+        "🎯 Usa tus créditos estratégicamente y destaca.",
+        "🛍️ Atrae más clientes con tus nuevas opciones.",
+        "📊 Haz que tu tienda crezca con esta recarga.",
+      ];
 
-      for (const token of tokens) {
-        const mensajeExtra =
-          mensajesRandom[Math.floor(Math.random() * mensajesRandom.length)];
+      for (const propietarioId of propietarios) {
+        const tokenDoc = await db
+          .collection("Trabajadores_Usuarios_Drivers")
+          .doc("users")
+          .collection("tokens")
+          .doc(propietarioId)
+          .get();
 
-        await enviarNotificacionFCM_tienda({
-          token,
-          title: "¡Recarga Exitosa! 🎉",
-          body: `👋 Hola ${nombre_tienda} Tu recarga de ${monto_aumentado} creditos fue procesada correctamente. ${mensajeExtra}`,
-          idTienda: id_tienda,
-          tipo_notificacion: "pago",
-          prioridad: "high",
-        });
+        const tokens = Object.values(tokenDoc.data()?.tokens || {});
+
+        for (const token of tokens) {
+          const mensajeExtra =
+            mensajesRandom[Math.floor(Math.random() * mensajesRandom.length)];
+
+          await enviarNotificacionFCM_tienda({
+            token,
+            title: "¡Recarga Exitosa! 🎉",
+            body: `👋 Hola ${nombre_tienda} Tu recarga de ${monto_aumentado} creditos fue procesada correctamente. ${mensajeExtra}`,
+            idTienda: id_tienda,
+            tipo_notificacion: "pago",
+            prioridad: "high",
+          });
+        }
       }
+    } else {
+      console.log("🔕 Notificación de recarga omitida (registro de deuda)");
     }
 
     console.log("🧹 campo pago_actual_id eliminado");
@@ -1884,12 +1892,14 @@ exports.confirmarPago = onCall(async (req) => {
     monto_anterior,
     id_select_boleta_pago,
   } = req.data;
+
   const ahora = new Date();
-  const mes = String(ahora.getMonth() + 1).padStart(2, '0'); // "05"
-  const anio = ahora.getFullYear();                            // 2026
-  const idConFecha = `${mes}-${anio}-${id_select_boleta_pago}`;
+  const mes = String(ahora.getMonth() + 1).padStart(2, "0");
+  const anio = ahora.getFullYear();
+  const idConFecha = id_select_boleta_pago;
   const tieneDeudaBool = tiene_deuda === true || tiene_deuda === "true";
   const deudaPendienteNum = Number(deuda_pendiente || 0);
+
   console.log("Tipo Comprobante (1:Fact, 2:Bol):", tipo_comprobante);
   console.log("🔍 Deuda check:", {
     tiene_deuda,
@@ -1915,6 +1925,7 @@ exports.confirmarPago = onCall(async (req) => {
     saldo_previo: monto_anterior,
     ubicacion: localidad,
   });
+
   try {
     const response = await axios.post(
       "https://api.culqi.com/v2/charges",
@@ -1943,9 +1954,9 @@ exports.confirmarPago = onCall(async (req) => {
     );
 
     const charge = response.data;
-
     console.log("CULQI RESPONSE:", charge);
 
+    // ── 1. Historial recarga principal (CON notificación "Recarga exitosa") ──
     await agregar_historial_de_pagos_tienda({
       id_transaccion: idConFecha,
       tipo_transaccion: "recarga",
@@ -1958,10 +1969,12 @@ exports.confirmarPago = onCall(async (req) => {
       precio_soles: monto.toString(),
       estado: "Aceptado",
       monto_anterior: monto_anterior,
+      enviarNotificacion: true, // ← notifica "Recarga exitosa"
     });
 
     const numero = await sumarSaldo(userId, monedas);
 
+    // ── 2. Bloque de deuda ──
     if (tieneDeudaBool && deudaPendienteNum > 0) {
       try {
         console.log("💳 Eliminando deuda pendiente:", deuda_pendiente);
@@ -1977,41 +1990,27 @@ exports.confirmarPago = onCall(async (req) => {
           console.log("✅ deuda eliminada:", resultadoDeuda);
         }
 
-        console.log("✅ deuda eliminada");
-
-        /* ═══════════════════════════════════════
-       HISTORIAL DESCUENTO DEUDA
-    ════════════════════════════════════════ */
-
         const deuda_soles = (Number(deuda_pendiente || 0) / 100).toFixed(2);
 
+        // Historial descuento deuda SIN notificación (para no duplicar)
         await agregar_historial_de_pagos_tienda({
           id_transaccion: `${id_select_boleta_pago}_deuda`,
-
           tipo_transaccion: "descuento_deuda",
-
           metodo_pago: "saldo_automatico",
-
           nombre_tienda: nombre_tienda,
-
           id_tienda: userId,
-
           localidad_tienda: localidad,
-
           tipo_paquete: "Débito automático Geinz",
-
           monto_aumentado: Number(deuda_pendiente || 0),
-
           precio_soles: deuda_soles,
-
           estado: "Aceptado",
-
           monto_anterior: 0,
+          enviarNotificacion: false, // ← NO notifica, evita el duplicado
         });
 
         console.log("🧾 historial deuda guardado");
 
-        // 🔔 Notificación deuda cancelada
+        // Notificación "Deuda cancelada" — única, enviada aquí
         try {
           const tiendaDoc = await db
             .collection("Tiendas")
@@ -2057,7 +2056,7 @@ exports.confirmarPago = onCall(async (req) => {
       }
     }
 
-    // Dentro del try de confirmarPago, donde llamas a emitirComprobanteGeinz:
+    // ── 3. Comprobante NubeFact ──
     try {
       const urlNubefact = await emitirComprobanteGeinz({
         tipoComprobante: tipo_comprobante,
@@ -2067,17 +2066,15 @@ exports.confirmarPago = onCall(async (req) => {
         monedas,
         chargeId: charge.id,
         monto,
-        email: 'cliente@geinz.com',
+        email: "cliente@geinz.com",
       });
 
-      // 1. Guardar en Storage y obtener URL permanente
       const urlPDFStorage = await guardarPDFEnStorage(
         urlNubefact,
         idConFecha,
-        userId
+        userId,
       );
 
-      // 2. Guardar URL en Firestore (merge sobre el historial ya creado)
       await guardarURLComprobanteFirestore({
         idTransaccion: idConFecha,
         idTienda: userId,
@@ -2085,8 +2082,7 @@ exports.confirmarPago = onCall(async (req) => {
         urlPDF: urlPDFStorage,
       });
 
-      // 3. Enviar plantilla WhatsApp con la URL del PDF
-      if (typeof numero === 'string' && numero.length >= 9) {
+      if (typeof numero === "string" && numero.length >= 9) {
         await enviarPlantillaWhatsApp({
           numero,
           nombreTienda: nombre_tienda,
@@ -2095,19 +2091,19 @@ exports.confirmarPago = onCall(async (req) => {
         });
       }
 
-      // Notificar a admin igual que antes
       enviarWhatsApp(
         937659216,
         `✅ *Pago exitoso en Geinz*\n` +
-        `🏪 *Negocio:* ${nombre_tienda}\n` +
-        `💰 *Monto:* S/ ${monto}\n` +
-        `🪙 *Monedas:* ${monedas}\n` +
-        `🧾 *Comprobante:* ${urlPDFStorage}`,
+          `🏪 *Negocio:* ${nombre_tienda}\n` +
+          `💰 *Monto:* S/ ${monto}\n` +
+          `🪙 *Monedas:* ${monedas}\n` +
+          `🧾 *Comprobante:* ${urlPDFStorage}`,
       );
-
     } catch (nubefactErr) {
-      console.error('⚠️ Nubefact/Storage falló:', nubefactErr.response?.data || nubefactErr.message);
-      // El pago ya se procesó, solo log del error
+      console.error(
+        "⚠️ Nubefact/Storage falló:",
+        nubefactErr.response?.data || nubefactErr.message,
+      );
     }
 
     return {
@@ -2116,7 +2112,6 @@ exports.confirmarPago = onCall(async (req) => {
     };
   } catch (error) {
     const culqiError = error.response?.data;
-
     console.error("ERROR CHARGE:", culqiError || error.message);
 
     const motivo = culqiError?.user_message || "Error en el pago";
@@ -2124,60 +2119,64 @@ exports.confirmarPago = onCall(async (req) => {
     await enviarWhatsApp(
       "937659216",
       `❌ *Pago rechazado en Geinz*\n\n` +
-      `🏪 *Negocio:* ${nombre_tienda}\n` +
-      `🆔 *ID:* ${userId}\n` +
-      `💰 *Monto:* S/ ${monto}\n` +
-      `⚠️ *Motivo:* ${motivo}\n` +
-      `📅 *Fecha:* ${new Date().toLocaleString("es-PE", { timeZone: "America/Lima" })}`,
+        `🏪 *Negocio:* ${nombre_tienda}\n` +
+        `🆔 *ID:* ${userId}\n` +
+        `💰 *Monto:* S/ ${monto}\n` +
+        `⚠️ *Motivo:* ${motivo}\n` +
+        `📅 *Fecha:* ${new Date().toLocaleString("es-PE", {
+          timeZone: "America/Lima",
+        })}`,
     );
 
     throw new HttpsError("failed-precondition", motivo);
   }
 });
 
-async function enviarPlantillaWhatsApp({ numero, nombreTienda, monedas, idTransaccion }) {
+async function enviarPlantillaWhatsApp({
+  numero,
+  nombreTienda,
+  monedas,
+  idTransaccion,
+}) {
   try {
     const telefono = `51${numero}`;
 
     const res = await axios.post(
       `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
       {
-        messaging_product: 'whatsapp',
+        messaging_product: "whatsapp",
         to: telefono,
-        type: 'template',
+        type: "template",
         template: {
           // 👇 El nombre exacto de tu plantilla en Meta
-          name: 'recarga',
-          language: { code: 'es' },
+          name: "recarga",
+          language: { code: "es" },
           components: [
             {
               // Header: {{1}} = emojis o texto del título
-              type: 'header',
-              parameters: [
-                { type: 'text', text: '🎉' },
-              ],
+              type: "header",
+              parameters: [{ type: "text", text: "🎉" }],
             },
             {
               // Body: {{1}} = nombre, {{2}} = monedas
-              type: 'body',
+              type: "body",
               parameters: [
-                { type: 'text', text: nombreTienda },
-                { type: 'text', text: `${monedas} créditos en Geinz` },
+                { type: "text", text: nombreTienda },
+                { type: "text", text: `${monedas} créditos en Geinz` },
               ],
             },
             {
               // Botón URL dinámico "ver comprobante"
-              type: 'button',
-              sub_type: 'url',
-              index: '0',
+              type: "button",
+              sub_type: "url",
+              index: "0",
               parameters: [
                 // Solo el SUFIJO dinámico de la URL
                 // Si tu URL base en Meta es: https://geinzworkapp.web.app/
                 // y urlComprobante es la URL completa de Storage,
                 // puedes usar la URL completa como sufijo si configuraste
                 // el botón como URL dinámica
-                { type: 'text', text: idTransaccion }, // 👈 solo el ID
-
+                { type: "text", text: idTransaccion }, // 👈 solo el ID
               ],
             },
           ],
@@ -2186,15 +2185,18 @@ async function enviarPlantillaWhatsApp({ numero, nombreTienda, monedas, idTransa
       {
         headers: {
           Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       },
     );
 
-    console.log('✅ Plantilla WhatsApp enviada:', res.data);
+    console.log("✅ Plantilla WhatsApp enviada:", res.data);
     return true;
   } catch (error) {
-    console.error('❌ Error enviando plantilla:', error.response?.data || error.message);
+    console.error(
+      "❌ Error enviando plantilla:",
+      error.response?.data || error.message,
+    );
     return false;
   }
 }
@@ -2257,6 +2259,8 @@ exports.verificar_usuario_asistente = onRequest(async (req, res) => {
 });
 
 // ==================== agregar_pago_del_usuario ====================
+
+// ==================== agregar_pago_del_usuario ====================
 exports.agregar_pago_para_el_usuario_tienda = onCall(async (req) => {
   const {
     id_tienda,
@@ -2269,6 +2273,7 @@ exports.agregar_pago_para_el_usuario_tienda = onCall(async (req) => {
     nombre_plan,
     monto_pagar_de_plan,
   } = req.data;
+
   if (!id_tienda || !nombre_user || !plan_select || !localdiad) {
     throw new Error("Faltan datos obligatorios");
   }
@@ -2316,11 +2321,17 @@ exports.agregar_pago_para_el_usuario_tienda = onCall(async (req) => {
       };
     }
 
-    //  SI NO EXISTE → CREAR NUEVO
-    pagoRef = pagosRef.doc();
+    // SI NO EXISTE → CREAR NUEVO con ID con fecha
+    const ahoraDoc = new Date();
+    const mesDoc = String(ahoraDoc.getMonth() + 1).padStart(2, "0");
+    const anioDoc = ahoraDoc.getFullYear();
+    const baseId = pagosRef.doc().id;
+    const nuevoId = `${mesDoc}-${anioDoc}-${baseId}`;
+
+    pagoRef = pagosRef.doc(nuevoId);
 
     const data = {
-      id_pago: pagoRef.id,
+      id_pago: pagoRef.id, // "05-2026-XXXXXXXXXXXX"
       id_tienda,
       nombre_user,
       plan_select,

@@ -265,6 +265,9 @@ fun pantalla_promocionar(
     var tipo_defecto by remember { mutableStateOf("") }
     var idSeleccionado by remember { mutableStateOf<String?>(null) }
     val cargar_precio_activacione by viewmodel_socios.preciosState.collectAsState()
+    var iaGenerandoActual by remember { mutableStateOf<String?>(null) }
+
+
 
 //val tituloDescripcion_por_imagen by viewmodel_socios.tituloDescripcion.collectAsState()
     LaunchedEffect(predeterminado.id_generacion_sin_publicar) {
@@ -377,6 +380,10 @@ fun pantalla_promocionar(
     val viewmodel_recargas: viewmodel_recargas = viewModel()
     val monedas_tienda by viewmodel_recargas.saldo.collectAsState()
     val estado by viewmodel_recargas.estadoNotificaciones.collectAsState()
+    fun saldoSuficiente(costo: Int): Boolean = monedas_tienda >= costo
+
+    fun puedeGenerarIA(btnId: String, costo: Int): Boolean =
+        iaGenerandoActual == null && saldoSuficiente(costo)
 
     val restantes = estado.restantes
     val fechaFin = estado.fechaFin
@@ -503,7 +510,11 @@ fun pantalla_promocionar(
             .find { it.titulo == datos.titulo_seleccionado && it.descripcion == datos.descripcion_seleccionada }
     }
     val estado_carga_gent_img_a_txt by viewmodel_pantalla_promocionar.estado_generacion_txt_img.collectAsState()
-
+    LaunchedEffect(cargar_precio_activacione) {
+        Log.d("PRECIOS_DEBUG", "mejoraTextoX3 = ${cargar_precio_activacione?.publicidad?.mejoraTextoX3}")
+        Log.d("PRECIOS_DEBUG", "objeto completo = ${cargar_precio_activacione?.publicidad}")
+        Log.d("PRECIOS_DEBUG", "todo = $cargar_precio_activacione")
+    }
     LaunchedEffect(estado_carga_gent_img_a_txt) {
         when(estado_carga_gent_img_a_txt){
             is viewmodel_pantallas_promocionar.Estado_carga_para_generar_txt_a_img.Error -> {
@@ -2794,139 +2805,190 @@ fun pantalla_promocionar(
 
             item {
                 spacer_vertical(5.dp)
-                val numero_campo = if (contacto_directo) {
-                    i.numero_contacto_tienda
-                } else {
-                    ""
-                }
 
                 val reglaImagen = imagenes.any { it.uri != null || it.url != null }
 
-                val reglaHora =
-                    hora_escrita.isNotEmpty() &&
-                            !error_horas_escritas
+                val reglaTituloDescripcion =
+                    viewmodel_pantalla_promocionar.titulo.isNotEmpty() &&
+                            viewmodel_pantalla_promocionar.descripcion.isNotEmpty()
 
-                val reglaFecha =
-                    fecha_fin.isNotEmpty() && dias_restantes_pr > 0
+                val reglaHora = seleccion.tipo == "horas" &&
+                        hora_escrita.isNotEmpty() &&
+                        !error_horas_escritas &&
+                        (hora_escrita.toIntOrNull() ?: 0) > 0
 
-// ─────────────────────────────
-// 2️⃣ Regla BASE (imagen + hora/fecha)
-// ─────────────────────────────
+                val reglaFecha = seleccion.tipo == "dias" &&
+                        fecha_fin.isNotEmpty() &&
+                        dias_restantes_pr > 0
 
-                val reglaBase =
-                    botonHabilitado &&
-                            reglaImagen &&
-                            (reglaHora || reglaFecha)
+                val reglaPlazo = reglaHora || reglaFecha
 
-// ─────────────────────────────
-// 3️⃣ Regla de ERRORES (finísima)
-// Si el flag está activo → NO debe haber error
-// Si no está activo → no bloquea
-// ─────────────────────────────
+                val reglaContacto = !contacto_directo || (
+                        numero_publicaicon.length == 9 &&
+                                !error_mostrado_numero_contacto &&
+                                mensaje_perzonalizado_txt.isNotBlank() &&
+                                !error_mostrado_msje_perzonalisado
+                        )
 
-                val reglaErrores =
-                    (!filtro_cercania || (!error_direccion_negocio && !error_referencia_negocio)) &&
-                            (!precio_encontrado || !error_precio) &&
-                            (!compartir || !error_mostrado_msje_perzonalisado_compartir) &&
-                            (!contacto_directo || (!error_mostrado_numero_contacto && !error_mostrado_msje_perzonalisado))
+                val reglaCompartir = !compartir || (
+                        mensaje_perzonalizado_txt_compartir.isNotBlank() &&
+                                !error_mostrado_msje_perzonalisado_compartir
+                        )
 
-// ─────────────────────────────
-// 4️⃣ VISIBILIDAD FINAL DEL BOTÓN
-// ─────────────────────────────
+                val reglaCercania = !filtro_cercania || (
+                        direccion_negocio.isNotBlank() &&
+                                !error_direccion_negocio &&
+                                referencia_negocio.isNotBlank() &&
+                                !error_referencia_negocio
+                        )
+
+                val reglaPrecio = !precio_encontrado || (
+                        precio_detectado.isNotBlank() &&
+                                !error_precio
+                        )
+
+                val reglaHorario = !horario_deseado || turnoSeleccionado != null
+
+                val reglaPago = !metodos_de_pago || (
+                        metodo_yape || metodo_plin || metodo_agora ||
+                                metodo_efectivo || metodo_visa || metodo_mastercard
+                        )
+
+                val reglaServicios = !servicios_y_comodidades ||
+                        serviciosEstado.values.any { it }
 
                 val visibleBoton =
-                    reglaBase &&
-                            reglaErrores
+                    reglaImagen &&
+                            reglaTituloDescripcion &&
+                            reglaPlazo &&
+                            reglaContacto &&
+                            reglaCompartir &&
+                            reglaCercania &&
+                            reglaPrecio &&
+                            reglaHorario &&
+                            reglaPago &&
+                            reglaServicios
 
-
-                AnimatedVisibility(
-                    visible = visibleBoton,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    Column() {
-
-                        Button(onClick = {
-                            val lista_uris: List<Uri> = imagenes.mapNotNull { it.uri }
-                            val fechafin = calcularTimestampFinal(hora_escrita, fecha_fin)
-                            val timeporestante = tiempoRestante(fechafin)
-                            mostrar_vista_previa_promos_cercanas_sin_clikear = true
-                            vista_previa_promo = carta_promociones_geinz_vista_previa(
-                                lista_img_uri = lista_uris,
-                                logo_img = i.img_tienda,
-                                nombre_tienda = i.nombre_tienda,
-                                titulo_publicacion = viewmodel_pantalla_promocionar.titulo,
-                                dias_restantes = timeporestante,
-                                compartir = contacto_directo,
-                                contactar = compartir
-                            )
-
-                        }, modifier = Modifier.fillMaxWidth()) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                texto_generico_one_line(
-                                    "vista previa",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Icon(
-                                    imageVector = Icons.Outlined.Visibility, // 👁 vista previa
-                                    contentDescription = "Vista previa",
-                                    modifier = Modifier.size(18.dp),
-                                    tint = Color.White
-
-                                )
-                            }
-                        }
-
-                        spacer_vertical(5.dp)
-                        Button(onClick = {
-                            mostrar_vista_previa_promos_cercanas = true
-                        }, modifier = Modifier.fillMaxWidth()) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                texto_generico_one_line(
-                                    "Vista previa clickeada",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Icon(
-                                    imageVector = Icons.Outlined.Visibility, // 👁 vista previa
-                                    contentDescription = "Vista previa",
-                                    modifier = Modifier.size(18.dp),
-                                    tint = Color.White
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Icon(
-                                    imageVector = Icons.Outlined.TouchApp, // 👆 click
-                                    contentDescription = "Click",
-                                    modifier = Modifier.size(18.dp),
-                                    tint = Color.White
-                                )
-
-
-                            }
-                        }
-
-
-
+                AnimatedVisibility(visible = visibleBoton, enter = fadeIn(), exit = fadeOut()) {
+                    Column {
                         spacer_vertical(17.dp)
                         CheckTerminoUnico(
                             checked = aceptoTerminos_promociones,
                             onCheckedChange = { aceptoTerminos_promociones = it },
                             textoAntes = "Estoy de acuerdo con los ",
                             textoLink = "términos de publicaciones",
-                            onClickLink = {
-                                mostrar_terminos_condiciones_promociones = true
-                            }
+                            onClickLink = { mostrar_terminos_condiciones_promociones = true }
                         )
-                        Button(enabled = aceptoTerminos_promociones, onClick = {
-                            if (monedas_tienda < monedas_costo_publicidad.toInt()) {
-                                Toast.makeText(context, "saldo insuficiente", Toast.LENGTH_SHORT)
-                                    .show()
-                            } else {
+
+                        Button(
+                            onClick = {       val lista_uris: List<Uri> = imagenes.mapNotNull { it.uri }
+                                val fechafin = calcularTimestampFinal(hora_escrita, fecha_fin)
+                                val timeporestante = tiempoRestante(fechafin)
+                                mostrar_vista_previa_promos_cercanas_sin_clikear = true
+                                vista_previa_promo = carta_promociones_geinz_vista_previa(
+                                    lista_img_uri = lista_uris,
+                                    logo_img = i.img_tienda,
+                                    nombre_tienda = i.nombre_tienda,
+                                    titulo_publicacion = viewmodel_pantalla_promocionar.titulo,
+                                    dias_restantes = timeporestante,
+                                    compartir = contacto_directo,
+                                    contactar = compartir
+                                )},
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surface
+                            )
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Visibility,
+                                    contentDescription = null,
+                                    tint = Color.White
+                                )
+                                spacer_horizonta(5.dp)
+                                texto_generico_one_line(
+                                    "Vista previa",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+
+                        spacer_vertical(8.dp)
+
+// 👆 VISTA PREVIA CLIQUEADA
+                        Button(
+                            onClick = { mostrar_vista_previa_promos_cercanas = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surface
+                            )
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Outlined.TouchApp,
+                                    contentDescription = null,
+                                    tint = Color.White
+                                )
+                                spacer_horizonta(5.dp)
+                                texto_generico_one_line(
+                                    "Vista previa clicada",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+
+                        spacer_vertical(8.dp)
+
+                        spacer_vertical(8.dp)
+
+                        Button(
+                            enabled = aceptoTerminos_promociones,
+                            onClick = {
+                                // ── VALIDACIÓN 1: WhatsApp requiere número ──
+                                if (contacto_directo && numero_publicaicon.length < 9) {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "Para activar contacto por WhatsApp debes ingresar un número válido de 9 dígitos",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                    return@Button
+                                }
+
+                                // ── VALIDACIÓN 2: Mensaje WhatsApp no vacío ──
+                                if (contacto_directo && mensaje_perzonalizado_txt.isBlank()) {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "El mensaje de WhatsApp no puede estar vacío",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                    return@Button
+                                }
+
+                                // ── VALIDACIÓN 3: Mensaje compartir no vacío ──
+                                if (compartir && mensaje_perzonalizado_txt_compartir.isBlank()) {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "El mensaje para compartir no puede estar vacío",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                    return@Button
+                                }
+
+                                // ── VALIDACIÓN 4: Saldo suficiente ──
+                                if (monedas_tienda < monedas_costo_publicidad.toInt()) {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "Saldo insuficiente para crear esta publicación",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                    return@Button
+                                }
+
+                                // ── Todo válido: crear publicación ──
                                 val datos_publicacion = agregar_promociones(
                                     formato_fecha_hora = seleccion.tipo,
                                     exclusivo = false,
@@ -2939,28 +3001,26 @@ fun pantalla_promocionar(
                                         id_tienda = id_socio,
                                         nombre_tienda = i.nombre_tienda,
                                         titulo = viewmodel_pantalla_promocionar.titulo,
-                                        numero = numero_campo,
+                                        numero = if (contacto_directo) numero_publicaicon else i.numero_contacto_tienda,
                                         compartir = compartir,
                                         contactar = contacto_directo,
                                     ),
                                     ubicacion = ubicacaion_container(
-                                        direccion = direccion_negocio.takeIf { filtro_cercania }
-                                            ?: "",
+                                        direccion = direccion_negocio.takeIf { filtro_cercania } ?: "",
                                         lat = i.ubicacion.lat.takeIf { filtro_cercania } ?: 0.0,
                                         long = i.ubicacion.long.takeIf { filtro_cercania } ?: 0.0,
-                                        referencia = referencia_negocio.takeIf { filtro_cercania }
-                                            ?: ""
+                                        referencia = referencia_negocio.takeIf { filtro_cercania } ?: ""
                                     ),
                                     datos_hora_fecha = datos_fecha_hora_tipo(
                                         fecha_inicio = fecha_inicio,
                                         fecha_fin = fecha_fin,
                                         hora_inicio = obtenerHoraActual(),
-                                        hora_fin =  obtenerHoraFin(hora_escrita.toInt()),
+                                        hora_fin = obtenerHoraFin(hora_escrita.toInt()),
                                         activo = true,
-                                        timestamp_inicio =  Timestamp.now(),
+                                        timestamp_inicio = Timestamp.now(),
                                         timestamp_fin = mostrarFechaDialog_horaDialog.obtenerTimestampFin(
                                             valor = if (seleccion.tipo == "dias") dias_restantes_pr else hora_escrita.toInt(),
-                                            tipo  = seleccion.tipo
+                                            tipo = seleccion.tipo
                                         )
                                     ),
                                     mensaje_predeterminado = msjes_predeteminados_generales(
@@ -2980,27 +3040,19 @@ fun pantalla_promocionar(
                                         generacion_selecionada = contenido_publicidad(
                                             titulo = if (msje_titulo_descripcion) viewmodel_pantalla_promocionar.titulo else "",
                                             descripcion = if (msje_titulo_descripcion) viewmodel_pantalla_promocionar.descripcion else ""
-                                        ), generacion_wsap =
-                                            if (msj_perzonalizado_whatsapp_ia_bool)
-                                                mensaje_perzonalizado_txt
-                                            else
-                                                "", generacion_compartir =
-                                            if (msj_perzonalizado_compartir_ia_bool)
-                                                mensaje_perzonalizado_txt_compartir
-                                            else
-                                                ""
-                                    ), precio_publicacion = precio_rango_publicacion(
-                                        precio = if (precio_encontrado) precio_detectado
-                                            ?: "" else "0",
-                                        rango = if (precio_encontrado) rango_detectado ?: "" else ""
+                                        ),
+                                        generacion_wsap = if (msj_perzonalizado_whatsapp_ia_bool) mensaje_perzonalizado_txt else "",
+                                        generacion_compartir = if (msj_perzonalizado_compartir_ia_bool) mensaje_perzonalizado_txt_compartir else ""
                                     ),
-
+                                    precio_publicacion = precio_rango_publicacion(
+                                        precio = if (precio_encontrado) precio_detectado else "0",
+                                        rango = if (precio_encontrado) rango_detectado else ""
+                                    ),
                                     horario_deseado = horario_deseado(
-                                        seleccion = if (horario_deseado) turnoSeleccionado?.estado_guardado_db
-                                            ?: "" else "",
-                                        horario = if (horario_deseado) turnoSeleccionado?.estado_guardado_db
-                                            ?: "" else ""
-                                    ), metodos_pagos = metodos_pagos_agregados_publiaciones(
+                                        seleccion = if (horario_deseado) turnoSeleccionado?.estado_guardado_db ?: "" else "",
+                                        horario = if (horario_deseado) turnoSeleccionado?.estado_guardado_db ?: "" else ""
+                                    ),
+                                    metodos_pagos = metodos_pagos_agregados_publiaciones(
                                         yape = if (metodos_de_pago) metodo_yape else false,
                                         plin = if (metodos_de_pago) metodo_plin else false,
                                         agora = if (metodos_de_pago) metodo_agora else false,
@@ -3021,10 +3073,9 @@ fun pantalla_promocionar(
                                     idSocio = id_socio,
                                     idPromo = datos_publicacion.informacion.id_promocion
                                 )
-                            }
-
-
-                        }, modifier = Modifier.fillMaxWidth()) {
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 texto_generico_one_line(
                                     "Crear publicación por $monedas_costo_publicidad",
@@ -3041,7 +3092,6 @@ fun pantalla_promocionar(
                     }
                 }
             }
-
             item {
                 spacer_vertical(50.dp)
                 Row(

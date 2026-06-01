@@ -268,33 +268,10 @@ fun pantala_recarga(
                                  nombrePlan =nombre_plan,
                                  precio_soles,
                                  onResult = { id_pago,bool ->
-                                     val url_pago="https://geinzwork.firebaseapp.com/pagos.html?orderId=${id_pago}"
+                                     val url_pago="https://geinzworkapp.web.app/dasboard/pagos?orderId=${id_pago}&ins=i"
                                      openCustomTab(context,url_pago)
                                  }
                              )
-
-
-//                                val datos_recarga = historial_recargas(
-//                                    "recarga",
-//                                    fecha = obtenerFechaActual(),
-//                                    hora = obtenerHoraActual(),
-//                                    id_recarga = generarIdRecarga(),
-//                                    localidad_tienda = localida_tienda,
-//                                    id_tienda = id_tienda,
-//                                    nombre_tienda = nombre_tienda,
-//                                    tipo = nombre,
-//                                    monto = monedas,
-//                                    precio_soles = montosoles,
-//                                    yape = true,
-//                                    plin = false,
-//                                    estado = "Aceptado",
-//                                    monto_posterior = monedas_user
-//                                )
-//                                viewmodel_recarga_insta.crear_cargo__compra_paquete(localida_user.lowercase(),id_tienda,monedas_user.toString(),monedas)
-//                                viewmodel_recarga_insta.recargar_puntos(
-//                                    i = datos_recarga,
-//                                    id_user = id_user
-//                                )
                             }
                         }
                         item { spacer_vertical(20.dp) }
@@ -302,7 +279,7 @@ fun pantala_recarga(
                 }
 
                 is viewmodel_eres_socio.CargaPaquetesPago.Error -> {
-//                    cargando(false)
+
                     val text = curren_state.txt // ✅ aquí tampoco hay cast
                     Text(text)
                     Log.d("obtenreodasr", text)

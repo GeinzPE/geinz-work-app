@@ -49,7 +49,7 @@ fun bottom_sheet_centro_de_Ayudas_pra_geinz(
                 spacer_vertical(10.dp)
                 Button(
                     onClick = {
-                        mostar_link("https://geinzwork.web.app/terminos_y_condiciones.html")
+                        mostar_link("https://geinzworkapp.web.app/seguridad_geinz/terminos_y_condiciones")
 //                        mostrar_webview_terminos_condiciones =true
                     },
                     modifier = Modifier
@@ -68,7 +68,7 @@ fun bottom_sheet_centro_de_Ayudas_pra_geinz(
 
                 Button(
                     onClick = {
-                        mostar_link("https://geinzwork.web.app/politicas_devoluciones.html")
+                        mostar_link("https://geinzworkapp.web.app/seguridad_geinz/politicas_devoluciones")
 //                        mostrar_webview_politicas_devoluciones=true
                     },
                     modifier = Modifier
@@ -88,7 +88,7 @@ fun bottom_sheet_centro_de_Ayudas_pra_geinz(
 
                 Button(
                     onClick = {
-                        mostar_link("https://geinzwork.firebaseapp.com/libro_reclamaciones.html")
+                        mostar_link("https://geinzworkapp.web.app/seguridad_geinz/libro_reclamaciones")
 //                        mostrar_webview_libro_recalmaciones=true
                     },
                     modifier = Modifier

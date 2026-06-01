@@ -558,17 +558,17 @@ fun login_socios(
                                     LaunchedEffect(state.datos) {
 
                                         item_pantalla_promociones = items_pantallas_promociones(
-                                            state.datos.categoira_tienda,
-                                            state.datos.nombre,
-                                            state.datos.localidad_tienda,
-                                            state.datos.obtener_img_tiendas.logo_tienda,
-                                            state.datos.metodo_contacto_tienda.whatsapp.numero,
-                                            state.datos.subcategorias_tienda,
-                                            state.datos.ubicacion,
-                                            state.datos.saldo_disponible_tienda,
-                                            state.datos.id_tienda,
-                                            state.datos.metodos_pago,
-                                            state.datos.servicios_comodidades
+                                            categoira_tienda = state.datos.categoira_tienda,
+                                            nombre_tienda = state.datos.nombre,
+                                            localidad_tienda = state.datos.localidad_tienda,
+                                            img_tienda = state.datos.obtener_img_tiendas.logo_tienda,
+                                            numero_contacto_tienda = state.datos.metodo_contacto_tienda.whatsapp.numero,
+                                            subcategorias_tienda = state.datos.subcategorias_tienda,
+                                            ubicacion = state.datos.ubicacion,
+                                            saldo = state.datos.saldo_disponible_tienda,
+                                            id_tienda = state.datos.id_tienda,
+                                            metodosPago = state.datos.metodos_pago,
+                                            serviciosComodidades = state.datos.servicios_comodidades
 
                                         )
 

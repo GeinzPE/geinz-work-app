@@ -441,6 +441,11 @@
                     android:scheme="https"
                     android:host="geinzworkapp.web.app"
                     android:pathPrefix="/api" />
+
+                <data
+                    android:scheme="https"
+                    android:host="geinzworkapp.web.app"
+                    android:pathPrefix="/scree" />
             </intent-filter>
         </activity>
 
