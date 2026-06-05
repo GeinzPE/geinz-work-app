@@ -49,7 +49,7 @@ exports.generar_texto_ia = generar_texto_ia;
 exports.generar_texto_compartir_ia = generar_texto_compartir_ia;
 exports.generar_whatsapp_contacto_ia = generar_whatsapp_contacto_ia;
 exports.generar_titulo_descripcion_IA = generar_titulo_descripcion_IA;
-exports.crearPromocion = crearPromocion;
+exports.crearPromocion= crearPromocion;
 exports.extraerTerminosClaveIA = extraerTerminosClaveIA;
 exports.generar_descripcion_whatsapp_ia = generar_descripcion_whatsapp_ia;
 exports.pagar_plan__usuario = pagar_plan__usuario;
@@ -1346,7 +1346,10 @@ exports.culqiWebhook = onRequest(async (req, res) => {
 
     await enviarWhatsApp(
       "937659216",
-      `✅ *Pago Billetera exitoso*\n🏪 ${datos.nombre_user}\n💰 S/ ${order.amount / 100}\n🪙 ${datos.monedas_a_recargar || datos.monedas} monedas`,
+      `Billetera exitoso`,
+      `🏪 ${datos.nombre_user} realizo una recarga de ${datos.monedas} `,
+      String(order.amount / 100),
+      String(datos.monedas_a_recargar || datos.monedas),
     );
 
     return res.sendStatus(200);
@@ -1658,20 +1661,70 @@ async function emitirComprobanteGeinz({
   }
 }
 
-async function enviarWhatsApp(numero, mensaje) {
+async function enviarWhatsApp(
+  numero,
+  estadoPago,
+  detallePago,
+  montoSoles,
+  creditos,
+) {
   try {
     const telefono = `51${numero}`;
 
-    console.log("📲 Enviando WhatsApp a:", telefono);
+    const payload = {
+      messaging_product: "whatsapp",
+      to: telefono,
+      type: "template",
+      template: {
+        name: "confirmacion_benjamin",
+        language: {
+          code: "en",
+        },
+        components: [
+          {
+            type: "header",
+            parameters: [
+              {
+                type: "text",
+                text: estadoPago,
+              },
+            ],
+          },
+          {
+            type: "body",
+            parameters: [
+              {
+                type: "text",
+                text: detallePago,
+              },
+              {
+                type: "text",
+                text: montoSoles,
+              },
+              {
+                type: "text",
+                text: creditos,
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    console.log("========== WHATSAPP TEMPLATE ==========");
+    console.log("numero:", numero);
+    console.log("telefono:", telefono);
+    console.log("estadoPago:", estadoPago);
+    console.log("detallePago:", detallePago);
+    console.log("montoSoles:", montoSoles);
+    console.log("creditos:", creditos);
+    console.log("payload:");
+    console.log(JSON.stringify(payload, null, 2));
+    console.log("======================================");
 
     const res = await axios.post(
       `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
-      {
-        messaging_product: "whatsapp",
-        to: telefono,
-        type: "text",
-        text: { body: mensaje },
-      },
+      payload,
       {
         headers: {
           Authorization: `Bearer ${WHATSAPP_TOKEN}`,
@@ -1684,9 +1737,101 @@ async function enviarWhatsApp(numero, mensaje) {
 
     return true;
   } catch (error) {
-    console.error("❌ ERROR WHATSAPP:", error.response?.data || error.message);
+    console.error(
+      "❌ ERROR WHATSAPP:",
+      JSON.stringify(error.response?.data, null, 2) || error.message,
+    );
 
-    return false; // 🔥 no rompas todo tu flujo
+    return false;
+  }
+}
+
+async function enviarWhatsAppRechazo(
+  numero,
+  estadoPago,
+  nombreUsuario,
+  motivoRechazo,
+  creditos,
+  montoSoles,
+  idUsuario,
+) {
+  try {
+    const telefono = `51${numero}`;
+
+    const payload = {
+      messaging_product: "whatsapp",
+      to: telefono,
+      type: "template",
+      template: {
+        name: "pago_rechazado",
+        language: {
+          code: "es",
+        },
+        components: [
+          {
+            type: "header",
+            parameters: [
+              {
+                type: "text",
+                text: estadoPago,
+              },
+            ],
+          },
+          {
+            type: "body",
+            parameters: [
+              {
+                type: "text",
+                text: nombreUsuario,
+              },
+              {
+                type: "text",
+                text: motivoRechazo,
+              },
+              {
+                type: "text",
+                text: creditos,
+              },
+              {
+                type: "text",
+                text: montoSoles,
+              },
+            ],
+          },
+          {
+            type: "button",
+            sub_type: "url",
+            index: "0",
+            parameters: [
+              {
+                type: "text",
+                text: idUsuario,
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const res = await axios.post(
+      `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    console.log("✅ WhatsApp rechazo enviado:", res.data);
+    return true;
+  } catch (error) {
+    console.error(
+      "❌ ERROR WHATSAPP:",
+      JSON.stringify(error.response?.data, null, 2) || error.message,
+    );
+    return false;
   }
 }
 
@@ -1727,6 +1872,20 @@ async function sumarSaldo(userId, monedas) {
   console.log("📲 Número WhatsApp extraído:", numero);
 
   return numero;
+}
+async function obtenerNumeroWhatsApp(userId) {
+  const snap = await db
+    .collection("Tiendas")
+    .doc("barranca")
+    .collection("barranca")
+    .doc(userId)
+    .get();
+
+  if (!snap.exists) {
+    return null;
+  }
+
+  return snap.data()?.metodo_contacto?.whatsapp?.numero || null;
 }
 
 async function agregar_historial_de_pagos_tienda({
@@ -2091,13 +2250,12 @@ exports.confirmarPago = onCall(async (req) => {
         });
       }
 
-      enviarWhatsApp(
+      await enviarWhatsApp(
         937659216,
-        `✅ *Pago exitoso en Geinz*\n` +
-          `🏪 *Negocio:* ${nombre_tienda}\n` +
-          `💰 *Monto:* S/ ${monto}\n` +
-          `🪙 *Monedas:* ${monedas}\n` +
-          `🧾 *Comprobante:* ${urlPDFStorage}`,
+        `exitoso en Geinz`,
+        `Pago exitoso en Geinz 🏪 Negocio: ${nombre_tienda} 🧾 Comprobante: ${urlPDFStorage}`,
+        String(monto),
+        String(monedas),
       );
     } catch (nubefactErr) {
       console.error(
@@ -2111,21 +2269,20 @@ exports.confirmarPago = onCall(async (req) => {
       chargeId: charge.id,
     };
   } catch (error) {
+    const numero = await obtenerNumeroWhatsApp(userId);
     const culqiError = error.response?.data;
     console.error("ERROR CHARGE:", culqiError || error.message);
 
     const motivo = culqiError?.user_message || "Error en el pago";
 
-    await enviarWhatsApp(
-      "937659216",
-      `❌ *Pago rechazado en Geinz*\n\n` +
-        `🏪 *Negocio:* ${nombre_tienda}\n` +
-        `🆔 *ID:* ${userId}\n` +
-        `💰 *Monto:* S/ ${monto}\n` +
-        `⚠️ *Motivo:* ${motivo}\n` +
-        `📅 *Fecha:* ${new Date().toLocaleString("es-PE", {
-          timeZone: "America/Lima",
-        })}`,
+    await enviarWhatsAppRechazo(
+      937659216, // numero
+      "rechazado", // estadoPago
+      nombre_tienda, // nombreUsuario
+      `${motivo}`, // motivoRechazo
+      String(monedas), // creditos
+      String(monto), // montoSoles
+      numero, // idUsuario
     );
 
     throw new HttpsError("failed-precondition", motivo);
@@ -2171,12 +2328,7 @@ async function enviarPlantillaWhatsApp({
               sub_type: "url",
               index: "0",
               parameters: [
-                // Solo el SUFIJO dinámico de la URL
-                // Si tu URL base en Meta es: https://geinzworkapp.web.app/
-                // y urlComprobante es la URL completa de Storage,
-                // puedes usar la URL completa como sufijo si configuraste
-                // el botón como URL dinámica
-                { type: "text", text: idTransaccion }, // 👈 solo el ID
+                { type: "text", text: `data/comprobantes?id=${idTransaccion}` }, // 👈 solo el ID
               ],
             },
           ],
@@ -2202,62 +2354,200 @@ async function enviarPlantillaWhatsApp({
 }
 // ==================== verificar_usuario_asistente ====================
 exports.verificar_usuario_asistente = onRequest(async (req, res) => {
+  const { numero_usuario, nombre_user, id_user } = req.body;
+
+  if (!numero_usuario) {
+    return res.status(400).json({
+      error: "numero_usuario requerido",
+    });
+  }
+
+  const MAX_TOKENS = 3;
+  const MS_POR_TOKEN = 2000;
+  const DURACION_BLOQUEO = 15000;
+
+  const ahora = Date.now();
+
+  const ref = db
+    .collection("Trabajadores_Usuarios_Drivers")
+    .doc("usuario_bot_geinz")
+    .collection("usuario_bot_geinz")
+    .doc(numero_usuario);
+
   try {
-    const { numero_usuario, nombre_user, id_user } = req.body;
+    const resultado = await db.runTransaction(async (tx) => {
+      const doc = await tx.get(ref);
 
-    if (!numero_usuario) {
-      return res.status(400).json({ error: "numero_usuario requerido" });
-    }
+      // ====================================================
+      // USUARIO NUEVO
+      // ====================================================
+      if (!doc.exists) {
+        const nuevoUsuario = {
+          nombre_user: nombre_user || "Usuario",
+          numero_user: numero_usuario,
+          id_user: id_user || "",
 
-    const ref = db
-      .collection("Trabajadores_Usuarios_Drivers")
-      .doc("usuario_bot_geinz")
-      .collection("usuario_bot_geinz")
-      .doc(numero_usuario);
+          status: "activo",
 
-    const doc = await ref.get();
+          spam: false,
+          spam_count: 0,
 
-    // SI EXISTE
-    if (doc.exists) {
+          ultimo_mensaje: ahora,
+
+          rate_limit_tokens: MAX_TOKENS - 1,
+
+          rate_limit_bloqueado_hasta: null,
+
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+
+          updated_at: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        tx.set(ref, nuevoUsuario);
+
+        return {
+          exists: false,
+          is_spam: false,
+          rate_limit: false,
+          ...nuevoUsuario,
+        };
+      }
+
       const data = doc.data();
 
-      return res.json({
-        exists: true,
-        nombre_cliente: data.nombre_user || "",
-        numero_cliente: numero_usuario,
-        estado_cuenta: data.status || "activo",
-        fecha_bloqueo: data.fecha_bloqueo || null,
-        motivo_bloqueo: data.motivo_bloqueo || "",
-        contexto: data.contexto || null,
+      let tokens = data.rate_limit_tokens ?? MAX_TOKENS;
+
+      let ultimoMensaje = data.ultimo_mensaje ?? ahora;
+
+      const bloqueadoHasta = data.rate_limit_bloqueado_hasta ?? 0;
+
+      // ====================================================
+      // BLOQUEO ACTIVO
+      // ====================================================
+      if (bloqueadoHasta && ahora < bloqueadoHasta) {
+        return {
+          exists: true,
+
+          is_spam: true,
+
+          rate_limit: true,
+
+          ...data,
+
+          mensaje_spam: `🛑 Espera ${Math.ceil(
+            (bloqueadoHasta - ahora) / 1000,
+          )}s antes de escribir nuevamente.`,
+        };
+      }
+
+      // ====================================================
+      // TERMINÓ EL BLOQUEO
+      // ====================================================
+      if (bloqueadoHasta && ahora >= bloqueadoHasta) {
+        tokens = MAX_TOKENS;
+
+        tx.update(ref, {
+          spam: false,
+
+          rate_limit_tokens: MAX_TOKENS,
+
+          rate_limit_bloqueado_hasta: null,
+
+          updated_at: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        ultimoMensaje = ahora;
+      }
+
+      // ====================================================
+      // RECUPERAR TOKENS
+      // ====================================================
+      const tokensRecuperados = Math.floor(
+        (ahora - ultimoMensaje) / MS_POR_TOKEN,
+      );
+
+      tokens = Math.min(MAX_TOKENS, tokens + tokensRecuperados);
+
+      // ====================================================
+      // BLOQUEAR
+      // ====================================================
+      if (tokens <= 0) {
+        const bloqueadoHastaNuevo = ahora + DURACION_BLOQUEO;
+
+        tx.update(ref, {
+          spam: true,
+
+          spam_count: admin.firestore.FieldValue.increment(1),
+
+          ultimo_mensaje: ahora,
+
+          rate_limit_tokens: 0,
+
+          rate_limit_bloqueado_hasta: bloqueadoHastaNuevo,
+
+          updated_at: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        return {
+          exists: true,
+
+          is_spam: true,
+
+          rate_limit: true,
+
+          ...data,
+
+          spam: true,
+
+          rate_limit_tokens: 0,
+
+          rate_limit_bloqueado_hasta: bloqueadoHastaNuevo,
+
+          mensaje_spam: `🚫 Demasiados mensajes. Bloqueado ${DURACION_BLOQUEO / 1000}s.`,
+        };
+      }
+
+      // ====================================================
+      // CONSUMIR TOKEN
+      // ====================================================
+      tx.update(ref, {
+        spam: false,
+
+        ultimo_mensaje: ahora,
+
+        rate_limit_tokens: tokens - 1,
+
+        rate_limit_bloqueado_hasta: null,
+
+        updated_at: admin.firestore.FieldValue.serverTimestamp(),
       });
-    }
 
-    // SI NO EXISTE → CREAR
-    const nuevoUsuario = {
-      nombre_user: nombre_user || "Usuario",
-      numero_user: numero_usuario,
-      id_user: id_user || "",
-      status: "activo",
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    };
+      return {
+        exists: true,
 
-    await ref.set(nuevoUsuario);
+        is_spam: false,
 
-    return res.json({
-      exists: false,
-      nombre_cliente: nuevoUsuario.nombre_user,
-      numero_cliente: numero_usuario,
-      estado_cuenta: "activo",
-      fecha_bloqueo: null,
-      motivo_bloqueo: "",
-      contexto: data.contexto || null,
+        rate_limit: false,
+
+        ...data,
+
+        spam: false,
+
+        rate_limit_tokens: tokens - 1,
+
+        rate_limit_bloqueado_hasta: null,
+      };
     });
+
+    return res.json(resultado);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Error interno" });
+    console.error("ERROR verificar_usuario_asistente:", error);
+
+    return res.status(500).json({
+      error: "Error interno",
+    });
   }
 });
-
 // ==================== agregar_pago_del_usuario ====================
 
 // ==================== agregar_pago_del_usuario ====================
