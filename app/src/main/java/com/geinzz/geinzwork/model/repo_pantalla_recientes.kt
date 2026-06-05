@@ -165,7 +165,7 @@ class repo_pantalla_recientes {
 
 
 
-    suspend fun obtenerDatosPromocion(
+    suspend fun obtenerDatosPromocion( precio_hora:Int,precio_dias:Int,
         id_tienda: String,
         localidad: String,
         id_promo: String
@@ -269,6 +269,7 @@ class repo_pantalla_recientes {
                 fin = fechaFinTs,
             )
             val costoPromo = calcularCostoPromo(
+                tipoHoraDias,precio_hora,precio_dias,
                 inicio = fechaInicioTs,
                 fin = fechaFinTs,
             )

@@ -124,6 +124,7 @@ import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_datos_promos_noti(
+    precio_hora:Int,precio_dias:Int,
     viewmodel_pantalla: viewmodel_pantallas_recientes,
     id_tienda: String,
     localida: String,
@@ -138,7 +139,7 @@ fun bottom_sheet_datos_promos_noti(
     }
     val listState = rememberLazyListState()
     LaunchedEffect(id_tienda, localida, id_promo) {
-        viewmodel_pantalla.cargarDatosPromocion(id_tienda, localida, id_promo)
+        viewmodel_pantalla.cargarDatosPromocion(precio_hora,precio_dias,id_tienda, localida, id_promo)
     }
     var listaImgContainer by remember {
         mutableStateOf<List<String>>(emptyList())

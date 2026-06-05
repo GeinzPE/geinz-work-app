@@ -33,18 +33,18 @@ data class InteraccionDirectaItem(
 )
 
 data class MetricasResumen(
-    // Clicks WhatsApp
-    val clicks_whatsapp_hoy     : Int    = 0,
-    val monedas_gastadas_hoy    : Int    = 0,
-    val clicks_whatsapp_semana  : Int    = 0,
-    val monedas_gastadas_semana : Int    = 0,
+    val clicks_whatsapp_hoy      : Int  = 0,
+    val monedas_gastadas_hoy     : Int  = 0,
+    val clicks_whatsapp_semana   : Int  = 0,
+    val monedas_gastadas_semana  : Int  = 0,
 
-    // Publicidad
-    val total_publicidad_enviada: Int    = 0,
-    val monedas_en_publicidad   : Long   = 0L,
+    // ✅ Nuevos — enviados desde estadisticas
+    val enviados_hoy             : Int  = 0,
+    val enviados_semana          : Int  = 0,
 
-    // Para gráfica
-    val historial_reciente      : List<HistorialHotItem> = emptyList() ,// ← agregar esto
-    val total_clicks_historico           : Int  = 0,   // suma histórica de clicks WhatsApp
+    val total_publicidad_enviada : Int  = 0,
+    val monedas_en_publicidad    : Long = 0L,
+    val historial_reciente       : List<HistorialHotItem> = emptyList(),
+    val total_clicks_historico           : Int  = 0,
     val total_monedas_contacto_historico : Long = 0L,
 )

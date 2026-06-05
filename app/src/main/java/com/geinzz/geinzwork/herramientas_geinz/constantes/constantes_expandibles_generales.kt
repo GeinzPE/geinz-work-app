@@ -220,6 +220,7 @@ object constantes_expandibles_generales {
     
     @Composable
     fun expandibles_wrapp_socio_geinzz_datos_tienda(
+        precio_moneda: Double,
         lista_descuentos: List<Descuentos>,
         nombre_tienda: String,
         viewmodel_recargas: viewmodel_recargas,
@@ -416,11 +417,11 @@ object constantes_expandibles_generales {
             }
         }
         if (por_renovar) {
-            dialog_renovar_plan(lista_descuentos,
+            dialog_renovar_plan(precio_moneda,lista_descuentos,
                 saldo_disponible = datos_tienda_fechas.saldo_cuenta_tienda?.toLongOrNull() ?: 0L,
                 ondimis = { por_renovar = !por_renovar },
                 comprar = { total_cancelar, meses_agregados ->
-                    viewModelFiltros.descontar_puntos(
+                    viewModelFiltros.descontar_puntos(precio_moneda,
                         viewmodel_recargas,
                         datos_tienda_fechas.saldo_cuenta_tienda.toInt(),
                         nombre_tienda,

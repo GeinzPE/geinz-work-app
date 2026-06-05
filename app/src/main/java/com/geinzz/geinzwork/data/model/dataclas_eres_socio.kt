@@ -731,8 +731,13 @@ data class EstadoUI(
 
 
 
+data class precios_bot(val contacto_directo:Int=0,val plantillas:Int=0)
 
 data class PreciosApp(
+    @get:PropertyName("costo_por_moneda")
+    @set:PropertyName("costo_por_moneda")
+    var costoPorMoneda: Double = 0.0,
+
     @get:PropertyName("planes_activacion") @set:PropertyName("planes_activacion")
     var planesActivacion: Map<String, Int> = emptyMap(),
 

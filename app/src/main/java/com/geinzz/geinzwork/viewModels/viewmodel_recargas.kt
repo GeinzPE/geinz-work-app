@@ -183,7 +183,7 @@ class viewmodel_recargas : ViewModel() {
         }
     }
 
-    fun restar_puntos_recarga(
+    fun restar_puntos_recarga(precio_por_moneda: Double,
         i: historial_descuento,
         monto_descontar: String,
         id_tienda: String,
@@ -194,7 +194,7 @@ class viewmodel_recargas : ViewModel() {
                 val restar_puntos =
                     insta_repo.descontar_puntos_uso(monto_descontar, id_tienda, localidad)
                 if (restar_puntos) {
-                    insta_repo.guardar_historial_descuento(i)
+                    insta_repo.guardar_historial_descuento(i,precio_por_moneda)
                 }
             } catch (e: Exception) {
                 Log.e("error", "Error al procesar la el descuento: ${e.message}")

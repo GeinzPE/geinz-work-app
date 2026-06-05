@@ -1925,6 +1925,7 @@ fun baner_servicios_basicos_(texto1:String,descripcion:String,img:Int,listener_s
 
 @Composable
 fun baner_widget_tienda_geinz_baner(
+    precio_moneda: Double,
     cargar_precio_activacione: PreciosApp?,
     viewmodel_recargas:viewmodel_recargas,
     switchActivo: Boolean,
@@ -2500,11 +2501,12 @@ fun baner_widget_tienda_geinz_baner(
     }
     if (por_removar) {
         dialog_renovar_plan(
-            lista_descuentos,
-            puntosSeguros,
-            { por_removar = !por_removar },
-            { total_cancelar, meses_agregados ->
-                viewmodel.descontar_puntos(viewmodel_recargas,
+            precio_moneda = precio_moneda,
+            lista_descuentos = lista_descuentos,
+            saldo_disponible = puntosSeguros,
+            ondimis = { por_removar = !por_removar },
+            comprar = { total_cancelar, meses_agregados ->
+                viewmodel.descontar_puntos(precio_moneda,viewmodel_recargas,
                     item.total_puntos.toInt(),item.nombre_tienda,
                     "barranca",
                     item.id_tienda,

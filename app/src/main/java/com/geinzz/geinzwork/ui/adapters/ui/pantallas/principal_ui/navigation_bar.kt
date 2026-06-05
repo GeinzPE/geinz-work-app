@@ -148,7 +148,7 @@ fun bottom_navigation(
     var mostar_snackvar_reivew by remember { mutableStateOf(false) }
     var scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
+//    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
@@ -263,20 +263,20 @@ fun bottom_navigation(
     }
 
 
-    LaunchedEffect(botoom_sheet_perfil_user) {
-        if (botoom_sheet_perfil_user) {
-            viewModelFiltros.obtener_campos_tiendas_por_id(
-                localida_tienda,
-                id_tienda_params
-            )
-        }
-    }
-    LaunchedEffect(datosTienda) {
-        if (!datosTienda.isNullOrEmpty()) {
-            dataclass_tienda_seleccionada =
-                datosTienda!!.first()
-        }
-    }
+//    LaunchedEffect(botoom_sheet_perfil_user) {
+//        if (botoom_sheet_perfil_user) {
+//            viewModelFiltros.obtener_campos_tiendas_por_id(
+//                localida_tienda,
+//                id_tienda_params
+//            )
+//        }
+//    }
+//    LaunchedEffect(datosTienda) {
+//        if (!datosTienda.isNullOrEmpty()) {
+//            dataclass_tienda_seleccionada =
+//                datosTienda!!.first()
+//        }
+//    }
     val startScanner = rememberLauncherForActivityResult(
         contract = ScanContract(),
         onResult = { result ->
@@ -569,9 +569,12 @@ fun bottom_navigation(
 
     if(botoom_sheet_perfil_user){
         bottom_sheet_tiendas_filtradas(
+            id_tienda_params,
+            localida_tienda,
             verificar_intener,
             viewModelFiltros,
-            dataclass_tienda_seleccionada, botoom_sheet_perfil_user
+//            dataclass_tienda_seleccionada,
+            botoom_sheet_perfil_user
         ) {
             botoom_sheet_perfil_user = false
         }

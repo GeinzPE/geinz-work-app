@@ -2044,14 +2044,14 @@ fun SimpleMapDark(
 
 
         if (show_bottom_sheet_datos_tienda_lugares) {
-            bottom_sheet_tiendas_filtradas(
-                verificar_intener,
-                viewModel_filtrado_tiendas,
-                dataclass_tienda_seleccionada,
-                show_bottom_sheet_datos_tienda_lugares
-            ) {
-                show_bottom_sheet_datos_tienda_lugares = false
-            }
+//            bottom_sheet_tiendas_filtradas(
+//                verificar_intener,
+//                viewModel_filtrado_tiendas,
+//                dataclass_tienda_seleccionada,
+//                show_bottom_sheet_datos_tienda_lugares
+//            ) {
+//                show_bottom_sheet_datos_tienda_lugares = false
+//            }
         }
         if (dialog_Crear_ruta) {
             dialog_crear_ruta_lugares({ dialog_Crear_ruta = false }, { crear_ruta ->

@@ -481,7 +481,10 @@ fun FloatingBubble(
 
     if (expanded)
         ModalBottomSheet(
-            onDismissRequest = { expanded_fun() },
+            onDismissRequest = {
+                filtros = filtros.copy(localidad = "")
+                expanded_fun()
+            },
             sheetState = sheetState,
             dragHandle = {},
             containerColor = MaterialTheme.colorScheme.background
@@ -636,6 +639,8 @@ fun FloatingBubble(
                                     modifier = Modifier.align(Alignment.TopEnd),
                                     Icons.Default.Close,
                                     onClick = {
+
+                                        filtros = filtros.copy(localidad = "")
                                         expanded_fun()
                                     })
                             }
@@ -967,37 +972,42 @@ fun FloatingBubble(
                                                 }
 
                                                 items(lista_localidades) { i ->
-                                                    val colorSeleccionado =
-                                                        if (localidad_selecionada.equals(
-                                                                i, ignoreCase = true
-                                                            )
-                                                        ) Color.Black
-                                                        else MaterialTheme.colorScheme.primary
+                                                    val esBarranca = i.lowercase() == "barranca"
+                                                    val colorSeleccionado = when {
+                                                        localidad_selecionada.equals(i, ignoreCase = true) -> Color.Black
+                                                        !esBarranca -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                                                        else -> MaterialTheme.colorScheme.primary
+                                                    }
 
                                                     AnimatedFabItem(
                                                         text = i.capitalizeFirst(),
                                                         color = colorSeleccionado,
                                                         visible = expanded
                                                     ) {
-                                                        if (i.lowercase() != localidad_selecionada.lowercase()) {
-
-                                                            localidad_filtrado(i)
-                                                            filtros = filtros.copy(localidad = i)
-
-                                                        } else {
-                                                            scope.launch {
-                                                                // Llama al SnackbarHostState para mostrar el mensaje
-                                                                snackbarHostState.showSnackbar(
-                                                                    message = "${i.capitalizeFirst()} se encuentra seleccionado",
-
-                                                                    duration = SnackbarDuration.Short
-                                                                )
+                                                        when {
+                                                            !esBarranca -> {
+                                                                scope.launch {
+                                                                    snackbarHostState.showSnackbar(
+                                                                        message = "${i.capitalizeFirst()} próximamente disponible",
+                                                                        duration = SnackbarDuration.Short
+                                                                    )
+                                                                }
+                                                            }
+                                                            i.lowercase() != localidad_selecionada.lowercase() -> {
+                                                                localidad_filtrado(i)
+                                                                filtros = filtros.copy(localidad = i)
+                                                            }
+                                                            else -> {
+                                                                scope.launch {
+                                                                    snackbarHostState.showSnackbar(
+                                                                        message = "${i.capitalizeFirst()} se encuentra seleccionado",
+                                                                        duration = SnackbarDuration.Short
+                                                                    )
+                                                                }
                                                             }
                                                         }
                                                     }
-                                                    filtros =
-                                                        filtros.copy(localidad = localidad_selecionada)
-
+                                                    filtros = filtros.copy(localidad = localidad_selecionada)
                                                 }
                                             }
 
@@ -1052,6 +1062,8 @@ fun FloatingBubble(
                                                 modifier = Modifier.align(Alignment.TopEnd),
                                                 icono_expandido,
                                                 onClick = {
+                                                    filtros = filtros.copy(localidad = "")
+
                                                     expandedIndex =
                                                         if (expandedIndex == 0) -1 else 0
                                                 })
@@ -1287,12 +1299,37 @@ fun FloatingBubble(
                                                 modifier = Modifier.align(Alignment.TopEnd),
                                                 icono_expandido2,
                                                 onClick = {
+                                                    filtros = filtros.copy(localidad = "")
+
                                                     expandedIndex =
                                                         if (expandedIndex == 1) -1 else 1
                                                 })
                                         }
 
                                     }
+                                }
+                            }
+                            spacer_vertical(10.dp)
+                        }
+
+
+
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight()
+                                    .clip(RoundedCornerShape(30.dp))
+                                    .background(MaterialTheme.colorScheme.surface)
+                                    .padding(15.dp)
+                            ){
+                                Column {
+                                    texto_generico_multilinea(
+                                        "Busca con proximaciones entre los negocios de Geinz",
+                                        MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+
                                 }
                             }
                             spacer_vertical(10.dp)

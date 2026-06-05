@@ -41,4 +41,6 @@ class viewmodel_metricas_daniel : ViewModel() {
         cargarMetricas(id_tienda)
     }
 
+
+
 }

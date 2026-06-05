@@ -217,7 +217,7 @@ fun ui_pantalla_busqueda(
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     var salud_seguirdad by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
-    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
+//    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     val horario_por_tienda by viewModelFiltros.estadoTiendas.observeAsState()
     val datos_numeros_salud_seguridad by viewModelFiltros.instance_salud_seguridad.collectAsState()
     val datos_lugares_turisticos by viewModelFiltros.instance_lugar_turistico.collectAsState()
@@ -623,15 +623,15 @@ fun ui_pantalla_busqueda(
     LaunchedEffect(categoria_filtrad) {
         subcategorias = viewModelFiltros.obtener_lista_sub(categoria_filtrad)
     }
-
-    LaunchedEffect(show_bottom_sheeet) {
-        if (show_bottom_sheeet) {
-            viewModelFiltros.obtener_campos_tiendas_por_id(
-                localidad_tienda_seklecioanda,
-                id_tienda_selecionada
-            )
-        }
-    }
+//
+//    LaunchedEffect(show_bottom_sheeet) {
+//        if (show_bottom_sheeet) {
+//            viewModelFiltros.obtener_campos_tiendas_por_id(
+//                localidad_tienda_seklecioanda,
+//                id_tienda_selecionada
+//            )
+//        }
+//    }
 
 //    LaunchedEffect(bottom_sheet_turismo) {
 //        if (bottom_sheet_turismo) {
@@ -646,12 +646,12 @@ fun ui_pantalla_busqueda(
         viewModelFiltros.obtener_categorias()
         viewModelFiltros.obtener_cat_lugares()
     }
-    LaunchedEffect(datosTienda) {
-        if (!datosTienda.isNullOrEmpty()) {
-            dataclass_tienda_seleccionada = datosTienda!!.first()
-//            viewModelFiltros.cast_horario_atencion_horario_tienda(datosTienda!!.first().horario_atencion)
-        }
-    }
+//    LaunchedEffect(datosTienda) {
+//        if (!datosTienda.isNullOrEmpty()) {
+//            dataclass_tienda_seleccionada = datosTienda!!.first()
+////            viewModelFiltros.cast_horario_atencion_horario_tienda(datosTienda!!.first().horario_atencion)
+//        }
+//    }
     LaunchedEffect(cat_sub_seleciondo) {
         if (cat_sub_seleciondo) {
             mostrar_centrado_visible = false
@@ -1018,9 +1018,12 @@ fun ui_pantalla_busqueda(
 
         if (show_bottom_sheeet) {
             bottom_sheet_tiendas_filtradas(
+                id_tienda_selecionada,
+                localidad_tienda_seklecioanda,
                 verificar_intener,
                 viewModelFiltros,
-                dataclass_tienda_seleccionada, show_bottom_sheeet
+//                dataclass_tienda_seleccionada,
+                show_bottom_sheeet
             ) {
                 show_bottom_sheeet = false
             }

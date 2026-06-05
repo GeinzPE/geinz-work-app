@@ -93,8 +93,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -191,14 +195,13 @@ import kotlin.Unit
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun bottom_sheet_tiendas_filtradas(
+    id_tienda:String,localidad_tienda: String,
     verificar_intener: Boolean,
     viewModelFiltros: viewModel_filtado_tiendas,
-    tiendas_filtradas: modelo_tienda,
     visible: Boolean,
     iconos_cosas_clikeables: Boolean = true,
     onClose: () -> Unit,
 ) {
-    Log.d("datoasadasda", tiendas_filtradas.toString())
     val context = LocalContext.current
     val firebaseAuth = FirebaseAuth.getInstance()
     val repo_socio = repo_eres_socio()
@@ -209,10 +212,7 @@ fun bottom_sheet_tiendas_filtradas(
     var expander_comidades_aforo by remember { mutableStateOf(false) }
     var expander_qr_tienda by rememberSaveable { mutableStateOf(false) }
     var expander_metodos_pagos by rememberSaveable { mutableStateOf(false) }
-    val direccion = tiendas_filtradas.ubicacion["dirección"]?.toString() ?: ""
-    val referencia = tiendas_filtradas.ubicacion["referencia"]?.toString() ?: ""
-    val longitud = (tiendas_filtradas.ubicacion["longitud"] as? Number)?.toDouble() ?: 0.0
-    val latitud = (tiendas_filtradas.ubicacion["latitud"] as? Number)?.toDouble() ?: 0.0
+
 
     val horarios by viewModelFiltros
         .horariosTiendas_real_completo
@@ -223,7 +223,7 @@ fun bottom_sheet_tiendas_filtradas(
     val verificarfavorito by viewModelFiltros.existe_favorito.collectAsState()
     val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
     ?: ""
-    var cargando by remember { mutableStateOf(true) }
+
 
     var guardar_icon by remember { mutableStateOf(false) }
     var mostar_eliminar_guardado_dialog by remember { mutableStateOf(false) }
@@ -236,87 +236,104 @@ fun bottom_sheet_tiendas_filtradas(
     }
     var ultimoProcesado by rememberSaveable { mutableStateOf("") }
     var inicioPerfil by rememberSaveable { mutableStateOf(0L) }
-    Log.d("pasamoceorndeasd", "$latitud,$longitud ")
     var mostar_dialog_verificar_perfil by remember { mutableStateOf(false) }
-    LaunchedEffect(tiendas_filtradas.id_tienda) {
-
-        Log.d(
-            "horarideirecotblotshee",
-            "${tiendas_filtradas.id_tienda} ${tiendas_filtradas.localidad}"
-        )
-        val nuevoId = tiendas_filtradas.id_tienda
-
-//        viewModelFiltros.cast_horario_atencion_horario_tienda(tiendas_filtradas.horario_atencion)
-        viewModelFiltros.cast_horario_atencion_horario_tienda_box(tiendas_filtradas.horario_tienda_box)
-        viewModelFiltros.verificar_existe_favorito(id_user, nuevoId)
-
+    val datos_tienda by viewModelFiltros.datos_tienda_especifica.collectAsState()
+    LaunchedEffect(datos_tienda) {
+        Log.d("BOTTOM_SHEET_STATE", "estado actual: $datos_tienda")
     }
+
+// 2. justo después de la línea tiendas_filtradas
+    val tiendas_filtradas = (datos_tienda as? viewModel_filtado_tiendas.obtner_Datos_tiendas_espesifica.succes)?.data ?: modelo_tienda()
+
+    val direccion = tiendas_filtradas.ubicacion["dirección"]?.toString() ?: ""
+    val referencia = tiendas_filtradas.ubicacion["referencia"]?.toString() ?: ""
+    val longitud = (tiendas_filtradas.ubicacion["longitud"] as? Number)?.toDouble() ?: 0.0
+    val latitud = (tiendas_filtradas.ubicacion["latitud"] as? Number)?.toDouble() ?: 0.0
+    val zona = (tiendas_filtradas.ubicacion["zona"] as? String) ?:""
+    val cargando = datos_tienda is viewModel_filtado_tiendas.obtner_Datos_tiendas_espesifica.loading
+
+    var listo by remember { mutableStateOf(false) }
+
+
+//    LaunchedEffect(id_tienda,localidad_tienda) {
+//
+//        viewModelFiltros.obtener_datos_tienda_por_id(id_tienda,localidad_tienda)
+//
+//        val nuevoId = tiendas_filtradas.id_tienda
+//
+//        viewModelFiltros.cast_horario_atencion_horario_tienda_box(tiendas_filtradas.horario_tienda_box)
+//        viewModelFiltros.verificar_existe_favorito(id_user, nuevoId)
+//
+//    }
 
     var ultimoIdProcesado by rememberSaveable { mutableStateOf("") }
 
-// Este efecto NO debe hacer nada con el ID
-    LaunchedEffect(visible, tiendas_filtradas) {
-        if (visible) {
-            cargando = true
-            val start = System.currentTimeMillis()
-
-            while (cargando) {
-                val datosListos =
-                    tiendas_filtradas.id_tienda.isNotBlank() ||
-                            tiendas_filtradas.ubicacion.isNotEmpty()
-
-                val paso = System.currentTimeMillis() - start
-
-                if (paso >= 1500 && (datosListos || paso >= 2500)) {
-                    cargando = false
-                    break
-                }
-                delay(80)
-            }
-        } else {
-            cargando = false
-        }
-    }
+//// Este efecto NO debe hacer nada con el ID
+//    LaunchedEffect(visible, tiendas_filtradas) {
+//        if (visible) {
+//            cargando = true
+//            val start = System.currentTimeMillis()
+//
+//            while (cargando) {
+//                val datosListos =
+//                    tiendas_filtradas.id_tienda.isNotBlank() ||
+//                            tiendas_filtradas.ubicacion.isNotEmpty()
+//
+//                val paso = System.currentTimeMillis() - start
+//
+//                if (paso >= 1500 && (datosListos || paso >= 2500)) {
+//                    cargando = false
+//                    break
+//                }
+//                delay(80)
+//            }
+//        } else {
+//            cargando = false
+//        }
+//    }
 
 // 👇 AHORA SÍ: solo cuando ya cargó + visible
-    LaunchedEffect(visible, cargando) {
-        if (!visible || cargando) return@LaunchedEffect
+// ✅ SOLO ESTO: lanza la petición
+    LaunchedEffect(id_tienda, localidad_tienda) {
+        viewModelFiltros.obtener_datos_tienda_por_id(id_tienda, localidad_tienda)
+    }
+
+// ✅ ESTE ya espera que los datos lleguen
+    LaunchedEffect(visible, cargando, id_user) {
+        if (!visible || cargando) {
+            listo = false
+            return@LaunchedEffect
+        }
 
         val nuevoId = tiendas_filtradas.id_tienda
         if (nuevoId.isBlank()) return@LaunchedEffect
+
+        // Espera que el horario y favorito carguen
+        viewModelFiltros.cast_horario_atencion_horario_tienda_box(tiendas_filtradas.horario_tienda_box)
+        viewModelFiltros.verificar_existe_favorito(id_user, nuevoId)
 
         if (nuevoId != ultimoIdProcesado) {
             viewModelFiltros.repo_filtrado.escucharHorarioCompletoDeTiendaUnica(
                 idTiendaBuscada = nuevoId,
                 localidad = tiendas_filtradas.localidad ?: "barranca"
             )
-            repo_socio.agregar_contador(
-                "clic",
-                nuevoId,
-                tiendas_filtradas.localidad ?: "barranca", id_user,
-            )
-            Log.d("CLIC", "Clic REAL: $nuevoId")
+            if (id_user.isNotBlank()) {
+                repo_socio.agregar_contador("clic", nuevoId, tiendas_filtradas.localidad ?: "barranca", id_user)
+            }
         }
 
         ultimoIdProcesado = nuevoId
         inicioPerfil = System.currentTimeMillis()
 
-        delay(6000)
+        // ✅ Pequeño delay para que el horario/favorito lleguen del flow
+        delay(400)
+        listo = true  // ← recién ahora se muestra el contenido
 
-        if (ultimoIdProcesado == nuevoId) {
-
-            repo_socio.agregar_contador(
-                "vistas",
-                nuevoId,
-                tiendas_filtradas.localidad ?: "barranca", id_user
-            )
-            Log.d("VISTA", "Vista REAL: $nuevoId")
-
-
+        delay(5600)
+        if (ultimoIdProcesado == nuevoId && id_user.isNotBlank()) {
+            repo_socio.agregar_contador("vistas", nuevoId, tiendas_filtradas.localidad ?: "barranca", id_user)
         }
     }
-
-
     var distanciaUsuarioTienda by remember { mutableStateOf<Float?>(null) }
     var gpsJobId by remember { mutableStateOf(0) }   // 🔥 ID para ignorar callbacks viejos
 
@@ -392,7 +409,7 @@ fun bottom_sheet_tiendas_filtradas(
         containerColor = MaterialTheme.colorScheme.background
     ) {
         FuenteControladaApp {
-            if (cargando) {
+            if (!listo) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -529,6 +546,7 @@ fun bottom_sheet_tiendas_filtradas(
 
                                 Column(modifier = Modifier.animateContentSize()) {
                                     Expandible_direccion_ref(
+                                        zona,
                                         context,
                                         modifier = Modifier.padding(horizontal = 10.dp),
                                         direccion,
@@ -1255,6 +1273,7 @@ fun Expandible_descripcion_tienda(
 
 @Composable
 fun Expandible_direccion_ref(
+    zona:String,
     context: Context,
     modifier: Modifier = Modifier,
     direccion: String,
@@ -1315,6 +1334,25 @@ fun Expandible_direccion_ref(
 //                    }
                     spacer_vertical(15.dp)
                     text_expandible_wrapp(texto = "Tipo de tienda : $fisica_virtual")
+
+                    spacer_vertical(10.dp)
+                    Text(
+                        text = buildAnnotatedString {
+                            append("Zona aproximada según el cuadrante comercial de Geinz. ")
+
+                            withStyle(
+                                SpanStyle(
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append(zona)
+                            }
+                        },
+                        color = Color.White,
+                        fontSize = 16.sp
+                    )
+
+
                     spacer_vertical(10.dp)
                 }
             }

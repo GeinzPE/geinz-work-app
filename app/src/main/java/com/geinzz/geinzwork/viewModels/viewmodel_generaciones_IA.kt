@@ -154,7 +154,7 @@ class viewmodel_generaciones_IA : ViewModel() {
         nombre_tienda: String,
         id_tienda: String,
         total_cobrar: String,
-        saldo_tienda: Int
+        saldo_tienda: Int,precio_por_moneda: Double
     ) {
         viewModelScope.launch {
             _estado_carga_generacion_desk_whatsap.value = Estado_generacion_IA_whsatp.loading
@@ -179,7 +179,7 @@ class viewmodel_generaciones_IA : ViewModel() {
                         estado = "Aceptado",
                         monto_restante = saldo_tienda - total_cobrar.toInt()
                     )
-                    viewmodel_recargas.restar_puntos_recarga(
+                    viewmodel_recargas.restar_puntos_recarga(precio_por_moneda,
                         historial,
                         total_cobrar,
                         id_tienda,
@@ -398,7 +398,7 @@ class viewmodel_generaciones_IA : ViewModel() {
         nombreTienda: String,
         localidad: String,
         total_cobrar: String,
-        titulo_generacion_historial: String
+        titulo_generacion_historial: String,precio_por_moneda: Double
     ) {
         viewModelScope.launch {
 
@@ -445,7 +445,7 @@ class viewmodel_generaciones_IA : ViewModel() {
                         monto_restante = saldo_tienda - total_cobrar.toInt()
                     )
 
-                    viewmodel_recargas.restar_puntos_recarga(
+                    viewmodel_recargas.restar_puntos_recarga(precio_por_moneda,
                         historial,
                         total_cobrar,
                         id_tienda,
@@ -488,6 +488,7 @@ class viewmodel_generaciones_IA : ViewModel() {
         nombre_tienda: String,
         titulo_publicacion: String,
         descripcion: String
+        ,precio_por_moneda: Double
     ) {
         viewModelScope.launch {
 
@@ -535,7 +536,7 @@ class viewmodel_generaciones_IA : ViewModel() {
                         monto_restante = saldo_tienda - 15
                     )
 
-                    viewmodel_recargas.restar_puntos_recarga(
+                    viewmodel_recargas.restar_puntos_recarga(precio_por_moneda,
                         historial_descuento,
                         "15",
                         id_tienda,
@@ -568,7 +569,8 @@ class viewmodel_generaciones_IA : ViewModel() {
         id_tienda: String,
         localidad: String,
         nombre_tienda: String,
-        saldo_tienda: Int
+        saldo_tienda: Int,
+        precio_por_moneda: Double
     ) {
         viewModelScope.launch {
             try {
@@ -596,10 +598,11 @@ class viewmodel_generaciones_IA : ViewModel() {
                 )
 
                 viewmodel_recargas.restar_puntos_recarga(
-                    historial_descuento,
-                    "13",
-                    id_tienda,
-                    localidad
+                    precio_por_moneda = precio_por_moneda,
+                    i = historial_descuento,
+                    monto_descontar = "13",
+                    id_tienda = id_tienda,
+                    localidad = localidad
                 )
             } catch (e: Exception) {
                 Log.d("error_guardado", "error al guardar la generacion")

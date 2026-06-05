@@ -141,7 +141,15 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.makePhoneCall
 
 
 private val REQUEST_CALL_PHONE = 1
-
+sealed class EstadoEnvioEmergencia {
+    object Idle : EstadoEnvioEmergencia()
+    object VerificandoPermisos : EstadoEnvioEmergencia()
+    object PidiendoPermiso : EstadoEnvioEmergencia()         // esperando callback del launcher
+    object ActivandoGPS : EstadoEnvioEmergencia()            // esperando que el usuario active GPS
+    object ObteniendoUbicacion : EstadoEnvioEmergencia()     // spinner visible
+    data class Listo(val mensaje: String) : EstadoEnvioEmergencia()  // puede enviarse
+    data class Error(val texto: String) : EstadoEnvioEmergencia()
+}
 @Composable
 fun ui_salud_seguirdad(
     is_conect: Boolean,

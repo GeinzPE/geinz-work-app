@@ -356,16 +356,16 @@ fun bottom_sheet_ayudanos_a_creccer(
                             viewModelFiltros.resetear_estado_sin_pago()
                         })
                 }
-                if (visible_primiun) {
-                    bottom_sheet_tiendas_filtradas(
-                        verificar_intener,
-                        viewModelFiltros,
-                        ejemploTienda,
-                        visible_primiun,
-                        false,
-                        onClose = { visible_primiun = false })
-
-                }
+//                if (visible_primiun) {
+//                    bottom_sheet_tiendas_filtradas(
+//                        verificar_intener,
+//                        viewModelFiltros,
+//                        ejemploTienda,
+//                        visible_primiun,
+//                        false,
+//                        onClose = { visible_primiun = false })
+//
+//                }
 
             }
         }

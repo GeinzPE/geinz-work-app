@@ -584,10 +584,13 @@ object constantes_reprodutor_video {
                     )
                 }
             }
+            if(pagos.isNotEmpty()){
+
             metodos_pagos_colocados(
                 pagos = pagos,
                 modifier = Modifier.align(Alignment.BottomStart).padding(5.dp)
             )
+            }
         }
     }
 }

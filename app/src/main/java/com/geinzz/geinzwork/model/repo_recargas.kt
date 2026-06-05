@@ -8,6 +8,7 @@ import com.geinzz.geinzwork.data.model.historial_descuento
 import com.geinzz.geinzwork.data.model.historial_financiero
 import com.geinzz.geinzwork.data.model.historial_recargas
 import com.geinzz.geinzwork.data.model.recargar_monedas_tienda
+import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -27,6 +28,10 @@ import java.util.Locale
 class repo_recargas {
 
     val db = FirebaseFirestore.getInstance()
+
+    private val db_sec: FirebaseFirestore by lazy {
+        FirebaseSecundario.getFirestore()
+    }
 
 
     suspend fun guardarHistorial(i: historial_recargas): Boolean {
@@ -209,16 +214,38 @@ class repo_recargas {
     }
 
 
-    suspend fun guardar_historial_descuento(i: historial_descuento): Boolean {
+    suspend fun guardar_historial_descuento(i: historial_descuento,precio_por_moneda: Double): Boolean {
         return try {
-            val ref = db.collection("Tiendas")
+            val tiendaDoc = db.collection("Tiendas")
+                .document(i.localidad_tienda)
+                .collection(i.localidad_tienda)
+                .document(i.id_tienda)
+                .get()
+                .await()
+
+            val botPlanPro = tiendaDoc.getBoolean("bot_plan_pro") ?: false
+
+            // Si tiene plan pro actualizamos los créditos en la segunda BD
+            if (botPlanPro) {
+                db_sec.collection("creditos_tienda")
+                    .document(i.id_tienda)
+                    .set(
+                        mapOf(
+                            "creditos" to i.monto_restante
+                        ),
+                        SetOptions.merge()
+                    )
+                    .await()
+            }
+
+            val historialRef = db.collection("Tiendas")
                 .document(i.localidad_tienda)
                 .collection(i.localidad_tienda)
                 .document(i.id_tienda)
                 .collection("historial_financiero")
                 .document(i.id_recarga)
 
-            val hashMap = mapOf(
+            val historialData = mapOf(
                 "id_transaccion" to i.id_recarga,
                 "tipo_transacción" to i.tipo_transaccion,
                 "hora_fecha" to mapOf(
@@ -233,21 +260,24 @@ class repo_recargas {
                 "datos_recarga" to mapOf(
                     "tipo_paquete" to i.tipo,
                     "monto_descontado" to i.monto_descuento.toInt(),
-                    "precio_soles" to i.precio_soles,
-                    "estado" to i.estado,
+                    "precio_soles" to String.format(
+                        "%.2f",
+                        i.monto_descuento.toString().toDouble() * precio_por_moneda
+                    ),                    "estado" to i.estado,
                     "monto_restante" to i.monto_restante
                 ),
                 "timestamp" to FieldValue.serverTimestamp()
             )
 
-            ref.set(hashMap, SetOptions.merge()).await()
+            historialRef.set(historialData, SetOptions.merge()).await()
+
             true
+
         } catch (e: Exception) {
             e.printStackTrace()
             false
         }
     }
-
 
     suspend fun recargar_monedas(i: recargar_monedas_tienda): Boolean {
         return try {

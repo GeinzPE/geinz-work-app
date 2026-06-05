@@ -11,6 +11,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -132,7 +133,7 @@ fun iu_favoritos(
     )
 
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
-    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
+//    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     var lista_subcategorias by remember { mutableStateOf(listOf<String>()) }
     var lista_localidad_filtrado by remember { mutableStateOf(listOf<String>()) }
     var lista_datos by remember { mutableStateOf(listOf<favoritos_guardados>()) }
@@ -217,23 +218,23 @@ fun iu_favoritos(
     }
 
 
-    LaunchedEffect(bottomhseet_tienda) {
+//    LaunchedEffect(bottomhseet_tienda) {
+//
+//        if (bottomhseet_tienda) {
+//            viewModelFiltros.obtener_campos_tiendas_por_id(
+//                localida_tienda_select,
+//                id_tienda_select,
+//            )
+//        }
+//    }
 
-        if (bottomhseet_tienda) {
-            viewModelFiltros.obtener_campos_tiendas_por_id(
-                localida_tienda_select,
-                id_tienda_select,
-            )
-        }
-    }
-
-    LaunchedEffect(datosTienda) {
-        Log.d("id_tienda_select123", "$datosTienda")
-        if (!datosTienda.isNullOrEmpty()) {
-            dataclass_tienda_seleccionada =
-                datosTienda!!.first()
-        }
-    }
+//    LaunchedEffect(datosTienda) {
+//        Log.d("id_tienda_select123", "$datosTienda")
+//        if (!datosTienda.isNullOrEmpty()) {
+//            dataclass_tienda_seleccionada =
+//                datosTienda!!.first()
+//        }
+//    }
     when (lista_fb_size) {
         viewModel_favoritos.state_fv.empty -> {
             mostrar_loading = false
@@ -527,23 +528,33 @@ fun iu_favoritos(
                             }
                         }
                         items(lista_datos) { item ->
-                            LaunchedEffect(item.id_tienda_lugar) {
-                                viewModelFiltros.calcularHorarioParaTienda(item.id_tienda_lugar, item.horario_tienda_box)
+                            Box(
+                                modifier = Modifier.animateItem(
+                                    placementSpec = tween(
+                                        durationMillis = 350,
+                                        easing = FastOutSlowInEasing
+                                    )
+                                )
+                            ){
+                                LaunchedEffect(item.id_tienda_lugar) {
+                                    viewModelFiltros.calcularHorarioParaTienda(item.id_tienda_lugar, item.horario_tienda_box)
+                                }
+                                carta_desing_fv(
+                                    viewModelFiltros.horariosTiendas.collectAsState().value[item.id_tienda_lugar] ?: HorarioDia_box(),
+                                    verificar_intener,
+                                    fv_por_fuera,
+                                    viewModelFiltros,
+                                    id_user,
+                                    context,
+                                    item,
+                                    tick
+                                ) { id_tienda, localida ->
+                                    bottomhseet_tienda = true
+                                    id_tienda_select = id_tienda
+                                    localida_tienda_select = localida
+                                }
                             }
-                            carta_desing_fv(
-                                viewModelFiltros.horariosTiendas.collectAsState().value[item.id_tienda_lugar] ?: HorarioDia_box(),
-                                verificar_intener,
-                                fv_por_fuera,
-                                viewModelFiltros,
-                                id_user,
-                                context,
-                                item,
-                                tick
-                            ) { id_tienda, localida ->
-                                bottomhseet_tienda = true
-                                id_tienda_select = id_tienda
-                                localida_tienda_select = localida
-                            }
+
                         }
                     }
 
@@ -723,9 +734,12 @@ fun iu_favoritos(
 
     if (bottomhseet_tienda) {
         bottom_sheet_tiendas_filtradas(
+            id_tienda_select,
+            localida_tienda_select,
             verificar_intener,
             viewModelFiltros,
-            dataclass_tienda_seleccionada, bottomhseet_tienda
+//            dataclass_tienda_seleccionada,
+            bottomhseet_tienda
         ) {
             bottomhseet_tienda = false
         }
@@ -940,6 +954,20 @@ fun carta_desing_fv(
                 contentScale = ContentScale.Crop
             )
 
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .height(120.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.6f)
+                            )
+                        )
+                    )
+            )
 
             Box(
                 modifier = Modifier

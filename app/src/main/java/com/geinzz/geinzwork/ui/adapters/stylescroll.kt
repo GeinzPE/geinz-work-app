@@ -67,7 +67,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
     var idTiendaSelect by remember { mutableStateOf("") }
 
     val viewModelFiltros: viewModel_filtado_tiendas = viewModel()
-    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
+//    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     var tiendaSeleccionada by remember { mutableStateOf(modelo_tienda()) }
 
     // ---------------- FEED ----------------
@@ -110,20 +110,20 @@ fun ZoomableGalleryFullScreenVerticalPager(
     }
 
     // ---------------- BOTTOM SHEET ----------------
-    LaunchedEffect(showBottomSheet) {
-        if (showBottomSheet) {
-            viewModelFiltros.obtener_campos_tiendas_por_id(
-                localidad_general,
-                idTiendaSelect
-            )
-        }
-    }
+//    LaunchedEffect(showBottomSheet) {
+//        if (showBottomSheet) {
+//            viewModelFiltros.obtener_campos_tiendas_por_id(
+//                localidad_general,
+//                idTiendaSelect
+//            )
+//        }
+//    }
 
-    LaunchedEffect(datosTienda) {
-        if (!datosTienda.isNullOrEmpty()) {
-            tiendaSeleccionada = datosTienda!!.first()
-        }
-    }
+//    LaunchedEffect(datosTienda) {
+//        if (!datosTienda.isNullOrEmpty()) {
+//            tiendaSeleccionada = datosTienda!!.first()
+//        }
+//    }
 
     // ---------------- SCROLL INFINITO ----------------
     var solicitandoBloque by remember { mutableStateOf(false) }
@@ -356,9 +356,11 @@ fun ZoomableGalleryFullScreenVerticalPager(
 
         if (showBottomSheet) {
             bottom_sheet_tiendas_filtradas(
+                idTiendaSelect,
+                localidad_general,
                 true,
                 viewModelFiltros,
-                tiendaSeleccionada,
+//                tiendaSeleccionada,
                 showBottomSheet
             ) {
                 showBottomSheet = false

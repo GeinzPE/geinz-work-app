@@ -8,6 +8,8 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia_bloques
 import com.geinzz.geinzwork.data.model.localizate_geinz.ServicioComodidadUI
+import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_numero
+import com.geinzz.geinzwork.data.model.localizate_geinz.contacto_red
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.TiendaHorarioUpdate
 
@@ -18,7 +20,11 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
+import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_metodo_individual
+import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
+import com.geinzz.geinzwork.data.model.obtener_img_tiendas
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes_bottomShet_fourdItem.calcularProximaApertura
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes_bottomShet_fourdItem.obtenerHorarioDeHoy
 import com.geinzz.geinzwork.utils.constantes.constantes.constantes_bottomShet_fourdItem.obtenerHorarioDeHoy_BOX
@@ -898,6 +904,148 @@ class repo_filtrado_tiendas {
     }
 
 
+    suspend fun obtener_Datos_tienda_por_id(
+        id_tienda: String,
+        localidad: String
+    ): modelo_tienda {
+
+        val doc = db.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .document(id_tienda)
+            .get()
+            .await()
+
+        val data = doc.data ?: return modelo_tienda()
+
+        // ── horario_atencion_box ──────────────────────────────────────
+        val horarioMap = data["horario_atencion"] as? Map<String, Any> ?: emptyMap()
+
+        fun parseBloques(diaMap: Map<String, Any>): HorarioDia_bloques {
+            val bloquesRaw = diaMap["bloques"] as? List<Map<String, Any>> ?: emptyList()
+            val bloques = bloquesRaw.map { b ->
+                HorarioBloque(
+                    h_apertura = b["h_apertura"] as? String ?: "",
+                    h_cierre   = b["h_cierre"]   as? String ?: ""
+                )
+            }
+            return HorarioDia_bloques(
+                bloques = bloques,
+                cerrado = diaMap["cerrado"] as? Boolean ?: false,
+                motivo  = diaMap["motivo"]  as? String  ?: ""
+            )
+        }
+
+        val horarioBox = HorarioAtencion_box(
+            lunes     = parseBloques(horarioMap["lunes"]      as? Map<String, Any> ?: emptyMap()),
+            martes    = parseBloques(horarioMap["martes"]     as? Map<String, Any> ?: emptyMap()),
+            miércoles = parseBloques(horarioMap["miércoles"]  as? Map<String, Any> ?: emptyMap()),
+            jueves    = parseBloques(horarioMap["jueves"]     as? Map<String, Any> ?: emptyMap()),
+            viernes   = parseBloques(horarioMap["viernes"]    as? Map<String, Any> ?: emptyMap()),
+            sábado    = parseBloques(horarioMap["sábado"]     as? Map<String, Any> ?: emptyMap()),
+            domingo   = parseBloques(horarioMap["domingo"]    as? Map<String, Any> ?: emptyMap())
+        )
+
+        // ── metodo_contacto ──────────────────────────────────────────
+        val contactoMap = data["metodo_contacto"] as? Map<String, Any> ?: emptyMap()
+
+        fun parseContactoNumero(key: String): contacto_numero {
+            val m = contactoMap[key] as? Map<String, Any> ?: emptyMap()
+            return contacto_numero(
+                estado = m["estado"] as? Boolean ?: false,
+                numero = m["numero"] as? String  ?: ""
+            )
+        }
+        fun parseContactoRed(key: String): contacto_red {
+            val m = contactoMap[key] as? Map<String, Any> ?: emptyMap()
+            return contacto_red(
+                estado = m["estado"] as? Boolean ?: false,
+                nombre = m["nombre"] as? String  ?: "",
+                url    = m["url"]    as? String  ?: ""
+            )
+        }
+
+        val contacto = metodo_contacto_tienda(
+            whatsapp = parseContactoNumero("whatsapp"),
+            llamada = parseContactoNumero("llamada"),
+            facebook = parseContactoRed("facebook"),
+            instagram = parseContactoRed("instagram"),
+            tiktok = parseContactoRed("tiktok"),
+            sitio_web = parseContactoRed("sitio_web")
+        )
+
+        // ── metodos_pago ─────────────────────────────────────────────
+        val pagosMap = data["metodos_pago"] as? Map<String, Any> ?: emptyMap()
+
+        fun parseMetodoIndividual(key: String): modelo_metodo_individual {
+            val m = pagosMap[key] as? Map<String, Any> ?: emptyMap()
+            return modelo_metodo_individual(
+                numero = m["numero"] as? String  ?: "",
+                qr     = m["qr"]     as? String  ?: "",
+                nombre = m["nombre"] as? String  ?: "",
+                enable = m["enable"] as? Boolean ?: false
+            )
+        }
+
+        val metodosPago = modelo_pagos_tienda(
+            visa_mastercard = parseMetodoIndividual("visa_mastercard"),
+            agora           = parseMetodoIndividual("agora"),
+            efectivo        = parseMetodoIndividual("efectivo"),
+            plin            = parseMetodoIndividual("plin"),
+            yape            = parseMetodoIndividual("yape")
+        )
+
+        // ── img_tienda ───────────────────────────────────────────────
+        val imgTiendaMap  = data["img_tienda"]   as? Map<String, Any> ?: emptyMap()
+        val listaImgMap   = imgTiendaMap["lista_img"] as? Map<String, Any> ?: emptyMap()
+
+        val imgObj = obtener_img_tiendas(
+            logo_tienda       = imgTiendaMap["logo_tienda"] as? String ?: "",
+            lista_ambiernte   = listaImgMap["ambientales"]         as? List<String> ?: emptyList(),
+            lista_productos   = listaImgMap["servicios_productos"] as? List<String> ?: emptyList(),
+            lista_promociones = listaImgMap["promociones"]         as? Map<String, String> ?: emptyMap(),
+            logo_whatsapp_bot = imgTiendaMap["logo_whatsapp_bot"]  as? String ?: ""
+        )
+
+        // ── servicios_comodidades ────────────────────────────────────
+        val comodidadesRaw = data["servicios_comodidades"] as? List<Map<String, Any>> ?: emptyList()
+        val comodidades = comodidadesRaw.mapNotNull { map ->
+            val entry = map.entries.firstOrNull() ?: return@mapNotNull null
+            ServicioComodidadUI(
+                nombre = entry.key,
+                activo = entry.value as? Boolean ?: false,
+                icono  = obtenerIconoComodidad(entry.key)  // ← igual que la función vieja
+            )
+        }
+        // ── ubicacion ────────────────────────────────────────────────
+        val ubicacion = data["ubicacion"] as? Map<String, Any> ?: emptyMap()
+
+        // ── build ────────────────────────────────────────────────────
+        return modelo_tienda(
+            nombre_tienda        = data["nombre_tienda"]    as? String  ?: "",
+            modelo_negocio       = data["modelo_negocio"]   as? Boolean ?: false,
+            localidad            = data["localidad"]        as? String  ?: "",
+            categoria_tienda     = data["categoria_tienda"] as? String  ?: "",
+            descripcion          = data["descripcion"]      as? String  ?: "",
+            id_tienda            = data["id_tienda"]        as? String  ?: "",
+            img_perfil           = (data["img_tienda"] as? Map<String, Any>)
+                ?.get("logo_tienda") as? String ?: "",
+            lista_img            = emptyList(),
+            subcategoria         = data["subcategoria"]     as? List<String> ?: emptyList(),
+            ubicacion            = ubicacion,
+            pagado               = data["pagado"]           as? Boolean ?: false,
+            metodo_contacto_tienda = contacto,
+            horario_atencion     = HorarioAtencion(),       // no está en este doc
+            metodos_pago_tienda  = metodosPago,
+            horario_tienda_box   = horarioBox,
+            timestamp            = data["timeSlamp"]        as? String  ?: "",
+            lista_img_tienda     = imgObj,
+            comodidades          = comodidades,
+            aforo                = data["aforo_max"]        as? Number  ?: 0
+        )
+    }
+
+
     fun obtenerNombreBase(nombre: String): String {
         return nombre
             .lowercase()
@@ -912,6 +1060,7 @@ class repo_filtrado_tiendas {
             .normalize(this, java.text.Normalizer.Form.NFD)
             .replace(Regex("\\p{InCombiningDiacriticalMarks}+"), "")
     }
+
 
 
 

@@ -55,6 +55,7 @@ import androidx.core.content.ContextCompat
 import coil3.compose.AsyncImage
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.msjes_predeteminados_generales
+import com.geinzz.geinzwork.herramientas_geinz.constantes.ubicaciones
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.repo_seguridad_salud
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoSubrayado
@@ -104,26 +105,18 @@ fun dialog_llamada_urgencias(
         try {
             ofuscar_btns_acces = true
 
-            val datosConCallback =
-                repo_seguridad__salud.obtenerUbicacionUsuarioCancelable(
-                    fusedLocationClient
-                )
+            val resultado = ubicaciones.obtenerUbicacionRobusta(
+                fusedLocationClient = fusedLocationClient,
+                repo = repo_seguridad__salud
+            )
 
-            val datos = datosConCallback.latLng
-
-            if (datos.latitude == 0.0 && datos.longitude == 0.0) {
+            if (!resultado.exito) {
                 enviar_msje_con_ubicacion = false
-                Toast.makeText(
-                    context,
-                    "No se pudo obtener tu ubicación, inténtalo otra vez",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(context, resultado.mensajeError, Toast.LENGTH_SHORT).show()
                 return@LaunchedEffect
             }
 
-            val url_maps =
-                "https://www.google.com/maps/dir/?api=1&destination=${datos.latitude},${datos.longitude}"
-
+            val url_maps = "https://www.google.com/maps/dir/?api=1&destination=${resultado.lat},${resultado.lng}"
             msje_general_whatsapp = """
             🚨 EMERGENCIA REAL 🚨
             Me encuentro en esta ubicación:
@@ -132,11 +125,6 @@ fun dialog_llamada_urgencias(
             Geinz
         """.trimIndent()
 
-            repo_seguridad__salud.cancelarUbicacion(
-                fusedLocationClient,
-                datosConCallback.callback
-            )
-
             ofuscar_btns_acces = false
 
         } catch (e: Exception) {
@@ -144,7 +132,6 @@ fun dialog_llamada_urgencias(
             ofuscar_btns_acces = false
         }
     }
-
     AlertDialog(
         onDismissRequest = { ondimiss() },
         confirmButton = {},
@@ -326,24 +313,24 @@ fun dialog_llamada_urgencias(
 
 fun enviarMensajeEmergencia(
     fusedLocationClient: FusedLocationProviderClient,
-    repo_seguridad__salud: repo_seguridad_salud, // tu repo que maneja ubicación
+    repo_seguridad__salud: repo_seguridad_salud,
     onMensajeListo: (String) -> Unit
 ) {
     CoroutineScope(Dispatchers.Main).launch {
         try {
-            // Obtener ubicación
-            val datosConCallback =
-                repo_seguridad__salud.obtenerUbicacionUsuarioCancelable(fusedLocationClient)
-            val datos = datosConCallback.latLng
+            val resultado = ubicaciones.obtenerUbicacionRobusta(
+                fusedLocationClient = fusedLocationClient,
+                repo = repo_seguridad__salud
+            )
 
-            // Cancelar la actualización de ubicación
-            repo_seguridad__salud.cancelarUbicacion(fusedLocationClient, datosConCallback.callback)
+            if (!resultado.exito) {
+                onMensajeListo("No se pudo obtener la ubicación. ❌")
+                return@launch
+            }
 
-            // Generar link de Google Maps
             val linkUbicacion =
-                "https://www.google.com/maps/dir/?api=1&destination=${datos.latitude},${datos.longitude}"
+                "https://www.google.com/maps/dir/?api=1&destination=${resultado.lat},${resultado.lng}"
 
-            // Armar mensaje final
             val mensajeFinal = """
                 🚨 EMERGENCIA REAL 🚨
                 Me encuentro en esta ubicación:
@@ -352,7 +339,6 @@ fun enviarMensajeEmergencia(
                 Geinz
             """.trimIndent()
 
-            // Retornar mensaje
             onMensajeListo(mensajeFinal)
         } catch (e: Exception) {
             e.printStackTrace()

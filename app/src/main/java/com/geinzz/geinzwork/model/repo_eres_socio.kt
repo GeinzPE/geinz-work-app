@@ -23,6 +23,7 @@ import com.geinzz.geinzwork.data.model.generaciones_con_ia_notificaciones
 import com.geinzz.geinzwork.data.model.generaciones_con_ia_notificaciones_solo_generaciones
 import com.geinzz.geinzwork.data.model.nuevas_notificaciones
 import com.geinzz.geinzwork.data.model.obj_contador_notificaciones
+import com.geinzz.geinzwork.data.model.precios_bot
 import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_datos_expirados_fechas_publicaciones.timestampEn30Dias
@@ -33,9 +34,11 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.construirPromptNLP
 import com.geinzz.geinzwork.herramientas_geinz.constantes.construir_prompt_NLP_para_busqueda
 import com.geinzz.geinzwork.herramientas_geinz.constantes.extraer_terminos_para_GenIA
 import com.geinzz.geinzwork.herramientas_geinz.constantes.generarPromptNombreGeneracionIA
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.GeofencingManager
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.acortarDescripcionNotificacion
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaConDias
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_horas.timeStampNumero
+import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.geohashing
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoservicios_comodidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion_box_dia
@@ -114,6 +117,21 @@ class repo_eres_socio {
         FirebaseSecundario.getFirestore()
     }
 
+    suspend fun obtener_precios_de_daniel(): precios_bot? {
+        return try {
+            val doc = db_sec
+                .collection("precio_apartado")
+                .document("bot_daniel")
+                .get()
+                .await()
+
+            doc.toObject(precios_bot::class.java)
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
     //    (cargar_precio_activacione?.publicidad?.mensajeWC ?:100).toString(),
 //    cargar_precio_activacione
     suspend fun obtener_precios_generales(): PreciosApp? {
@@ -362,8 +380,12 @@ class repo_eres_socio {
         }
     }
 
-    suspend fun guardar_lat_lng(lat: Double, lng: Double, idTienda: String, localidad: String) {
-
+    suspend fun guardar_lat_lng(
+        lat: Double,
+        lng: Double,
+        idTienda: String,
+        localidad: String
+    ) {
         val ref = db.collection("Tiendas")
             .document(localidad)
             .collection(localidad)
@@ -372,15 +394,31 @@ class repo_eres_socio {
         val algoliaDoc = db.collection("lugares")
             .document(idTienda)
 
-        val campos = mapOf(
+        val geohash = geohashing(lat, lng)
+
+        val zona = GeofencingManager.obtenerNombreZona(
+            latitud = lat,
+            longitud = lng
+        )
+
+        val camposTienda = mapOf(
             "ubicacion.latitud" to lat,
-            "ubicacion.longitud" to lng
+            "ubicacion.longitud" to lng,
+            "geohash" to geohash,
+            "zona_geografica" to zona
+        )
+
+        val camposLugar = mapOf(
+            "ubicacion.latitud" to lat,
+            "ubicacion.longitud" to lng,
+            "geohash" to geohash,
+            "zona_geografica" to zona
         )
 
         coroutineScope {
             listOf(
-                async { ref.update(campos).await() },
-                async { algoliaDoc.update(campos).await() }
+                async { ref.update(camposTienda).await() },
+                async { algoliaDoc.update(camposLugar).await() }
             ).awaitAll()
         }
     }
@@ -1402,7 +1440,6 @@ class repo_eres_socio {
 
 
     suspend fun guardarImagenesEnFirestore_promociones(
-
         id_tienda: String,
         logo_tienda: String,
         localidad: String,
@@ -1751,8 +1788,6 @@ class repo_eres_socio {
                 "terminos_clave" to array_extraido,
                 "random" to Math.random()
             )
-
-
 
             subir_algolia_promociones.set(objetoAlgolia).await()
             ref.set(hashMap, SetOptions.merge()).await()

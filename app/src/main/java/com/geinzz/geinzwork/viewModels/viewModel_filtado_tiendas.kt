@@ -193,6 +193,33 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
         repo_filtrado.escucharHorariosEnTiempoReal(localidad, categoria)
     }
 
+
+    private val _datos_tienda_especifica =
+        MutableStateFlow<obtner_Datos_tiendas_espesifica>(obtner_Datos_tiendas_espesifica.loading)
+    val datos_tienda_especifica = _datos_tienda_especifica.asStateFlow()
+
+    fun obtener_datos_tienda_por_id(
+        id_tienda: String,
+        localidad: String
+    ) {
+        viewModelScope.launch {
+            _datos_tienda_especifica.value = obtner_Datos_tiendas_espesifica.loading
+            try {
+                val tienda = repo_filtrado.obtener_Datos_tienda_por_id(
+                    id_tienda = id_tienda,
+                    localidad = localidad
+                )
+                if (tienda.id_tienda.isEmpty()) {
+                    _datos_tienda_especifica.value = obtner_Datos_tiendas_espesifica.empty("No se encontró la tienda")
+                } else {
+                    _datos_tienda_especifica.value = obtner_Datos_tiendas_espesifica.succes(tienda)
+                }
+            } catch (e: Exception) {
+                _datos_tienda_especifica.value = obtner_Datos_tiendas_espesifica.error(e.message ?: "Error desconocido")
+            }
+        }
+    }
+
     private val _horarioTienda = MutableLiveData<HorarioTienda?>(null)
 
     private val subcategoria_filtrado = MutableLiveData<List<dataclass_cat_sub_lista_cat>>()
@@ -689,6 +716,12 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
         data class empty(val texto: String) : carga_tiendas()
         data class error(val texto: String) : carga_tiendas()
         data class succes(val items: List<tiendas_por_categoria>) : carga_tiendas()
+    }
+    sealed class obtner_Datos_tiendas_espesifica{
+        object loading:obtner_Datos_tiendas_espesifica()
+        data class empty(val texto: String):obtner_Datos_tiendas_espesifica()
+        data class succes(val data:modelo_tienda):obtner_Datos_tiendas_espesifica()
+        data class error(val error: String):obtner_Datos_tiendas_espesifica()
     }
 
 }

@@ -33,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -59,6 +60,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.geinzz.geinzwork.R
 
@@ -98,7 +102,16 @@ fun pantala_recarga(
         animationSpec = tween(durationMillis = 500)
     )
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
-
+    var planCargando by remember { mutableStateOf<String?>(null) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            // Se ejecuta cada vez que la app vuelve al frente
+            if (planCargando != null) {
+                planCargando = null
+            }
+        }
+    }
     val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
     ?: ""
 
@@ -256,7 +269,10 @@ fun pantala_recarga(
                             }
                         }
                         items(datos) { i ->
-                            item_pantalla_recarga(i) { id_plan,precio_soles,nombre_plan->
+                            item_pantalla_recarga(i, planCargando = planCargando ) { id_plan,precio_soles,nombre_plan->
+                                if (planCargando != null) return@item_pantalla_recarga // ← bloquea si hay uno activo
+
+                                planCargando = id_plan  // ← marca este como activo
                              viewmodel_recarga_insta.agregarPagoTienda(
                                  idTienda = datos_para_pantalla_recarga.id_tienda,
                                  nombreUser = datos_para_pantalla_recarga.nombre_tienda,
@@ -268,12 +284,14 @@ fun pantala_recarga(
                                  nombrePlan =nombre_plan,
                                  precio_soles,
                                  onResult = { id_pago,bool ->
+//                                     planCargando = null
                                      val url_pago="https://geinzworkapp.web.app/dasboard/pagos?orderId=${id_pago}&ins=i"
                                      openCustomTab(context,url_pago)
                                  }
                              )
                             }
                         }
+
                         item { spacer_vertical(20.dp) }
                     }
                 }
@@ -314,8 +332,11 @@ fun pantala_recarga(
 @Composable
 fun item_pantalla_recarga(
     i: datos_recarga,
-    plan_select: (plan: String,precio_soles:Int,nombre_plan:String) -> Unit
+    planCargando: String?,
+    plan_select: (plan: String, precio_soles: Int, nombre_plan: String) -> Unit
 ) {
+    val esteCargando = planCargando == i.id_plan_select
+    val algunoCargando = planCargando != null
 
     Column(
         modifier = Modifier
@@ -329,6 +350,7 @@ fun item_pantalla_recarga(
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             texto_generico_one_line(i.nombre_plan, style = MaterialTheme.typography.titleLarge)
         }
+
         if (i.monedas_agregadas.equals("0")) {
             Box(
                 modifier = Modifier
@@ -356,22 +378,17 @@ fun item_pantalla_recarga(
                 contentAlignment = Alignment.Center
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-
-                        texto_generico_one_line(
-                            i.monedas_inicial,
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                        spacer_horizonta(3.dp)
-                        Image(
-                            painter = painterResource(R.drawable.icon_monedas_3d),
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
+                    texto_generico_one_line(
+                        i.monedas_inicial,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    spacer_horizonta(3.dp)
+                    Image(
+                        painter = painterResource(R.drawable.icon_monedas_3d),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
-
             }
         }
 
@@ -379,41 +396,30 @@ fun item_pantalla_recarga(
         texto_generico_one_line(i.descripcion)
 
         i.accesos.forEach { datos ->
-
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = null,
                     tint = Color(0xFF2ECC71),
                     modifier = Modifier.size(18.dp)
                 )
-
                 Spacer(modifier = Modifier.width(6.dp))
-
                 texto_generico_multilinea(
                     datos,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
-
-            // ✅ Si hay monedas agregadas, agregamos un Row con icono de regalo
         }
+
         if (!i.monedas_agregadas.equals("0")) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = Icons.Default.CardGiftcard, // icono de regalo
+                    imageVector = Icons.Default.CardGiftcard,
                     contentDescription = null,
-                    tint = Color(0xFFFFC107), // color dorado/amarillo
+                    tint = Color(0xFFFFC107),
                     modifier = Modifier.size(18.dp)
                 )
-
                 Spacer(modifier = Modifier.width(6.dp))
-
                 texto_generico_one_line(
                     "+${i.monedas_agregadas}",
                     style = MaterialTheme.typography.bodyMedium.copy(color = Color(0xFFFFC107))
@@ -431,10 +437,7 @@ fun item_pantalla_recarga(
                 )
             }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 texto_generico_one_line(
                     "Total de recargar: ${i.monedas}",
                     style = MaterialTheme.typography.bodyMedium.copy(color = Color(0xFFFFC107))
@@ -445,27 +448,45 @@ fun item_pantalla_recarga(
                     contentDescription = null,
                     modifier = Modifier.size(18.dp)
                 )
-
             }
         }
 
         spacer_vertical(5.dp)
+
         Box(
             modifier = Modifier
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary)
-                .clickable() {
-                    plan_select(i.id_plan_select,i.precio_soles.toInt(),i.nombre_plan)
+                .background(
+                    when {
+                        esteCargando -> MaterialTheme.colorScheme.primary
+                        algunoCargando -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+                        else -> MaterialTheme.colorScheme.primary
+                    }
+                )
+                .clickable(enabled = !algunoCargando) {
+                    plan_select(i.id_plan_select, i.precio_soles.toInt(), i.nombre_plan)
                 }
-                .fillMaxWidth(), contentAlignment = Alignment.Center
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
-            texto_generico_one_line(
-                "Adquirir paquete: S/${i.precio_soles}.00",
-                style = MaterialTheme.typography.bodyMedium,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.padding(10.dp)
-            )
+            ) {
+                texto_generico_one_line(
+                    "Adquirir paquete: S/${i.precio_soles}.00",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                if (esteCargando) {
+                    spacer_horizonta(8.dp)
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                }
+            }
         }
     }
-
-
 }

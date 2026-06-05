@@ -68,11 +68,11 @@ class viewmodel_pantallas_recientes : ViewModel() {
 
 
 
-    fun cargarDatosPromocion(idTienda: String, localidad: String, idPromo: String) {
+    fun cargarDatosPromocion( precio_hora:Int,precio_dias:Int,idTienda: String, localidad: String, idPromo: String) {
         viewModelScope.launch {
             _estadoPromocion.value = EstadoDatosPromocion.Loading
             try {
-                val datos = instarepo.obtenerDatosPromocion(idTienda, localidad, idPromo)
+                val datos = instarepo.obtenerDatosPromocion(precio_hora,precio_dias,idTienda, localidad, idPromo)
                 if (datos != null) {
                     _estadoPromocion.value = EstadoDatosPromocion.Success(datos)
                 } else {

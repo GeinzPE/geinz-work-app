@@ -896,13 +896,13 @@ fun ui_info_imobiliara(
         }
 
         AnimatedVisibility(show_bottom_sheeet) {
-            bottom_sheet_tiendas_filtradas(
-                verificar_inter,
-                viewModelFiltros,
-                dataclass_tienda_seleccionada, show_bottom_sheeet
-            ) {
-                show_bottom_sheeet = false
-            }
+//            bottom_sheet_tiendas_filtradas(
+//                verificar_inter,
+//                viewModelFiltros,
+//                dataclass_tienda_seleccionada, show_bottom_sheeet
+//            ) {
+//                show_bottom_sheeet = false
+//            }
         }
         AnimatedVisibility(bottomSheetVisible) {
             bottom_sheet_lugares_turisticos(

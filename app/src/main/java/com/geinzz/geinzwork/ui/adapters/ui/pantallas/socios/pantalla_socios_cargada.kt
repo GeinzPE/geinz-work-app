@@ -68,6 +68,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -128,6 +129,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_pantall
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_eres_socio
 import com.geinzz.geinzwork.viewModels.viewmodel_generaciones_IA
+import com.geinzz.geinzwork.viewModels.viewmodel_metricas_daniel
 import com.geinzz.geinzwork.viewModels.viewmodel_recargas
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.StateFlow
@@ -197,6 +199,11 @@ fun pantalla_carga_socios(
     var imagen_subida_correctamente by remember { mutableStateOf(false) }
     var uri_imagen_bot by remember { mutableStateOf<Uri?>(null) }
     var ver_assitent by remember { mutableStateOf(false) }
+    val precios_bot by viewmodel.preciosBot.collectAsState()
+
+    LaunchedEffect(precios_bot) {
+        Log.d("BOT_DANIEL", "📊 precios_bot = $precios_bot")
+    }
     LaunchedEffect(uid_respald_user) {
         if (uid_respald_user.isNotEmpty()) {
             viewmodel.verificar_cuenta_vinculada(
@@ -1284,6 +1291,7 @@ fun pantalla_carga_socios(
                                 .animateContentSize() // ← Animación suave
                         ) {
                             expandibles_wrapp_socio_geinzz_datos_tienda(
+                                cargar_precio_activacione?.costoPorMoneda?:0.15,
                                 lista_descuentos,
                                 nombre_negocio, viewmodel_recargas = viewmodel_recargas,
                                 viewModelFiltros = viewmodel,
@@ -1481,7 +1489,7 @@ fun pantalla_carga_socios(
                                 RoundedCornerShape(10.dp)
                             )
                             .background(
-                                MaterialTheme.colorScheme.surfaceVariant
+                                Color(0xFF2C2C2E) // mismo gris moderno dark
                             )
                     ) { estado ->
                         if (!estado) {
@@ -2050,15 +2058,22 @@ fun pantalla_carga_socios(
                         },
                         modifier = Modifier
                             .fillMaxWidth(),
-                        shape = CircleShape,
+                        shape = RoundedCornerShape(18.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
+                            containerColor = Color(0xFF2C2C2E),
+                            contentColor = Color.White
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 4.dp,
+                            pressedElevation = 8.dp
                         )
                     ) {
                         texto_generico_one_line(
-                            "\uD83D\uDCCA Historial de recarga y compra",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(vertical = 6.dp)
+                            "📊 Historial de recarga y compra",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.SemiBold
+                            ),
+                            modifier = Modifier.padding(vertical = 8.dp)
                         )
                     }
 
@@ -2271,87 +2286,89 @@ fun pantalla_carga_socios(
                 { mostra_bottom_sheet_historial = false })
         }
 
-        if (mostra_bottom_sheet_historial_de_gen_IA) {
-            val datos_tienda_params = datos_para_generacion_dialog_historial_IA(
-                nombre_tienda = datos.nombre,
-                monedas_tienda = datos.saldo_disponible_tienda.toInt(),
-                localidad_tienda = datos.localidad_tienda,
-                id_tienda = datos.id_tienda
-            )
-            ui_bottom_sheet_generaciones_IA(
-                datos_tienda_params,
-                { mostra_bottom_sheet_historial_de_gen_IA = false },
-                datos.nombre,
-                usar_todas = { titulo, descripcion, wsap, compartir, tipo, id_generacion, datos_generaciones_sin_publicaicones ->
-                    Log.d("tipo_pbntenido1", "$tipo")
-                    if (tipo == "generacion_publicacion_sin_pulicar" || tipo == "notificacion_sin_publicar") {
-                        navegarcrear_pùblicidad_todas(
-                            titulo,
-                            descripcion,
-                            wsap,
-                            compartir,
-                            tipo,
-                            id_generacion,
-                            datos_generaciones_sin_publicaicones
-                        )
-                    } else {
-                        navegarcrear_pùblicidad_todas(
-                            titulo,
-                            descripcion,
-                            wsap,
-                            compartir,
-                            tipo,
-                            null,
-                            datos_generaciones_sin_publicaicones()
-                        )
-                    }
-                },
-                usar_titulo_descripcion = { titulo, descrpcion, tipo, id_generacion, datos_generaciones_sin_publicaicones ->
-                    Log.d("tipo_pbntenido2", "$tipo")
-                    if (tipo == "generacion_publicacion_sin_pulicar" || tipo == "notificacion_sin_publicar") {
-                        navegarcrear_pùblicidad_titulo_descripcion(
-                            titulo,
-                            descrpcion,
-                            tipo,
-                            id_generacion,
-                            datos_generaciones_sin_publicaicones
-                        )
-                    } else {
-                        navegarcrear_pùblicidad_titulo_descripcion(
-                            titulo,
-                            descrpcion,
-                            tipo,
-                            null,
-                            datos_generaciones_sin_publicaicones()
-                        )
-                    }
-                },
-                usar_wsap = { msje, tipo, id_generacion ->
-                    Log.d("tipo_pbntenido3", "$tipo")
-                    if (tipo == "generacion_publicacion_sin_pulicar" || tipo == "notificacion_sin_publicar") {
-                        navegarcrear_pùblicidad_wsap(msje, tipo, id_generacion)
-
-                    } else {
-                        navegarcrear_pùblicidad_wsap(msje, tipo, null)
-
-                    }
-                },
-                usar_compartir = { msje, tipo, id_generacion ->
-                    Log.d("tipo_pbntenido4", "$tipo")
-                    if (tipo == "generacion_publicacion_sin_pulicar" || tipo == "notificacion_sin_publicar") {
-                        navegarcrear_pùblicidad_compartiro(msje, tipo, id_generacion)
-
-                    } else {
-
-                        navegarcrear_pùblicidad_compartiro(msje, tipo, null)
-                    }
-                }
-            )
-        }
+//        if (mostra_bottom_sheet_historial_de_gen_IA) {
+//            val datos_tienda_params = datos_para_generacion_dialog_historial_IA(
+//                nombre_tienda = datos.nombre,
+//                monedas_tienda = datos.saldo_disponible_tienda.toInt(),
+//                localidad_tienda = datos.localidad_tienda,
+//                id_tienda = datos.id_tienda
+//            )
+//            ui_bottom_sheet_generaciones_IA(
+//                datos_tienda_params,
+//                { mostra_bottom_sheet_historial_de_gen_IA = false },
+//                datos.nombre,
+//                usar_todas = { titulo, descripcion, wsap, compartir, tipo, id_generacion, datos_generaciones_sin_publicaicones ->
+//                    Log.d("tipo_pbntenido1", "$tipo")
+//                    if (tipo == "generacion_publicacion_sin_pulicar" || tipo == "notificacion_sin_publicar") {
+//                        navegarcrear_pùblicidad_todas(
+//                            titulo,
+//                            descripcion,
+//                            wsap,
+//                            compartir,
+//                            tipo,
+//                            id_generacion,
+//                            datos_generaciones_sin_publicaicones
+//                        )
+//                    } else {
+//                        navegarcrear_pùblicidad_todas(
+//                            titulo,
+//                            descripcion,
+//                            wsap,
+//                            compartir,
+//                            tipo,
+//                            null,
+//                            datos_generaciones_sin_publicaicones()
+//                        )
+//                    }
+//                },
+//                usar_titulo_descripcion = { titulo, descrpcion, tipo, id_generacion, datos_generaciones_sin_publicaicones ->
+//                    Log.d("tipo_pbntenido2", "$tipo")
+//                    if (tipo == "generacion_publicacion_sin_pulicar" || tipo == "notificacion_sin_publicar") {
+//                        navegarcrear_pùblicidad_titulo_descripcion(
+//                            titulo,
+//                            descrpcion,
+//                            tipo,
+//                            id_generacion,
+//                            datos_generaciones_sin_publicaicones
+//                        )
+//                    } else {
+//                        navegarcrear_pùblicidad_titulo_descripcion(
+//                            titulo,
+//                            descrpcion,
+//                            tipo,
+//                            null,
+//                            datos_generaciones_sin_publicaicones()
+//                        )
+//                    }
+//                },
+//                usar_wsap = { msje, tipo, id_generacion ->
+//                    Log.d("tipo_pbntenido3", "$tipo")
+//                    if (tipo == "generacion_publicacion_sin_pulicar" || tipo == "notificacion_sin_publicar") {
+//                        navegarcrear_pùblicidad_wsap(msje, tipo, id_generacion)
+//
+//                    } else {
+//                        navegarcrear_pùblicidad_wsap(msje, tipo, null)
+//
+//                    }
+//                },
+//                usar_compartir = { msje, tipo, id_generacion ->
+//                    Log.d("tipo_pbntenido4", "$tipo")
+//                    if (tipo == "generacion_publicacion_sin_pulicar" || tipo == "notificacion_sin_publicar") {
+//                        navegarcrear_pùblicidad_compartiro(msje, tipo, id_generacion)
+//
+//                    } else {
+//
+//                        navegarcrear_pùblicidad_compartiro(msje, tipo, null)
+//                    }
+//                }
+//            )
+//        }
 
         if (cambiar_estados_bot_whattsapp) {
             Log.d("datos.bot_pro_free", "${datos.bot_pro_free}")
             WhatsAppDanielBottomSheet(
+                precio_por_click=precios_bot?.plantillas?:10,precio_por_contacto=precios_bot?.contacto_directo?:20,
+                precio_por_moneda=cargar_precio_activacione?.costoPorMoneda?:0.15,
                 plan_free_plan_paga = datos.bot_pro_free,
                 numero_whatsapp = datos.metodo_contacto_tienda.whatsapp.numero,
                 sucategoira = datos.subcategorias_tienda,

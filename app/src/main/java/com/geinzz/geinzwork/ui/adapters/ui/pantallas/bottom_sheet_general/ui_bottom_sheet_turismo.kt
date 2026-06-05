@@ -205,7 +205,7 @@ fun bottom_sheet_lugares_turisticos(
     var color_estado_tienda by remember { mutableStateOf(Color.Gray) }
     var mostrar_bottom_datos by remember { mutableStateOf(false) }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
-    val datosTienda by viewmodel_filtrado._datos_tienda.observeAsState()
+//    val datosTienda by viewmodel_filtrado._datos_tienda.observeAsState()
     val state_tiendas_cercanas by viewmodel_turismo.state_carga_tiendas_cercanas.collectAsState()
     val tick by viewmodel_filtrado.tick.collectAsState()
     val lista_general_completa by viewmodel_turismo._lista_general_completa.collectAsState()
@@ -241,18 +241,18 @@ fun bottom_sheet_lugares_turisticos(
         }
     }
 
-    LaunchedEffect(mostrar_bottom_datos) {
-        if (mostrar_bottom_datos) {
-            viewmodel_filtrado.obtener_campos_tiendas_por_id(
-                localida_tienda ?: "barranca", id_tienda
-            )
-        }
-    }
-    LaunchedEffect(datosTienda) {
-        if (!datosTienda.isNullOrEmpty()) {
-            dataclass_tienda_seleccionada = datosTienda!!.first()
-        }
-    }
+//    LaunchedEffect(mostrar_bottom_datos) {
+//        if (mostrar_bottom_datos) {
+//            viewmodel_filtrado.obtener_campos_tiendas_por_id(
+//                localida_tienda ?: "barranca", id_tienda
+//            )
+//        }
+//    }
+//    LaunchedEffect(datosTienda) {
+//        if (!datosTienda.isNullOrEmpty()) {
+//            dataclass_tienda_seleccionada = datosTienda!!.first()
+//        }
+//    }
 
     LaunchedEffect(Unit) {
         viewmodel_turismo.limpiar_tiendas_cercanas()
@@ -421,9 +421,11 @@ fun bottom_sheet_lugares_turisticos(
 
     if (mostrar_bottom_datos) {
         bottom_sheet_tiendas_filtradas(
+            id_tienda,
+            localida_tienda ?: "barranca",
             verificar_intener,
             viewmodel_filtrado,
-            dataclass_tienda_seleccionada,
+//            dataclass_tienda_seleccionada,
             mostrar_bottom_datos
         ) {
             mostrar_bottom_datos = false

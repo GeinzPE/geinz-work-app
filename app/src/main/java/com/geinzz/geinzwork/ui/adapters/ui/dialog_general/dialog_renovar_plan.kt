@@ -138,6 +138,7 @@ val lista_descuentos = listOf(
 
 @Composable
 fun dialog_renovar_plan(
+    precio_moneda:Double,
     lista_descuentos: List<Descuentos>,
     saldo_disponible: Long,
     ondimis: () -> Unit,

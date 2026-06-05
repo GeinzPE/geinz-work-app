@@ -4,6 +4,7 @@ import com.geinzz.geinzwork.data.model.daniel_metricas.EstadisticaDiaria
 import com.geinzz.geinzwork.data.model.daniel_metricas.HistorialHotItem
 import com.geinzz.geinzwork.data.model.daniel_metricas.InteraccionDirectaItem
 import com.geinzz.geinzwork.data.model.daniel_metricas.MetricasResumen
+import com.geinzz.geinzwork.data.model.precios_bot
 import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -16,6 +17,8 @@ class repo_metricas_daniel_wsap {
     private val db_sec: FirebaseFirestore by lazy {
         FirebaseSecundario.getFirestore()
     }
+
+
 
     /**
      * Estadísticas de UN día específico
@@ -53,8 +56,10 @@ class repo_metricas_daniel_wsap {
         id_tienda: String,
         dias: Int = 7
     ): Result<List<EstadisticaDiaria>> {
-        val formatter    = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val calendar     = Calendar.getInstance()
+        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")) // ✅ también el calendar
         val estadisticas = mutableListOf<EstadisticaDiaria>()
 
         return try {
@@ -95,8 +100,8 @@ class repo_metricas_daniel_wsap {
             val lista = snapshot.documents.map { doc ->
                 HistorialHotItem(
                     id                  = doc.id,
-                    creditos_antes      = doc.getLong("creditos_antes")      ?: 0,
-                    creditos_despues    = doc.getLong("creditos_despues")    ?: 0,
+                    creditos_antes      = doc.getLong("saldo_antes")      ?: 0,
+                    creditos_despues    = doc.getLong("saldo_despues")    ?: 0,
                     monedas_descontadas = doc.getLong("monedas_descontadas") ?: 0,
                     timestamp           = doc.getTimestamp("timestamp")?.toDate(),
                     tipo                = doc.getString("tipo")              ?: "",
@@ -123,40 +128,43 @@ class repo_metricas_daniel_wsap {
      */
     suspend fun obtenerResumenMetricas(id_tienda: String): Result<MetricasResumen> {
         return try {
-            val hoy          = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-            val estadHoy     = obtenerEstadisticasDia(id_tienda, hoy).getOrNull()
+            val fmtUTC = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+            val hoy = fmtUTC.format(Date())
+
+            val estadHoy    = obtenerEstadisticasDia(id_tienda, hoy).getOrNull()
                 ?: EstadisticaDiaria(fecha = hoy)
-            val estadSemana  = obtenerEstadisticasUltimosDias(id_tienda, 7).getOrNull()
+            val estadSemana = obtenerEstadisticasUltimosDias(id_tienda, 30).getOrNull()
                 ?: emptyList()
-            val historial    = obtenerHistorialPublicidad(id_tienda).getOrNull()
+            val historial   = obtenerHistorialPublicidad(id_tienda, limite = 200).getOrNull()
                 ?: emptyList()
 
-            val clicksSemana  = estadSemana.sumOf { it.clicks_whatsapp }
-            val monedasSemana = estadSemana.sumOf { it.monedas_clicks }
-            val totalMonPubli = historial.sumOf { it.monedas_descontadas }
-
+            val ultimos7          = estadSemana.takeLast(7)
+            val clicksSemana      = ultimos7.sumOf { it.clicks_whatsapp }
+            val monedasSemana     = ultimos7.sumOf { it.monedas_clicks }
+            // ✅ enviados de los últimos 7 días desde estadisticas
+            val enviadosSemana    = ultimos7.sumOf { it.enviados_publi }
+            val totalMonPubli     = historial.sumOf { it.monedas_descontadas }
 
             val resumen = MetricasResumen(
-                // — Clicks a WhatsApp —
                 clicks_whatsapp_hoy      = estadHoy.clicks_whatsapp,
                 monedas_gastadas_hoy     = estadHoy.monedas_clicks,
                 clicks_whatsapp_semana   = clicksSemana,
                 monedas_gastadas_semana  = monedasSemana,
 
-                // — Publicidad (plantillas enviadas) —
+                // ✅ enviados desde el doc de estadisticas, no del historial
+                enviados_hoy             = estadHoy.enviados_publi,
+                enviados_semana          = enviadosSemana,
+
                 total_publicidad_enviada = historial.size,
                 monedas_en_publicidad    = totalMonPubli,
-
-                // — Detalle por día (para gráfica) —
-                historial_reciente = historial.take(5),
+                historial_reciente       = historial,
                 total_clicks_historico           = estadSemana.sumOf { it.clicks_whatsapp },
                 total_monedas_contacto_historico = estadSemana.sumOf { it.monedas_clicks }.toLong(),
-
-                )
-
+            )
             Result.success(resumen)
         } catch (e: Exception) {
             Result.failure(e)
         }
-    }
-}
+    }}

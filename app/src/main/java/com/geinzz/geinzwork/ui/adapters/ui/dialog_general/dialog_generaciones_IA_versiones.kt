@@ -57,6 +57,7 @@ import com.valentinilk.shimmer.shimmer
 
 @Composable
 fun dailog_generaciones_IA_versiones(
+    precio_moneda:Double,
     id_seleccionado:String,
     i: datos_para_generacion_dialog_historial_IA,
     viewmodelGeneracionesIa: viewmodel_generaciones_IA,
@@ -297,18 +298,18 @@ fun dailog_generaciones_IA_versiones(
                                 onClick = {
                                     if (!cargando) {
                                         tipo_promp_seleccionado_IA?.let { tipoSeleccionado ->
-                                            viewmodelGeneracionesIa.mejorar_texto_con_promo_IA(
-                                                id_seleccionado,
-                                                tipo_generacion = tipoSeleccionado, // ✅ seguro, no null
-                                                saldo_tienda = i.monedas_tienda,
-                                                localidad_tienda = i.localidad_tienda,
-                                                id_tienda = i.id_tienda,
-                                                nombre_tienda = i.nombre_tienda,
-                                                tituloUsuario = titulo,
-                                                descripcionUsuario = texto,
-                                                nombreTienda = i.nombre_tienda,
-                                                localidad = i.localidad_tienda,"15","Gen IA (REGENERADO)"
-                                            )
+//                                            viewmodelGeneracionesIa.mejorar_texto_con_promo_IA(
+//                                                id_seleccionado,
+//                                                tipo_generacion = tipoSeleccionado, // ✅ seguro, no null
+//                                                saldo_tienda = i.monedas_tienda,
+//                                                localidad_tienda = i.localidad_tienda,
+//                                                id_tienda = i.id_tienda,
+//                                                nombre_tienda = i.nombre_tienda,
+//                                                tituloUsuario = titulo,
+//                                                descripcionUsuario = texto,
+//                                                nombreTienda = i.nombre_tienda,
+//                                                localidad = i.localidad_tienda,"15","Gen IA (REGENERADO)",
+//                                            )
 
                                         } ?: run {
                                             // 🚨 null -> opcional: mostrar mensaje de error o toast
@@ -482,7 +483,7 @@ fun dailog_generaciones_IA_versiones(
                                             id_tienda = i.id_tienda,
                                             nombre_tienda = i.nombre_tienda,
                                             titulo_publicacion = titulo,
-                                            descripcion = texto
+                                            descripcion = texto,precio_moneda
                                         )
 
                                     } ?: run {

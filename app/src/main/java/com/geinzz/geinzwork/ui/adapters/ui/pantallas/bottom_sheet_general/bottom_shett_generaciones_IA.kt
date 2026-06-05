@@ -1079,29 +1079,29 @@ fun ui_bottom_sheet_generaciones_IA(
                             SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
 
 
-                            if (mostar_dialog_mejorar_versiones) {
-                                dailog_generaciones_IA_versiones(
-                                    id_seleccionado_gen,
-                                    i_datos_parametros,
-                                    viewmodelGeneracionesIa,
-                                    titulo_dialog_mejorar_version,
-                                    texto_dialog_mejorar_version, tipo_seleccionado_promo_noti,
-                                    { mostar_dialog_mejorar_versiones = false })
-                            }
+//                            if (mostar_dialog_mejorar_versiones) {
+//                                dailog_generaciones_IA_versiones(
+//                                    id_seleccionado_gen,
+//                                    i_datos_parametros,
+//                                    viewmodelGeneracionesIa,
+//                                    titulo_dialog_mejorar_version,
+//                                    texto_dialog_mejorar_version, tipo_seleccionado_promo_noti,
+//                                    { mostar_dialog_mejorar_versiones = false })
+//                            }
 
-                            if (mostar_dialog_guardar_permanente) {
-                                dialog_guardar_IA_permanete(
-                                    viewmodel = viewmodelGeneracionesIa,
-                                    ondimis = { mostar_dialog_guardar_permanente = false },
-                                    id_generacion = id_seleccionado_para_ilimitado,
-                                    id_tienda = i_datos_parametros.id_tienda,
-                                    localidad = i_datos_parametros.localidad_tienda,
-                                    nombre_tienda = i_datos_parametros.nombre_tienda,
-                                    cantidad_monedas = i_datos_parametros.monedas_tienda,
-                                    img_seleccionado_para_ilimitado,
-                                    titulo_seleccionado_para_ilimitado
-                                )
-                            }
+//                            if (mostar_dialog_guardar_permanente) {
+//                                dialog_guardar_IA_permanete(
+//                                    viewmodel = viewmodelGeneracionesIa,
+//                                    ondimis = { mostar_dialog_guardar_permanente = false },
+//                                    id_generacion = id_seleccionado_para_ilimitado,
+//                                    id_tienda = i_datos_parametros.id_tienda,
+//                                    localidad = i_datos_parametros.localidad_tienda,
+//                                    nombre_tienda = i_datos_parametros.nombre_tienda,
+//                                    cantidad_monedas = i_datos_parametros.monedas_tienda,
+//                                    img_seleccionado_para_ilimitado,
+//                                    titulo_seleccionado_para_ilimitado
+//                                )
+//                            }
                         }
 
 

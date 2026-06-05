@@ -1,6 +1,8 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
 import android.Manifest
+
+
 import android.annotation.SuppressLint
 import android.app.TimePickerDialog
 import android.content.Context
@@ -10,6 +12,8 @@ import android.os.Build
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -32,22 +36,24 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Chip
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+
+
+
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.ProgressIndicatorDefaults
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
-
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -59,15 +65,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.airbnb.lottie.model.content.CircleShape
+import com.geinzz.geinzwork.BuildConfig
 import com.geinzz.geinzwork.data.model.data_class_tienda_geinz
 import com.geinzz.geinzwork.data.model.dataclass_repo_agregar_datos
 import com.geinzz.geinzwork.data.model.img_tienda
@@ -104,21 +114,214 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
 import com.google.gson.GsonBuilder
+import com.mapbox.geojson.Point
+import com.mapbox.maps.CameraOptions
+import com.mapbox.maps.MapView
+import com.mapbox.maps.MapboxExperimental
+import com.mapbox.maps.Style
+import com.mapbox.maps.plugin.PuckBearing
+import com.mapbox.maps.plugin.annotation.annotations
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+import com.mapbox.maps.plugin.gestures.addOnMapClickListener
+import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
+import com.mapbox.maps.plugin.locationcomponent.location
 import kotlinx.coroutines.launch
-import java.nio.file.WatchEvent
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.GET
+import retrofit2.http.Query
 import java.security.SecureRandom
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.PointerEventPass
+import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
+import com.mapbox.maps.plugin.animation.easeTo
+
+object GeofencingManager {
+
+    // =========================
+    // POLÍGONOS DE BARRANCA
+    // =========================
+
+    private val zonaSur = listOf(
+        Pair(-77.7586301, -10.7478916),
+        Pair(-77.7645550, -10.7503904),
+        Pair(-77.7700057, -10.7526507),
+        Pair(-77.77688094997941, -10.74238012141042),
+        Pair(-77.7717891, -10.7378640),
+        Pair(-77.7564977, -10.7367506),
+        Pair(-77.7542475, -10.7412584),
+        Pair(-77.7602514, -10.7442700),
+        Pair(-77.7586301, -10.7478916)
+    )
+
+    private val sonaPlayera = listOf(
+        Pair(-77.7679053252519, -10.757941967817928),
+        Pair(-77.7628337, -10.7559458),
+        Pair(-77.7613565, -10.7567195),
+        Pair(-77.75655838530102, -10.766302143389424),
+        Pair(-77.7620085, -10.7703684),
+        Pair(-77.7679053252519, -10.757941967817928)
+    )
+
+    private val sonaCentricaPanamericana = listOf(
+        Pair(-77.76019035538333, -10.744316585480519),
+        Pair(-77.7532785, -10.7406811),
+        Pair(-77.7493425, -10.7537332),
+        Pair(-77.7558306, -10.7540662),
+        Pair(-77.76019035538333, -10.744316585480519)
+    )
+
+    private val panamericanaNorte = listOf(
+        Pair(-77.7532395, -10.7407583),
+        Pair(-77.74811386801767, -10.738775530699925),
+        Pair(-77.7430896, -10.7504602),
+        Pair(-77.7463849, -10.7523272),
+        Pair(-77.7493232, -10.7537259),
+        Pair(-77.7532395, -10.7407583)
+    )
+
+    private val zonaCentro = listOf(
+        Pair(-77.76538442901771, -10.750732084787856),
+        Pair(-77.7586254, -10.7478992),
+        Pair(-77.7558059, -10.7540882),
+        Pair(-77.7594191, -10.7559450),
+        Pair(-77.7612170, -10.7568464),
+        Pair(-77.76314511416147, -10.755942593844523),
+        Pair(-77.76538442901771, -10.750732084787856)
+    )
+
+    private val entrePlayaSurCentro = listOf(
+        Pair(-77.76999855079166, -10.752634205967098),
+        Pair(-77.7653824, -10.7507547),
+        Pair(-77.7631347, -10.7559814),
+        Pair(-77.7650495, -10.7567880),
+        Pair(-77.7680039, -10.7580106),
+        Pair(-77.76999855079166, -10.752634205967098)
+    )
+
+    private val zonaNorte = listOf(
+        Pair(-77.7613271, -10.7568066),
+        Pair(-77.7594360, -10.7559620),
+        Pair(-77.7558203, -10.7541111),
+        Pair(-77.75085405255727, -10.753849853980455),
+        Pair(-77.74711030635795, -10.762560781158172),
+        Pair(-77.75658461692613, -10.76649065099977),
+        Pair(-77.7613271, -10.7568066)
+    )
+
+    /**
+     * Ray Casting Algorithm
+     */
+    fun esPuntoEnPoligono(
+        latitud: Double,
+        longitud: Double,
+        poligono: List<Pair<Double, Double>>
+    ): Boolean {
+
+        var dentro = false
+        var j = poligono.size - 1
+
+        for (i in poligono.indices) {
+
+            val xi = poligono[i].first
+            val yi = poligono[i].second
+
+            val xj = poligono[j].first
+            val yj = poligono[j].second
+
+            val intersecta =
+                ((yi > latitud) != (yj > latitud)) &&
+                        (longitud < (xj - xi) * (latitud - yi) / (yj - yi) + xi)
+
+            if (intersecta) {
+                dentro = !dentro
+            }
+
+            j = i
+        }
+
+        return dentro
+    }
+
+    fun obtenerNombreZona(
+        latitud: Double,
+        longitud: Double
+    ): String {
+
+        return when {
+
+            esPuntoEnPoligono(latitud, longitud, zonaSur) ->
+                "Barranca - Entrada y salida zona sur"
+
+            esPuntoEnPoligono(latitud, longitud, sonaPlayera) ->
+                "Barranca - Zona playera"
+
+            esPuntoEnPoligono(latitud, longitud, sonaCentricaPanamericana) ->
+                "Barranca - Zona céntrica"
+
+            esPuntoEnPoligono(latitud, longitud, panamericanaNorte) ->
+                "Barranca - Salida y entrada, Panamericana Norte"
+
+            esPuntoEnPoligono(latitud, longitud, zonaCentro) ->
+                "Barranca - Zona céntrica"
+
+            esPuntoEnPoligono(latitud, longitud, entrePlayaSurCentro) ->
+                "Barranca - Entre zona playera, salida sur y zona céntrica"
+
+            esPuntoEnPoligono(latitud, longitud, zonaNorte) ->
+                "Barranca - Salida y entrada zona norte"
+            else -> ""
+        }
+    }
+}
+// ─── Retrofit para geocodificación inversa Mapbox ──────────────────────────
+private interface MapboxGeocodingApi {
+    @GET("geocoding/v5/mapbox.places/{longitude},{latitude}.json")
+    suspend fun reverseGeocode(
+        @retrofit2.http.Path("longitude") longitude: Double,
+        @retrofit2.http.Path("latitude") latitude: Double,
+        @Query("access_token") token: String,
+        @Query("language") language: String = "es",
+        @Query("limit") limit: Int = 1
+    ): MapboxGeocodingResponse
+}
+
+data class MapboxGeocodingResponse(
+    val features: List<MapboxFeature>
+)
+
+data class MapboxFeature(
+    val place_name: String
+)
+
+private val geocodingApi: MapboxGeocodingApi by lazy {
+    Retrofit.Builder()
+        .baseUrl("https://api.mapbox.com/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+        .create(MapboxGeocodingApi::class.java)
+}
+
+// ─── Composable principal ──────────────────────────────────────────────────
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun datos_teindas() {
-    val lista_metood_pago = listOf("Yape", "Plin", "Efectivo", "Agora", "visa/Mastercard")
+    val lista_metood_pago = listOf("Yape", "Plin", "Efectivo", "Agora", "visa/Mastercard", "SIP")
     val lista_medood_contacto =
         listOf("whatsapp", "telefono", "tiktok", "facebook", "instagram", "sitio web")
     val lista_modelo_negocio = listOf("Fisico", "virtual")
@@ -130,15 +333,23 @@ fun datos_teindas() {
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val scope = rememberCoroutineScope()
     var repo_agregar_datos = repo_agregar_datos(context)
+
+    // ── Coordenadas y mapa ──────────────────────────────────────────────
     var lat_ by rememberSaveable { mutableStateOf(0.0) }
     var lng_ by rememberSaveable { mutableStateOf(0.0) }
     var contadorClicks by rememberSaveable { mutableStateOf(0) }
     var mostar_geo by rememberSaveable { mutableStateOf(false) }
+    var mostrar_mapa by rememberSaveable { mutableStateOf(false) }
+
+    // ── Pagos ────────────────────────────────────────────────────────────
     var yape_select by rememberSaveable { mutableStateOf(false) }
     var plin_select by rememberSaveable { mutableStateOf(false) }
     var Efectivo2 by rememberSaveable { mutableStateOf(false) }
     var Agora2 by rememberSaveable { mutableStateOf(false) }
     var visa2 by rememberSaveable { mutableStateOf(false) }
+    var sip2 by rememberSaveable { mutableStateOf(false) }           // ← NUEVO SIP
+
+    // ── Contacto ─────────────────────────────────────────────────────────
     var tk2 by rememberSaveable { mutableStateOf(false) }
     var fb2 by rememberSaveable { mutableStateOf(false) }
     var ig2 by rememberSaveable { mutableStateOf(false) }
@@ -150,15 +361,19 @@ fun datos_teindas() {
     var pedir_ayuda_ia by rememberSaveable { mutableStateOf(false) }
     var mostar_progrs_var_IA by remember { mutableStateOf(false) }
 
+    // ── Textos ────────────────────────────────────────────────────────────
     var direccion by rememberSaveable { mutableStateOf("") }
     var latitud by rememberSaveable { mutableStateOf("") }
     var longitud by rememberSaveable { mutableStateOf("") }
-
     var referencia by rememberSaveable { mutableStateOf("") }
+
     var numero_yape by rememberSaveable { mutableStateOf("") }
     var titular_yape by rememberSaveable { mutableStateOf("") }
     var numero_plin by rememberSaveable { mutableStateOf("") }
     var titular_plin by rememberSaveable { mutableStateOf("") }
+    var numero_sip by rememberSaveable { mutableStateOf("") }        // ← NUEVO SIP
+    var titular_sip by rememberSaveable { mutableStateOf("") }       // ← NUEVO SIP
+
     var user_tk by rememberSaveable { mutableStateOf("") }
     var user_fb by rememberSaveable { mutableStateOf("") }
     var user_ig by rememberSaveable { mutableStateOf("") }
@@ -169,130 +384,110 @@ fun datos_teindas() {
     var categoria by rememberSaveable { mutableStateOf("") }
     var texto_nombre_lugar by rememberSaveable { mutableStateOf("") }
     var txt_descipcion by rememberSaveable { mutableStateOf("") }
-    var valor_geohashin by rememberSaveable { (mutableStateOf("")) }
+    var valor_geohashin by rememberSaveable { mutableStateOf("") }
 
     var subcategoarias_selet by rememberSaveable { mutableStateOf(listOf<String>()) }
     var lista_subcategoria by rememberSaveable { mutableStateOf(listOf<String>()) }
     var lista_categorias by rememberSaveable { mutableStateOf(listOf<String>()) }
     var lista_subcategorias_full by rememberSaveable { mutableStateOf(listOf<List<String>>()) }
 
-
     var lista_notificaion_select =
         listOf("turistico", "nuevos_negocios", "numeros_salud_seguridad", "tramites")
     var tipo_notificacion_select by remember { mutableStateOf("") }
-    var texto by remember { mutableStateOf("") }
-    var titulo by remember { mutableStateOf("") }
-    var imagen by remember { mutableStateOf("") }
-
     var cambiar_cat_sub by remember { mutableStateOf(false) }
-
-
+    var tocandoMapa by remember { mutableStateOf(false) }
+//LaunchedEffect(Unit) {
+//    viewmodel_agregar_datos.agregar_zonas(context)
+//}
+    // ── Carga de categorías ──────────────────────────────────────────────
     scope.launch {
         val (d1, d2) = repo_agregar_datos.obtener_categorias()
         lista_categorias = d1
         lista_subcategorias_full = d2
     }
+
+    // ── IA ───────────────────────────────────────────────────────────────
     if (pedir_ayuda_ia) {
         scope.launch {
-
             val model = Firebase.ai(backend = GenerativeBackend.googleAI())
                 .generativeModel("gemini-2.5-flash")
-
             try {
-                // 1. Generar prompt
                 val subcategoriaUnica = subcategoarias_selet.firstOrNull() ?: ""
-
-                val prompt =
-                    generarPromptOptimizado(
-                        texto_nombre_lugar,
-                        categoria,
-                        contadorClicks,
-                        subcategoriaUnica
-                    )
-
-                val inicio = System.currentTimeMillis()
-
-                // 2. Llamar al modelo
-                val result = model.generateContent(prompt)
-                val textoGenerado = result.text ?: ""   // evitar nulls
-
-                val fin = System.currentTimeMillis()
-                val tiempoMs = fin - inicio
-                val tiempoSegundos = tiempoMs / 1000.0
-
-                Log.d(
-                    "Gemini",
-                    "Tiempo de respuesta: $tiempoMs ms (${String.format("%.2f", tiempoSegundos)} s)"
+                val prompt = generarPromptOptimizado(
+                    texto_nombre_lugar, categoria, contadorClicks, subcategoriaUnica
                 )
+                val inicio = System.currentTimeMillis()
+                val result = model.generateContent(prompt)
+                val textoGenerado = result.text ?: ""
+                val fin = System.currentTimeMillis()
+                Log.d("Gemini", "Tiempo: ${fin - inicio}ms")
                 Log.d("Gemini", "Resultado:\n$textoGenerado")
-
-                // 3. Actualizar UI
                 txt_descipcion = textoGenerado
                 pedir_ayuda_ia = false
                 mostar_progrs_var_IA = false
-
             } catch (e: Exception) {
                 Log.e("Gemini", "Error al generar descripción: ${e.message}")
             }
         }
     }
 
+    // ── Geocodificación inversa cuando cambian coordenadas ───────────────
     LaunchedEffect(latitud, longitud) {
         if (latitud.isNotEmpty() && longitud.isNotEmpty()) {
-            mostar_geo = latitud.isNotEmpty() && longitud.isNotEmpty()
-            direccion = viewmodel_agregar_datos.obtenerDireccion(lat_, lng_, context) ?: ""
+            mostar_geo = true
+            try {
+                val response = geocodingApi.reverseGeocode(
+                    longitude = lng_,
+                    latitude = lat_,
+                    token = BuildConfig.MAPBOX_ACCESS_TOKEN
+                )
+                direccion = response.features.firstOrNull()?.place_name ?: ""
+            } catch (e: Exception) {
+                Log.e("Mapbox", "Error geocoding: ${e.message}")
+            }
         }
     }
 
+    // ════════════════════════════════════════════════════════════════════
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .imePadding()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),userScrollEnabled = !tocandoMapa
     ) {
+
+        // ── Sección: Info básica ─────────────────────────────────────────
+        item { spacer_vertical(8.dp) }
+
+        item {
+            SectionHeader("📋 Información básica")
+        }
 
         item {
             OutlinedTextField(
                 value = texto_nombre_lugar,
-                onValueChange = { it ->
-                    texto_nombre_lugar = it
-                },
-                label = { texto_generico_one_line("nombre") },
+                onValueChange = { texto_nombre_lugar = it },
+                label = { texto_generico_one_line("Nombre del lugar") },
                 shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.fillMaxWidth(),
                 placeholder = {
                     texto_generico_one_line(
-                        "nombre",
+                        "Nombre del lugar",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray
                     )
                 },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    focusedPlaceholderColor = Color.Gray,
-                    unfocusedPlaceholderColor = Color.Gray,
-                ),
+                colors = camposColores()
             )
-            spacer_vertical(10.dp)
         }
 
         item {
-            ExpandDropDown(
-                lista_categorias,
-                false,
-                "",
-                "categoria"
-            ) { seleccionado ->
+            ExpandDropDown(lista_categorias, false, "", "Categoría") { seleccionado ->
                 categoria = seleccionado
                 val index = lista_categorias.indexOf(seleccionado)
-
-                if (index != -1) {
-                    lista_subcategoria = lista_subcategorias_full[index]
-                }
+                if (index != -1) lista_subcategoria = lista_subcategorias_full[index]
             }
-            spacer_vertical(10.dp)
         }
 
         item {
@@ -300,9 +495,7 @@ fun datos_teindas() {
                 chips_categorias(lista_subcategoria) { lista ->
                     subcategoarias_selet = lista
                 }
-                spacer_vertical(10.dp)
             }
-
         }
 
         item {
@@ -319,700 +512,626 @@ fun datos_teindas() {
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp),   // altura tipo textarea
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    focusedPlaceholderColor = Color.Gray,
-                    unfocusedPlaceholderColor = Color.Gray,
-                ),
+                    .height(150.dp),
+                colors = camposColores(),
                 shape = RoundedCornerShape(20.dp),
-                maxLines = 8,          // varias líneas
-                singleLine = false     // textarea
+                maxLines = 8,
+                singleLine = false
             )
-            spacer_vertical(10.dp)
+        }
+
+        item {
             if (texto_nombre_lugar.length > 3 && categoria.isNotEmpty()) {
                 Box(
                     modifier = Modifier
-                        .clip(CircleShape)
+                        .clip(RoundedCornerShape(20.dp))
                         .background(MaterialTheme.colorScheme.primary)
                         .clickable {
                             contadorClicks++
                             pedir_ayuda_ia = true
                             mostar_progrs_var_IA = true
-                        }) {
+                        }
+                ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         texto_generico_one_line(
-                            if (mostar_progrs_var_IA) "Generando..." else "Generar con IA",
+                            if (mostar_progrs_var_IA) "Generando..." else "✨ Generar con IA",
                             style = MaterialTheme.typography.bodyMedium
                         )
-
                         if (mostar_progrs_var_IA) {
                             CircularProgressIndicator(
-                                modifier = Modifier
-                                    .size(16.dp)           // más pequeño
-                                ,
+                                modifier = Modifier.size(16.dp),
                                 strokeWidth = 2.dp,
-                                trackColor = Color.White// delgado y elegante
+                                trackColor = Color.White
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            ExpandDropDown(lista_localidad, false, "", "Localidad") { sub ->
+                localidad = sub
+            }
+        }
+
+        item {
+            ExpandDropDown(lista_modelo_negocio, false, "", "Modelo de negocio") { modelo ->
+                modelo_negocio = modelo == "Fisico"
+            }
+        }
+
+        item {
+            ExpandDropDown(lista_pagado, false, "", "Plan") { modelo ->
+                pagado = modelo == "Premiun"
+            }
+        }
+
+        // ── Sección: Ubicación con Mapbox ────────────────────────────────
+        item { SectionHeader("📍 Ubicación") }
+
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(4.dp, RoundedCornerShape(20.dp)),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+
+                    // Botones de acción
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        // Botón GPS
+                        Button(
+                            onClick = {
+                                if (ContextCompat.checkSelfPermission(
+                                        context,
+                                        Manifest.permission.ACCESS_FINE_LOCATION
+                                    ) == PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    obtenerUbicacionConfiable(fusedLocationClient) { latLng, accuracy ->
+                                        lat_ = latLng.latitude
+                                        lng_ = latLng.longitude
+                                        latitud = latLng.latitude.toString()
+                                        longitud = latLng.longitude.toString()
+                                        Log.d("GPS", "Precisión: ${accuracy}m")
+                                    }
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Activa el permiso de ubicación",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("📡 GPS", color = Color.White, fontSize = 13.sp)
+                        }
+
+                        // Botón mostrar/ocultar mapa
+                        Button(
+                            onClick = { mostrar_mapa = !mostrar_mapa },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (mostrar_mapa)
+                                    MaterialTheme.colorScheme.secondary
+                                else
+                                    MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Text(
+                                if (mostrar_mapa) "🗺️ Ocultar mapa" else "🗺️ Abrir mapa",
+                                color = Color.White,
+                                fontSize = 13.sp
                             )
                         }
                     }
 
-                }
-            }
-            spacer_vertical(10.dp)
-        }
+                    // ── Mapa Mapbox ──────────────────────────────────────
+                    AnimatedVisibility(visible = mostrar_mapa) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = "Toca el mapa para seleccionar la ubicación",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
 
-        item {
-            ExpandDropDown(
-                lista_localidad,
-                false,
-                "",
-                "localidad",
-            ) { sub ->
-                localidad = sub
-            }
-            spacer_vertical(10.dp)
-        }
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(280.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .shadow(2.dp, RoundedCornerShape(16.dp))
+                            ) {
+                                MapboxMapViewWithLocation(
 
-        item {
-
-            ExpandDropDown(
-                lista_modelo_negocio,
-                false,
-                "",
-                "modelo de negocio",
-            ) { modelo ->
-                if (modelo.equals("Fisico")) {
-                    modelo_negocio = true
-                } else {
-                    modelo_negocio = false
-                }
-            }
-        }
-
-        item {
-            spacer_vertical(10.dp)
-            ExpandDropDown(
-                lista_pagado,
-                false,
-                "",
-                "Pagado",
-            ) { modelo ->
-                if (modelo.equals("Premiun")) {
-                    pagado = true
-                } else {
-                    pagado = false
-                }
-            }
-            spacer_vertical(10.dp)
-        }
-
-        item {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    modifier = Modifier.weight(1f),
-                    value = latitud,
-                    onValueChange = { it ->
-                        latitud = it
-                    },
-                    shape = RoundedCornerShape(20.dp),
-                    label = { texto_generico_one_line("Latitud") },
-                    placeholder = {
-                        texto_generico_one_line(
-                            "Latitud",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
-                        )
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        focusedPlaceholderColor = Color.Gray,
-                        unfocusedPlaceholderColor = Color.Gray,
-                    ), readOnly = true
-                )
-                OutlinedTextField(
-                    modifier = Modifier.weight(1f),
-                    value = longitud,
-                    onValueChange = { it ->
-                        longitud = it
-                    },
-                    shape = RoundedCornerShape(20.dp),
-                    label = { texto_generico_one_line("longitud") },
-                    placeholder = {
-                        texto_generico_one_line(
-                            "longitud",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
-                        )
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        focusedPlaceholderColor = Color.Gray,
-                        unfocusedPlaceholderColor = Color.Gray,
-                    ), readOnly = true
-                )
-                Button(onClick = {
-                    if (ContextCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                        ) == PackageManager.PERMISSION_GRANTED
-                    ) {
-                        obtenerUbicacionConfiable(fusedLocationClient) { latLng, accuracy ->
-
-                            lat_ = latLng.latitude
-                            lng_ = latLng.longitude
-
-                            latitud = latLng.latitude.toString()
-                            longitud = latLng.longitude.toString()
-
-                            Log.d("GPS", "Precisión: ${accuracy}m")
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onMapClick = { lat, lng ->
+                                        lat_ = lat
+                                        lng_ = lng
+                                        latitud = lat.toString()
+                                        longitud = lng.toString()
+                                        // Si quieres que la dirección se actualice automáticamente, ya tienes el LaunchedEffect que observa latitud/longitud
+                                    },
+                                    onLocationUpdate = { lat, lng ->
+                                        // Solo actualizar si el usuario aún no ha hecho clic en el mapa (opcional)
+                                        if (lat_ == 0.0 && lng_ == 0.0) {
+                                            lat_ = lat
+                                            lng_ = lng
+                                            latitud = lat.toString()
+                                            longitud = lng.toString()
+                                        }
+                                    },onTouchChange={ data->
+                                        tocandoMapa=data
+                                    }
+                                )
+                            }
                         }
-
-                    } else {
-                        Toast.makeText(
-                            context,
-                            "Activa el permiso de ubicación",
-                            Toast.LENGTH_SHORT
-                        )
-                            .show()
                     }
-                }) {
-                    Text(text = "Obtener lat/log", color = Color.White)
+
+                    // Coordenadas (solo lectura)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        OutlinedTextField(
+                            modifier = Modifier.weight(1f),
+                            value = latitud,
+                            onValueChange = {},
+                            shape = RoundedCornerShape(16.dp),
+                            label = { texto_generico_one_line("Latitud") },
+                            colors = camposColores(),
+                            readOnly = true
+                        )
+                        OutlinedTextField(
+                            modifier = Modifier.weight(1f),
+                            value = longitud,
+                            onValueChange = {},
+                            shape = RoundedCornerShape(16.dp),
+                            label = { texto_generico_one_line("Longitud") },
+                            colors = camposColores(),
+                            readOnly = true
+                        )
+                    }
+
+                    // Dirección (auto)
+                    OutlinedTextField(
+                        value = direccion,
+                        onValueChange = { direccion = it },
+                        label = { texto_generico_one_line("Dirección") },
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = camposColores()
+                    )
+
+                    // Referencia
+                    OutlinedTextField(
+                        value = referencia,
+                        onValueChange = { referencia = it },
+                        label = { texto_generico_one_line("Referencia") },
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = camposColores()
+                    )
+
+                    // Geohash
+                    if (mostar_geo) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "Geohash:",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            valor_geohashin = constantes_lista_localidades.geohashing(lat_, lng_)
+                            Text(
+                                valor_geohashin,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
                 }
-            }
-            spacer_vertical(10.dp)
-            OutlinedTextField(
-                value = direccion,
-                onValueChange = { it ->
-                    direccion = it
-                },
-                label = { texto_generico_one_line("direccion") },
-                shape = RoundedCornerShape(20.dp),
-                placeholder = {
-                    texto_generico_one_line(
-                        "direccion",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    focusedPlaceholderColor = Color.Gray,
-                    unfocusedPlaceholderColor = Color.Gray,
-                ),
-            )
-            spacer_vertical(10.dp)
-            OutlinedTextField(
-                value = referencia,
-                onValueChange = { it ->
-                    referencia = it
-                },
-                label = { texto_generico_one_line("referencia") },
-                shape = RoundedCornerShape(20.dp),
-                placeholder = {
-                    texto_generico_one_line(
-                        "referencia",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    focusedPlaceholderColor = Color.Gray,
-                    unfocusedPlaceholderColor = Color.Gray,
-                ),
-            )
-            spacer_vertical(10.dp)
-        }
-
-        item {
-            if (mostar_geo) {
-                spacer_vertical(10.dp)
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.padding(start = 10.dp)
-                ) {
-                    texto_generico_one_line("geohasing:")
-                    valor_geohashin = constantes_lista_localidades.geohashing(
-                        lat_,
-                        lng_
-                    )
-                    texto_generico_one_line(
-                        valor_geohashin
-                    )
-
-                }
-                spacer_vertical(10.dp)
-
             }
         }
 
+        // ── Sección: Métodos de pago ─────────────────────────────────────
+        item { SectionHeader("💳 Métodos de pago") }
+
         item {
-            spacer_vertical(10.dp)
-            texto_generico_one_line(
-                "Metodos de pago",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-            spacer_vertical(5.dp)
             ChipsCategoriasCheck(lista_metood_pago) { seleccionados ->
-                val yapeSelected = "Yape" in seleccionados
-                val plinSelected = "Plin" in seleccionados
-                val Efectivo = "Efectivo" in seleccionados
-                val Agora = "Agora" in seleccionados
-                val visa = "visa/Mastercard" in seleccionados
-
-                if (yapeSelected) {
-                    yape_select = true
-                } else {
-                    yape_select = false
-                }
-
-                if (plinSelected) {
-                    plin_select = true
-                } else {
-                    plin_select = false
-                }
-
-                if (Efectivo) {
-                    Efectivo2 = true
-                } else {
-                    Efectivo2 = false
-                }
-                if (Agora) {
-                    Agora2 = true
-                } else {
-                    Agora2 = false
-                }
-                if (visa) {
-                    visa2 = true
-                } else {
-                    visa2 = false
-                }
-            }
-            if (yape_select) {
-                valor_txt_contacto("yape", numero_yape) { numero_yape = it }
-                spacer_vertical(5.dp)
-                OutlinedTextField(
-                    value = titular_yape,
-                    onValueChange = { it ->
-                        titular_yape = it
-                    },
-                    label = { texto_generico_one_line("titular de yape") },
-                    shape = RoundedCornerShape(20.dp),
-                    placeholder = {
-                        texto_generico_one_line(
-                            "titular de yape",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
-                        )
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        focusedPlaceholderColor = Color.Gray,
-                        unfocusedPlaceholderColor = Color.Gray,
-                    ),
-                )
-                spacer_vertical(20.dp)
-            }
-            if (plin_select) {
-                valor_txt_contacto("plin", numero_plin) { numero_plin = it }
-                spacer_vertical(5.dp)
-                OutlinedTextField(
-                    value = titular_plin,
-                    onValueChange = { it ->
-                        titular_plin = it
-                    },
-                    label = { texto_generico_one_line("titular de plin") },
-                    shape = RoundedCornerShape(20.dp),
-                    placeholder = {
-                        texto_generico_one_line(
-                            "titular de plin",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
-                        )
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        focusedPlaceholderColor = Color.Gray,
-                        unfocusedPlaceholderColor = Color.Gray,
-                    ),
-                )
-                spacer_vertical(20.dp)
-            }
-
-        }
-
-        item {
-            spacer_vertical(10.dp)
-            texto_generico_one_line(
-                "Metodos de contacto",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-            ChipsCategoriasCheck(lista_medood_contacto) { seleccionados ->
-                val tk = "tiktok" in seleccionados
-                val fb = "facebook" in seleccionados
-                val ig = "instagram" in seleccionados
-                val ws = "whatsapp" in seleccionados
-                val tlf = "telefono" in seleccionados
-                val stw = "sitio web" in seleccionados
-                if (tk) {
-                    tk2 = true
-                } else {
-                    tk2 = false
-                }
-                if (fb) {
-                    fb2 = true
-                } else {
-                    fb2 = false
-                }
-                if (ig) {
-                    ig2 = true
-                } else {
-                    ig2 = false
-                }
-                if (ws) {
-                    ws2 = true
-                } else {
-                    ws2 = false
-                }
-                if (tlf) {
-                    tlf2 = true
-                } else {
-                    tlf2 = false
-                }
-                if (stw) {
-                    stw2 = true
-                } else {
-                    stw2 = false
-                }
-            }
-            if (tk2) {
-                valor_txt_contacto("tiktok", user_tk) { user_tk = it }
-            }
-            spacer_vertical(5.dp)
-
-            if (fb2) {
-                valor_txt_contacto("facebook", user_fb) { user_fb = it }
-            }
-            spacer_vertical(5.dp)
-
-            if (ig2) {
-                valor_txt_contacto("instagram", user_ig) { user_ig = it }
-            }
-            spacer_vertical(5.dp)
-
-            if (ws2) {
-                valor_txt_contacto("whatsapp", numero_whatsap) { numero_whatsap = it }
-            }
-            spacer_vertical(5.dp)
-
-            if (tlf2) {
-                valor_txt_contacto("telefono", numero_telefono) { numero_telefono = it }
-            }
-            spacer_vertical(5.dp)
-            if (stw2) {
-                valor_txt_contacto("sitio web", sitio_web) { sitio_web = it }
+                yape_select = "Yape" in seleccionados
+                plin_select = "Plin" in seleccionados
+                Efectivo2 = "Efectivo" in seleccionados
+                Agora2 = "Agora" in seleccionados
+                visa2 = "visa/Mastercard" in seleccionados
+                sip2 = "SIP" in seleccionados               // ← NUEVO SIP
             }
         }
 
         item {
-            spacer_vertical(10.dp)
-            texto_generico_one_line(
-                "Horario",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-
-            HorarioSemanal(viewmodel_agregar_datos)
-
-        }
-
-        item {
-            spacer_vertical(5.dp)
-            Row() {
-                Button(onClick = {
-                    val repo_agregar_datos = repo_agregar_datos(context)
-                    val datos_enviar = data_class_tienda_geinz(
-                        categoria_tienda = categoria,
-                        descripcion = txt_descipcion,
-                        geogash = valor_geohashin,
-                        id_tienda = generarIdSeguro(),
-                        localida_tienda = localidad.lowercase(),
-                        modelo_negocio = modelo_negocio,
-                        nombre_tienda = texto_nombre_lugar,
-                        pagado = pagado,
-                        subcategoria = subcategoarias_selet,
-                        ubicacion = ref_ubi(
-                            latitud = lat_,
-                            longitud = lng_,
-                            referencia = referencia,
-                            dirección = direccion,
-                        ),
-                        metodo_pago = modelo_pagos_tienda(
-                            visa_mastercard = modelo_metodo_individual(
-                                numero = "",
-                                qr = "",
-                                nombre = "",
-                                enable = visa2,
-                            ),
-                            agora = modelo_metodo_individual(
-                                numero = "",
-                                qr = "",
-                                nombre = "",
-                                enable = Agora2,
-                            ),
-                            efectivo = modelo_metodo_individual(
-                                numero = "",
-                                qr = "",
-                                nombre = "",
-                                enable = Efectivo2,
-                            ),
-                            plin = modelo_metodo_individual(
-                                numero = numero_plin,
-                                qr = "",
-                                nombre = titular_plin,
-                                enable = yape_select,
-                            ),
-                            yape = modelo_metodo_individual(
-                                numero = numero_yape,
-                                qr = "",
-                                nombre = titular_yape,
-                                enable = plin_select,
-                            ),
-                        ),
-                        metodo_contacto = metodo_contacto_tienda(
-                            whatsapp = contacto_numero(
-                                estado = ws2,
-                                numero = numero_whatsap
-                            ),
-                            llamada = contacto_numero(
-                                estado = tlf2,
-                                numero = numero_telefono
-                            ),
-                            facebook = contacto_red(
-                                estado = fb2,
-                                nombre = user_fb,
-                                url = ""
-                            ),
-                            instagram = contacto_red(
-                                estado = ig2,
-                                nombre = user_ig,
-                                url = ""
-                            ),
-                            tiktok = contacto_red(
-                                estado = tk2,
-                                nombre = user_tk,
-                                url = ""
-                            ),
-                            sitio_web = contacto_red(
-                                estado = stw2,
-                                nombre = sitio_web,
-                                url = ""
-                            ),
-                        ),
-                        fechas = ingreso_date(
-                            hora_ingreso = constantes_horas.horaActual(),
-                            fecha_ingreso = fechaActual(),
-                            fecha_fin = fechaActual()
-                        ),
-                        timeSlamp = timeStampNumero(),
-                        horario_atencion = HorarioAtencion_box(
-                            lunes = horario_atencion.lunes,
-                            martes = horario_atencion.martes,
-                            miércoles = horario_atencion.miércoles,
-                            jueves = horario_atencion.jueves,
-                            viernes = horario_atencion.viernes,
-                            sábado = horario_atencion.sábado,
-                            domingo = horario_atencion.domingo,
-                        ), lista_img = img_tienda()
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (yape_select) {
+                    valor_txt_contacto("yape", numero_yape) { numero_yape = it }
+                    OutlinedTextField(
+                        value = titular_yape,
+                        onValueChange = { titular_yape = it },
+                        label = { texto_generico_one_line("Titular de Yape") },
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = camposColores()
                     )
-                    repo_agregar_datos.agraegar_datos_db_2(datos_enviar)
-                    val gson = GsonBuilder().setPrettyPrinting().create()
-                    Log.d("datos_enviamor", gson.toJson(datos_enviar))
+                }
+                if (plin_select) {
+                    valor_txt_contacto("plin", numero_plin) { numero_plin = it }
+                    OutlinedTextField(
+                        value = titular_plin,
+                        onValueChange = { titular_plin = it },
+                        label = { texto_generico_one_line("Titular de Plin") },
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = camposColores()
+                    )
+                }
+                // ── SIP ─────────────────────────────────────────────────
+                if (sip2) {
+                    valor_txt_contacto("sip", numero_sip) { numero_sip = it }
+                    OutlinedTextField(
+                        value = titular_sip,
+                        onValueChange = { titular_sip = it },
+                        label = { texto_generico_one_line("Titular de SIP") },
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = camposColores()
+                    )
+                }
+            }
+        }
 
+        // ── Sección: Contacto ────────────────────────────────────────────
+        item { SectionHeader("📞 Métodos de contacto") }
 
-                }) { texto_generico_one_line("enviar") }
+        item {
+            ChipsCategoriasCheck(lista_medood_contacto) { seleccionados ->
+                tk2 = "tiktok" in seleccionados
+                fb2 = "facebook" in seleccionados
+                ig2 = "instagram" in seleccionados
+                ws2 = "whatsapp" in seleccionados
+                tlf2 = "telefono" in seleccionados
+                stw2 = "sitio web" in seleccionados
+            }
+        }
 
-                Button(onClick = { cambiar_cat_sub = true }) {
-                    texto_generico_one_line("cambiar cat  y sub")
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (tk2) valor_txt_contacto("tiktok", user_tk) { user_tk = it }
+                if (fb2) valor_txt_contacto("facebook", user_fb) { user_fb = it }
+                if (ig2) valor_txt_contacto("instagram", user_ig) { user_ig = it }
+                if (ws2) valor_txt_contacto("whatsapp", numero_whatsap) { numero_whatsap = it }
+                if (tlf2) valor_txt_contacto("telefono", numero_telefono) { numero_telefono = it }
+                if (stw2) valor_txt_contacto("sitio web", sitio_web) { sitio_web = it }
+            }
+        }
+
+        // ── Sección: Horarios ────────────────────────────────────────────
+        item { SectionHeader("🕐 Horario de atención") }
+
+        item {
+            HorarioSemanal(viewmodel_agregar_datos)
+        }
+
+        // ── Sección: Acciones ────────────────────────────────────────────
+        item { SectionHeader("⚙️ Acciones") }
+
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(
+                    onClick = {
+                        val repo = repo_agregar_datos(context)
+                        val datos_enviar = data_class_tienda_geinz(
+                            categoria_tienda = categoria,
+                            descripcion = txt_descipcion,
+                            geogash = valor_geohashin,
+                            id_tienda = generarIdSeguro(),
+                            localida_tienda = localidad.lowercase(),
+                            modelo_negocio = modelo_negocio,
+                            nombre_tienda = texto_nombre_lugar,
+                            pagado = pagado,
+                            subcategoria = subcategoarias_selet,
+                            ubicacion = ref_ubi(
+                                latitud = lat_,
+                                longitud = lng_,
+                                referencia = referencia,
+                                dirección = direccion,
+                            ),
+                            metodo_pago = modelo_pagos_tienda(
+                                visa_mastercard = modelo_metodo_individual(
+                                    numero = "", qr = "", nombre = "", enable = visa2
+                                ),
+                                agora = modelo_metodo_individual(
+                                    numero = "", qr = "", nombre = "", enable = Agora2
+                                ),
+                                efectivo = modelo_metodo_individual(
+                                    numero = "", qr = "", nombre = "", enable = Efectivo2
+                                ),
+                                plin = modelo_metodo_individual(
+                                    numero = numero_plin, qr = "", nombre = titular_plin,
+                                    enable = plin_select
+                                ),
+                                yape = modelo_metodo_individual(
+                                    numero = numero_yape, qr = "", nombre = titular_yape,
+                                    enable = yape_select
+                                ),
+                                // SIP: si tu data class no tiene campo sip aún,
+                                // agrégalo o almacénalo en un campo existente
+                                // sip = modelo_metodo_individual(
+                                //     numero = numero_sip, qr = "", nombre = titular_sip,
+                                //     enable = sip2
+                                // ),
+                            ),
+                            metodo_contacto = metodo_contacto_tienda(
+                                whatsapp = contacto_numero(estado = ws2, numero = numero_whatsap),
+                                llamada = contacto_numero(estado = tlf2, numero = numero_telefono),
+                                facebook = contacto_red(estado = fb2, nombre = user_fb, url = ""),
+                                instagram = contacto_red(estado = ig2, nombre = user_ig, url = ""),
+                                tiktok = contacto_red(estado = tk2, nombre = user_tk, url = ""),
+                                sitio_web = contacto_red(estado = stw2, nombre = sitio_web, url = ""),
+                            ),
+                            fechas = ingreso_date(
+                                hora_ingreso = constantes_horas.horaActual(),
+                                fecha_ingreso = fechaActual(),
+                                fecha_fin = fechaActual()
+                            ),
+                            timeSlamp = timeStampNumero(),
+                            horario_atencion = HorarioAtencion_box(
+                                lunes = horario_atencion.lunes,
+                                martes = horario_atencion.martes,
+                                miércoles = horario_atencion.miércoles,
+                                jueves = horario_atencion.jueves,
+                                viernes = horario_atencion.viernes,
+                                sábado = horario_atencion.sábado,
+                                domingo = horario_atencion.domingo,
+                            ),
+                            lista_img = img_tienda()
+                        )
+                        repo.agraegar_datos_db_2(datos_enviar)
+                        val gson = GsonBuilder().setPrettyPrinting().create()
+                        Log.d("datos_enviamor", gson.toJson(datos_enviar))
+                    },
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    texto_generico_one_line("Enviar")
                 }
 
-
+                Button(
+                    onClick = { cambiar_cat_sub = true },
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    texto_generico_one_line("Cambiar cat/sub")
+                }
             }
+        }
 
+        // ── Notificaciones ───────────────────────────────────────────────
+        item {
             ExpandDropDown(
                 lista_notificaion_select,
                 false,
-                "selecciona el tipo de notificacion",
-                "selecciona el tipo de notificacion"
+                "Tipo de notificación",
+                "Tipo de notificación"
             ) { tipo ->
                 tipo_notificacion_select = tipo
             }
+        }
 
-            Button(onClick = {
-
-                val titulo = when (tipo_notificacion_select) {
-                    "turistico" -> {
-                        "\uD83D\uDDFA\uFE0F \uD83C\uDF04 Descubre nuevos lugares turísticos en Geinz \uD83C\uDF05"
+        item {
+            Button(
+                onClick = {
+                    val titulo = when (tipo_notificacion_select) {
+                        "turistico" -> "🗺️ 🌄 Descubre nuevos lugares turísticos en Geinz 🌅"
+                        "nuevos_negocios" -> "🚀 Nuevos lugares llegaron a Geinz ❤️"
+                        "numeros_salud_seguridad" -> "🚨 Ante cualquier emergencia, comunícate con salud y seguridad 🚑 ❤️"
+                        "tramites" -> "🧾 Encuentra lugares de servicios y comunidad "
+                        else -> "📍 Nuevos lugares disponibles en Geinz"
                     }
-
-                    "nuevos_negocios" -> {
-                        "\uD83D\uDE80 Nuevos lugares llegaron a Geinz ❤\uFE0F"
+                    val texto = when (tipo_notificacion_select) {
+                        "turistico" -> "Explora destinos, atractivos y espacios únicos que se acaban de sumar. Encuentra tu próxima visita aquí 👀"
+                        "nuevos_negocios" -> "Conoce los nuevos negocios que se unieron a Geinz y apoya a los emprendedores de tu zona 🏪✨"
+                        "numeros_salud_seguridad" -> "Ten a la mano los contactos de emergencia, salud y seguridad cuando más los necesites ⛑️"
+                        "tramites" -> "Ubica fácilmente dónde realizar trámites, servicios y gestiones cerca de ti 🏢"
+                        else -> "Descubre nuevos lugares y servicios disponibles en Geinz 📍"
                     }
-
-                    "numeros_salud_seguridad" -> {
-                        "🚨 Ante cualquier emergencia, comunícate con salud y seguridad 🚑 ❤\uFE0F"
+                    val imagen_url = when (tipo_notificacion_select) {
+                        "turistico" -> "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fturistico_horizontal.webp?alt=media&token=aef7f5b9-a7e3-48bd-b419-8b0799d8a29b"
+                        "nuevos_negocios" -> "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fsocios_horizontal.webp?alt=media&token=1e5e44be-5d56-4b0a-89f8-7f44e2532db1"
+                        "numeros_salud_seguridad" -> "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fseguridad_horizontal.webp?alt=media&token=3d8c1853-6ad9-44ba-a0c7-092c2a1d8e49"
+                        "tramites" -> "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fservicios_tramites_horizontal.webp?alt=media&token=7a203c44-405b-4527-842a-3cd87194fed8"
+                        else -> "Descubre nuevos lugares y servicios disponibles en Geinz 📍"
                     }
-
-                    "tramites" -> {
-                        "🧾 Encuentra lugares de servicios y comunidad "
+                    val tipo_categoria_screen = when (tipo_notificacion_select) {
+                        "turistico" -> "lgtr"
+                        "nuevos_negocios" -> "nvng"
+                        "numeros_salud_seguridad" -> "nemg"
+                        "tramites" -> "seyt"
+                        else -> "Descubre nuevos lugares y servicios disponibles en Geinz 📍"
                     }
-
-                    else -> {
-                        "📍 Nuevos lugares disponibles en Geinz"
+                    scope.launch {
+                        enviar_notificacion_lista_dispo(
+                            "", "", "", tipo_categoria_screen,
+                            tipo_notificacion_params = "screen",
+                            id_users = listOf("SEky161hPTf7SyjvfxNlkLRNd7f2"),
+                            titulo = titulo,
+                            txt = texto,
+                            logo_tienda = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+                            tipo_notificacion = "Premium",
+                            url_img = imagen_url,
+                            prioridad = "high"
+                        )
                     }
-                }
-
-                val texto = when (tipo_notificacion_select) {
-                    "turistico" -> {
-                        "Explora destinos, atractivos y espacios únicos que se acaban de sumar. Encuentra tu próxima visita aquí 👀"
-                    }
-
-                    "nuevos_negocios" -> {
-                        "Conoce los nuevos negocios que se unieron a Geinz y apoya a los emprendedores de tu zona 🏪✨"
-                    }
-
-                    "numeros_salud_seguridad" -> {
-                        "Ten a la mano los contactos de emergencia, salud y seguridad cuando más los necesites ⛑️"
-                    }
-
-                    "tramites" -> {
-                        "Ubica fácilmente dónde realizar trámites, servicios y gestiones cerca de ti 🏢"
-                    }
-
-                    else -> {
-                        "Descubre nuevos lugares y servicios disponibles en Geinz 📍"
-                    }
-                }
-
-
-                val imagen_url = when (tipo_notificacion_select) {
-                    "turistico" -> {
-                        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fturistico_horizontal.webp?alt=media&token=aef7f5b9-a7e3-48bd-b419-8b0799d8a29b"
-                    }
-
-                    "nuevos_negocios" -> {
-                        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fsocios_horizontal.webp?alt=media&token=1e5e44be-5d56-4b0a-89f8-7f44e2532db1"
-                    }
-
-                    "numeros_salud_seguridad" -> {
-                        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fseguridad_horizontal.webp?alt=media&token=3d8c1853-6ad9-44ba-a0c7-092c2a1d8e49"
-                    }
-
-                    "tramites" -> {
-                        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fservicios_tramites_horizontal.webp?alt=media&token=7a203c44-405b-4527-842a-3cd87194fed8"
-                    }
-
-                    else -> {
-                        "Descubre nuevos lugares y servicios disponibles en Geinz 📍"
-                    }
-                }
-
-                val tipo_categoria_screen = when (tipo_notificacion_select) {
-                    "turistico" -> {
-                        "lgtr"
-                    }
-
-                    "nuevos_negocios" -> {
-                        "nvng"
-                    }
-
-                    "numeros_salud_seguridad" -> {
-                        "nemg"
-                    }
-
-                    "tramites" -> {
-                        "seyt"
-                    }
-
-                    else -> {
-                        "Descubre nuevos lugares y servicios disponibles en Geinz 📍"
-                    }
-                }
-                scope.launch {
-                    enviar_notificacion_lista_dispo(
-                        "",
-                        "", "", tipo_categoria_screen,
-                        tipo_notificacion_params = "screen",
-                        id_users = listOf("SEky161hPTf7SyjvfxNlkLRNd7f2"),
-                        titulo = titulo,
-                        txt = texto,
-                        logo_tienda = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
-                        tipo_notificacion = "Premium",
-                        url_img = imagen_url,
-                        prioridad = "high"
-                    )
-                }
-            }) {
-                texto_generico_one_line("notificar a usuarios sobre apartados")
+                },
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                texto_generico_one_line("Notificar a usuarios sobre apartados")
             }
         }
 
+        item { spacer_vertical(32.dp) }
     }
+
     if (cambiar_cat_sub) {
-        bottom_sheet_cambiar_datos_tiendas {
-            cambiar_cat_sub = false   // Cierra el sheet
-        }
+        bottom_sheet_cambiar_datos_tiendas { cambiar_cat_sub = false }
     }
 }
 
-@Composable
-fun HorarioSemanal(viewmodel_agregar_datos: viewmodel_agregar_datos) {
+// ─── Composable: Mapa Mapbox ───────────────────────────────────────────────
 
+/**
+ * Muestra un mapa Mapbox interactivo. Al tocar cualquier punto:
+ *  - Mueve el marcador a ese punto
+ *  - Llama a [onMapClick] con la lat/lng seleccionada
+ *
+ * La geocodificación inversa (obtener la calle) se hace en el LaunchedEffect
+ * de la pantalla principal que observa los cambios en latitud/longitud.
+ *
+ * Requiere en local.properties:
+ *   MAPBOX_ACCESS_TOKEN=pk.eyJ1...
+ * Y en build.gradle (app):
+ *   buildConfigField("String", "MAPBOX_ACCESS_TOKEN",
+ *       "\"${localProperties['MAPBOX_ACCESS_TOKEN']}\"")
+ */
+@Composable
+fun MapboxMapView(
+    initialLat: Double = -10.5332,
+    initialLng: Double = -76.7248,
+    markerLat: Double? = null,
+    markerLng: Double? = null,
+    onMapClick: (lat: Double, lng: Double) -> Unit
+) {
     val context = LocalContext.current
 
+    // Guarda referencia al manager de anotaciones para reusar
+    var annotationManager by remember { mutableStateOf<PointAnnotationManager?>(null) }
+
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = { ctx ->
+            MapView(ctx).apply {
+                mapboxMap.loadStyle(Style.MAPBOX_STREETS) { style ->
+
+                    // Cámara inicial
+                    mapboxMap.setCamera(
+                        CameraOptions.Builder()
+                            .center(Point.fromLngLat(initialLng, initialLat))
+                            .zoom(16.0)
+                            .build()
+                    )
+
+                    // Crear annotation manager para el marcador
+                    val annManager = annotations.createPointAnnotationManager()
+                    annotationManager = annManager
+
+                    // Si ya hay coordenadas previas, mostrar el marcador
+                    if (markerLat != null && markerLng != null) {
+                        annManager.create(
+                            PointAnnotationOptions()
+                                .withPoint(Point.fromLngLat(markerLng, markerLat))
+                        )
+                    }
+
+                    // Listener de clic en el mapa
+                    mapboxMap.addOnMapClickListener { point ->
+                        val lat = point.latitude()
+                        val lng = point.longitude()
+
+                        // Limpiar marcador anterior y agregar nuevo
+                        annManager.deleteAll()
+                        annManager.create(
+                            PointAnnotationOptions()
+                                .withPoint(Point.fromLngLat(lng, lat))
+                        )
+
+                        onMapClick(lat, lng)
+                        true
+                    }
+                }
+            }
+        },
+        update = { mapView ->
+            // Si el marcador externo cambia (ej. GPS), actualizamos
+            val mgr = annotationManager ?: return@AndroidView
+            if (markerLat != null && markerLng != null) {
+                mgr.deleteAll()
+                mgr.create(
+                    PointAnnotationOptions()
+                        .withPoint(Point.fromLngLat(markerLng, markerLat))
+                )
+                mapView.mapboxMap.setCamera(
+                    CameraOptions.Builder()
+                        .center(Point.fromLngLat(markerLng, markerLat))
+                        .zoom(15.0)
+                        .build()
+                )
+            }
+        }
+    )
+}
+
+// ─── Composable auxiliar: encabezado de sección ────────────────────────────
+
+@Composable
+fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onBackground,
+        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+    )
+}
+
+// ─── Helper colores de campos ──────────────────────────────────────────────
+
+@Composable
+fun camposColores() = OutlinedTextFieldDefaults.colors(
+    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    focusedPlaceholderColor = Color.Gray,
+    unfocusedPlaceholderColor = Color.Gray,
+)
+
+// ─── Horario semanal (sin cambios) ─────────────────────────────────────────
+
+@Composable
+fun HorarioSemanal(viewmodel_agregar_datos: viewmodel_agregar_datos) {
+    val context = LocalContext.current
     val dias = listOf(
         "Lunes", "Martes", "Miércoles",
         "Jueves", "Viernes", "Sábado", "Domingo"
     )
-
     val mapaHoras = viewmodel_agregar_datos.mapaHoras
 
     Column(
@@ -1021,43 +1140,34 @@ fun HorarioSemanal(viewmodel_agregar_datos: viewmodel_agregar_datos) {
             .padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-
         dias.forEach { dia ->
-
             val item = mapaHoras[dia]!!
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp)
             ) {
-
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-
                     Row(verticalAlignment = Alignment.CenterVertically) {
-
                         Box(
                             modifier = Modifier.weight(1f),
                             contentAlignment = Alignment.CenterStart
                         ) {
                             texto_generico_one_line(dia)
                         }
-
                         Row(verticalAlignment = Alignment.CenterVertically) {
-
                             Text(if (item.cerrado.value) "Abierto" else "Cerrado")
-
                             spacer_horizonta(5.dp)
-
                             Switch(
                                 checked = item.cerrado.value,
                                 onCheckedChange = { value ->
                                     item.cerrado.value = value
-                                    if (!value) { // si el día se marca como cerrado
+                                    if (!value) {
                                         item.h1AM.value = ""
                                         item.h2AM.value = ""
                                         item.h1PM.value = ""
@@ -1069,86 +1179,60 @@ fun HorarioSemanal(viewmodel_agregar_datos: viewmodel_agregar_datos) {
                         }
                     }
 
-                    // Mostrar horarios solo si NO está cerrado
                     AnimatedVisibility(item.cerrado.value) {
-
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-
                             Row(verticalAlignment = Alignment.CenterVertically) {
-
                                 Checkbox(
                                     checked = item.solo_horario.value,
-                                    onCheckedChange = { nuevo ->
-                                        item.solo_horario.value = nuevo
-                                    }
+                                    onCheckedChange = { item.solo_horario.value = it }
                                 )
-
                                 Text(
-                                    text = if (item.solo_horario.value)
-                                        "Trabajo de corrido"
-                                    else
-                                        "Trabajo con descanso"
+                                    if (item.solo_horario.value) "Trabajo de corrido"
+                                    else "Trabajo con descanso"
                                 )
                             }
 
-                            // MAÑANA ---------------------
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-
                                 campoHora(
                                     valor = item.h1AM.value,
                                     etiqueta = "Apertura AM",
-                                    onHoraSeleccionada = { new ->
-                                        item.h1AM.value = new
-                                    },
+                                    onHoraSeleccionada = { item.h1AM.value = it },
                                     abrirTimePicker = { valorActual, onSelect ->
                                         abrirTimePicker(context, valorActual, onSelect)
                                     }
                                 )
-
                                 texto_generico_one_line(" a ")
-
                                 campoHora(
                                     valor = item.h2AM.value,
                                     etiqueta = "Cierre AM",
-                                    onHoraSeleccionada = { new ->
-                                        item.h2AM.value = new
-                                    },
+                                    onHoraSeleccionada = { item.h2AM.value = it },
                                     abrirTimePicker = { valorActual, onSelect ->
                                         abrirTimePicker(context, valorActual, onSelect)
                                     }
                                 )
                             }
 
-                            // TARDE ----------------------
                             AnimatedVisibility(!item.solo_horario.value) {
-
                                 Row(
                                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-
                                     campoHora(
                                         valor = item.h1PM.value,
                                         etiqueta = "Apertura PM",
-                                        onHoraSeleccionada = { new ->
-                                            item.h1PM.value = new
-                                        },
+                                        onHoraSeleccionada = { item.h1PM.value = it },
                                         abrirTimePicker = { valorActual, onSelect ->
                                             abrirTimePicker(context, valorActual, onSelect)
                                         }
                                     )
-
                                     texto_generico_one_line(" a ")
-
                                     campoHora(
                                         valor = item.h2PM.value,
                                         etiqueta = "Cierre PM",
-                                        onHoraSeleccionada = { new ->
-                                            item.h2PM.value = new
-                                        },
+                                        onHoraSeleccionada = { item.h2PM.value = it },
                                         abrirTimePicker = { valorActual, onSelect ->
                                             abrirTimePicker(context, valorActual, onSelect)
                                         }
@@ -1163,6 +1247,7 @@ fun HorarioSemanal(viewmodel_agregar_datos: viewmodel_agregar_datos) {
     }
 }
 
+// ─── campoHora (sin cambios) ───────────────────────────────────────────────
 
 @Composable
 fun RowScope.campoHora(
@@ -1177,10 +1262,7 @@ fun RowScope.campoHora(
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }) {
-                abrirTimePicker(
-                    valor,
-                    onHoraSeleccionada
-                )
+                abrirTimePicker(valor, onHoraSeleccionada)
             }
     ) {
         OutlinedTextField(
@@ -1195,6 +1277,7 @@ fun RowScope.campoHora(
     }
 }
 
+// ─── valor_txt_contacto (sin cambios + SIP) ────────────────────────────────
 
 @Composable
 fun valor_txt_contacto(
@@ -1203,31 +1286,21 @@ fun valor_txt_contacto(
     valor_retorno: (String) -> Unit
 ) {
     val txt = remember(tipo) {
-
         when (tipo.lowercase()) {
-
-            "whatsapp", "telefono", "yape", "plin" ->
-                "Número de $tipo"
-
-            "sitio web" ->
-                "Nombre del sitio web"
-
-            else ->
-                "Usuario de $tipo"
+            "whatsapp", "telefono", "yape", "plin", "sip" -> "Número de $tipo"
+            "sitio web" -> "Nombre del sitio web"
+            else -> "Usuario de $tipo"
         }
     }
 
     val keyboardType = remember(tipo) {
         if (tipo.equals("whatsapp", ignoreCase = true) ||
-            tipo.equals("telefono", ignoreCase = true) || tipo.equals(
-                "yape",
-                ignoreCase = true
-            ) || tipo.equals("plin", ignoreCase = true)
-        ) {
-            KeyboardType.Phone
-        } else {
-            KeyboardType.Text
-        }
+            tipo.equals("telefono", ignoreCase = true) ||
+            tipo.equals("yape", ignoreCase = true) ||
+            tipo.equals("plin", ignoreCase = true) ||
+            tipo.equals("sip", ignoreCase = true)         // ← NUEVO SIP
+        ) KeyboardType.Phone
+        else KeyboardType.Text
     }
 
     OutlinedTextField(
@@ -1235,82 +1308,54 @@ fun valor_txt_contacto(
         onValueChange = { valor_retorno(it) },
         label = { texto_generico_one_line(txt) },
         placeholder = {
-            texto_generico_one_line(
-                txt,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
-            )
+            texto_generico_one_line(txt, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
         },
         shape = RoundedCornerShape(20.dp),
         modifier = Modifier.fillMaxWidth(),
-        keyboardOptions = KeyboardOptions(
-            keyboardType = keyboardType
-        ),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = MaterialTheme.colorScheme.onBackground,
-            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-            unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            focusedLabelColor = MaterialTheme.colorScheme.primary,
-            focusedPlaceholderColor = Color.Gray,
-            unfocusedPlaceholderColor = Color.Gray,
-        )
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        colors = camposColores()
     )
 }
+
+// ─── ChipsCategoriasCheck (sin cambios) ───────────────────────────────────
 
 @Composable
 fun ChipsCategoriasCheck(
     lista: List<String>,
     lista_select: (List<String>) -> Unit
 ) {
-    var seleccionados by rememberSaveable {
-        mutableStateOf(listOf<String>())
-    }
+    var seleccionados by rememberSaveable { mutableStateOf(listOf<String>()) }
     spacer_vertical(5.dp)
 
     LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         items(lista) { item ->
-
             val isSelected = item in seleccionados
-
             Box(
                 modifier = Modifier
                     .clip(CircleShape)
-
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }) {
-                        seleccionados = if (isSelected)
-                            seleccionados - item
-                        else
-                            seleccionados + item
-
+                        seleccionados = if (isSelected) seleccionados - item else seleccionados + item
                         lista_select(seleccionados)
                     }
-
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-
                     Checkbox(
                         checked = isSelected,
                         onCheckedChange = {
-                            seleccionados = if (isSelected)
-                                seleccionados - item
-                            else
-                                seleccionados + item
-
+                            seleccionados = if (isSelected) seleccionados - item else seleccionados + item
                             lista_select(seleccionados)
                         },
                         colors = CheckboxDefaults.colors(
-                            checkedColor = MaterialTheme.colorScheme.primary,   // Check marcado
-                            uncheckedColor = Color.White,                      // Check desmarcado
-                            checkmarkColor = Color.White                       // ✔ icon
+                            checkedColor = MaterialTheme.colorScheme.primary,
+                            uncheckedColor = Color.White,
+                            checkmarkColor = Color.White
                         )
                     )
-
                     texto_generico_one_line(
                         texto = item,
                         style = MaterialTheme.typography.bodyMedium,
@@ -1320,10 +1365,10 @@ fun ChipsCategoriasCheck(
             }
         }
     }
-
     spacer_vertical(3.dp)
 }
 
+// ─── chips_categorias (sin cambios) ───────────────────────────────────────
 
 @Composable
 fun chips_categorias(
@@ -1331,92 +1376,19 @@ fun chips_categorias(
     lista_select: (List<String>) -> Unit
 ) {
     var seleccionados by rememberSaveable { mutableStateOf(listOf<String>()) }
-
     spacer_vertical(10.dp)
 
     LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         items(lista) { item ->
-
             val isSelected = seleccionados.contains(item)
-
             Box(
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(
-                        if (isSelected)
-                            Color.White
-                        else
-                            MaterialTheme.colorScheme.primary
-                    )
+                    .background(if (isSelected) Color.White else MaterialTheme.colorScheme.primary)
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }) {
-                        seleccionados =
-                            if (isSelected)
-                                seleccionados - item
-                            else
-                                seleccionados + item
-
-                        lista_select(seleccionados)
-                    }, contentAlignment = Alignment.Center
-            ) {
-                texto_generico_one_line(
-                    item,
-                    modifier = Modifier.padding(horizontal = 15.dp, vertical = 10.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (isSelected)
-                        Color.Black
-                    else
-                        Color.White
-                )
-            }
-        }
-    }
-
-    spacer_vertical(10.dp)
-}
-
-@Composable
-fun chips_categoriasconvalor_inicial(
-    lista: List<String>,
-    valorInicial: List<String>,          // <- NUEVO
-    lista_select: (List<String>) -> Unit
-) {
-    var seleccionados by rememberSaveable {
-        mutableStateOf(valorInicial)      // <- se inicia con los valores del ViewModel
-    }
-
-    // Si el ViewModel cambia, actualizamos la selección
-    LaunchedEffect(valorInicial) {
-        seleccionados = valorInicial
-    }
-
-    spacer_vertical(10.dp)
-
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        items(lista) { item ->
-
-            val isSelected = seleccionados.contains(item)
-
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(
-                        if (isSelected)
-                            Color.White
-                        else
-                            MaterialTheme.colorScheme.primary
-                    )
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        seleccionados =
-                            if (isSelected)
-                                seleccionados - item
-                            else
-                                seleccionados + item
-
+                        seleccionados = if (isSelected) seleccionados - item else seleccionados + item
                         lista_select(seleccionados)
                     },
                 contentAlignment = Alignment.Center
@@ -1430,9 +1402,49 @@ fun chips_categoriasconvalor_inicial(
             }
         }
     }
-
     spacer_vertical(10.dp)
 }
+
+// ─── chips_categoriasconvalor_inicial (sin cambios) ───────────────────────
+
+@Composable
+fun chips_categoriasconvalor_inicial(
+    lista: List<String>,
+    valorInicial: List<String>,
+    lista_select: (List<String>) -> Unit
+) {
+    var seleccionados by rememberSaveable { mutableStateOf(valorInicial) }
+    LaunchedEffect(valorInicial) { seleccionados = valorInicial }
+    spacer_vertical(10.dp)
+
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        items(lista) { item ->
+            val isSelected = seleccionados.contains(item)
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(if (isSelected) Color.White else MaterialTheme.colorScheme.primary)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }) {
+                        seleccionados = if (isSelected) seleccionados - item else seleccionados + item
+                        lista_select(seleccionados)
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                texto_generico_one_line(
+                    item,
+                    modifier = Modifier.padding(horizontal = 15.dp, vertical = 10.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (isSelected) Color.Black else Color.White
+                )
+            }
+        }
+    }
+    spacer_vertical(10.dp)
+}
+
+// ─── generarPromptOptimizado (sin cambios) ────────────────────────────────
 
 fun generarPromptOptimizado(
     nombre: String,
@@ -1440,35 +1452,19 @@ fun generarPromptOptimizado(
     intentos: Int,
     subcategoria: String
 ): String {
-
-    // 1. Reglas universales y estéticas (Menos tokens por llamada)
     val reglasDeFormato =
         "Breve, no más de 6 líneas, sin puntos ni saltos de línea. Usa solo emojis inspiradores (✨🌟💡⚡📦🏆) y NUNCA uses corazones."
-
-    // 2. Definición del objeto a describir (Contexto)
     val contexto = if (subcategoria.isNotBlank()) {
         "Tienda '$nombre', Categoría '$categoria', Subcategoría '$subcategoria'."
     } else {
         "Tienda '$nombre', Categoría '$categoria'."
     }
-
-    // 3. Instrucción de Tono (Lo que varía)
     val tonoInstruccion = when (intentos) {
-
-        // Primer intento — Elegante, breve y cálido
         1 -> "Tono: Cálido, elegante, convincente. Debe 'enamorar', transmitir confianza y explicar la oferta."
-
-        // Segundo intento — Moderno, creativo y atractivo
         2 -> "Tono: Creativo, moderno, fluido, atractivo. Muestra lo que hace la tienda de forma cautivadora."
-
-        // Tercer intento — Emocional, profesional y memorable
         3 -> "Tono: Emocional, profundo, profesional, memorable. Debe transmitir cercanía y destacar la esencia de la tienda."
-
-        // Cuarto intento o más — Artístico y único
         else -> "Tono: Artístico, poético, motivador, único y auténtico. Transmite encanto y diferenciación."
     }
-
-    // 4. El Prompt final es un resumen conciso de los 3 puntos
     return """
         Instrucción: Genera una descripción inspiradora.
         Reglas: $reglasDeFormato
@@ -1478,14 +1474,13 @@ fun generarPromptOptimizado(
     """.trimIndent()
 }
 
+// ─── obtenerUbicacionConfiable (sin cambios) ──────────────────────────────
 
 @SuppressLint("MissingPermission")
 fun obtenerUbicacionConfiable(
     fusedLocationClient: FusedLocationProviderClient,
     onUbicacionObtenida: (LatLng, Float) -> Unit
 ) {
-
-    // 1️⃣ PRIMERO: última ubicación conocida (SIEMPRE)
     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
         if (location != null) {
             onUbicacionObtenida(
@@ -1495,11 +1490,7 @@ fun obtenerUbicacionConfiable(
         }
     }
 
-    // 2️⃣ Pedimos ubicación nueva
-    val locationRequest = LocationRequest.Builder(
-        Priority.PRIORITY_HIGH_ACCURACY,
-        1500
-    )
+    val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1500)
         .setMinUpdateDistanceMeters(0f)
         .setMaxUpdates(3)
         .build()
@@ -1513,29 +1504,17 @@ fun obtenerUbicacionConfiable(
                     mejorLocation = loc
                 }
             }
-
-            // Si llega algo decente → se envía
             mejorLocation?.let {
-                onUbicacionObtenida(
-                    LatLng(it.latitude, it.longitude),
-                    it.accuracy
-                )
-
-                // Si es buena, cortamos
-                if (it.accuracy <= 10f) {
-                    fusedLocationClient.removeLocationUpdates(this)
-                }
+                onUbicacionObtenida(LatLng(it.latitude, it.longitude), it.accuracy)
+                if (it.accuracy <= 10f) fusedLocationClient.removeLocationUpdates(this)
             }
         }
     }
 
-    fusedLocationClient.requestLocationUpdates(
-        locationRequest,
-        callback,
-        Looper.getMainLooper()
-    )
+    fusedLocationClient.requestLocationUpdates(locationRequest, callback, Looper.getMainLooper())
 }
 
+// ─── HorasDia (sin cambios) ───────────────────────────────────────────────
 
 data class HorasDia(
     var h1AM: MutableState<String> = mutableStateOf(""),
@@ -1547,3 +1526,238 @@ data class HorasDia(
 )
 
 
+
+
+// ─── Composable principal del mapa con permisos, ubicación y toque ────────
+
+@OptIn(MapboxExperimental::class)
+@Composable
+fun MapboxMapViewWithLocation(
+    modifier: Modifier = Modifier,
+    onMapClick: (lat: Double, lng: Double) -> Unit,
+    onLocationUpdate: (lat: Double, lng: Double) -> Unit = { _, _ -> },
+    onTouchChange: (Boolean) -> Unit = {}
+) {
+    val context = LocalContext.current
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    // Estado de permisos
+    var hasLocationPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        hasLocationPermission = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (!hasLocationPermission) {
+            Toast.makeText(context, "Permiso de ubicación necesario", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    if (!hasLocationPermission) {
+        Box(
+            modifier = modifier.fillMaxWidth().height(280.dp).background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
+            Button(onClick = {
+                permissionLauncher.launch(
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                )
+            }) {
+                Text("Activar ubicación")
+            }
+        }
+        return
+    }
+
+    // Estado del mapa y anotaciones
+    var mapViewRef by remember { mutableStateOf<MapView?>(null) }
+    var annotationManager by remember { mutableStateOf<PointAnnotationManager?>(null) }
+    // 📍 Almacenar la última ubicación conocida del usuario (para el botón de recentrar)
+    var userLocation by remember { mutableStateOf<Point?>(null) }
+
+    Box(modifier = modifier) {
+        // ──────────────────────────────────────────────────────────────
+        // Mapa
+        // ──────────────────────────────────────────────────────────────
+        AndroidView(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(280.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            onTouchChange(event.changes.any { it.pressed })
+                        }
+                    }
+                },
+            factory = { ctx ->
+                MapView(ctx).apply {
+                    mapboxMap.loadStyle(Style.MAPBOX_STREETS) { style ->
+
+                        // 1️⃣ Configurar ubicación (puck)
+                        val locationComponent = this.location
+                        locationComponent.updateSettings {
+                            enabled = true
+                            pulsingEnabled = true
+                            puckBearingEnabled = true
+                            puckBearing = PuckBearing.HEADING
+                            locationPuck = createDefault2DPuck(withBearing = true)
+                        }
+
+                        // 2️⃣ Centrar en ubicación actual si está disponible
+                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                                location?.let {
+                                    val punto = Point.fromLngLat(it.longitude, it.latitude)
+                                    userLocation = punto   // guardar para recentrar
+                                    mapboxMap.setCamera(
+                                        CameraOptions.Builder()
+                                            .center(punto)
+                                            .zoom(15.0)
+                                            .build()
+                                    )
+                                    onLocationUpdate(it.latitude, it.longitude)
+                                }
+                            }
+                        }
+
+                        // 3️⃣ Configurar gestor de anotaciones
+                        annotationManager = annotations.createPointAnnotationManager()
+
+                        // 4️⃣ Agregar imagen de pin personalizada (usando Color de Compose)
+                        val bitmap = crearBitmapPin(context, Color(0xFFFF5722))
+                        style.addImage("pin_icon", bitmap)
+
+                        // 5️⃣ Click en el mapa: colocar pin y actualizar coordenadas
+                        mapboxMap.addOnMapClickListener { point ->
+                            val lat = point.latitude()
+                            val lng = point.longitude()
+
+                            // Eliminar pin anterior
+                            annotationManager?.deleteAll()
+
+                            // Crear nuevo pin
+                            annotationManager?.create(
+                                PointAnnotationOptions()
+                                    .withPoint(point)
+                                    .withIconImage("pin_icon")
+                                    .withIconAnchor(IconAnchor.BOTTOM)
+                                    .withIconSize(1.2)
+                            )
+
+                            // Notificar al exterior
+                            onMapClick(lat, lng)
+
+                            true
+                        }
+                    }
+                    mapViewRef = this
+                }
+            },
+            update = { /* no es necesario actualizar nada aquí */ }
+        )
+
+        // ──────────────────────────────────────────────────────────────
+        // Botón flotante de recentrar (esquina inferior derecha)
+        // ──────────────────────────────────────────────────────────────
+        FloatingActionButton(
+            onClick = {
+                val punto = userLocation
+                if (punto != null) {
+                    mapViewRef?.mapboxMap?.easeTo(
+                        CameraOptions.Builder()
+                            .center(punto)
+                            .zoom(15.0)
+                            .build()
+                    )
+                } else {
+                    // Si aún no tenemos ubicación, intentamos obtenerla ahora
+                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                            location?.let {
+                                val newPoint = Point.fromLngLat(it.longitude, it.latitude)
+                                userLocation = newPoint
+                                mapViewRef?.mapboxMap?.easeTo(
+                                    CameraOptions.Builder()
+                                        .center(newPoint)
+                                        .zoom(15.0)
+                                        .build()
+                                )
+                                onLocationUpdate(it.latitude, it.longitude)
+                            } ?: run {
+                                Toast.makeText(context, "No se pudo obtener tu ubicación", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    } else {
+                        Toast.makeText(context, "Permiso de ubicación denegado", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = Color.White,
+            shape = CircleShape
+        ) {
+            Icon(
+                imageVector = Icons.Default.MyLocation,
+                contentDescription = "Centrar en mi ubicación"
+            )
+        }
+    }
+
+    // Opcional: actualizar ubicación en tiempo real (para mantener userLocation actualizado)
+    DisposableEffect(Unit) {
+        val locationCallback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                result.lastLocation?.let {
+                    userLocation = Point.fromLngLat(it.longitude, it.latitude)
+                    onLocationUpdate(it.latitude, it.longitude)
+                }
+            }
+        }
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000).build()
+        if (hasLocationPermission) {
+            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+        }
+        onDispose {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+        }
+    }
+}
+
+
+fun crearBitmapPin(context: Context, color: Color = Color.Red): Bitmap {
+    val colorInt = color.toArgb()   // Convierte Color de Compose a Int
+
+    val bitmap = Bitmap.createBitmap(80, 80, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    val paint = Paint().apply {
+        this.color = colorInt
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+    canvas.drawCircle(40f, 40f, 38f, paint)
+
+    // Borde blanco usando Color.White de Compose
+    val borderPaint = Paint().apply {
+        this.color = Color.White.toArgb()   // Convertido a Int
+        style = Paint.Style.STROKE
+        strokeWidth = 4f
+        isAntiAlias = true
+    }
+    canvas.drawCircle(40f, 40f, 35f, borderPaint)
+
+    return bitmap
+}

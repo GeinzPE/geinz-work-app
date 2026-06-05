@@ -45,6 +45,7 @@ private val MBotGreen         = Color(0xFF22B05B)
 private val MBotBlue          = Color(0xFF3B82F6)
 private val MBotAmber         = Color(0xFFF59E0B)
 private val MBotPurple        = Color(0xFF8B5CF6)
+private val MBotRed           = Color(0xFFEF4444)
 private val MBotTextPrimary   = Color(0xFFFFFFFF)
 private val MBotTextSecondary = Color(0xFFE0E0E0)
 private val MBotTextMuted     = Color(0xFF888888)
@@ -62,8 +63,11 @@ private enum class FiltroHistorial(val label: String) {
 
 @Composable
 fun MetricasDanielCard(
-    id_tienda: String,
-    modifier: Modifier = Modifier
+    id_tienda          : String,
+    precio_por_contacto: Int,     // soles por contacto directo
+    precio_por_click   : Int,     // soles por click de WhatsApp
+    precio_por_moneda  : Double,  // soles que vale 1 crédito
+    modifier           : Modifier = Modifier
 ) {
     val viewmodel: viewmodel_metricas_daniel = viewModel()
     val estado by viewmodel.estado.collectAsState()
@@ -142,7 +146,12 @@ fun MetricasDanielCard(
                                     d.total_publicidad_enviada == 0 &&
                                     d.historial_reciente.isEmpty()
                             if (sinDatos) MetricasEmptyState()
-                            else MetricasContenido(d)
+                            else MetricasContenido(
+                                data                = d,
+                                precio_por_click    = precio_por_click,
+                                precio_por_contacto = precio_por_contacto,
+                                precio_por_moneda   = precio_por_moneda
+                            )
                         }
                         else -> Unit
                     }
@@ -155,35 +164,54 @@ fun MetricasDanielCard(
 // ─── CONTENIDO PRINCIPAL ──────────────────────────────────────────────────────
 
 @Composable
-private fun MetricasContenido(data: MetricasResumen) {
+private fun MetricasContenido(
+    data               : MetricasResumen,
+    precio_por_click   : Int,
+    precio_por_contacto: Int,
+    precio_por_moneda  : Double
+) {
+    // ✅ Créditos calculados desde cantidades × precio (no desde monedasGastadas)
+    val creditosClicksHoy      = data.clicks_whatsapp_hoy    * precio_por_click
+    val creditosClicksSemana   = data.clicks_whatsapp_semana * precio_por_click
+    val creditosEnviadosHoy    = data.enviados_hoy           * precio_por_contacto
+    val creditosEnviadosSemana = data.enviados_semana        * precio_por_contacto
 
-    // ════════════════════════════════════════════════════════════════════════
-    // BLOQUE 1 — CONTACTO DIRECTO (clicks a WhatsApp)
-    // ════════════════════════════════════════════════════════════════════════
+    // ✅ Soles = créditos × precio_por_moneda (solo referencia visual)
+    val solesClicksHoy      = creditosClicksHoy      * precio_por_moneda
+    val solesClicksSemana   = creditosClicksSemana   * precio_por_moneda
+    val solesEnviadosHoy    = creditosEnviadosHoy    * precio_por_moneda
+    val solesEnviadosSemana = creditosEnviadosSemana * precio_por_moneda
+
+    // ── BLOQUE 1 — CONTACTO DIRECTO ───────────────────────────────────────
     SeccionHeader(
-        titulo   = "CONTACTO DIRECTO - WhatsApp",
-        subtitulo = "Clicks al botón de WhatsApp"
+        titulo    = "CONTACTO DIRECTO - WhatsApp",
+        subtitulo = "$precio_por_click créd/click"
     )
     Spacer(Modifier.height(10.dp))
 
-    // Hoy vs semana
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        KpiCard(Modifier.weight(1f), "${data.clicks_whatsapp_hoy}",    "Clicks\nhoy",      MBotBlue)
-        KpiCard(Modifier.weight(1f), "${data.clicks_whatsapp_semana}", "Clicks\n7 días",   MBotBlue)
+        KpiCard(Modifier.weight(1f), "${data.clicks_whatsapp_hoy}",    "Clicks\nhoy",    MBotBlue)
+        KpiCard(Modifier.weight(1f), "${data.clicks_whatsapp_semana}", "Clicks\n7 días", MBotBlue)
     }
     Spacer(Modifier.height(8.dp))
+    // ✅ Créditos = clicks × precio_por_click
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        KpiCard(Modifier.weight(1f), "${data.monedas_gastadas_hoy}",    "Créditos\nhoy",    MBotAmber)
-        KpiCard(Modifier.weight(1f), "${data.monedas_gastadas_semana}", "Créditos\n7 días", MBotAmber)
+        KpiCard(Modifier.weight(1f), "$creditosClicksHoy créd.",    "Créditos\nhoy",    MBotAmber)
+        KpiCard(Modifier.weight(1f), "$creditosClicksSemana créd.", "Créditos\n7 días", MBotAmber)
+    }
+    Spacer(Modifier.height(8.dp))
+    // Soles solo como referencia
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        KpiCard(Modifier.weight(1f), "≈S/ ${"%.2f".format(solesClicksHoy)}",    "Equiv.\nhoy",    MBotTextMuted)
+        KpiCard(Modifier.weight(1f), "≈S/ ${"%.2f".format(solesClicksSemana)}", "Equiv.\n7 días", MBotTextMuted)
     }
 
     Spacer(Modifier.height(8.dp))
-
-    // ── Total histórico contacto directo ──────────────────────────────────
     TotalHistoricoRow(
-        label       = "Total histórico — contacto directo",
-        totalClicks = data.total_clicks_historico,        // suma de todos los días
-        totalCreditos = data.total_monedas_contacto_historico,
+        label         = "Total histórico — contacto directo",
+        totalClicks   = data.total_clicks_historico,
+        totalCreditos = (data.total_clicks_historico * precio_por_click).toLong(),
+        totalSoles    = data.total_clicks_historico * precio_por_click * precio_por_moneda,
         colorClicks   = MBotBlue,
         colorCreditos = MBotAmber
     )
@@ -192,39 +220,51 @@ private fun MetricasContenido(data: MetricasResumen) {
     HorizontalDivider(color = MBotSurface3, thickness = 0.5.dp)
     Spacer(Modifier.height(14.dp))
 
-    // ════════════════════════════════════════════════════════════════════════
-    // BLOQUE 2 — PUBLICIDAD ENVIADA (historial_hot)
-    // ════════════════════════════════════════════════════════════════════════
+    // ── BLOQUE 2 — PUBLICIDAD ENVIADA ─────────────────────────────────────
     SeccionHeader(
         titulo    = "PUBLICIDAD ENVIADA - Plantillas",
-        subtitulo = "Plantillas recomendadas por Daniel"
+        subtitulo = "$precio_por_contacto créd/plantilla"
     )
     Spacer(Modifier.height(10.dp))
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        KpiCard(Modifier.weight(1f), "${data.total_publicidad_enviada}", "Plantillas\nenviadas", MBotGreen)
-        KpiCard(Modifier.weight(1f), "${data.monedas_en_publicidad}",   "Créditos\ngastados",   MBotAmber)
+        KpiCard(Modifier.weight(1f), "${data.enviados_hoy}",    "Enviados\nhoy",    MBotGreen)
+        KpiCard(Modifier.weight(1f), "${data.enviados_semana}", "Enviados\n7 días", MBotGreen)
+    }
+    Spacer(Modifier.height(8.dp))
+    // ✅ Créditos = enviados × precio_por_contacto
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        KpiCard(Modifier.weight(1f), "$creditosEnviadosHoy créd.",    "Créditos\nhoy",    MBotAmber)
+        KpiCard(Modifier.weight(1f), "$creditosEnviadosSemana créd.", "Créditos\n7 días", MBotAmber)
+    }
+    Spacer(Modifier.height(8.dp))
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        KpiCard(Modifier.weight(1f), "≈S/ ${"%.2f".format(solesEnviadosHoy)}",    "Equiv.\nhoy",    MBotTextMuted)
+        KpiCard(Modifier.weight(1f), "≈S/ ${"%.2f".format(solesEnviadosSemana)}", "Equiv.\n7 días", MBotTextMuted)
     }
 
     Spacer(Modifier.height(8.dp))
-
-    // ── Total histórico publicidad ─────────────────────────────────────────
     TotalHistoricoRow(
         label         = "Total histórico — publicidad",
         totalClicks   = data.total_publicidad_enviada,
-        totalCreditos = data.monedas_en_publicidad,
+        totalCreditos = (data.total_publicidad_enviada * precio_por_contacto).toLong(),
+        totalSoles    = data.total_publicidad_enviada * precio_por_contacto * precio_por_moneda,
         colorClicks   = MBotGreen,
         colorCreditos = MBotAmber,
         labelClicks   = "envíos"
     )
 
     // ── Insight rentabilidad ──────────────────────────────────────────────
-    if (data.clicks_whatsapp_semana > 0 && data.total_publicidad_enviada > 0) {
+    if (data.clicks_whatsapp_semana > 0 && data.enviados_semana > 0) {
         Spacer(Modifier.height(10.dp))
 
-        val clicksPorEnvio = data.clicks_whatsapp_semana.toFloat() / data.total_publicidad_enviada
-        val costoPorClick  = data.monedas_gastadas_semana.toFloat() / data.clicks_whatsapp_semana
-        val esRentable     = clicksPorEnvio >= 2f
+        val clicksPorEnvio   = data.clicks_whatsapp_semana.toFloat() / data.enviados_semana
+        val costoPorClick    = if (data.clicks_whatsapp_semana > 0)
+            solesClicksSemana / data.clicks_whatsapp_semana else 0.0
+        val roi              = if (solesClicksSemana > 0)
+            ((data.clicks_whatsapp_semana * precio_por_click * precio_por_moneda - solesClicksSemana)
+                    / solesClicksSemana * 100) else 0.0
+        val esRentable       = clicksPorEnvio >= 1f
 
         val colorInsight = if (esRentable) MBotGreen else MBotAmber
 
@@ -245,47 +285,45 @@ private fun MetricasContenido(data: MetricasResumen) {
                 )
                 Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Text(
-                        text       = if (esRentable) "Está siendo rentable ✓" else "Rentabilidad baja",
+                        text       = if (esRentable) "Buena respuesta ✓" else "Respuesta baja",
                         color      = colorInsight,
                         fontSize   = 12.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text     = "%.1f clicks por plantilla · %.2f créd/click".format(clicksPorEnvio, costoPorClick),
+                        text     = "${"%.1f".format(clicksPorEnvio)} clicks por plantilla · $creditosClicksSemana créd. en clicks · $creditosEnviadosSemana créd. en envíos",
                         color    = MBotTextSecondary,
                         fontSize = 11.sp
+                    )
+                    Text(
+                        text     = "≈ S/ ${"%.2f".format(solesEnviadosSemana)} invertido en publicidad → ${"%.2f".format(solesClicksSemana)} equiv. en clicks",
+                        color    = MBotTextMuted,
+                        fontSize = 10.sp
                     )
                 }
             }
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    // BLOQUE 3 — HISTORIAL FILTRABLE
-    // ════════════════════════════════════════════════════════════════════════
+    // ── BLOQUE 3 — HISTORIAL ──────────────────────────────────────────────
     if (data.historial_reciente.isNotEmpty()) {
         Spacer(Modifier.height(14.dp))
         HorizontalDivider(color = MBotSurface3, thickness = 0.5.dp)
         Spacer(Modifier.height(14.dp))
-        HistorialFiltrable(items = data.historial_reciente)
+        HistorialFiltrable(
+            items             = data.historial_reciente,
+            precio_por_moneda = precio_por_moneda
+        )
     }
 }
 
-// ─── SECCIÓN HEADER CON ÍCONO ─────────────────────────────────────────────────
+// ─── SECCIÓN HEADER ───────────────────────────────────────────────────────────
 
 @Composable
-private fun SeccionHeader(
-    titulo:    String,
-    subtitulo: String
-) {
-    Row(
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Column {
-            Text(titulo,    color = MBotTextMuted,     fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.8.sp)
-            Text(subtitulo, color = MBotTextMuted.copy(alpha = 0.6f), fontSize = 10.sp)
-        }
+private fun SeccionHeader(titulo: String, subtitulo: String) {
+    Column {
+        Text(titulo,    color = MBotTextMuted,                   fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.8.sp)
+        Text(subtitulo, color = MBotTextMuted.copy(alpha = 0.6f), fontSize = 10.sp)
     }
 }
 
@@ -293,12 +331,13 @@ private fun SeccionHeader(
 
 @Composable
 private fun TotalHistoricoRow(
-    label:         String,
-    totalClicks:   Int,
+    label        : String,
+    totalClicks  : Int,
     totalCreditos: Long,
-    colorClicks:   Color,
+    totalSoles   : Double,
+    colorClicks  : Color,
     colorCreditos: Color,
-    labelClicks:   String = "clicks"
+    labelClicks  : String = "clicks"
 ) {
     Box(
         modifier = Modifier
@@ -312,53 +351,30 @@ private fun TotalHistoricoRow(
             Text(label, color = MBotTextMuted, fontSize = 10.sp, letterSpacing = 0.5.sp)
             Row(
                 modifier              = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // Total clicks / envíos
-                Row(
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .clip(CircleShape)
-                            .background(colorClicks)
-                    )
-                    Text(
-                        text       = "$totalClicks $labelClicks",
-                        color      = colorClicks,
-                        fontSize   = 13.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Box(Modifier.size(6.dp).clip(CircleShape).background(colorClicks))
+                    Text("$totalClicks $labelClicks", color = colorClicks, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
                 // Total créditos
-                Row(
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .clip(CircleShape)
-                            .background(colorCreditos)
-                    )
-                    Text(
-                        text       = "$totalCreditos créditos",
-                        color      = colorCreditos,
-                        fontSize   = 13.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Box(Modifier.size(6.dp).clip(CircleShape).background(colorCreditos))
+                    Text("$totalCreditos créd.", color = colorCreditos, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
-                // Costo promedio si aplica
-                if (totalClicks > 0) {
-                    val prom = totalCreditos.toFloat() / totalClicks
-                    Text(
-                        text  = "≈ ${"%.1f".format(prom)} c/u",
-                        color = MBotTextMuted,
-                        fontSize = 11.sp
-                    )
+                // Total soles
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Box(Modifier.size(6.dp).clip(CircleShape).background(MBotRed))
+                    Text("S/ ${"%.2f".format(totalSoles)}", color = MBotRed, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
+            }
+            if (totalClicks > 0) {
+                Text(
+                    "≈ ${"%.2f".format(totalSoles / totalClicks)} soles por ${ if (labelClicks == "envíos") "envío" else "click" }",
+                    color    = MBotTextMuted,
+                    fontSize = 10.sp
+                )
             }
         }
     }
@@ -367,26 +383,31 @@ private fun TotalHistoricoRow(
 // ─── HISTORIAL FILTRABLE ──────────────────────────────────────────────────────
 
 @Composable
-private fun HistorialFiltrable(items: List<HistorialHotItem>) {
-
-    var filtroActivo by remember { mutableStateOf(FiltroHistorial.TODO) }
-
-    val ahora     = System.currentTimeMillis()
-    val unDia     = 86_400_000L
-    val unaSemana = 7  * unDia
-    val unMes     = 30 * unDia
+private fun HistorialFiltrable(
+    items            : List<HistorialHotItem>,
+    precio_por_moneda: Double
+) {
+    var filtroActivo by remember { mutableStateOf(FiltroHistorial.HOY) }
 
     val itemsFiltrados = remember(filtroActivo, items) {
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0);      cal.set(Calendar.MILLISECOND, 0)
+        val inicioDiaHoy = cal.timeInMillis
+        val ahora        = System.currentTimeMillis()
+        val unaSemana    = 7L  * 86_400_000L
+        val unMes        = 30L * 86_400_000L
+
         when (filtroActivo) {
             FiltroHistorial.TODO   -> items
-            FiltroHistorial.HOY    -> items.filter { it.timestamp != null && (ahora - it.timestamp.time) <= unDia }
+            FiltroHistorial.HOY    -> items.filter { it.timestamp != null && it.timestamp.time >= inicioDiaHoy }
             FiltroHistorial.SEMANA -> items.filter { it.timestamp != null && (ahora - it.timestamp.time) <= unaSemana }
             FiltroHistorial.MES    -> items.filter { it.timestamp != null && (ahora - it.timestamp.time) <= unMes }
         }
     }
 
-    // ── Totales del filtro activo ─────────────────────────────────────────
     val totalMonedasFiltro = itemsFiltrados.sumOf { it.monedas_descontadas }
+    val totalSolesFiltro   = totalMonedasFiltro * precio_por_moneda
 
     // Header
     Row(
@@ -408,9 +429,7 @@ private fun HistorialFiltrable(items: List<HistorialHotItem>) {
                     .clip(RoundedCornerShape(20.dp))
                     .background(if (activo) MBotPurple else Color(0xFF141414))
                     .border(0.5.dp, if (activo) MBotPurple else MBotBorder, RoundedCornerShape(20.dp))
-                    .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
-                        filtroActivo = filtro
-                    }
+                    .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { filtroActivo = filtro }
                     .padding(horizontal = 10.dp, vertical = 5.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -424,39 +443,18 @@ private fun HistorialFiltrable(items: List<HistorialHotItem>) {
         }
     }
 
-    // ── Mini resumen del período filtrado ─────────────────────────────────
+    // Mini resumen del período con soles incluidos
     if (itemsFiltrados.isNotEmpty()) {
         Spacer(Modifier.height(8.dp))
-        Row(
-            modifier              = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            MiniResumen(
-                modifier  = Modifier.weight(1f),
-                valor     = "${itemsFiltrados.size}",
-                label     = "envíos",
-                color     = MBotGreen
-            )
-            MiniResumen(
-                modifier  = Modifier.weight(1f),
-                valor     = "$totalMonedasFiltro",
-                label     = "créditos gastados",
-                color     = MBotAmber
-            )
-            MiniResumen(
-                modifier  = Modifier.weight(1f),
-                valor     = if (itemsFiltrados.isNotEmpty())
-                    "≈${"%.1f".format(totalMonedasFiltro.toFloat() / itemsFiltrados.size)}"
-                else "—",
-                label     = "créd/envío",
-                color     = MBotTextMuted
-            )
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            MiniResumen(Modifier.weight(1f), "${itemsFiltrados.size}",                                "envíos",          MBotGreen)
+            MiniResumen(Modifier.weight(1f), "$totalMonedasFiltro",                                   "créditos",        MBotAmber)
+            MiniResumen(Modifier.weight(1f), "S/ ${"%.2f".format(totalSolesFiltro)}",                 "costo real",      MBotRed)
         }
     }
 
     Spacer(Modifier.height(10.dp))
 
-    // Lista o empty
     if (itemsFiltrados.isEmpty()) {
         Box(
             modifier = Modifier
@@ -476,18 +474,12 @@ private fun HistorialFiltrable(items: List<HistorialHotItem>) {
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             items(itemsFiltrados, key = { it.id }) { item ->
-                HistorialItem(item = item)
+                HistorialItem(item = item, precio_por_moneda = precio_por_moneda)
             }
             if (itemsFiltrados.size > 8) {
                 item {
-                    Box(
-                        modifier         = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "${itemsFiltrados.size} registros · desliza para ver más",
-                            color = MBotTextMuted, fontSize = 10.sp
-                        )
+                    Box(Modifier.fillMaxWidth().padding(vertical = 6.dp), contentAlignment = Alignment.Center) {
+                        Text("${itemsFiltrados.size} registros · desliza para ver más", color = MBotTextMuted, fontSize = 10.sp)
                     }
                 }
             }
@@ -507,7 +499,7 @@ private fun MiniResumen(modifier: Modifier, valor: String, label: String, color:
             .padding(vertical = 6.dp, horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(valor, color = color,         fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+        Text(valor, color = color,         fontSize = 13.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
         Text(label, color = MBotTextMuted, fontSize = 10.sp, textAlign = TextAlign.Center)
     }
 }
@@ -525,7 +517,7 @@ private fun KpiCard(modifier: Modifier, valor: String, etiqueta: String, color: 
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(valor,    color = color,         fontSize = 22.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+            Text(valor,    color = color,         fontSize = 20.sp, fontWeight = FontWeight.Bold,   textAlign = TextAlign.Center)
             Spacer(Modifier.height(4.dp))
             Text(etiqueta, color = MBotTextMuted, fontSize = 10.sp, textAlign = TextAlign.Center, lineHeight = 14.sp)
         }
@@ -535,8 +527,10 @@ private fun KpiCard(modifier: Modifier, valor: String, etiqueta: String, color: 
 // ─── HISTORIAL ITEM ───────────────────────────────────────────────────────────
 
 @Composable
-private fun HistorialItem(item: HistorialHotItem) {
-    val fmt = SimpleDateFormat("dd MMM · HH:mm", Locale("es"))
+private fun HistorialItem(item: HistorialHotItem, precio_por_moneda: Double) {
+    val fmt        = SimpleDateFormat("dd MMM · HH:mm", Locale("es"))
+    val costoSoles = item.monedas_descontadas * precio_por_moneda
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -547,12 +541,14 @@ private fun HistorialItem(item: HistorialHotItem) {
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+        // Ícono con créditos descontados
         Box(
-            modifier         = Modifier.size(32.dp).clip(CircleShape).background(MBotAmber.copy(alpha = 0.15f)),
+            modifier         = Modifier.size(36.dp).clip(CircleShape).background(MBotAmber.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center
         ) {
-            Text("−${item.monedas_descontadas}", color = MBotAmber, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            Text("−${item.monedas_descontadas}", color = MBotAmber, fontSize = 9.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
         }
+        // Tipo y fecha
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text       = item.tipo.replace("_", " ").replaceFirstChar { it.uppercase() },
@@ -565,10 +561,18 @@ private fun HistorialItem(item: HistorialHotItem) {
                 color    = MBotTextMuted,
                 fontSize = 10.sp
             )
+            // Costo en soles de este envío
+            Text(
+                text     = "S/ ${"%.2f".format(costoSoles)}",
+                color    = MBotRed.copy(alpha = 0.8f),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Medium
+            )
         }
+        // Créditos restantes
         Column(horizontalAlignment = Alignment.End) {
             Text("${item.creditos_despues}", color = MBotGreen,    fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            Text("créditos rest.",           color = MBotTextMuted, fontSize = 10.sp)
+            Text("créd. rest.",              color = MBotTextMuted, fontSize = 10.sp)
         }
     }
 }

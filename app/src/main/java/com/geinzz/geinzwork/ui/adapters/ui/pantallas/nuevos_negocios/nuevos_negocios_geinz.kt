@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -52,6 +53,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -126,8 +128,8 @@ fun nuevos_negocios(
     val context = LocalContext.current
 
     val estado = viewmodel_novedades_teinda.obtener_datos_tienda.collectAsState().value
-    val listState = rememberLazyListState()
-
+    val listStateTiendas = rememberLazyListState()
+    val listStateChips = rememberLazyListState()
     var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
     var categoria_seleccionda by rememberSaveable { mutableStateOf("") }
     var lista_subcategorias by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -139,7 +141,9 @@ fun nuevos_negocios(
     var id_tienda_selecionada by remember { mutableStateOf("") }
     var bottom_shet_tienda by remember { mutableStateOf(false) }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
-    val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
+//    val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
+    val cargandoMas by viewmodel_novedades_teinda.cargandoMas.collectAsState()
+
 
     // --- CONTROL MANUAL DEL LOADING ---
     var mostrarLoading by remember { mutableStateOf(true) }
@@ -153,16 +157,16 @@ fun nuevos_negocios(
             categoria = "todos"
         )
     }
-    LaunchedEffect(showBottomSheet) {
-        if (showBottomSheet) {
-            viewModelFiltros.obtener_campos_tiendas_por_id(localida_select, id_tienda_selecionada)
-        }
-    }
-    LaunchedEffect(datosTienda) {
-        if (datosTienda.isNotEmpty()) {
-            dataclass_tienda_seleccionada = datosTienda.first()
-        }
-    }
+//    LaunchedEffect(showBottomSheet) {
+//        if (showBottomSheet) {
+//            viewModelFiltros.obtener_campos_tiendas_por_id(localida_select, id_tienda_selecionada)
+//        }
+//    }
+//    LaunchedEffect(datosTienda) {
+//        if (datosTienda.isNotEmpty()) {
+//            dataclass_tienda_seleccionada = datosTienda.first()
+//        }
+//    }
 
     // Cuando estado pase a SUCCESS → mantener loading 1.5s más
     LaunchedEffect(estado) {
@@ -194,20 +198,36 @@ fun nuevos_negocios(
 
                 is viewmodel_novedades_tiendas.carga_datos_tienda.succes -> {
                     val lista = remember(estado.datos) { estado.datos }
+                    LaunchedEffect(listStateTiendas, cargandoMas) {
+                        snapshotFlow {
+                            listStateTiendas.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                        }.collect { ultimoVisible ->
+
+                            if (
+                                !cargandoMas &&
+                                ultimoVisible != null &&
+                                ultimoVisible >= lista.size - 3
+                            ) {
+                                viewmodel_novedades_teinda.cargarMasTiendas()
+                            }
+                        }
+                    }
+
                     val categorias = estado.categorias
                     lista_subcategorias = categorias
 
                     LazyColumn(
+                        state = listStateTiendas,
                         modifier = Modifier.fillMaxSize()
                     ) {
                         item {
                             Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically){
 
-                            texto_generico_multilinea(
-                                "Lo nuevo en tu ciudad",
-                                style = MaterialTheme.typography.banerGeinzWork,
-                                modifier = Modifier.padding(end = 20.dp).weight(1f)
-                            )
+                                texto_generico_multilinea(
+                                    "Lo nuevo en tu ciudad",
+                                    style = MaterialTheme.typography.banerGeinzWork,
+                                    modifier = Modifier.padding(end = 20.dp).weight(1f)
+                                )
                                 Box(
                                     modifier = Modifier,
                                 ) {
@@ -234,7 +254,7 @@ fun nuevos_negocios(
                         stickyHeader {
                             ColumnContenedorComun {
                                 chips_filtrado(
-                                    listState = listState,
+                                    listState = listStateChips,
                                     sub_categoria_selecionada = subCategoriaSeleccionada,
                                     lista_subcategorias = lista_subcategorias,
                                     expandir_carta = {},
@@ -253,42 +273,72 @@ fun nuevos_negocios(
                             items = lista,
                             key = { it.id_tienda }
                         ) { tienda ->
-                            val horarioDeEstaTienda = horarios[tienda.id_tienda] ?: HorarioDia_box()
+                            Box(
+                                modifier = Modifier.animateItem(
+                                    placementSpec = tween(
+                                        durationMillis = 350,
+                                        easing = FastOutSlowInEasing
+                                    )
+                                )
+                            ){
+                                val horarioDeEstaTienda = horarios[tienda.id_tienda] ?: HorarioDia_box()
 
-                            item_tiendas_registradas(
-                                horario_box1 = horarioDeEstaTienda,
-                                horario_box = tienda.horario_atencion,
-                                verificar_inter,
-                                localidad_user = "barranca",
-                                id_user = uid_respald_user,
-                                viewModelFiltros = viewModelFiltros,
-                                item_tiendas = tienda,
-                                listener_botom_sheet = { id_tienda, listener, estado_color, pagado ->
-                                    if (firebaseAuth.currentUser != null || uid_respald_user.isNotEmpty()) {
-                                        id_tienda_selecionada = id_tienda
+                                item_tiendas_registradas(
+                                    horario_box1 = horarioDeEstaTienda,
+                                    horario_box = tienda.horario_atencion,
+                                    verificar_inter,
+                                    localidad_user = "barranca",
+                                    id_user = uid_respald_user,
+                                    viewModelFiltros = viewModelFiltros,
+                                    item_tiendas = tienda,
+                                    listener_botom_sheet = { id_tienda, listener, estado_color, pagado ->
+                                        if (firebaseAuth.currentUser != null || uid_respald_user.isNotEmpty()) {
+                                            id_tienda_selecionada = id_tienda
 
-                                        bottom_shet_tienda = true
-                                        showBottomSheet = listener
+                                            bottom_shet_tienda = true
+                                            showBottomSheet = listener
 
-                                    } else {
+                                        } else {
+                                            bottom_sheet_iniciar_seccion = true
+                                            texto_falta_registra =
+                                                "Regístrate para ver los detalles completos y las funciones exclusivas"
+
+                                        }
+                                    },
+                                    {
                                         bottom_sheet_iniciar_seccion = true
-                                        texto_falta_registra =
-                                            "Regístrate para ver los detalles completos y las funciones exclusivas"
+                                        texto_falta_registra = "Regístrate para agregar a tus favoritos"
+                                    })
+                            }
 
+                        }
+                        item {
+                            AnimatedVisibility(cargandoMas) {
+
+                                Column {
+
+                                    repeat(3) {
+
+                                        Card(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 8.dp)
+                                                .height(120.dp)
+                                        ) {}
                                     }
-                                },
-                                {
-                                    bottom_sheet_iniciar_seccion = true
-                                    texto_falta_registra = "Regístrate para agregar a tus favoritos"
-                                })
+                                }
+                            }
                         }
                     }
 
                     if (bottom_shet_tienda) {
                         bottom_sheet_tiendas_filtradas(
+                            id_tienda_selecionada,
+                            localida_select,
                             verificar_inter,
                             viewModelFiltros,
-                            dataclass_tienda_seleccionada, bottom_shet_tienda
+//                            dataclass_tienda_seleccionada,
+                            bottom_shet_tienda
                         ) {
                             bottom_shet_tienda = false
                             showBottomSheet = false
@@ -378,6 +428,7 @@ fun item_tiendas_registradas(
 
     var estado_fv_btn by remember { mutableStateOf(false) }
     var nuevo_Estadp_btn_fv by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()

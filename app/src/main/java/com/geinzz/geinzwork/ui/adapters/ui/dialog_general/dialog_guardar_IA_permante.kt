@@ -175,43 +175,43 @@ fun dialog_guardar_IA_permanete(
                         }
 
                         // Imagen draggable
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(img_guardaro)
-                                .memoryCachePolicy(CachePolicy.ENABLED)
-                                .diskCachePolicy(CachePolicy.ENABLED)
-                                .build(),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .padding(horizontal = 5.dp)
-                                .size(52.dp)
-                                .offset { IntOffset(offsetX.roundToInt(), 0) }
-                                .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.3f))
-                                .align(Alignment.CenterStart)
-                                .pointerInput(Unit) {
-                                    detectHorizontalDragGestures(
-                                        onDragEnd = {
-                                            if (offsetX >= maxDrag * 0.9f) {
-                                                offsetX = maxDrag
-                                                viewmodel.guardar_como_permanete(
-                                    id_generacion = id_generacion,
-                                    id_tienda = id_tienda,
-                                    localidad = localidad,
-                                    nombre_tienda = nombre_tienda,
-                                    saldo_tienda = cantidad_monedas
-                                )
-                                                ondimis() // acción confirmada
-                                            } else {
-                                                offsetX = 0f // vuelve al inicio
-                                            }
-                                        }
-                                    ) { _, dragAmount ->
-                                        offsetX = (offsetX + dragAmount).coerceIn(0f, maxDrag)
-                                    }
-                                },
-                            contentScale = ContentScale.Crop
-                        )
+//                        AsyncImage(
+//                            model = ImageRequest.Builder(LocalContext.current)
+//                                .data(img_guardaro)
+//                                .memoryCachePolicy(CachePolicy.ENABLED)
+//                                .diskCachePolicy(CachePolicy.ENABLED)
+//                                .build(),
+//                            contentDescription = null,
+//                            modifier = Modifier
+//                                .padding(horizontal = 5.dp)
+//                                .size(52.dp)
+//                                .offset { IntOffset(offsetX.roundToInt(), 0) }
+//                                .clip(CircleShape)
+//                                .background(Color.Black.copy(alpha = 0.3f))
+//                                .align(Alignment.CenterStart)
+//                                .pointerInput(Unit) {
+//                                    detectHorizontalDragGestures(
+//                                        onDragEnd = {
+//                                            if (offsetX >= maxDrag * 0.9f) {
+//                                                offsetX = maxDrag
+//                                                viewmodel.guardar_como_permanete(
+//                                    id_generacion = id_generacion,
+//                                    id_tienda = id_tienda,
+//                                    localidad = localidad,
+//                                    nombre_tienda = nombre_tienda,
+//                                    saldo_tienda = cantidad_monedas
+//                                )
+//                                                ondimis() // acción confirmada
+//                                            } else {
+//                                                offsetX = 0f // vuelve al inicio
+//                                            }
+//                                        }
+//                                    ) { _, dragAmount ->
+//                                        offsetX = (offsetX + dragAmount).coerceIn(0f, maxDrag)
+//                                    }
+//                                },
+//                            contentScale = ContentScale.Crop
+//                        )
                     }
 
 //                    Box(

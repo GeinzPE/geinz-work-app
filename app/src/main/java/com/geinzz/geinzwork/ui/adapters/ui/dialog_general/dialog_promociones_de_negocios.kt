@@ -97,7 +97,7 @@ fun dialog_promociones_negocios(
     val viewModel: viewmodel_datos_promociones = viewModel()
     val estado by viewModel.estadoPromocion.collectAsState()
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
-    val datosTienda by viewmodel_filtrado._datos_tienda.observeAsState()
+//    val datosTienda by viewmodel_filtrado._datos_tienda.observeAsState()
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     var mostrarDialogozoom by remember { mutableStateOf(false) }
     var valor_img_completa by remember { mutableStateOf("") }
@@ -156,18 +156,18 @@ fun dialog_promociones_negocios(
                 if (promo.tipo_promo_o_notificaccion.equals("notifiacion_promo")) {
                     repo_pantallas_promocionar.MedidorTiempoAnuncio.iniciar()
                 }
-                LaunchedEffect(mostrar_bottom_datos) {
-                    if (mostrar_bottom_datos) {
-                        viewmodel_filtrado.obtener_campos_tiendas_por_id(
-                            promo.localidad, id_tienda
-                        )
-                    }
-                }
-                LaunchedEffect(datosTienda) {
-                    if (!datosTienda.isNullOrEmpty()) {
-                        dataclass_tienda_seleccionada = datosTienda!!.first()
-                    }
-                }
+//                LaunchedEffect(mostrar_bottom_datos) {
+//                    if (mostrar_bottom_datos) {
+//                        viewmodel_filtrado.obtener_campos_tiendas_por_id(
+//                            promo.localidad, id_tienda
+//                        )
+//                    }
+//                }
+//                LaunchedEffect(datosTienda) {
+//                    if (!datosTienda.isNullOrEmpty()) {
+//                        dataclass_tienda_seleccionada = datosTienda!!.first()
+//                    }
+//                }
                 val localidad_pasada = when (promo.localidad) {
                     "barranca" -> "ba"
                     "paramonga" -> "par"
@@ -550,9 +550,10 @@ fun dialog_promociones_negocios(
 
     if (mostrar_bottom_datos) {
         bottom_sheet_tiendas_filtradas(
+            id_tienda,localidad,
             verificar_intener,
             viewmodel_filtrado,
-            dataclass_tienda_seleccionada,
+//            dataclass_tienda_seleccionada,
             mostrar_bottom_datos
         ) {
             mostrar_bottom_datos = false

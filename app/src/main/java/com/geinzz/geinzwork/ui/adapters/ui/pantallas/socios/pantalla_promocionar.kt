@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -64,6 +65,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.outlined.TouchApp
@@ -511,13 +513,14 @@ fun pantalla_promocionar(
     }
     val estado_carga_gent_img_a_txt by viewmodel_pantalla_promocionar.estado_generacion_txt_img.collectAsState()
     LaunchedEffect(cargar_precio_activacione) {
-        Log.d("PRECIOS_DEBUG", "mejoraTextoX3 = ${cargar_precio_activacione?.publicidad?.mejoraTextoX3}")
-        Log.d("PRECIOS_DEBUG", "objeto completo = ${cargar_precio_activacione?.publicidad}")
-        Log.d("PRECIOS_DEBUG", "todo = $cargar_precio_activacione")
+//        Log.d("PRECIOS_DEBUG", "mejoraTextoX3 = ${cargar_precio_activacione?.publicidad?.mejoraTextoX3}")
+//        Log.d("PRECIOS_DEBUG", "objeto completo = ${cargar_precio_activacione?.publicidad}")
+        Log.d("PRECIOS_DEBUG", "todo = ${cargar_precio_activacione?.costoPorMoneda?:0.0}")
     }
     LaunchedEffect(estado_carga_gent_img_a_txt) {
         when(estado_carga_gent_img_a_txt){
             is viewmodel_pantallas_promocionar.Estado_carga_para_generar_txt_a_img.Error -> {
+                iaGenerandoActual = null  // ← AGREGAR
                 scope.launch {
                     snackbarHostState.showSnackbar(
                         message = (estado_carga_gent_img_a_txt as viewmodel_pantallas_promocionar.Estado_carga_para_generar_txt_a_img.Error).mensaje,
@@ -532,6 +535,7 @@ fun pantalla_promocionar(
 
             }
             is viewmodel_pantallas_promocionar.Estado_carga_para_generar_txt_a_img.Succes -> {
+                iaGenerandoActual = null  // ← AGREGAR
                 version_nombre_publicacion_original = (estado_carga_gent_img_a_txt as viewmodel_pantallas_promocionar.Estado_carga_para_generar_txt_a_img.Succes).titulo
                 descripcion_publicacion_original =(estado_carga_gent_img_a_txt as viewmodel_pantallas_promocionar.Estado_carga_para_generar_txt_a_img.Succes).texto
             }
@@ -881,6 +885,7 @@ fun pantalla_promocionar(
 
     LaunchedEffect(estado_texto_compatir_con_ia) {
         if (estado_texto_compatir_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_compartir.Success) {
+            iaGenerandoActual = null
             msj_estado_texto_compartir = "Generar nuevamente"
             msj_perzonalizado_compartir_ia_bool = true
             mensaje_perzonalizado_txt_compartir =
@@ -893,6 +898,7 @@ fun pantalla_promocionar(
             )
             viewmodel_socios.verificar_si_tiene_nueva_generacion(true)
         } else if (estado_texto_compatir_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_compartir.Error) {
+            iaGenerandoActual = null
             val texto_error =
                 (estado_texto_compatir_con_ia as viewmodel_pantallas_promocionar.ESstado_ia_msje_compartir.Error).mensaje
             scope.launch {
@@ -907,6 +913,7 @@ fun pantalla_promocionar(
 
     LaunchedEffect(estado_texto_whatsapp_con_ia) {
         if (estado_texto_whatsapp_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_whatsap.Success) {
+            iaGenerandoActual = null
             msj_perzonalizado_whatsapp_ia_bool = true
             texto_generar_nuevamente_whatsapp_ia = "Generar nuevamente"
             mensaje_perzonalizado_txt =
@@ -919,6 +926,7 @@ fun pantalla_promocionar(
             )
             viewmodel_socios.verificar_si_tiene_nueva_generacion(true)
         } else if (estado_texto_whatsapp_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_whatsap.Error) {
+            iaGenerandoActual = null
             val texto_error =
                 (estado_texto_whatsapp_con_ia as viewmodel_pantallas_promocionar.ESstado_ia_msje_whatsap.Error).mensaje
             scope.launch {
@@ -933,6 +941,7 @@ fun pantalla_promocionar(
 
     LaunchedEffect(estado_textos_notificaciones_generadas) {
         if (estado_textos_notificaciones_generadas is viewmodel_pantallas_promocionar.EstadoIA.Success) {
+            iaGenerandoActual = null
             msje_texto_notificacion_generada = "Generar nuevamente"
             listaOpcionesIA =
                 (estado_textos_notificaciones_generadas as viewmodel_pantallas_promocionar.EstadoIA.Success).lista
@@ -949,6 +958,7 @@ fun pantalla_promocionar(
             )
             viewmodel_socios.verificar_si_tiene_nueva_generacion(true)
         } else if (estado_textos_notificaciones_generadas is viewmodel_pantallas_promocionar.EstadoIA.Error) {
+            iaGenerandoActual = null
             val texto_error =
                 (estado_textos_notificaciones_generadas as viewmodel_pantallas_promocionar.EstadoIA.Error).mensaje
             scope.launch {
@@ -993,6 +1003,7 @@ fun pantalla_promocionar(
 
     LaunchedEffect(estado_textos_notificacion_corta_generada) {
         if (estado_textos_notificacion_corta_generada is viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Success) {
+            iaGenerandoActual = null
             mnsje_estado_notificacion_generada = "Generar nuevamente"
             msj_perzonalizado_gen_notificacion = true
             titulo_notificacion =
@@ -1021,6 +1032,7 @@ fun pantalla_promocionar(
             )
             viewmodel_pantalla_promocionar.resetear_Estado_notificacion_gnerado_ia()
         } else if (estado_textos_notificacion_corta_generada is viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Error) {
+            iaGenerandoActual = null
             val texto_error =
                 (estado_textos_notificacion_corta_generada as viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Error).mensaje
             scope.launch {
@@ -1116,6 +1128,7 @@ fun pantalla_promocionar(
                     monto_restante = monedas_tienda - monedas_costo_publicidad.toInt()
                 )
                 viewmodel_recargas.restar_puntos_recarga(
+                    precio_por_moneda=cargar_precio_activacione?.costoPorMoneda?:0.15,
                     i = historial,
                     monto_descontar = monedas_costo_publicidad,
                     id_tienda = i.id_tienda,
@@ -1435,25 +1448,36 @@ fun pantalla_promocionar(
                         }
                         spacer_vertical(15.dp)
 
-                        if (tipo_promp_seleccionado_para_imagen_IA.isNotEmpty() ) {
-                            boton_generador_por_IA(estaCargandoIA, onclick = {
-                                if(i.saldo.toInt() >= 50){
-                                val primeraImagen = imagenes.firstOrNull()
-                                primeraImagen?.uri?.let { uri ->
-                                    viewmodel_pantalla_promocionar.generar_texto_descripcion_con_IA_desde_imagen(
-                                        i.localidad_tienda, i.id_tienda, i.nombre_tienda, (cargar_precio_activacione?.publicidad?.iaImagenTexto ?:100), i.saldo.toInt(),
-                                        tipo_promp_para_mandar_img_IA,
-                                        context,
-                                        uri
-                                    )
+                        if (tipo_promp_seleccionado_para_imagen_IA.isNotEmpty()) {
+                            BotonConOverlayIA(
+                                idBoton = "imagen",
+                                estaCargando = estado_carga_gent_img_a_txt is viewmodel_pantallas_promocionar.Estado_carga_para_generar_txt_a_img.Loading,
+                                iaGenerandoActual = iaGenerandoActual,
+                                textoBoton = "Generar contenido",
+                                costoMonedas = (cargar_precio_activacione?.publicidad?.iaImagenTexto ?: 100).toString(),
+                                onClick = {
+                                    val costo = cargar_precio_activacione?.publicidad?.iaImagenTexto ?: 100
+                                    when {
+                                        iaGenerandoActual != null -> { /* ya bloqueado por overlay */ }
+                                        !saldoSuficiente(costo) -> { mostar_scope_falta_de_saldo = true }
+                                        else -> {
+                                            iaGenerandoActual = "imagen"
+                                            val primeraImagen = imagenes.firstOrNull()
+                                            primeraImagen?.uri?.let { uri ->
+                                                viewmodel_pantalla_promocionar.generar_texto_descripcion_con_IA_desde_imagen(
+                                                    cargar_precio_activacione?.costoPorMoneda?:0.15,
+                                                    i.localidad_tienda, i.id_tienda, i.nombre_tienda,
+                                                    costo, i.saldo.toInt(),
+                                                    tipo_promp_para_mandar_img_IA,
+                                                    context, uri
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
-                                }else{
-                                    mostar_scope_falta_de_saldo=true
-                                }
-                            }, "Generar contenido", (cargar_precio_activacione?.publicidad?.iaImagenTexto ?:100).toString())
+                            )
+                            spacer_vertical(10.dp)
                         }
-                        spacer_vertical(10.dp)
-
 
 //                        Button(onClick = {
 //                            val primeraImagen = imagenes.firstOrNull()
@@ -1546,6 +1570,7 @@ fun pantalla_promocionar(
                     if (viewmodel_pantalla_promocionar.titulo.isNotEmpty() && viewmodel_pantalla_promocionar.descripcion.isNotEmpty()) {
                         val cargando =
                             estado_textos_notificaciones_generadas is viewmodel_pantallas_promocionar.EstadoIA.Loading
+                                    || (iaGenerandoActual != null && iaGenerandoActual != "texto")
                         val buttonColor by animateColorAsState(
                             targetValue = if (cargando)
                                 Color.Black
@@ -1553,7 +1578,6 @@ fun pantalla_promocionar(
                                 MaterialTheme.colorScheme.primary,
                             label = "buttonColor"
                         )
-
 
                         Column(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -1630,106 +1654,84 @@ fun pantalla_promocionar(
 
 
                             if (!beneficiosSeleccionados.isNullOrEmpty()) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(40.dp)
-                                        .clip(CircleShape)
-                                ) {
-                                    // 🔥 Fondo animado SOLO cuando no carga
+                                Box(modifier = Modifier.fillMaxWidth().height(40.dp).clip(CircleShape)) {
+                                    val cargando = estado_textos_notificaciones_generadas is viewmodel_pantallas_promocionar.EstadoIA.Loading
                                     if (!cargando) {
-                                        FondoIAAnimado(
-                                            modifier = Modifier.matchParentSize()
-                                        )
-
+                                        FondoIAAnimado(modifier = Modifier.matchParentSize())
                                     }
                                     Button(
                                         onClick = {
-                                            if (!cargando) {
-                                                tipo_promp_seleccionado_IA?.let { tipoSeleccionado ->
-                                                    viewmodel_pantalla_promocionar.mejorar_texto_con_promo_IA(
-                                                        tipo_generacion = tipoSeleccionado, // ✅ seguro, no null
-                                                        saldo_tienda = monedas_tienda,
-                                                        localidad_tienda = i.localidad_tienda,
-                                                        id_tienda = i.id_tienda,
-                                                        nombre_tienda = i.nombre_tienda,
-                                                        tituloUsuario = viewmodel_pantalla_promocionar.titulo,
-                                                        descripcionUsuario = viewmodel_pantalla_promocionar.descripcion,
-                                                        nombreTienda = i.nombre_tienda,
-                                                        localidad = i.localidad_tienda,
-                                                        (cargar_precio_activacione?.publicidad?.mejoraTextoX3 ?:100).toString(),
-                                                        "Gen IA (Promociones X3)"
-                                                    )
-                                                    listaOpcionesIA = emptyList()
-                                                } ?: run {
-                                                    // 🚨 null -> opcional: mostrar mensaje de error o toast
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Selecciona un tipo de generacion antes",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
+                                            val costo = cargar_precio_activacione?.publicidad?.mejoraTextoX3 ?: 100
+                                            when {
+                                                iaGenerandoActual != null -> { }
+                                                !saldoSuficiente(costo) -> { mostar_scope_falta_de_saldo = true }
+                                                else -> {
+                                                    iaGenerandoActual = "texto"
+                                                    tipo_promp_seleccionado_IA?.let { tipoSeleccionado ->
+                                                        viewmodel_pantalla_promocionar.mejorar_texto_con_promo_IA(
+                                                            cargar_precio_activacione?.costoPorMoneda?:0.15,
+                                                            tipo_generacion = tipoSeleccionado,
+                                                            saldo_tienda = monedas_tienda,
+                                                            localidad_tienda = i.localidad_tienda,
+                                                            id_tienda = i.id_tienda,
+                                                            nombre_tienda = i.nombre_tienda,
+                                                            tituloUsuario = viewmodel_pantalla_promocionar.titulo,
+                                                            descripcionUsuario = viewmodel_pantalla_promocionar.descripcion,
+                                                            nombreTienda = i.nombre_tienda,
+                                                            localidad = i.localidad_tienda,
+                                                            costo.toString(),
+                                                            "Gen IA (Promociones X3)"
+                                                        )
+                                                        listaOpcionesIA = emptyList()
+                                                    } ?: Toast.makeText(context, "Selecciona un tipo de generación antes", Toast.LENGTH_SHORT).show()
                                                 }
                                             }
-
                                         },
-                                        enabled = !cargando,
+                                        enabled = !cargando && (iaGenerandoActual == null || iaGenerandoActual == "texto"),
                                         colors = ButtonDefaults.buttonColors(
-                                            containerColor = if (cargando) buttonColor else Color.Transparent,
-                                            disabledContainerColor = if (cargando) buttonColor else Color.Transparent,
+                                            containerColor = if (cargando) Color.Black else Color.Transparent,
+                                            disabledContainerColor = Color.Black,
                                             contentColor = Color.White,
                                             disabledContentColor = Color.White
                                         ),
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
                                         if (cargando) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .height(20.dp)
-                                                    .width(160.dp)
-                                                    .shimmer(), contentAlignment = Alignment.Center
-
-                                            ) {
-
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-
+                                            Box(modifier = Modifier.height(20.dp).width(160.dp).shimmer(), contentAlignment = Alignment.Center) {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
                                                     Spacer(modifier = Modifier.width(8.dp))
-
-                                                    texto_generico_one_line(
-                                                        "Generando contenido..",
-                                                        style = MaterialTheme.typography.bodyMedium
-                                                    )
-
+                                                    texto_generico_one_line("Generando contenido..", style = MaterialTheme.typography.bodyMedium)
                                                 }
                                             }
                                         } else {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                            ) {
-                                                texto_generico_one_line(
-                                                    msje_texto_notificacion_generada,
-                                                    style = MaterialTheme.typography.bodyMedium
-                                                )
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                texto_generico_one_line(msje_texto_notificacion_generada, style = MaterialTheme.typography.bodyMedium)
                                                 spacer_horizonta(5.dp)
-                                                Icon(
-                                                    imageVector = Icons.Default.AutoAwesome,
-                                                    contentDescription = "Mejorar con IA",
-                                                    tint = Color.White
-                                                )
+                                                Icon(Icons.Default.AutoAwesome, null, tint = Color.White)
                                                 spacer_horizonta(5.dp)
-                                                texto_generico_one_line(
-                                                    (cargar_precio_activacione?.publicidad?.mejoraTextoX3 ?:100).toString(),
-                                                    style = MaterialTheme.typography.bodyMedium
-                                                )
+                                                texto_generico_one_line((cargar_precio_activacione?.publicidad?.mejoraTextoX3 ?: 100).toString(), style = MaterialTheme.typography.bodyMedium)
                                                 spacer_horizonta(5.dp)
-                                                Image(
-                                                    painter = painterResource(R.drawable.icon_monedas_3d),
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(20.dp)
-                                                )
-
+                                                Image(painter = painterResource(R.drawable.icon_monedas_3d), null, Modifier.size(20.dp))
                                             }
+                                        }
+                                    }
+                                    // Overlay
+                                    if (iaGenerandoActual != null && iaGenerandoActual != "texto") {
+                                        Box(
+                                            modifier = Modifier.matchParentSize()
+                                                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.6f), CircleShape)
+                                                .clip(CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+//                                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+//                                                Icon(
+//                                                    imageVector = Icons.Default.Lock,
+//                                                    contentDescription = null,
+//                                                    modifier = Modifier.size(14.dp),
+//                                                    tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
+//                                                )
+//                                                texto_generico_one_line("Espera...", style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)))
+//                                            }
                                         }
                                     }
                                 }
@@ -1860,46 +1862,40 @@ fun pantalla_promocionar(
                                     )
 
                                     spacer_vertical(10.dp)
-                                    val cargando =
-                                        estado_texto_whatsapp_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_whatsap.Loading
-                                    val buttonColor by animateColorAsState(
-                                        targetValue = if (cargando)
-                                            Color.Black
-                                        else
-                                            MaterialTheme.colorScheme.primary,
-                                        label = "buttonColor"
-                                    )
+
+                                val cargando = estado_texto_whatsapp_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_whatsap.Loading
+                                        || (iaGenerandoActual != null && iaGenerandoActual != "whatsapp")
+
                                     if (viewmodel_pantalla_promocionar.titulo.isNotEmpty() && viewmodel_pantalla_promocionar.descripcion.isNotEmpty()) {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(40.dp)
-                                                .clip(CircleShape)
-                                        ) {
-                                            // 🔥 Fondo animado SOLO cuando no carga
+                                        Box(modifier = Modifier.fillMaxWidth().height(40.dp).clip(CircleShape)) {
+                                            val cargando = estado_texto_whatsapp_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_whatsap.Loading
                                             if (!cargando) {
-                                                FondoIAAnimado(
-                                                    modifier = Modifier.matchParentSize()
-                                                )
+                                                FondoIAAnimado(modifier = Modifier.matchParentSize())
                                             }
                                             Button(
                                                 onClick = {
-                                                    if (!cargando) {
-                                                        viewmodel_pantalla_promocionar.mejorar_texto_perzonalizado_whatsapp(
-                                                            (cargar_precio_activacione?.publicidad?.mensajeWC ?:100).toString(),
-                                                            monedas_tienda,
-                                                            localidad_tienda = i.localidad_tienda,
-                                                            id_tienda = i.id_tienda,
-                                                            nombre_tienda = i.nombre_tienda,
-                                                            titulo_publicacion = viewmodel_pantalla_promocionar.titulo,
-                                                            descripcion = viewmodel_pantalla_promocionar.descripcion,
-                                                        )
+                                                    val costo = cargar_precio_activacione?.publicidad?.mensajeWC ?: 100
+                                                    when {
+                                                        iaGenerandoActual != null -> { }
+                                                        !saldoSuficiente(costo) -> { mostar_scope_falta_de_saldo = true }
+                                                        else -> {
+                                                            iaGenerandoActual = "whatsapp"
+                                                            viewmodel_pantalla_promocionar.mejorar_texto_perzonalizado_whatsapp(   cargar_precio_activacione?.costoPorMoneda?:0.15,
+                                                                costo.toString(),
+                                                                monedas_tienda,
+                                                                localidad_tienda = i.localidad_tienda,
+                                                                id_tienda = i.id_tienda,
+                                                                nombre_tienda = i.nombre_tienda,
+                                                                titulo_publicacion = viewmodel_pantalla_promocionar.titulo,
+                                                                descripcion = viewmodel_pantalla_promocionar.descripcion,
+                                                            )
+                                                        }
                                                     }
                                                 },
-                                                enabled = !cargando,
+                                                enabled = !cargando && (iaGenerandoActual == null || iaGenerandoActual == "whatsapp"),
                                                 colors = ButtonDefaults.buttonColors(
-                                                    containerColor = if (cargando) buttonColor else Color.Transparent,
-                                                    disabledContainerColor = if (cargando) buttonColor else Color.Transparent,
+                                                    containerColor = if (cargando) Color.Black else Color.Transparent,
+                                                    disabledContainerColor = Color.Black,
                                                     contentColor = Color.White,
                                                     disabledContentColor = Color.White
                                                 ),
@@ -1912,26 +1908,17 @@ fun pantalla_promocionar(
                                                             .width(160.dp)
                                                             .shimmer(),
                                                         contentAlignment = Alignment.Center
-
                                                     ) {
-
-                                                        Row(
-                                                            verticalAlignment = Alignment.CenterVertically
-                                                        ) {
-
+                                                        Row(verticalAlignment = Alignment.CenterVertically) {
                                                             Spacer(modifier = Modifier.width(8.dp))
-
                                                             texto_generico_one_line(
                                                                 "Generando contenido..",
                                                                 style = MaterialTheme.typography.bodyMedium
                                                             )
-
                                                         }
                                                     }
                                                 } else {
-                                                    Row(
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                    ) {
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
                                                         texto_generico_one_line(
                                                             texto_generar_nuevamente_whatsapp_ia,
                                                             style = MaterialTheme.typography.bodyMedium
@@ -1939,12 +1926,12 @@ fun pantalla_promocionar(
                                                         spacer_horizonta(5.dp)
                                                         Icon(
                                                             imageVector = Icons.Default.AutoAwesome,
-                                                            contentDescription = "Mejorar con IA",
+                                                            contentDescription = null,
                                                             tint = Color.White
                                                         )
                                                         spacer_horizonta(5.dp)
                                                         texto_generico_one_line(
-                                                            (cargar_precio_activacione?.publicidad?.mensajeWC ?:100).toString(),
+                                                            (cargar_precio_activacione?.publicidad?.mensajeWC ?: 100).toString(),
                                                             style = MaterialTheme.typography.bodyMedium
                                                         )
                                                         spacer_horizonta(5.dp)
@@ -1953,8 +1940,38 @@ fun pantalla_promocionar(
                                                             contentDescription = null,
                                                             modifier = Modifier.size(20.dp)
                                                         )
-
                                                     }
+                                                }
+                                            }
+                                            // Overlay cuando otro botón IA está activo
+                                            if (iaGenerandoActual != null && iaGenerandoActual != "whatsapp") {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .matchParentSize()
+                                                        .background(
+                                                            color = MaterialTheme.colorScheme.background.copy(alpha = 0.6f),
+                                                            shape = CircleShape
+                                                        )
+                                                        .clip(CircleShape),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+//                                                    Row(
+//                                                        verticalAlignment = Alignment.CenterVertically,
+//                                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+//                                                    ) {
+//                                                        Icon(
+//                                                            imageVector = Icons.Default.Lock,
+//                                                            contentDescription = null,
+//                                                            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+//                                                            modifier = Modifier.size(14.dp)
+//                                                        )
+//                                                        texto_generico_one_line(
+//                                                            "Espera...",
+//                                                            style = MaterialTheme.typography.bodySmall.copy(
+//                                                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
+//                                                            )
+//                                                        )
+//                                                    }
                                                 }
                                             }
                                         }
@@ -2029,108 +2046,114 @@ fun pantalla_promocionar(
                                         labelText = "Mensaje predeterminado",
                                         placeholderText = "Mensaje predeterminado"
                                     )
-
-                                    spacer_vertical(10.dp)
-                                    val cargando =
-                                        estado_texto_compatir_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_compartir.Loading
-                                    val buttonColor by animateColorAsState(
-                                        targetValue = if (cargando)
-                                            Color.Black
-                                        else
-                                            MaterialTheme.colorScheme.primary,
-                                        label = "buttonColor"
-                                    )
-                                    if (viewmodel_pantalla_promocionar.titulo.isNotEmpty() && viewmodel_pantalla_promocionar.descripcion.isNotEmpty()) {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(40.dp)
-                                                .clip(CircleShape)
-                                        ) {
-                                            // 🔥 Fondo animado SOLO cuando no carga
-                                            if (!cargando) {
-                                                FondoIAAnimado(
-                                                    modifier = Modifier.matchParentSize()
-                                                )
-                                            }
-                                            Button(
-                                                onClick = {
-                                                    if (!cargando) {
-                                                        viewmodel_pantalla_promocionar.mejorar_texto_perzonalizado_compatir(
-                                                            (cargar_precio_activacione?.publicidad?.mensajeWC ?:100).toString(),
-                                                            monedas_tienda,
-                                                            localidad_tienda = i.localidad_tienda,
-                                                            id_tienda = i.id_tienda,
-                                                            nombre_tienda = i.nombre_tienda,
-                                                            titulo_publicacion = viewmodel_pantalla_promocionar.titulo,
-                                                            descripcion = viewmodel_pantalla_promocionar.descripcion,
-                                                        )
-                                                    }
-                                                },
-                                                enabled = !cargando,
-                                                colors = ButtonDefaults.buttonColors(
-                                                    containerColor = if (cargando) buttonColor else Color.Transparent,
-                                                    disabledContainerColor = if (cargando) buttonColor else Color.Transparent,
-                                                    contentColor = Color.White,
-                                                    disabledContentColor = Color.White
-                                                ),
-                                                modifier = Modifier.fillMaxWidth()
-                                            ) {
-                                                if (cargando) {
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .height(20.dp)
-                                                            .width(160.dp)
-                                                            .shimmer(),
-                                                        contentAlignment = Alignment.Center
-
-                                                    ) {
-
-                                                        Row(
-                                                            verticalAlignment = Alignment.CenterVertically
-                                                        ) {
-
-                                                            Spacer(modifier = Modifier.width(8.dp))
-
-                                                            texto_generico_one_line(
-                                                                "Generando contenido..",
-                                                                style = MaterialTheme.typography.bodyMedium
-                                                            )
-
-                                                        }
-                                                    }
-                                                } else {
-                                                    Row(
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                    ) {
-                                                        texto_generico_one_line(
-                                                            msj_estado_texto_compartir,
-                                                            style = MaterialTheme.typography.bodyMedium
-                                                        )
-                                                        spacer_horizonta(5.dp)
-                                                        Icon(
-                                                            imageVector = Icons.Default.AutoAwesome,
-                                                            contentDescription = "Mejorar con IA",
-                                                            tint = Color.White
-                                                        )
-                                                        spacer_horizonta(5.dp)
-                                                        texto_generico_one_line(
-                                                            (cargar_precio_activacione?.publicidad?.mensajeWC ?:100).toString(),
-                                                            style = MaterialTheme.typography.bodyMedium
-                                                        )
-                                                        spacer_horizonta(5.dp)
-                                                        Image(
-                                                            painter = painterResource(R.drawable.icon_monedas_3d),
-                                                            contentDescription = null,
-                                                            modifier = Modifier.size(20.dp)
-                                                        )
-
-                                                    }
+                                spacer_vertical(5.dp)
+                                Box(modifier = Modifier.fillMaxWidth().height(40.dp).clip(CircleShape)) {
+                                    val cargando = estado_texto_compatir_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_compartir.Loading
+                                    if (!cargando) {
+                                        FondoIAAnimado(modifier = Modifier.matchParentSize())
+                                    }
+                                    Button(
+                                        onClick = {
+                                            val costo = cargar_precio_activacione?.publicidad?.mensajeWC ?: 100
+                                            when {
+                                                iaGenerandoActual != null -> { }
+                                                !saldoSuficiente(costo) -> { mostar_scope_falta_de_saldo = true }
+                                                else -> {
+                                                    iaGenerandoActual = "compartir"
+                                                    viewmodel_pantalla_promocionar.mejorar_texto_perzonalizado_compatir(   cargar_precio_activacione?.costoPorMoneda?:0.15,
+                                                        costo.toString(),
+                                                        monedas_tienda,
+                                                        localidad_tienda = i.localidad_tienda,
+                                                        id_tienda = i.id_tienda,
+                                                        nombre_tienda = i.nombre_tienda,
+                                                        titulo_publicacion = viewmodel_pantalla_promocionar.titulo,
+                                                        descripcion = viewmodel_pantalla_promocionar.descripcion,
+                                                    )
                                                 }
+                                            }
+                                        },
+                                        enabled = !cargando && (iaGenerandoActual == null || iaGenerandoActual == "compartir"),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = if (cargando) Color.Black else Color.Transparent,
+                                            disabledContainerColor = Color.Black,
+                                            contentColor = Color.White,
+                                            disabledContentColor = Color.White
+                                        ),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        if (cargando) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .height(20.dp)
+                                                    .width(160.dp)
+                                                    .shimmer(),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    texto_generico_one_line(
+                                                        "Generando contenido..",
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
+                                                }
+                                            }
+                                        } else {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                texto_generico_one_line(
+                                                    msj_estado_texto_compartir,
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+                                                spacer_horizonta(5.dp)
+                                                Icon(
+                                                    imageVector = Icons.Default.AutoAwesome,
+                                                    contentDescription = null,
+                                                    tint = Color.White
+                                                )
+                                                spacer_horizonta(5.dp)
+                                                texto_generico_one_line(
+                                                    (cargar_precio_activacione?.publicidad?.mensajeWC ?: 100).toString(),
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+                                                spacer_horizonta(5.dp)
+                                                Image(
+                                                    painter = painterResource(R.drawable.icon_monedas_3d),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(20.dp)
+                                                )
                                             }
                                         }
                                     }
-                                    spacer_vertical(10.dp)
+                                    if (iaGenerandoActual != null && iaGenerandoActual != "compartir") {
+                                        Box(
+                                            modifier = Modifier
+                                                .matchParentSize()
+                                                .background(
+                                                    color = MaterialTheme.colorScheme.background.copy(alpha = 0.6f),
+                                                    shape = CircleShape
+                                                )
+                                                .clip(CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+//                                            Row(
+//                                                verticalAlignment = Alignment.CenterVertically,
+//                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+//                                            ) {
+//                                                Icon(
+//                                                    imageVector = Icons.Default.Lock,
+//                                                    contentDescription = null,
+//                                                    tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+//                                                    modifier = Modifier.size(14.dp)
+//                                                )
+//                                                texto_generico_one_line(
+//                                                    "Espera...",
+//                                                    style = MaterialTheme.typography.bodySmall.copy(
+//                                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
+//                                                    )
+//                                                )
+//                                            }
+                                        }
+                                    }
+                                }
 
                             }
                         }
@@ -3092,1010 +3115,1009 @@ fun pantalla_promocionar(
                     }
                 }
             }
-            item {
-                spacer_vertical(50.dp)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(7.dp)
-                ) {
-                    Text(
-                        text = "Notificaciones",
-                        fontFamily = baners_geinz_work,
-                        fontSize = 25.sp
-                    )
-                    Image(
-                        painter = painterResource(R.drawable.campana_3d_webp),
-                        contentDescription = null,
-                        modifier = Modifier.size(25.dp)
-                    )
-                }
-
-            }
-
-            item {
-                val estadoSeguidores by viewmodel_socios.seguidores_obtenidos.collectAsState()
-
-                when (estadoSeguidores) {
-                    is viewmodel_eres_socio.EstadoSeguidores.Cargando -> {
-                        Box(modifier = Modifier.fillMaxWidth()) {
-                            CircularProgressIndicator()
-                        }
-                    }
-
-                    is viewmodel_eres_socio.EstadoSeguidores.Exito -> {
-                        val cantidad_seguidores =
-                            (estadoSeguidores as viewmodel_eres_socio.EstadoSeguidores.Exito).seguidores
-                        cantidad_seguidores_state_s_no = cantidad_seguidores.size
-                        spacer_vertical(10.dp)
-                        texto_generico_multilinea(
-                            "Notifica a tus seguidores sobre promociones, novedades o información importante.Recuerda que solo puedes enviar hasta 3 notificaciones por semana.",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-
-                        spacer_vertical(10.dp)
-
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(5.dp)
-                        ) {
-                            texto_generico_one_line(
-                                "Cantidad de seguidores ${cantidad_seguidores.size}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-
-                            Image(
-                                painter = painterResource(R.drawable.perfil_qr),
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        spacer_vertical(10.dp)
-
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(5.dp)
-                        ) {
-                            texto_generico_multilinea(
-                                "$texto Podrás enviar más en la próxima fecha de renovación",
-                                style = MaterialTheme.typography.bodyMedium,
-                                Color = colorEstadoNotificaciones
-                            )
-                            Image(
-                                painter = painterResource(R.drawable.campana_3d_webp),
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-
-                        spacer_vertical(10.dp)
-
-                        if (restantes != 0) {
-                            if (publicaicones_realizadas.isNotEmpty()) {
-                                texto_generico_one_line(
-                                    "Notifica tus publicaciones activas",
-                                    style = MaterialTheme.typography.titleLarge
-                                )
-                                spacer_vertical(12.dp)
-                                LazyRow(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    items(publicaicones_realizadas, key = { it.id }) { i ->
-
-                                        item_publicaiones_realizadas(
-                                            i = i,
-                                            seleccionado = i.id == idSeleccionado
-                                        ) { titulo, descripcion, id, img, fecha_caducidad_timestamp ->
-                                            if (idSeleccionado == id) {
-                                                // 🔴 DESELECCIONAR
-                                                idSeleccionado = null
-                                                mensaje_whatsapp_de_publi_a_notificacion =
-                                                    "Hola, quiero mas informacion sobre lo que vi en "
-                                                titulo_notificacion = ""
-                                                titulo_notificacion_guardado = ""
-                                                viewmodel_pantalla_promocionar.titulo_notificacion =
-                                                    ""
-                                                viewmodel_pantalla_promocionar.descripcion_notificacion =
-                                                    ""
-                                                descripcion_notificacion_guardado = ""
-                                                descripcion_notificacion = ""
-                                                url_img_notificaion_seleccionada = ""
-                                                prioridad_selec = ""
-                                                imagenSeleccionada = null
-                                                fechaCaducidad = obtenerFechaFinDosDias()
-                                                mostrar_btn_mejorar_IA = false
-                                                id_publicacion_selecionada = ""
-                                                id_img_notificacion = ""
-                                                precio_tipo_notificacion = 0
-                                                tipo_notificacion_params_seleccionada = ""
-                                                tipo_notificacion_seleccionada = ""
-                                                viewmodel_socios.limpiar_id_selecionadanotificacion()
-                                            } else {
-                                                // 🟢 SELECCIONAR
-                                                idSeleccionado = id
-                                                viewmodel_pantalla_promocionar.titulo_notificacion =
-                                                    titulo
-                                                viewmodel_pantalla_promocionar.descripcion_notificacion =
-                                                    descripcion
-                                                mensaje_whatsapp_de_publi_a_notificacion =
-                                                    i.texto_whatsapp
-                                                url_img_notificaion_seleccionada = img
-                                                imagenSeleccionada = ImagenReview(
-                                                    uri = null,
-                                                    url = img,
-                                                    isEditing = false
-                                                )
-
-                                                titulo_notificacion = titulo
-                                                descripcion_notificacion = descripcion
-
-                                                val tipo = "promociones y ofertas"
-                                                val precio = tipo_notificacion_precio_nombre
-                                                    .firstOrNull { it.tipo == tipo }
-                                                    ?.precio ?: 0
-                                                viewmodel_socios.generarIdNotificacion(
-                                                    null,
-                                                    id,
-                                                    tipo
-                                                )
-                                                tipo_notificacion_params_seleccionada = tipo
-                                                precio_tipo_notificacion = precio
-                                                fechaCaducidad = fecha_caducidad_timestamp
-                                                mostrar_btn_mejorar_IA = true
-                                                id_publicacion_selecionada = id
-                                                id_img_notificacion = id
-                                                if (descripcion_notificacion.length >= 400) {
-                                                    error_texto_notificacion = true
-                                                } else {
-                                                    error_texto_notificacion = false
-                                                }
-                                                if (titulo_notificacion.length >= 100) {
-                                                    error_texto_notificacion = true
-                                                } else {
-                                                    error_texto_notificacion = false
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-
-                            }
-
-
-                            spacer_vertical(12.dp)
-                            Column(
-                                modifier = Modifier.animateContentSize(),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                MyOutlinedTextField_proco_raduis(
-                                    value = titulo_notificacion,
-                                    onValueChange = { text ->
-                                        viewmodel_pantalla_promocionar.titulo_notificacion = text
-                                        titulo_notificacion = text
-
-                                        if (titulo_notificacion.length >= 100) {
-                                            error_titulo_notificacion = true
-                                        } else {
-                                            error_titulo_notificacion = false
-                                        }
-
-                                    },
-                                    texto_error = "El título no puede exceder 70 caracteres",
-                                    isError = error_titulo_notificacion,
-                                    labelText = "Título de notificación",
-                                    placeholderText = "Ej: Nueva promoción disponible"
-                                )
-
-
-                                MyOutlinedTextField_proco_raduis(
-                                    value = descripcion_notificacion,
-
-                                    onValueChange = { text ->
-                                        viewmodel_pantalla_promocionar.descripcion_notificacion =
-                                            text
-                                        descripcion_notificacion = text
-                                        if (descripcion_notificacion.length >= 400) {
-                                            error_texto_notificacion = true
-                                        } else {
-                                            error_texto_notificacion = false
-                                        }
-                                    },
-                                    texto_error = "La descripción no puede exceder 400 caracteres",
-                                    isError = error_texto_notificacion,
-                                    labelText = "Descripción de la notificación",
-                                    placeholderText = "Ej: Aprovecha esta oferta por tiempo limitado"
-                                )
-
-
-                                ExpandDropDown_select_params_notificacion(
-                                    idSeleccionado = idSeleccionado,
-                                    seleccionado = tipo_notificacion_params_seleccionada,
-                                    lista = tipo_notificacion_precio_nombre,
-                                    isError = false,
-                                    textoError = "selecciona tu tipo de notificacion",
-                                    label = "selecciona tu tipo de notificacion"
-                                ) { tipo, precio ->
-                                    viewmodel_socios.generarIdNotificacion(
-                                        null,
-                                        idSeleccionado ?: "",
-                                        tipo
-                                    )
-                                    viewmodel_pantalla_promocionar.tipo_notificacion = tipo
-                                    Log.d("precioestableico", "$precio")
-                                    tipo_notificacion_params_seleccionada = tipo
-                                    precio_tipo_notificacion = precio
-                                    error_mostrado_numero_contacto_notificacion = false
-                                    error_mostrado_msje_perzonalisado_notificacion = false
-                                    numero_de_notificacion = i.numero_contacto_tienda
-                                }
-
-                                if (titulo_notificacion.isNotEmpty() && descripcion_notificacion.isNotEmpty() && tipo_notificacion_params_seleccionada.isNotEmpty()) {
-                                    Column(
-                                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                                        modifier = Modifier
-                                            .animateContentSize()
-                                    ) {
-                                        texto_generico_multilinea(
-                                            "Impulsa tus notificaciones con la IA de Geinz",
-                                            style = MaterialTheme.typography.titleMedium
-                                        )
-
-                                        texto_generico_multilinea(
-                                            "Deja que la IA de Geinz optimice tu contenido de forma rápida, precisa y profesional",
-                                            style = MaterialTheme.typography.bodyMedium
-                                        )
-
-                                        texto_generico_multilinea(
-                                            "Elige el tipo de notificación que deseas generar",
-                                            style = MaterialTheme.typography.titleSmall
-                                        )
-
-                                        val lista_pasada =
-                                            if (tipo_notificacion_params_seleccionada == "informativas") {
-                                                lista_generaciones_IA_informativas
-                                            } else {
-                                                lista_generacions_IA_notificaciones
-                                            }
-                                        LazyRow(
-                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                        ) {
-
-
-                                            items(lista_pasada) { subcategoria ->
-
-                                                val seleccionado =
-                                                    tipo_promp_seleccionado_IA_notificicaciones == subcategoria.tipo
-
-                                                chisp_filtrado_busqueda_con_la_IA(
-                                                    carta_selecionada = seleccionado,
-                                                    filtrado = "${subcategoria.tipo.icono} ${subcategoria.tipo.tituloUI}",
-                                                    btn_visible = false,
-                                                    clik_card = {
-                                                        tipo_promp_seleccionado_IA_notificicaciones =
-                                                            subcategoria.tipo
-                                                    },
-                                                    onClick_delete = {}
-                                                )
-                                            }
-                                        }
-
-                                        val beneficiosSeleccionados =
-                                            lista_pasada
-                                                .firstOrNull { it.tipo == tipo_promp_seleccionado_IA_notificicaciones }
-                                                ?.beneficios
-
-
-                                        if (!beneficiosSeleccionados.isNullOrEmpty()) {
-                                            Column(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(top = 12.dp)
-                                            ) {
-                                                beneficiosSeleccionados.forEach { beneficio ->
-                                                    Row(
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                        modifier = Modifier.padding(vertical = 4.dp)
-                                                    ) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.CheckCircle,
-                                                            contentDescription = null,
-                                                            tint = MaterialTheme.colorScheme.primary,
-                                                            modifier = Modifier.size(16.dp)
-                                                        )
-                                                        Spacer(modifier = Modifier.width(6.dp))
-                                                        texto_generico_multilinea(
-                                                            texto = beneficio,
-                                                            style = MaterialTheme.typography.bodySmall
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        AnimatedVisibility(!beneficiosSeleccionados.isNullOrEmpty()) {
-
-                                            val cargando =
-                                                estado_textos_notificacion_corta_generada is viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Loading
-                                            val buttonColor by animateColorAsState(
-                                                targetValue = if (cargando)
-                                                    Color.Black
-                                                else
-                                                    MaterialTheme.colorScheme.primary,
-                                                label = "buttonColor"
-                                            )
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(40.dp)
-                                                    .clip(CircleShape)
-                                            ) {
-                                                // 🔥 Fondo animado SOLO cuando no carga
-                                                if (!cargando) {
-                                                    FondoIAAnimado(
-                                                        modifier = Modifier.matchParentSize()
-                                                    )
-                                                }
-                                                Button(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    onClick = {
-                                                        if (!cargando) {
-                                                            val textoTipo =
-                                                                when (tipo_notificacion_params_seleccionada) {
-
-                                                                    "promociones y ofertas" ->
-                                                                        if (idSeleccionado.isNullOrEmpty())
-                                                                            "Gen IA (Notificación - Promo desde cero)"
-                                                                        else
-                                                                            "Gen IA (Notificación - Promo seleccionada)"
-
-                                                                    "informativa" ->
-                                                                        "Gen IA (Notificación - Informativa)"
-
-                                                                    else ->
-                                                                        "Gen IA (Notificación)"
-                                                                }
-
-                                                            tipo_promp_seleccionado_IA_notificicaciones?.let { tipoSeleccionado ->
-
-                                                                viewmodel_pantalla_promocionar.mejorar_mejorar_notificacion_con_IA_corta(
-                                                                    (cargar_precio_activacione?.planesNotificaciones?.mejoraIaTD ?:100).toString(),
-                                                                    tipo_select_IA = textoTipo,
-                                                                    tipoSeleccionado = tipoSeleccionado,
-                                                                    saldo_tienda = monedas_tienda,
-                                                                    localidad_tienda = i.localidad_tienda,
-                                                                    id_tienda = i.id_tienda,
-                                                                    nombre_tienda = i.nombre_tienda,
-                                                                    titulo_publicacion = titulo_notificacion,
-                                                                    descripcion = descripcion_notificacion
-                                                                )
-                                                                titulo_notificacion_guardado =
-                                                                    titulo_notificacion
-                                                                descripcion_notificacion_guardado =
-                                                                    descripcion_notificacion
-
-
-                                                            } ?: run {
-                                                                // 🚨 null -> opcional: mostrar mensaje de error o toast
-                                                                Toast.makeText(
-                                                                    context,
-                                                                    "Selecciona un tipo de generacion antes",
-                                                                    Toast.LENGTH_SHORT
-                                                                ).show()
-                                                            }
-                                                        }
-
-                                                    },
-                                                    colors = ButtonDefaults.buttonColors(
-                                                        containerColor = if (cargando) buttonColor else Color.Transparent,
-                                                        disabledContainerColor = if (cargando) buttonColor else Color.Transparent,
-                                                        contentColor = Color.White,
-                                                        disabledContentColor = Color.White
-                                                    ),
-                                                    enabled = !cargando
-                                                ) {
-                                                    if (cargando) {
-                                                        Box(
-                                                            modifier = Modifier
-                                                                .height(20.dp)
-                                                                .width(160.dp)
-                                                                .shimmer(),
-                                                            contentAlignment = Alignment.Center
-
-                                                        ) {
-
-                                                            Row(
-                                                                verticalAlignment = Alignment.CenterVertically
-                                                            ) {
-
-                                                                Spacer(modifier = Modifier.width(8.dp))
-
-                                                                texto_generico_one_line(
-                                                                    "Generando contenido..",
-                                                                    style = MaterialTheme.typography.bodyMedium
-                                                                )
-
-                                                            }
-                                                        }
-                                                    } else {
-                                                        Row(
-                                                            verticalAlignment = Alignment.CenterVertically
-                                                        ) {
-                                                            Row(
-                                                                verticalAlignment = Alignment.CenterVertically,
-                                                            ) {
-                                                                texto_generico_one_line(
-                                                                    mnsje_estado_notificacion_generada,
-                                                                    style = MaterialTheme.typography.bodyMedium
-                                                                )
-                                                                spacer_horizonta(5.dp)
-                                                                Icon(
-                                                                    imageVector = Icons.Default.AutoAwesome,
-                                                                    contentDescription = "Mejorar con IA",
-                                                                    tint = Color.White
-                                                                )
-                                                                spacer_horizonta(5.dp)
-                                                                texto_generico_one_line(
-                                                                    (cargar_precio_activacione?.planesNotificaciones?.mejoraIaTD ?:100).toString(),
-                                                                    style = MaterialTheme.typography.bodyMedium
-                                                                )
-                                                                spacer_horizonta(5.dp)
-                                                                Image(
-                                                                    painter = painterResource(R.drawable.icon_monedas_3d),
-                                                                    contentDescription = null,
-                                                                    modifier = Modifier.size(20.dp)
-                                                                )
-
-                                                            }
-
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        spacer_vertical(10.dp)
-                                    }
-
-                                }
-
-                                spacer_vertical(20.dp)
-
-                            }
-
-
-                            Column(
-                                modifier = Modifier.animateContentSize(),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                ExpandDropDown_precio_nombre_notificaciones(
-                                    prioridad_selec,
-                                    lista = prioridad_notificacion_precio_nombre,
-                                    isError = false,
-                                    texto_error = "selecciona tu prioridad",
-                                    lable = "selecciona tu prioridad"
-                                ) { prioridad, precio ->
-                                    viewmodel_pantalla_promocionar.prioridad_notificacion =
-                                        prioridad
-                                    prioridad_selec = prioridad
-                                    precio_prioridad_notificacion = precio
-
-                                }
-
-                                if (prioridad_selec.isNotEmpty()) {
-                                    val textoestados =
-                                        viewmodel_pantalla_promocionar.texto_retornable_prioridades(
-                                            prioridad_selec
-                                        )
-                                    texto_generico_multilinea(
-                                        textoestados, style = MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier.padding(10.dp)
-                                    )
-                                }
-
-                                if (tipo_notificacion_params_seleccionada == "promociones y ofertas") {
-                                    Column(
-                                        modifier = Modifier
-                                            .animateContentSize()
-                                            .clip(RoundedCornerShape(20.dp))
-                                            .background(MaterialTheme.colorScheme.surface)
-                                            .padding(10.dp)
-                                    ) {
-                                        txt_publicaciones(
-                                            icon = R.drawable.whatsapp_icon,
-                                            valor = true,
-                                            retorno = { },
-                                            titulo = "Contacto directo por Whatsapp", false
-                                        )
-
-                                        MyOutlinedTextField_proco_raduis(
-                                            value = numero_de_notificacion,
-                                            onValueChange = { input ->
-
-
-                                                // Solo permitir números y máximo 9
-                                                if (input.all { it.isDigit() } && input.length <= 9) {
-                                                    numero_de_notificacion = input
-                                                }
-
-                                                when {
-                                                    numero_de_notificacion.isBlank() -> {
-                                                        error_mostrado_numero_contacto_notificacion =
-                                                            true
-                                                        error_texto_mostrado_numero_contacto_notificacion =
-                                                            "El número no puede estar vacío"
-                                                    }
-
-                                                    numero_de_notificacion.length < 9 -> {
-                                                        error_mostrado_numero_contacto_notificacion =
-                                                            true
-                                                        error_texto_mostrado_numero_contacto_notificacion =
-                                                            "El número debe tener 9 dígitos"
-                                                    }
-
-                                                    else -> {
-                                                        error_mostrado_numero_contacto_notificacion =
-                                                            false
-                                                        error_texto_mostrado_numero_contacto_notificacion =
-                                                            ""
-                                                    }
-                                                }
-                                            },
-                                            texto_error = error_texto_mostrado_numero_contacto_notificacion,
-                                            isError = error_mostrado_numero_contacto_notificacion,
-                                            labelText = "Número de contacto",
-                                            placeholderText = "Número de contacto",
-                                            keyboardType = KeyboardType.Number
-                                        )
-
-
-
-                                        spacer_vertical(5.dp)
-
-                                        Column(
-                                            modifier = Modifier
-                                                .animateContentSize()
-                                                .clip(RoundedCornerShape(20.dp))
-                                                .background(MaterialTheme.colorScheme.surface)
-
-                                        ) {
-                                            txt_publicaciones(
-                                                icon = R.drawable.texto_predetermiando,
-                                                valor = true,
-                                                retorno = {},
-                                                titulo = "Mensaje perzonalizado whatsapp", false
-                                            )
-
-                                            MyOutlinedTextField_proco_raduis(
-                                                value = mensaje_whatsapp_de_publi_a_notificacion,
-                                                onValueChange = { input ->
-                                                    mensaje_whatsapp_de_publi_a_notificacion = input
-                                                    when {
-                                                        input.isBlank() -> {
-                                                            error_mostrado_msje_perzonalisado_notificacion =
-                                                                true
-                                                            error_mostrado_texto_mjse_perzonalizado_notificacion =
-                                                                "El mensaje no puede estar vacío"
-                                                        }
-
-                                                        input.length > 80 -> {
-                                                            error_mostrado_msje_perzonalisado_notificacion =
-                                                                true
-                                                            error_mostrado_texto_mjse_perzonalizado_notificacion =
-                                                                "El mensaje no puede exceder 80 caracteres"
-                                                        }
-
-                                                        else -> {
-                                                            error_mostrado_msje_perzonalisado_notificacion =
-                                                                false
-                                                            error_mostrado_texto_mjse_perzonalizado_notificacion =
-                                                                ""
-                                                        }
-                                                    }
-
-
-                                                },
-                                                texto_error = error_mostrado_texto_mjse_perzonalizado_notificacion,
-                                                isError = error_mostrado_msje_perzonalisado_notificacion,
-                                                labelText = "Mensaje predeterminado",
-                                                placeholderText = "Mensaje predeterminado"
-                                            )
-                                            spacer_vertical(10.dp)
-                                            val cargando =
-                                                estado_texto_whatsapp_con_ia_con_notificacion is viewmodel_pantallas_promocionar.Estado_ia_mensaje_whatsap_notificaion.Loading
-                                            val buttonColor by animateColorAsState(
-                                                targetValue = if (cargando)
-                                                    Color.Black
-                                                else
-                                                    MaterialTheme.colorScheme.primary,
-                                                label = "buttonColor"
-                                            )
-                                            if (titulo_notificacion.isNotEmpty() && descripcion_notificacion.isNotEmpty()) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .height(40.dp)
-                                                        .clip(CircleShape)
-                                                ) {
-                                                    // 🔥 Fondo animado SOLO cuando no carga
-                                                    if (!cargando) {
-                                                        FondoIAAnimado(
-                                                            modifier = Modifier.matchParentSize()
-                                                        )
-                                                    }
-                                                    Button(
-                                                        onClick = {
-                                                            if (!cargando) {
-                                                                viewmodel_pantalla_promocionar.mejorar_texto_perzonalizado_whatsapp_notificacion(
-                                                                    (cargar_precio_activacione?.planesNotificaciones?.mejoraDescripcionWsap ?:100).toString(),
-                                                                    monedas_tienda,
-                                                                    localidad_tienda = i.localidad_tienda,
-                                                                    id_tienda = i.id_tienda,
-                                                                    nombre_tienda = i.nombre_tienda,
-                                                                    titulo_publicacion = titulo_notificacion,
-                                                                    descripcion = descripcion_notificacion,
-                                                                )
-                                                            }
-                                                        },
-                                                        enabled = !cargando,
-                                                        colors = ButtonDefaults.buttonColors(
-                                                            containerColor = if (cargando) buttonColor else Color.Transparent,
-                                                            disabledContainerColor = if (cargando) buttonColor else Color.Transparent,
-                                                            contentColor = Color.White,
-                                                            disabledContentColor = Color.White
-                                                        ),
-                                                        modifier = Modifier.fillMaxWidth()
-                                                    ) {
-                                                        if (cargando) {
-                                                            Box(
-                                                                modifier = Modifier
-                                                                    .height(20.dp)
-                                                                    .width(160.dp)
-                                                                    .shimmer(),
-                                                                contentAlignment = Alignment.Center
-
-                                                            ) {
-
-                                                                Row(
-                                                                    verticalAlignment = Alignment.CenterVertically
-                                                                ) {
-
-                                                                    Spacer(
-                                                                        modifier = Modifier.width(
-                                                                            8.dp
-                                                                        )
-                                                                    )
-
-                                                                    texto_generico_one_line(
-                                                                        "Generando contenido..",
-                                                                        style = MaterialTheme.typography.bodyMedium
-                                                                    )
-
-                                                                }
-                                                            }
-                                                        } else {
-                                                            Row(
-                                                                verticalAlignment = Alignment.CenterVertically,
-                                                            ) {
-                                                                texto_generico_one_line(
-                                                                    estado_mejsem_whatsap_notificacion,
-                                                                    style = MaterialTheme.typography.bodyMedium
-                                                                )
-                                                                spacer_horizonta(5.dp)
-                                                                Icon(
-                                                                    imageVector = Icons.Default.AutoAwesome,
-                                                                    contentDescription = "Mejorar con IA",
-                                                                    tint = Color.White
-                                                                )
-                                                                spacer_horizonta(5.dp)
-                                                                texto_generico_one_line(
-                                                                    (cargar_precio_activacione?.planesNotificaciones?.mejoraDescripcionWsap ?:100).toString(),
-                                                                    style = MaterialTheme.typography.bodyMedium
-                                                                )
-                                                                spacer_horizonta(5.dp)
-                                                                Image(
-                                                                    painter = painterResource(R.drawable.icon_monedas_3d),
-                                                                    contentDescription = null,
-                                                                    modifier = Modifier.size(20.dp)
-                                                                )
-
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            spacer_vertical(10.dp)
-
-                                        }
-
-                                    }
-                                }
-
-                                spacer_vertical(20.dp)
-
-                            }
-
-                            Column(
-                                modifier = Modifier.animateContentSize(),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                ExpandDropDown_precio_nombre_notificaciones(
-                                    tipo_notificacion_seleccionada,
-                                    lista = formato_notificacion_nombre_precio,
-                                    isError = false,
-                                    texto_error = "selecciona tu formato de notificacion",
-                                    lable = "selecciona tu formato de notificacion"
-                                ) { plan, precio ->
-                                    viewmodel_pantalla_promocionar.formato_notificacion = plan
-                                    tipo_notificacion_seleccionada = plan
-                                    precio_formato = precio
-                                }
-
-                                if (tipo_notificacion_seleccionada.isNotEmpty() && titulo_notificacion.isNotEmpty() && descripcion_notificacion.isNotEmpty()) {
-                                    Column() {
-                                        spacer_vertical(10.dp)
-                                        item_como_quedaria_lanotificacion_aproximada(
-                                            id_tienda = i.id_tienda,
-                                            viewmodel_pantalla_promocionar = viewmodel_pantalla_promocionar,
-                                            estadoImagen = estadoImagen,
-                                            imagenSeleccionada = imagenSeleccionada,
-                                            select_img = {
-                                                picker_notificacion.launch(
-                                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                                )
-
-                                            },
-                                            imagenSeleccionada_fun = { imagenSeleccionada = null },
-                                            mostar_zoom = { imagenSeleccionada_fun ->
-                                                mostar_img_zoom = true
-                                                imagenZoomSeleccionada =
-                                                    imagenSeleccionada_fun
-                                            },
-                                            tipo = tipo_notificacion_seleccionada,
-                                            titulo = titulo_notificacion,
-                                            texto = descripcion_notificacion,
-                                            img = i.img_tienda,
-                                        )
-                                        spacer_vertical(10.dp)
-                                        AnimatedVisibility(
-                                            tipo_notificacion_params_seleccionada.isNotEmpty()
-                                                    && tipo_notificacion_seleccionada.isNotEmpty()
-                                                    && prioridad_selec.isNotEmpty()
-                                                    && titulo_notificacion.isNotEmpty()
-                                                    && descripcion_notificacion.isNotEmpty() && numero_de_notificacion.isNotEmpty()
-                                        ) {
-                                            when (state_validacion_notificacion) {
-                                                is viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Idle -> {}
-                                                is viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Permitida -> {
-
-                                                    Button(
-                                                        modifier = Modifier.fillMaxWidth(),
-                                                        onClick = {
-                                                            scope.launch {
-                                                                enviar_notificacion_lista_dispo(
-                                                                    "",
-                                                                    id_tienda = "",
-                                                                    localidad = "",
-                                                                    categora_tienda = "",
-                                                                    "",
-                                                                    id_users = listOf(id_user),
-                                                                    titulo = titulo_notificacion,
-                                                                    txt = descripcion_notificacion,
-                                                                    logo_tienda = i.img_tienda,
-                                                                    tipo_notificacion = tipo_notificacion_seleccionada,
-                                                                    url_img = url_img_notificaion_seleccionada,
-                                                                    prioridad = prioridad_selec
-                                                                )
-                                                            }
-                                                        }) {
-                                                        texto_generico_one_line(
-                                                            "Ver vista previa",
-                                                            style = MaterialTheme.typography.bodyMedium
-                                                        )
-                                                    }
-
-
-                                                }
-
-                                                is viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Bloqueada -> {
-                                                    Text(
-                                                        text = (state_validacion_notificacion as viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Bloqueada).mensaje,
-                                                        color = Color.Red
-                                                    )
-                                                }
-
-                                            }
-                                        }
-                                    }
-
-                                }
-                                spacer_vertical(20.dp)
-                            }
-
-                            Column() {
-
-
-                                if (prioridad_selec.isNotEmpty()) {
-                                    spacer_vertical(10.dp)
-                                    texto_generico_one_line(
-                                        "Parametros de notificacion",
-                                        style = MaterialTheme.typography.titleLarge,
-                                        modifier = Modifier.padding(horizontal = 5.dp)
-                                    )
-
-
-                                    spacer_vertical(5.dp)
-                                    precio_final_notificacion(
-                                        "Prioridad : ",
-                                        prioridad_selec,
-                                        precio_prioridad_notificacion.toString()
-                                    )
-
-                                }
-
-
-
-                                if (tipo_notificacion_seleccionada.isNotEmpty()) {
-
-                                    precio_final_notificacion(
-                                        "Formato de notificacion : ",
-                                        tipo_notificacion_seleccionada,
-                                        precio_formato.toString()
-                                    )
-
-                                }
-
-                                if (tipo_notificacion_params_seleccionada.isNotEmpty()) {
-                                    precio_final_notificacion(
-                                        "Tipo de notificacion : ",
-                                        tipo_notificacion_params_seleccionada,
-                                        precio_tipo_notificacion.toString()
-                                    )
-                                }
-
-                                if (
-                                    tipo_notificacion_params_seleccionada.isNotEmpty() &&
-                                    tipo_notificacion_seleccionada.isNotEmpty() &&
-                                    prioridad_selec.isNotEmpty() &&
-                                    titulo_notificacion.isNotEmpty() &&
-                                    descripcion_notificacion.isNotEmpty() &&
-                                    !error_titulo_notificacion &&
-                                    !error_texto_notificacion &&
-
-                                    // 👉 Validación WhatsApp SOLO si es "promociones y ofertas"
-                                    (
-                                            tipo_notificacion_params_seleccionada != "promociones y ofertas" ||
-                                                    (
-                                                            !error_mostrado_numero_contacto_notificacion &&
-                                                                    !error_mostrado_msje_perzonalisado_notificacion
-                                                            )
-                                            )
-                                ) {
-                                    precio_final_notificacion(
-                                        "Inversion final",
-                                        "",
-                                        precio_por_notificacion_general.toString()
-                                    )
-                                    precio_final_notificacion(
-                                        "Total de seguidores",
-                                        "",
-                                        cantidad_seguidores.size.toString()
-                                    )
-                                    spacer_vertical(10.dp)
-
-                                    CheckTerminoUnico(
-                                        checked = aceptoTerminos_notificaciones,
-                                        onCheckedChange = { aceptoTerminos_notificaciones = it },
-                                        textoAntes = "Estoy de acuerdo con los ",
-                                        textoLink = "términos de notificaciones",
-                                        onClickLink = {
-                                            mostrar_terminos_condiciones_notificaciones = true
-                                        }
-                                    )
-                                    spacer_vertical(5.dp)
-
-                                    Button(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        enabled = aceptoTerminos_notificaciones,
-                                        onClick = {
-                                            val obj = obj_contador_notificaciones(
-                                                id_tienda = id_socio,
-                                                localida = i.localidad_tienda,
-                                                categoria = i.categoira_tienda,
-                                                idnotificacion = idnotificacion,
-                                                fecha_enviada = obtenerFechaActual(),
-                                                precio_envio = 50,
-                                                parametros_notificacion = obj_parametros_notificacion(
-                                                    titulo_notificacion = titulo_notificacion,
-                                                    texto_notificacion = descripcion_notificacion,
-                                                    logo_notificacion = i.img_tienda,
-                                                    img_notifiacion = url_img_notificaion_seleccionada,
-                                                    priorida_notificacion = prioridad_selec,
-                                                    tipo_notificacion = tipo_notificacion_seleccionada,
-                                                    notificacion_publicidad = id_publicacion_selecionada.isEmpty(),
-                                                    id_publicacion_anuncio = id_publicacion_selecionada,
-                                                    mensaje_whatsapp_de_publi_a_notificacion
-                                                ),
-                                                suspendido = obj_suspend_notificacion(),
-                                                tipo_notificacion = tipo_notificacion_params_seleccionada,
-                                                nombre_tienda = i.nombre_tienda,
-                                                numero_contacto_tienda = numero_de_notificacion,
-                                                categoira_tienda = i.categoira_tienda,
-                                                id_img_storage = id_img_notificacion,
-                                                fecha_caducidad = fechaCaducidad,
-                                                generaciones_con_ia_notificaciones = generaciones_con_ia_notificaciones(
-                                                    titulo_original = titulo_notificacion_guardado,
-                                                    descripcion_original = descripcion_notificacion_guardado,
-                                                    generacion_selecionada = contenido_publicidad(
-                                                        titulo = if (msj_perzonalizado_gen_notificacion) titulo_notificacion else "",
-                                                        descripcion = if (msj_perzonalizado_gen_notificacion) descripcion_notificacion else ""
-                                                    ),
-                                                    generacion_wsap = if (msj_perzonalizado_whatssap_ia_bool_notificacion) mensaje_whatsapp_de_publi_a_notificacion else ""
-                                                )
-                                            )
-                                            viewmodel_pantalla_promocionar.enviar_notificacion(
-                                                saldo_tienda = monedas_tienda,
-                                                localidad_tienda = i.localidad_tienda,
-                                                nombre_tienda = i.nombre_tienda,
-                                                id_tienda = i.id_tienda,
-                                                descontar_monedas = precio_por_notificacion_general.toString(),
-                                                usuarios = cantidad_seguidores,
-                                                i = obj
-                                            )
-                                        }) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            texto_generico_one_line(
-                                                "Notificar a tus seguidores por $precio_por_notificacion_general",
-                                                style = MaterialTheme.typography.bodyMedium
-                                            )
-                                            spacer_horizonta(5.dp)
-                                            Image(
-                                                painter = painterResource(R.drawable.icon_monedas_3d),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(20.dp)
-                                            )
-                                        }
-                                    }
-
-                                }
-                            }
-
-
-                        }
-                    }
-
-                    is viewmodel_eres_socio.EstadoSeguidores.Vacio -> {
-                        RequisitosNotificacion(
-                            i.categoira_tienda,
-                            context,
-                            i.localidad_tienda,
-                            i.id_tienda,
-                            i.img_tienda,
-                            0,
-                            10
-                        )
-                    }
-
-                    is viewmodel_eres_socio.EstadoSeguidores.NoCumpleMinimo -> {
-                        val cantidad_seguidores =
-                            (estadoSeguidores as viewmodel_eres_socio.EstadoSeguidores.NoCumpleMinimo).cantidad
-                        RequisitosNotificacion(
-                            i.categoira_tienda,
-                            context,
-                            i.localidad_tienda,
-                            i.id_tienda,
-                            i.img_tienda,
-                            cantidad_seguidores,
-                            10
-                        )
-
-                    }
-
-                    is viewmodel_eres_socio.EstadoSeguidores.Error -> {
-                        Text("Error: ${(estadoSeguidores as viewmodel_eres_socio.EstadoSeguidores.Error).mensaje}")
-                    }
-                }
-            }
+//            item {
+//                spacer_vertical(50.dp)
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    horizontalArrangement = Arrangement.spacedBy(7.dp)
+//                ) {
+//                    Text(
+//                        text = "Notificaciones",
+//                        fontFamily = baners_geinz_work,
+//                        fontSize = 25.sp
+//                    )
+//                    Image(
+//                        painter = painterResource(R.drawable.campana_3d_webp),
+//                        contentDescription = null,
+//                        modifier = Modifier.size(25.dp)
+//                    )
+//                }
+//
+//            }
+//
+//            item {
+//                val estadoSeguidores by viewmodel_socios.seguidores_obtenidos.collectAsState()
+//
+//                when (estadoSeguidores) {
+//                    is viewmodel_eres_socio.EstadoSeguidores.Cargando -> {
+//                        Box(modifier = Modifier.fillMaxWidth()) {
+//                            CircularProgressIndicator()
+//                        }
+//                    }
+//
+//                    is viewmodel_eres_socio.EstadoSeguidores.Exito -> {
+//                        val cantidad_seguidores =
+//                            (estadoSeguidores as viewmodel_eres_socio.EstadoSeguidores.Exito).seguidores
+//                        cantidad_seguidores_state_s_no = cantidad_seguidores.size
+//                        spacer_vertical(10.dp)
+//                        texto_generico_multilinea(
+//                            "Notifica a tus seguidores sobre promociones, novedades o información importante.Recuerda que solo puedes enviar hasta 3 notificaciones por semana.",
+//                            style = MaterialTheme.typography.bodyMedium
+//                        )
+//
+//                        spacer_vertical(10.dp)
+//
+//
+//                        Row(
+//                            verticalAlignment = Alignment.CenterVertically,
+//                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+//                        ) {
+//                            texto_generico_one_line(
+//                                "Cantidad de seguidores ${cantidad_seguidores.size}",
+//                                style = MaterialTheme.typography.bodyMedium
+//                            )
+//
+//                            Image(
+//                                painter = painterResource(R.drawable.perfil_qr),
+//                                contentDescription = null,
+//                                modifier = Modifier.size(20.dp)
+//                            )
+//                        }
+//                        spacer_vertical(10.dp)
+//
+//
+//                        Row(
+//                            verticalAlignment = Alignment.CenterVertically,
+//                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+//                        ) {
+//                            texto_generico_multilinea(
+//                                "$texto Podrás enviar más en la próxima fecha de renovación",
+//                                style = MaterialTheme.typography.bodyMedium,
+//                                Color = colorEstadoNotificaciones
+//                            )
+//                            Image(
+//                                painter = painterResource(R.drawable.campana_3d_webp),
+//                                contentDescription = null,
+//                                modifier = Modifier.size(20.dp)
+//                            )
+//                        }
+//
+//                        spacer_vertical(10.dp)
+//
+//                        if (restantes != 0) {
+//                            if (publicaicones_realizadas.isNotEmpty()) {
+//                                texto_generico_one_line(
+//                                    "Notifica tus publicaciones activas",
+//                                    style = MaterialTheme.typography.titleLarge
+//                                )
+//                                spacer_vertical(12.dp)
+//                                LazyRow(
+//                                    verticalAlignment = Alignment.CenterVertically,
+//                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+//                                ) {
+//                                    items(publicaicones_realizadas, key = { it.id }) { i ->
+//
+//                                        item_publicaiones_realizadas(
+//                                            i = i,
+//                                            seleccionado = i.id == idSeleccionado
+//                                        ) { titulo, descripcion, id, img, fecha_caducidad_timestamp ->
+//                                            if (idSeleccionado == id) {
+//                                                // 🔴 DESELECCIONAR
+//                                                idSeleccionado = null
+//                                                mensaje_whatsapp_de_publi_a_notificacion =
+//                                                    "Hola, quiero mas informacion sobre lo que vi en "
+//                                                titulo_notificacion = ""
+//                                                titulo_notificacion_guardado = ""
+//                                                viewmodel_pantalla_promocionar.titulo_notificacion =
+//                                                    ""
+//                                                viewmodel_pantalla_promocionar.descripcion_notificacion =
+//                                                    ""
+//                                                descripcion_notificacion_guardado = ""
+//                                                descripcion_notificacion = ""
+//                                                url_img_notificaion_seleccionada = ""
+//                                                prioridad_selec = ""
+//                                                imagenSeleccionada = null
+//                                                fechaCaducidad = obtenerFechaFinDosDias()
+//                                                mostrar_btn_mejorar_IA = false
+//                                                id_publicacion_selecionada = ""
+//                                                id_img_notificacion = ""
+//                                                precio_tipo_notificacion = 0
+//                                                tipo_notificacion_params_seleccionada = ""
+//                                                tipo_notificacion_seleccionada = ""
+//                                                viewmodel_socios.limpiar_id_selecionadanotificacion()
+//                                            } else {
+//                                                // 🟢 SELECCIONAR
+//                                                idSeleccionado = id
+//                                                viewmodel_pantalla_promocionar.titulo_notificacion =
+//                                                    titulo
+//                                                viewmodel_pantalla_promocionar.descripcion_notificacion =
+//                                                    descripcion
+//                                                mensaje_whatsapp_de_publi_a_notificacion =
+//                                                    i.texto_whatsapp
+//                                                url_img_notificaion_seleccionada = img
+//                                                imagenSeleccionada = ImagenReview(
+//                                                    uri = null,
+//                                                    url = img,
+//                                                    isEditing = false
+//                                                )
+//
+//                                                titulo_notificacion = titulo
+//                                                descripcion_notificacion = descripcion
+//
+//                                                val tipo = "promociones y ofertas"
+//                                                val precio = tipo_notificacion_precio_nombre
+//                                                    .firstOrNull { it.tipo == tipo }
+//                                                    ?.precio ?: 0
+//                                                viewmodel_socios.generarIdNotificacion(
+//                                                    null,
+//                                                    id,
+//                                                    tipo
+//                                                )
+//                                                tipo_notificacion_params_seleccionada = tipo
+//                                                precio_tipo_notificacion = precio
+//                                                fechaCaducidad = fecha_caducidad_timestamp
+//                                                mostrar_btn_mejorar_IA = true
+//                                                id_publicacion_selecionada = id
+//                                                id_img_notificacion = id
+//                                                if (descripcion_notificacion.length >= 400) {
+//                                                    error_texto_notificacion = true
+//                                                } else {
+//                                                    error_texto_notificacion = false
+//                                                }
+//                                                if (titulo_notificacion.length >= 100) {
+//                                                    error_texto_notificacion = true
+//                                                } else {
+//                                                    error_texto_notificacion = false
+//                                                }
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//
+//
+//                            }
+//
+//
+//                            spacer_vertical(12.dp)
+//                            Column(
+//                                modifier = Modifier.animateContentSize(),
+//                                verticalArrangement = Arrangement.spacedBy(10.dp)
+//                            ) {
+//                                MyOutlinedTextField_proco_raduis(
+//                                    value = titulo_notificacion,
+//                                    onValueChange = { text ->
+//                                        viewmodel_pantalla_promocionar.titulo_notificacion = text
+//                                        titulo_notificacion = text
+//
+//                                        if (titulo_notificacion.length >= 100) {
+//                                            error_titulo_notificacion = true
+//                                        } else {
+//                                            error_titulo_notificacion = false
+//                                        }
+//
+//                                    },
+//                                    texto_error = "El título no puede exceder 70 caracteres",
+//                                    isError = error_titulo_notificacion,
+//                                    labelText = "Título de notificación",
+//                                    placeholderText = "Ej: Nueva promoción disponible"
+//                                )
+//
+//
+//                                MyOutlinedTextField_proco_raduis(
+//                                    value = descripcion_notificacion,
+//
+//                                    onValueChange = { text ->
+//                                        viewmodel_pantalla_promocionar.descripcion_notificacion =
+//                                            text
+//                                        descripcion_notificacion = text
+//                                        if (descripcion_notificacion.length >= 400) {
+//                                            error_texto_notificacion = true
+//                                        } else {
+//                                            error_texto_notificacion = false
+//                                        }
+//                                    },
+//                                    texto_error = "La descripción no puede exceder 400 caracteres",
+//                                    isError = error_texto_notificacion,
+//                                    labelText = "Descripción de la notificación",
+//                                    placeholderText = "Ej: Aprovecha esta oferta por tiempo limitado"
+//                                )
+//
+//
+//                                ExpandDropDown_select_params_notificacion(
+//                                    idSeleccionado = idSeleccionado,
+//                                    seleccionado = tipo_notificacion_params_seleccionada,
+//                                    lista = tipo_notificacion_precio_nombre,
+//                                    isError = false,
+//                                    textoError = "selecciona tu tipo de notificacion",
+//                                    label = "selecciona tu tipo de notificacion"
+//                                ) { tipo, precio ->
+//                                    viewmodel_socios.generarIdNotificacion(
+//                                        null,
+//                                        idSeleccionado ?: "",
+//                                        tipo
+//                                    )
+//                                    viewmodel_pantalla_promocionar.tipo_notificacion = tipo
+//                                    Log.d("precioestableico", "$precio")
+//                                    tipo_notificacion_params_seleccionada = tipo
+//                                    precio_tipo_notificacion = precio
+//                                    error_mostrado_numero_contacto_notificacion = false
+//                                    error_mostrado_msje_perzonalisado_notificacion = false
+//                                    numero_de_notificacion = i.numero_contacto_tienda
+//                                }
+//
+//                                if (titulo_notificacion.isNotEmpty() && descripcion_notificacion.isNotEmpty() && tipo_notificacion_params_seleccionada.isNotEmpty()) {
+//                                    Column(
+//                                        verticalArrangement = Arrangement.spacedBy(12.dp),
+//                                        modifier = Modifier
+//                                            .animateContentSize()
+//                                    ) {
+//                                        texto_generico_multilinea(
+//                                            "Impulsa tus notificaciones con la IA de Geinz",
+//                                            style = MaterialTheme.typography.titleMedium
+//                                        )
+//
+//                                        texto_generico_multilinea(
+//                                            "Deja que la IA de Geinz optimice tu contenido de forma rápida, precisa y profesional",
+//                                            style = MaterialTheme.typography.bodyMedium
+//                                        )
+//
+//                                        texto_generico_multilinea(
+//                                            "Elige el tipo de notificación que deseas generar",
+//                                            style = MaterialTheme.typography.titleSmall
+//                                        )
+//
+//                                        val lista_pasada =
+//                                            if (tipo_notificacion_params_seleccionada == "informativas") {
+//                                                lista_generaciones_IA_informativas
+//                                            } else {
+//                                                lista_generacions_IA_notificaciones
+//                                            }
+//                                        LazyRow(
+//                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+//                                        ) {
+//
+//
+//                                            items(lista_pasada) { subcategoria ->
+//
+//                                                val seleccionado =
+//                                                    tipo_promp_seleccionado_IA_notificicaciones == subcategoria.tipo
+//
+//                                                chisp_filtrado_busqueda_con_la_IA(
+//                                                    carta_selecionada = seleccionado,
+//                                                    filtrado = "${subcategoria.tipo.icono} ${subcategoria.tipo.tituloUI}",
+//                                                    btn_visible = false,
+//                                                    clik_card = {
+//                                                        tipo_promp_seleccionado_IA_notificicaciones =
+//                                                            subcategoria.tipo
+//                                                    },
+//                                                    onClick_delete = {}
+//                                                )
+//                                            }
+//                                        }
+//
+//                                        val beneficiosSeleccionados =
+//                                            lista_pasada
+//                                                .firstOrNull { it.tipo == tipo_promp_seleccionado_IA_notificicaciones }
+//                                                ?.beneficios
+//
+//
+//                                        if (!beneficiosSeleccionados.isNullOrEmpty()) {
+//                                            Column(
+//                                                modifier = Modifier
+//                                                    .fillMaxWidth()
+//                                                    .padding(top = 12.dp)
+//                                            ) {
+//                                                beneficiosSeleccionados.forEach { beneficio ->
+//                                                    Row(
+//                                                        verticalAlignment = Alignment.CenterVertically,
+//                                                        modifier = Modifier.padding(vertical = 4.dp)
+//                                                    ) {
+//                                                        Icon(
+//                                                            imageVector = Icons.Default.CheckCircle,
+//                                                            contentDescription = null,
+//                                                            tint = MaterialTheme.colorScheme.primary,
+//                                                            modifier = Modifier.size(16.dp)
+//                                                        )
+//                                                        Spacer(modifier = Modifier.width(6.dp))
+//                                                        texto_generico_multilinea(
+//                                                            texto = beneficio,
+//                                                            style = MaterialTheme.typography.bodySmall
+//                                                        )
+//                                                    }
+//                                                }
+//                                            }
+//                                        }
+//                                        AnimatedVisibility(!beneficiosSeleccionados.isNullOrEmpty()) {
+//
+//                                            val cargando =
+//                                                estado_textos_notificacion_corta_generada is viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Loading
+//                                            val buttonColor by animateColorAsState(
+//                                                targetValue = if (cargando)
+//                                                    Color.Black
+//                                                else
+//                                                    MaterialTheme.colorScheme.primary,
+//                                                label = "buttonColor"
+//                                            )
+//                                            Box(modifier = Modifier.fillMaxWidth().height(40.dp).clip(CircleShape)) {
+//                                                val cargando = estado_textos_notificacion_corta_generada is viewmodel_pantallas_promocionar.EstadoIA_notifi_corta.Loading
+//                                                if (!cargando) {
+//                                                    FondoIAAnimado(modifier = Modifier.matchParentSize())
+//                                                }
+//                                                Button(
+//                                                    modifier = Modifier.fillMaxWidth(),
+//                                                    onClick = {
+//                                                        if (!cargando) {
+//                                                            when {
+//                                                                iaGenerandoActual != null -> { /* bloqueado */ }
+//                                                                else -> {
+//                                                                    iaGenerandoActual = "notif_td"
+//                                                                    val textoTipo = when (tipo_notificacion_params_seleccionada) {
+//                                                                        "promociones y ofertas" ->
+//                                                                            if (idSeleccionado.isNullOrEmpty())
+//                                                                                "Gen IA (Notificación - Promo desde cero)"
+//                                                                            else
+//                                                                                "Gen IA (Notificación - Promo seleccionada)"
+//                                                                        "informativa" ->
+//                                                                            "Gen IA (Notificación - Informativa)"
+//                                                                        else ->
+//                                                                            "Gen IA (Notificación)"
+//                                                                    }
+//                                                                    tipo_promp_seleccionado_IA_notificicaciones?.let { tipoSeleccionado ->
+//                                                                        viewmodel_pantalla_promocionar.mejorar_mejorar_notificacion_con_IA_corta(
+//                                                                            (cargar_precio_activacione?.planesNotificaciones?.mejoraIaTD ?: 100).toString(),
+//                                                                            tipo_select_IA = textoTipo,
+//                                                                            tipoSeleccionado = tipoSeleccionado,
+//                                                                            saldo_tienda = monedas_tienda,
+//                                                                            localidad_tienda = i.localidad_tienda,
+//                                                                            id_tienda = i.id_tienda,
+//                                                                            nombre_tienda = i.nombre_tienda,
+//                                                                            titulo_publicacion = titulo_notificacion,
+//                                                                            descripcion = descripcion_notificacion
+//                                                                        )
+//                                                                        titulo_notificacion_guardado = titulo_notificacion
+//                                                                        descripcion_notificacion_guardado = descripcion_notificacion
+//                                                                    } ?: run {
+//                                                                        Toast.makeText(
+//                                                                            context,
+//                                                                            "Selecciona un tipo de generacion antes",
+//                                                                            Toast.LENGTH_SHORT
+//                                                                        ).show()
+//                                                                    }
+//                                                                }
+//                                                            }
+//                                                        }
+//                                                    },
+//                                                    colors = ButtonDefaults.buttonColors(
+//                                                        containerColor = if (cargando) Color.Black else Color.Transparent,
+//                                                        disabledContainerColor = if (cargando) Color.Black else Color.Transparent,
+//                                                        contentColor = Color.White,
+//                                                        disabledContentColor = Color.White
+//                                                    ),
+//                                                    enabled = !cargando && (iaGenerandoActual == null || iaGenerandoActual == "notif_td")
+//                                                ) {
+//                                                    if (cargando) {
+//                                                        Box(
+//                                                            modifier = Modifier
+//                                                                .height(20.dp)
+//                                                                .width(160.dp)
+//                                                                .shimmer(),
+//                                                            contentAlignment = Alignment.Center
+//                                                        ) {
+//                                                            Row(verticalAlignment = Alignment.CenterVertically) {
+//                                                                Spacer(modifier = Modifier.width(8.dp))
+//                                                                texto_generico_one_line(
+//                                                                    "Generando contenido..",
+//                                                                    style = MaterialTheme.typography.bodyMedium
+//                                                                )
+//                                                            }
+//                                                        }
+//                                                    } else {
+//                                                        Row(verticalAlignment = Alignment.CenterVertically) {
+//                                                            Row(verticalAlignment = Alignment.CenterVertically) {
+//                                                                texto_generico_one_line(
+//                                                                    mnsje_estado_notificacion_generada,
+//                                                                    style = MaterialTheme.typography.bodyMedium
+//                                                                )
+//                                                                spacer_horizonta(5.dp)
+//                                                                Icon(
+//                                                                    imageVector = Icons.Default.AutoAwesome,
+//                                                                    contentDescription = "Mejorar con IA",
+//                                                                    tint = Color.White
+//                                                                )
+//                                                                spacer_horizonta(5.dp)
+//                                                                texto_generico_one_line(
+//                                                                    (cargar_precio_activacione?.planesNotificaciones?.mejoraIaTD ?: 100).toString(),
+//                                                                    style = MaterialTheme.typography.bodyMedium
+//                                                                )
+//                                                                spacer_horizonta(5.dp)
+//                                                                Image(
+//                                                                    painter = painterResource(R.drawable.icon_monedas_3d),
+//                                                                    contentDescription = null,
+//                                                                    modifier = Modifier.size(20.dp)
+//                                                                )
+//                                                            }
+//                                                        }
+//                                                    }
+//                                                }
+//                                                if (iaGenerandoActual != null && iaGenerandoActual != "notif_td") {
+//                                                    Box(
+//                                                        modifier = Modifier
+//                                                            .matchParentSize()
+//                                                            .background(
+//                                                                color = MaterialTheme.colorScheme.background.copy(alpha = 0.6f),
+//                                                                shape = CircleShape
+//                                                            )
+//                                                            .clip(CircleShape),
+//                                                        contentAlignment = Alignment.Center
+//                                                    ) {
+////                                                        Row(
+////                                                            verticalAlignment = Alignment.CenterVertically,
+////                                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+////                                                        ) {
+////                                                            Icon(
+////                                                                imageVector = Icons.Default.Lock,
+////                                                                contentDescription = null,
+////                                                                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+////                                                                modifier = Modifier.size(14.dp)
+////                                                            )
+////                                                            texto_generico_one_line(
+////                                                                "Espera...",
+////                                                                style = MaterialTheme.typography.bodySmall.copy(
+////                                                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
+////                                                                )
+////                                                            )
+////                                                        }
+//                                                    }
+//                                                }
+//                                            }
+//                                        }
+//                                        spacer_vertical(10.dp)
+//                                    }
+//
+//                                }
+//
+//                                spacer_vertical(20.dp)
+//
+//                            }
+//
+//
+//                            Column(
+//                                modifier = Modifier.animateContentSize(),
+//                                verticalArrangement = Arrangement.spacedBy(10.dp)
+//                            ) {
+//                                ExpandDropDown_precio_nombre_notificaciones(
+//                                    prioridad_selec,
+//                                    lista = prioridad_notificacion_precio_nombre,
+//                                    isError = false,
+//                                    texto_error = "selecciona tu prioridad",
+//                                    lable = "selecciona tu prioridad"
+//                                ) { prioridad, precio ->
+//                                    viewmodel_pantalla_promocionar.prioridad_notificacion =
+//                                        prioridad
+//                                    prioridad_selec = prioridad
+//                                    precio_prioridad_notificacion = precio
+//
+//                                }
+//
+//                                if (prioridad_selec.isNotEmpty()) {
+//                                    val textoestados =
+//                                        viewmodel_pantalla_promocionar.texto_retornable_prioridades(
+//                                            prioridad_selec
+//                                        )
+//                                    texto_generico_multilinea(
+//                                        textoestados, style = MaterialTheme.typography.bodyMedium,
+//                                        modifier = Modifier.padding(10.dp)
+//                                    )
+//                                }
+//
+//                                if (tipo_notificacion_params_seleccionada == "promociones y ofertas") {
+//                                    Column(
+//                                        modifier = Modifier
+//                                            .animateContentSize()
+//                                            .clip(RoundedCornerShape(20.dp))
+//                                            .background(MaterialTheme.colorScheme.surface)
+//                                            .padding(10.dp)
+//                                    ) {
+//                                        txt_publicaciones(
+//                                            icon = R.drawable.whatsapp_icon,
+//                                            valor = true,
+//                                            retorno = { },
+//                                            titulo = "Contacto directo por Whatsapp", false
+//                                        )
+//
+//                                        MyOutlinedTextField_proco_raduis(
+//                                            value = numero_de_notificacion,
+//                                            onValueChange = { input ->
+//
+//
+//                                                // Solo permitir números y máximo 9
+//                                                if (input.all { it.isDigit() } && input.length <= 9) {
+//                                                    numero_de_notificacion = input
+//                                                }
+//
+//                                                when {
+//                                                    numero_de_notificacion.isBlank() -> {
+//                                                        error_mostrado_numero_contacto_notificacion =
+//                                                            true
+//                                                        error_texto_mostrado_numero_contacto_notificacion =
+//                                                            "El número no puede estar vacío"
+//                                                    }
+//
+//                                                    numero_de_notificacion.length < 9 -> {
+//                                                        error_mostrado_numero_contacto_notificacion =
+//                                                            true
+//                                                        error_texto_mostrado_numero_contacto_notificacion =
+//                                                            "El número debe tener 9 dígitos"
+//                                                    }
+//
+//                                                    else -> {
+//                                                        error_mostrado_numero_contacto_notificacion =
+//                                                            false
+//                                                        error_texto_mostrado_numero_contacto_notificacion =
+//                                                            ""
+//                                                    }
+//                                                }
+//                                            },
+//                                            texto_error = error_texto_mostrado_numero_contacto_notificacion,
+//                                            isError = error_mostrado_numero_contacto_notificacion,
+//                                            labelText = "Número de contacto",
+//                                            placeholderText = "Número de contacto",
+//                                            keyboardType = KeyboardType.Number
+//                                        )
+//
+//
+//
+//                                        spacer_vertical(5.dp)
+//
+//                                        Column(
+//                                            modifier = Modifier
+//                                                .animateContentSize()
+//                                                .clip(RoundedCornerShape(20.dp))
+//                                                .background(MaterialTheme.colorScheme.surface)
+//
+//                                        ) {
+//                                            txt_publicaciones(
+//                                                icon = R.drawable.texto_predetermiando,
+//                                                valor = true,
+//                                                retorno = {},
+//                                                titulo = "Mensaje perzonalizado whatsapp", false
+//                                            )
+//
+//                                            MyOutlinedTextField_proco_raduis(
+//                                                value = mensaje_whatsapp_de_publi_a_notificacion,
+//                                                onValueChange = { input ->
+//                                                    mensaje_whatsapp_de_publi_a_notificacion = input
+//                                                    when {
+//                                                        input.isBlank() -> {
+//                                                            error_mostrado_msje_perzonalisado_notificacion =
+//                                                                true
+//                                                            error_mostrado_texto_mjse_perzonalizado_notificacion =
+//                                                                "El mensaje no puede estar vacío"
+//                                                        }
+//
+//                                                        input.length > 80 -> {
+//                                                            error_mostrado_msje_perzonalisado_notificacion =
+//                                                                true
+//                                                            error_mostrado_texto_mjse_perzonalizado_notificacion =
+//                                                                "El mensaje no puede exceder 80 caracteres"
+//                                                        }
+//
+//                                                        else -> {
+//                                                            error_mostrado_msje_perzonalisado_notificacion =
+//                                                                false
+//                                                            error_mostrado_texto_mjse_perzonalizado_notificacion =
+//                                                                ""
+//                                                        }
+//                                                    }
+//
+//
+//                                                },
+//                                                texto_error = error_mostrado_texto_mjse_perzonalizado_notificacion,
+//                                                isError = error_mostrado_msje_perzonalisado_notificacion,
+//                                                labelText = "Mensaje predeterminado",
+//                                                placeholderText = "Mensaje predeterminado"
+//                                            )
+//                                            spacer_vertical(10.dp)
+//                                            val cargando =
+//                                                estado_texto_whatsapp_con_ia_con_notificacion is viewmodel_pantallas_promocionar.Estado_ia_mensaje_whatsap_notificaion.Loading
+//                                            val buttonColor by animateColorAsState(
+//                                                targetValue = if (cargando)
+//                                                    Color.Black
+//                                                else
+//                                                    MaterialTheme.colorScheme.primary,
+//                                                label = "buttonColor"
+//                                            )
+//                                            if (titulo_notificacion.isNotEmpty() && descripcion_notificacion.isNotEmpty()) {
+//                                                Box(
+//                                                    modifier = Modifier
+//                                                        .fillMaxWidth()
+//                                                        .height(40.dp)
+//                                                        .clip(CircleShape)
+//                                                ) {
+//                                                    if (!cargando) {
+//                                                        FondoIAAnimado(
+//                                                            modifier = Modifier.matchParentSize()
+//                                                        )
+//                                                    }
+//                                                    Button(
+//                                                        onClick = {
+//                                                            if (!cargando) {
+//                                                                when {
+//                                                                    iaGenerandoActual != null -> { /* bloqueado */ }
+//                                                                    else -> {
+//                                                                        iaGenerandoActual = "notif_whatsapp"
+//                                                                        viewmodel_pantalla_promocionar.mejorar_texto_perzonalizado_whatsapp_notificacion(
+//                                                                            (cargar_precio_activacione?.planesNotificaciones?.mejoraDescripcionWsap ?: 100).toString(),
+//                                                                            monedas_tienda,
+//                                                                            localidad_tienda = i.localidad_tienda,
+//                                                                            id_tienda = i.id_tienda,
+//                                                                            nombre_tienda = i.nombre_tienda,
+//                                                                            titulo_publicacion = titulo_notificacion,
+//                                                                            descripcion = descripcion_notificacion,
+//                                                                        )
+//                                                                    }
+//                                                                }
+//                                                            }
+//                                                        },
+//                                                        enabled = !cargando && (iaGenerandoActual == null || iaGenerandoActual == "notif_whatsapp"),
+//                                                        colors = ButtonDefaults.buttonColors(
+//                                                            containerColor = if (cargando) buttonColor else Color.Transparent,
+//                                                            disabledContainerColor = if (cargando) buttonColor else Color.Transparent,
+//                                                            contentColor = Color.White,
+//                                                            disabledContentColor = Color.White
+//                                                        ),
+//                                                        modifier = Modifier.fillMaxWidth()
+//                                                    ) {
+//                                                        if (cargando) {
+//                                                            Box(
+//                                                                modifier = Modifier
+//                                                                    .height(20.dp)
+//                                                                    .width(160.dp)
+//                                                                    .shimmer(),
+//                                                                contentAlignment = Alignment.Center
+//                                                            ) {
+//                                                                Row(
+//                                                                    verticalAlignment = Alignment.CenterVertically
+//                                                                ) {
+//                                                                    Spacer(modifier = Modifier.width(8.dp))
+//                                                                    texto_generico_one_line(
+//                                                                        "Generando contenido..",
+//                                                                        style = MaterialTheme.typography.bodyMedium
+//                                                                    )
+//                                                                }
+//                                                            }
+//                                                        } else {
+//                                                            Row(
+//                                                                verticalAlignment = Alignment.CenterVertically,
+//                                                            ) {
+//                                                                texto_generico_one_line(
+//                                                                    estado_mejsem_whatsap_notificacion,
+//                                                                    style = MaterialTheme.typography.bodyMedium
+//                                                                )
+//                                                                spacer_horizonta(5.dp)
+//                                                                Icon(
+//                                                                    imageVector = Icons.Default.AutoAwesome,
+//                                                                    contentDescription = "Mejorar con IA",
+//                                                                    tint = Color.White
+//                                                                )
+//                                                                spacer_horizonta(5.dp)
+//                                                                texto_generico_one_line(
+//                                                                    (cargar_precio_activacione?.planesNotificaciones?.mejoraDescripcionWsap ?: 100).toString(),
+//                                                                    style = MaterialTheme.typography.bodyMedium
+//                                                                )
+//                                                                spacer_horizonta(5.dp)
+//                                                                Image(
+//                                                                    painter = painterResource(R.drawable.icon_monedas_3d),
+//                                                                    contentDescription = null,
+//                                                                    modifier = Modifier.size(20.dp)
+//                                                                )
+//                                                            }
+//                                                        }
+//                                                    }
+//                                                }
+//                                            }
+//                                            spacer_vertical(10.dp)
+//
+//                                        }
+//
+//                                    }
+//                                }
+//
+//                                spacer_vertical(20.dp)
+//
+//                            }
+//
+//                            Column(
+//                                modifier = Modifier.animateContentSize(),
+//                                verticalArrangement = Arrangement.spacedBy(10.dp)
+//                            ) {
+//                                ExpandDropDown_precio_nombre_notificaciones(
+//                                    tipo_notificacion_seleccionada,
+//                                    lista = formato_notificacion_nombre_precio,
+//                                    isError = false,
+//                                    texto_error = "selecciona tu formato de notificacion",
+//                                    lable = "selecciona tu formato de notificacion"
+//                                ) { plan, precio ->
+//                                    viewmodel_pantalla_promocionar.formato_notificacion = plan
+//                                    tipo_notificacion_seleccionada = plan
+//                                    precio_formato = precio
+//                                }
+//
+//                                if (tipo_notificacion_seleccionada.isNotEmpty() && titulo_notificacion.isNotEmpty() && descripcion_notificacion.isNotEmpty()) {
+//                                    Column() {
+//                                        spacer_vertical(10.dp)
+//                                        item_como_quedaria_lanotificacion_aproximada(
+//                                            id_tienda = i.id_tienda,
+//                                            viewmodel_pantalla_promocionar = viewmodel_pantalla_promocionar,
+//                                            estadoImagen = estadoImagen,
+//                                            imagenSeleccionada = imagenSeleccionada,
+//                                            select_img = {
+//                                                picker_notificacion.launch(
+//                                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+//                                                )
+//
+//                                            },
+//                                            imagenSeleccionada_fun = { imagenSeleccionada = null },
+//                                            mostar_zoom = { imagenSeleccionada_fun ->
+//                                                mostar_img_zoom = true
+//                                                imagenZoomSeleccionada =
+//                                                    imagenSeleccionada_fun
+//                                            },
+//                                            tipo = tipo_notificacion_seleccionada,
+//                                            titulo = titulo_notificacion,
+//                                            texto = descripcion_notificacion,
+//                                            img = i.img_tienda,
+//                                        )
+//                                        spacer_vertical(10.dp)
+//                                        AnimatedVisibility(
+//                                            tipo_notificacion_params_seleccionada.isNotEmpty()
+//                                                    && tipo_notificacion_seleccionada.isNotEmpty()
+//                                                    && prioridad_selec.isNotEmpty()
+//                                                    && titulo_notificacion.isNotEmpty()
+//                                                    && descripcion_notificacion.isNotEmpty() && numero_de_notificacion.isNotEmpty()
+//                                        ) {
+//                                            when (state_validacion_notificacion) {
+//                                                is viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Idle -> {}
+//                                                is viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Permitida -> {
+//
+//                                                    Button(
+//                                                        modifier = Modifier.fillMaxWidth(),
+//                                                        onClick = {
+//                                                            scope.launch {
+//                                                                enviar_notificacion_lista_dispo(
+//                                                                    "",
+//                                                                    id_tienda = "",
+//                                                                    localidad = "",
+//                                                                    categora_tienda = "",
+//                                                                    "",
+//                                                                    id_users = listOf(id_user),
+//                                                                    titulo = titulo_notificacion,
+//                                                                    txt = descripcion_notificacion,
+//                                                                    logo_tienda = i.img_tienda,
+//                                                                    tipo_notificacion = tipo_notificacion_seleccionada,
+//                                                                    url_img = url_img_notificaion_seleccionada,
+//                                                                    prioridad = prioridad_selec
+//                                                                )
+//                                                            }
+//                                                        }) {
+//                                                        texto_generico_one_line(
+//                                                            "Ver vista previa",
+//                                                            style = MaterialTheme.typography.bodyMedium
+//                                                        )
+//                                                    }
+//
+//
+//                                                }
+//
+//                                                is viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Bloqueada -> {
+//                                                    Text(
+//                                                        text = (state_validacion_notificacion as viewmodel_pantallas_promocionar.EstadoValidacionNotificacion.Bloqueada).mensaje,
+//                                                        color = Color.Red
+//                                                    )
+//                                                }
+//
+//                                            }
+//                                        }
+//                                    }
+//
+//                                }
+//                                spacer_vertical(20.dp)
+//                            }
+//
+//                            Column() {
+//
+//
+//                                if (prioridad_selec.isNotEmpty()) {
+//                                    spacer_vertical(10.dp)
+//                                    texto_generico_one_line(
+//                                        "Parametros de notificacion",
+//                                        style = MaterialTheme.typography.titleLarge,
+//                                        modifier = Modifier.padding(horizontal = 5.dp)
+//                                    )
+//
+//
+//                                    spacer_vertical(5.dp)
+//                                    precio_final_notificacion(
+//                                        "Prioridad : ",
+//                                        prioridad_selec,
+//                                        precio_prioridad_notificacion.toString()
+//                                    )
+//
+//                                }
+//
+//
+//
+//                                if (tipo_notificacion_seleccionada.isNotEmpty()) {
+//
+//                                    precio_final_notificacion(
+//                                        "Formato de notificacion : ",
+//                                        tipo_notificacion_seleccionada,
+//                                        precio_formato.toString()
+//                                    )
+//
+//                                }
+//
+//                                if (tipo_notificacion_params_seleccionada.isNotEmpty()) {
+//                                    precio_final_notificacion(
+//                                        "Tipo de notificacion : ",
+//                                        tipo_notificacion_params_seleccionada,
+//                                        precio_tipo_notificacion.toString()
+//                                    )
+//                                }
+//
+//                                if (
+//                                    tipo_notificacion_params_seleccionada.isNotEmpty() &&
+//                                    tipo_notificacion_seleccionada.isNotEmpty() &&
+//                                    prioridad_selec.isNotEmpty() &&
+//                                    titulo_notificacion.isNotEmpty() &&
+//                                    descripcion_notificacion.isNotEmpty() &&
+//                                    !error_titulo_notificacion &&
+//                                    !error_texto_notificacion &&
+//
+//                                    // 👉 Validación WhatsApp SOLO si es "promociones y ofertas"
+//                                    (
+//                                            tipo_notificacion_params_seleccionada != "promociones y ofertas" ||
+//                                                    (
+//                                                            !error_mostrado_numero_contacto_notificacion &&
+//                                                                    !error_mostrado_msje_perzonalisado_notificacion
+//                                                            )
+//                                            )
+//                                ) {
+//                                    precio_final_notificacion(
+//                                        "Inversion final",
+//                                        "",
+//                                        precio_por_notificacion_general.toString()
+//                                    )
+//                                    precio_final_notificacion(
+//                                        "Total de seguidores",
+//                                        "",
+//                                        cantidad_seguidores.size.toString()
+//                                    )
+//                                    spacer_vertical(10.dp)
+//
+//                                    CheckTerminoUnico(
+//                                        checked = aceptoTerminos_notificaciones,
+//                                        onCheckedChange = { aceptoTerminos_notificaciones = it },
+//                                        textoAntes = "Estoy de acuerdo con los ",
+//                                        textoLink = "términos de notificaciones",
+//                                        onClickLink = {
+//                                            mostrar_terminos_condiciones_notificaciones = true
+//                                        }
+//                                    )
+//                                    spacer_vertical(5.dp)
+//
+//                                    Button(
+//                                        modifier = Modifier.fillMaxWidth(),
+//                                        enabled = aceptoTerminos_notificaciones,
+//                                        onClick = {
+//                                            val obj = obj_contador_notificaciones(
+//                                                id_tienda = id_socio,
+//                                                localida = i.localidad_tienda,
+//                                                categoria = i.categoira_tienda,
+//                                                idnotificacion = idnotificacion,
+//                                                fecha_enviada = obtenerFechaActual(),
+//                                                precio_envio = 50,
+//                                                parametros_notificacion = obj_parametros_notificacion(
+//                                                    titulo_notificacion = titulo_notificacion,
+//                                                    texto_notificacion = descripcion_notificacion,
+//                                                    logo_notificacion = i.img_tienda,
+//                                                    img_notifiacion = url_img_notificaion_seleccionada,
+//                                                    priorida_notificacion = prioridad_selec,
+//                                                    tipo_notificacion = tipo_notificacion_seleccionada,
+//                                                    notificacion_publicidad = id_publicacion_selecionada.isEmpty(),
+//                                                    id_publicacion_anuncio = id_publicacion_selecionada,
+//                                                    mensaje_whatsapp_de_publi_a_notificacion
+//                                                ),
+//                                                suspendido = obj_suspend_notificacion(),
+//                                                tipo_notificacion = tipo_notificacion_params_seleccionada,
+//                                                nombre_tienda = i.nombre_tienda,
+//                                                numero_contacto_tienda = numero_de_notificacion,
+//                                                categoira_tienda = i.categoira_tienda,
+//                                                id_img_storage = id_img_notificacion,
+//                                                fecha_caducidad = fechaCaducidad,
+//                                                generaciones_con_ia_notificaciones = generaciones_con_ia_notificaciones(
+//                                                    titulo_original = titulo_notificacion_guardado,
+//                                                    descripcion_original = descripcion_notificacion_guardado,
+//                                                    generacion_selecionada = contenido_publicidad(
+//                                                        titulo = if (msj_perzonalizado_gen_notificacion) titulo_notificacion else "",
+//                                                        descripcion = if (msj_perzonalizado_gen_notificacion) descripcion_notificacion else ""
+//                                                    ),
+//                                                    generacion_wsap = if (msj_perzonalizado_whatssap_ia_bool_notificacion) mensaje_whatsapp_de_publi_a_notificacion else ""
+//                                                )
+//                                            )
+//                                            viewmodel_pantalla_promocionar.enviar_notificacion(
+//                                                saldo_tienda = monedas_tienda,
+//                                                localidad_tienda = i.localidad_tienda,
+//                                                nombre_tienda = i.nombre_tienda,
+//                                                id_tienda = i.id_tienda,
+//                                                descontar_monedas = precio_por_notificacion_general.toString(),
+//                                                usuarios = cantidad_seguidores,
+//                                                i = obj
+//                                            )
+//                                        }) {
+//                                        Row(verticalAlignment = Alignment.CenterVertically) {
+//                                            texto_generico_one_line(
+//                                                "Notificar a tus seguidores por $precio_por_notificacion_general",
+//                                                style = MaterialTheme.typography.bodyMedium
+//                                            )
+//                                            spacer_horizonta(5.dp)
+//                                            Image(
+//                                                painter = painterResource(R.drawable.icon_monedas_3d),
+//                                                contentDescription = null,
+//                                                modifier = Modifier.size(20.dp)
+//                                            )
+//                                        }
+//                                    }
+//
+//                                }
+//                            }
+//
+//
+//                        }
+//                    }
+//
+//                    is viewmodel_eres_socio.EstadoSeguidores.Vacio -> {
+//                        RequisitosNotificacion(
+//                            i.categoira_tienda,
+//                            context,
+//                            i.localidad_tienda,
+//                            i.id_tienda,
+//                            i.img_tienda,
+//                            0,
+//                            10
+//                        )
+//                    }
+//
+//                    is viewmodel_eres_socio.EstadoSeguidores.NoCumpleMinimo -> {
+//                        val cantidad_seguidores =
+//                            (estadoSeguidores as viewmodel_eres_socio.EstadoSeguidores.NoCumpleMinimo).cantidad
+//                        RequisitosNotificacion(
+//                            i.categoira_tienda,
+//                            context,
+//                            i.localidad_tienda,
+//                            i.id_tienda,
+//                            i.img_tienda,
+//                            cantidad_seguidores,
+//                            10
+//                        )
+//
+//                    }
+//
+//                    is viewmodel_eres_socio.EstadoSeguidores.Error -> {
+//                        Text("Error: ${(estadoSeguidores as viewmodel_eres_socio.EstadoSeguidores.Error).mensaje}")
+//                    }
+//                }
+//            }
 
             item {
                 spacer_vertical(30.dp)
@@ -5480,4 +5502,116 @@ fun Map<String, Boolean>.toComodidadesAgregadas(esta_Activo: Boolean) =
 
 
 
+
+@Composable
+fun BotonConOverlayIA(
+    idBoton: String,
+    estaCargando: Boolean,
+    iaGenerandoActual: String?,
+    textoBoton: String,
+    costoMonedas: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .clip(CircleShape)
+    ) {
+        // Fondo animado solo cuando NO está cargando
+        if (!estaCargando) {
+            FondoIAAnimado(modifier = Modifier.matchParentSize())
+        }
+
+        // Botón principal
+        Button(
+            onClick = onClick,
+            enabled = !estaCargando && (iaGenerandoActual == null || iaGenerandoActual == idBoton),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (estaCargando) Color.Black else Color.Transparent,
+                disabledContainerColor = Color.Black,
+                contentColor = Color.White,
+                disabledContentColor = Color.White
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (estaCargando) {
+                // Muestra shimmer mientras genera
+                Box(
+                    modifier = Modifier
+                        .height(20.dp)
+                        .width(160.dp)
+                        .shimmer(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        texto_generico_one_line(
+                            "Generando contenido..",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            } else {
+                // Contenido normal del botón
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    texto_generico_one_line(
+                        textoBoton,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    spacer_horizonta(5.dp)
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                    spacer_horizonta(5.dp)
+                    texto_generico_one_line(
+                        costoMonedas,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    spacer_horizonta(5.dp)
+                    Image(
+                        painter = painterResource(R.drawable.icon_monedas_3d),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+
+        // Overlay cuando otro botón IA está activo (no este)
+        if (iaGenerandoActual != null && iaGenerandoActual != idBoton) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        color = MaterialTheme.colorScheme.background.copy(alpha = 0.6f),
+                        shape = CircleShape
+                    )
+                    .clip(CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+//                ) {
+//                    Icon(
+//                        imageVector = Icons.Default.Lock,
+//                        contentDescription = null,
+//                        tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+//                        modifier = Modifier.size(14.dp)
+//                    )
+//                    texto_generico_one_line(
+//                        "Espera...",
+//                        style = MaterialTheme.typography.bodySmall.copy(
+//                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
+//                        )
+//                    )
+//                }
+            }
+        }
+    }
+}
 

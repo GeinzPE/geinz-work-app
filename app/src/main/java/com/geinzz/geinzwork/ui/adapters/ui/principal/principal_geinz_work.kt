@@ -77,6 +77,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -219,6 +220,7 @@ fun pantalla_principal(
     val cargar_precio_activacione by viewmodel.preciosState.collectAsState()
 
 
+
     val _obtener_filtrado_localidades by viewModel_cordenadas._lista_filtrado_localidades.observeAsState(
         emptyList()
     )
@@ -257,7 +259,7 @@ fun pantalla_principal(
     var mostrar_bottom_sheet_lugares by remember { mutableStateOf(false) }
     var id_tienda_select by remember { mutableStateOf("") }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
-    val datosTienda by viewModel_filtado_tiendas._datos_tienda.observeAsState()
+//    val datosTienda by viewModel_filtado_tiendas._datos_tienda.observeAsState()
 
 
     val dialgo_notificacion by data_store_localidad.getNotificacion(context)
@@ -413,21 +415,21 @@ fun pantalla_principal(
         vm_fotos_salud.esaniversario_hoy(localidad_defaul)
     }
 
-    LaunchedEffect(mostrar_bottom_sheet_lugares) {
-        if (mostrar_bottom_sheet_lugares) {
-            viewModel_filtado_tiendas.obtener_campos_tiendas_por_id(
-                localidad_defaul,
-                id_tienda_select
-            )
-        }
-    }
+//    LaunchedEffect(mostrar_bottom_sheet_lugares) {
+//        if (mostrar_bottom_sheet_lugares) {
+//            viewModel_filtado_tiendas.obtener_campos_tiendas_por_id(
+//                localidad_defaul,
+//                id_tienda_select
+//            )
+//        }
+//    }
 
-    LaunchedEffect(datosTienda) {
-        if (!datosTienda.isNullOrEmpty()) {
-            dataclass_tienda_seleccionada =
-                datosTienda!!.first()
-        }
-    }
+//    LaunchedEffect(datosTienda) {
+//        if (!datosTienda.isNullOrEmpty()) {
+//            dataclass_tienda_seleccionada =
+//                datosTienda!!.first()
+//        }
+//    }
 
     LaunchedEffect(ud_tienda_shader, estados_carga_widget) {
         if (ud_tienda_shader != "") {
@@ -592,6 +594,7 @@ fun pantalla_principal(
                 if (mostrar_widget_tienda && isConnected) {
                     spacer_vertical(10.dp)
                     baner_widget_tienda_geinz_baner(
+                        cargar_precio_activacione?.costoPorMoneda?:0.15,
                         cargar_precio_activacione,
                         viewmodel_recargas,
                         switchActivo, motivo_cierre,
@@ -865,9 +868,12 @@ fun pantalla_principal(
         if (mostrar_bottom_sheet_lugares) {
             if (isConnected) {
                 bottom_sheet_tiendas_filtradas(
+                    id_tienda_select,
+                    localidad_defaul,
                     isConnected,
                     viewModel_filtado_tiendas,
-                    dataclass_tienda_seleccionada, mostrar_bottom_sheet_lugares
+//                    dataclass_tienda_seleccionada,
+                    mostrar_bottom_sheet_lugares
                 ) {
                     mostrar_bottom_sheet_lugares = false
                 }
@@ -1249,19 +1255,20 @@ fun filtrado_localidades(
 
             val isSelected = item.nombre.equals(ultimaLocalidad, ignoreCase = true)
             val playAnimation = remember(isSelected, aniversario) { isSelected && aniversario }
+            val esDisponible = isSelected || item.nombre.equals("Barranca", ignoreCase = true)
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
                     .maskClip(RoundedCornerShape(20.dp))
-                    .clickable {
+                    .clickable(enabled = isSelected || item.nombre.equals("Barranca", ignoreCase = true)) {
                         scope.launch {
                             data_store_localidad.guardar_localida(context, item.nombre)
                         }
                         nombre_localidad_selecionado(item.nombre)
                     }
-            ) {
+            ){
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(randomImg)
@@ -1292,7 +1299,15 @@ fun filtrado_localidades(
                             )
                         )
                 )
-
+                if (!esDisponible) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color(0xCC000000))
+                            .graphicsLayer { colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) }) }
+                    )
+                }
                 if (playAnimation) {
                     LottieAnimation(
                         composition,
@@ -1302,8 +1317,9 @@ fun filtrado_localidades(
                     )
                 }
 
-                val titulo = if (isSelected) "Estás aquí 👋" else "Explorar"
-
+                val titulo = if (isSelected) "Estás aquí 👋"
+                else if (item.nombre.equals("Barranca", ignoreCase = true)) "Explorar"
+                else "Próximamente"
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomStart)

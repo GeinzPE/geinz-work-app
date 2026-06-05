@@ -119,7 +119,7 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String, iduser: St
     var mostrar_dialog_tienda_no_pagada by remember { mutableStateOf(false) }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     var dataclass_datos_tienda_free by remember { mutableStateOf(datos_tienda_free()) }
-    val datosTienda by viewmodel_filtrado._datos_tienda.observeAsState()
+//    val datosTienda by viewmodel_filtrado._datos_tienda.observeAsState()
     var expandedIndex by remember { mutableStateOf(-1) }
     var lista_mostrar by remember { mutableStateOf<List<dataclass_lugares_db>>(emptyList()) }
     var mostrandoCarga_free by remember { mutableStateOf(false) }
@@ -153,19 +153,19 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String, iduser: St
     var mostar_bottom_sheet_ayuda_geinz by remember { mutableStateOf(false) }
     var yaInicializado by remember { mutableStateOf(false) }
 
-    LaunchedEffect(datosTienda) {
-        if (!datosTienda.isNullOrEmpty()) {
-            dataclass_tienda_seleccionada = datosTienda!!.first()
-        }
-    }
+//    LaunchedEffect(datosTienda) {
+//        if (!datosTienda.isNullOrEmpty()) {
+//            dataclass_tienda_seleccionada = datosTienda!!.first()
+//        }
+//    }
 
-    LaunchedEffect(motrar_dialog_tienda_Select) {
-        if (motrar_dialog_tienda_Select) {
-            viewmodel_filtrado.obtener_campos_tiendas_por_id(
-                localida ?: "barranca", id_tienda_select
-            )
-        }
-    }
+//    LaunchedEffect(motrar_dialog_tienda_Select) {
+//        if (motrar_dialog_tienda_Select) {
+//            viewmodel_filtrado.obtener_campos_tiendas_por_id(
+//                localida ?: "barranca", id_tienda_select
+//            )
+//        }
+//    }
     LaunchedEffect(lugares) {
         if (!yaInicializado && lugares.isNotEmpty()) {
             yaInicializado = true
@@ -443,9 +443,11 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String, iduser: St
         }
         if (motrar_dialog_tienda_Select) {
             bottom_sheet_tiendas_filtradas(
+                id_tienda_select,
+                localida ?: "barranca",
                 verificar_intener,
                 viewmodel_filtrado,
-                dataclass_tienda_seleccionada,
+//                dataclass_tienda_seleccionada,
                 motrar_dialog_tienda_Select
             ) {
                 motrar_dialog_tienda_Select = false

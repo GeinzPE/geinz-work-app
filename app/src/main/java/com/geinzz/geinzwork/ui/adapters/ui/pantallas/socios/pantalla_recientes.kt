@@ -76,6 +76,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun PantallaRecientes(
+    precio_hora:Int,precio_dias:Int,
     estado_notificacion_promocion_publicados:String,
     id_tienda: String,
     localidad_tienda: String,
@@ -98,7 +99,7 @@ fun PantallaRecientes(
     val lsita_fitlrado_opciones = listOf(
         "Todos",
         "Promociones o ofertas",
-        "Notificaciones",
+//        "Notificaciones",
         "Promos Activas",
         "Promos Vencidas",
         "Promos por vencer",
@@ -193,7 +194,7 @@ fun PantallaRecientes(
                             item {
                                 Text(
                                     fontFamily = baners_geinz_work,
-                                    text = "Tus Publicaciones y Notificaciones",
+                                    text = "Tus Publicaciones ",
                                     color = Color.White,
                                     fontSize = 25.sp
                                 )
@@ -201,7 +202,7 @@ fun PantallaRecientes(
                                 spacer_vertical(10.dp)
 
                                 texto_generico_multilinea(
-                                    "Aquí puedes ver todas tus promociones activas y las notificaciones que has enviado a tus seguidores.",
+                                    "Aquí puedes ver todas tus promociones activas.",
                                     style = MaterialTheme.typography.bodyMedium
                                 )
 
@@ -329,7 +330,7 @@ fun PantallaRecientes(
                 is viewmodel_pantallas_recientes.EstadoPromoNoti.Vacío -> {
 
                     Text(
-                        text = "No hay notificaciones ni promociones",
+                        text = "No tienes promociones publicadas",
                         modifier = Modifier.align(Alignment.Center),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
@@ -351,6 +352,7 @@ fun PantallaRecientes(
             }
             if (bottom_sheet_datos_competos) {
                 bottom_sheet_datos_promos_noti(
+                    precio_hora,precio_dias,
                     viewmodel_pantalla = viewModelPantallasRecientes,
                     id_tienda = id_tienda,
                     localida = localidad_tienda,

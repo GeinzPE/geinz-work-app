@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Date
@@ -134,39 +135,71 @@ object constantes_datos_expirados_fechas_publicaciones {
 
 
     fun calcularCostoPromo(
+        dia_hora: String,
+        precio_por_publicacion_hora: Int,
+        precio_publicacion_dias: Int,
         inicio: Timestamp,
         fin: Timestamp
     ): CostoPromo {
 
         val zone = ZoneId.systemDefault()
+        val inicioZdt = inicio.toDate().toInstant().atZone(zone)
+        val finZdt    = fin.toDate().toInstant().atZone(zone)
+        val hoyZdt    = ZonedDateTime.now(zone)
 
-        val inicioDate = inicio.toDate()
-            .toInstant()
-            .atZone(zone)
-            .toLocalDate()
+        Log.d("calcularCostoPromo", """
+        ┌─────────────────────────────────────
+        │ modo        : $dia_hora
+        │ inicio      : $inicioZdt
+        │ fin         : $finZdt
+        │ hoy         : $hoyZdt
+        │ precio/hora : $precio_por_publicacion_hora
+        │ precio/dia  : $precio_publicacion_dias
+        └─────────────────────────────────────
+    """.trimIndent())
 
-        val finDate = fin.toDate()
-            .toInstant()
-            .atZone(zone)
-            .toLocalDate()
+        return if (dia_hora == "hora") {
 
-        val hoyDate = LocalDate.now(zone)
+            val totalHoras      = ChronoUnit.HOURS.between(inicioZdt, finZdt)
+            val horasConsumidas = ChronoUnit.HOURS.between(inicioZdt, minOf(hoyZdt, finZdt))
+            val total           = max(0, totalHoras).toDouble()      * precio_por_publicacion_hora
+            val consumido       = max(0, horasConsumidas).toDouble() * precio_por_publicacion_hora
 
-        val totalDias =
-            ChronoUnit.DAYS.between(inicioDate, finDate)
+            Log.d("calcularCostoPromo", """
+            ┌─────────────────────────────────────
+            │ [HORA]
+            │ totalHoras      : $totalHoras
+            │ horasConsumidas : $horasConsumidas
+            │ total           : $total
+            │ consumido       : $consumido
+            └─────────────────────────────────────
+        """.trimIndent())
 
-        val diasConsumidos =
-            ChronoUnit.DAYS.between(
-                inicioDate,
-                minOf(hoyDate, finDate)
-            ) + 1
+            CostoPromo(total = total, consumido = consumido)
 
-        return CostoPromo(
-            total = max(0, totalDias).toDouble() * 30.0,
-            consumido = max(0, diasConsumidos).toDouble() * 30.0
-        )
+        } else {
+
+            val inicioDate     = inicioZdt.toLocalDate()
+            val finDate        = finZdt.toLocalDate()
+            val hoyDate        = hoyZdt.toLocalDate()
+            val totalDias      = ChronoUnit.DAYS.between(inicioDate, finDate)
+            val diasConsumidos = ChronoUnit.DAYS.between(inicioDate, minOf(hoyDate, finDate)) + 1
+            val total          = max(0, totalDias).toDouble()      * precio_publicacion_dias
+            val consumido      = max(0, diasConsumidos).toDouble() * precio_publicacion_dias
+
+            Log.d("calcularCostoPromo", """
+            ┌─────────────────────────────────────
+            │ [DIA]
+            │ totalDias      : $totalDias
+            │ diasConsumidos : $diasConsumidos
+            │ total          : $total
+            │ consumido      : $consumido
+            └─────────────────────────────────────
+        """.trimIndent())
+
+            CostoPromo(total = total, consumido = consumido)
+        }
     }
-
     fun obtenerFechaFinDosDias(): Timestamp {
         val cal = Calendar.getInstance()
         cal.add(Calendar.DAY_OF_MONTH, 2)

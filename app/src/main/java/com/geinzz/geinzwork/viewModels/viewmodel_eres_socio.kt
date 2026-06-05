@@ -28,6 +28,7 @@ import com.geinzz.geinzwork.data.model.generacion_primarios
 import com.geinzz.geinzwork.data.model.historial_descuento
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.nuevas_notificaciones
+import com.geinzz.geinzwork.data.model.precios_bot
 import com.geinzz.geinzwork.data.model.servicio_comodidad
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen
@@ -96,6 +97,29 @@ class viewmodel_eres_socio : ViewModel() {
 
     init {
         obtener_todos_precios()
+        cargar_precios_del_bot()
+    }
+
+
+    private val _preciosBot = MutableStateFlow<precios_bot?>(null)
+    val preciosBot: StateFlow<precios_bot?> = _preciosBot.asStateFlow()
+
+    fun cargar_precios_del_bot() {
+        viewModelScope.launch {
+            try {
+                val resultado = instace_repo.obtener_precios_de_daniel()
+
+                Log.d("BOT_DANIEL", "📦 Resultado repo: $resultado")
+
+                _preciosBot.value = resultado
+
+                Log.d("BOT_DANIEL", "🔥 StateFlow: ${_preciosBot.value}")
+
+            } catch (e: Exception) {
+                Log.e("BOT_DANIEL", "❌ Error", e)
+                _preciosBot.value = null
+            }
+        }
     }
 
     fun obtener_todos_precios() {
@@ -553,6 +577,7 @@ class viewmodel_eres_socio : ViewModel() {
 
 
     fun descontar_puntos(
+        precio_moneda:Double,
         viewmodel_recargas: viewmodel_recargas,
         saldo_tienda: Int,
         nombre_tienda: String,
@@ -579,16 +604,17 @@ class viewmodel_eres_socio : ViewModel() {
                     nombre_tienda = nombre_tienda,
                     monto_descuento = puntos_descuento.toString(),
                     tipo = "Panel activo por $meses_agregados",
-                    precio_soles = constantes_cobro_monedas.calcular_precio_soles(puntos_descuento.toString())
-                        .toString(),
+                    precio_soles = String.format("%.2f", puntos_descuento * precio_moneda),
                     estado = "Aceptado",
                     monto_restante = saldo_tienda - puntos_descuento.toInt()
                 )
+                Log.d("dataenciavraadasdas","$historial_descuento")
                 viewmodel_recargas.restar_puntos_recarga(
-                    historial_descuento,
-                    "0",
-                    id_tienda,
-                    localidad_tienda
+                    precio_por_moneda = precio_moneda,
+                    i = historial_descuento,
+                    monto_descontar = "0",
+                    id_tienda = id_tienda,
+                    localidad = localidad_tienda
                 )
 
             } catch (e: Exception) {

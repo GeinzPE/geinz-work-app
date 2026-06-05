@@ -770,6 +770,7 @@ class repo_promos_cercanas {
             val compartir=mensaje_predeterminado.get("compartir") as? Map<*,*>?:emptyMap<String, Any>()
 
             val whatsapp=mensaje_predeterminado.get("whatsapp") as? Map<*,*>?:emptyMap<String, Any>()
+            val terminos_clave = doc.get("terminos_clave") as? List<String> ?: emptyList()
 
             val informacion = informacion_publcacion(
                 descripcion = infoMap["descripcion"] as? String ?: "",
@@ -810,9 +811,9 @@ class repo_promos_cercanas {
                 estado_publicacion = doc.getString("estado") ?: "",
                 comodidades = emptyList(),
                 pagos = pagos,
-                rango = "",
+                rango = doc.getString("rango_establecido") ?: "",
                 precio = "",
-                terminos_clave = emptyList()
+                terminos_clave = terminos_clave
             )
 
             resultado.add(

@@ -178,7 +178,7 @@ class viewmodel_agregar_datos : ViewModel() {
     }
 
     fun guaradr_cat_sub_nueva(
-        algolia: Boolean,nuevos_negocios: Boolean,
+        algolia: Boolean, nuevos_negocios: Boolean,
         id_tienda: String,
         localidad_tienda: String,
         context: Context,
@@ -187,11 +187,11 @@ class viewmodel_agregar_datos : ViewModel() {
         onResult: (Boolean) -> Unit = {}
     ) {
         viewModelScope.launch {
-        val repo_instance = repo_agregar_datos(context)
+            val repo_instance = repo_agregar_datos(context)
 
             try {
                 repo_instance.guardar_datos_tienda(
-                    algolia,nuevos_negocios,
+                    algolia, nuevos_negocios,
                     id_tienda = id_tienda,
                     localidad = localidad_tienda,
                     cat = cat,
@@ -216,9 +216,16 @@ class viewmodel_agregar_datos : ViewModel() {
         )
     }
 
-
-
-
+    fun agregar_zonas(context: Context) {
+        viewModelScope.launch {
+            try {
+                val repo_instance = repo_agregar_datos(context)
+                repo_instance.agregar_zonas()
+            } catch (e: Exception) {
+                Log.d("agrgamos_zonas", "error $e")
+            }
+        }
+    }
 
 
 }

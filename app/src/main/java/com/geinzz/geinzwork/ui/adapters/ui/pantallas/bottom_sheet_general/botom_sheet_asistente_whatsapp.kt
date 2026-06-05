@@ -132,6 +132,8 @@ data class PlanFeature(val label: String, val included: Boolean)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WhatsAppDanielBottomSheet(
+    precio_por_click:Int,precio_por_contacto:Int,
+    precio_por_moneda: Double,
     plan_free_plan_paga: Boolean,
     numero_whatsapp: String,
     sucategoira: List<String>,
@@ -196,6 +198,8 @@ fun WhatsAppDanielBottomSheet(
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
     ) {
         BottomSheetContent(
+            precio_por_click = precio_por_click, precio_por_contacto = precio_por_contacto,
+            precio_por_moneda = precio_por_moneda,
             plan_free_plan_paga = plan_free_plan_paga,
             context = context,
             descripcion_negocio_seo = obtener_descripcion.descripcion_seo,
@@ -235,6 +239,8 @@ fun WhatsAppDanielBottomSheet(
 // ─── CONTENT ──────────────────────────────────────────────────────────────────
 @Composable
 private fun BottomSheetContent(
+    precio_por_click:Int,precio_por_contacto:Int,
+    precio_por_moneda: Double,
     plan_free_plan_paga: Boolean,
     context: Context,
     descripcion_negocio_seo: String,
@@ -371,6 +377,7 @@ private fun BottomSheetContent(
         }
 
         SeoExpandableCard(
+            precio_por_moneda,
             estado_subido_para_whatsapp_bot = estado_subido_para_whatsapp_bot,
             elTextoCambio = elTextoCambio,
             mostrar_btn_guardar_chatbot_IA = mostrar_btn_guardar_chatbot_IA,
@@ -393,6 +400,8 @@ private fun BottomSheetContent(
         Spacer(Modifier.height(14.dp))
 
         TemplateCard(
+            precio_por_click,precio_por_contacto,
+            precio_por_moneda,
             context = context,
             plan_free_plan_paga = planActivoLocal,
             msje_personalizado_contacto = msje_personalizado_contacto,
@@ -448,7 +457,7 @@ private fun BottomSheetContent(
         )
 
         if (planActivoLocal) {
-            MetricasDanielCard(id_tienda)
+            MetricasDanielCard(id_tienda,precio_por_click,precio_por_contacto,precio_por_moneda)
         }
 
         Spacer(Modifier.height(12.dp))
@@ -515,6 +524,8 @@ private fun SheetHeader(pla: Boolean) {
 // ─── TEMPLATE CARD ────────────────────────────────────────────────────────────
 @Composable
 private fun TemplateCard(
+    precio_plantilla:Int,precio_por_click: Int,
+    precio_por_moneda: Double,
     context: Context,
     plan_free_plan_paga: Boolean,
     msje_personalizado_contacto: String,
@@ -616,7 +627,7 @@ private fun TemplateCard(
                     HorizontalDivider(color = WaBotSurface3, thickness = 0.5.dp)
                     Spacer(Modifier.height(12.dp))
 
-                    PlansSection(
+                    PlansSection(precio_plantilla,precio_por_click, precio_por_moneda = precio_por_moneda,
                         msje_personaliazdo_contaco = msje_personalizado_contacto,
                         numero_whatsapp_tienda = numero_whatsapp,
                         onNumeroWhatsappChange = nuevo_cambio_whatsap,
@@ -649,14 +660,20 @@ private fun TemplateCard(
                     // 🔥 Botón con loading
                     Button(
                         onClick = {
-                            if (saldo_tienda.toInt() >= 300) {
-                                activar_plan(selectedPlan)
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "Para activar el plan pro necesitas un minimo de 300 creditos",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                            when (selectedPlan) {
+                                PlanType.PRO -> {
+                                    if (saldo_tienda.toInt() >= 300) {
+                                        activar_plan(selectedPlan)
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Para activar el plan pro necesitas un mínimo de 300 créditos",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                                PlanType.FREE -> activar_plan(selectedPlan)
+                                null -> Unit
                             }
                         },
                         enabled = pro_enable && !activando,
@@ -702,6 +719,8 @@ private fun TemplateCard(
 // ─── PLANS SECTION ────────────────────────────────────────────────────────────
 @Composable
 private fun PlansSection(
+    precio_plantilla:Int,precio_por_click: Int,
+    precio_por_moneda:Double,
     msje_personaliazdo_contaco: String,
     numero_whatsapp_tienda: String,
     onNumeroWhatsappChange: (String) -> Unit,
@@ -800,7 +819,7 @@ private fun PlansSection(
     spacer_vertical(10.dp)
 
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        PlanCard(
+        PlanCard(precio_plantilla,
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight(),
@@ -823,6 +842,7 @@ private fun PlansSection(
             onClick = { onPlanSelected(PlanType.FREE) }
         )
         PlanCard(
+            precio_plantilla,
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight(),
@@ -831,7 +851,7 @@ private fun PlansSection(
             isFeatured = false,
             badge = "RECOMENDADO",
             planName = "Plan Pro",
-            planPrice = "10 cred / recomend.",
+            planPrice = "${precio_plantilla} cred / recomend.",
             features = listOf(
                 PlanFeature("Todo lo del gratis", true),
                 PlanFeature("Imagen / logo dinámico", true),
@@ -954,7 +974,7 @@ private fun PlansSection(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        "−10 ",
+                        "${precio_plantilla}",
                         color = WaBotGreenDeep,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
@@ -976,7 +996,7 @@ private fun PlansSection(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        "−5 ",
+                        "${precio_por_click}",
                         color = WaBotGreenDeep,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
@@ -996,8 +1016,15 @@ private fun PlansSection(
 
             spacer_vertical(10.dp)
 
+            val ejemplo_clicks = 20
+            val ejemplo_contactos = 10
+            val ejemplo_creditos =
+                (ejemplo_clicks * precio_plantilla) + (ejemplo_contactos * precio_por_click)
+            val ejemplo_soles = ejemplo_creditos * precio_por_moneda
+            val precio_servicios = 40
+
             texto_generico_multilinea(
-                "Ejemplo: Daniel recomendó tu negocio 20 veces y 5 clientes potenciales te escribieron directo a WhatsApp gracias al Plan Pro. Total: 225 créditos = S/ 2.25.",
+                "Ejemplo: Daniel recomendó tu negocio $ejemplo_clicks veces (${ejemplo_clicks * precio_plantilla} créd.) y $ejemplo_contactos clientes potenciales te escribieron directamente a WhatsApp (${ejemplo_contactos * precio_por_click} créd.). Total invertido: $ejemplo_creditos créditos = S/ ${"%.2f".format(ejemplo_soles)}. Si solo esos $ejemplo_contactos clientes contrataran un servicio u oferta de S/ $precio_servicios cada uno, generarías S/ ${precio_servicios * ejemplo_contactos}. Es decir, una inversión pequeña puede convertirse en ingresos muy superiores para tu negocio.",
                 style = MaterialTheme.typography.bodySmall
             )
 
@@ -1055,6 +1082,7 @@ private fun PlansSection(
 // ─── PLAN CARD ────────────────────────────────────────────────────────────────
 @Composable
 private fun PlanCard(
+    precio_plantilla: Int,
     modifier: Modifier = Modifier,
     planType: PlanType,
     isSelected: Boolean,
@@ -1122,7 +1150,7 @@ private fun PlanCard(
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            "10 ",
+                            "${precio_plantilla} ",
                             color = WaBotGreenDeep,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium
@@ -1416,6 +1444,7 @@ private fun MensajeBody() {
 // ─── SEO EXPANDABLE CARD ──────────────────────────────────────────────────────
 @Composable
 private fun SeoExpandableCard(
+    precio_por_moneda: Double,
     estado_subido_para_whatsapp_bot: Boolean,
     elTextoCambio: Boolean,
     mostrar_btn_guardar_chatbot_IA: Boolean,
@@ -1559,7 +1588,7 @@ private fun SeoExpandableCard(
                                 nombre_tienda,
                                 id_tienda,
                                 "30",
-                                saldo_tienda.toInt()
+                                saldo_tienda.toInt(),precio_por_moneda
                             )
                         },
                         texto_button = "Generar descripción con IA",

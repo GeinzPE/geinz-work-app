@@ -1,6 +1,7 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.filtrado_tiendas
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -62,6 +63,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -161,7 +163,7 @@ fun Pantalla_filtrado_tiendas(
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val context = LocalContext.current
-    val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
+//    val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
     val estadoTiendaFree by viewModelFiltros._datos_tienda_sin_pago.observeAsState(
         viewModel_filtado_tiendas.carga_tiendas_sin_pago.loading_tiendas_free
     )
@@ -298,11 +300,11 @@ var generador_qr by remember { mutableStateOf("") }
 
         }
     }
-    LaunchedEffect(datosTienda) {
-        if (datosTienda.isNotEmpty()) {
-            dataclass_tienda_seleccionada = datosTienda.first()
-        }
-    }
+//    LaunchedEffect(datosTienda) {
+//        if (datosTienda.isNotEmpty()) {
+//            dataclass_tienda_seleccionada = datosTienda.first()
+//        }
+//    }
     LaunchedEffect(subCategoriaSeleccionada) {
         if (primeraVez) {
             primeraVez = false
@@ -343,11 +345,11 @@ var generador_qr by remember { mutableStateOf("") }
             else -> Unit
         }
     }
-    LaunchedEffect(showBottomSheet) {
-        if (showBottomSheet) {
-            viewModelFiltros.obtener_campos_tiendas_por_id(localida, id_tienda_selecionada)
-        }
-    }
+//    LaunchedEffect(showBottomSheet) {
+//        if (showBottomSheet) {
+//            viewModelFiltros.obtener_campos_tiendas_por_id(localida, id_tienda_selecionada)
+//        }
+//    }
     LaunchedEffect(dialog_tienda_no_pagada) {
         if (dialog_tienda_no_pagada) {
             mostrandoCarga_free = true
@@ -467,8 +469,16 @@ var generador_qr by remember { mutableStateOf("") }
                     items(listaOrdenada, key = { tienda -> tienda.id_tienda }) { tienda ->
 
                         val horarioDeEstaTienda = horarios[tienda.id_tienda] ?: HorarioDia_box()
-
+                        Box(
+                            modifier = Modifier.animateItem(
+                                placementSpec = tween(
+                                    durationMillis = 350,
+                                    easing = FastOutSlowInEasing
+                                )
+                            )
+                        ){
                         item_tiendas(
+                            context,
                             generador_qr=generador_qr,
                             horario_box1 = horarioDeEstaTienda,
                             horario_box = tienda.horario_tienda_box,
@@ -502,6 +512,7 @@ var generador_qr by remember { mutableStateOf("") }
                                 datos_mostar_datos= crear_qr_rutas(id_tienda,lat,ln,nomre_tienda)
                             }
                         )
+                        }
                     }
                 }
 
@@ -691,9 +702,11 @@ var generador_qr by remember { mutableStateOf("") }
 
     AnimatedVisibility(visible = bottom_shet_tienda) {
         bottom_sheet_tiendas_filtradas(
+            id_tienda_selecionada,localida,
             verificar_intener,
             viewModelFiltros,
-            dataclass_tienda_seleccionada, bottom_shet_tienda
+//            dataclass_tienda_seleccionada,
+            bottom_shet_tienda
         ) {
             bottom_shet_tienda = false
             showBottomSheet = false
@@ -964,6 +977,7 @@ fun Text_fiel_filtrado(
 
 @Composable
 fun item_tiendas(
+    context: Context,
     generador_qr:String,
     horario_box1: HorarioDia_box,
     horario_box: HorarioAtencion_box,
@@ -977,43 +991,49 @@ fun item_tiendas(
     dialog_sin_registrao: () -> Unit,
     mostrar_diaog_crear_ruta:(Boolean, String, Double, Double,String)->Unit
 ) {
-    // --- Estado local instantáneo ---
-    var favoritoEstado by remember { mutableStateOf(false) }
-    LaunchedEffect(item_tiendas.id_tienda, horario_box) {
-        viewModelFiltros.cast_horario_atencion_horario_tienda_box(horario_box)
+
+    // ✅ 1. favorito: solo lee el valor de ESTE id, no todo el mapa
+    val favoritoEstado by remember(item_tiendas.id_tienda) {
+        derivedStateOf {
+            viewModelFiltros.favoritos.value[item_tiendas.id_tienda] ?: false
+        }
     }
-    // --- Escuchar el Flow para sincronizar si viene desde otro lado ---
-//    val mapa by viewModelFiltros.favoritos.collectAsState()
-//    LaunchedEffect(mapa, item_tiendas.id_tienda) {
-//        favoritoEstado = mapa[item_tiendas.id_tienda] ?: favoritoEstado
-//    }
+
+    // ✅ 2. quita el LaunchedEffect del mapa — ya no necesario con derivedStateOf
+    // ❌ BORRA ESTO:
+    // val mapa by viewModelFiltros.favoritos.collectAsState()
+    // LaunchedEffect(mapa, item_tiendas.id_tienda) {
+    //     favoritoEstado = mapa[item_tiendas.id_tienda] ?: favoritoEstado
+    // }
+
     LaunchedEffect(item_tiendas.id_tienda) {
         if (id_user.isNotEmpty()) {
             viewModelFiltros.verificar_existe_favoritoMap(id_user, item_tiendas.id_tienda)
         }
     }
-    val tick by viewModelFiltros.tick.collectAsState()
-    var detalles_tienda by remember { mutableStateOf(false) }
+
+    // ✅ 3. tick: aísla el estado color para que solo recomponga ese composable
     var estadoColor by remember { mutableStateOf(Color.Red) }
+    val tick by viewModelFiltros.tick.collectAsState()
 
-//    var showDialog by remember { mutableStateOf(false) }
+    // ✅ 4. horario: solo cuando cambia el id, no en cada recomposición
+    LaunchedEffect(item_tiendas.id_tienda) {  // ← quita horario_box del key
+        viewModelFiltros.cast_horario_atencion_horario_tienda_box(horario_box)
+    }
 
-//    val generador_qr = remember(item_tiendas.latitud, item_tiendas.longitud) {
-//        generar_qr_cordenadas_tienda.codificarCoordenadas_url(
-//            item_tiendas.latitud, item_tiendas.longitud,item_tiendas.id_tienda
-//        )
-//    }
+    var detalles_tienda by remember { mutableStateOf(false) }
 
-    val targetHeight =
+    // ✅ 5. estos cálculos pesados memorízalos
+    val targetHeight = remember(detalles_tienda, item_tiendas.id_tienda) {
         if (!detalles_tienda && item_tiendas.metodos_pago_tienda != modelo_pagos_tienda()) 90.dp else 110.dp
+    }
+    val altoImgAnimado by animateDpAsState(targetValue = targetHeight)
 
-    val altoImgAnimado by animateDpAsState(
-        targetValue = targetHeight
-    )
     val listState = rememberLazyListState()
-
     val showLeftShadow by remember {
-        derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0 }
+        derivedStateOf {
+            listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0
+        }
     }
     val showRightShadow by remember {
         derivedStateOf {
@@ -1030,49 +1050,44 @@ fun item_tiendas(
         targetValue = if (showRightShadow) 1f else 0f,
         animationSpec = tween(400), label = "alphaRight"
     )
+
     var estado_fv_btn by remember { mutableStateOf(false) }
     var nuevo_Estadp_btn_fv by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onLongPress = {
-                        mostrar_diaog_crear_ruta(true,item_tiendas.id_tienda,item_tiendas.latitud,item_tiendas.longitud,item_tiendas.nombre_tienda)
-                    },
+//                    onLongPress = {
+//                        mostrar_diaog_crear_ruta(true, item_tiendas.id_tienda, item_tiendas.latitud, item_tiendas.longitud, item_tiendas.nombre_tienda)
+//                    },
                     onTap = {
-                        listener_botom_sheet(
-                            item_tiendas.id_tienda,
-                            true,
-                            estadoColor,
-                            item_tiendas.pagado
-                        )
+                        listener_botom_sheet(item_tiendas.id_tienda, true, estadoColor, item_tiendas.pagado)
                     }
                 )
             },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .animateContentSize()
+            modifier = Modifier.fillMaxWidth().animateContentSize()
         ) {
             Row(
                 modifier = Modifier.padding(7.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 Column {
                     AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(item_tiendas.logo_tienda)
-
-                            .placeholder(R.drawable.cargando_img_categorias)
-                            .error(R.drawable.cargando_img_categorias)
-                            .build(),
-                        contentDescription = "Imagen local",
+                        model = remember(item_tiendas.logo_tienda) {  // ✅ memoriza el request
+                            ImageRequest.Builder(context)
+                                .data(item_tiendas.logo_tienda)
+                                .placeholder(R.drawable.cargando_img_categorias)
+                                .error(R.drawable.cargando_img_categorias)
+                                .build()
+                        },
+                        contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .width(80.dp)
@@ -1082,45 +1097,31 @@ fun item_tiendas(
                     spacer_vertical(5.dp)
                     AnimatedVisibility(!detalles_tienda && item_tiendas.metodos_pago_tienda != modelo_pagos_tienda()) {
                         Box(
-                            modifier = Modifier
-                                .width(80.dp)
-                                .height(25.dp),
+                            modifier = Modifier.width(80.dp).height(25.dp),
                             contentAlignment = Alignment.Center
                         ) {
-
                             campos_de_pago(listState, item_tiendas.metodos_pago_tienda)
-                            // 👈 izquierda
                             Box(
                                 modifier = Modifier
-                                    .fillMaxHeight()
-                                    .width(20.dp)
+                                    .fillMaxHeight().width(20.dp)
                                     .align(Alignment.CenterStart)
-                                    .zIndex(1f)
-                                    .alpha(alphaLeft)
+                                    .zIndex(1f).alpha(alphaLeft)
                                     .background(Brush.horizontalGradient(colors = strat_subcategoria_shadow))
                             )
-
-                            // 👉 derecha
                             Box(
                                 modifier = Modifier
-                                    .fillMaxHeight()
-                                    .width(20.dp)
-
+                                    .fillMaxHeight().width(20.dp)
                                     .align(Alignment.CenterEnd)
-                                    .zIndex(1f)
-                                    .alpha(alphaRight)
-                                    .background(
-                                        Brush.horizontalGradient(colors = end_subcategoria_shadow)
-                                    )
+                                    .zIndex(1f).alpha(alphaRight)
+                                    .background(Brush.horizontalGradient(colors = end_subcategoria_shadow))
                             )
                         }
                     }
-
                 }
+
                 Spacer(modifier = Modifier.width(8.dp))
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
+
+                Column(modifier = Modifier.weight(1f)) {
                     Nombre_estado_tienda(item_tiendas.nombre_tienda.capitalizeFirst())
                     Spacer(modifier = Modifier.height(5.dp))
                     Caracteristicas_tiendas("Direccion :", item_tiendas.direccion)
@@ -1133,15 +1134,19 @@ fun item_tiendas(
                         brush_end = Brush.horizontalGradient(colors = end_subcategoria_shadow)
                     )
                     Spacer(modifier = Modifier.height(5.dp))
-                    retornar_color_estado_tienda_Box(
-                        id_tienda = item_tiendas.id_tienda,
-                        horario_total = horario_box1,
-                        tick = tick,
-                        pagado = item_tiendas.pagado,
-                        color = { color, txt ->
-                            estadoColor = color
-                        })
+
+                    // ✅ 6. aísla el tick en su propio composable para que solo recomponga él
+                    key(item_tiendas.id_tienda) {
+                        retornar_color_estado_tienda_Box(
+                            id_tienda = item_tiendas.id_tienda,
+                            horario_total = horario_box1,
+                            tick = tick,
+                            pagado = item_tiendas.pagado,
+                            color = { color, _ -> estadoColor = color }
+                        )
+                    }
                 }
+
                 Box(
                     modifier = Modifier.fillMaxHeight(),
                     contentAlignment = Alignment.BottomCenter
@@ -1153,8 +1158,7 @@ fun item_tiendas(
                     ) {
                         AnimatedVisibility(
                             item_tiendas.pagado && verificar_interner,
-                            enter = fadeIn(),
-                            exit = fadeOut()
+                            enter = fadeIn(), exit = fadeOut()
                         ) {
                             btn_listener_fv_externo(
                                 select = favoritoEstado,
@@ -1163,18 +1167,12 @@ fun item_tiendas(
                                     nuevo_Estadp_btn_fv = nuevoEstado
                                     if (id_user.isNotEmpty()) {
                                         if (nuevoEstado) {
-                                            viewModelFiltros.guardar_tienda_favorita_por_id(
-                                                localidad_user,
-                                                id_user,
-                                                item_tiendas.id_tienda
-                                            )
-                                            favoritoEstado = nuevo_Estadp_btn_fv
+                                            viewModelFiltros.guardar_tienda_favorita_por_id(localidad_user, id_user, item_tiendas.id_tienda)
+                                            // ✅ ya no necesitas setear favoritoEstado aquí
+                                            // el derivedStateOf lo actualiza solo
                                         } else {
-
                                             estado_fv_btn = true
-
                                         }
-
                                     } else {
                                         dialog_sin_registrao()
                                     }
@@ -1183,16 +1181,14 @@ fun item_tiendas(
                                 size_icon = 15.dp
                             )
                         }
-
                         Btn_Expandir_card { expandir -> detalles_tienda = expandir }
                     }
                 }
             }
+
             AnimatedVisibility(visible = detalles_tienda) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 10.dp)
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 10.dp)
                 ) {
                     Text(
                         text = "Descripcion : ${item_tiendas.descripcion}",
@@ -1202,19 +1198,11 @@ fun item_tiendas(
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     spacer_vertical(10.dp)
-
                 }
             }
         }
     }
 
-//    if (showDialog) {
-//        dialog_qr_tienda(
-//            qr = generador_qr,
-//            nombre_tienda = item_tiendas.nombre_tienda,
-//            onDismis = { showDialog = false }
-//        )
-//    }
     if (estado_fv_btn) {
         dialog_eliminar_favoritos(
             viewModelFiltros = viewModelFiltros,
@@ -1222,10 +1210,9 @@ fun item_tiendas(
             id_user = id_user,
             id_tienda = item_tiendas.id_tienda,
             nombre_tienda = item_tiendas.nombre_tienda,
-            ondimis = { estado_fv_btn = false }, aceptado = {
-                nuevo_Estadp_btn_fv = favoritoEstado
-            })
-
+            ondimis = { estado_fv_btn = false },
+            aceptado = { nuevo_Estadp_btn_fv = favoritoEstado }
+        )
     }
 
 }

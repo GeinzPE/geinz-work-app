@@ -79,7 +79,9 @@ class viewmodel_promos_cercanas : ViewModel() {
         obtener_filtrado_Categorias()
     }
 
-
+    fun limpiarSubcategorias() {
+        _subcategoria_seleccionada.value = emptyList()
+    }
 
     fun eliminarItem(item: String) {
         _listaResultados.value = _listaResultados.value - item
@@ -166,6 +168,18 @@ class viewmodel_promos_cercanas : ViewModel() {
         _metodosPagoSeleccionados.value = emptySet()
     }
 
+//    private val _rangoPrecioSeleccionado_por_tienda = MutableStateFlow<String?>(null)
+//    val _rangoPrecioSeleccionado_por_tienda: StateFlow<String?> = _rangoPrecioSeleccionado_por_tienda
+//
+//
+//    fun setearRangoPrecioDesdeNLP_por_tienda(rango: String?) {
+//        _rangoPrecioSeleccionado_por_tienda.value =
+//            if (_rangoPrecioSeleccionado_por_tienda.value == rango) {
+//                null
+//            } else {
+//                rango
+//            }
+//    }
 
     private val _rangoPrecioSeleccionado = MutableStateFlow<String?>(null)
     val rangoPrecioSeleccionado: StateFlow<String?> = _rangoPrecioSeleccionado
@@ -179,8 +193,14 @@ class viewmodel_promos_cercanas : ViewModel() {
                 rango
             }
     }
+    fun limpiarCategoria() {
+        _categoria_seleccionada.value = ""
+    }
+    fun limpiarRangoPrecio() {
+        _rangoPrecioSeleccionado.value = null
+    }
 
-    private val _subcategoria_seleccionada =
+        private val _subcategoria_seleccionada =
         MutableStateFlow<List<String>>(emptyList())
 
     val subcategoria_seleccionada: StateFlow<List<String>> =

@@ -231,14 +231,14 @@ fun bottom_sheet_review(
                 datosTienda!!.first()
         }
     }
-    LaunchedEffect(show_bottom_sheeet) {
-        if (show_bottom_sheeet) {
-            viewModelFiltros.obtener_campos_tiendas_por_id(
-                data_class_review.localida_lugar,
-                data_class_review.id_tienda_lugar
-            )
-        }
-    }
+//    LaunchedEffect(show_bottom_sheeet) {
+//        if (show_bottom_sheeet) {
+//            viewModelFiltros.obtener_campos_tiendas_por_id(
+//                data_class_review.localida_lugar,
+//                data_class_review.id_tienda_lugar
+//            )
+//        }
+//    }
     // cerrar bottomsheet al enviar review
     LaunchedEffect(_review_send.value) {
         if (_review_send.value) {
@@ -704,9 +704,12 @@ fun bottom_sheet_review(
     }
     if (show_bottom_sheeet) {
         bottom_sheet_tiendas_filtradas(
+            data_class_review.id_tienda_lugar,
+            data_class_review.localida_lugar,
             verificar_intener,
             viewModelFiltros,
-            dataclass_tienda_seleccionada, show_bottom_sheeet
+//            dataclass_tienda_seleccionada,
+            show_bottom_sheeet
         ) {
             show_bottom_sheeet = false
         }
@@ -779,7 +782,7 @@ fun bottom_Sheet_seguro(
     var dialog_normas_de_verificaion by remember { mutableStateOf(false) }
     var show_bottom_sheeet by remember { mutableStateOf(false) }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
-    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
+//    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     val tick by viewModelFiltros.tick.collectAsState()
     var color by remember { mutableStateOf(Color.Gray) }
     val maxFotos = 5
@@ -829,20 +832,20 @@ fun bottom_Sheet_seguro(
             Log.d("ReviewUbicacion", "Ubicación prefetch -> $location")
         }
     }
-    LaunchedEffect(datosTienda) {
-        if (!datosTienda.isNullOrEmpty()) {
-            dataclass_tienda_seleccionada =
-                datosTienda!!.first()
-        }
-    }
-    LaunchedEffect(show_bottom_sheeet) {
-        if (show_bottom_sheeet) {
-            viewModelFiltros.obtener_campos_tiendas_por_id(
-                data_class_review.localida_lugar,
-                data_class_review.id_tienda_lugar
-            )
-        }
-    }
+//    LaunchedEffect(datosTienda) {
+//        if (!datosTienda.isNullOrEmpty()) {
+//            dataclass_tienda_seleccionada =
+//                datosTienda!!.first()
+//        }
+//    }
+//    LaunchedEffect(show_bottom_sheeet) {
+//        if (show_bottom_sheeet) {
+//            viewModelFiltros.obtener_campos_tiendas_por_id(
+//                data_class_review.localida_lugar,
+//                data_class_review.id_tienda_lugar
+//            )
+//        }
+//    }
     LaunchedEffect(data_class_review) {
         viewmodel.set_datos_TL_review(data_class_review)
     }
@@ -1309,9 +1312,12 @@ fun bottom_Sheet_seguro(
 
     if (show_bottom_sheeet) {
         bottom_sheet_tiendas_filtradas(
+            data_class_review.id_tienda_lugar,
+            data_class_review.localida_lugar,
             verificar_intener,
             viewModelFiltros,
-            dataclass_tienda_seleccionada, show_bottom_sheeet
+//            dataclass_tienda_seleccionada,
+            show_bottom_sheeet
         ) {
             show_bottom_sheeet = false
         }

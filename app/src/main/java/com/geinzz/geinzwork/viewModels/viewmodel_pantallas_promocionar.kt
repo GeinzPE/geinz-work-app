@@ -153,6 +153,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
         _estado_generacion_txt_img.value = Estado_carga_para_generar_txt_a_img.Idle
     }
     fun generar_texto_descripcion_con_IA_desde_imagen(
+        costo_moneda:Double,
         localidad_tienda: String,
         id_tienda: String,
         nombre_tienda: String,
@@ -214,6 +215,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                     monto_restante = saldo_tienda - puntos_descuento
                 )
                 viewmodel_recargas.restar_puntos_recarga(
+                    costo_moneda,
                     historial,
                     puntos_descuento.toString(),
                     id_tienda,
@@ -362,6 +364,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
 
     fun mejorar_texto_con_promo_IA(
+        costo_moneda: Double,
         tipo_generacion: repo_pantallas_promocionar.TipoGeneracionIA,
         saldo_tienda: Int,
         localidad_tienda: String,
@@ -423,6 +426,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                     )
 
                     viewmodel_recargas.restar_puntos_recarga(
+                        costo_moneda,
                         historial,
                         total_cobrar,
                         id_tienda,
@@ -446,184 +450,185 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     }
 
 
-    fun enviar_notificacion(
-        saldo_tienda: Int,
-        localidad_tienda: String,
-        nombre_tienda: String,
-        id_tienda: String,
-        descontar_monedas: String,
-        usuarios: List<String>,
-        i: obj_contador_notificaciones
-    ) {
-        viewModelScope.launch {
-            _estadoEnvioNotificaciones.value = EstadoEnvioNotificacion.Loading
-
-            try {
-                val monedas = descontar_monedas.toInt()
-
-                if (saldo_tienda < monedas) {
-                    _estadoEnvioNotificaciones.value =
-                        EstadoEnvioNotificacion.Error("Saldo insuficiente")
-                    return@launch
-                }
-
-                val puedeEnviar =
-                    insta_repo_eres_socio.verificar_envio_notificaciones(
-                        i.localida,
-                        i.id_tienda
-                    )
-
-                if (!puedeEnviar) {
-                    _estadoEnvioNotificaciones.value =
-                        EstadoEnvioNotificacion.Error(
-                            "Superaste el máximo de notificaciones semanales"
-                        )
-                    return@launch
-                }
-
-                insta_repo_eres_socio.agregarContadorNotificacion(usuarios, i)
-
-                val historial = historial_descuento(
-                    tipo_transaccion = "descuento",
-                    fecha = obtenerFechaActual(),
-                    hora = obtenerHoraActual(),
-                    id_recarga = constantes_cobro_monedas.generarIdRecarga(),
-                    localidad_tienda = localidad_tienda,
-                    id_tienda = id_tienda,
-                    nombre_tienda = nombre_tienda,
-                    monto_descuento = descontar_monedas,
-                    tipo = "Envio de notificaciones a ${usuarios.size} seguidores (Actual)",
-                    precio_soles = constantes_cobro_monedas
-                        .calcular_precio_soles(descontar_monedas)
-                        .toString(),
-                    estado = "Aceptado",
-                    monto_restante = saldo_tienda - monedas
-                )
-
-                viewmodel_recargas.restar_puntos_recarga(
-                    historial,
-                    descontar_monedas,
-                    id_tienda,
-                    localidad_tienda
-                )
-
-                _estadoEnvioNotificaciones.value =
-                    EstadoEnvioNotificacion.Success(
-                        "Notificaciones enviadas correctamente"
-                    )
-
-                _estado_envio_recientes.value = true
-
-            } catch (e: Exception) {
-                _estadoEnvioNotificaciones.value =
-                    EstadoEnvioNotificacion.Error("Error al enviar las notificaciones")
-                Log.e("error_envio_noti", e.message ?: "error")
-            }
-        }
-    }
+//    fun enviar_notificacion(
+//        saldo_tienda: Int,
+//        localidad_tienda: String,
+//        nombre_tienda: String,
+//        id_tienda: String,
+//        descontar_monedas: String,
+//        usuarios: List<String>,
+//        i: obj_contador_notificaciones
+//    ) {
+//        viewModelScope.launch {
+//            _estadoEnvioNotificaciones.value = EstadoEnvioNotificacion.Loading
+//
+//            try {
+//                val monedas = descontar_monedas.toInt()
+//
+//                if (saldo_tienda < monedas) {
+//                    _estadoEnvioNotificaciones.value =
+//                        EstadoEnvioNotificacion.Error("Saldo insuficiente")
+//                    return@launch
+//                }
+//
+//                val puedeEnviar =
+//                    insta_repo_eres_socio.verificar_envio_notificaciones(
+//                        i.localida,
+//                        i.id_tienda
+//                    )
+//
+//                if (!puedeEnviar) {
+//                    _estadoEnvioNotificaciones.value =
+//                        EstadoEnvioNotificacion.Error(
+//                            "Superaste el máximo de notificaciones semanales"
+//                        )
+//                    return@launch
+//                }
+//
+//                insta_repo_eres_socio.agregarContadorNotificacion(usuarios, i)
+//
+//                val historial = historial_descuento(
+//                    tipo_transaccion = "descuento",
+//                    fecha = obtenerFechaActual(),
+//                    hora = obtenerHoraActual(),
+//                    id_recarga = constantes_cobro_monedas.generarIdRecarga(),
+//                    localidad_tienda = localidad_tienda,
+//                    id_tienda = id_tienda,
+//                    nombre_tienda = nombre_tienda,
+//                    monto_descuento = descontar_monedas,
+//                    tipo = "Envio de notificaciones a ${usuarios.size} seguidores (Actual)",
+//                    precio_soles = constantes_cobro_monedas
+//                        .calcular_precio_soles(descontar_monedas)
+//                        .toString(),
+//                    estado = "Aceptado",
+//                    monto_restante = saldo_tienda - monedas
+//                )
+//
+//                viewmodel_recargas.restar_puntos_recarga(
+//                    costo_moneda,
+//                    historial,
+//                    descontar_monedas,
+//                    id_tienda,
+//                    localidad_tienda
+//                )
+//
+//                _estadoEnvioNotificaciones.value =
+//                    EstadoEnvioNotificacion.Success(
+//                        "Notificaciones enviadas correctamente"
+//                    )
+//
+//                _estado_envio_recientes.value = true
+//
+//            } catch (e: Exception) {
+//                _estadoEnvioNotificaciones.value =
+//                    EstadoEnvioNotificacion.Error("Error al enviar las notificaciones")
+//                Log.e("error_envio_noti", e.message ?: "error")
+//            }
+//        }
+//    }
 
     fun resetear_Estado_promo_subida() {
         _estadoEnvioNotificaciones.value = EstadoEnvioNotificacion.Idle
     }
 
-
-    fun mejorar_mejorar_notificacion_con_IA_corta(
-        precio_moneda:String,
-        tipo_select_IA: String,
-        tipoSeleccionado: repo_pantallas_promocionar.TipoGeneracionIA,
-        saldo_tienda: Int,
-        localidad_tienda: String,
-        id_tienda: String,
-        nombre_tienda: String,
-        titulo_publicacion: String,
-        descripcion: String
-    ) {
-        Log.d("titulo_publicacion", "$titulo_publicacion $descripcion")
-
-        viewModelScope.launch {
-
-            _estado_notificacion_con_ia_corta.value =
-                EstadoIA_notifi_corta.Loading
-
-            if (saldo_tienda < 20) {
-                _estado_notificacion_con_ia_corta.value =
-                    EstadoIA_notifi_corta.Error("saldo insuficiente")
-                return@launch
-            }
-
-            // 🔐 Control para evitar doble respuesta
-            var respondio = false
-
-            // ⏳ Timeout UX (30s)
-            val timeoutJob = launch {
-                delay(20_000)
-                if (!respondio) {
-                    respondio = true
-                    _estado_notificacion_con_ia_corta.value =
-                        EstadoIA_notifi_corta.Error(
-                            "Está tardando más de lo normal ⏳\n" +
-                                    "Intenta nuevamente o revisa tu conexión"
-                        )
-                }
-            }
-
-            try {
-                insta_repo.crear_notificacion_conIA_corta(
-                    titulo_publicacion,
-                    descripcion,
-                    tipoSeleccionado,
-                ) { notificacionIA ->
-
-                    if (respondio) return@crear_notificacion_conIA_corta
-
-                    respondio = true
-                    timeoutJob.cancel()
-
-                    _estado_notificacion_con_ia_corta.value =
-                        EstadoIA_notifi_corta.Success(notificacionIA)
-
-                    if (
-                        notificacionIA.titulo.isNotEmpty() &&
-                        notificacionIA.descripcion.isNotEmpty()
-                    ) {
-                        val historial_descuento = historial_descuento(
-                            tipo_transaccion = "descuento",
-                            fecha = obtenerFechaActual(),
-                            hora = obtenerHoraActual(),
-                            id_recarga = constantes_cobro_monedas.generarIdRecarga(),
-                            localidad_tienda = localidad_tienda,
-                            id_tienda = id_tienda,
-                            nombre_tienda = nombre_tienda,
-                            monto_descuento = precio_moneda,
-                            tipo = tipo_select_IA,
-                            precio_soles = constantes_cobro_monedas
-                                .calcular_precio_soles(precio_moneda)
-                                .toString(),
-                            estado = "Aceptado",
-                            monto_restante = saldo_tienda - 20
-                        )
-
-                        viewmodel_recargas.restar_puntos_recarga(
-                            historial_descuento,
-                            precio_moneda,
-                            id_tienda,
-                            localidad_tienda
-                        )
-                    }
-                }
-
-            } catch (e: Exception) {
-                timeoutJob.cancel()
-                if (!respondio) {
-                    respondio = true
-                    _estado_notificacion_con_ia_corta.value =
-                        EstadoIA_notifi_corta.Error(
-                            e.message ?: "Error al generar la notificación con IA"
-                        )
-                }
-            }
-        }
-    }
+//
+//    fun mejorar_mejorar_notificacion_con_IA_corta(
+//        precio_moneda:String,
+//        tipo_select_IA: String,
+//        tipoSeleccionado: repo_pantallas_promocionar.TipoGeneracionIA,
+//        saldo_tienda: Int,
+//        localidad_tienda: String,
+//        id_tienda: String,
+//        nombre_tienda: String,
+//        titulo_publicacion: String,
+//        descripcion: String
+//    ) {
+//        Log.d("titulo_publicacion", "$titulo_publicacion $descripcion")
+//
+//        viewModelScope.launch {
+//
+//            _estado_notificacion_con_ia_corta.value =
+//                EstadoIA_notifi_corta.Loading
+//
+//            if (saldo_tienda < 20) {
+//                _estado_notificacion_con_ia_corta.value =
+//                    EstadoIA_notifi_corta.Error("saldo insuficiente")
+//                return@launch
+//            }
+//
+//            // 🔐 Control para evitar doble respuesta
+//            var respondio = false
+//
+//            // ⏳ Timeout UX (30s)
+//            val timeoutJob = launch {
+//                delay(20_000)
+//                if (!respondio) {
+//                    respondio = true
+//                    _estado_notificacion_con_ia_corta.value =
+//                        EstadoIA_notifi_corta.Error(
+//                            "Está tardando más de lo normal ⏳\n" +
+//                                    "Intenta nuevamente o revisa tu conexión"
+//                        )
+//                }
+//            }
+//
+//            try {
+//                insta_repo.crear_notificacion_conIA_corta(
+//                    titulo_publicacion,
+//                    descripcion,
+//                    tipoSeleccionado,
+//                ) { notificacionIA ->
+//
+//                    if (respondio) return@crear_notificacion_conIA_corta
+//
+//                    respondio = true
+//                    timeoutJob.cancel()
+//
+//                    _estado_notificacion_con_ia_corta.value =
+//                        EstadoIA_notifi_corta.Success(notificacionIA)
+//
+//                    if (
+//                        notificacionIA.titulo.isNotEmpty() &&
+//                        notificacionIA.descripcion.isNotEmpty()
+//                    ) {
+//                        val historial_descuento = historial_descuento(
+//                            tipo_transaccion = "descuento",
+//                            fecha = obtenerFechaActual(),
+//                            hora = obtenerHoraActual(),
+//                            id_recarga = constantes_cobro_monedas.generarIdRecarga(),
+//                            localidad_tienda = localidad_tienda,
+//                            id_tienda = id_tienda,
+//                            nombre_tienda = nombre_tienda,
+//                            monto_descuento = precio_moneda,
+//                            tipo = tipo_select_IA,
+//                            precio_soles = constantes_cobro_monedas
+//                                .calcular_precio_soles(precio_moneda)
+//                                .toString(),
+//                            estado = "Aceptado",
+//                            monto_restante = saldo_tienda - 20
+//                        )
+//
+//                        viewmodel_recargas.restar_puntos_recarga(
+//                            historial_descuento,
+//                            precio_moneda,
+//                            id_tienda,
+//                            localidad_tienda
+//                        )
+//                    }
+//                }
+//
+//            } catch (e: Exception) {
+//                timeoutJob.cancel()
+//                if (!respondio) {
+//                    respondio = true
+//                    _estado_notificacion_con_ia_corta.value =
+//                        EstadoIA_notifi_corta.Error(
+//                            e.message ?: "Error al generar la notificación con IA"
+//                        )
+//                }
+//            }
+//        }
+//    }
 
 
     fun resetear_Estado_notificacion_enviadad() {
@@ -632,6 +637,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
 
 
     fun mejorar_texto_perzonalizado_whatsapp(
+        costo_moneda: Double,
         monto_descuento:String,
         saldo_tienda: Int,
         localidad_tienda: String,
@@ -705,7 +711,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                         monto_restante = saldo_tienda - 10
                     )
 
-                    viewmodel_recargas.restar_puntos_recarga(
+                    viewmodel_recargas.restar_puntos_recarga(costo_moneda,
                         historial,
                         monto_descuento,
                         id_tienda,
@@ -727,103 +733,104 @@ class viewmodel_pantallas_promocionar : ViewModel() {
     }
 
 
-    fun mejorar_texto_perzonalizado_whatsapp_notificacion(
-        descuento_monedas:String,
-        saldo_tienda: Int,
-        localidad_tienda: String,
-        id_tienda: String,
-        nombre_tienda: String,
-        titulo_publicacion: String,
-        descripcion: String
-    ) {
-        viewModelScope.launch {
-
-            _estado_texto_whatsap_con_ia_notificacion.value =
-                Estado_ia_mensaje_whatsap_notificaion.Loading
-
-            if (saldo_tienda < 10) {
-                _estado_texto_whatsap_con_ia_notificacion.value =
-                    Estado_ia_mensaje_whatsap_notificaion.Error("Saldo insuficiente")
-                return@launch
-            }
-
-            // 🔐 CONTROL para evitar doble respuesta
-            var respondio = false
-
-            // ⏳ TIMEOUT UX (30s)
-            val timeoutJob = launch {
-                delay(30_000)
-                if (!respondio) {
-                    respondio = true
-                    _estado_texto_whatsap_con_ia_notificacion.value =
-                        Estado_ia_mensaje_whatsap_notificaion.Error(
-                            "Está tardando más de lo normal ⏳ Intenta nuevamente o revisa tu conexión"
-                        )
-                }
-            }
-
-            try {
-                insta_repo.mejorar_texto_perzonalizado_whatsapp(
-                    titulo_publicacion,
-                    descripcion
-                ) { notificacionIA ->
-
-                    if (respondio) return@mejorar_texto_perzonalizado_whatsapp
-
-                    respondio = true
-                    timeoutJob.cancel()
-
-                    if (notificacionIA.isBlank()) {
-                        _estado_texto_whatsap_con_ia_notificacion.value =
-                            Estado_ia_mensaje_whatsap_notificaion.Error(
-                                "No se pudo generar el mensaje"
-                            )
-                        return@mejorar_texto_perzonalizado_whatsapp
-                    }
-
-                    _estado_texto_whatsap_con_ia_notificacion.value =
-                        Estado_ia_mensaje_whatsap_notificaion.Success(notificacionIA)
-
-                    val historial = historial_descuento(
-                        tipo_transaccion = "descuento",
-                        fecha = obtenerFechaActual(),
-                        hora = obtenerHoraActual(),
-                        id_recarga = constantes_cobro_monedas.generarIdRecarga(),
-                        localidad_tienda = localidad_tienda,
-                        id_tienda = id_tienda,
-                        nombre_tienda = nombre_tienda,
-                        monto_descuento = descuento_monedas,
-                        tipo = "Gen IA (Mensaje WhatsApp personalizado)",
-                        precio_soles = constantes_cobro_monedas
-                            .calcular_precio_soles(descuento_monedas)
-                            .toString(),
-                        estado = "Aceptado",
-                        monto_restante = saldo_tienda - 10
-                    )
-
-                    viewmodel_recargas.restar_puntos_recarga(
-                        historial,
-                        descuento_monedas,
-                        id_tienda,
-                        localidad_tienda
-                    )
-                }
-
-            } catch (e: Exception) {
-                timeoutJob.cancel()
-                if (!respondio) {
-                    respondio = true
-                    _estado_texto_whatsap_con_ia_notificacion.value =
-                        Estado_ia_mensaje_whatsap_notificaion.Error(
-                            e.message ?: "Error al generar el mensaje"
-                        )
-                }
-            }
-        }
-    }
+//    fun mejorar_texto_perzonalizado_whatsapp_notificacion(
+//        descuento_monedas:String,
+//        saldo_tienda: Int,
+//        localidad_tienda: String,
+//        id_tienda: String,
+//        nombre_tienda: String,
+//        titulo_publicacion: String,
+//        descripcion: String
+//    ) {
+//        viewModelScope.launch {
+//
+//            _estado_texto_whatsap_con_ia_notificacion.value =
+//                Estado_ia_mensaje_whatsap_notificaion.Loading
+//
+//            if (saldo_tienda < 10) {
+//                _estado_texto_whatsap_con_ia_notificacion.value =
+//                    Estado_ia_mensaje_whatsap_notificaion.Error("Saldo insuficiente")
+//                return@launch
+//            }
+//
+//            // 🔐 CONTROL para evitar doble respuesta
+//            var respondio = false
+//
+//            // ⏳ TIMEOUT UX (30s)
+//            val timeoutJob = launch {
+//                delay(30_000)
+//                if (!respondio) {
+//                    respondio = true
+//                    _estado_texto_whatsap_con_ia_notificacion.value =
+//                        Estado_ia_mensaje_whatsap_notificaion.Error(
+//                            "Está tardando más de lo normal ⏳ Intenta nuevamente o revisa tu conexión"
+//                        )
+//                }
+//            }
+//
+//            try {
+//                insta_repo.mejorar_texto_perzonalizado_whatsapp(
+//                    titulo_publicacion,
+//                    descripcion
+//                ) { notificacionIA ->
+//
+//                    if (respondio) return@mejorar_texto_perzonalizado_whatsapp
+//
+//                    respondio = true
+//                    timeoutJob.cancel()
+//
+//                    if (notificacionIA.isBlank()) {
+//                        _estado_texto_whatsap_con_ia_notificacion.value =
+//                            Estado_ia_mensaje_whatsap_notificaion.Error(
+//                                "No se pudo generar el mensaje"
+//                            )
+//                        return@mejorar_texto_perzonalizado_whatsapp
+//                    }
+//
+//                    _estado_texto_whatsap_con_ia_notificacion.value =
+//                        Estado_ia_mensaje_whatsap_notificaion.Success(notificacionIA)
+//
+//                    val historial = historial_descuento(
+//                        tipo_transaccion = "descuento",
+//                        fecha = obtenerFechaActual(),
+//                        hora = obtenerHoraActual(),
+//                        id_recarga = constantes_cobro_monedas.generarIdRecarga(),
+//                        localidad_tienda = localidad_tienda,
+//                        id_tienda = id_tienda,
+//                        nombre_tienda = nombre_tienda,
+//                        monto_descuento = descuento_monedas,
+//                        tipo = "Gen IA (Mensaje WhatsApp personalizado)",
+//                        precio_soles = constantes_cobro_monedas
+//                            .calcular_precio_soles(descuento_monedas)
+//                            .toString(),
+//                        estado = "Aceptado",
+//                        monto_restante = saldo_tienda - 10
+//                    )
+//
+//                    viewmodel_recargas.restar_puntos_recarga(
+//                        historial,
+//                        descuento_monedas,
+//                        id_tienda,
+//                        localidad_tienda
+//                    )
+//                }
+//
+//            } catch (e: Exception) {
+//                timeoutJob.cancel()
+//                if (!respondio) {
+//                    respondio = true
+//                    _estado_texto_whatsap_con_ia_notificacion.value =
+//                        Estado_ia_mensaje_whatsap_notificaion.Error(
+//                            e.message ?: "Error al generar el mensaje"
+//                        )
+//                }
+//            }
+//        }
+//    }
 
 
     fun mejorar_texto_perzonalizado_compatir(
+        costo_moneda: Double,
         monoto_monedas:String,
         saldo_tienda: Int,
         localidad_tienda: String,
@@ -897,6 +904,7 @@ class viewmodel_pantallas_promocionar : ViewModel() {
                     )
 
                     viewmodel_recargas.restar_puntos_recarga(
+                        costo_moneda,
                         historial,
                         monoto_monedas,
                         id_tienda,

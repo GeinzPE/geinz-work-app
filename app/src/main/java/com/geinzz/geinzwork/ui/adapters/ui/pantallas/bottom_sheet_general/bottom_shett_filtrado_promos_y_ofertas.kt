@@ -2,6 +2,7 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -51,6 +52,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,6 +71,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.viewModels.viewmodel_promos_cercanas
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.DatosResponse
@@ -511,6 +514,169 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun bottom_sheet_filtrar_desde_tienda(
+    nombre_tienda: String,
+    lista_filtrado_negocio: List<String>,
+    rangos_disponibles: List<String>,
+    id_tienda: String,
+    viewModel: viewmodel_promos_cercanas,
+    onClose: () -> Unit
+) {
+    val context = LocalContext.current
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    val categoriaSeleccionada by viewModel.categoria_seleccionada.collectAsState()
+    val rango_precio by viewModel.rangoPrecioSeleccionado.collectAsState()
+
+    var verTodos by remember { mutableStateOf(false) }
+    val limite = 10
+    val subcategoriasVisibles = if (verTodos) lista_filtrado_negocio
+    else lista_filtrado_negocio.take(limite)
+
+    ModalBottomSheet(
+        sheetState = sheetState,
+        onDismissRequest = { onClose() },
+        modifier = Modifier.fillMaxWidth(),
+        dragHandle = null,
+        containerColor = MaterialTheme.colorScheme.background
+    ) {
+        FuenteControladaApp {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier
+                    .padding(start = 10.dp, end = 10.dp, top = 20.dp, bottom = 10.dp)
+                    .animateContentSize()
+            ) {
+
+                // título
+                item {
+                    Text(
+                        text = "Busca a tu manera",
+                        style = MaterialTheme.typography.banerGeinzWork,
+                        color = Color.White,
+                        fontSize = 25.sp,
+                        modifier = Modifier.padding(end = 5.dp)
+                    )
+                    spacer_vertical(7.dp)
+                    texto_generico_multilinea(
+                        "Filtra las promociones de $nombre_tienda",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    spacer_vertical(10.dp)
+                }
+
+                // tags — horizontal o vertical según verTodos
+                item {
+                    texto_generico_one_line("Filtrar en $nombre_tienda")
+                    spacer_vertical(10.dp)
+
+                    if (!verTodos) {
+                        // modo horizontal
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            items(subcategoriasVisibles) { tag ->
+                                val seleccionado = categoriaSeleccionada == tag
+                                chisp_filtrado_busqueda(
+                                    carta_selecionada = seleccionado,
+                                    filtrado = tag.capitalizeFirst(),
+                                    btn_visible = false,
+                                    clik_card = { viewModel.toggleCategoria(tag) },
+                                    onClick_delete = {}
+                                )
+                            }
+                            if (lista_filtrado_negocio.size > limite) {
+                                item {
+                                    chisp_filtrado_busqueda(
+                                        carta_selecionada = false,
+                                        filtrado = "Ver todos",
+                                        btn_visible = false,
+                                        clik_card = { verTodos = true },
+                                        onClick_delete = {}
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        // modo vertical — FlowRow para que queden en grid
+                        FlowRow(
+                            maxItemsInEachRow = 3,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            lista_filtrado_negocio.forEach { tag ->
+                                val seleccionado = categoriaSeleccionada == tag
+                                chisp_filtrado_busqueda(
+                                    carta_selecionada = seleccionado,
+                                    filtrado = tag.capitalizeFirst(),
+                                    btn_visible = false,
+                                    clik_card = { viewModel.toggleCategoria(tag) },
+                                    onClick_delete = {}
+                                )
+                            }
+                            // botón para colapsar de nuevo
+                            chisp_filtrado_busqueda(
+                                carta_selecionada = false,
+                                filtrado = "Ver menos",
+                                btn_visible = false,
+                                clik_card = { verTodos = false },
+                                onClick_delete = {}
+                            )
+                        }
+                    }
+                }
+
+                // rangos de precio
+                item {
+                    spacer_vertical(10.dp)
+                    texto_generico_one_line("Rangos de Precio")
+                    spacer_vertical(10.dp)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        items(rangos_disponibles) { rango ->
+                            val seleccionado = rango_precio == rango
+                            chisp_filtrado_busqueda_resultados_busqueda(
+                                "precio",
+                                carta_selecionada = seleccionado,
+                                filtrado = rango.capitalizeFirst(),
+                                btn_visible = false,
+                                clik_card = { viewModel.setearRangoPrecioDesdeNLP(rango) },
+                                onClick_delete = {}
+                            )
+                        }
+                    }
+                    spacer_vertical(10.dp)
+                }
+
+                // botón aplicar
+                item {
+                    Button(
+                        onClick = {
+                            // armar mensaje del toast con lo seleccionado
+                            val partes = mutableListOf<String>()
+                            if (categoriaSeleccionada.isNotEmpty()) {
+                                partes.add("📌 $categoriaSeleccionada")
+                            }
+                            if (!rango_precio.isNullOrEmpty()) {
+                                partes.add("💰 S/ $rango_precio")
+                            }
+                            val mensaje = if (partes.isEmpty()) {
+                                "Mostrando todas las promos de $nombre_tienda"
+                            } else {
+                                "Buscando: ${partes.joinToString(" · ")}"
+                            }
+
+                            Toast.makeText(context, mensaje, Toast.LENGTH_LONG).show()
+                            onClose()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        texto_generico_one_line("Aplicar Filtros de $nombre_tienda")
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun RadioCheckingMetodos(

@@ -53,6 +53,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -96,6 +97,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_filtrados_promos_y_ofertas
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_filtrar_desde_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
@@ -198,7 +200,7 @@ fun ui_promos_cerca_de_ti(
     var show_bottom_sheeet by remember { mutableStateOf(false) }
     var id_tienda_select by remember { mutableStateOf("") }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
-    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
+//    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
     val viewmodel_repo_datos_promo: viewmodel_datos_promociones = viewModel()
     val datos_promo_parametros by viewmodel_repo_datos_promo.datos_promocion_parametro.collectAsState()
     var tiendaSeleccionada by remember { mutableStateOf<String?>(null) }
@@ -404,20 +406,20 @@ fun ui_promos_cerca_de_ti(
     LaunchedEffect(localidad) {
         viewModel.obtener_promociones_2da("barranca", "", null)
     }
-    LaunchedEffect(show_bottom_sheeet) {
-        if (show_bottom_sheeet) {
-            viewModelFiltros.obtener_campos_tiendas_por_id(
-                localidad,
-                id_tienda_select
-            )
-        }
-    }
-    LaunchedEffect(datosTienda) {
-        if (!datosTienda.isNullOrEmpty()) {
-            dataclass_tienda_seleccionada =
-                datosTienda!!.first()
-        }
-    }
+//    LaunchedEffect(show_bottom_sheeet) {
+//        if (show_bottom_sheeet) {
+//            viewModelFiltros.obtener_campos_tiendas_por_id(
+//                localidad,
+//                id_tienda_select
+//            )
+//        }
+//    }
+//    LaunchedEffect(datosTienda) {
+//        if (!datosTienda.isNullOrEmpty()) {
+//            dataclass_tienda_seleccionada =
+//                datosTienda!!.first()
+//        }
+//    }
     var primeraVez by remember { mutableStateOf(true) }
 
     LaunchedEffect(
@@ -580,6 +582,37 @@ fun ui_promos_cerca_de_ti(
     var loadingTiendaShown by remember { mutableStateOf(false) }
     val resultado_open_ia = viewModel.resultado
     val modoBusquedaIA = viewModel.modoBusquedaIA
+    val tags_de_promos_filtradas by remember {
+        derivedStateOf {
+            if (tiendaSeleccionada != null) {
+                promosFiltradas
+                    .flatMap { it.dataclass_promociones_cerca_de_ti.terminos_clave }
+                    .distinct()
+                    .filter { it.isNotEmpty() }
+            } else {
+                emptyList()
+            }
+        }
+    }
+    val rangos_de_promos_filtradas by remember {
+        derivedStateOf {
+            if (tiendaSeleccionada != null) {
+                promosFiltradas
+                    .map { it.dataclass_promociones_cerca_de_ti.rango }
+                    .filter { it.isNotEmpty() }
+                    .distinct()
+                    .also {
+                        Log.d("RANGOS_DEBUG", "🏪 Rangos de promosFiltradas (tienda '$tiendaSeleccionada'): $it")
+                        Log.d("RANGOS_DEBUG", "📦 promosFiltradas.size = ${promosFiltradas.size}")
+                    }
+            } else {
+                Log.d("RANGOS_DEBUG", "⚠️ Sin tienda → vacío")
+                emptyList()
+            }
+        }
+    }
+
+
     LaunchedEffect(estadoTienda) {
 
         when (estadoTienda) {
@@ -600,7 +633,9 @@ fun ui_promos_cerca_de_ti(
             }
 
             is viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.succes -> {
-
+                // 👇 AGREGA ESTO
+                Log.d("TAGS_DEBUG", "promosFiltradas size=${promosFiltradas.size}")
+                Log.d("TAGS_DEBUG", "terminos de primera promo=${promosFiltradas.firstOrNull()?.dataclass_promociones_cerca_de_ti?.terminos_clave}")
                 estado_caundo_busca_tienda = false
                 loadingTiendaShown = false
 
@@ -717,7 +752,7 @@ fun ui_promos_cerca_de_ti(
                         }
 
                         item {
-                            if (!hayFiltros) {
+                            if (!hayFiltros && tiendaSeleccionada == null) {
                                 LoadingOutlinedField(
                                     loading = mostrar_carga_Respuesta_gemini
                                 ) {
@@ -1256,21 +1291,44 @@ fun ui_promos_cerca_de_ti(
                 }
 
                 if (mostar_bottom_sheet_datos) {
-                    bottom_sheet_filtrados_promos_y_ofertas(
-                        modoBusquedaIA,
-                        resultado_open_ia,
-                        comodidad_selet,
-                        metodo_pago,
-                        rango_precio,
-                        viewModel,
-                        {
-                            mostar_bottom_sheet_datos = false
-                        }, { txt ->
-                            valor_a_buscar = txt
-                            mostar_bottom_sheet_datos = false
-                        })
-                }
+                    Log.d("SHEET_DEBUG", "🔴 mostar_bottom_sheet_datos = true")
+                    Log.d("SHEET_DEBUG", "🏪 tiendaSeleccionada = $tiendaSeleccionada")
+                    Log.d("SHEET_DEBUG", "🏷️ tags_de_promos_filtradas = $tags_de_promos_filtradas")
 
+                    if (tiendaSeleccionada != null) {
+                        if (tags_de_promos_filtradas.isEmpty()) {
+                            Log.d("SHEET_DEBUG", "⚠️ Sin tags → Toast")
+                            Toast.makeText(context, "El negocio no cuenta con filtros", Toast.LENGTH_SHORT).show()
+                            mostar_bottom_sheet_datos = false
+                        } else {
+                            Log.d("SHEET_DEBUG", "✅ Entrando a bottom_sheet_filtrar_desde_tienda")
+                            bottom_sheet_filtrar_desde_tienda(
+                                nombre_tienda ="bnejamin",
+                                lista_filtrado_negocio = tags_de_promos_filtradas,
+                                rangos_disponibles = rangos_de_promos_filtradas,
+                                id_tienda = "benajmin",
+                                viewModel = viewModel,
+                                onClose = { mostar_bottom_sheet_datos = false }
+                            )
+                        }
+                    } else {
+                        Log.d("SHEET_DEBUG", "✅ Entrando a bottom_sheet_filtrados_promos_y_ofertas")
+                        bottom_sheet_filtrados_promos_y_ofertas(
+
+                            filtrado_ia = modoBusquedaIA,
+                            datos_filtrado = resultado_open_ia,
+                            comodidad_selet = comodidad_selet,
+                            metodo_pago = metodo_pago,
+                            rango_precio = rango_precio,
+                            viewModel = viewModel,
+                            onClose = { mostar_bottom_sheet_datos = false },
+                            onAutocompletar = { txt ->
+                                valor_a_buscar = txt
+                                mostar_bottom_sheet_datos = false
+                            }
+                        )
+                    }
+                }
 //                if (mostrar_zoom_img && promoSeleccionada != null) {
                 if (mostrar_zoom_img) {
                     key(tienda_seleccionada_clik_baner) { // 🔹 fuerza recreación al cambiar tienda
@@ -1313,9 +1371,12 @@ fun ui_promos_cerca_de_ti(
 
                 if (show_bottom_sheeet) {
                     bottom_sheet_tiendas_filtradas(
+                        id_tienda_select,
+                        localidad,
                         verificar_intener,
                         viewModelFiltros,
-                        dataclass_tienda_seleccionada, show_bottom_sheeet
+//                        dataclass_tienda_seleccionada,
+                        show_bottom_sheeet
                     ) {
                         show_bottom_sheeet = false
                     }

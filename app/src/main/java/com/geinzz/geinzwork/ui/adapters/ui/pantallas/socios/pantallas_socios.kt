@@ -160,6 +160,8 @@ fun login_socios(
     var id_tienda by remember { mutableStateOf("") }
     var moneda_total_tienda by remember { mutableStateOf(0) }
     var cargandoState by remember { mutableStateOf(false) }
+
+    val preciosState by viewmodel.preciosState.collectAsState()
     LaunchedEffect(tipo_) {
         if (tipo_.isNotEmpty() && tipo_.equals("envio")) {
             mostrar_bundle_desbloqueo = true
@@ -920,6 +922,7 @@ fun login_socios(
 
                                     "Publicaciones" -> {
                                         PantallaRecientes(
+                                            preciosState?.publicidad?.publicacionPorHora?:50,  preciosState?.publicidad?.publicacion24h?:90,
                                             estado_notificacion_promocion_publicados,
                                             id_tienda,
                                             localidad_tienda,

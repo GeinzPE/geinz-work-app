@@ -1811,13 +1811,13 @@ fun mapa_inmobilia(
                 )
             }
             if (mostar_dialog_lugare_Cercanos) {
-                bottom_sheet_tiendas_filtradas(
-                    verificar_inter,
-                    viewModelFiltros,
-                    dataclass_tienda_seleccionada, mostar_dialog_lugare_Cercanos
-                ) {
-                    mostar_dialog_lugare_Cercanos = false
-                }
+//                bottom_sheet_tiendas_filtradas(
+//                    verificar_inter,
+//                    viewModelFiltros,
+//                    dataclass_tienda_seleccionada, mostar_dialog_lugare_Cercanos
+//                ) {
+//                    mostar_dialog_lugare_Cercanos = false
+//                }
             }
             if (mostrar_lugares_hogares) {
                 dialog_servicios_tramite(

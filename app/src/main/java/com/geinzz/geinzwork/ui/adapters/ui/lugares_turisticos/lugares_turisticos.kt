@@ -128,6 +128,8 @@ fun pantalla_lugares_turisticos(
             viewmodel_lugares_turisticos.filtrar_lugares_turisticos(subCategoriaSeleccionada)
         }
     }
+
+
     LaunchedEffect(id) {
         Log.d("LaunchedEffect_ID", "ID recibido: $id")
 
@@ -199,8 +201,12 @@ fun pantalla_lugares_turisticos(
         animationSpec = tween(durationMillis = 500)
     )
     val state = state_lugares_turisticos
-
     var lista_categoria by remember { mutableStateOf(listOf<String>()) }
+    LaunchedEffect(state) {
+        if (state is viewModel_lugares_turisticos.carga_lugares_turisticos.succes) {
+            lista_categoria = listOf("Todos") + state.lista_categoria
+        }
+    }
 
     var mostar_error by remember { mutableStateOf(false) }
     var mostrar_texto_error by remember { mutableStateOf("") }
@@ -351,7 +357,7 @@ fun pantalla_lugares_turisticos(
                 is viewModel_lugares_turisticos.carga_lugares_turisticos.succes -> {
                     Log.d("adadasda123123", "succes")
                     mostar_error = false
-                    lista_categoria = listOf("Todos") + state.lista_categoria
+
                     itemsIndexed(state.lista_lugares) { index, item ->
                         Box(
                             modifier = Modifier

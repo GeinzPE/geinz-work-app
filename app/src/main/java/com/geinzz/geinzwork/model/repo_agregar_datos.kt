@@ -20,6 +20,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.GeofencingManager
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion_box_dia
@@ -562,6 +563,113 @@ class repo_agregar_datos(context: Context) {
         Log.d("OBTENER_TIENDA", "==== FIN obtenerTiendaPorId ====")
 
         return resultado
+    }
+
+
+
+    fun agregar_zonas() {
+
+        Log.d("ZONAS", "🚀 Iniciando actualización de zonas")
+
+        FirebaseFirestore.getInstance()
+            .collection("Tiendas")
+            .document("barranca")
+            .collection("barranca")
+            .get()
+            .addOnSuccessListener { documentos ->
+
+                Log.d("ZONAS", "📦 Total tiendas encontradas: ${documentos.size()}")
+
+                for (documento in documentos) {
+
+                    val nombreTienda =
+                        documento.getString("nombre_tienda") ?: "SIN_NOMBRE"
+
+                    val ubicacion =
+                        documento.get("ubicacion") as? Map<*, *>
+
+                    if (ubicacion == null) {
+                        Log.w(
+                            "ZONAS",
+                            "⚠️ Tienda: $nombreTienda (${documento.id}) no tiene ubicación"
+                        )
+                        continue
+                    }
+
+                    val latitud =
+                        (ubicacion["latitud"] as? Number)?.toDouble()
+
+                    val longitud =
+                        (ubicacion["longitud"] as? Number)?.toDouble()
+
+                    if (latitud == null || longitud == null) {
+
+                        Log.w(
+                            "ZONAS",
+                            """
+                        ⚠️ Coordenadas faltantes
+                        🏪 Tienda: $nombreTienda
+                        🆔 ID: ${documento.id}
+                        📍 Latitud: $latitud
+                        📍 Longitud: $longitud
+                        """.trimIndent()
+                        )
+
+                        continue
+                    }
+
+                    val zona = GeofencingManager.obtenerNombreZona(
+                        latitud = latitud,
+                        longitud = longitud
+                    )
+
+                    Log.d(
+                        "ZONAS",
+                        """
+                    🏪 Tienda: $nombreTienda
+                    🆔 ID: ${documento.id}
+                    📍 Latitud: $latitud
+                    📍 Longitud: $longitud
+                    🗺️ Zona detectada: $zona
+                    """.trimIndent()
+                    )
+
+                    documento.reference
+                        .update("ubicacion.zona", zona)
+                        .addOnSuccessListener {
+
+                            Log.d(
+                                "ZONAS",
+                                """
+                            ✅ Zona guardada correctamente
+                            🏪 Tienda: $nombreTienda
+                            🆔 ID: ${documento.id}
+                            🗺️ Zona: $zona
+                            """.trimIndent()
+                            )
+                        }
+                        .addOnFailureListener { e ->
+
+                            Log.e(
+                                "ZONAS",
+                                """
+                            ❌ Error guardando zona
+                            🏪 Tienda: $nombreTienda
+                            🆔 ID: ${documento.id}
+                            🗺️ Zona: $zona
+                            """.trimIndent(),
+                                e
+                            )
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e(
+                    "ZONAS",
+                    "❌ Error obteniendo tiendas",
+                    e
+                )
+            }
     }
 
 
