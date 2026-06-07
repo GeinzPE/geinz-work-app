@@ -81,7 +81,8 @@ data class ref_ubi(
     val latitud: Double=0.0,
     val longitud: Double=0.0,
     val referencia: String="",
-    val dirección: String=""
+    val dirección: String="",
+
 )
 
 data class seguridad_salud_publica(

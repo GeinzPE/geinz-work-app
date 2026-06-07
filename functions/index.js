@@ -5041,3 +5041,73 @@ function normalizar(texto) {
     .replace(/[^\w\s]/gi, "")
     .trim();
 }
+
+
+exports.eliminarTiendasVencidas = onSchedule(
+  {
+    schedule: "0 0 * * *",      // Cada día a las 12:00 AM (medianoche)
+    timeZone: "America/Lima",   // Zona horaria Perú (UTC-5)
+    timeoutSeconds: 540,        // 9 minutos máximo
+    memory: "256MiB",           // Mínimo necesario
+  },
+  async (event) => {
+    const db = admin.firestore();
+    const ahora = admin.firestore.Timestamp.now();
+
+    logger.info("Iniciando limpieza de tiendas vencidas", {
+      timestamp: ahora.toDate().toISOString(),
+    });
+
+    try {
+      // Obtener todas las localidades (ciudades) disponibles
+      const localidadesSnap = await db.collection("Tiendas").listDocuments();
+
+      let totalEliminadas = 0;
+      let totalRevisadas = 0;
+
+      // Procesar cada localidad en paralelo
+      await Promise.all(
+        localidadesSnap.map(async (localidadRef) => {
+          // Consulta optimizada: solo traer tiendas cuya fecha_fin ya pasó
+          const tiendasVencidasSnap = await db
+            .collection("Tiendas")
+            .doc(localidadRef.id)
+            .collection("nuevos_lugares")
+            .where("fecha.fecha_fin", "<=", ahora)
+            .select("id_tienda") // Solo traer el campo necesario (menos lectura/ancho de banda)
+            .get();
+
+          if (tiendasVencidasSnap.empty) return;
+
+          totalRevisadas += tiendasVencidasSnap.size;
+
+          // Eliminar en lotes de 500 (límite de Firestore)
+          const BATCH_SIZE = 500;
+          const docs = tiendasVencidasSnap.docs;
+
+          for (let i = 0; i < docs.length; i += BATCH_SIZE) {
+            const batch = db.batch();
+            const chunk = docs.slice(i, i + BATCH_SIZE);
+
+            chunk.forEach((doc) => batch.delete(doc.ref));
+
+            await batch.commit();
+            totalEliminadas += chunk.length;
+
+            logger.info(
+              `Lote eliminado en [${localidadRef.id}]: ${chunk.length} tiendas`
+            );
+          }
+        })
+      );
+
+      logger.info("Limpieza completada", {
+        totalRevisadas,
+        totalEliminadas,
+      });
+    } catch (error) {
+      logger.error("Error durante la limpieza de tiendas vencidas", { error });
+      throw error; // Relanzar para que Firebase registre el fallo
+    }
+  }
+);

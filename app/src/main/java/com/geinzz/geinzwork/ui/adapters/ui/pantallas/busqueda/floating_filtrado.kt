@@ -13,6 +13,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -120,6 +121,7 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.chisp_filtrad
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_cerca_de_ti_desable
+import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
@@ -148,6 +150,9 @@ import kotlin.math.roundToInt
 @SuppressLint("UnusedBoxWithConstraintsScope", "MissingPermission")
 @Composable
 fun FloatingBubble(
+    zona_filtrada: String,
+    zona_seleccionada: (String) -> Unit,
+    clik_zona_filtrada: ()-> Unit,
     id_user:String,
     primeraVezCercaDeTi: Boolean,
     viewmodel_floating_filtrado: viewmodel_floating_filtrado,
@@ -157,6 +162,7 @@ fun FloatingBubble(
     color_localidad: Boolean,
     color_subcategoria: Boolean,
     color_salud_seguridad: Boolean,
+    color_zona: Boolean,
     seguidad_salud: String,
     viewModel: SearchViewModel,
     viewModelFiltros: viewModel_filtado_tiendas,
@@ -306,6 +312,13 @@ fun FloatingBubble(
 
     val backgroundColor_categorias by animateColorAsState(
         targetValue = if (!color_categoria) MaterialTheme.colorScheme.surface
+        else MaterialTheme.colorScheme.surfaceVariant, animationSpec = tween(
+            durationMillis = 500, easing = LinearOutSlowInEasing
+        ), label = ""
+    )
+
+    val backgroundColor_zona by animateColorAsState(
+        targetValue = if (!color_zona) MaterialTheme.colorScheme.surface
         else MaterialTheme.colorScheme.surfaceVariant, animationSpec = tween(
             durationMillis = 500, easing = LinearOutSlowInEasing
         ), label = ""
@@ -493,7 +506,7 @@ fun FloatingBubble(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.8f)
+                        .fillMaxHeight(0.8f).animateContentSize()
                 ) {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
@@ -539,9 +552,9 @@ fun FloatingBubble(
                                                     exit = fadeOut()
                                                 ) {
                                                     chisp_filtrado_busqueda(
-                                                        color_localidad,
-                                                        filtros.localidad,
-                                                        false,
+                                                        carta_selecionada = color_localidad,
+                                                        filtrado = filtros.localidad,
+                                                        btn_visible = false,
                                                         clik_card = {
                                                             click_carta_localidad()
                                                         },
@@ -554,6 +567,7 @@ fun FloatingBubble(
                                         }
 
 // Categoria
+                                        // Categoria
                                         if (mostrarChipCategoria.value) {
                                             item {
                                                 AnimatedVisibility(
@@ -562,16 +576,16 @@ fun FloatingBubble(
                                                     exit = fadeOut()
                                                 ) {
                                                     chisp_filtrado_busqueda(
-                                                        color_categoria,
-                                                        categoria_filtrad.ifEmpty { filtros.categoria },
+                                                        carta_selecionada = color_categoria,
+                                                        filtrado = categoria_filtrad.ifEmpty { filtros.categoria },
                                                         clik_card = {
                                                             click_carta_categoria()
-
                                                         },
                                                         onClick_delete = {
                                                             click_carta_categoria_delete()
                                                             categoria_Selecionada("")
                                                             subcategoria_selecionada("")
+                                                              // 👈 limpia zona al eliminar categoría
                                                             mostrarChipCategoria.value = false
                                                             mostrarChipsubcategoria.value = false
                                                             viewModel.clearResults()
@@ -579,7 +593,6 @@ fun FloatingBubble(
                                                 }
                                             }
                                         }
-
 // Subcategoria
                                         if (mostrarChipsubcategoria.value) {
                                             item {
@@ -589,8 +602,8 @@ fun FloatingBubble(
                                                     exit = fadeOut()
                                                 ) {
                                                     chisp_filtrado_busqueda(
-                                                        color_subcategoria,
-                                                        subcategira_filtrado.ifEmpty { filtros.subcategoria },
+                                                        carta_selecionada = color_subcategoria,
+                                                        filtrado = subcategira_filtrado.ifEmpty { filtros.subcategoria },
                                                         clik_card = {
                                                             click_carta_subcategoria()
 
@@ -600,6 +613,27 @@ fun FloatingBubble(
                                                             subcategoria_selecionada("")
                                                             mostrarChipsubcategoria.value = false
                                                         })
+                                                }
+                                            }
+                                        }
+                                        if (zona_filtrada.isNotEmpty()) {
+                                            item {
+                                                AnimatedVisibility(
+                                                    visible = true,
+                                                    enter = fadeIn(),
+                                                    exit = fadeOut()
+                                                ) {
+                                                    chisp_filtrado_busqueda(
+                                                        carta_selecionada = color_zona, // 👈 ya no hardcodeado
+                                                        filtrado = zona_filtrada,
+                                                        clik_card = {
+                                                            clik_zona_filtrada() // 👈 ya no vacío
+                                                        },
+                                                        onClick_delete = {
+                                                            zona_seleccionada("")
+                                                            clik_zona_filtrada()
+                                                        }
+                                                    )
                                                 }
                                             }
                                         }
@@ -613,13 +647,12 @@ fun FloatingBubble(
                                                     exit = fadeOut()
                                                 ) {
                                                     chisp_filtrado_busqueda(
-                                                        color_salud_seguridad,
-                                                        seguidad_salud.ifEmpty { filtros.salud_seguridad },
+                                                        carta_selecionada = color_salud_seguridad,
+                                                        filtrado = seguidad_salud.ifEmpty { filtros.salud_seguridad },
                                                         clik_card = {
                                                             click_carta_seguridad()
                                                         },
                                                         onClick_delete = {
-                                                            Log.d("elimoasno_valo", "dealte")
                                                             seguridad_salud_selec("")
                                                             categoria_Selecionada("")
                                                             subcategoria_selecionada("")
@@ -748,19 +781,14 @@ fun FloatingBubble(
                                                                         categoria_Selecionada(i.nombre_cat)
                                                                         subcategoria_selecionada("")
                                                                         seguridad_salud_selec("")
-                                                                        mostrar_chip_salud_seguridad.value =
-                                                                            false
-                                                                        mostrarChipCategoria.value =
-                                                                            true
-                                                                        mostrarChipsubcategoria.value =
-                                                                            false
-                                                                        mostar_carga_subcategorias =
-                                                                            true
+                                                                        zona_seleccionada("") // 👈 al cambiar categoría también limpia zona
+                                                                        mostrar_chip_salud_seguridad.value = false
+                                                                        mostrarChipCategoria.value = true
+                                                                        mostrarChipsubcategoria.value = false
+                                                                        mostar_carga_subcategorias = true
                                                                         tiene_categorias()
-
-                                                                        filtros =
-                                                                            filtros.copy(categoria = i.nombre_cat)
-                                                                    } else {
+                                                                        filtros = filtros.copy(categoria = i.nombre_cat)
+                                                                    }else {
                                                                         scope.launch {
                                                                             // Llama al SnackbarHostState para mostrar el mensaje
                                                                             snackbarHostState.showSnackbar(
@@ -1312,27 +1340,83 @@ fun FloatingBubble(
                             spacer_vertical(10.dp)
                         }
 
-
-
                         item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight()
-                                    .clip(RoundedCornerShape(30.dp))
-                                    .background(MaterialTheme.colorScheme.surface)
-                                    .padding(15.dp)
-                            ){
-                                Column {
-                                    texto_generico_multilinea(
-                                        "Busca con proximaciones entre los negocios de Geinz",
-                                        MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier.padding(end = 20.dp)
-                                    )
+                            // ✅ Solo mostrar si hay categoría seleccionada y cerca de ti está desactivado
+                            if (categoria_filtrad.isNotEmpty() && !cerca_de_ti_enable) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentHeight()
+                                        .clip(RoundedCornerShape(30.dp))
+                                        .background(backgroundColor_zona)
+                                        .padding(15.dp)
+                                ) {
+                                    Column {
 
+                                        texto_generico_one_line(
+                                            "Busca por aproximaciones",
+                                            MaterialTheme.typography.headlineSmall,
+                                        )
+                                        spacer_vertical(12.dp)
+                                        texto_generico_multilinea(
+                                            "Filtra en las diferentes zonas de ${localidad_selecionada} según el cuadrante comercial de proximidad de Geinz.",
+                                            MaterialTheme.typography.labelSmall,
+                                            modifier = Modifier.padding(end = 20.dp)
+                                        )
+                                        spacer_vertical(12.dp)
+
+                                        val zonas = listOf(
+                                            "Barranca - Entrada y salida zona sur",
+                                            "Barranca - Zona playera",
+                                            "Barranca - Zona céntrica",
+                                            "Barranca - Salida y entrada, Panamericana Norte",
+                                            "Barranca - Entre zona playera, salida sur y zona céntrica",
+                                            "Barranca - Salida y entrada zona norte"
+                                        )
+
+                                        LazyRow(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            items(zonas) { zona ->
+                                                val estaSeleccionada = zona_filtrada == zona
+
+                                                Row(
+                                                    modifier = Modifier
+                                                        .clip(CircleShape)
+                                                        .background(if (estaSeleccionada) Color.Black else MaterialTheme.colorScheme.primary)
+                                                        .height(45.dp)
+                                                        .padding(horizontal = 15.dp, vertical = 10.dp)
+                                                        .clickable(
+                                                            indication = null,
+                                                            interactionSource = remember { MutableInteractionSource() }
+                                                        ) {
+                                                            if (estaSeleccionada) { // 👈 si ya está seleccionada muestra snackbar
+                                                                scope.launch {
+                                                                    snackbarHostState.showSnackbar(
+                                                                        message = "${zona.capitalizeFirst()} ya se encuentra seleccionada",
+                                                                        duration = SnackbarDuration.Short
+                                                                    )
+                                                                }
+                                                            } else {
+                                                                zona_seleccionada(zona)
+                                                            }
+                                                        },
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    texto_generico_one_line(
+                                                        zona.capitalizeFirst(),
+                                                        color = Color.White,
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
+
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
+                                spacer_vertical(10.dp)
                             }
-                            spacer_vertical(10.dp)
                         }
 
                         item {
@@ -1382,6 +1466,9 @@ fun FloatingBubble(
                                             onCheckedChange = {
                                                 if(id_user!=""){
                                                 if (seguidad_salud.isEmpty()) {
+                                                    if (it) {
+                                                        zona_seleccionada("") // 👈 esto limpia el filtro de zona
+                                                    }
                                                     fun_cerca_de_ti_enable(it)
                                                 } else {
                                                     mostra_dialog_salud_Seguridad_cerano = true

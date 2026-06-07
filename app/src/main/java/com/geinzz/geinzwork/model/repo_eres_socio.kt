@@ -405,14 +405,14 @@ class repo_eres_socio {
             "ubicacion.latitud" to lat,
             "ubicacion.longitud" to lng,
             "geohash" to geohash,
-            "zona_geografica" to zona
+            "ubicacion.zona" to zona
         )
 
         val camposLugar = mapOf(
             "ubicacion.latitud" to lat,
             "ubicacion.longitud" to lng,
             "geohash" to geohash,
-            "zona_geografica" to zona
+            "zona" to zona
         )
 
         coroutineScope {
@@ -1689,7 +1689,7 @@ class repo_eres_socio {
                 withTimeout(20_000) {
                     extraer_datos_de_texto_completo(
                         i.informacion.titulo + i.informacion.descripcion,
-                        i.informacion.categoria
+                        i.informacion.categoria,i.informacion.nombre_tienda
                     )
                 }
             } catch (e: TimeoutCancellationException) {
@@ -1802,14 +1802,14 @@ class repo_eres_socio {
 
     suspend fun extraer_datos_de_texto_completo(
         texto: String,
-        categoria_tienda: String
+        categoria_tienda: String,nombre_negocio:String
     ): List<String> {
 
         val model = Firebase.ai(
             backend = GenerativeBackend.googleAI()
         ).generativeModel("gemini-2.5-flash")
 
-        val prompt = construir_prompt_NLP_para_busqueda(texto, categoria_tienda)
+        val prompt = construir_prompt_NLP_para_busqueda(texto, categoria_tienda,nombre_negocio)
 
         return try {
 

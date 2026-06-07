@@ -12,6 +12,26 @@ data class dataclass_repo_agregar_datos(
     val numero_telefono: Int
 )
 
+data class data_class_turismo(
+    val titulo: String = "",
+    val descripcion: String = "",
+    val categoria: List<String> = emptyList(),
+    val geohash: String = "",
+    val id: String = "",
+    val img: img_turismo = img_turismo(),
+    val ubicacion: ubicacion_turismo = ubicacion_turismo()
+)
+
+data class img_turismo(
+    val principal: String = "",
+    val lista_img: List<String> = emptyList()
+)
+
+data class ubicacion_turismo(
+    val direccion: String = "",
+    val latitud: Double = 0.0,
+    val longitud: Double = 0.0
+)
 @Parcelize
 data class dataclass_lugares_db(
     var descripcion: String = "",

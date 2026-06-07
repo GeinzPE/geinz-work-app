@@ -12,13 +12,6 @@ data class Item(
     val lista: List<String> = emptyList(),
     val latitud: Double=0.0,
     val longitud: Double=0.0,
-    val geohasing :String
+    val geohasing :String,
+    val zona: String = ""
 )
-
-@Serializable
-data class Resultado_sub_cat(
-    val categoria: String,
-//    val subcategoria: String? = null,
-//    val listaItems: List<Item> = emptyList()
-)
-

@@ -5,6 +5,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 
 data class data_class_tienda_geinz(
+    val base64:String,
     val categoria_tienda: String,
     val descripcion: String,
     val geogash: String,

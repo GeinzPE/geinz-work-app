@@ -1978,59 +1978,61 @@ fun baner_widget_tienda_geinz_baner(
     val bloqueManana = bloques_hoy.getOrNull(0)
     val bloqueTarde = bloques_hoy.getOrNull(1)
 
-    val hAperturaAM = remember { mutableStateOf(bloqueManana?.h_apertura ?: "") }
-    val hCierreAM = remember { mutableStateOf(bloqueManana?.h_cierre ?: "") }
-    val hAperturaPM = remember { mutableStateOf(bloqueTarde?.h_apertura ?: "") }
-    val hCierrePM = remember { mutableStateOf(bloqueTarde?.h_cierre ?: "") }
+    val hAperturaAM = remember(bloqueManana) { mutableStateOf(bloqueManana?.h_apertura ?: "") }
+    val hCierreAM = remember(bloqueManana) { mutableStateOf(bloqueManana?.h_cierre ?: "") }
+    val hAperturaPM = remember(bloqueTarde) { mutableStateOf(bloqueTarde?.h_apertura ?: "") }
+    val hCierrePM = remember(bloqueTarde) { mutableStateOf(bloqueTarde?.h_cierre ?: "") }
 
     var por_removar by remember { mutableStateOf(false) }
 
-    val lista_descuentos = listOf(
+    val lista_descuentos = remember(cargar_precio_activacione?.planesActivacion) {
+        listOf(
 
-        Descuentos(
-            meses = "20 días",
-            icono_descuento = null,
-            descuento_off = "",
-            precio_anterior = "",
-            procentaje_ahorro = "",
-            porcentaje_int = 0, meses_agregados = "20 días"
-        ),
-        Descuentos(
-            meses = "1 mes",
-            icono_descuento = Icons.Filled.LocalFireDepartment,
-            descuento_off = "-5%off",
-            precio_anterior =(cargar_precio_activacione?.planesActivacion["1_mes"] ?: 0).toString(),
-            procentaje_ahorro = "5%",
-            porcentaje_int = 5, "1 mes"
-        ),
+            Descuentos(
+                meses = "20 días",
+                icono_descuento = null,
+                descuento_off = "",
+                precio_anterior = "",
+                procentaje_ahorro = "",
+                porcentaje_int = 0, meses_agregados = "20 días"
+            ),
+            Descuentos(
+                meses = "1 mes",
+                icono_descuento = Icons.Filled.LocalFireDepartment,
+                descuento_off = "-5%off",
+                precio_anterior =(cargar_precio_activacione?.planesActivacion["1_mes"] ?: 0).toString(),
+                procentaje_ahorro = "5%",
+                porcentaje_int = 5, "1 mes"
+            ),
 
-        Descuentos(
-            meses = "2 meses",
-            icono_descuento = Icons.Filled.LocalFireDepartment,
-            descuento_off = "-10%off",
-            precio_anterior = (cargar_precio_activacione?.planesActivacion["2_meses"] ?: 0).toString(),
-            procentaje_ahorro = "10%",
-            porcentaje_int = 10, "2 mes"
-        ),
+            Descuentos(
+                meses = "2 meses",
+                icono_descuento = Icons.Filled.LocalFireDepartment,
+                descuento_off = "-10%off",
+                precio_anterior = (cargar_precio_activacione?.planesActivacion["2_meses"] ?: 0).toString(),
+                procentaje_ahorro = "10%",
+                porcentaje_int = 10, "2 mes"
+            ),
 
-        Descuentos(
-            meses = "3 meses",
-            icono_descuento = Icons.Filled.LocalFireDepartment,
-            descuento_off = "-20%off",
-            precio_anterior = (cargar_precio_activacione?.planesActivacion["3_meses"] ?: 0).toString(),
-            procentaje_ahorro = "20%",
-            porcentaje_int = 20, "3 mes"
-        ),
+            Descuentos(
+                meses = "3 meses",
+                icono_descuento = Icons.Filled.LocalFireDepartment,
+                descuento_off = "-20%off",
+                precio_anterior = (cargar_precio_activacione?.planesActivacion["3_meses"] ?: 0).toString(),
+                procentaje_ahorro = "20%",
+                porcentaje_int = 20, "3 mes"
+            ),
 
-        Descuentos(
-            meses = "4 meses",
-            icono_descuento = Icons.Filled.LocalFireDepartment,
-            descuento_off = "-30%off",
-            precio_anterior = (cargar_precio_activacione?.planesActivacion["4_meses"] ?: 0).toString(),
-            procentaje_ahorro = "30%",
-            porcentaje_int = 30, "4 mes"
+            Descuentos(
+                meses = "4 meses",
+                icono_descuento = Icons.Filled.LocalFireDepartment,
+                descuento_off = "-30%off",
+                precio_anterior = (cargar_precio_activacione?.planesActivacion["4_meses"] ?: 0).toString(),
+                procentaje_ahorro = "30%",
+                porcentaje_int = 30, "4 mes"
+            )
         )
-    )
+    }
 
 
     val puntosSeguros = item.total_puntos.toLongOrNull() ?: 0L
@@ -2362,7 +2364,8 @@ fun baner_widget_tienda_geinz_baner(
                                     .align(Alignment.CenterEnd)
                                     .zIndex(1f)
                                     .alpha(alphaRight)
-                                    .background(Brush.run { horizontalGradient(colors = end_shadow_bottom_sheet_default) })
+                                    .background(Brush.horizontalGradient(colors = end_shadow_bottom_sheet_default))
+
                             )
                         }
 

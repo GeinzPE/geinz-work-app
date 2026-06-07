@@ -9,10 +9,17 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,7 +44,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -73,6 +82,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -100,7 +110,9 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_filtrar_desde_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_todas_las_tiendas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.snackbar_tienda_con_logo
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
 import com.geinzz.geinzwork.utils.constantes.constantes_reprodutor_video.GaleriaHorizontalInstagram_promociones_solo_imagen
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
@@ -109,6 +121,8 @@ import com.geinzz.geinzwork.viewModels.viewmodel_datos_promociones
 import com.geinzz.geinzwork.viewModels.viewmodel_promos_cercanas
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+
+
 
 @Composable
 fun ui_promos_cerca_de_ti(
@@ -139,12 +153,17 @@ fun ui_promos_cerca_de_ti(
 
 
     var tienda_seleccionada_ccon_mas_de_una_promo by remember { mutableStateOf(false) }
-
+    var tags_tienda_confirmada by remember { mutableStateOf<List<String>>(emptyList()) }
+    var rangos_tienda_confirmada by remember { mutableStateOf<List<String>>(emptyList()) }
 
     var mostrar_zoom_img by remember { mutableStateOf(false) }
     var lista_img by remember {
         mutableStateOf<List<String>>(emptyList())
     }
+    var mostrar_snackbar_tienda by remember { mutableStateOf(false) }
+    var snackbar_logo_tienda by remember { mutableStateOf("") }
+    var snackbar_total_promos by remember { mutableStateOf(0) }
+    var snackbar_nombre_tienda_snap by remember { mutableStateOf("") }
 
     var mostrar_bottom_shet_registrate by remember { mutableStateOf(false) }
     val categoriaSeleccionada by viewModel.categoria_seleccionada.collectAsState()
@@ -156,7 +175,7 @@ fun ui_promos_cerca_de_ti(
     val lista_resultados_gemini by viewModel.listaResultados.collectAsState()
     var limpiar_campo_de_busqueda by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
-
+    var mostrar_todas_tiendas by remember { mutableStateOf(false) }
 
     val lista_filtrados_pagos = remember {
         listOf(
@@ -213,13 +232,10 @@ fun ui_promos_cerca_de_ti(
 
     val hayMasPaginas by viewModel.hayMasPaginas.collectAsState()
     val cargandoPagina by viewModel.cargandoPagina.collectAsState()
+    val filtro_sin_resultados by viewModel.filtro_tienda_sin_resultados.collectAsState()
 
-//    val resultado = viewModel.resultado
-//    val res_filtrado_algolia =viewModel.resultado_encontrado_algolia
-//    LaunchedEffect(resultado,res_filtrado_algolia) {
-//        Log.d("resultado", "$resultado")
-//        Log.d("resultado_filtraod", "$res_filtrado_algolia")
-//    }
+
+
 
     var promoSeleccionada_unica by remember {
         mutableStateOf<dataclass_promociones_cerca_de_ti?>(
@@ -256,10 +272,23 @@ fun ui_promos_cerca_de_ti(
 
     var cargaFinalizada by remember { mutableStateOf(false) }
     val tiendasConMasDeUnaPromo by viewModel.tiendas_con_mas_de_una_promo.collectAsState()
-    LaunchedEffect(tiendasConMasDeUnaPromo) {
-        Log.d("tiendasConMasDeUnaPromo", "${tiendasConMasDeUnaPromo.toString()}")
+    var nombre_tienda_seleccionada by remember { mutableStateOf("") }
+    var esperandoConfirmacionTienda by remember { mutableStateOf(false) }
+    val tiendasOrdenadas by remember(tiendasConMasDeUnaPromo, tiendaSeleccionada) {
+        derivedStateOf {
+            if (tiendaSeleccionada == null) {
+                tiendasConMasDeUnaPromo
+            } else {
+                val seleccionada = tiendasConMasDeUnaPromo.find { it.id == tiendaSeleccionada }
+                val resto = tiendasConMasDeUnaPromo.filter { it.id != tiendaSeleccionada }
+                if (seleccionada != null) listOf(seleccionada) + resto
+                else tiendasConMasDeUnaPromo
+            }
+        }
     }
     var mostar_bottom_sheet_datos by remember { mutableStateOf(false) }
+    var filtroTiendaAplicado by remember { mutableStateOf(false) }
+    var nombre_tienda_mostrando by remember { mutableStateOf("") }
     LaunchedEffect(activar_promo_params) {
 
         Log.d("PROMO_FLOW", "▶ LaunchedEffect activar_promo_params = '$activar_promo_params'")
@@ -285,6 +314,23 @@ fun ui_promos_cerca_de_ti(
     }
     var mostrar_carga_Respuesta_gemini by remember { mutableStateOf(false) }
     var mostrar_lupa_busqueda by remember { mutableStateOf(true) }
+
+    LaunchedEffect(filtro_sin_resultados) {
+        if (filtro_sin_resultados) {
+//            Toast.makeText(
+//                context,
+//                "No hay promos con ese filtro en esta tienda",
+//                Toast.LENGTH_SHORT
+//            ).show()
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = "No hay promos con ese filtro en esta tienda",
+                    duration = SnackbarDuration.Short
+                )
+            }
+            viewModel.resetear_filtro_sin_resultados()
+        }
+    }
 
     LaunchedEffect(datos_promo_parametros) {
 
@@ -406,20 +452,7 @@ fun ui_promos_cerca_de_ti(
     LaunchedEffect(localidad) {
         viewModel.obtener_promociones_2da("barranca", "", null)
     }
-//    LaunchedEffect(show_bottom_sheeet) {
-//        if (show_bottom_sheeet) {
-//            viewModelFiltros.obtener_campos_tiendas_por_id(
-//                localidad,
-//                id_tienda_select
-//            )
-//        }
-//    }
-//    LaunchedEffect(datosTienda) {
-//        if (!datosTienda.isNullOrEmpty()) {
-//            dataclass_tienda_seleccionada =
-//                datosTienda!!.first()
-//        }
-//    }
+
     var primeraVez by remember { mutableStateOf(true) }
 
     LaunchedEffect(
@@ -573,6 +606,9 @@ fun ui_promos_cerca_de_ti(
 
     LaunchedEffect(estado) {
         if (estado is viewmodel_promos_cercanas.estado_carga_promociones.succes) {
+            // 🔥 Si estamos esperando confirmación del usuario → NO actualizar promos
+            if (esperandoConfirmacionTienda) return@LaunchedEffect
+
             val nuevos = (estado as viewmodel_promos_cercanas.estado_carga_promociones.succes).items
             promos = nuevos.distinctBy {
                 it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion
@@ -633,9 +669,6 @@ fun ui_promos_cerca_de_ti(
             }
 
             is viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.succes -> {
-                // 👇 AGREGA ESTO
-                Log.d("TAGS_DEBUG", "promosFiltradas size=${promosFiltradas.size}")
-                Log.d("TAGS_DEBUG", "terminos de primera promo=${promosFiltradas.firstOrNull()?.dataclass_promociones_cerca_de_ti?.terminos_clave}")
                 estado_caundo_busca_tienda = false
                 loadingTiendaShown = false
 
@@ -643,21 +676,14 @@ fun ui_promos_cerca_de_ti(
                 .estado_carga_tienda_Seleccionada.succes
 
                 promosFiltradas = data.items
-
-                // 🔥 cerrar loading
                 snackbarHostState.currentSnackbarData?.dismiss()
 
-                val result = snackbarHostState.showSnackbar(
-                    message = "Resultados filtrados listos",
-                    actionLabel = "Ver ${promosFiltradas.size} promociones",
-                    duration = SnackbarDuration.Indefinite
-                )
-
-                if (result == SnackbarResult.ActionPerformed) {
-                    promos = promosFiltradas
-                }
-
-                viewModel.resetear_respuesta_de_gemini()
+                // 🔥 Preparar datos del snackbar custom
+                snackbar_total_promos = data.total
+                snackbar_nombre_tienda_snap = nombre_tienda_seleccionada
+                snackbar_logo_tienda = tiendasConMasDeUnaPromo
+                    .find { it.id == tiendaSeleccionada }?.logo_img ?: ""
+                mostrar_snackbar_tienda = true
             }
 
             is viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.error -> {
@@ -725,10 +751,7 @@ fun ui_promos_cerca_de_ti(
 
             // ---------- SUCCESS ----------
             is viewmodel_promos_cercanas.estado_carga_promociones.succes -> {
-//                val tiendasConMasDeUnaPromo: List<tiendas_con_mas_de_una_promo> = promos
 
-//                tiendasConMasDeUnaPromo.flatMap { it.lista_tiendas_con_mas_promo }
-//                    .distinctBy { it.id }
                 Box(modifier = Modifier.fillMaxSize()) {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -752,7 +775,7 @@ fun ui_promos_cerca_de_ti(
                         }
 
                         item {
-                            if (!hayFiltros && tiendaSeleccionada == null) {
+                            if (!hayFiltros && !filtroTiendaAplicado && tiendaSeleccionada == null) {
                                 LoadingOutlinedField(
                                     loading = mostrar_carga_Respuesta_gemini
                                 ) {
@@ -991,7 +1014,15 @@ fun ui_promos_cerca_de_ti(
                                     (rango_precio == null || rango_precio == "Sin precio") &&
                                     lista_resultados_gemini.isEmpty()
                                 ) {
-                                    items(tiendasConMasDeUnaPromo) { tienda ->
+                                    items(tiendasOrdenadas.take(4), key = { it.id }) { tienda ->
+                                        Box(
+                                            modifier = Modifier.animateItem(
+                                                placementSpec = tween(
+                                                    durationMillis = 400,
+                                                    easing = FastOutSlowInEasing
+                                                )
+                                            )
+                                        ){
                                         estilo_ig_header(
                                             estado_caundo_busca_tienda,
                                             "",
@@ -1000,119 +1031,109 @@ fun ui_promos_cerca_de_ti(
                                             seleccionada = tienda.id == tiendaSeleccionada,
                                             img_clikeada = { id ->
                                                 if (tiendaSeleccionada == id) {
+                                                    // deseleccionar
                                                     tiendaSeleccionada = null
-                                                    viewModel.obtener_promociones_2da(
-                                                        localidad,
-                                                        "",
-                                                        null
-                                                    )
+                                                    nombre_tienda_seleccionada = ""
+                                                    nombre_tienda_mostrando = "" // 👈 aquí
+                                                    esperandoConfirmacionTienda = false
+                                                    filtroTiendaAplicado = false
+                                                    tags_tienda_confirmada = emptyList()   // 👈 agregar
+                                                    rangos_tienda_confirmada = emptyList()
+                                                    viewModel.limpiarSubcategorias()    // ← limpiar
+                                                    viewModel.limpiarRangoPrecio()      // ← limpiar
+                                                    viewModel.obtener_promociones_2da(localidad, "", null)
                                                 } else {
+                                                    // cambiar a otra tienda
                                                     tiendaSeleccionada = id
-                                                    viewModel.obtener_promociones_2da(
-                                                        localidad,
-                                                        "",
-                                                        tiendaSeleccionada
-                                                    )
+                                                    filtroTiendaAplicado = false
+                                                    nombre_tienda_seleccionada = tienda.nombre_tienda
+                                                    esperandoConfirmacionTienda = false
+                                                    viewModel.limpiarSubcategorias()    // ← limpiar al cambiar también
+                                                    viewModel.limpiarRangoPrecio()      // ← limpiar al cambiar también
+                                                    viewModel.obtener_promociones_2da(localidad, "", tiendaSeleccionada)
                                                 }
                                             }
                                         )
+                                        }
+                                    }
+                                    if (tiendasOrdenadas.size > 4) {
+                                        item {
+                                            Column(
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                modifier = Modifier.width(80.dp)
+                                            ) {
+                                                Box(
+                                                    contentAlignment = Alignment.Center,
+                                                    modifier = Modifier
+                                                        .size(70.dp)
+                                                        .clip(CircleShape)
+                                                        .background(MaterialTheme.colorScheme.surface)
+                                                        .clickable(
+                                                            indication = null,
+                                                            interactionSource = remember { MutableInteractionSource() }
+                                                        ) {
+                                                            mostrar_todas_tiendas = true
+                                                        }
+                                                ) {
+                                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.MoreHoriz,
+                                                            contentDescription = null,
+                                                            tint = Color.White,
+                                                            modifier = Modifier.size(22.dp)
+                                                        )
+
+                                                    }
+                                                }
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                texto_generico_one_line(
+                                                    "Ver todas",
+                                                    style = MaterialTheme.typography.bodySmall
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
-
                         }
-
-//                        item {
-//                            LazyRow(
-//                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-//                                contentPadding = PaddingValues(horizontal = 10.dp)
-//                            ) {
-//                                items(subcategorias) { subcategoria ->
-//                                    val seleccionado = subCategoriaSeleccionada == subcategoria
-//                                    chisp_filtrado_busqueda(
-//                                        carta_selecionada = seleccionado,
-//                                        filtrado = subcategoria.capitalizeFirst(),
-//                                        btn_visible = false,
-//                                        clik_card = {
-//                                            subCategoriaSeleccionada = subcategoria
-//                                            tiendaSeleccionada = null
-//                                            if (subcategoria != "Todos") {
-//
-//                                            }
-//                                        },
-//                                        onClick_delete = {}
-//                                    )
-//                                }
-//                            }
-//                        }
-
-//                        item {
-//                            LazyRow(
-//                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-//                                contentPadding = PaddingValues(horizontal = 10.dp)
-//                            ) {
-//                                items(lista_filtrados_pagos) { subcategoria ->
-//
-//                                    val seleccionado = metodo_pago.contains(subcategoria)
-//
-//                                    chisp_filtrado_busqueda(
-//                                        carta_selecionada = seleccionado,
-//                                        filtrado = subcategoria.capitalizeFirst(),
-//                                        btn_visible = false,
-//                                        clik_card = {
-//                                            viewModel.toggleMetodoPago(subcategoria)
-//                                        },
-//                                        onClick_delete = {}
-//                                    )
-//                                }
-//                            }
-//                        }
-//
-//                        item {
-//                            LazyRow(
-//                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-//                                contentPadding = PaddingValues(horizontal = 10.dp)
-//                            ) {
-//                                items(rango_precios) { subcategoria ->
-//                                    val seleccionado = rango_precio == subcategoria
-//                                    chisp_filtrado_busqueda(
-//                                        carta_selecionada = seleccionado,
-//                                        filtrado = subcategoria.capitalizeFirst(),
-//                                        btn_visible = false,
-//                                        clik_card = {
-//                                            viewModel.setearRangoPrecioDesdeNLP(subcategoria)
-//                                        },
-//                                        onClick_delete = {}
-//                                    )
-//                                }
-//                            }
-//                        }
-//
-//
-//
-//                        item {
-//                            LazyRow(
-//                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-//                                contentPadding = PaddingValues(horizontal = 10.dp)
-//                            ) {
-//                                items(lista_comodidades) { subcategoria ->
-//
-//                                    val seleccionado = comodidad_selet.contains(subcategoria)
-//
-//                                    chisp_filtrado_busqueda(
-//                                        carta_selecionada = seleccionado,
-//                                        filtrado = subcategoria.capitalizeFirst(),
-//                                        btn_visible = false,
-//                                        clik_card = {
-//                                            viewModel.togleRango_select(subcategoria)
-//                                        },
-//                                        onClick_delete = {}
-//                                    )
-//                                }
-//                            }
-//                        }
-
-
+                        item {
+                            AnimatedVisibility(
+                                visible = tiendaSeleccionada != null &&
+                                        nombre_tienda_mostrando.isNotEmpty() &&
+                                        nombre_tienda_mostrando != nombre_tienda_seleccionada,
+                                enter = fadeIn() + expandVertically(),
+                                exit = fadeOut() + shrinkVertically()
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .padding(horizontal = 14.dp, vertical = 4.dp)
+                                        .background(
+                                            color = Color(0xFF1E1E1E),
+                                            shape = RoundedCornerShape(50)
+                                        )
+                                        .border(
+                                            width = 1.dp,
+                                            color = Color(0xFF3A3A3A),
+                                            shape = RoundedCornerShape(50)
+                                        )
+                                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Store,
+                                        contentDescription = null,
+                                        tint = Color(0xFFAAAAAA),
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    texto_generico_one_line(
+                                        texto = "Ahora estás viendo contenido de $nombre_tienda_mostrando",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFFCCCCCC)
+                                    )
+                                }
+                            }
+                        }
                         items(
                             items = promos,
                             key = { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
@@ -1286,6 +1307,35 @@ fun ui_promos_cerca_de_ti(
                         }
 
                     }
+                    AnimatedVisibility(
+                        visible = mostrar_snackbar_tienda,
+                        enter = fadeIn() + slideInVertically { it },
+                        exit = fadeOut() + slideOutVertically { it },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .zIndex(10f)
+                    ) {
+                        snackbar_tienda_con_logo(
+                            logo_url = snackbar_logo_tienda,
+                            total_promos = snackbar_total_promos,
+                            onVer = {
+                                mostrar_snackbar_tienda = false
+                                promos = promosFiltradas
+                                filtroTiendaAplicado = true
+                                nombre_tienda_mostrando = snackbar_nombre_tienda_snap
+                                tags_tienda_confirmada = promosFiltradas
+                                    .flatMap { it.dataclass_promociones_cerca_de_ti.terminos_clave }
+                                    .distinct().filter { it.isNotEmpty() }
+                                rangos_tienda_confirmada = promosFiltradas
+                                    .map { it.dataclass_promociones_cerca_de_ti.rango }
+                                    .filter { it.isNotEmpty() }.distinct()
+                            },
+                            onDismiss = {
+                                mostrar_snackbar_tienda = false
+                                esperandoConfirmacionTienda = false
+                            }
+                        )
+                    }
                     SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
 
                 }
@@ -1296,17 +1346,17 @@ fun ui_promos_cerca_de_ti(
                     Log.d("SHEET_DEBUG", "🏷️ tags_de_promos_filtradas = $tags_de_promos_filtradas")
 
                     if (tiendaSeleccionada != null) {
-                        if (tags_de_promos_filtradas.isEmpty()) {
+                        if (tags_tienda_confirmada.isEmpty()) {
                             Log.d("SHEET_DEBUG", "⚠️ Sin tags → Toast")
                             Toast.makeText(context, "El negocio no cuenta con filtros", Toast.LENGTH_SHORT).show()
                             mostar_bottom_sheet_datos = false
                         } else {
                             Log.d("SHEET_DEBUG", "✅ Entrando a bottom_sheet_filtrar_desde_tienda")
                             bottom_sheet_filtrar_desde_tienda(
-                                nombre_tienda ="bnejamin",
-                                lista_filtrado_negocio = tags_de_promos_filtradas,
-                                rangos_disponibles = rangos_de_promos_filtradas,
-                                id_tienda = "benajmin",
+                                nombre_tienda = nombre_tienda_mostrando,       // 👈 nombre confirmado
+                                lista_filtrado_negocio = tags_tienda_confirmada,   // 👈 tags confirmados
+                                rangos_disponibles = rangos_tienda_confirmada,     // 👈 rangos confirmados
+                                id_tienda = tiendaSeleccionada ?: "",
                                 viewModel = viewModel,
                                 onClose = { mostar_bottom_sheet_datos = false }
                             )
@@ -1351,6 +1401,21 @@ fun ui_promos_cerca_de_ti(
                     }
                     return
                 }
+                if (mostrar_todas_tiendas) {
+                    bottom_sheet_todas_las_tiendas(
+                        tiendas = tiendasConMasDeUnaPromo,
+                        tiendaSeleccionada = tiendaSeleccionada,
+                        onTiendaClick = { tienda ->
+                            tiendaSeleccionada = tienda.id
+                            nombre_tienda_seleccionada = tienda.nombre_tienda
+                            esperandoConfirmacionTienda = false
+                            viewModel.limpiarSubcategorias()
+                            viewModel.limpiarRangoPrecio()
+                            viewModel.obtener_promociones_2da(localidad, "", tienda.id)
+                        },
+                        onClose = { mostrar_todas_tiendas = false }
+                    )
+                }
                 if (mostrar_bottom_shet_registrate) {
                     bottom_sheet_registrate(
                         ondimis = {
@@ -1389,8 +1454,6 @@ fun ui_promos_cerca_de_ti(
 
     }
 }
-
-
 @Composable
 fun carta_promocion_geinz(
     porcentajeMatch: Int,

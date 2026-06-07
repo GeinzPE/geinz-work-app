@@ -2,10 +2,12 @@ package com.geinzz.geinzwork.model
 
 import Item
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.geinzz.geinzwork.data.model.data_class_tienda_geinz
+import com.geinzz.geinzwork.data.model.data_class_turismo
 import com.geinzz.geinzwork.data.model.dataclass_lugares_db
 import com.geinzz.geinzwork.data.model.dataclass_novedades.dataclass_novedades_geinz
 import com.geinzz.geinzwork.data.model.dataclass_novedades.dataclass_novedades_geinz_activar_descativar_aloglia
@@ -20,48 +22,57 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioDia
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.herramientas_geinz.constantes.FirebaseSecundario
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenParaWhatsappDB
+import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.procesarImagenWebPSinRecorte
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.GeofencingManager
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.toMetodoContacto
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_horario_atencion_box_dia
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
 import kotlin.text.get
 
 class repo_agregar_datos(context: Context) {
-    private val db: FirebaseFirestore
+//    private val db: FirebaseFirestore
 
     val db2 = FirebaseFirestore.getInstance()
 
     init {
         // Inicializa Firebase secundario una sola vez
         FirebaseSecundario.inicializar(context)
-        db = FirebaseSecundario.getFirestore()
+//        db = FirebaseSecundario.getFirestore()
     }
 
-    fun agregar_datos(dataclass_repo_agregar_datos: dataclass_repo_agregar_datos) {
-        val hashMap = hashMapOf<String, Any>(
-            "numero" to dataclass_repo_agregar_datos.numero_telefono,
-            "lugar_nobre" to dataclass_repo_agregar_datos.nombre_lugar,
-            "lat" to dataclass_repo_agregar_datos.lat,
-            "log" to dataclass_repo_agregar_datos.long
-        )
-        db.collection("datos_lugares").add(hashMap).addOnSuccessListener { documentReference ->
-            val idGenerado = documentReference.id
-            documentReference.update("id", idGenerado)
-                .addOnSuccessListener {
-                    Log.d("FirebaseRepo", "Documento agregado y ID actualizado correctamente.")
-                }
-                .addOnFailureListener { e ->
-                    Log.e("FirebaseRepo", "Error al actualizar el ID: ${e.message}")
-                }
-        }
-    }
+//    fun agregar_datos(dataclass_repo_agregar_datos: dataclass_repo_agregar_datos) {
+//        val hashMap = hashMapOf<String, Any>(
+//            "numero" to dataclass_repo_agregar_datos.numero_telefono,
+//            "lugar_nobre" to dataclass_repo_agregar_datos.nombre_lugar,
+//            "lat" to dataclass_repo_agregar_datos.lat,
+//            "log" to dataclass_repo_agregar_datos.long
+//        )
+//        db.collection("datos_lugares").add(hashMap).addOnSuccessListener { documentReference ->
+//            val idGenerado = documentReference.id
+//            documentReference.update("id", idGenerado)
+//                .addOnSuccessListener {
+//                    Log.d("FirebaseRepo", "Documento agregado y ID actualizado correctamente.")
+//                }
+//                .addOnFailureListener { e ->
+//                    Log.e("FirebaseRepo", "Error al actualizar el ID: ${e.message}")
+//                }
+//        }
+//    }
 
     fun agraegar_datos_db_2(data_class_tienda_geinz: data_class_tienda_geinz) {
+        val zona = GeofencingManager.obtenerNombreZona(
+            data_class_tienda_geinz.ubicacion.latitud,
+            data_class_tienda_geinz.ubicacion.longitud
+        )
         val hasmap = hashMapOf<String, Any>(
             "categoria_tienda" to data_class_tienda_geinz.categoria_tienda,
             "descripcion" to data_class_tienda_geinz.descripcion,
@@ -75,26 +86,38 @@ class repo_agregar_datos(context: Context) {
             "nombre_tienda" to data_class_tienda_geinz.nombre_tienda,
             "pagado" to data_class_tienda_geinz.pagado,
             "subcategoria" to data_class_tienda_geinz.subcategoria,
-            "ubicacion" to data_class_tienda_geinz.ubicacion,
+            "ubicacion" to hashMapOf(
+                "latitud" to data_class_tienda_geinz.ubicacion.latitud,
+                "longitud" to data_class_tienda_geinz.ubicacion.longitud,
+                "dirección" to data_class_tienda_geinz.ubicacion.dirección,
+                "referencia" to data_class_tienda_geinz.ubicacion.referencia,
+                "zona" to zona
+            ),
             "img_tienda" to img_tienda(),
             "fechas" to data_class_tienda_geinz.fechas,
             "timeSlamp" to data_class_tienda_geinz.timeSlamp,
             "puntos_tienda" to data_class_tienda_geinz.puntos_tienda
         )
-        db2.collection("Tiendas").document(data_class_tienda_geinz.localida_tienda)
+
+        db2.collection("Tiendas")
+            .document(data_class_tienda_geinz.localida_tienda)
             .collection(data_class_tienda_geinz.localida_tienda)
-            .document(data_class_tienda_geinz.id_tienda).set(hasmap).addOnSuccessListener { e ->
+            .document(data_class_tienda_geinz.id_tienda)
+            .set(hasmap)
+            .addOnSuccessListener {
                 Log.d("datos_agregados", "correcto")
+
                 val datos = Item(
                     nombre = data_class_tienda_geinz.nombre_tienda,
                     lugar = data_class_tienda_geinz.localida_tienda,
                     id_tienda = data_class_tienda_geinz.id_tienda,
                     categoria = data_class_tienda_geinz.categoria_tienda,
-                    img = data_class_tienda_geinz.lista_img.logo_tienda,
+                    img = "",
                     lista = data_class_tienda_geinz.subcategoria,
                     latitud = data_class_tienda_geinz.ubicacion.latitud,
                     longitud = data_class_tienda_geinz.ubicacion.longitud,
                     geohasing = data_class_tienda_geinz.geogash
+
                 )
                 agregar_datos_alglia(datos)
 
@@ -103,24 +126,27 @@ class repo_agregar_datos(context: Context) {
                     direccion = data_class_tienda_geinz.ubicacion.dirección,
                     horario_atencion = data_class_tienda_geinz.horario_atencion,
                     id_tienda = data_class_tienda_geinz.id_tienda,
-                    logo_img = data_class_tienda_geinz.lista_img.logo_tienda,
+                    logo_img = "",
                     nombre_tienda = data_class_tienda_geinz.nombre_tienda,
                     descripcion = data_class_tienda_geinz.descripcion,
                     lista_subcateogira = data_class_tienda_geinz.subcategoria,
-                    localidad_tienda = data_class_tienda_geinz.localida_tienda, fecha = emptyMap()
+                    localidad_tienda = data_class_tienda_geinz.localida_tienda,
+                    fecha = emptyMap()
                 )
                 agregar_por_14_dias_a_nuevos(nuevas_teindas_dias)
-            }.addOnFailureListener {
+            }
+            .addOnFailureListener {
                 Log.d("datos_agregados", "malo")
             }
     }
 
     fun agregar_datos_alglia(data_class_tienda_geinz: Item) {
-        val db = FirebaseFirestore.getInstance().collection("lugares")
+        val db = FirebaseFirestore.getInstance()
+            .collection("lugares")
             .document(data_class_tienda_geinz.id_tienda)
-        val hasmap_ubicacion = hashMapOf<String, Any>(
-            "latitud" to data_class_tienda_geinz.latitud,
-            "longitud" to data_class_tienda_geinz.longitud
+        val zona = GeofencingManager.obtenerNombreZona(
+            data_class_tienda_geinz.latitud,
+            data_class_tienda_geinz.longitud
         )
         val hashMap = hashMapOf<String, Any>(
             "categoria" to data_class_tienda_geinz.categoria,
@@ -129,50 +155,241 @@ class repo_agregar_datos(context: Context) {
             "lugar" to data_class_tienda_geinz.lugar,
             "nombre" to data_class_tienda_geinz.nombre,
             "tag" to data_class_tienda_geinz.lista,
-            "ubicacion" to hasmap_ubicacion,
+            "ubicacion" to hashMapOf(
+                "latitud" to data_class_tienda_geinz.latitud,
+                "longitud" to data_class_tienda_geinz.longitud
+            ),
+            "zona" to zona,
             "geohash" to data_class_tienda_geinz.geohasing
         )
-        db.set(hashMap).addOnSuccessListener { res ->
-            Log.d("creado_correcto", "${data_class_tienda_geinz.id_tienda} creado correctamente :)")
-        }.addOnFailureListener { e ->
-            Log.d("error_subir_datos", "error")
-        }
-
+        db.set(hashMap)
+            .addOnSuccessListener { Log.d("creado_correcto", "${data_class_tienda_geinz.id_tienda} OK") }
+            .addOnFailureListener { Log.d("error_subir_datos", "error") }
     }
 
-
     fun agregar_por_14_dias_a_nuevos(data_class_tienda_geinz: nuevas_teindas_dias) {
-
-        val hoy = LocalDate.now()
-        val fechaFin = hoy.plusDays(14)
-
-        val formato = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-
-        val mapaFechas = mapOf(
-            "fecha_inicio" to hoy.format(formato),
-            "fecha_fin" to fechaFin.format(formato)
-        )
+        val ahora = Timestamp.now()
+        val calendar = Calendar.getInstance()
+        calendar.time = ahora.toDate()
+        calendar.add(Calendar.DAY_OF_YEAR, 14)
+        val fechaFin = Timestamp(calendar.time)
 
         val hasmap = dataclass_novedades_geinz(
             categoria = data_class_tienda_geinz.categoria,
             direccion = data_class_tienda_geinz.direccion,
             horario_atencion = data_class_tienda_geinz.horario_atencion,
             id_tienda = data_class_tienda_geinz.id_tienda,
-            logo_img = data_class_tienda_geinz.logo_img,
+            logo_img = "",
             nombre_tienda = data_class_tienda_geinz.nombre_tienda,
             descripcion = data_class_tienda_geinz.descripcion,
             lista_subcateogira = data_class_tienda_geinz.lista_subcateogira,
             localidad_tienda = data_class_tienda_geinz.localidad_tienda,
-            fecha = mapaFechas
+            fecha = mapOf("fecha_inicio" to ahora, "fecha_fin" to fechaFin)
         )
 
-        db.collection("Tiendas")
+        db2.collection("Tiendas")
             .document(data_class_tienda_geinz.localidad_tienda)
             .collection("nuevos_lugares")
             .document(data_class_tienda_geinz.id_tienda)
             .set(hasmap)
-            .addOnSuccessListener { Log.d("datos_agregados", "correcto") }
-            .addOnFailureListener { Log.d("datos_agregados", "malo") }
+            .addOnSuccessListener { Log.d("datos_agregados", "nuevos_lugares OK") }
+            .addOnFailureListener { Log.d("datos_agregados", "nuevos_lugares malo") }
+    }
+
+    fun subirLogoTienda(
+        context: Context,
+        uri: Uri,
+        id_tienda: String,
+        localidad: String,
+        onComplete: (Boolean) -> Unit = {}   // ← AGREGAR
+    ) {
+        val bytes = procesarImagenWebPSinRecorte(context, uri)
+        if (bytes == null) {
+            Log.e("subirLogo", "Error procesando imagen")
+            onComplete(false)
+            return
+        }
+
+        val storageRef = FirebaseStorage.getInstance()
+            .reference
+            .child("tiendas/$id_tienda/logo/logo.webp")
+
+        storageRef.putBytes(bytes)
+            .addOnSuccessListener {
+                storageRef.downloadUrl.addOnSuccessListener { urlFinal ->
+                    val url = urlFinal.toString()
+
+                    db2.collection("Tiendas")
+                        .document(localidad)
+                        .collection(localidad)
+                        .document(id_tienda)
+                        .update("img_tienda.logo_tienda", url)
+                        .addOnSuccessListener {
+                            Log.d("subirLogo", "Tiendas OK")
+                            onComplete(true)   // ← notificar éxito
+                        }
+                        .addOnFailureListener {
+                            Log.e("subirLogo", "Error Tiendas")
+                            onComplete(false)  // ← notificar error
+                        }
+
+                    FirebaseFirestore.getInstance()
+                        .collection("lugares")
+                        .document(id_tienda)
+                        .update("img", url)
+                        .addOnSuccessListener { Log.d("subirLogo", "Lugares OK") }
+                        .addOnFailureListener { Log.e("subirLogo", "Error Lugares") }
+
+                    db2.collection("Tiendas")
+                        .document(localidad)
+                        .collection("nuevos_lugares")
+                        .document(id_tienda)
+                        .update("logo_img", url)
+                        .addOnSuccessListener { Log.d("subirLogo", "Nuevos lugares OK") }
+                        .addOnFailureListener { Log.e("subirLogo", "Error Nuevos lugares") }
+                }
+            }
+            .addOnFailureListener {
+                Log.e("subirLogo", "Error Storage: ${it.message}")
+                onComplete(false)
+            }
+    }
+
+
+    fun subirImagenesTuristico(
+        context: Context,
+        uriFotoPrincipal: Uri,
+        listaUrisExtra: List<Uri>,
+        id_lugar: String,
+        localidad: String,
+        datosTurismo: data_class_turismo,
+        onComplete: (Boolean) -> Unit = {}   // ← AGREGAR
+    ) {
+        val storageRef = FirebaseStorage.getInstance().reference
+        val db = FirebaseFirestore.getInstance()
+
+        val bytesPrincipal = procesarImagenParaWhatsappDB(context, uriFotoPrincipal)
+        val refPrincipal = storageRef
+            .child("geinz_work_turismo/$localidad/lugares_turisticos/$id_lugar/principal.jpg")
+
+        refPrincipal.putBytes(bytesPrincipal)
+            .addOnSuccessListener {
+                refPrincipal.downloadUrl.addOnSuccessListener { urlPrincipal ->
+                    val urlsExtra = mutableListOf<String>()
+                    var subidas = 0
+
+                    if (listaUrisExtra.isEmpty()) {
+                        guardarTuristicoEnFirestore(
+                            db, id_lugar, localidad, datosTurismo,
+                            urlPrincipal.toString(), emptyList(), onComplete  // ← pasar callback
+                        )
+                        return@addOnSuccessListener
+                    }
+
+                    listaUrisExtra.forEachIndexed { index, uri ->
+                        val bytesExtra = procesarImagenParaWhatsappDB(context, uri)
+                        val refExtra = storageRef
+                            .child("geinz_work_turismo/$localidad/lugares_turisticos/$id_lugar/img_$index.jpg")
+
+                        refExtra.putBytes(bytesExtra)
+                            .addOnSuccessListener {
+                                refExtra.downloadUrl.addOnSuccessListener { urlExtra ->
+                                    urlsExtra.add(urlExtra.toString())
+                                    subidas++
+                                    if (subidas == listaUrisExtra.size) {
+                                        guardarTuristicoEnFirestore(
+                                            db, id_lugar, localidad, datosTurismo,
+                                            urlPrincipal.toString(), urlsExtra, onComplete  // ← pasar callback
+                                        )
+                                    }
+                                }
+                            }
+                            .addOnFailureListener {
+                                Log.e("turismo", "Error subiendo img extra $index: ${it.message}")
+                                subidas++
+                                if (subidas == listaUrisExtra.size) {
+                                    guardarTuristicoEnFirestore(
+                                        db, id_lugar, localidad, datosTurismo,
+                                        urlPrincipal.toString(), urlsExtra, onComplete  // ← pasar callback
+                                    )
+                                }
+                            }
+                    }
+                }
+            }
+            .addOnFailureListener {
+                Log.e("turismo", "Error subiendo foto principal: ${it.message}")
+                onComplete(false)  // ← notificar error
+            }
+    }
+
+
+    fun guardarTuristicoEnFirestore(
+        db: FirebaseFirestore,
+        id_lugar: String,
+        localidad: String,
+        datos: data_class_turismo,
+        urlPrincipal: String,
+        urlsExtra: List<String>,
+        onComplete: (Boolean) -> Unit = {}   // ← AGREGAR
+    ) {
+        val docTuristico = hashMapOf(
+            "id" to id_lugar,
+            "titulo" to datos.titulo,
+            "descripcion" to datos.descripcion,
+            "categoria" to datos.categoria,
+            "geohash" to datos.geohash,
+            "ubicacion" to hashMapOf(
+                "latitud" to datos.ubicacion.latitud,
+                "longitud" to datos.ubicacion.longitud,
+                "direccion" to datos.ubicacion.direccion
+            ),
+            "img" to hashMapOf(
+                "principal" to urlPrincipal,
+                "lista_img" to urlsExtra
+            )
+        )
+
+        val docLugar = hashMapOf(
+            "id_tienda" to id_lugar,
+            "nombre" to datos.titulo,
+            "descripcion" to datos.descripcion,
+            "categoria" to "turismo",
+            "tag" to datos.categoria,
+            "geohash" to datos.geohash,
+            "lugar" to localidad,
+            "img" to urlPrincipal,
+            "ubicacion" to hashMapOf(
+                "latitud" to datos.ubicacion.latitud,
+                "longitud" to datos.ubicacion.longitud
+            )
+        )
+
+        db.collection("Tiendas")
+            .document(localidad)
+            .collection("lugares_turisticos")
+            .document(id_lugar)
+            .set(docTuristico)
+            .addOnSuccessListener {
+                Log.d("turismo", "Tiendas/lugares_turisticos OK")
+
+                // Guardar en lugares solo después de que Tiendas sea exitoso
+                db.collection("lugares")
+                    .document(id_lugar)
+                    .set(docLugar)
+                    .addOnSuccessListener {
+                        Log.d("turismo", "lugares OK")
+                        onComplete(true)   // ← TODO OK
+                    }
+                    .addOnFailureListener {
+                        Log.e("turismo", "Error lugares: ${it.message}")
+                        onComplete(false)  // ← error en lugares
+                    }
+            }
+            .addOnFailureListener {
+                Log.e("turismo", "Error Tiendas/lugares_turisticos: ${it.message}")
+                onComplete(false)  // ← error en Tiendas
+            }
     }
 
 
@@ -566,84 +783,93 @@ class repo_agregar_datos(context: Context) {
     }
 
 
+    fun agregarZonasEnLugares() {
 
-    fun agregar_zonas() {
+        val db = FirebaseFirestore.getInstance()
 
-        Log.d("ZONAS", "🚀 Iniciando actualización de zonas")
+        Log.d("ZONAS", "🚀 Iniciando sincronización de zonas hacia Lugares")
 
-        FirebaseFirestore.getInstance()
-            .collection("Tiendas")
+        db.collection("Tiendas")
             .document("barranca")
             .collection("barranca")
             .get()
             .addOnSuccessListener { documentos ->
 
-                Log.d("ZONAS", "📦 Total tiendas encontradas: ${documentos.size()}")
+                Log.d(
+                    "ZONAS",
+                    "📦 Total tiendas encontradas: ${documentos.size()}"
+                )
 
                 for (documento in documentos) {
 
-                    val nombreTienda =
-                        documento.getString("nombre_tienda") ?: "SIN_NOMBRE"
+                    val idTienda = documento.id
 
+                    val nombreTienda =
+                        documento.getString("nombre_tienda")
+                            ?: "SIN_NOMBRE"
+
+                    // 🔹 Obtener ubicación
                     val ubicacion =
                         documento.get("ubicacion") as? Map<*, *>
 
                     if (ubicacion == null) {
-                        Log.w(
-                            "ZONAS",
-                            "⚠️ Tienda: $nombreTienda (${documento.id}) no tiene ubicación"
-                        )
-                        continue
-                    }
-
-                    val latitud =
-                        (ubicacion["latitud"] as? Number)?.toDouble()
-
-                    val longitud =
-                        (ubicacion["longitud"] as? Number)?.toDouble()
-
-                    if (latitud == null || longitud == null) {
 
                         Log.w(
                             "ZONAS",
                             """
-                        ⚠️ Coordenadas faltantes
+                        ⚠️ Tienda sin ubicación
                         🏪 Tienda: $nombreTienda
-                        🆔 ID: ${documento.id}
-                        📍 Latitud: $latitud
-                        📍 Longitud: $longitud
+                        🆔 ID: $idTienda
                         """.trimIndent()
                         )
 
                         continue
                     }
 
-                    val zona = GeofencingManager.obtenerNombreZona(
-                        latitud = latitud,
-                        longitud = longitud
-                    )
+                    // 🔹 Obtener zona existente
+                    val zona =
+                        ubicacion["zona"] as? String
+
+                    if (zona.isNullOrEmpty()) {
+
+                        Log.w(
+                            "ZONAS",
+                            """
+                        ⚠️ Tienda sin zona
+                        🏪 Tienda: $nombreTienda
+                        🆔 ID: $idTienda
+                        """.trimIndent()
+                        )
+
+                        continue
+                    }
 
                     Log.d(
                         "ZONAS",
                         """
-                    🏪 Tienda: $nombreTienda
-                    🆔 ID: ${documento.id}
-                    📍 Latitud: $latitud
-                    📍 Longitud: $longitud
-                    🗺️ Zona detectada: $zona
+                    🏪 Tienda encontrada
+                    🆔 ID: $idTienda
+                    🗺️ Zona: $zona
+                    🔄 Actualizando en Lugares...
                     """.trimIndent()
                     )
 
-                    documento.reference
-                        .update("ubicacion.zona", zona)
+                    // 🔹 Buscar documento en Lugares
+                    db.collection("lugares")
+                        .document(idTienda)
+                        .update(
+                            mapOf(
+                                "zona" to zona
+                            )
+                        )
                         .addOnSuccessListener {
 
                             Log.d(
                                 "ZONAS",
                                 """
-                            ✅ Zona guardada correctamente
+                            ✅ Zona agregada correctamente en Lugares
                             🏪 Tienda: $nombreTienda
-                            🆔 ID: ${documento.id}
+                            🆔 ID: $idTienda
                             🗺️ Zona: $zona
                             """.trimIndent()
                             )
@@ -653,9 +879,9 @@ class repo_agregar_datos(context: Context) {
                             Log.e(
                                 "ZONAS",
                                 """
-                            ❌ Error guardando zona
+                            ❌ Error actualizando Lugares
                             🏪 Tienda: $nombreTienda
-                            🆔 ID: ${documento.id}
+                            🆔 ID: $idTienda
                             🗺️ Zona: $zona
                             """.trimIndent(),
                                 e
@@ -664,6 +890,7 @@ class repo_agregar_datos(context: Context) {
                 }
             }
             .addOnFailureListener { e ->
+
                 Log.e(
                     "ZONAS",
                     "❌ Error obteniendo tiendas",
@@ -671,7 +898,6 @@ class repo_agregar_datos(context: Context) {
                 )
             }
     }
-
 
 
 }

@@ -200,7 +200,7 @@ class viewmodel_promos_cercanas : ViewModel() {
         _rangoPrecioSeleccionado.value = null
     }
 
-        private val _subcategoria_seleccionada =
+    private val _subcategoria_seleccionada =
         MutableStateFlow<List<String>>(emptyList())
 
     val subcategoria_seleccionada: StateFlow<List<String>> =
@@ -332,22 +332,7 @@ class viewmodel_promos_cercanas : ViewModel() {
         }
     }
 
-//    fun obtener_subcategorias(categoira: String) {
-//        viewModelScope.launch {
-//            try {
-//                val res = repo.obtener_subcategorias(categoira)
-//                if (res.isNotEmpty()) {
-//                    _obtener_subcategorias.value = res
-//                } else {
-//                    _obtener_subcategorias.value = emptyList()
-//                }
-//            } catch (e: Exception) {
-//                Log.d("error_obtenr_cat", "$e")
-//                _obtener_subcategorias.value = emptyList()
-//
-//            }
-//        }
-//    }
+
 
     fun retornar_lista_nuevamente() {
         _estadoPromos.value = estado_carga_promociones.succes(listaCompleta.value)
@@ -383,6 +368,15 @@ class viewmodel_promos_cercanas : ViewModel() {
 
     var modoBusquedaIA by mutableStateOf(false)
 
+
+    private val _filtro_tienda_sin_resultados = MutableStateFlow(false)
+    val filtro_tienda_sin_resultados: StateFlow<Boolean> = _filtro_tienda_sin_resultados
+
+    fun resetear_filtro_sin_resultados() {
+        _filtro_tienda_sin_resultados.value = false
+    }
+
+    private val _totalPromosTienda = MutableStateFlow(0)
     fun obtener_promociones_2da(localidad: String, tipo_filtrado: String, tienda_seleccionada: String?) {
 
         ultimoDocumento = null
@@ -392,75 +386,82 @@ class viewmodel_promos_cercanas : ViewModel() {
 
         viewModelScope.launch {
 
-            // ✅ Decidir qué estado de carga activar según si hay tienda o no
             if (tienda_seleccionada != null) {
+                // ── MODO TIENDA: trae TODO sin paginación ──────────────────
                 _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.loading
-                // El estado general NO se toca → la lista general sigue visible
+
+                try {
+                    val todasLasPromos = repo.obtener_todas_promos_de_tienda(
+                        tienda_seleccionada, localidad
+                    )
+
+                    if (todasLasPromos.isEmpty()) {
+                        _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.empty(
+                            "No hay promos para esta tienda"
+                        )
+                        return@launch
+                    }
+
+                    _totalPromosTienda.value = todasLasPromos.size
+                    _promosAcumuladas.value = todasLasPromos
+                    listaCompleta.value = todasLasPromos
+                    listaFiltrada.value = todasLasPromos
+                    _hayMasPaginas.value = false  // ya trajo todo
+
+                    _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.succes(
+                        items = todasLasPromos,
+                        total = todasLasPromos.size
+                    )
+                } catch (e: Exception) {
+                    _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.idle
+                }
+
             } else {
+                // ── MODO GENERAL: paginación normal ────────────────────────
                 _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.idle
                 if (_esPrimeraCarga.value) {
                     _estadoPromos.value = estado_carga_promociones.loading
                 }
-            }
 
-            try {
-                val (nueva, nuevoCursor) = repo.obtener_promos_paginado2(esPrimeraCarga.value,
-                    tienda_seleccionada,
-                    localidad,
-                    ultimoDocumento,
-                    PAGINA_SIZE
-                )
+                try {
+                    val (nueva, nuevoCursor) = repo.obtener_promos_paginado2(
+                        esPrimeraCarga.value,
+                        null,
+                        localidad,
+                        ultimoDocumento,
+                        PAGINA_SIZE
+                    )
 
-                if (nueva.isEmpty()) {
-                    if (tienda_seleccionada != null) {
-                        // ✅ Vacío solo en el estado de tienda, no toca el general
-                        _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.empty(
-                            "No hay promos para esta tienda"
-                        )
-                    } else {
+                    if (nueva.isEmpty()) {
                         _estadoPromos.value = estado_carga_promociones.empty("No hay promociones cerca de ti")
                         _hayMasPaginas.value = false
                         _esPrimeraCarga.value = false
+                        return@launch
                     }
-                    return@launch
-                }
 
-                ultimoDocumento = nuevoCursor
-                _hayMasPaginas.value = nuevoCursor != null
+                    ultimoDocumento = nuevoCursor
+                    _hayMasPaginas.value = nuevoCursor != null
 
-                _promosAcumuladas.value = nueva
-                listaCompleta.value = nueva
-                listaFiltrada.value = nueva
+                    _promosAcumuladas.value = nueva
+                    listaCompleta.value = nueva
+                    listaFiltrada.value = nueva
 
-//                val categorias = nueva.flatMap {
-//                    it.dataclass_promociones_cerca_de_ti.informacion_publcacion.categoria.split(",")
-//                }.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
-//                categoriasDisponibles.value = categorias
-
-                if (tienda_seleccionada != null) {
-                    // ✅ Éxito solo en estado de tienda
-                    _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.succes(nueva)
-                } else {
-                    // ✅ Éxito en estado general
-                    if(esPrimeraCarga.value){
-                    val tiendas = nueva
-                        .map { it.lista_tiendas_con_mas_promo }
-                        .firstOrNull { it.isNotEmpty() }
-                        ?: emptyList()
-
-                    _tiendas_con_mas_de_una_promo.value = tiendas
+                    if (esPrimeraCarga.value) {
+                        val tiendas = nueva
+                            .map { it.lista_tiendas_con_mas_promo }
+                            .firstOrNull { it.isNotEmpty() }
+                            ?: emptyList()
+                        _tiendas_con_mas_de_una_promo.value = tiendas
                     }
 
                     _estadoPromos.value = estado_carga_promociones.succes(
-                        nueva.distinctBy { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
+                        nueva.distinctBy {
+                            it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion
+                        }
                     )
                     _esPrimeraCarga.value = false
-                }
 
-            } catch (e: Exception) {
-                if (tienda_seleccionada != null) {
-                    _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.idle
-                } else {
+                } catch (e: Exception) {
                     _estadoPromos.value = estado_carga_promociones.error("Error al cargar promociones")
                     _esPrimeraCarga.value = false
                 }
@@ -511,23 +512,42 @@ class viewmodel_promos_cercanas : ViewModel() {
             }
         }
     }
-//    fun iniciarBusquedaPorIdsConScore(lista: List<IdScore>) {
-//
-//        listaIdsConScore = lista.sortedByDescending { it.score } // 🔥 clave
-//
-//        paginaActual_ = 0
-//
-//        _promosAcumuladas.value = emptyList()
-//        listaCompleta.value = emptyList()
-//        listaFiltrada.value = emptyList()
-//
-//        _hayMasPaginas.value = lista.isNotEmpty()
-//
-//        cargarSiguientePaginaPorIds()
-//    }
 
+    fun filtrar_promos_de_tienda(id_tienda: String) {
+        val base = listaCompleta.value
+            .filter {
+                it.dataclass_promociones_cerca_de_ti
+                    .informacion_publcacion.id_tienda == id_tienda
+            }
 
+        val subcats = _subcategoria_seleccionada.value
+        val rango = _rangoPrecioSeleccionado.value
 
+        val filtrada = base.filter { obj ->
+            val data = obj.dataclass_promociones_cerca_de_ti
+
+            val cumpleCategoria = if (subcats.isEmpty()) true
+            else subcats.any { cat ->
+                data.terminos_clave.any { it.equals(cat, ignoreCase = true) } ||
+                        data.informacion_publcacion.categoria.equals(cat, ignoreCase = true)
+            }
+
+            val cumpleRango = if (rango.isNullOrEmpty()) true
+            else data.rango == rango
+
+            cumpleCategoria && cumpleRango
+        }
+
+        // 🔥 Si no hay resultados → NO cambiar el estado, solo notificar con callback
+        if (filtrada.isEmpty()) {
+            _filtro_tienda_sin_resultados.value = true  // ← signal para Toast en UI
+            return  // ← NO tocar estadoPromos
+        }
+
+        _filtro_tienda_sin_resultados.value = false
+        listaFiltrada.value = filtrada
+        _estadoPromos.value = estado_carga_promociones.succes(filtrada)
+    }
     suspend fun obtenerPrimeraPaginaDesdeIds(
         lista: List<IdScore>
     ): List<obj_completo> {
@@ -1029,7 +1049,7 @@ class viewmodel_promos_cercanas : ViewModel() {
 
     sealed class estado_carga_tienda_Seleccionada {
         object loading:estado_carga_tienda_Seleccionada()
-        data class succes(val items: List<obj_completo>) :estado_carga_tienda_Seleccionada()
+        data class succes(val items: List<obj_completo>, val total: Int = 0) : estado_carga_tienda_Seleccionada()
         data class error(val texto_error: String) : estado_carga_tienda_Seleccionada()
         data class empty(val text_vacio: String) : estado_carga_tienda_Seleccionada()
         object idle : estado_carga_tienda_Seleccionada()

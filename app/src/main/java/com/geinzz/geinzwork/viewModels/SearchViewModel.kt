@@ -104,7 +104,8 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         localidad: String,
         categoria: String?,
         subcategoria: String?,
-        search: String
+        search: String,
+        zona: String? = null
     ) {
         Log.d("isntqa_fun", "buscarItems")
         searchJob?.cancel()
@@ -123,10 +124,16 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                         if (!subcategoria.isNullOrBlank()) {
                             Log.d("lista", lista_filtrada_geohasing.value.size.toString())
                             Log.d("asd123", "Geohash activado - filtrando por subcategoría")
-                            val listaFiltrada = algoliaHelper.filtrar_por_nombre_local(
-                                lista_filtrada_geohasing.value,
-                                search
-                            )
+                            var listaFiltrada = algoliaHelper.filtrar_por_nombre_local(lista_filtrada_geohasing.value, search)
+                            Log.d("ZONA_DEBUG", "zona recibida: '$zona'")
+                            Log.d("ZONA_DEBUG", "lista antes del filtro zona: ${listaFiltrada.size}")
+                            Log.d("ZONA_DEBUG", "zonas en lista: ${listaFiltrada.map { it.zona }.distinct()}")
+
+                            if (!zona.isNullOrBlank()) {
+                                listaFiltrada = listaFiltrada.filter { it.zona == zona }
+                            }
+                            Log.d("ZONA_DEBUG", "lista después del filtro zona: ${listaFiltrada.size}")
+
                             val categorias = listaFiltrada.map { it.categoria }.distinct()
                             Log.d("res_geohasing", listaFiltrada.size.toString())
 
@@ -139,10 +146,16 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
                         } else if (!categoria.isNullOrBlank()) {
                             Log.d("asd123", "Geohash activado - filtrando por cateforia")
-                            val listaFiltrada = algoliaHelper.filtrar_por_nombre_local(
-                                lista_filtrada_geohasing.value,
-                                search
-                            )
+                            var listaFiltrada = algoliaHelper.filtrar_por_nombre_local(lista_filtrada_geohasing.value, search)
+                            Log.d("ZONA_DEBUG", "zona recibida: '$zona'")
+                            Log.d("ZONA_DEBUG", "lista antes del filtro zona: ${listaFiltrada.size}")
+                            Log.d("ZONA_DEBUG", "zonas en lista: ${listaFiltrada.map { it.zona }.distinct()}")
+
+                            if (!zona.isNullOrBlank()) {
+                                listaFiltrada = listaFiltrada.filter { it.zona == zona }
+                            }
+                            Log.d("ZONA_DEBUG", "lista después del filtro zona: ${listaFiltrada.size}")
+
                             val categorias = listaFiltrada.map { it.categoria }.distinct()
 
                             _listaEncontrada.value = listaFiltrada
@@ -159,10 +172,16 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                         // -----------------------------
                         if (!subcategoria.isNullOrBlank()) {
                             Log.d("asd123", "buscamos en texto por subcategoría")
-                            val listaFiltrada = algoliaHelper.filtrar_por_nombre_local(
-                                lista_filtrada_subcategoria.value,
-                                search
-                            )
+                            var listaFiltrada = algoliaHelper.filtrar_por_nombre_local(lista_filtrada_subcategoria.value, search)
+                            Log.d("ZONA_DEBUG", "zona recibida: '$zona'")
+                            Log.d("ZONA_DEBUG", "lista antes del filtro zona: ${listaFiltrada.size}")
+                            Log.d("ZONA_DEBUG", "zonas en lista: ${listaFiltrada.map { it.zona }.distinct()}")
+
+                            if (!zona.isNullOrBlank()) {
+                                listaFiltrada = listaFiltrada.filter { it.zona == zona }
+                            }
+                            Log.d("ZONA_DEBUG", "lista después del filtro zona: ${listaFiltrada.size}")
+
                             val categorias = listaFiltrada.map { it.categoria }.distinct()
 
                             _listaEncontrada.value = listaFiltrada
@@ -176,10 +195,16 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                             }
                         } else if (!categoria.isNullOrBlank()) {
                             Log.d("asd123", "buscamos en texto por categoria")
-                            val listaFiltrada = algoliaHelper.filtrar_por_nombre_local(
-                                lista_original_algolia1.value,
-                                search
-                            )
+                            var listaFiltrada = algoliaHelper.filtrar_por_nombre_local(lista_filtrada_subcategoria.value, search)
+                            Log.d("ZONA_DEBUG", "zona recibida: '$zona'")
+                            Log.d("ZONA_DEBUG", "lista antes del filtro zona: ${listaFiltrada.size}")
+                            Log.d("ZONA_DEBUG", "zonas en lista: ${listaFiltrada.map { it.zona }.distinct()}")
+
+                            if (!zona.isNullOrBlank()) {
+                                listaFiltrada = listaFiltrada.filter { it.zona == zona }
+                            }
+                            Log.d("ZONA_DEBUG", "lista después del filtro zona: ${listaFiltrada.size}")
+
                             val categorias = listaFiltrada.map { it.categoria }.distinct()
 
                             _listaEncontrada.value = listaFiltrada
@@ -236,7 +261,8 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         cercaDeTiEnable: Boolean,
         localidad: String,
         categoria: String?,
-        subcategoria: String?
+        subcategoria: String?,
+        zona: String? = null
     ) {
         Log.d("isntqa_fun", "$lat $lng")
         Log.d("isntqa_fun1231313", "$cercaDeTiEnable")
@@ -291,6 +317,12 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                                 })
                     }
 
+                }
+
+                if (!zona.isNullOrBlank()) {
+                    listaFiltrada = listaFiltrada.filter {
+                        it.zona.equals(zona, ignoreCase = true)
+                    }
                 }
 
                 // 🔹 4️⃣ Actualizar los estados reactivos

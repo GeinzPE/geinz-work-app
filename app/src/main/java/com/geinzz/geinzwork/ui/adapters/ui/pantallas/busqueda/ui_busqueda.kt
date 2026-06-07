@@ -165,6 +165,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.sequences.ifEmpty
 
 
 @SuppressLint("ViewModelConstructorInComposable")
@@ -265,6 +266,7 @@ fun ui_pantalla_busqueda(
     var color_categoria by remember { mutableStateOf(false) }
     var color_localidad by remember { mutableStateOf(false) }
     var color_subcategoria by remember { mutableStateOf(false) }
+    var color_zona_select by remember { mutableStateOf(false) }
     var color_salud_seguirdad by remember { mutableStateOf(false) }
     var mostrar_centrado_visible by remember { mutableStateOf(true) }
 
@@ -297,13 +299,13 @@ fun ui_pantalla_busqueda(
     val subcategoria_retorno_viewmodel by viewModel.subcategoria.collectAsState()
     val txt_filtrado_guardado by viewModel.txt_filtrado_guardado.collectAsState()
 
-
     var cambioDesdeViewModel by remember { mutableStateOf(false) }
     var mostar_bottom_sheet_ayuda_geinz by remember { mutableStateOf(false) }
     var id_tienda_crear_ruta by remember { mutableStateOf("") }
     var localidad_tienda_crear_ruta by remember { mutableStateOf("") }
     var latUsuario by remember { mutableStateOf(0.0) }
     var lonUsuario by remember { mutableStateOf(0.0) }
+    var zona_filtrada by remember { mutableStateOf("") }
 
     LaunchedEffect(cerca_de_ti_enable.value) {
         if (cerca_de_ti_enable.value) {
@@ -323,7 +325,39 @@ fun ui_pantalla_busqueda(
     }
 
 
-
+    LaunchedEffect(zona_filtrada) {
+        if (zona_filtrada.isNotEmpty() && (categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty())) {
+            // zona seleccionada → filtrar
+            Log.d("ZONA_DEBUG", "disparando buscarItems por zona: $zona_filtrada")
+            viewModel.buscarItems(
+                radio = radioActual,
+                context = context,
+                geohashEnable = cerca_de_ti_enable.value,
+                hashUser = hash_user,
+                seleccionado = true,
+                localidad = tiendaLocalidadSeleccionada ?: "barranca",
+                categoria = categoria_filtrad.ifEmpty { salud_seguirdad },
+                subcategoria = subcategira_filtrado,
+                search = searchText.text,
+                zona = zona_filtrada
+            )
+        } else if (zona_filtrada.isEmpty() && (categoria_filtrad.isNotEmpty() || subcategira_filtrado.isNotEmpty())) {
+            // zona borrada → restaurar lista sin filtro de zona
+            Log.d("ZONA_DEBUG", "zona borrada, restaurando lista")
+            viewModel.buscarItems(
+                radio = radioActual,
+                context = context,
+                geohashEnable = cerca_de_ti_enable.value,
+                hashUser = hash_user,
+                seleccionado = true,
+                localidad = tiendaLocalidadSeleccionada ?: "barranca",
+                categoria = categoria_filtrad.ifEmpty { salud_seguirdad },
+                subcategoria = subcategira_filtrado,
+                search = searchText.text,
+                zona = null  // ← sin zona, muestra todo
+            )
+        }
+    }
 
 
 
@@ -463,7 +497,8 @@ fun ui_pantalla_busqueda(
         tiendaLocalidadSeleccionada,
         categoria_filtrad,
         subcategira_filtrado,
-        salud_seguirdad
+        salud_seguirdad,
+        zona_filtrada
     ) {
         val localidadActual = tiendaLocalidadSeleccionada
 
@@ -545,7 +580,6 @@ fun ui_pantalla_busqueda(
 
         // 🔹 Llamar solo una vez si hay categoría/subcategoría
         if (categoriaFinal.isNotEmpty() || subcategira_filtrado.isNotEmpty()) {
-            Log.d("buscamosen", "entramos_condiocn")
             viewModel.filtrarSubCat(
                 latUsuario, lonUsuario,
                 radioActual,
@@ -554,15 +588,26 @@ fun ui_pantalla_busqueda(
                 cerca_de_ti_enable.value,
                 tiendaLocalidadSeleccionada ?: "barranca",
                 categoriaFinal,
-                subcategira_filtrado
+                subcategira_filtrado,
+                zona = zona_filtrada
             )
-        } else {
-            Log.d(
-                "clearResults",
-                "si categoira final y sub categoira filtrado esta vacio otra vez"
-            )
-            viewModel.clearResults()
+            // Si hay zona activa, aplicarla encima del resultado
+            if (zona_filtrada.isNotEmpty()) {
+                viewModel.buscarItems(
+                    radio = radioActual,
+                    context = context,
+                    geohashEnable = cerca_de_ti_enable.value,
+                    hashUser = hash_user,
+                    seleccionado = true,
+                    localidad = tiendaLocalidadSeleccionada ?: "barranca",
+                    categoria = categoriaFinal,
+                    subcategoria = subcategira_filtrado,
+                    search = searchText.text,
+                    zona = zona_filtrada
+                )
+            }
         }
+
     }
 
     LaunchedEffect(aler_dialog_contacto) {
@@ -691,29 +736,30 @@ fun ui_pantalla_busqueda(
                                 if (!cat_sub_seleciondo) {
                                     Log.d("entramos123123", "1menor")
                                     viewModel.buscarItems(
-                                        radioActual,
-                                        context,
-                                        cerca_de_ti_enable.value,
-                                        hash_user,
-                                        false,
-                                        tiendaLocalidadSeleccionada ?: "barranca",
-                                        null,
-                                        null,
-                                        searchText.text,
-
+                                        radio = radioActual,
+                                        context = context,
+                                        geohashEnable = cerca_de_ti_enable.value,
+                                        hashUser = hash_user,
+                                        seleccionado = false,
+                                        localidad = tiendaLocalidadSeleccionada ?: "barranca",
+                                        categoria = null,
+                                        subcategoria = null,
+                                        search = searchText.text,
+                                        zona = zona_filtrada
                                         )
                                 } else {
                                     Log.d("entramos123123", "2menor")
                                     viewModel.buscarItems(
-                                        radioActual,
-                                        context,
-                                        cerca_de_ti_enable.value,
-                                        hash_user,
-                                        true,
-                                        tiendaLocalidadSeleccionada ?: "barranca",
-                                        categoria_filtrad.ifEmpty { salud_seguirdad },
-                                        subcategira_filtrado,
-                                        searchText.text,
+                                        radio = radioActual,
+                                        context = context,
+                                        geohashEnable = cerca_de_ti_enable.value,
+                                        hashUser = hash_user,
+                                        seleccionado = true,
+                                        localidad = tiendaLocalidadSeleccionada ?: "barranca",
+                                        categoria = categoria_filtrad.ifEmpty { salud_seguirdad },
+                                        subcategoria = subcategira_filtrado,
+                                        search = searchText.text,
+                                        zona = zona_filtrada
                                     )
                                 }
                             } else {
@@ -723,15 +769,16 @@ fun ui_pantalla_busqueda(
 
                                     mostrar_centrado_visible = false
                                     viewModel.buscarItems(
-                                        radioActual,
-                                        context,
-                                        cerca_de_ti_enable.value,
-                                        hash_user,
-                                        true,
-                                        tiendaLocalidadSeleccionada ?: "barranca",
-                                        categoria_filtrad.ifEmpty { salud_seguirdad },
-                                        subcategira_filtrado,
-                                        "",
+                                        radio = radioActual,
+                                        context = context,
+                                        geohashEnable = cerca_de_ti_enable.value,
+                                        hashUser = hash_user,
+                                        seleccionado = true,
+                                        localidad = tiendaLocalidadSeleccionada ?: "barranca",
+                                        categoria = categoria_filtrad.ifEmpty { salud_seguirdad },
+                                        subcategoria = subcategira_filtrado,
+                                        search = "",
+                                        zona = zona_filtrada
                                         // 🔥 búsqueda vacía
                                     )
 
@@ -800,8 +847,13 @@ fun ui_pantalla_busqueda(
             }
             itemsIndexed(items) { index, item ->
                 Box(
-                    modifier = Modifier
-                        .animateItem(
+//                    modifier = Modifier.animateItem(
+//                        placementSpec = tween(
+//                            durationMillis = 350,
+//                            easing = FastOutSlowInEasing
+//                        )
+//                    )
+                    modifier = Modifier .animateItem(
                             placementSpec = tween(
                                 durationMillis = 450,
                                 easing = FastOutSlowInEasing
@@ -1120,7 +1172,17 @@ fun ui_pantalla_busqueda(
         )
 
         FloatingBubble(
-            uid_respald_user,
+            zona_filtrada = zona_filtrada,           // ← agregar
+            zona_seleccionada = { zona ->            // ← agregar
+                zona_filtrada = zona
+            },{
+                color_zona_select=!color_zona_select
+                color_localidad = false
+                color_categoria = false
+                color_subcategoria = false
+                color_salud_seguirdad = false
+            },
+            id_user = uid_respald_user,
             primeraVezCercaDeTi = primeraVezCercaDeTi,
             viewmodel_floating_filtrado = viewmodel_floating_filtrado,
             cerca_de_ti_enable = cerca_de_ti_enable.value,
@@ -1129,6 +1191,7 @@ fun ui_pantalla_busqueda(
             color_localidad = color_localidad,
             color_subcategoria = color_subcategoria,
             color_salud_seguridad = color_salud_seguirdad,
+            color_zona=color_zona_select,
             seguidad_salud = salud_seguirdad,
             viewModel = viewModel,
             viewModelFiltros = viewModelFiltros,
@@ -1152,6 +1215,7 @@ fun ui_pantalla_busqueda(
                 color_categoria = false
                 color_subcategoria = false
                 color_salud_seguirdad = false
+                color_zona_select = false
             },
             localidad_selecionada = tiendaLocalidadSeleccionada ?: "barranca",
             localidad_filtrado = { localidad ->
@@ -1182,6 +1246,7 @@ fun ui_pantalla_busqueda(
                 color_categoria = false
                 color_subcategoria = false
                 color_salud_seguirdad = false
+                color_zona_select = false
             },
             click_carta_localidad_delete = {
                 color_localidad = false
@@ -1190,6 +1255,7 @@ fun ui_pantalla_busqueda(
                 color_categoria = !color_categoria
                 color_localidad = false
                 color_subcategoria = false
+                color_zona_select = false
             },
             click_carta_categoria_delete = {
                 color_subcategoria = false
@@ -1199,6 +1265,7 @@ fun ui_pantalla_busqueda(
                 color_salud_seguirdad = !color_salud_seguirdad
                 color_localidad = false
                 color_categoria = false
+                color_zona_select = false
 
             },
             click_carta_seguridad_delete = {
@@ -1210,6 +1277,7 @@ fun ui_pantalla_busqueda(
                 color_subcategoria = !color_subcategoria
                 color_localidad = false
                 color_categoria = false
+                color_zona_select = false
             },
             click_carta_subcategoria_delete = {
                 Log.d("elminados_", "coloreelimado")
@@ -1225,15 +1293,15 @@ fun ui_pantalla_busqueda(
                 color_subcategoria = false
             }, filtrado_cerca_de_ti = { radio, hasing_user ->
                 Log.d("logemo13131232s", "${radio} $hasing_user")
-//                viewModel.filtrar_por_radio(
-//                    latUsuario, lonUsuario,
-//                    radio,
-//                    context,
-//                    categoria_filtrad,
-//                    subcategira_filtrado,
-//                    cerca_de_ti_enable.value,
-//                    hasing_user
-//                )
+            //                viewModel.filtrar_por_radio(
+            //                    latUsuario, lonUsuario,
+            //                    radio,
+            //                    context,
+            //                    categoria_filtrad,
+            //                    subcategira_filtrado,
+            //                    cerca_de_ti_enable.value,
+            //                    hasing_user
+            //                )
                 radio_cambiado = radio
                 hasing_user_user_filtrado = hasing_user
             }, fun_cerca_de_ti_enable = { it ->
@@ -1267,7 +1335,7 @@ fun ui_pantalla_busqueda(
                 mostrar_dialog_cambiar_radio = true
             }, fun_primeraVezCercaDeTi = { it ->
                 primeraVezCercaDeTi = it
-            }, iniciar_seccion, crear_cuenta
+            }, iniciar_normal = iniciar_seccion, crear_cuenta = crear_cuenta
         )
     }
 }
@@ -1304,6 +1372,8 @@ fun filtrado_chips(
     cat_sub_select(haySeleccion)
 
     // ✅ Caso especial: si hay salud/seguridad, mostrar solo eso
+
+    // Agrega este LaunchedEffect en ui_pantalla_busqueda
 
     if (salud_seguirdad.isNotEmpty()) {
         LazyRow() {

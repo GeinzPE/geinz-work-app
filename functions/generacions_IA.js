@@ -765,40 +765,65 @@ Descripción: ${descTexto}`.trim();
 // ─── 5. Generar terminos_calves_filtrado ─────────────────────────────
 
 exports.extraerTerminosClaveIA = onCall(async (request) => {
-  const { textoUsuario, categoria } = request.data;
+  const { textoUsuario, categoria, nombreNegocio } = request.data;
 
-  if (!textoUsuario || !textoUsuario.trim()) {
+  console.log("[extraerTerminosClaveIA] INICIO — data recibida:", {
+    textoUsuario: textoUsuario?.slice(0, 80),
+    categoria,
+    nombreNegocio,
+  });
+
+  if (!textoUsuario?.trim())
     throw new HttpsError("invalid-argument", "El campo textoUsuario es requerido");
-  }
-
-  if (!categoria || !categoria.trim()) {
+  if (!categoria?.trim())
     throw new HttpsError("invalid-argument", "El campo categoria es requerido");
-  }
+  if (!nombreNegocio?.trim())
+    throw new HttpsError("invalid-argument", "El campo nombreNegocio es requerido");
 
-  const prompt = `
-Extrae términos clave de búsqueda para una promoción. Categoría: ${categoria}
+  const palabrasProhibidas = [
+    ...categoria.toLowerCase().split(/\s+/),
+    ...nombreNegocio.toLowerCase().split(/\s+/),
+  ].filter((p) => p.length > 2);
 
-Extrae SOLO lo que un usuario escribiría en un buscador para encontrar esto:
-- Productos o servicios específicos (no genéricos)
-- Especialidades o rubros del negocio
+  console.log("[extraerTerminosClaveIA] palabrasProhibidas:", palabrasProhibidas);
 
-Descarta: nombres de negocios, personas, direcciones, precios, descuentos, cantidades, adjetivos, palabras genéricas
-(como "oferta", "promo", "compra", "viaje", "boleto", "servicio", "producto")
+  const quitarTildes = (str) =>
+    str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-Reglas: minúsculas, sin tildes, singular, sin duplicados, máximo 6 términos.
-
-Responde SOLO array JSON de strings planos: ["term1", "term2"]
+const prompt = `
+[INPUT]
 Texto: "${textoUsuario}"
-  `.trim();
+Categoria del negocio: "${categoria}"
+Filtros prohibidos: "${nombreNegocioFinal}"
 
+[INSTRUCCIONES]
+Extrae de 'Texto' un array JSON de strings con máximo 6 términos clave para motores de búsqueda.
+1. Prioriza ÚNICAMENTE: nombres propios, lugares, marcas, modelos, productos o servicios MUY específicos mencionados en el texto.
+2. PROHIBIDO: 
+   - Palabras genéricas que describan la categoría "${categoria}" (ej: si es transporte, excluir "viaje","pasaje","bus","ruta")
+   - Adjetivos, verbos, precios, palabras de marketing ("oferta","promo","descuento","oportunidad")
+   - Cualquier palabra o fragmento de 'Filtros prohibidos'
+3. Solo incluir términos que por sí solos sirvan como búsqueda específica en Google.
+4. Formato: minúsculas, singular, sin tildes, sin duplicados.
+5. Si no hay términos específicos válidos, devuelve [].
+
+[OUTPUT]
+Contesta ÚNICAMENTE con el array JSON. Ejemplo: ["tag1", "tag2"]
+`.trim();
   try {
+    console.log("[extraerTerminosClaveIA] Llamando a Gemini...");
     const respuesta = await llamarGemini([{ text: prompt }]);
+    console.log("[extraerTerminosClaveIA] Respuesta raw Gemini:", respuesta);
 
-    let jsonStr = respuesta.trim()
+    const jsonStr = respuesta
+      .trim()
       .replace(/```json\n?/g, "")
       .replace(/```\n?/g, "");
 
+    console.log("[extraerTerminosClaveIA] jsonStr limpio:", jsonStr);
+
     const terminos = JSON.parse(jsonStr);
+    console.log("[extraerTerminosClaveIA] terminos parseados:", terminos);
 
     const terminosNormalizados = Array.isArray(terminos)
       ? terminos
@@ -807,15 +832,23 @@ Texto: "${textoUsuario}"
             typeof item === "object" ? (item.term ?? item.value ?? Object.values(item)[0] ?? "") :
             String(item)
           )
-          .map((t) => t.toLowerCase().trim())
-          .filter((t) => t.length > 0)
+          .map((t) => quitarTildes(t.toLowerCase().trim()))
+          .filter((t) => t.length > 2)
+          .filter((t) => !palabrasProhibidas.some((p) => t.includes(p)))
+          .filter((t, i, arr) => arr.indexOf(t) === i)
+          .slice(0, 6)
       : [];
+
+    console.log("[extraerTerminosClaveIA] RESULTADO FINAL:", terminosNormalizados);
 
     return { ok: true, terminos: terminosNormalizados };
 
   } catch (error) {
     if (error instanceof HttpsError) throw error;
-    console.error("ERROR extraerTerminosClaveIA:", error);
+    console.error("[extraerTerminosClaveIA] ERROR:", {
+      message: error.message,
+      stack: error.stack,
+    });
     throw new HttpsError("internal", error.message || "Error extrayendo términos clave");
   }
 });

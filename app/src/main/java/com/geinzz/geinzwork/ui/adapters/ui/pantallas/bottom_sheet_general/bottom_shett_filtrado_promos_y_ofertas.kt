@@ -3,10 +3,15 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general
 
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -79,7 +84,6 @@ import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.datos_para_f
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_close_gris
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_filtrados_promos_y_ofertas(
@@ -109,9 +113,9 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
         .firstOrNull { it.categoria == categoriaSeleccionada }
         ?.subcategoria
         ?: emptyList()
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     val lista_filtrados_pagos = remember {
         listOf(
             img_con_texto(R.drawable.yape_logo, "yape"),
@@ -131,19 +135,15 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
             "5000 - 10000", "Más de 10000"
         )
     }
+
     val precioDicho = datos_filtrado?.precio_max
     val metodos_pago_params = datos_filtrado?.metodos_pago
     val comodidadesParams = datos_filtrado?.comodidades
 
     LaunchedEffect(metodos_pago_params) {
         metodos_pago_params?.let { lista ->
-
-            // 🔥 limpiar primero
             viewModel.limpiarMetodosPago()
-
-            // 🔥 setear todos juntos
             viewModel.setPagosDesdeLista(lista)
-
         }
     }
 
@@ -151,30 +151,19 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
 
     LaunchedEffect(comodidadesParams) {
         if (!autoComodidadesAplicado) {
-
             comodidadesParams?.let { lista ->
-
-                val normalizados = lista.map {
-                    it.lowercase().trim()
-                }
-
+                val normalizados = lista.map { it.lowercase().trim() }
                 viewModel.limpiar_comodidad()
                 viewModel.setComodidadesDesdeLista(normalizados)
-
                 autoComodidadesAplicado = true
             }
         }
     }
 
-
     LaunchedEffect(precioDicho) {
         val rangoAuto = obtenerRangoDesdePrecio(precioDicho)
-
-        rangoAuto?.let {
-            viewModel.setearRangoPrecioDesdeNLP(it)
-        }
+        rangoAuto?.let { viewModel.setearRangoPrecioDesdeNLP(it) }
     }
-
 
     val lista_comodidades = remember {
         listOf(
@@ -191,13 +180,13 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
             img_con_texto(R.drawable.icon_ingreso_animales, "ingreso_mascotas"),
         )
     }
-    val limite = 10
-    val subcategoriasVisibles = if (verTodos) {
-        subcategorias_obtenidas
-    } else {
-        subcategorias_obtenidas.take(limite)
-    }
 
+    val limite = 10
+    val subcategoriasVisibles = if (verTodos) subcategorias_obtenidas
+    else subcategorias_obtenidas.take(limite)
+
+    // 🔑 condición central: hay categoría seleccionada y no es "Todos"
+    val categoriaElegida = categoriaSeleccionada.isNotEmpty() && categoriaSeleccionada != "Todos"
 
     ModalBottomSheet(
         sheetState = sheetState,
@@ -213,6 +202,8 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                     .padding(start = 10.dp, end = 10.dp, top = 20.dp, bottom = 10.dp)
                     .animateContentSize()
             ) {
+
+                // ── HEADER ──────────────────────────────────────────────
                 item {
                     Text(
                         text = "Busca a tu manera",
@@ -223,129 +214,112 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                     )
                     spacer_vertical(7.dp)
                     texto_generico_multilinea(
-                        "Busca promociones y ofertas solo apra ti en todo barranca",
+                        "Busca promociones y ofertas solo para ti en todo Barranca",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     spacer_vertical(10.dp)
                 }
 
+                // ── 1. CATEGORÍAS — siempre visible ─────────────────────
                 item {
                     if (filtrado_ia && datos_filtrado?.productos != null) {
-                        texto_generico_one_line("Resultado de tu busqueda")
+                        texto_generico_one_line("Resultado de tu búsqueda")
                         spacer_vertical(10.dp)
-
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             items(datos_filtrado.productos) { categoria ->
                                 val seleccionado = categoriaSeleccionada == categoria
                                 chisp_filtrado_busqueda(
                                     carta_selecionada = seleccionado,
                                     filtrado = categoria.capitalizeFirst(),
                                     btn_visible = false,
-                                    clik_card = {
-                                        viewModel.toggleCategoria(categoria)
-
-                                    },
+                                    clik_card = { viewModel.toggleCategoria(categoria) },
                                     onClick_delete = {}
                                 )
                             }
                         }
                     } else {
-                        texto_generico_one_line("Selecciona tu categoria")
+                        texto_generico_one_line("Selecciona tu categoría")
                         spacer_vertical(10.dp)
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             items(obtener_cateogiras) { categoria ->
                                 val seleccionado = categoriaSeleccionada == categoria.categoria
                                 chisp_filtrado_busqueda(
                                     carta_selecionada = seleccionado,
                                     filtrado = categoria.categoria.capitalizeFirst(),
                                     btn_visible = false,
-                                    clik_card = {
-                                        viewModel.toggleCategoria(categoria.categoria)
-                                    },
+                                    clik_card = { viewModel.toggleCategoria(categoria.categoria) },
                                     onClick_delete = {}
                                 )
                             }
                         }
                     }
-
                 }
+
+                // ── 2. SUBCATEGORÍAS — aparece al elegir categoría ───────
                 item {
-                    if (categoriaSeleccionada != "Todos") {
-
-
-                        if (!verTodos) {
-                            // 🔹 MODO HORIZONTAL
-                            texto_generico_one_line("Subcategorias")
+                    AnimatedVisibility(
+                        visible = categoriaElegida,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
+                    ) {
+                        Column {
                             spacer_vertical(10.dp)
-                            LazyRow(
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            ) {
+                            texto_generico_one_line("Subcategorías")
+                            spacer_vertical(10.dp)
 
-                                items(subcategoriasVisibles) { subcategoria ->
-
-                                    val seleccionado =
-                                        subcategoriasSeleccionadas.contains(subcategoria)
-
-                                    chisp_filtrado_busqueda(
-                                        carta_selecionada = seleccionado,
-                                        filtrado = subcategoria.capitalizeFirst(),
-                                        btn_visible = false,
-                                        clik_card = {
-                                            viewModel.toggle_subcategoria(subcategoria)
-                                        },
-                                        onClick_delete = {}
-                                    )
-                                }
-
-
-                                // 🔥 BOTÓN VER TODOS
-                                if (subcategorias_obtenidas.size > limite) {
-                                    item {
+                            if (!verTodos) {
+                                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    items(subcategoriasVisibles) { subcategoria ->
+                                        val seleccionado = subcategoriasSeleccionadas.contains(subcategoria)
                                         chisp_filtrado_busqueda(
-                                            carta_selecionada = false,
-                                            filtrado = "Ver todos",
+                                            carta_selecionada = seleccionado,
+                                            filtrado = subcategoria.capitalizeFirst(),
                                             btn_visible = false,
-                                            clik_card = {
-                                                verTodos = true
-                                            },
+                                            clik_card = { viewModel.toggle_subcategoria(subcategoria) },
+                                            onClick_delete = {}
+                                        )
+                                    }
+                                    if (subcategorias_obtenidas.size > limite) {
+                                        item {
+                                            chisp_filtrado_busqueda(
+                                                carta_selecionada = false,
+                                                filtrado = "Ver todos",
+                                                btn_visible = false,
+                                                clik_card = { verTodos = true },
+                                                onClick_delete = {}
+                                            )
+                                        }
+                                    }
+                                }
+                            } else {
+                                FlowRow(
+                                    maxItemsInEachRow = 3,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    subcategorias_obtenidas.forEach { subcategoria ->
+                                        val seleccionado = subcategoriasSeleccionadas.contains(subcategoria)
+                                        chisp_filtrado_busqueda(
+                                            carta_selecionada = seleccionado,
+                                            filtrado = subcategoria.capitalizeFirst(),
+                                            btn_visible = false,
+                                            clik_card = { viewModel.toggle_subcategoria(subcategoria) },
                                             onClick_delete = {}
                                         )
                                     }
                                 }
                             }
-
-                        } else {
-                            FlowRow(
-                                maxItemsInEachRow = 3,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                subcategorias_obtenidas.forEach { subcategoria ->
-
-                                    val seleccionado =
-                                        subcategoriasSeleccionadas.contains(subcategoria)
-
-                                    chisp_filtrado_busqueda(
-                                        carta_selecionada = seleccionado,
-                                        filtrado = subcategoria.capitalizeFirst(),
-                                        btn_visible = false,
-                                        clik_card = {
-                                            viewModel.toggle_subcategoria(subcategoria)
-                                        },
-                                        onClick_delete = {}
-                                    )
-                                }
-                            }
                         }
                     }
                 }
-                item {
-                    if (texto_ser_guardado.isNotEmpty()) {
 
+                // ── BÚSQUEDA GUARDADA — solo si hay texto ────────────────
+                item {
+                    AnimatedVisibility(
+                        visible = texto_ser_guardado.isNotEmpty() && categoriaElegida,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
+                    ) {
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(16.dp))
@@ -353,11 +327,7 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                                 .background(MaterialTheme.colorScheme.surface)
                                 .padding(12.dp)
                         ) {
-
-                            // 🔹 Texto clickable arriba derecha
-
                             Column {
-
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
@@ -368,8 +338,8 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                                         modifier = Modifier
                                             .clickable(
                                                 indication = null,
-                                                interactionSource = remember { MutableInteractionSource() }) {
-                                            }
+                                                interactionSource = remember { MutableInteractionSource() }
+                                            ) {}
                                             .size(35.dp)
                                     )
                                     spacer_horizonta(5.dp)
@@ -378,7 +348,6 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                                         style = MaterialTheme.typography.labelMedium,
                                         modifier = Modifier.weight(1f)
                                     )
-
                                     Text(
                                         text = "Repetir búsqueda",
                                         style = MaterialTheme.typography.labelSmall,
@@ -389,126 +358,123 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                                     )
                                 }
                                 spacer_vertical(8.dp)
-
                                 texto_generico_multilinea(
                                     texto_ser_guardado.capitalizeFirst(),
                                     style = MaterialTheme.typography.bodyMedium
                                 )
-
                                 spacer_vertical(10.dp)
                             }
                         }
                     }
                 }
 
+                // ── RESULTADOS IA ────────────────────────────────────────
                 if (listaData.isNotEmpty()) {
                     item {
-                        texto_generico_one_line("Resultados de tu busqueda")
-                        spacer_vertical(10.dp)
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        AnimatedVisibility(
+                            visible = categoriaElegida,
+                            enter = fadeIn() + expandVertically(),
+                            exit = fadeOut() + shrinkVertically()
                         ) {
-                            items(listaData) { i ->
-                                val seleccionado = rango_precio == i
-                                chisp_filtrado_busqueda_resultados_busqueda(
-                                    "resultado",
-                                    carta_selecionada = false,
-                                    filtrado = i.capitalizeFirst(),
-                                    btn_visible = true,
-                                    clik_card = {},
-                                    onClick_delete = {
-                                        viewModel.eliminarItem(i)
+                            Column {
+                                texto_generico_one_line("Resultados de tu búsqueda")
+                                spacer_vertical(10.dp)
+                                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    items(listaData) { i ->
+                                        chisp_filtrado_busqueda_resultados_busqueda(
+                                            "resultado",
+                                            carta_selecionada = false,
+                                            filtrado = i.capitalizeFirst(),
+                                            btn_visible = true,
+                                            clik_card = {},
+                                            onClick_delete = { viewModel.eliminarItem(i) }
+                                        )
                                     }
-                                )
+                                }
                             }
                         }
                     }
                 }
 
+                // ── 3. RANGOS + MÉTODOS + COMODIDADES ───────────────────
+                // Aparecen todos juntos cuando hay categoría elegida
                 item {
-                    texto_generico_one_line("Rangos de Precio")
-                    spacer_vertical(10.dp)
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    AnimatedVisibility(
+                        visible = categoriaElegida,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
                     ) {
-                        items(rango_precios) { subcategoria ->
-                            val seleccionado = rango_precio == subcategoria
-                            chisp_filtrado_busqueda_resultados_busqueda(
-                                "precio",
-                                carta_selecionada = seleccionado,
-                                filtrado = subcategoria.capitalizeFirst(),
-                                btn_visible = false,
-                                clik_card = {
-                                    viewModel.setearRangoPrecioDesdeNLP(subcategoria)
-                                },
-                                onClick_delete = {}
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+
+                            spacer_vertical(2.dp)
+
+                            // Rangos de precio
+                            texto_generico_one_line("Rangos de precio")
+                            spacer_vertical(10.dp)
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                items(rango_precios) { subcategoria ->
+                                    val seleccionado = rango_precio == subcategoria
+                                    chisp_filtrado_busqueda_resultados_busqueda(
+                                        "precio",
+                                        carta_selecionada = seleccionado,
+                                        filtrado = subcategoria.capitalizeFirst(),
+                                        btn_visible = false,
+                                        clik_card = { viewModel.setearRangoPrecioDesdeNLP(subcategoria) },
+                                        onClick_delete = {}
+                                    )
+                                }
+                            }
+                            spacer_vertical(6.dp)
+
+                            // Métodos de pago
+                            texto_generico_one_line("Métodos de pago")
+                            spacer_vertical(10.dp)
+                            RadioCheckingMetodos(
+                                lista = lista_filtrados_pagos,
+                                seleccionados = metodo_pago,
+                                onToggle = { texto -> viewModel.toggleMetodoPago(texto) }
                             )
+                            spacer_vertical(6.dp)
+
+                            // Comodidades
+                            texto_generico_one_line("Comodidades")
+                            spacer_vertical(10.dp)
+                            RadioCheckingMetodos(
+                                lista = lista_comodidades,
+                                seleccionados = comodidad_selet,
+                                onToggle = { texto -> viewModel.togleRango_select(texto) }
+                            )
+                            spacer_vertical(10.dp)
                         }
                     }
-                    spacer_vertical(10.dp)
                 }
 
-                item {
-                    texto_generico_one_line("Metodos de pago")
-                    spacer_vertical(10.dp)
-                    RadioCheckingMetodos(
-                        lista = lista_filtrados_pagos,
-                        seleccionados = metodo_pago,
-                        onToggle = { texto ->
-                            viewModel.toggleMetodoPago(texto)
-                        }
-                    )
-                    spacer_vertical(10.dp)
-                }
-
-                item {
-                    texto_generico_one_line("Comodidades")
-                    spacer_vertical(10.dp)
-                    RadioCheckingMetodos(
-                        lista = lista_comodidades,
-                        seleccionados = comodidad_selet,
-                        onToggle = { texto ->
-                            viewModel.togleRango_select(texto)
-                        }
-                    )
-                    spacer_vertical(10.dp)
-//                    LazyRow(
-//                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-//                        contentPadding = PaddingValues(horizontal = 10.dp)
-//                    ) {
-//                        items(lista_comodidades) { subcategoria ->
-//
-////                            val seleccionado = comodidad_selet.contains(subcategoria)
-//
-//                            chisp_filtrado_busqueda(
-//                                carta_selecionada = false,
-//                                filtrado = subcategoria.capitalizeFirst(),
-//                                btn_visible = false,
-//                                clik_card = {
-////                                    viewModel.togleRango_select(subcategoria)
-//                                },
-//                                onClick_delete = {}
-//                            )
-//                        }
-                }
-                if (categoriaSeleccionada.isNotEmpty() || !rango_precio.isNullOrEmpty() || !comodidad_selet.isNullOrEmpty() || !metodo_pago.isNullOrEmpty())
+                // ── BOTÓN APLICAR ────────────────────────────────────────
+                if (categoriaSeleccionada.isNotEmpty() ||
+                    !rango_precio.isNullOrEmpty() ||
+                    !comodidad_selet.isNullOrEmpty() ||
+                    !metodo_pago.isNullOrEmpty()
+                ) {
                     item {
-                        Button(onClick = {
-                            val data = datos_para_filtrado_manual(
-                                categoria = categoriaSeleccionada,
-                                subcategorias = subcategoriasSeleccionadas.toList(),
-                                rango_precio = rango_precio,
-                                pagos = metodo_pago.toList(),
-                                comodidades = comodidad_selet.toList(),
-                                localidad = "barranca"
-                            )
-                            viewModel.busqueda_manual_filtrado(data)
-                            onClose()
-                        }, modifier = Modifier.fillMaxWidth()) {
+                        Button(
+                            onClick = {
+                                val data = datos_para_filtrado_manual(
+                                    categoria = categoriaSeleccionada,
+                                    subcategorias = subcategoriasSeleccionadas.toList(),
+                                    rango_precio = rango_precio,
+                                    pagos = metodo_pago.toList(),
+                                    comodidades = comodidad_selet.toList(),
+                                    localidad = "barranca"
+                                )
+                                viewModel.busqueda_manual_filtrado(data)
+                                onClose()
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             texto_generico_one_line("Aplicar Filtros")
                         }
                     }
-
+                }
             }
         }
     }
@@ -527,8 +493,16 @@ fun bottom_sheet_filtrar_desde_tienda(
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val categoriaSeleccionada by viewModel.categoria_seleccionada.collectAsState()
+    val subcategoriasSeleccionadas by viewModel.subcategoria_seleccionada.collectAsState()
     val rango_precio by viewModel.rangoPrecioSeleccionado.collectAsState()
+
+    // 🔥 Guardar estado inicial al abrir el sheet
+    val subcategoriasIniciales = remember { subcategoriasSeleccionadas.toSet() }
+    val rangoPrecioInicial = remember { rango_precio }
+
+    // 🔥 Hubo cambio si el estado actual difiere del inicial
+    val huboCambio = subcategoriasSeleccionadas.toSet() != subcategoriasIniciales ||
+            rango_precio != rangoPrecioInicial
 
     var verTodos by remember { mutableStateOf(false) }
     val limite = 10
@@ -550,7 +524,6 @@ fun bottom_sheet_filtrar_desde_tienda(
                     .animateContentSize()
             ) {
 
-                // título
                 item {
                     Text(
                         text = "Busca a tu manera",
@@ -561,27 +534,39 @@ fun bottom_sheet_filtrar_desde_tienda(
                     )
                     spacer_vertical(7.dp)
                     texto_generico_multilinea(
-                        "Filtra las promociones de $nombre_tienda",
+                        "Encuentra lo que buscas en $nombre_tienda",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     spacer_vertical(10.dp)
                 }
 
-                // tags — horizontal o vertical según verTodos
                 item {
-                    texto_generico_one_line("Filtrar en $nombre_tienda")
+                    texto_generico_one_line("Selecciona múltiples filtros")
                     spacer_vertical(10.dp)
 
                     if (!verTodos) {
-                        // modo horizontal
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            item {
+                                val todosSeleccionado = subcategoriasSeleccionadas.isEmpty() &&
+                                        rango_precio.isNullOrEmpty()
+                                chisp_filtrado_busqueda(
+                                    carta_selecionada = todosSeleccionado,
+                                    filtrado = "Todos",
+                                    btn_visible = false,
+                                    clik_card = {
+                                        viewModel.limpiarSubcategorias()
+                                        viewModel.limpiarRangoPrecio()
+                                    },
+                                    onClick_delete = {}
+                                )
+                            }
                             items(subcategoriasVisibles) { tag ->
-                                val seleccionado = categoriaSeleccionada == tag
+                                val seleccionado = subcategoriasSeleccionadas.contains(tag)
                                 chisp_filtrado_busqueda(
                                     carta_selecionada = seleccionado,
                                     filtrado = tag.capitalizeFirst(),
                                     btn_visible = false,
-                                    clik_card = { viewModel.toggleCategoria(tag) },
+                                    clik_card = { viewModel.toggle_subcategoria(tag) },
                                     onClick_delete = {}
                                 )
                             }
@@ -598,23 +583,33 @@ fun bottom_sheet_filtrar_desde_tienda(
                             }
                         }
                     } else {
-                        // modo vertical — FlowRow para que queden en grid
                         FlowRow(
                             maxItemsInEachRow = 3,
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
+                            val todosSeleccionado = subcategoriasSeleccionadas.isEmpty() &&
+                                    rango_precio.isNullOrEmpty()
+                            chisp_filtrado_busqueda(
+                                carta_selecionada = todosSeleccionado,
+                                filtrado = "Todos",
+                                btn_visible = false,
+                                clik_card = {
+                                    viewModel.limpiarSubcategorias()
+                                    viewModel.limpiarRangoPrecio()
+                                },
+                                onClick_delete = {}
+                            )
                             lista_filtrado_negocio.forEach { tag ->
-                                val seleccionado = categoriaSeleccionada == tag
+                                val seleccionado = subcategoriasSeleccionadas.contains(tag)
                                 chisp_filtrado_busqueda(
                                     carta_selecionada = seleccionado,
                                     filtrado = tag.capitalizeFirst(),
                                     btn_visible = false,
-                                    clik_card = { viewModel.toggleCategoria(tag) },
+                                    clik_card = { viewModel.toggle_subcategoria(tag) },
                                     onClick_delete = {}
                                 )
                             }
-                            // botón para colapsar de nuevo
                             chisp_filtrado_busqueda(
                                 carta_selecionada = false,
                                 filtrado = "Ver menos",
@@ -626,10 +621,9 @@ fun bottom_sheet_filtrar_desde_tienda(
                     }
                 }
 
-                // rangos de precio
                 item {
                     spacer_vertical(10.dp)
-                    texto_generico_one_line("Rangos de Precio")
+                    texto_generico_one_line("Rangos de precio(s) disponibles")
                     spacer_vertical(10.dp)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         items(rangos_disponibles) { rango ->
@@ -647,30 +641,31 @@ fun bottom_sheet_filtrar_desde_tienda(
                     spacer_vertical(10.dp)
                 }
 
-                // botón aplicar
+                // 🔥 Botón solo visible cuando hubo un cambio real
                 item {
-                    Button(
-                        onClick = {
-                            // armar mensaje del toast con lo seleccionado
-                            val partes = mutableListOf<String>()
-                            if (categoriaSeleccionada.isNotEmpty()) {
-                                partes.add("📌 $categoriaSeleccionada")
-                            }
-                            if (!rango_precio.isNullOrEmpty()) {
-                                partes.add("💰 S/ $rango_precio")
-                            }
-                            val mensaje = if (partes.isEmpty()) {
-                                "Mostrando todas las promos de $nombre_tienda"
-                            } else {
-                                "Buscando: ${partes.joinToString(" · ")}"
-                            }
-
-                            Toast.makeText(context, mensaje, Toast.LENGTH_LONG).show()
-                            onClose()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        texto_generico_one_line("Aplicar Filtros de $nombre_tienda")
+                    AnimatedVisibility(visible = huboCambio) {
+                        Button(
+                            onClick = {
+                                val partes = mutableListOf<String>()
+                                if (subcategoriasSeleccionadas.isNotEmpty()) {
+                                    partes.add("📌 ${subcategoriasSeleccionadas.joinToString(", ")}")
+                                }
+                                if (!rango_precio.isNullOrEmpty()) {
+                                    partes.add("💰 S/ $rango_precio")
+                                }
+                                val mensaje = if (partes.isEmpty()) {
+                                    "Mostrando todas las promos de $nombre_tienda"
+                                } else {
+                                    "Buscando: ${partes.joinToString(" · ")}"
+                                }
+                                Toast.makeText(context, mensaje, Toast.LENGTH_LONG).show()
+                                viewModel.filtrar_promos_de_tienda(id_tienda)
+                                onClose()
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            texto_generico_one_line("Aplicar filtros de $nombre_tienda")
+                        }
                     }
                 }
             }

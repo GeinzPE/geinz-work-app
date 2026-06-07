@@ -23,7 +23,6 @@ import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularTiempoRestante
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.calcularTiempoRestante_box
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.capitalizeFirst
-
 @Composable
 fun retornar_color_estado_tienda_Box(
     id_tienda: String,
@@ -33,13 +32,14 @@ fun retornar_color_estado_tienda_Box(
     color: (Color, String) -> Unit,
     mostrar_txt: Boolean = true,
 ) {
-    Log.d("hoaraiossssss12312313131313123",horario_total.toString())
+    Log.d("hoaraiossssss12312313131313123", horario_total.toString())
+
     val resultado by remember(horario_total, tick) {
         derivedStateOf { calcularTiempoRestante_box(horario_total) }
     }
-    if (pagado) {
+
+    if (pagado && mostrar_txt) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if(mostrar_txt){
             Box(
                 modifier = Modifier
                     .size(10.dp)
@@ -52,18 +52,18 @@ fun retornar_color_estado_tienda_Box(
                 resultado.color,
                 resultado.color
             )
-            }
-            color(resultado.color,resultado.texto)
         }
-    } else {
+    } else if (!pagado) {
         Text(
             text = "Consultar al negocio",
             color = Color(0xFFA5A5A5),
             style = MaterialTheme.typography.bodyMedium
         )
     }
-    color(resultado.color,resultado.texto)
+
+    color(resultado.color, resultado.texto)
 }
+
 
 @Composable
 fun TiempoRestanteCierre(

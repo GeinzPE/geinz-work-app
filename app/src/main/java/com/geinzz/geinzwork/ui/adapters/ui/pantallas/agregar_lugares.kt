@@ -2,9 +2,10 @@ package com.geinzz.geinzwork.ui.adapters.ui.pantallas
 
 import android.Manifest
 
-
+import android.util.Base64
 import android.annotation.SuppressLint
 import android.app.TimePickerDialog
+import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
@@ -140,15 +141,38 @@ import retrofit2.http.Query
 import java.security.SecureRandom
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.net.Uri
+import android.provider.MediaStore
+import androidx.compose.foundation.border
+
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Landscape
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.layout.ContentScale
+import androidx.core.content.FileProvider
+import coil3.compose.AsyncImage
+import com.geinzz.geinzwork.data.model.data_class_turismo
+import com.geinzz.geinzwork.data.model.img_turismo
+import com.geinzz.geinzwork.data.model.ubicacion_turismo
+import com.google.firebase.firestore.FirebaseFirestore
 import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
 import com.mapbox.maps.plugin.animation.easeTo
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import java.io.File
 
 object GeofencingManager {
 
@@ -321,9 +345,11 @@ private val geocodingApi: MapboxGeocodingApi by lazy {
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun datos_teindas() {
+    var guardando_turismo by remember { mutableStateOf(false) }
+    var modoActual by rememberSaveable { mutableStateOf(0) } // 0 = Tienda, 1 = Turismo
+
     val lista_metood_pago = listOf("Yape", "Plin", "Efectivo", "Agora", "visa/Mastercard", "SIP")
-    val lista_medood_contacto =
-        listOf("whatsapp", "telefono", "tiktok", "facebook", "instagram", "sitio web")
+    val lista_medood_contacto = listOf("whatsapp", "telefono", "tiktok", "facebook", "instagram", "sitio web")
     val lista_modelo_negocio = listOf("Fisico", "virtual")
     val lista_pagado = listOf("Premiun", "Free")
 
@@ -332,7 +358,7 @@ fun datos_teindas() {
     val horario_atencion = viewmodel_agregar_datos.obtenerHorarioAtencion()
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val scope = rememberCoroutineScope()
-    var repo_agregar_datos = repo_agregar_datos(context)
+    val repo_agregar_datos = repo_agregar_datos(context)
 
     // ── Coordenadas y mapa ──────────────────────────────────────────────
     var lat_ by rememberSaveable { mutableStateOf(0.0) }
@@ -347,7 +373,7 @@ fun datos_teindas() {
     var Efectivo2 by rememberSaveable { mutableStateOf(false) }
     var Agora2 by rememberSaveable { mutableStateOf(false) }
     var visa2 by rememberSaveable { mutableStateOf(false) }
-    var sip2 by rememberSaveable { mutableStateOf(false) }           // ← NUEVO SIP
+    var sip2 by rememberSaveable { mutableStateOf(false) }
 
     // ── Contacto ─────────────────────────────────────────────────────────
     var tk2 by rememberSaveable { mutableStateOf(false) }
@@ -371,8 +397,8 @@ fun datos_teindas() {
     var titular_yape by rememberSaveable { mutableStateOf("") }
     var numero_plin by rememberSaveable { mutableStateOf("") }
     var titular_plin by rememberSaveable { mutableStateOf("") }
-    var numero_sip by rememberSaveable { mutableStateOf("") }        // ← NUEVO SIP
-    var titular_sip by rememberSaveable { mutableStateOf("") }       // ← NUEVO SIP
+    var numero_sip by rememberSaveable { mutableStateOf("") }
+    var titular_sip by rememberSaveable { mutableStateOf("") }
 
     var user_tk by rememberSaveable { mutableStateOf("") }
     var user_fb by rememberSaveable { mutableStateOf("") }
@@ -391,24 +417,59 @@ fun datos_teindas() {
     var lista_categorias by rememberSaveable { mutableStateOf(listOf<String>()) }
     var lista_subcategorias_full by rememberSaveable { mutableStateOf(listOf<List<String>>()) }
 
-    var lista_notificaion_select =
-        listOf("turistico", "nuevos_negocios", "numeros_salud_seguridad", "tramites")
+    val lista_notificaion_select = listOf("turistico", "nuevos_negocios", "numeros_salud_seguridad", "tramites")
     var tipo_notificacion_select by remember { mutableStateOf("") }
     var cambiar_cat_sub by remember { mutableStateOf(false) }
     var tocandoMapa by remember { mutableStateOf(false) }
-//LaunchedEffect(Unit) {
-//    viewmodel_agregar_datos.agregar_zonas(context)
-//}
+
+    // ── Foto tienda: solo URI en estado, base64 se genera al guardar ─────
+    var foto_perfil_uri by remember { mutableStateOf<Uri?>(null) }
+    var cameraUri by remember { mutableStateOf<Uri?>(null) }
+
+    // ── Launchers tienda ──────────────────────────────────────────────────
+    val launcherGaleria = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { foto_perfil_uri = it }
+    }
+
+    val launcherCamara = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            cameraUri?.let { uri -> foto_perfil_uri = uri }
+        }
+    }
+
+    val permisoCamara = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            val uri = crearUriCamaraMediaStore(context)
+            cameraUri = uri
+            launcherCamara.launch(uri)
+        } else {
+            Toast.makeText(context, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val permisoGaleria = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) launcherGaleria.launch("image/*")
+        else Toast.makeText(context, "Permiso de galería denegado", Toast.LENGTH_SHORT).show()
+    }
+
     // ── Carga de categorías ──────────────────────────────────────────────
-    scope.launch {
+    LaunchedEffect(Unit) {
         val (d1, d2) = repo_agregar_datos.obtener_categorias()
         lista_categorias = d1
         lista_subcategorias_full = d2
     }
 
     // ── IA ───────────────────────────────────────────────────────────────
-    if (pedir_ayuda_ia) {
-        scope.launch {
+    LaunchedEffect(pedir_ayuda_ia) {
+        if (pedir_ayuda_ia) {
             val model = Firebase.ai(backend = GenerativeBackend.googleAI())
                 .generativeModel("gemini-2.5-flash")
             try {
@@ -416,17 +477,13 @@ fun datos_teindas() {
                 val prompt = generarPromptOptimizado(
                     texto_nombre_lugar, categoria, contadorClicks, subcategoriaUnica
                 )
-                val inicio = System.currentTimeMillis()
                 val result = model.generateContent(prompt)
-                val textoGenerado = result.text ?: ""
-                val fin = System.currentTimeMillis()
-                Log.d("Gemini", "Tiempo: ${fin - inicio}ms")
-                Log.d("Gemini", "Resultado:\n$textoGenerado")
-                txt_descipcion = textoGenerado
-                pedir_ayuda_ia = false
-                mostar_progrs_var_IA = false
+                txt_descipcion = result.text ?: ""
             } catch (e: Exception) {
                 Log.e("Gemini", "Error al generar descripción: ${e.message}")
+            } finally {
+                pedir_ayuda_ia = false
+                mostar_progrs_var_IA = false
             }
         }
     }
@@ -448,654 +505,1073 @@ fun datos_teindas() {
         }
     }
 
+    if (cambiar_cat_sub) {
+        bottom_sheet_cambiar_datos_tiendas { cambiar_cat_sub = false }
+    }
+
+    // ── Estado exclusivo de Turismo ──────────────────────────────────────
+    var titulo_turistico by rememberSaveable { mutableStateOf("") }
+    var descripcion_turistica by rememberSaveable { mutableStateOf("") }
+    var categorias_turisticas_select by rememberSaveable { mutableStateOf(listOf<String>()) }
+
+    // ── Fotos turismo: SOLO URIs en estado, sin base64 ───────────────────
+    var foto_principal_uri by remember { mutableStateOf<Uri?>(null) }
+    var lista_imgs_uri by remember { mutableStateOf(listOf<Uri>()) }
+    var cameraUri_turismo by remember { mutableStateOf<Uri?>(null) }
+    var foto_turismo_target by remember { mutableStateOf("principal") } // "principal" | "lista"
+
+    val lista_categorias_turisticas = listOf(
+        "playa", "monumento", "mirador", "plaza", "parque", "iglesia",
+        "historico", "recreativo", "arqueologico", "museo", "cultura", "fortaleza"
+    )
+
+    // ── Launchers turismo: solo guardan URI ──────────────────────────────
+    val launcherGaleria_turismo = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            if (foto_turismo_target == "principal") foto_principal_uri = it
+            else lista_imgs_uri = lista_imgs_uri + it
+        }
+    }
+
+    val launcherCamara_turismo = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            cameraUri_turismo?.let { uri ->
+                if (foto_turismo_target == "principal") foto_principal_uri = uri
+                else lista_imgs_uri = lista_imgs_uri + uri
+            }
+        }
+    }
+
+    val permisoCamara_turismo = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            val uri = crearUriCamaraMediaStore(context)
+            cameraUri_turismo = uri
+            launcherCamara_turismo.launch(uri)
+        }
+    }
+
+    val permisoGaleria_turismo = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) launcherGaleria_turismo.launch("image/*")
+    }
+
     // ════════════════════════════════════════════════════════════════════
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .imePadding()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),userScrollEnabled = !tocandoMapa
-    ) {
+    // UI
+    // ════════════════════════════════════════════════════════════════════
+    Column(modifier = Modifier.fillMaxSize()) {
 
-        // ── Sección: Info básica ─────────────────────────────────────────
-        item { spacer_vertical(8.dp) }
-
-        item {
-            SectionHeader("📋 Información básica")
+        TabRow(
+            selectedTabIndex = modoActual,
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.primary
+        ) {
+            Tab(selected = modoActual == 0, onClick = { modoActual = 0 }, text = { Text("🏪 Tienda") })
+            Tab(selected = modoActual == 1, onClick = { modoActual = 1 }, text = { Text("🗺️ Turismo") })
         }
 
-        item {
-            OutlinedTextField(
-                value = texto_nombre_lugar,
-                onValueChange = { texto_nombre_lugar = it },
-                label = { texto_generico_one_line("Nombre del lugar") },
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = {
-                    texto_generico_one_line(
-                        "Nombre del lugar",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
-                },
-                colors = camposColores()
-            )
-        }
-
-        item {
-            ExpandDropDown(lista_categorias, false, "", "Categoría") { seleccionado ->
-                categoria = seleccionado
-                val index = lista_categorias.indexOf(seleccionado)
-                if (index != -1) lista_subcategoria = lista_subcategorias_full[index]
-            }
-        }
-
-        item {
-            if (categoria.isNotEmpty()) {
-                chips_categorias(lista_subcategoria) { lista ->
-                    subcategoarias_selet = lista
-                }
-            }
-        }
-
-        item {
-            OutlinedTextField(
-                value = txt_descipcion,
-                onValueChange = { txt_descipcion = it },
-                label = { texto_generico_one_line("Descripción") },
-                placeholder = {
-                    texto_generico_one_line(
-                        "Escribe una descripción atractiva...",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
-                },
+        // ════════════════════════════════════════════════════════════════
+        // TAB TIENDA
+        // ════════════════════════════════════════════════════════════════
+        if (modoActual == 0) {
+            LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp),
-                colors = camposColores(),
-                shape = RoundedCornerShape(20.dp),
-                maxLines = 8,
-                singleLine = false
-            )
-        }
-
-        item {
-            if (texto_nombre_lugar.length > 3 && categoria.isNotEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                        .clickable {
-                            contadorClicks++
-                            pedir_ayuda_ia = true
-                            mostar_progrs_var_IA = true
-                        }
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        texto_generico_one_line(
-                            if (mostar_progrs_var_IA) "Generando..." else "✨ Generar con IA",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        if (mostar_progrs_var_IA) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp,
-                                trackColor = Color.White
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        item {
-            ExpandDropDown(lista_localidad, false, "", "Localidad") { sub ->
-                localidad = sub
-            }
-        }
-
-        item {
-            ExpandDropDown(lista_modelo_negocio, false, "", "Modelo de negocio") { modelo ->
-                modelo_negocio = modelo == "Fisico"
-            }
-        }
-
-        item {
-            ExpandDropDown(lista_pagado, false, "", "Plan") { modelo ->
-                pagado = modelo == "Premiun"
-            }
-        }
-
-        // ── Sección: Ubicación con Mapbox ────────────────────────────────
-        item { SectionHeader("📍 Ubicación") }
-
-        item {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(4.dp, RoundedCornerShape(20.dp)),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                    .fillMaxSize()
+                    .imePadding()
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                userScrollEnabled = !tocandoMapa
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+                item { SectionHeader("🖼️ Foto de perfil") }
 
-                    // Botones de acción
-                    Row(
+                item {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Botón GPS
-                        Button(
-                            onClick = {
-                                if (ContextCompat.checkSelfPermission(
-                                        context,
-                                        Manifest.permission.ACCESS_FINE_LOCATION
-                                    ) == PackageManager.PERMISSION_GRANTED
-                                ) {
-                                    obtenerUbicacionConfiable(fusedLocationClient) { latLng, accuracy ->
-                                        lat_ = latLng.latitude
-                                        lng_ = latLng.longitude
-                                        latitud = latLng.latitude.toString()
-                                        longitud = latLng.longitude.toString()
-                                        Log.d("GPS", "Precisión: ${accuracy}m")
-                                    }
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        "Activa el permiso de ubicación",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp)
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                         ) {
-                            Text("📡 GPS", color = Color.White, fontSize = 13.sp)
-                        }
-
-                        // Botón mostrar/ocultar mapa
-                        Button(
-                            onClick = { mostrar_mapa = !mostrar_mapa },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (mostrar_mapa)
-                                    MaterialTheme.colorScheme.secondary
-                                else
-                                    MaterialTheme.colorScheme.primary
-                            )
-                        ) {
-                            Text(
-                                if (mostrar_mapa) "🗺️ Ocultar mapa" else "🗺️ Abrir mapa",
-                                color = Color.White,
-                                fontSize = 13.sp
-                            )
-                        }
-                    }
-
-                    // ── Mapa Mapbox ──────────────────────────────────────
-                    AnimatedVisibility(visible = mostrar_mapa) {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(
-                                text = "Toca el mapa para seleccionar la ubicación",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(280.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .shadow(2.dp, RoundedCornerShape(16.dp))
-                            ) {
-                                MapboxMapViewWithLocation(
-
-                                    modifier = Modifier.fillMaxWidth(),
-                                    onMapClick = { lat, lng ->
-                                        lat_ = lat
-                                        lng_ = lng
-                                        latitud = lat.toString()
-                                        longitud = lng.toString()
-                                        // Si quieres que la dirección se actualice automáticamente, ya tienes el LaunchedEffect que observa latitud/longitud
-                                    },
-                                    onLocationUpdate = { lat, lng ->
-                                        // Solo actualizar si el usuario aún no ha hecho clic en el mapa (opcional)
-                                        if (lat_ == 0.0 && lng_ == 0.0) {
-                                            lat_ = lat
-                                            lng_ = lng
-                                            latitud = lat.toString()
-                                            longitud = lng.toString()
-                                        }
-                                    },onTouchChange={ data->
-                                        tocandoMapa=data
-                                    }
+                            if (foto_perfil_uri != null) {
+                                AsyncImage(
+                                    model = foto_perfil_uri,
+                                    contentDescription = "Foto de perfil",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Store,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
-                    }
-
-                    // Coordenadas (solo lectura)
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        OutlinedTextField(
-                            modifier = Modifier.weight(1f),
-                            value = latitud,
-                            onValueChange = {},
-                            shape = RoundedCornerShape(16.dp),
-                            label = { texto_generico_one_line("Latitud") },
-                            colors = camposColores(),
-                            readOnly = true
-                        )
-                        OutlinedTextField(
-                            modifier = Modifier.weight(1f),
-                            value = longitud,
-                            onValueChange = {},
-                            shape = RoundedCornerShape(16.dp),
-                            label = { texto_generico_one_line("Longitud") },
-                            colors = camposColores(),
-                            readOnly = true
-                        )
-                    }
-
-                    // Dirección (auto)
-                    OutlinedTextField(
-                        value = direccion,
-                        onValueChange = { direccion = it },
-                        label = { texto_generico_one_line("Dirección") },
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = camposColores()
-                    )
-
-                    // Referencia
-                    OutlinedTextField(
-                        value = referencia,
-                        onValueChange = { referencia = it },
-                        label = { texto_generico_one_line("Referencia") },
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = camposColores()
-                    )
-
-                    // Geohash
-                    if (mostar_geo) {
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(
-                                "Geohash:",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            OutlinedButton(
+                                onClick = {
+                                    val permiso = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                                        Manifest.permission.READ_MEDIA_IMAGES
+                                    else Manifest.permission.READ_EXTERNAL_STORAGE
+                                    if (ContextCompat.checkSelfPermission(context, permiso) == PackageManager.PERMISSION_GRANTED)
+                                        launcherGaleria.launch("image/*")
+                                    else permisoGaleria.launch(permiso)
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.weight(1f)
+                            ) { Text("🖼️ Galería") }
+
+                            Button(
+                                onClick = {
+                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                                        val uri = crearUriCamaraMediaStore(context)
+                                        cameraUri = uri
+                                        launcherCamara.launch(uri)
+                                    } else {
+                                        permisoCamara.launch(Manifest.permission.CAMERA)
+                                    }
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.weight(1f)
+                            ) { Text("📷 Cámara", color = Color.White) }
+                        }
+                    }
+                }
+
+                item { spacer_vertical(8.dp) }
+                item { SectionHeader("📋 Información básica") }
+
+                item {
+                    OutlinedTextField(
+                        value = texto_nombre_lugar,
+                        onValueChange = { texto_nombre_lugar = it },
+                        label = { texto_generico_one_line("Nombre del lugar") },
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = {
+                            texto_generico_one_line(
+                                "Nombre del lugar",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
                             )
-                            valor_geohashin = constantes_lista_localidades.geohashing(lat_, lng_)
-                            Text(
-                                valor_geohashin,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                        },
+                        colors = camposColores()
+                    )
+                }
+
+                item {
+                    ExpandDropDown(lista_categorias, false, "", "Categoría") { seleccionado ->
+                        categoria = seleccionado
+                        val index = lista_categorias.indexOf(seleccionado)
+                        if (index != -1) lista_subcategoria = lista_subcategorias_full[index]
+                    }
+                }
+
+                item {
+                    if (categoria.isNotEmpty()) {
+                        chips_categorias(lista_subcategoria) { lista ->
+                            subcategoarias_selet = lista
+                        }
+                    }
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = txt_descipcion,
+                        onValueChange = { txt_descipcion = it },
+                        label = { texto_generico_one_line("Descripción") },
+                        placeholder = {
+                            texto_generico_one_line(
+                                "Escribe una descripción atractiva...",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp),
+                        colors = camposColores(),
+                        shape = RoundedCornerShape(20.dp),
+                        maxLines = 8,
+                        singleLine = false
+                    )
+                }
+
+                item {
+                    if (texto_nombre_lugar.length > 3 && categoria.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(MaterialTheme.colorScheme.primary)
+                                .clickable {
+                                    contadorClicks++
+                                    pedir_ayuda_ia = true
+                                    mostar_progrs_var_IA = true
+                                }
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                texto_generico_one_line(
+                                    if (mostar_progrs_var_IA) "Generando..." else "✨ Generar con IA",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                if (mostar_progrs_var_IA) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        strokeWidth = 2.dp,
+                                        trackColor = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    ExpandDropDown(lista_localidad, false, "", "Localidad") { sub ->
+                        localidad = sub
+                    }
+                }
+
+                item {
+                    ExpandDropDown(lista_modelo_negocio, false, "", "Modelo de negocio") { modelo ->
+                        modelo_negocio = modelo == "Fisico"
+                    }
+                }
+
+                item {
+                    ExpandDropDown(lista_pagado, false, "", "Plan") { modelo ->
+                        pagado = modelo == "Premiun"
+                    }
+                }
+
+                item { SectionHeader("📍 Ubicación") }
+
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(4.dp, RoundedCornerShape(20.dp)),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Button(
+                                    onClick = {
+                                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                            obtenerUbicacionConfiable(fusedLocationClient) { latLng, accuracy ->
+                                                lat_ = latLng.latitude
+                                                lng_ = latLng.longitude
+                                                latitud = latLng.latitude.toString()
+                                                longitud = latLng.longitude.toString()
+                                                Log.d("GPS", "Precisión: ${accuracy}m")
+                                            }
+                                        } else {
+                                            Toast.makeText(context, "Activa el permiso de ubicación", Toast.LENGTH_SHORT).show()
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) { Text("📡 GPS", color = Color.White, fontSize = 13.sp) }
+
+                                Button(
+                                    onClick = { mostrar_mapa = !mostrar_mapa },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (mostrar_mapa) MaterialTheme.colorScheme.secondary
+                                        else MaterialTheme.colorScheme.primary
+                                    )
+                                ) {
+                                    Text(
+                                        if (mostrar_mapa) "🗺️ Ocultar mapa" else "🗺️ Abrir mapa",
+                                        color = Color.White, fontSize = 13.sp
+                                    )
+                                }
+                            }
+
+                            AnimatedVisibility(visible = mostrar_mapa) {
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Text(
+                                        text = "Toca el mapa para seleccionar la ubicación",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(280.dp)
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .shadow(2.dp, RoundedCornerShape(16.dp))
+                                    ) {
+                                        MapboxMapViewWithLocation(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            onMapClick = { lat, lng ->
+                                                lat_ = lat; lng_ = lng
+                                                latitud = lat.toString()
+                                                longitud = lng.toString()
+                                            },
+                                            onLocationUpdate = { lat, lng ->
+                                                if (lat_ == 0.0 && lng_ == 0.0) {
+                                                    lat_ = lat; lng_ = lng
+                                                    latitud = lat.toString()
+                                                    longitud = lng.toString()
+                                                }
+                                            },
+                                            onTouchChange = { data -> tocandoMapa = data }
+                                        )
+                                    }
+                                }
+                            }
+
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                OutlinedTextField(
+                                    modifier = Modifier.weight(1f),
+                                    value = latitud, onValueChange = {},
+                                    shape = RoundedCornerShape(16.dp),
+                                    label = { texto_generico_one_line("Latitud") },
+                                    colors = camposColores(), readOnly = true
+                                )
+                                OutlinedTextField(
+                                    modifier = Modifier.weight(1f),
+                                    value = longitud, onValueChange = {},
+                                    shape = RoundedCornerShape(16.dp),
+                                    label = { texto_generico_one_line("Longitud") },
+                                    colors = camposColores(), readOnly = true
+                                )
+                            }
+
+                            OutlinedTextField(
+                                value = direccion, onValueChange = { direccion = it },
+                                label = { texto_generico_one_line("Dirección") },
+                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = camposColores()
+                            )
+
+                            OutlinedTextField(
+                                value = referencia, onValueChange = { referencia = it },
+                                label = { texto_generico_one_line("Referencia") },
+                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = camposColores()
+                            )
+
+                            if (mostar_geo) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("Geohash:", style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    valor_geohashin = constantes_lista_localidades.geohashing(lat_, lng_)
+                                    Text(valor_geohashin, style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item { SectionHeader("💳 Métodos de pago") }
+
+                item {
+                    ChipsCategoriasCheck(lista_metood_pago) { seleccionados ->
+                        yape_select = "Yape" in seleccionados
+                        plin_select = "Plin" in seleccionados
+                        Efectivo2 = "Efectivo" in seleccionados
+                        Agora2 = "Agora" in seleccionados
+                        visa2 = "visa/Mastercard" in seleccionados
+                        sip2 = "SIP" in seleccionados
+                    }
+                }
+
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (yape_select) {
+                            valor_txt_contacto("yape", numero_yape) { numero_yape = it }
+                            OutlinedTextField(
+                                value = titular_yape, onValueChange = { titular_yape = it },
+                                label = { texto_generico_one_line("Titular de Yape") },
+                                shape = RoundedCornerShape(20.dp),
+                                modifier = Modifier.fillMaxWidth(), colors = camposColores()
+                            )
+                        }
+                        if (plin_select) {
+                            valor_txt_contacto("plin", numero_plin) { numero_plin = it }
+                            OutlinedTextField(
+                                value = titular_plin, onValueChange = { titular_plin = it },
+                                label = { texto_generico_one_line("Titular de Plin") },
+                                shape = RoundedCornerShape(20.dp),
+                                modifier = Modifier.fillMaxWidth(), colors = camposColores()
+                            )
+                        }
+                        if (sip2) {
+                            valor_txt_contacto("sip", numero_sip) { numero_sip = it }
+                            OutlinedTextField(
+                                value = titular_sip, onValueChange = { titular_sip = it },
+                                label = { texto_generico_one_line("Titular de SIP") },
+                                shape = RoundedCornerShape(20.dp),
+                                modifier = Modifier.fillMaxWidth(), colors = camposColores()
                             )
                         }
                     }
                 }
-            }
-        }
 
-        // ── Sección: Métodos de pago ─────────────────────────────────────
-        item { SectionHeader("💳 Métodos de pago") }
+                item { SectionHeader("📞 Métodos de contacto") }
 
-        item {
-            ChipsCategoriasCheck(lista_metood_pago) { seleccionados ->
-                yape_select = "Yape" in seleccionados
-                plin_select = "Plin" in seleccionados
-                Efectivo2 = "Efectivo" in seleccionados
-                Agora2 = "Agora" in seleccionados
-                visa2 = "visa/Mastercard" in seleccionados
-                sip2 = "SIP" in seleccionados               // ← NUEVO SIP
-            }
-        }
-
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (yape_select) {
-                    valor_txt_contacto("yape", numero_yape) { numero_yape = it }
-                    OutlinedTextField(
-                        value = titular_yape,
-                        onValueChange = { titular_yape = it },
-                        label = { texto_generico_one_line("Titular de Yape") },
-                        shape = RoundedCornerShape(20.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = camposColores()
-                    )
-                }
-                if (plin_select) {
-                    valor_txt_contacto("plin", numero_plin) { numero_plin = it }
-                    OutlinedTextField(
-                        value = titular_plin,
-                        onValueChange = { titular_plin = it },
-                        label = { texto_generico_one_line("Titular de Plin") },
-                        shape = RoundedCornerShape(20.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = camposColores()
-                    )
-                }
-                // ── SIP ─────────────────────────────────────────────────
-                if (sip2) {
-                    valor_txt_contacto("sip", numero_sip) { numero_sip = it }
-                    OutlinedTextField(
-                        value = titular_sip,
-                        onValueChange = { titular_sip = it },
-                        label = { texto_generico_one_line("Titular de SIP") },
-                        shape = RoundedCornerShape(20.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = camposColores()
-                    )
-                }
-            }
-        }
-
-        // ── Sección: Contacto ────────────────────────────────────────────
-        item { SectionHeader("📞 Métodos de contacto") }
-
-        item {
-            ChipsCategoriasCheck(lista_medood_contacto) { seleccionados ->
-                tk2 = "tiktok" in seleccionados
-                fb2 = "facebook" in seleccionados
-                ig2 = "instagram" in seleccionados
-                ws2 = "whatsapp" in seleccionados
-                tlf2 = "telefono" in seleccionados
-                stw2 = "sitio web" in seleccionados
-            }
-        }
-
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (tk2) valor_txt_contacto("tiktok", user_tk) { user_tk = it }
-                if (fb2) valor_txt_contacto("facebook", user_fb) { user_fb = it }
-                if (ig2) valor_txt_contacto("instagram", user_ig) { user_ig = it }
-                if (ws2) valor_txt_contacto("whatsapp", numero_whatsap) { numero_whatsap = it }
-                if (tlf2) valor_txt_contacto("telefono", numero_telefono) { numero_telefono = it }
-                if (stw2) valor_txt_contacto("sitio web", sitio_web) { sitio_web = it }
-            }
-        }
-
-        // ── Sección: Horarios ────────────────────────────────────────────
-        item { SectionHeader("🕐 Horario de atención") }
-
-        item {
-            HorarioSemanal(viewmodel_agregar_datos)
-        }
-
-        // ── Sección: Acciones ────────────────────────────────────────────
-        item { SectionHeader("⚙️ Acciones") }
-
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(
-                    onClick = {
-                        val repo = repo_agregar_datos(context)
-                        val datos_enviar = data_class_tienda_geinz(
-                            categoria_tienda = categoria,
-                            descripcion = txt_descipcion,
-                            geogash = valor_geohashin,
-                            id_tienda = generarIdSeguro(),
-                            localida_tienda = localidad.lowercase(),
-                            modelo_negocio = modelo_negocio,
-                            nombre_tienda = texto_nombre_lugar,
-                            pagado = pagado,
-                            subcategoria = subcategoarias_selet,
-                            ubicacion = ref_ubi(
-                                latitud = lat_,
-                                longitud = lng_,
-                                referencia = referencia,
-                                dirección = direccion,
-                            ),
-                            metodo_pago = modelo_pagos_tienda(
-                                visa_mastercard = modelo_metodo_individual(
-                                    numero = "", qr = "", nombre = "", enable = visa2
-                                ),
-                                agora = modelo_metodo_individual(
-                                    numero = "", qr = "", nombre = "", enable = Agora2
-                                ),
-                                efectivo = modelo_metodo_individual(
-                                    numero = "", qr = "", nombre = "", enable = Efectivo2
-                                ),
-                                plin = modelo_metodo_individual(
-                                    numero = numero_plin, qr = "", nombre = titular_plin,
-                                    enable = plin_select
-                                ),
-                                yape = modelo_metodo_individual(
-                                    numero = numero_yape, qr = "", nombre = titular_yape,
-                                    enable = yape_select
-                                ),
-                                // SIP: si tu data class no tiene campo sip aún,
-                                // agrégalo o almacénalo en un campo existente
-                                // sip = modelo_metodo_individual(
-                                //     numero = numero_sip, qr = "", nombre = titular_sip,
-                                //     enable = sip2
-                                // ),
-                            ),
-                            metodo_contacto = metodo_contacto_tienda(
-                                whatsapp = contacto_numero(estado = ws2, numero = numero_whatsap),
-                                llamada = contacto_numero(estado = tlf2, numero = numero_telefono),
-                                facebook = contacto_red(estado = fb2, nombre = user_fb, url = ""),
-                                instagram = contacto_red(estado = ig2, nombre = user_ig, url = ""),
-                                tiktok = contacto_red(estado = tk2, nombre = user_tk, url = ""),
-                                sitio_web = contacto_red(estado = stw2, nombre = sitio_web, url = ""),
-                            ),
-                            fechas = ingreso_date(
-                                hora_ingreso = constantes_horas.horaActual(),
-                                fecha_ingreso = fechaActual(),
-                                fecha_fin = fechaActual()
-                            ),
-                            timeSlamp = timeStampNumero(),
-                            horario_atencion = HorarioAtencion_box(
-                                lunes = horario_atencion.lunes,
-                                martes = horario_atencion.martes,
-                                miércoles = horario_atencion.miércoles,
-                                jueves = horario_atencion.jueves,
-                                viernes = horario_atencion.viernes,
-                                sábado = horario_atencion.sábado,
-                                domingo = horario_atencion.domingo,
-                            ),
-                            lista_img = img_tienda()
-                        )
-                        repo.agraegar_datos_db_2(datos_enviar)
-                        val gson = GsonBuilder().setPrettyPrinting().create()
-                        Log.d("datos_enviamor", gson.toJson(datos_enviar))
-                    },
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    texto_generico_one_line("Enviar")
+                item {
+                    ChipsCategoriasCheck(lista_medood_contacto) { seleccionados ->
+                        tk2 = "tiktok" in seleccionados
+                        fb2 = "facebook" in seleccionados
+                        ig2 = "instagram" in seleccionados
+                        ws2 = "whatsapp" in seleccionados
+                        tlf2 = "telefono" in seleccionados
+                        stw2 = "sitio web" in seleccionados
+                    }
                 }
 
-                Button(
-                    onClick = { cambiar_cat_sub = true },
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    texto_generico_one_line("Cambiar cat/sub")
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (tk2) valor_txt_contacto("tiktok", user_tk) { user_tk = it }
+                        if (fb2) valor_txt_contacto("facebook", user_fb) { user_fb = it }
+                        if (ig2) valor_txt_contacto("instagram", user_ig) { user_ig = it }
+                        if (ws2) valor_txt_contacto("whatsapp", numero_whatsap) { numero_whatsap = it }
+                        if (tlf2) valor_txt_contacto("telefono", numero_telefono) { numero_telefono = it }
+                        if (stw2) valor_txt_contacto("sitio web", sitio_web) { sitio_web = it }
+                    }
                 }
+
+                item { SectionHeader("🕐 Horario de atención") }
+                item { HorarioSemanal(viewmodel_agregar_datos) }
+
+                item { SectionHeader("⚙️ Acciones") }
+
+                item {
+                    var guardando_tienda by remember { mutableStateOf(false) }
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Button(
+                            onClick = {
+                                if (!guardando_tienda) {
+                                    guardando_tienda = true
+                                    val repo = repo_agregar_datos(context)
+                                    val id_tienda = generarIdSeguro()
+
+                                    scope.launch(Dispatchers.IO) {
+                                        // ✅ Base64 solo al momento de guardar, en background
+                                        val base64Logo = foto_perfil_uri?.let { uriToBase64(context, it) } ?: ""
+
+                                        withContext(Dispatchers.Main) {
+                                            val datos_enviar = data_class_tienda_geinz(
+                                                base64Logo,
+                                                categoria_tienda = categoria,
+                                                descripcion = txt_descipcion,
+                                                geogash = valor_geohashin,
+                                                id_tienda = id_tienda,
+                                                localida_tienda = localidad.lowercase(),
+                                                modelo_negocio = modelo_negocio,
+                                                nombre_tienda = texto_nombre_lugar,
+                                                pagado = pagado,
+                                                subcategoria = subcategoarias_selet,
+                                                ubicacion = ref_ubi(
+                                                    latitud = lat_,
+                                                    longitud = lng_,
+                                                    referencia = referencia,
+                                                    dirección = direccion,
+                                                ),
+                                                metodo_pago = modelo_pagos_tienda(
+                                                    visa_mastercard = modelo_metodo_individual(numero = "", qr = "", nombre = "", enable = visa2),
+                                                    agora = modelo_metodo_individual(numero = "", qr = "", nombre = "", enable = Agora2),
+                                                    efectivo = modelo_metodo_individual(numero = "", qr = "", nombre = "", enable = Efectivo2),
+                                                    plin = modelo_metodo_individual(numero = numero_plin, qr = "", nombre = titular_plin, enable = plin_select),
+                                                    yape = modelo_metodo_individual(numero = numero_yape, qr = "", nombre = titular_yape, enable = yape_select),
+                                                ),
+                                                metodo_contacto = metodo_contacto_tienda(
+                                                    whatsapp = contacto_numero(estado = ws2, numero = numero_whatsap),
+                                                    llamada = contacto_numero(estado = tlf2, numero = numero_telefono),
+                                                    facebook = contacto_red(estado = fb2, nombre = user_fb, url = ""),
+                                                    instagram = contacto_red(estado = ig2, nombre = user_ig, url = ""),
+                                                    tiktok = contacto_red(estado = tk2, nombre = user_tk, url = ""),
+                                                    sitio_web = contacto_red(estado = stw2, nombre = sitio_web, url = ""),
+                                                ),
+                                                fechas = ingreso_date(
+                                                    hora_ingreso = constantes_horas.horaActual(),
+                                                    fecha_ingreso = fechaActual(),
+                                                    fecha_fin = fechaActual()
+                                                ),
+                                                timeSlamp = timeStampNumero(),
+                                                horario_atencion = HorarioAtencion_box(
+                                                    lunes = horario_atencion.lunes,
+                                                    martes = horario_atencion.martes,
+                                                    miércoles = horario_atencion.miércoles,
+                                                    jueves = horario_atencion.jueves,
+                                                    viernes = horario_atencion.viernes,
+                                                    sábado = horario_atencion.sábado,
+                                                    domingo = horario_atencion.domingo,
+                                                ),
+                                                lista_img = img_tienda()
+                                            )
+
+                                            repo.agraegar_datos_db_2(datos_enviar)
+
+                                            if (foto_perfil_uri != null) {
+                                                repo.subirLogoTienda(
+                                                    context = context,
+                                                    uri = foto_perfil_uri!!,
+                                                    id_tienda = datos_enviar.id_tienda,
+                                                    localidad = datos_enviar.localida_tienda,
+                                                    onComplete = { exito ->
+                                                        guardando_tienda = false
+                                                        Toast.makeText(
+                                                            context,
+                                                            if (exito) "✅ Tienda guardada correctamente"
+                                                            else "❌ Error al subir la imagen",
+                                                            Toast.LENGTH_LONG
+                                                        ).show()
+                                                    }
+                                                )
+                                            } else {
+                                                guardando_tienda = false
+                                                Toast.makeText(context, "✅ Tienda guardada correctamente", Toast.LENGTH_LONG).show()
+                                            }
+
+                                            val gson = GsonBuilder().setPrettyPrinting().create()
+                                            Log.d("datos_enviamor", gson.toJson(datos_enviar))
+                                        }
+                                    }
+                                }
+                            },
+                            enabled = !guardando_tienda,
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            if (guardando_tienda) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Color.White)
+                                    texto_generico_one_line("Guardando...")
+                                }
+                            } else {
+                                texto_generico_one_line("Enviar")
+                            }
+                        }
+
+                        Button(
+                            onClick = { cambiar_cat_sub = true },
+                            shape = RoundedCornerShape(12.dp)
+                        ) { texto_generico_one_line("Cambiar cat/sub") }
+                    }
+                }
+
+                item {
+                    ExpandDropDown(lista_notificaion_select, false, "Tipo de notificación", "Tipo de notificación") { tipo ->
+                        tipo_notificacion_select = tipo
+                    }
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            val titulo = when (tipo_notificacion_select) {
+                                "turistico" -> "🗺️ 🌄 Descubre nuevos lugares turísticos en Geinz 🌅"
+                                "nuevos_negocios" -> "🚀 Nuevos lugares llegaron a Geinz ❤️"
+                                "numeros_salud_seguridad" -> "🚨 Ante cualquier emergencia, comunícate con salud y seguridad 🚑 ❤️"
+                                "tramites" -> "🧾 Encuentra lugares de servicios y comunidad "
+                                else -> "📍 Nuevos lugares disponibles en Geinz"
+                            }
+                            val texto = when (tipo_notificacion_select) {
+                                "turistico" -> "Explora destinos, atractivos y espacios únicos que se acaban de sumar. Encuentra tu próxima visita aquí 👀"
+                                "nuevos_negocios" -> "Conoce los nuevos negocios que se unieron a Geinz y apoya a los emprendedores de tu zona 🏪✨"
+                                "numeros_salud_seguridad" -> "Ten a la mano los contactos de emergencia, salud y seguridad cuando más los necesites ⛑️"
+                                "tramites" -> "Ubica fácilmente dónde realizar trámites, servicios y gestiones cerca de ti 🏢"
+                                else -> "Descubre nuevos lugares y servicios disponibles en Geinz 📍"
+                            }
+                            val imagen_url = when (tipo_notificacion_select) {
+                                "turistico" -> "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fturistico_horizontal.webp?alt=media&token=aef7f5b9-a7e3-48bd-b419-8b0799d8a29b"
+                                "nuevos_negocios" -> "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fsocios_horizontal.webp?alt=media&token=1e5e44be-5d56-4b0a-89f8-7f44e2532db1"
+                                "numeros_salud_seguridad" -> "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fseguridad_horizontal.webp?alt=media&token=3d8c1853-6ad9-44ba-a0c7-092c2a1d8e49"
+                                "tramites" -> "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fservicios_tramites_horizontal.webp?alt=media&token=7a203c44-405b-4527-842a-3cd87194fed8"
+                                else -> "Descubre nuevos lugares y servicios disponibles en Geinz 📍"
+                            }
+                            val tipo_categoria_screen = when (tipo_notificacion_select) {
+                                "turistico" -> "lgtr"
+                                "nuevos_negocios" -> "nvng"
+                                "numeros_salud_seguridad" -> "nemg"
+                                "tramites" -> "seyt"
+                                else -> "Descubre nuevos lugares y servicios disponibles en Geinz 📍"
+                            }
+                            scope.launch {
+                                enviar_notificacion_lista_dispo(
+                                    "", "", "", tipo_categoria_screen,
+                                    tipo_notificacion_params = "screen",
+                                    id_users = listOf("SEky161hPTf7SyjvfxNlkLRNd7f2"),
+                                    titulo = titulo,
+                                    txt = texto,
+                                    logo_tienda = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+                                    tipo_notificacion = "Premium",
+                                    url_img = imagen_url,
+                                    prioridad = "high"
+                                )
+                            }
+                        },
+                        shape = RoundedCornerShape(12.dp)
+                    ) { texto_generico_one_line("Notificar a usuarios sobre apartados") }
+                }
+
+                item { spacer_vertical(32.dp) }
             }
         }
 
-        // ── Notificaciones ───────────────────────────────────────────────
-        item {
-            ExpandDropDown(
-                lista_notificaion_select,
-                false,
-                "Tipo de notificación",
-                "Tipo de notificación"
-            ) { tipo ->
-                tipo_notificacion_select = tipo
-            }
-        }
-
-        item {
-            Button(
-                onClick = {
-                    val titulo = when (tipo_notificacion_select) {
-                        "turistico" -> "🗺️ 🌄 Descubre nuevos lugares turísticos en Geinz 🌅"
-                        "nuevos_negocios" -> "🚀 Nuevos lugares llegaron a Geinz ❤️"
-                        "numeros_salud_seguridad" -> "🚨 Ante cualquier emergencia, comunícate con salud y seguridad 🚑 ❤️"
-                        "tramites" -> "🧾 Encuentra lugares de servicios y comunidad "
-                        else -> "📍 Nuevos lugares disponibles en Geinz"
-                    }
-                    val texto = when (tipo_notificacion_select) {
-                        "turistico" -> "Explora destinos, atractivos y espacios únicos que se acaban de sumar. Encuentra tu próxima visita aquí 👀"
-                        "nuevos_negocios" -> "Conoce los nuevos negocios que se unieron a Geinz y apoya a los emprendedores de tu zona 🏪✨"
-                        "numeros_salud_seguridad" -> "Ten a la mano los contactos de emergencia, salud y seguridad cuando más los necesites ⛑️"
-                        "tramites" -> "Ubica fácilmente dónde realizar trámites, servicios y gestiones cerca de ti 🏢"
-                        else -> "Descubre nuevos lugares y servicios disponibles en Geinz 📍"
-                    }
-                    val imagen_url = when (tipo_notificacion_select) {
-                        "turistico" -> "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fturistico_horizontal.webp?alt=media&token=aef7f5b9-a7e3-48bd-b419-8b0799d8a29b"
-                        "nuevos_negocios" -> "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fsocios_horizontal.webp?alt=media&token=1e5e44be-5d56-4b0a-89f8-7f44e2532db1"
-                        "numeros_salud_seguridad" -> "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fseguridad_horizontal.webp?alt=media&token=3d8c1853-6ad9-44ba-a0c7-092c2a1d8e49"
-                        "tramites" -> "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/compartir_pantallas%2Fservicios_tramites_horizontal.webp?alt=media&token=7a203c44-405b-4527-842a-3cd87194fed8"
-                        else -> "Descubre nuevos lugares y servicios disponibles en Geinz 📍"
-                    }
-                    val tipo_categoria_screen = when (tipo_notificacion_select) {
-                        "turistico" -> "lgtr"
-                        "nuevos_negocios" -> "nvng"
-                        "numeros_salud_seguridad" -> "nemg"
-                        "tramites" -> "seyt"
-                        else -> "Descubre nuevos lugares y servicios disponibles en Geinz 📍"
-                    }
-                    scope.launch {
-                        enviar_notificacion_lista_dispo(
-                            "", "", "", tipo_categoria_screen,
-                            tipo_notificacion_params = "screen",
-                            id_users = listOf("SEky161hPTf7SyjvfxNlkLRNd7f2"),
-                            titulo = titulo,
-                            txt = texto,
-                            logo_tienda = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
-                            tipo_notificacion = "Premium",
-                            url_img = imagen_url,
-                            prioridad = "high"
-                        )
-                    }
-                },
-                shape = RoundedCornerShape(12.dp)
+        // ════════════════════════════════════════════════════════════════
+        // TAB TURISMO
+        // ════════════════════════════════════════════════════════════════
+        if (modoActual == 1) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .imePadding()
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                userScrollEnabled = !tocandoMapa
             ) {
-                texto_generico_one_line("Notificar a usuarios sobre apartados")
+                item { SectionHeader("🖼️ Foto principal") }
+
+                item {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            if (foto_principal_uri != null) {
+                                AsyncImage(
+                                    model = foto_principal_uri,
+                                    contentDescription = "Foto principal",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Landscape,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            OutlinedButton(
+                                onClick = {
+                                    foto_turismo_target = "principal"
+                                    val permiso = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                                        Manifest.permission.READ_MEDIA_IMAGES
+                                    else Manifest.permission.READ_EXTERNAL_STORAGE
+                                    if (ContextCompat.checkSelfPermission(context, permiso) == PackageManager.PERMISSION_GRANTED)
+                                        launcherGaleria_turismo.launch("image/*")
+                                    else permisoGaleria_turismo.launch(permiso)
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.weight(1f)
+                            ) { Text("🖼️ Galería") }
+
+                            Button(
+                                onClick = {
+                                    foto_turismo_target = "principal"
+                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                                        val uri = crearUriCamaraMediaStore(context)
+                                        cameraUri_turismo = uri
+                                        launcherCamara_turismo.launch(uri)
+                                    } else permisoCamara_turismo.launch(Manifest.permission.CAMERA)
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.weight(1f)
+                            ) { Text("📷 Cámara", color = Color.White) }
+                        }
+                    }
+                }
+
+                item { SectionHeader("📸 Galería del lugar") }
+
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        if (lista_imgs_uri.isNotEmpty()) {
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(lista_imgs_uri.size) { index ->
+                                    Box(
+                                        modifier = Modifier
+                                            .size(100.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                    ) {
+                                        AsyncImage(
+                                            model = lista_imgs_uri[index],
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                        // ✅ Eliminar solo de lista_imgs_uri, sin base64
+                                        IconButton(
+                                            onClick = {
+                                                lista_imgs_uri = lista_imgs_uri.toMutableList()
+                                                    .also { it.removeAt(index) }
+                                            },
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .size(24.dp)
+                                                .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Close,
+                                                contentDescription = "Eliminar",
+                                                tint = Color.White,
+                                                modifier = Modifier.size(14.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            OutlinedButton(
+                                onClick = {
+                                    foto_turismo_target = "lista"
+                                    val permiso = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                                        Manifest.permission.READ_MEDIA_IMAGES
+                                    else Manifest.permission.READ_EXTERNAL_STORAGE
+                                    if (ContextCompat.checkSelfPermission(context, permiso) == PackageManager.PERMISSION_GRANTED)
+                                        launcherGaleria_turismo.launch("image/*")
+                                    else permisoGaleria_turismo.launch(permiso)
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.weight(1f)
+                            ) { Text("➕ Galería") }
+
+                            Button(
+                                onClick = {
+                                    foto_turismo_target = "lista"
+                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                                        val uri = crearUriCamaraMediaStore(context)
+                                        cameraUri_turismo = uri
+                                        launcherCamara_turismo.launch(uri)
+                                    } else permisoCamara_turismo.launch(Manifest.permission.CAMERA)
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.weight(1f)
+                            ) { Text("➕ Cámara", color = Color.White) }
+                        }
+                    }
+                }
+
+                item { SectionHeader("📋 Información del lugar") }
+
+                item {
+                    OutlinedTextField(
+                        value = titulo_turistico,
+                        onValueChange = { titulo_turistico = it },
+                        label = { texto_generico_one_line("Título del lugar") },
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = {
+                            texto_generico_one_line(
+                                "Ej: Cristo Redentor",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                            )
+                        },
+                        colors = camposColores()
+                    )
+                }
+
+                item {
+                    Text(
+                        "Categorías del lugar",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                    chips_categorias(lista_categorias_turisticas) { lista ->
+                        categorias_turisticas_select = lista
+                    }
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = descripcion_turistica,
+                        onValueChange = { descripcion_turistica = it },
+                        label = { texto_generico_one_line("Descripción") },
+                        placeholder = {
+                            texto_generico_one_line(
+                                "Describe el lugar turístico...",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp),
+                        colors = camposColores(),
+                        shape = RoundedCornerShape(20.dp),
+                        maxLines = 8,
+                        singleLine = false
+                    )
+                }
+
+                item { SectionHeader("📍 Ubicación") }
+
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(4.dp, RoundedCornerShape(20.dp)),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Button(
+                                    onClick = {
+                                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                            obtenerUbicacionConfiable(fusedLocationClient) { latLng, _ ->
+                                                lat_ = latLng.latitude; lng_ = latLng.longitude
+                                                latitud = latLng.latitude.toString()
+                                                longitud = latLng.longitude.toString()
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) { Text("📡 GPS", color = Color.White, fontSize = 13.sp) }
+
+                                Button(
+                                    onClick = { mostrar_mapa = !mostrar_mapa },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (mostrar_mapa) MaterialTheme.colorScheme.secondary
+                                        else MaterialTheme.colorScheme.primary
+                                    )
+                                ) {
+                                    Text(
+                                        if (mostrar_mapa) "🗺️ Ocultar mapa" else "🗺️ Abrir mapa",
+                                        color = Color.White, fontSize = 13.sp
+                                    )
+                                }
+                            }
+
+                            AnimatedVisibility(visible = mostrar_mapa) {
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Text(
+                                        "Toca el mapa para seleccionar la ubicación",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(280.dp)
+                                            .clip(RoundedCornerShape(16.dp))
+                                    ) {
+                                        MapboxMapViewWithLocation(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            onMapClick = { lat, lng ->
+                                                lat_ = lat; lng_ = lng
+                                                latitud = lat.toString()
+                                                longitud = lng.toString()
+                                            },
+                                            onLocationUpdate = { lat, lng ->
+                                                if (lat_ == 0.0 && lng_ == 0.0) {
+                                                    lat_ = lat; lng_ = lng
+                                                    latitud = lat.toString()
+                                                    longitud = lng.toString()
+                                                }
+                                            },
+                                            onTouchChange = { data -> tocandoMapa = data }
+                                        )
+                                    }
+                                }
+                            }
+
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                OutlinedTextField(
+                                    modifier = Modifier.weight(1f),
+                                    value = latitud, onValueChange = {},
+                                    shape = RoundedCornerShape(16.dp),
+                                    label = { texto_generico_one_line("Latitud") },
+                                    colors = camposColores(), readOnly = true
+                                )
+                                OutlinedTextField(
+                                    modifier = Modifier.weight(1f),
+                                    value = longitud, onValueChange = {},
+                                    shape = RoundedCornerShape(16.dp),
+                                    label = { texto_generico_one_line("Longitud") },
+                                    colors = camposColores(), readOnly = true
+                                )
+                            }
+
+                            OutlinedTextField(
+                                value = direccion, onValueChange = { direccion = it },
+                                label = { texto_generico_one_line("Dirección") },
+                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = camposColores()
+                            )
+
+                            if (mostar_geo) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("Geohash:", style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    valor_geohashin = constantes_lista_localidades.geohashing(lat_, lng_)
+                                    Text(valor_geohashin, style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item { SectionHeader("⚙️ Acciones") }
+
+                item {
+                    Button(
+                        onClick = {
+                            if (!guardando_turismo) {
+                                guardando_turismo = true
+                                val id_generado = generarIdSeguro()
+
+                                val datos_turismo = data_class_turismo(
+                                    titulo = titulo_turistico,
+                                    descripcion = descripcion_turistica,
+                                    categoria = categorias_turisticas_select,
+                                    geohash = valor_geohashin,
+                                    id = id_generado,
+                                    img = img_turismo(principal = "", lista_img = emptyList()),
+                                    ubicacion = ubicacion_turismo(
+                                        direccion = direccion,
+                                        latitud = lat_,
+                                        longitud = lng_
+                                    )
+                                )
+
+                                val onResult: (Boolean) -> Unit = { exito ->
+                                    guardando_turismo = false
+                                    Toast.makeText(
+                                        context,
+                                        if (exito) "✅ Lugar turístico guardado correctamente"
+                                        else "❌ Error al guardar, intenta de nuevo",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+
+                                // ✅ Pasa URIs directamente al repo, que convierte internamente
+                                if (foto_principal_uri != null) {
+                                    repo_agregar_datos.subirImagenesTuristico(
+                                        context = context,
+                                        uriFotoPrincipal = foto_principal_uri!!,
+                                        listaUrisExtra = lista_imgs_uri,
+                                        id_lugar = id_generado,
+                                        localidad = "barranca",
+                                        datosTurismo = datos_turismo,
+                                        onComplete = onResult
+                                    )
+                                } else {
+                                    repo_agregar_datos.guardarTuristicoEnFirestore(
+                                        db = FirebaseFirestore.getInstance(),
+                                        id_lugar = id_generado,
+                                        localidad = "barranca",
+                                        datos = datos_turismo,
+                                        urlPrincipal = "",
+                                        urlsExtra = emptyList(),
+                                        onComplete = onResult
+                                    )
+                                }
+                            }
+                        },
+                        enabled = !guardando_turismo,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (guardando_turismo) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Color.White)
+                                texto_generico_one_line("Guardando...")
+                            }
+                        } else {
+                            texto_generico_one_line("💾 Guardar lugar turístico")
+                        }
+                    }
+                }
+
+                item { spacer_vertical(32.dp) }
             }
         }
-
-        item { spacer_vertical(32.dp) }
-    }
-
-    if (cambiar_cat_sub) {
-        bottom_sheet_cambiar_datos_tiendas { cambiar_cat_sub = false }
     }
 }
 
 // ─── Composable: Mapa Mapbox ───────────────────────────────────────────────
 
-/**
- * Muestra un mapa Mapbox interactivo. Al tocar cualquier punto:
- *  - Mueve el marcador a ese punto
- *  - Llama a [onMapClick] con la lat/lng seleccionada
- *
- * La geocodificación inversa (obtener la calle) se hace en el LaunchedEffect
- * de la pantalla principal que observa los cambios en latitud/longitud.
- *
- * Requiere en local.properties:
- *   MAPBOX_ACCESS_TOKEN=pk.eyJ1...
- * Y en build.gradle (app):
- *   buildConfigField("String", "MAPBOX_ACCESS_TOKEN",
- *       "\"${localProperties['MAPBOX_ACCESS_TOKEN']}\"")
- */
-@Composable
-fun MapboxMapView(
-    initialLat: Double = -10.5332,
-    initialLng: Double = -76.7248,
-    markerLat: Double? = null,
-    markerLng: Double? = null,
-    onMapClick: (lat: Double, lng: Double) -> Unit
-) {
-    val context = LocalContext.current
-
-    // Guarda referencia al manager de anotaciones para reusar
-    var annotationManager by remember { mutableStateOf<PointAnnotationManager?>(null) }
-
-    AndroidView(
-        modifier = Modifier.fillMaxSize(),
-        factory = { ctx ->
-            MapView(ctx).apply {
-                mapboxMap.loadStyle(Style.MAPBOX_STREETS) { style ->
-
-                    // Cámara inicial
-                    mapboxMap.setCamera(
-                        CameraOptions.Builder()
-                            .center(Point.fromLngLat(initialLng, initialLat))
-                            .zoom(16.0)
-                            .build()
-                    )
-
-                    // Crear annotation manager para el marcador
-                    val annManager = annotations.createPointAnnotationManager()
-                    annotationManager = annManager
-
-                    // Si ya hay coordenadas previas, mostrar el marcador
-                    if (markerLat != null && markerLng != null) {
-                        annManager.create(
-                            PointAnnotationOptions()
-                                .withPoint(Point.fromLngLat(markerLng, markerLat))
-                        )
-                    }
-
-                    // Listener de clic en el mapa
-                    mapboxMap.addOnMapClickListener { point ->
-                        val lat = point.latitude()
-                        val lng = point.longitude()
-
-                        // Limpiar marcador anterior y agregar nuevo
-                        annManager.deleteAll()
-                        annManager.create(
-                            PointAnnotationOptions()
-                                .withPoint(Point.fromLngLat(lng, lat))
-                        )
-
-                        onMapClick(lat, lng)
-                        true
-                    }
-                }
-            }
-        },
-        update = { mapView ->
-            // Si el marcador externo cambia (ej. GPS), actualizamos
-            val mgr = annotationManager ?: return@AndroidView
-            if (markerLat != null && markerLng != null) {
-                mgr.deleteAll()
-                mgr.create(
-                    PointAnnotationOptions()
-                        .withPoint(Point.fromLngLat(markerLng, markerLat))
-                )
-                mapView.mapboxMap.setCamera(
-                    CameraOptions.Builder()
-                        .center(Point.fromLngLat(markerLng, markerLat))
-                        .zoom(15.0)
-                        .build()
-                )
-            }
-        }
-    )
-}
 
 // ─── Composable auxiliar: encabezado de sección ────────────────────────────
 
@@ -1760,4 +2236,25 @@ fun crearBitmapPin(context: Context, color: Color = Color.Red): Bitmap {
     canvas.drawCircle(40f, 40f, 35f, borderPaint)
 
     return bitmap
+}
+fun uriToBase64(context: Context, uri: Uri): String {
+    val inputStream = context.contentResolver.openInputStream(uri) ?: return ""
+    val bitmap = BitmapFactory.decodeStream(inputStream)
+    inputStream.close()
+    val salida = ByteArrayOutputStream()
+    bitmap.compress(Bitmap.CompressFormat.JPEG, 70, salida)
+    return Base64.encodeToString(salida.toByteArray(), Base64.DEFAULT)
+}
+
+// Reemplaza crearUriCamara con esto
+fun crearUriCamaraMediaStore(context: Context): Uri {
+    val contentValues = ContentValues().apply {
+        put(MediaStore.Images.Media.DISPLAY_NAME, "foto_tmp_${System.currentTimeMillis()}.jpg")
+        put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+        put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/GeinzTemp")
+    }
+    return context.contentResolver.insert(
+        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+        contentValues
+    ) ?: throw IllegalStateException("No se pudo crear URI para cámara")
 }

@@ -163,8 +163,6 @@ import com.geinzz.geinzwork.viewModels.viewmodel_recargas
 import com.geinzz.geinzwork.viewmodel_carga_img_generalFactory
 import com.google.firebase.messaging.FirebaseMessaging
 
-private lateinit var firebaseAuth: FirebaseAuth
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun pantalla_principal(
@@ -267,10 +265,6 @@ fun pantalla_principal(
     val dialogo_notifi_ret by data_store_localidad.get_dialog_notifi(context)
         .collectAsState(initial = null)
 
-    LaunchedEffect(dialogo_notifi_ret) {
-
-    Log.d("nviomoticiaon","$dialgo_notificacion")
-    }
 
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
     var id_respado_user by remember { mutableStateOf("") }
@@ -280,9 +274,10 @@ fun pantalla_principal(
 
     val tick by viewModel_filtado_tiendas.tick.collectAsState()
 
-    val horarioHoy =
-        viewModel_filtado_tiendas.horariosTiendas.collectAsState().value[datos_tienda.id_tienda]
-            ?: HorarioDia_box()
+    val horariosTiendas by viewModel_filtado_tiendas.horariosTiendas.collectAsState()
+    val horarioHoy = remember(horariosTiendas, datos_tienda.id_tienda) {
+        horariosTiendas[datos_tienda.id_tienda] ?: HorarioDia_box()
+    }
     var horas_trabajo by remember(horarioHoy) {
         mutableStateOf(constantes_horas.calcularHorasDiaLegible(horarioHoy))
     }
@@ -483,58 +478,49 @@ fun pantalla_principal(
         }
     }
 
-    val banners = listOf(
+    val banners = remember(localidad_defaul, isConnected){
+        listOf(
 
-//        BannerItem(
-//            id = "1",
-//            titulo = "House capital Group",
-//            descripcion = "Transforma tu vida en ${localidadSeleccionada.value} aqui en Geinz",
-//            imagen = R.drawable.logo_comprimido_inmobiliaria,
-//            onClick = { geinz_inmobiliaria(localidad_defaul) }
-//        ),
-
-
-
-
-        BannerItem(
-            id = "1",
-            titulo = "Ofertas y Promociones",
-            descripcion = "Encuentra las mejores promos de tus negocios favoritos y adquierelo ya",
-            imagen = R.drawable.pantalla_promos_geinz,
-            onClick = { geinz_inmobiliaria(localidad_defaul, "") }
-        ),
+            BannerItem(
+                id = "1",
+                titulo = "Ofertas y Promociones",
+                descripcion = "Encuentra las mejores promos de tus negocios favoritos y adquierelo ya",
+                imagen = R.drawable.pantalla_promos_geinz,
+                onClick = { geinz_inmobiliaria(localidad_defaul, "") }
+            ),
 
 
 
 
-        BannerItem(
-            id = "2",
-            titulo = "Servicios esenciales y trámites",
-            descripcion = "Encuentra fácilmente todos los servicios y entidades esenciales",
-            imagen = R.drawable.servicios_basicos,
-            onClick = { listner_sevicios_tramites(localidad_defaul, "") }
-        ),
+            BannerItem(
+                id = "2",
+                titulo = "Servicios esenciales y trámites",
+                descripcion = "Encuentra fácilmente todos los servicios y entidades esenciales",
+                imagen = R.drawable.servicios_basicos,
+                onClick = { listner_sevicios_tramites(localidad_defaul, "") }
+            ),
 
-        BannerItem(
-            id = "3",
-            titulo = "¿Quieres ser parte de Geinz?",
-            descripcion = "Llega a más clientes potenciales y aumenta tu presencia digital.",
-            imagen = R.drawable.geinz_baner,
-            onClick = {
-                if (isConnected) {
-                    mostar_bottom_sheet_ayuda_geinz = true
-                } else {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Verifica tu conexión a internet y vuelvelo a intentar",
-                            duration = SnackbarDuration.Short
-                        )
+            BannerItem(
+                id = "3",
+                titulo = "¿Quieres ser parte de Geinz?",
+                descripcion = "Llega a más clientes potenciales y aumenta tu presencia digital.",
+                imagen = R.drawable.geinz_baner,
+                onClick = {
+                    if (isConnected) {
+                        mostar_bottom_sheet_ayuda_geinz = true
+                    } else {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = "Verifica tu conexión a internet y vuelvelo a intentar",
+                                duration = SnackbarDuration.Short
+                            )
+                        }
                     }
                 }
-            }
-        )
+            )
 
-    )
+        )
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -692,60 +678,58 @@ fun pantalla_principal(
 //                    spacer_vertical(20.dp)
 //                }
 //            }
+//
+         if (nuevas_tiendas_agregadas.size >= 10) {
 
-            item {
-                spacer_vertical(20.dp)
-                titulo_referenciales_geinz_work(
-                    "Recién agregados",
-                    "Ver todos"
-                ) { mostar_nuevos_lugares_geinz(localidad_defaul) }
-                spacer_vertical(10.dp)
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.padding(vertical = 8.dp)
-                ) {
-                    items(nuevas_tiendas_agregadas, key = { it.id_tienda }) { items ->
-                        nuevos_lugares_agregados_fun(
-//                            id_user = id_respado_user,
-//                            localida_user = localidad_defaul,
-                            viewModelFiltros = viewModel_filtado_tiendas,
-                            verificar_interner = isConnected,
-                            item = items,
-                            mostrar_datos = { it_tienda ->
-                                if (isConnected) {
-                                    if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
-                                        mostrar_bottom_sheet_lugares = true
-                                        id_tienda_select = it_tienda
+                item {
+                    spacer_vertical(20.dp)
+
+                    titulo_referenciales_geinz_work(
+                        "Recién agregados",
+                        "Ver todos"
+                    ) { mostar_nuevos_lugares_geinz(localidad_defaul) }
+
+                    spacer_vertical(10.dp)
+
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    ) {
+                        items(
+                            nuevas_tiendas_agregadas,
+                            key = { it.id_tienda }
+                        ) { items ->
+
+                            nuevos_lugares_agregados_fun(
+                                viewModelFiltros = viewModel_filtado_tiendas,
+                                verificar_interner = isConnected,
+                                item = items,
+                                mostrar_datos = { it_tienda ->
+                                    if (isConnected) {
+                                        if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
+                                            mostrar_bottom_sheet_lugares = true
+                                            id_tienda_select = it_tienda
+                                        } else {
+                                            bottom_sheet_iniciar_seccion = true
+                                            texto_falta_registra =
+                                                "Regístrate para ver los detalles completos y las funciones exclusivas"
+                                        }
                                     } else {
-                                        bottom_sheet_iniciar_seccion = true
-                                        texto_falta_registra =
-                                            "Regístrate para ver los detalles completos y las funciones exclusivas"
-                                    }
-                                } else {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(
-                                            message = "Verifica tu conexión a internet y vuelvelo a intentar",
-                                            duration = SnackbarDuration.Short
-                                        )
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = "Verifica tu conexión a internet y vuelvelo a intentar",
+                                                duration = SnackbarDuration.Short
+                                            )
+                                        }
                                     }
                                 }
-                            },
-//                            dialog_sin_registrao = {
-//                                bottom_sheet_iniciar_seccion = true
-//                                texto_falta_registra = "Regístrate para agregar a tus favoritos"
-//                            }, { localidad, id, nombre, estado ->
-//                                if (estado) {
-//                                    mostar_dialog_dejar_seguir = true
-//                                    dejar_seguir_nombre = nombre
-//                                    dejar_seguir_id = id
-//                                    dejar_seguir_localidad = localidad
-//                                }
-//                            }
-                        )
+                            )
+                        }
                     }
+
+                    spacer_vertical(20.dp)
                 }
-                spacer_vertical(20.dp)
-            }
+        }
 
 //            item {
 //                if (mostrar_widget_tienda) {
@@ -928,7 +912,6 @@ fun apartado_explora_cat(
     clikear_cartas: (String, String, String) -> Unit,
 ) {
     val localidad_defaul = localidad_selecionada ?: "barranca"
-    Log.d("obtemloms_lista", categorias_tienda.toString())
     spacer_vertical(10.dp)
 
     Column {
@@ -982,7 +965,7 @@ fun cartas_filtrado(
     var cartaSeleccionada by remember { mutableStateOf<String?>(null) }
 
     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        items(lista) { i ->
+        items(lista, key = { it.nombre }) { i ->
             val seleccionada = cartaSeleccionada == i.nombre
 
             val anchoAnimado by animateDpAsState(
@@ -1491,10 +1474,12 @@ fun AutoResizeOneLineText(
         modifier = modifier.height(40.dp) // altura fija según tu diseño
     ) {
         val density = LocalDensity.current
-        val scaledSize = with(density) {
-            (maxWidth.toPx() / (text.length * 0.6f) / density.density)
-                .coerceIn(minTextSize.value, maxTextSize.value)
-                .sp
+        val scaledSize = remember(text, maxWidth) {
+            with(density) {
+                (maxWidth.toPx() / (text.length * 0.6f) / density.density)
+                    .coerceIn(minTextSize.value, maxTextSize.value)
+                    .sp
+            }
         }
 
         Text(
@@ -1530,14 +1515,10 @@ fun carga_progres_categoria(anchoAnimado: Dp, alturaFija: Dp) {
 
 @Composable
 fun nuevos_lugares_agregados_fun(
-//    id_user: String,
-//    localida_user: String,
     viewModelFiltros: viewModel_filtado_tiendas,
     verificar_interner: Boolean,
     item: nuevos_lugares_agregados,
     mostrar_datos: (String) -> Unit,
-//    dialog_sin_registrao: () -> Unit,
-//    dialog_estado_fv_btn: (localidad: String, id: String, nombre: String, estado_btn: Boolean) -> Unit
 ) {
 
     // 🔹 Mapa global de favoritos (por id)
@@ -1546,15 +1527,6 @@ fun nuevos_lugares_agregados_fun(
     // 🔹 Estado REAL de este item
     val favoritoLocal = mapaFavoritos[item.id_tienda] ?: false
 
-//    // 🔹 Verificar favorito SOLO para este item
-//    LaunchedEffect(id_user, item.id_tienda) {
-//        if (id_user.isNotEmpty()) {
-//            viewModelFiltros.verificar_existe_favoritoMap(
-//                id_user,
-//                item.id_tienda
-//            )
-//        }
-//    }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(5.dp),
@@ -1580,47 +1552,7 @@ fun nuevos_lugares_agregados_fun(
                 contentScale = ContentScale.Crop
             )
 
-            this@Column.AnimatedVisibility(
-                visible = verificar_interner,
-                enter = fadeIn(),
-                exit = fadeOut(),
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(10.dp)
-            ) {
 
-//                btn_listener_fv_externo(
-//                    select = favoritoLocal,
-//                    listener = { nuevoEstado ->
-//
-//                        if (nuevoEstado) {
-//                            // ❤️ QUIERE GUARDAR
-//                            if (id_user.isNotEmpty()) {
-//                                viewModelFiltros.guardar_tienda_favorita_por_id(
-//                                    localida_user,
-//                                    id_user,
-//                                    item.id_tienda
-//                                )
-//                            } else {
-//                                // 🚫 NO LOGUEADO
-//                                dialog_sin_registrao()
-//                            }
-//
-//                        } else {
-//                            // ❌ QUITAR FAVORITO → SOLO CON DIÁLOGO
-//                            dialog_estado_fv_btn(
-//                                item.localidad_tienda,
-//                                item.id_tienda,
-//                                item.nombre_tienda,
-//                                true
-//                            )
-//                        }
-//                    },
-//                    modifier = Modifier,
-//                    size_btn = 40.dp,
-//                    size_icon = 20.dp
-//                )
-            }
 //            Box(
 //
 //                modifier = Modifier

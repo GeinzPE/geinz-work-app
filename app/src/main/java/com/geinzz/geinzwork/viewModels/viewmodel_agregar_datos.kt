@@ -220,7 +220,7 @@ class viewmodel_agregar_datos : ViewModel() {
         viewModelScope.launch {
             try {
                 val repo_instance = repo_agregar_datos(context)
-                repo_instance.agregar_zonas()
+                repo_instance.agregarZonasEnLugares()
             } catch (e: Exception) {
                 Log.d("agrgamos_zonas", "error $e")
             }

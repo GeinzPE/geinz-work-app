@@ -1073,24 +1073,28 @@ Texto: "$textoUsuario"
 """.trimIndent()
 }
 
-fun construir_prompt_NLP_para_busqueda(textoUsuario: String, categoria: String): String {
+fun construir_prompt_NLP_para_busqueda(textoUsuario: String, categoria: String, nombreNegocio: String): String {
     return """
-    Extrae términos clave de búsqueda para una promoción. Categoría: $categoria
+    [INPUT]
+    Texto: "$textoUsuario"
+    Categoria del negocio: "$categoria"
+    Filtros prohibidos: "$nombreNegocio"
 
-    Extrae SOLO lo que un usuario escribiría en un buscador para encontrar esto:
-    - Lugares, destinos o direcciones si los hay
-    - Productos o servicios específicos (no genéricos)
-    - Especialidades o rubros del negocio
+    [INSTRUCCIONES]
+    Extrae de 'Texto' un array JSON de strings con máximo 6 términos clave para motores de búsqueda.
+    1. Prioriza ÚNICAMENTE: nombres propios, lugares, marcas, modelos, productos o servicios MUY específicos mencionados en el texto.
+    2. PROHIBIDO:
+       - Palabras genéricas que describan la categoría "$categoria" (ej: si es transporte, excluir "viaje","pasaje","bus","ruta")
+       - Adjetivos, verbos, precios, palabras de marketing ("oferta","promo","descuento","oportunidad")
+       - Cualquier palabra o fragmento de '$nombreNegocio'
+    3. Solo incluir términos que por sí solos sirvan como búsqueda específica en Google.
+    4. Formato: minúsculas, singular, sin tildes, sin duplicados.
+    5. Si no hay términos específicos válidos, devuelve [].
 
-    Descarta: precios, descuentos, cantidades, adjetivos, palabras genéricas 
-    (como "oferta", "promo", "compra", "viaje", "boleto", "servicio", "producto")
-
-    Reglas: minúsculas, sin tildes, singular, sin duplicados, máximo 6 términos.
-
-    Responde SOLO el array JSON. Texto: "$textoUsuario"
+    [OUTPUT]
+    Contesta ÚNICAMENTE con el array JSON. Ejemplo: ["tag1", "tag2"]
     """.trimIndent()
 }
-
 
 fun contruir_promp_ia_datos_inmobiliara(
     i: ia_inmobiliara_tts,
