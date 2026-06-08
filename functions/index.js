@@ -77,6 +77,64 @@ const openai = new OpenAI({
 });
 const similarity = require("string-similarity-js");
 
+const Busboy = require("busboy");
+const os = require("os");
+
+// ==================== uso_wisper ====================
+
+exports.transcribirAudio = onRequest(async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+
+  if (req.method !== "POST") {
+    res.status(405).send("Method Not Allowed");
+    return;
+  }
+
+  // 🔥 declarar FUERA del Promise para que sea accesible después
+  let tmpFilePath = "";
+
+  await new Promise((resolve, reject) => {
+    const busboy = Busboy({ headers: req.headers });
+
+    busboy.on("file", (fieldname, file, info) => {
+      const fileName = info.filename || "audio.m4a"; // 🔥 m4a
+      tmpFilePath = path.join(os.tmpdir(), fileName); // 🔥 asigna la variable de arriba
+      const writeStream = fs.createWriteStream(tmpFilePath);
+      file.pipe(writeStream);
+      writeStream.on("finish", resolve);
+      writeStream.on("error", reject);
+    });
+
+    busboy.on("error", reject);
+    busboy.end(req.rawBody);
+  });
+
+  try {
+    const transcription = await openai.audio.transcriptions.create({
+      file: fs.createReadStream(tmpFilePath), // 🔥 ahora sí es accesible
+      model: "whisper-1",
+      language: "es",
+    });
+
+    // limpiar tmp
+    try { fs.unlinkSync(tmpFilePath); } catch (e) {}
+
+    res.status(200).json({ texto: transcription.text });
+
+  } catch (e) {
+    console.error("Error Whisper:", e);
+    res.status(500).json({ error: "Error al transcribir" });
+  }
+});
+
+
 // ==================== clasificador_IA ====================
 exports.extraerDatos = onRequest(async (req, res) => {
   try {
