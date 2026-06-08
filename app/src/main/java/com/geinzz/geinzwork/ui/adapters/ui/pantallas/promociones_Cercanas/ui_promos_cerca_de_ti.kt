@@ -118,11 +118,13 @@ import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generic
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_vertical
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_filtrados_general_promos_ofertas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_filtrados_promos_y_ofertas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_filtrar_desde_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_registrate
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_tiendas_filtradas
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.bottom_sheet_general.bottom_sheet_todas_las_tiendas
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.FiltroSnackbarActivo
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.SnackbarHost
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.componentes.snackbar_tienda_con_logo
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
@@ -144,12 +146,11 @@ fun ui_promos_cerca_de_ti(
     localidad: String,
     verificar_intener: Boolean,
     iniciar_seccion: () -> Unit,
-    crear_cuenta: () -> Unit, onBack: () -> Unit
+    crear_cuenta: () -> Unit,
+    onBack: () -> Unit
 ) {
-    Log.d("flag_psada", "$flag_identificador")
     val context = LocalContext.current
     val firebaseAuth = FirebaseAuth.getInstance()
-    Log.d("daots", "$activar_promo_params  $localidad $")
     val uid_respald_user by data_store_localidad
         .get_uid_user(context)
         .collectAsState(initial = firebaseAuth.uid.orEmpty())
@@ -159,40 +160,35 @@ fun ui_promos_cerca_de_ti(
 
     val estado by viewModel.estadoPromos.collectAsState()
     val estadoTienda by viewModel.estado_Carga_tienda_select.collectAsState()
-
-    var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
-
     val respuesta_gemini_NLP by viewModel.respuesta_gemini.collectAsState()
 
-
-    var tienda_seleccionada_ccon_mas_de_una_promo by remember { mutableStateOf(false) }
+    var subCategoriaSeleccionada by remember { mutableStateOf("Todos") }
     var tags_tienda_confirmada by remember { mutableStateOf<List<String>>(emptyList()) }
     var rangos_tienda_confirmada by remember { mutableStateOf<List<String>>(emptyList()) }
+    var pagos_tienda_confirmada by remember { mutableStateOf<List<String>>(emptyList()) }
+    var comodidades_tienda_confirmada by remember { mutableStateOf<List<String>>(emptyList()) }
 
     var mostrar_zoom_img by remember { mutableStateOf(false) }
-    var lista_img by remember {
-        mutableStateOf<List<String>>(emptyList())
-    }
     var mostrar_snackbar_tienda by remember { mutableStateOf(false) }
     var snackbar_logo_tienda by remember { mutableStateOf("") }
     var snackbar_total_promos by remember { mutableStateOf(0) }
     var snackbar_nombre_tienda_snap by remember { mutableStateOf("") }
-
     var mostrar_bottom_shet_registrate by remember { mutableStateOf(false) }
+
     val categoriaSeleccionada by viewModel.categoria_seleccionada.collectAsState()
     val subcategoriasSeleccionadas by viewModel.subcategoria_seleccionada.collectAsState()
     val rango_precio by viewModel.rangoPrecioSeleccionado.collectAsState()
     val comodidad_selet by viewModel.comodidadesSeleccionadas.collectAsState()
     val metodo_pago by viewModel.metodosPagoSeleccionados.collectAsState()
-
     val lista_resultados_gemini by viewModel.listaResultados.collectAsState()
-    var limpiar_campo_de_busqueda by remember { mutableStateOf(false) }
-    val focusManager = LocalFocusManager.current
+
     var mostrar_todas_tiendas by remember { mutableStateOf(false) }
     var tienda_anterior by remember { mutableStateOf<String?>(null) }
     var nombre_tienda_anterior by remember { mutableStateOf("") }
-    var pagos_tienda_confirmada by remember { mutableStateOf<List<String>>(emptyList()) }
-    var comodidades_tienda_confirmada by remember { mutableStateOf<List<String>>(emptyList()) }
+
+
+    var filtrosDesdeBottomSheetGeneral by remember { mutableStateOf(false) }
+
     val lista_filtrados_pagos = remember {
         listOf(
             img_con_texto(R.drawable.yape_logo, "yape"),
@@ -220,26 +216,20 @@ fun ui_promos_cerca_de_ti(
     }
 
     val listaSeleccionada = remember(metodo_pago) {
-        lista_filtrados_pagos.filter { item ->
-            item.texto in metodo_pago
-        }
+        lista_filtrados_pagos.filter { it.texto in metodo_pago }
     }
     val lista_comodidades_Select = remember(comodidad_selet) {
-        lista_comodidades.filter { item ->
-            item.texto in comodidad_selet
-        }
+        lista_comodidades.filter { it.texto in comodidad_selet }
     }
+
     var index_galeria_img by remember { mutableStateOf(0) }
-    var titulo_poromo by remember { mutableStateOf("") }
-    var descripcion by remember { mutableStateOf("") }
     var show_bottom_sheeet by remember { mutableStateOf(false) }
     var id_tienda_select by remember { mutableStateOf("") }
-    var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
-//    val datosTienda by viewModelFiltros._datos_tienda.observeAsState()
+
     val viewmodel_repo_datos_promo: viewmodel_datos_promociones = viewModel()
     val datos_promo_parametros by viewmodel_repo_datos_promo.datos_promocion_parametro.collectAsState()
-    var tiendaSeleccionada by remember { mutableStateOf<String?>(null) }
 
+    var tiendaSeleccionada by remember { mutableStateOf<String?>(null) }
     var tienda_seleccionada_clik_baner by remember { mutableStateOf<String?>(null) }
     var nombre_tienda by remember { mutableStateOf("") }
     var img_tienda by remember { mutableStateOf("") }
@@ -250,47 +240,27 @@ fun ui_promos_cerca_de_ti(
     val cargandoPagina by viewModel.cargandoPagina.collectAsState()
     val filtro_sin_resultados by viewModel.filtro_tienda_sin_resultados.collectAsState()
 
-
-
-
-    var promoSeleccionada_unica by remember {
-        mutableStateOf<dataclass_promociones_cerca_de_ti?>(
-            null
-        )
-    }
+    var promoSeleccionada_unica by remember { mutableStateOf<dataclass_promociones_cerca_de_ti?>(null) }
     var valor_a_buscar by remember { mutableStateOf("") }
-
     var indexImagenSeleccionada by remember { mutableStateOf(0) }
-    var filtrandoDesdeTienda by remember { mutableStateOf(false) } // 🔥 nueva bandera
-
-    // Dentro de tu Composable
+    var filtrandoDesdeTienda by remember { mutableStateOf(false) }
     var estadisticasAgregadas by remember { mutableStateOf(false) }
 
-    BackHandler {
-        Log.d("NAV_BACK", "Back desde ui_promos_cerca_de_ti")
-        onBack()   // 🔥 avisa al NavController
-    }
-
+    BackHandler { onBack() }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    var yaIntentoCargar by remember { mutableStateOf(false) }
-    var datosCargados by remember { mutableStateOf(false) }
 
     var promoExpirada by remember { mutableStateOf(false) }
     var texto_snackbar by remember { mutableStateOf("") }
     var snackbarMostrado by remember { mutableStateOf(false) }
-
-    var terminoNLP by remember { mutableStateOf<String?>(null) }
-    var atributosNLP by remember { mutableStateOf<List<String?>>(emptyList()) }
-
-
     val porcentajes by viewModel.porcentajesMatch.collectAsState()
-
     var cargaFinalizada by remember { mutableStateOf(false) }
+
     val tiendasConMasDeUnaPromo by viewModel.tiendas_con_mas_de_una_promo.collectAsState()
     var nombre_tienda_seleccionada by remember { mutableStateOf("") }
     var esperandoConfirmacionTienda by remember { mutableStateOf(false) }
+
     val tiendasOrdenadas by remember(tiendasConMasDeUnaPromo, tiendaSeleccionada) {
         derivedStateOf {
             if (tiendaSeleccionada == null) {
@@ -303,42 +273,30 @@ fun ui_promos_cerca_de_ti(
             }
         }
     }
+
     var mostar_bottom_sheet_datos by remember { mutableStateOf(false) }
     var filtroTiendaAplicado by remember { mutableStateOf(false) }
     var nombre_tienda_mostrando by remember { mutableStateOf("") }
+
+    // ── LaunchedEffects ──────────────────────────────────────
+
     LaunchedEffect(activar_promo_params) {
-
-        Log.d("PROMO_FLOW", "▶ LaunchedEffect activar_promo_params = '$activar_promo_params'")
-
-        // reset
         cargaFinalizada = false
         estadisticasAgregadas = false
         snackbarMostrado = false
-
         if (activar_promo_params.isEmpty()) {
-            Log.w("PROMO_FLOW", "⚠ activar_promo_params VACÍO → no se consulta Firestore")
             cargaFinalizada = true
             promoExpirada = false
             return@LaunchedEffect
         }
-
-        Log.d("PROMO_FLOW", "📡 Consultando Firestore con id = $activar_promo_params")
-
-        viewmodel_repo_datos_promo.obtener_datos_promociones_por_paramtros(
-            localidad,
-            activar_promo_params
-        )
+        viewmodel_repo_datos_promo.obtener_datos_promociones_por_paramtros(localidad, activar_promo_params)
     }
+
     var mostrar_carga_Respuesta_gemini by remember { mutableStateOf(false) }
     var mostrar_lupa_busqueda by remember { mutableStateOf(true) }
 
     LaunchedEffect(filtro_sin_resultados) {
         if (filtro_sin_resultados) {
-//            Toast.makeText(
-//                context,
-//                "No hay promos con ese filtro en esta tienda",
-//                Toast.LENGTH_SHORT
-//            ).show()
             scope.launch {
                 snackbarHostState.showSnackbar(
                     message = "No hay promos con ese filtro en esta tienda",
@@ -350,119 +308,41 @@ fun ui_promos_cerca_de_ti(
     }
 
     LaunchedEffect(datos_promo_parametros) {
-
-        Log.d("PROMO_FLOW", "▶ LaunchedEffect datos_promo_parametros")
-
-        if (activar_promo_params.isEmpty()) {
-            Log.w(
-                "PROMO_FLOW",
-                "⛔ activar_promo_params vacío"
-            )
-            return@LaunchedEffect
-        }
-
+        if (activar_promo_params.isEmpty()) return@LaunchedEffect
         val idPromo = datos_promo_parametros.informacion_publcacion.id_promocion
-
-        Log.d("PROMO_FLOW", "🆔 idPromo recibido = '$idPromo'")
-
-        // ⏳ TODAVÍA CARGANDO
-        if (idPromo.isEmpty()) {
-
-            Log.d(
-                "PROMO_FLOW",
-                "⏳ Esperando datos reales de Firestore..."
-            )
-
-            return@LaunchedEffect
-        }
+        if (idPromo.isEmpty()) return@LaunchedEffect
 
         cargaFinalizada = true
 
-        val estado_publicaicones =
-            datos_promo_parametros.estado_publicacion
-
-        if (estado_publicaicones.equals("pausado", ignoreCase = true)) {
-
-            Log.e("PROMO_FLOW", "⛔ publicación pausada")
-
+        if (datos_promo_parametros.estado_publicacion.equals("pausado", ignoreCase = true)) {
             promoExpirada = true
-
-            texto_snackbar =
-                "Esta publicación no está disponible en este momento."
-
+            texto_snackbar = "Esta publicación no está disponible en este momento."
             return@LaunchedEffect
         }
 
-        // ⏱️ VALIDAR EXPIRACIÓN
-        val expirada =
-            promoEstaExpirada(datos_promo_parametros.fecha_fin)
-
-        Log.d(
-            "PROMO_FLOW",
-            "⏱ Fecha fin = ${datos_promo_parametros.fecha_fin} | Expirada = $expirada"
-        )
-
-        if (expirada) {
-
-            Log.e("PROMO_FLOW", "⛔ Promo expirada")
-
+        if (promoEstaExpirada(datos_promo_parametros.fecha_fin)) {
             promoExpirada = true
-
             return@LaunchedEffect
         }
-
-        // ✅ TODO OK
-        Log.d("PROMO_FLOW", "✅ Promo válida → mostrar UI")
 
         promoExpirada = false
-        tienda_seleccionada_clik_baner = datos_promo_parametros
-            .informacion_publcacion
-            .id_tienda  // ← el campo donde guardas el id de la tienda
-
+        tienda_seleccionada_clik_baner = datos_promo_parametros.informacion_publcacion.id_tienda
         mostrar_zoom_img = true
         promoSeleccionada_unica = datos_promo_parametros
 
-        // 📊 estadísticas
         if (!estadisticasAgregadas) {
-
-            Log.d("PROMO_FLOW", "📊 Agregando estadísticas")
-
-            viewModel.agregar_estadisticas_publicacion(
-                "click",
-                activar_promo_params,
-                localidad,
-                uid_respald_user
-            )
-
-            viewModel.agregar_estadisticas_publicacion(
-                "vistas",
-                activar_promo_params,
-                localidad,
-                uid_respald_user
-            )
-
+            viewModel.agregar_estadisticas_publicacion("click", activar_promo_params, localidad, uid_respald_user)
+            viewModel.agregar_estadisticas_publicacion("vistas", activar_promo_params, localidad, uid_respald_user)
             estadisticasAgregadas = true
-
-        } else {
-
-            Log.d(
-                "PROMO_FLOW",
-                "ℹ estadísticas ya agregadas"
-            )
         }
     }
 
     LaunchedEffect(estado, promoExpirada) {
-        if (
-            estado is viewmodel_promos_cercanas.estado_carga_promociones.succes &&
-            promoExpirada &&
-            !snackbarMostrado
+        if (estado is viewmodel_promos_cercanas.estado_carga_promociones.succes &&
+            promoExpirada && !snackbarMostrado
         ) {
             snackbarMostrado = true
-            snackbarHostState.showSnackbar(
-                message = texto_snackbar,
-                duration = SnackbarDuration.Long
-            )
+            snackbarHostState.showSnackbar(message = texto_snackbar, duration = SnackbarDuration.Long)
         }
     }
 
@@ -470,76 +350,27 @@ fun ui_promos_cerca_de_ti(
         viewModel.obtener_promociones_2da("barranca", "", null)
     }
 
-    var primeraVez by remember { mutableStateOf(true) }
-
-    LaunchedEffect(
-        lista_resultados_gemini,
-        subCategoriaSeleccionada,
-        comodidad_selet,
-        metodo_pago,
-        rango_precio
-    ) {
-        Log.d("FILTRO_DEBUG", "lista_resultados_gemini vacío: ${lista_resultados_gemini.isEmpty()}")
-        Log.d("FILTRO_DEBUG", "comodidad_selet vacío: ${comodidad_selet.isEmpty()}")
-        Log.d("FILTRO_DEBUG", "metodo_pago vacío: ${metodo_pago.isEmpty()}")
-        Log.d("FILTRO_DEBUG", "rango_precio es null: ${rango_precio == null}")
-
-        if (primeraVez) {
-            primeraVez = false
-            return@LaunchedEffect
-        }
-
-        val sinFiltros =
-            lista_resultados_gemini.isEmpty() &&
-                    comodidad_selet.isEmpty() &&
-                    metodo_pago.isEmpty()
-
-        if (sinFiltros) {
-            Log.d("FILTRO_DEBUG", "SIN FILTROS → cargando todo")
-            viewModel.retornar_lista_nuevamente()
-            return@LaunchedEffect
-        }
-
-        Log.d("FILTRO_DEBUG", "Con filtros → llamando filtrarPromociones")
-
-//        viewModel.filtrarPromociones(
-//            subCategoriaSeleccionada,
-//            terminoNLP,
-//            atributosNLP
-//        )
-    }
-
-    LaunchedEffect(limpiar_campo_de_busqueda) {
-        if (limpiar_campo_de_busqueda) {
-            valor_a_buscar = ""
-        }
-    }
     val esPrimeraCarga by viewModel.esPrimeraCarga.collectAsState()
-
     var promos by remember { mutableStateOf<List<obj_completo>>(emptyList()) }
     var promosFiltradas by remember { mutableStateOf<List<obj_completo>>(emptyList()) }
-
     var estado_caundo_busca_tienda by remember { mutableStateOf(false) }
     var loadingSnackbarShown by remember { mutableStateOf(false) }
+
     val hayFiltros =
         categoriaSeleccionada.isNotEmpty() ||
                 subcategoriasSeleccionadas.isNotEmpty() ||
                 rango_precio?.isNotEmpty() == true ||
-                comodidad_selet?.isNotEmpty() == true ||
-                metodo_pago?.isNotEmpty() == true ||
+                comodidad_selet.isNotEmpty() ||
+                metodo_pago.isNotEmpty() ||
                 lista_resultados_gemini.isNotEmpty()
+
     LaunchedEffect(respuesta_gemini_NLP) {
-
         when (respuesta_gemini_NLP) {
-
             is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.loading -> {
                 mostrar_carga_Respuesta_gemini = true
                 mostrar_lupa_busqueda = false
-
                 if (!loadingSnackbarShown) {
                     loadingSnackbarShown = true
-
-                    // 🔥 lanzar en otra corrutina (NO bloquear)
                     launch {
                         snackbarHostState.showSnackbar(
                             message = "Buscando resultados...",
@@ -548,72 +379,43 @@ fun ui_promos_cerca_de_ti(
                     }
                 }
             }
-
-
             is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes -> {
-
                 mostrar_carga_Respuesta_gemini = false
                 mostrar_lupa_busqueda = true
                 loadingSnackbarShown = false
-
-                val cantidad = (respuesta_gemini_NLP as viewmodel_promos_cercanas
-                .estado_Carga_respuesta_gemini.succes).cantidad
-                val datos_respuesta = (respuesta_gemini_NLP as viewmodel_promos_cercanas
-                .estado_Carga_respuesta_gemini.succes).items
-                Log.d("datos_respuesta", datos_respuesta.toString())
-                val msje = if (cantidad > 0) {
-                    "Tengo $cantidad resultados para tu búsqueda"
-                } else {
-                    "Lo siento, no encontré nada para ti"
-                }
+                val cantidad = (respuesta_gemini_NLP as viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes).cantidad
+                val datos_respuesta = (respuesta_gemini_NLP as viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.succes).items
+                val msje = if (cantidad > 0) "Tengo $cantidad resultados para tu búsqueda" else "Lo siento, no encontré nada para ti"
                 promosFiltradas = datos_respuesta
                 snackbarHostState.currentSnackbarData?.dismiss()
-
                 val result = snackbarHostState.showSnackbar(
                     message = msje,
                     actionLabel = if (cantidad > 0) "Ver" else null,
                     duration = if (cantidad > 0) SnackbarDuration.Indefinite else SnackbarDuration.Short
                 )
-
                 viewModel.resetear_respuesta_de_gemini()
-
                 if (result == SnackbarResult.ActionPerformed) {
                     promos = promosFiltradas
                 }
             }
-
             is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.empty -> {
-
                 mostrar_carga_Respuesta_gemini = false
                 mostrar_lupa_busqueda = true
                 loadingSnackbarShown = false
-
-                val mensaje = (respuesta_gemini_NLP as viewmodel_promos_cercanas
-                .estado_Carga_respuesta_gemini.empty).text_vacio
-
+                val mensaje = (respuesta_gemini_NLP as viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.empty).text_vacio
                 snackbarHostState.currentSnackbarData?.dismiss()
-
                 snackbarHostState.showSnackbar(
-                    message = if (mensaje.isNotEmpty())
-                        mensaje
-                    else
-                        "Lo siento, no encontré nada para ti",
+                    message = if (mensaje.isNotEmpty()) mensaje else "Lo siento, no encontré nada para ti",
                     duration = SnackbarDuration.Short
                 )
-
-//                promos = emptyList()
-
                 viewModel.resetear_respuesta_de_gemini()
             }
-
             is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.error -> {
                 mostrar_carga_Respuesta_gemini = false
                 mostrar_lupa_busqueda = true
                 loadingSnackbarShown = false
-
                 snackbarHostState.currentSnackbarData?.dismiss()
             }
-
             else -> {
                 mostrar_carga_Respuesta_gemini = false
                 mostrar_lupa_busqueda = true
@@ -624,60 +426,26 @@ fun ui_promos_cerca_de_ti(
 
     LaunchedEffect(estado) {
         if (estado is viewmodel_promos_cercanas.estado_carga_promociones.succes) {
-            // 🔥 Permitir si viene de filtro interno de tienda
             if (esperandoConfirmacionTienda && !filtrandoDesdeTienda) return@LaunchedEffect
-
             val nuevos = (estado as viewmodel_promos_cercanas.estado_carga_promociones.succes).items
             promos = nuevos.distinctBy {
                 it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion
             }
-            filtrandoDesdeTienda = false // 🔥 reset
+            filtrandoDesdeTienda = false
         }
     }
+
     var loadingTiendaShown by remember { mutableStateOf(false) }
     val resultado_open_ia = viewModel.resultado
     val modoBusquedaIA = viewModel.modoBusquedaIA
-    val tags_de_promos_filtradas by remember {
-        derivedStateOf {
-            if (tiendaSeleccionada != null) {
-                promosFiltradas
-                    .flatMap { it.dataclass_promociones_cerca_de_ti.terminos_clave }
-                    .distinct()
-                    .filter { it.isNotEmpty() }
-            } else {
-                emptyList()
-            }
-        }
-    }
-    val rangos_de_promos_filtradas by remember {
-        derivedStateOf {
-            if (tiendaSeleccionada != null) {
-                promosFiltradas
-                    .map { it.dataclass_promociones_cerca_de_ti.rango }
-                    .filter { it.isNotEmpty() }
-                    .distinct()
-                    .also {
-                        Log.d("RANGOS_DEBUG", "🏪 Rangos de promosFiltradas (tienda '$tiendaSeleccionada'): $it")
-                        Log.d("RANGOS_DEBUG", "📦 promosFiltradas.size = ${promosFiltradas.size}")
-                    }
-            } else {
-                Log.d("RANGOS_DEBUG", "⚠️ Sin tienda → vacío")
-                emptyList()
-            }
-        }
-    }
-
     var segundosRestantes by remember { mutableIntStateOf(10) }
+
     LaunchedEffect(estadoTienda) {
-
         when (estadoTienda) {
-
             is viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.loading -> {
                 estado_caundo_busca_tienda = true
-
                 if (!loadingTiendaShown) {
                     loadingTiendaShown = true
-
                     launch {
                         snackbarHostState.showSnackbar(
                             message = "Buscando en la tienda...",
@@ -686,100 +454,75 @@ fun ui_promos_cerca_de_ti(
                     }
                 }
             }
-
             is viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.succes -> {
                 estado_caundo_busca_tienda = false
                 loadingTiendaShown = false
-
-                val data = estadoTienda as viewmodel_promos_cercanas
-                .estado_carga_tienda_Seleccionada.succes
+                val data = estadoTienda as viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.succes
                 pagos_tienda_confirmada = data.pagos
                 comodidades_tienda_confirmada = data.comodidades
                 promosFiltradas = data.items
                 snackbarHostState.currentSnackbarData?.dismiss()
-
-                // 🔥 Preparar datos del snackbar custom
                 snackbar_total_promos = data.total
                 snackbar_nombre_tienda_snap = nombre_tienda_seleccionada
-                snackbar_logo_tienda = tiendasConMasDeUnaPromo
-                    .find { it.id == tiendaSeleccionada }?.logo_img ?: ""
+                snackbar_logo_tienda = tiendasConMasDeUnaPromo.find { it.id == tiendaSeleccionada }?.logo_img ?: ""
                 esperandoConfirmacionTienda = true
                 mostrar_snackbar_tienda = true
             }
-
             is viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.error -> {
                 estado_caundo_busca_tienda = false
                 loadingTiendaShown = false
-
-                // ❌ cerrar snackbar si falla
                 snackbarHostState.currentSnackbarData?.dismiss()
             }
-
             else -> {
                 estado_caundo_busca_tienda = false
                 loadingTiendaShown = false
             }
         }
     }
+
+    // ── UI ───────────────────────────────────────────────────
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-
         when (estado) {
 
-            // ---------- LOADING ----------
             viewmodel_promos_cercanas.estado_carga_promociones.loading -> {
                 if (esPrimeraCarga) {
-                    // Primera vez → CircularProgressIndicator normal
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 } else {
-                    LinearProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.TopCenter)
-                    )
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter))
                 }
-
             }
 
-            // ---------- EMPTY ----------
             is viewmodel_promos_cercanas.estado_carga_promociones.empty -> {
-                val txt =
-                    (estado as viewmodel_promos_cercanas.estado_carga_promociones.empty).txt
-
                 Text(
-                    text = txt,
+                    text = (estado as viewmodel_promos_cercanas.estado_carga_promociones.empty).txt,
                     modifier = Modifier.align(Alignment.Center),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
 
-            // ---------- ERROR ----------
             is viewmodel_promos_cercanas.estado_carga_promociones.error -> {
-                val txt =
-                    (estado as viewmodel_promos_cercanas.estado_carga_promociones.error).txt
-
                 Text(
-                    text = txt,
+                    text = (estado as viewmodel_promos_cercanas.estado_carga_promociones.error).txt,
                     modifier = Modifier.align(Alignment.Center),
                     color = MaterialTheme.colorScheme.error
                 )
             }
 
-            // ---------- SUCCESS ----------
             is viewmodel_promos_cercanas.estado_carga_promociones.succes -> {
 
                 Box(modifier = Modifier.fillMaxSize()) {
+
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(20.dp),
-                        modifier = Modifier
-                            .padding(vertical = 5.dp)
-                            .animateContentSize(),
+                        modifier = Modifier.padding(vertical = 5.dp).animateContentSize(),
                     ) {
+
+                        // ── Título ──
                         item {
                             Column(modifier = Modifier.padding(horizontal = 10.dp)) {
                                 texto_generico_multilinea(
@@ -791,10 +534,10 @@ fun ui_promos_cerca_de_ti(
                                     "Descubre descuentos, promociones especiales y ofertas exclusivas de negocios cercanos.",
                                     style = MaterialTheme.typography.bodyMedium
                                 )
-
                             }
                         }
 
+                        // ── Campo de búsqueda ──
                         item {
                             if (!hayFiltros && !filtroTiendaAplicado && tiendaSeleccionada == null) {
 
@@ -821,10 +564,11 @@ fun ui_promos_cerca_de_ti(
                                             start()
                                         }
                                         mediaRecorder = recorder
-                                        segundosRestantes = 10  // 🔥 reset
+                                        segundosRestantes = 10
                                         viewModel.iniciar_grabacion()
                                     }
                                 }
+
                                 LaunchedEffect(estaGrabando) {
                                     if (estaGrabando) {
                                         segundosRestantes = 10
@@ -832,7 +576,6 @@ fun ui_promos_cerca_de_ti(
                                             delay(1000L)
                                             segundosRestantes--
                                         }
-                                        // ⏱️ Tiempo agotado → parar y enviar automáticamente
                                         try {
                                             mediaRecorder?.stop()
                                             mediaRecorder?.release()
@@ -848,9 +591,10 @@ fun ui_promos_cerca_de_ti(
                                             }
                                         }
                                     } else {
-                                        segundosRestantes = 10  // 🔥 reset cuando para
+                                        segundosRestantes = 10
                                     }
                                 }
+
                                 DisposableEffect(Unit) {
                                     onDispose {
                                         mediaRecorder?.apply {
@@ -862,35 +606,29 @@ fun ui_promos_cerca_de_ti(
                                     }
                                 }
 
-                                // pulso animado para el micrófono
                                 val infiniteTransition = rememberInfiniteTransition(label = "mic_pulse")
                                 val pulseScale by infiniteTransition.animateFloat(
-                                    initialValue = 1f,
-                                    targetValue = 1.15f,
+                                    initialValue = 1f, targetValue = 1.15f,
                                     animationSpec = infiniteRepeatable(
                                         animation = tween(600, easing = FastOutSlowInEasing),
                                         repeatMode = RepeatMode.Reverse
-                                    ),
-                                    label = "pulse_scale"
+                                    ), label = "pulse_scale"
                                 )
                                 val pulseAlpha by infiniteTransition.animateFloat(
-                                    initialValue = 0.3f,
-                                    targetValue = 0.7f,
+                                    initialValue = 0.3f, targetValue = 0.7f,
                                     animationSpec = infiniteRepeatable(
                                         animation = tween(600, easing = FastOutSlowInEasing),
                                         repeatMode = RepeatMode.Reverse
-                                    ),
-                                    label = "pulse_alpha"
+                                    ), label = "pulse_alpha"
                                 )
 
                                 LoadingOutlinedField(loading = mostrar_carga_Respuesta_gemini) {
                                     OutlinedTextField(
                                         value = valor_a_buscar,
                                         onValueChange = {
-                                            // 🔥 bloquear escritura cuando está ocupado
                                             if (!estaOcupado && it.length <= 500) valor_a_buscar = it
                                         },
-                                        readOnly = estaOcupado, // 🔥 bloquea teclado
+                                        readOnly = estaOcupado,
                                         placeholder = {
                                             AnimatedContent(
                                                 targetState = when {
@@ -900,25 +638,19 @@ fun ui_promos_cerca_de_ti(
                                                     else -> "idle"
                                                 },
                                                 label = "placeholder_anim"
-                                            ) { estado ->
-                                                when (estado) {
+                                            ) { est ->
+                                                when (est) {
                                                     "grabando" -> Row(
                                                         verticalAlignment = Alignment.CenterVertically,
                                                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                                                     ) {
                                                         Box(
                                                             modifier = Modifier
-                                                                .size(8.dp)
-                                                                .scale(pulseScale)
+                                                                .size(8.dp).scale(pulseScale)
                                                                 .clip(CircleShape)
                                                                 .background(Color(0xFFEC1707).copy(alpha = pulseAlpha))
                                                         )
-                                                        Text(
-                                                            "Escuchando...",
-                                                            style = MaterialTheme.typography.bodyMedium,
-                                                            color = Color(0xFFEC1707)
-                                                        )
-                                                        // 🔥 Contador regresivo
+                                                        Text("Escuchando...", style = MaterialTheme.typography.bodyMedium, color = Color(0xFFEC1707))
                                                         Text(
                                                             text = "${segundosRestantes}s",
                                                             style = MaterialTheme.typography.bodySmall,
@@ -929,37 +661,17 @@ fun ui_promos_cerca_de_ti(
                                                         verticalAlignment = Alignment.CenterVertically,
                                                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                                                     ) {
-                                                        CircularProgressIndicator(
-                                                            modifier = Modifier.size(12.dp),
-                                                            strokeWidth = 1.5.dp,
-                                                            color = Color.Gray
-                                                        )
-                                                        Text(
-                                                            "Procesando audio...",
-                                                            style = MaterialTheme.typography.bodyMedium,
-                                                            color = Color.Gray
-                                                        )
+                                                        CircularProgressIndicator(modifier = Modifier.size(12.dp), strokeWidth = 1.5.dp, color = Color.Gray)
+                                                        Text("Procesando audio...", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                                                     }
                                                     "buscando" -> Row(
                                                         verticalAlignment = Alignment.CenterVertically,
                                                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                                                     ) {
-                                                        CircularProgressIndicator(
-                                                            modifier = Modifier.size(12.dp),
-                                                            strokeWidth = 1.5.dp,
-                                                            color = Color.Gray
-                                                        )
-                                                        Text(
-                                                            "Buscando resultados...",
-                                                            style = MaterialTheme.typography.bodyMedium,
-                                                            color = Color.Gray
-                                                        )
+                                                        CircularProgressIndicator(modifier = Modifier.size(12.dp), strokeWidth = 1.5.dp, color = Color.Gray)
+                                                        Text("Buscando resultados...", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                                                     }
-                                                    else -> Text(
-                                                        "¿Qué buscas?",
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        color = Color.Gray
-                                                    )
+                                                    else -> Text("¿Qué buscas?", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                                                 }
                                             }
                                         },
@@ -967,7 +679,6 @@ fun ui_promos_cerca_de_ti(
                                         shape = RoundedCornerShape(50),
                                         trailingIcon = {
                                             when {
-                                                // 🔴 GRABANDO → cuadrado rojo pulsante
                                                 estaGrabando -> {
                                                     IconButton(onClick = {
                                                         try {
@@ -987,50 +698,33 @@ fun ui_promos_cerca_de_ti(
                                                     }) {
                                                         Box(
                                                             modifier = Modifier
-                                                                .size(20.dp)
-                                                                .scale(pulseScale)
+                                                                .size(20.dp).scale(pulseScale)
                                                                 .clip(RoundedCornerShape(4.dp))
                                                                 .background(Color(0xFFEC1707))
                                                         )
                                                     }
                                                 }
-
-                                                // ⏳ PROCESANDO o BUSCANDO → spinner bloqueado
                                                 estaProcesando || mostrar_carga_Respuesta_gemini -> {
                                                     CircularProgressIndicator(
-                                                        modifier = Modifier
-                                                            .padding(12.dp)
-                                                            .size(22.dp),
+                                                        modifier = Modifier.padding(12.dp).size(22.dp),
                                                         strokeWidth = 2.dp,
                                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                                                     )
                                                 }
-
-                                                // 🔍 HAY TEXTO → lupa
                                                 valor_a_buscar.isNotEmpty() -> {
                                                     IconButton(onClick = {
                                                         if (mostrar_lupa_busqueda) {
                                                             viewModel.procesar_nlp_open_ia(valor_a_buscar)
                                                         }
                                                     }) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.Search,
-                                                            contentDescription = "Buscar",
-                                                            tint = Color.Gray
-                                                        )
+                                                        Icon(imageVector = Icons.Default.Search, contentDescription = "Buscar", tint = Color.Gray)
                                                     }
                                                 }
-
-                                                // 🎙️ VACÍO → micrófono
                                                 else -> {
                                                     IconButton(onClick = {
                                                         launcher.launch(Manifest.permission.RECORD_AUDIO)
                                                     }) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.Mic,
-                                                            contentDescription = "Micrófono",
-                                                            tint = Color.Gray
-                                                        )
+                                                        Icon(imageVector = Icons.Default.Mic, contentDescription = "Micrófono", tint = Color.Gray)
                                                     }
                                                 }
                                             }
@@ -1049,14 +743,14 @@ fun ui_promos_cerca_de_ti(
                                             text = "${valor_a_buscar.length}/250",
                                             fontSize = 10.sp,
                                             color = if (valor_a_buscar.length >= 250) Color(0xFFEC1707) else Color.Gray,
-                                            modifier = Modifier
-                                                .align(Alignment.CenterEnd)
-                                                .padding(end = 16.dp , top = 5.dp)
+                                            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp, top = 5.dp)
                                         )
                                     }
                                 }
                             }
                         }
+
+                        // ── Header tiendas + filtros ──
                         item {
                             val itemFiltros = tiendas_con_mas_de_una_promo(
                                 id = "FILTROS_GENERALES",
@@ -1065,188 +759,33 @@ fun ui_promos_cerca_de_ti(
                                 categoira = ""
                             )
                             LazyRow(
-                                modifier = Modifier
-                                    .animateContentSize()
-                                    .padding(top = 5.dp),
+                                modifier = Modifier.animateContentSize().padding(top = 5.dp),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 contentPadding = PaddingValues(horizontal = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-
-                                // 🔥 Nuevo item de filtros generales
                                 item {
-
-                                    // 🔹 Logueamos que no hay tienda seleccionada
-                                    Log.d(
-                                        "DEBUG_FILTROS",
-                                        "No hay tienda seleccionada, mostrando FILTROS_GENERALES"
-                                    )
-
                                     val condicion =
                                         (rango_precio != null && rango_precio != "Sin precio") ||
                                                 listaSeleccionada.isNotEmpty() ||
                                                 lista_comodidades_Select.isNotEmpty() ||
                                                 lista_resultados_gemini.isNotEmpty()
 
-                                    // 🔹 Logueamos el estado de cada filtro
-                                    Log.d("DEBUG_FILTROS", "Rango precio activo: ${rango_precio}")
-                                    Log.d(
-                                        "DEBUG_FILTROS",
-                                        "Métodos seleccionados: ${listaSeleccionada.isNotEmpty()}"
-                                    )
-                                    Log.d(
-                                        "DEBUG_FILTROS",
-                                        "Comodidades seleccionadas: ${lista_comodidades_Select.isNotEmpty()}"
-                                    )
-                                    Log.d(
-                                        "DEBUG_FILTROS",
-                                        "Resultados Gemini: ${lista_resultados_gemini.isNotEmpty()}"
-                                    )
-                                    Log.d("DEBUG_FILTROS", "Condición general: $condicion")
-
                                     estilo_ig_header(
-                                        false,
-                                        "FILTROS_GENERALES",
-                                        condicion,
-                                        i = itemFiltros,
-                                        seleccionada = false,
-                                        img_clikeada = { id ->
-
-                                            Log.d(
-                                                "DEBUG_FILTROS",
-                                                "Click en FILTROS_GENERALES, id: $id"
-                                            )
-                                            mostar_bottom_sheet_datos = true
-                                        }
+                                        false, "FILTROS_GENERALES", condicion,
+                                        i = itemFiltros, seleccionada = false,
+                                        img_clikeada = { mostar_bottom_sheet_datos = true }
                                     )
-
                                 }
 
-                                if (rango_precio != null && !rango_precio.equals("Sin precio")) {
-                                    item {
-                                        Surface(
-                                            shape = RoundedCornerShape(28.dp),
-                                            color = MaterialTheme.colorScheme.surface
-                                        ) {
-                                            Column(
-                                                modifier = Modifier
-                                                    .padding(horizontal = 16.dp)
-                                                    .height(99.dp),
-                                                horizontalAlignment = Alignment.CenterHorizontally
-                                            ) {
-                                                Spacer(modifier = Modifier.height(7.dp))
-                                                rango_precio?.let { i ->
-                                                    estilo_para_metodo_de_pago(i, { des ->
-                                                        viewModel.setearRangoPrecioDesdeNLP(null)
-                                                    })
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                // 🔹 Si hay métodos seleccionados → mostrar esos
-                                if (listaSeleccionada.isNotEmpty()) {
-                                    item {
-
-                                        Surface(
-                                            shape = RoundedCornerShape(28.dp),
-                                            color = MaterialTheme.colorScheme.surface
-                                        ) {
-
-                                            Column(
-                                                modifier = Modifier
-                                                    .padding(horizontal = 16.dp)
-                                                    .height(99.dp),
-                                                horizontalAlignment = Alignment.CenterHorizontally
-                                            ) {
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                // 🔹 Chips
-                                                Row(
-                                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    listaSeleccionada.forEach { item ->
-                                                        estilo_chips_circular_Select(
-                                                            item,
-                                                            { select -> },
-                                                            { texto ->
-                                                                viewModel.toggleMetodoPago(texto)
-                                                            })
-                                                    }
-                                                }
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                // 🔹 Texto
-                                                texto_generico_one_line(
-                                                    texto = "Métodos de pago",
-                                                    color = Color.White,
-                                                    style = MaterialTheme.typography.bodySmall
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-
-
-                                if (lista_comodidades_Select.isNotEmpty()) {
-                                    item {
-
-                                        Surface(
-                                            shape = RoundedCornerShape(28.dp),
-                                            color = MaterialTheme.colorScheme.surface
-                                        ) {
-
-                                            Column(
-                                                modifier = Modifier
-                                                    .padding(horizontal = 16.dp)
-                                                    .height(99.dp),
-                                                horizontalAlignment = Alignment.CenterHorizontally
-                                            ) {
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                // 🔹 Chips
-                                                Row(
-                                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    lista_comodidades_Select.forEach { item ->
-                                                        estilo_chips_circular_Select(
-                                                            item,
-                                                            { select -> },
-                                                            { texto ->
-                                                                viewModel.togleRango_select(texto)
-                                                            })
-                                                    }
-                                                }
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                // 🔹 Texto
-                                                texto_generico_one_line(
-                                                    texto = "Comodidades",
-                                                    color = Color.White,
-                                                    style = MaterialTheme.typography.bodySmall
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if (listaSeleccionada.isEmpty() &&
-                                    lista_comodidades_Select.isEmpty() &&
-                                    (rango_precio == null || rango_precio == "Sin precio") &&
-                                    lista_resultados_gemini.isEmpty()
-                                ) {
-                                    items(tiendasOrdenadas.take(4), key = { it.id }) { tienda ->
-                                        Box(
-                                            modifier = Modifier.animateItem(
-                                                placementSpec = tween(
-                                                    durationMillis = 400,
-                                                    easing = FastOutSlowInEasing
-                                                )
-                                            )
-                                        ){
+                                items(tiendasOrdenadas.take(4), key = { it.id }) { tienda ->
+                                    Box(
+                                        modifier = Modifier.animateItem(
+                                            placementSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
+                                        )
+                                    ) {
                                         estilo_ig_header(
-                                            estado_caundo_busca_tienda,
-                                            "",
-                                            false,
+                                            estado_caundo_busca_tienda, "", false,
                                             i = tienda,
                                             seleccionada = tienda.id == tiendaSeleccionada,
                                             img_clikeada = { id ->
@@ -1258,74 +797,60 @@ fun ui_promos_cerca_de_ti(
                                                     filtroTiendaAplicado = false
                                                     tags_tienda_confirmada = emptyList()
                                                     rangos_tienda_confirmada = emptyList()
-                                                    pagos_tienda_confirmada = emptyList()        // 🔥
-                                                    comodidades_tienda_confirmada = emptyList()  // 🔥
+                                                    pagos_tienda_confirmada = emptyList()
+                                                    comodidades_tienda_confirmada = emptyList()
                                                     viewModel.limpiarSubcategorias()
                                                     viewModel.limpiarRangoPrecio()
-                                                    viewModel.limpiarMetodosPago()               // 🔥
-                                                    viewModel.limpiar_comodidad()                // 🔥
+                                                    viewModel.limpiarMetodosPago()
+                                                    viewModel.limpiar_comodidad()
                                                     viewModel.obtener_promociones_2da(localidad, "", null)
                                                 } else {
                                                     tienda_anterior = tiendaSeleccionada
                                                     nombre_tienda_anterior = nombre_tienda_seleccionada
-
                                                     tiendaSeleccionada = id
                                                     filtroTiendaAplicado = false
                                                     nombre_tienda_seleccionada = tienda.nombre_tienda
                                                     esperandoConfirmacionTienda = false
-//                                                    esperandoConfirmacionTienda = true
-                                                    pagos_tienda_confirmada = emptyList()        // 🔥
-                                                    comodidades_tienda_confirmada = emptyList()  // 🔥
+                                                    pagos_tienda_confirmada = emptyList()
+                                                    comodidades_tienda_confirmada = emptyList()
                                                     viewModel.limpiarSubcategorias()
                                                     viewModel.limpiarRangoPrecio()
-                                                    viewModel.limpiarMetodosPago()               // 🔥
-                                                    viewModel.limpiar_comodidad()                // 🔥
+                                                    viewModel.limpiarMetodosPago()
+                                                    viewModel.limpiar_comodidad()
                                                     viewModel.obtener_promociones_2da(localidad, "", tiendaSeleccionada)
                                                 }
                                             }
                                         )
-                                        }
                                     }
-                                    if (tiendasOrdenadas.size > 4) {
-                                        item {
-                                            Column(
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                modifier = Modifier.width(80.dp)
-                                            ) {
-                                                Box(
-                                                    contentAlignment = Alignment.Center,
-                                                    modifier = Modifier
-                                                        .size(70.dp)
-                                                        .clip(CircleShape)
-                                                        .background(MaterialTheme.colorScheme.surface)
-                                                        .clickable(
-                                                            indication = null,
-                                                            interactionSource = remember { MutableInteractionSource() }
-                                                        ) {
-                                                            mostrar_todas_tiendas = true
-                                                        }
-                                                ) {
-                                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.MoreHoriz,
-                                                            contentDescription = null,
-                                                            tint = Color.White,
-                                                            modifier = Modifier.size(22.dp)
-                                                        )
+                                }
 
-                                                    }
-                                                }
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                texto_generico_one_line(
-                                                    "Ver todas",
-                                                    style = MaterialTheme.typography.bodySmall
-                                                )
+                                if (tiendasOrdenadas.size > 4) {
+                                    item {
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            modifier = Modifier.width(80.dp)
+                                        ) {
+                                            Box(
+                                                contentAlignment = Alignment.Center,
+                                                modifier = Modifier
+                                                    .size(70.dp).clip(CircleShape)
+                                                    .background(MaterialTheme.colorScheme.surface)
+                                                    .clickable(
+                                                        indication = null,
+                                                        interactionSource = remember { MutableInteractionSource() }
+                                                    ) { mostrar_todas_tiendas = true }
+                                            ) {
+                                                Icon(imageVector = Icons.Default.MoreHoriz, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
                                             }
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            texto_generico_one_line("Ver todas", style = MaterialTheme.typography.bodySmall)
                                         }
                                     }
                                 }
                             }
                         }
+
+                        // ── Banner "ahora viendo tienda" ──
                         item {
                             AnimatedVisibility(
                                 visible = tiendaSeleccionada != null &&
@@ -1337,25 +862,13 @@ fun ui_promos_cerca_de_ti(
                                 Row(
                                     modifier = Modifier
                                         .padding(horizontal = 14.dp, vertical = 4.dp)
-                                        .background(
-                                            color = Color(0xFF1E1E1E),
-                                            shape = RoundedCornerShape(50)
-                                        )
-                                        .border(
-                                            width = 1.dp,
-                                            color = Color(0xFF3A3A3A),
-                                            shape = RoundedCornerShape(50)
-                                        )
+                                        .background(color = Color(0xFF1E1E1E), shape = RoundedCornerShape(50))
+                                        .border(width = 1.dp, color = Color(0xFF3A3A3A), shape = RoundedCornerShape(50))
                                         .padding(horizontal = 14.dp, vertical = 8.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Store,
-                                        contentDescription = null,
-                                        tint = Color(0xFFAAAAAA),
-                                        modifier = Modifier.size(14.dp)
-                                    )
+                                    Icon(imageVector = Icons.Default.Store, contentDescription = null, tint = Color(0xFFAAAAAA), modifier = Modifier.size(14.dp))
                                     texto_generico_one_line(
                                         texto = "Ahora estás viendo contenido de $nombre_tienda_mostrando",
                                         style = MaterialTheme.typography.bodySmall,
@@ -1364,25 +877,18 @@ fun ui_promos_cerca_de_ti(
                                 }
                             }
                         }
+
+                        // ── Lista de promos ──
                         items(
                             items = promos,
                             key = { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
                         ) { item ->
-                            val idPromo = item.dataclass_promociones_cerca_de_ti
-                                .informacion_publcacion.id_promocion
-
-                            Log.d("pagospromops", "${item.dataclass_promociones_cerca_de_ti.pagos}")
+                            val idPromo = item.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion
                             val porcentajeMatch = porcentajes[idPromo] ?: 0
-                            val index = promos.indexOfFirst {
-                                it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion ==
-                                        item.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion
-                            }
+
                             Box(
                                 modifier = Modifier.animateItem(
-                                    placementSpec = tween(
-                                        durationMillis = 350,
-                                        easing = FastOutSlowInEasing
-                                    )
+                                    placementSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing)
                                 )
                             ) {
                                 carta_promocion_geinz(
@@ -1390,114 +896,62 @@ fun ui_promos_cerca_de_ti(
                                     i = item.dataclass_promociones_cerca_de_ti,
                                     img_clikeble = { id_promo, listaimg, select, id_tienda ->
                                         if (uid_respald_user.isNotEmpty()) {
-                                            Log.d(
-                                                "mostramosooom",
-                                                "$id_promo ${listaimg.size} $select"
-                                            )
                                             tienda_seleccionada_clik_baner = id_tienda
                                             promoSeleccionada = item
-                                            // ✅ Usar el index calculado
-                                            promoSeleccionada_unica =
-                                                item.dataclass_promociones_cerca_de_ti
+                                            promoSeleccionada_unica = item.dataclass_promociones_cerca_de_ti
                                             indexImagenSeleccionada = select
                                             mostrar_zoom_img = true
-                                            lista_img = listaimg
                                             index_galeria_img = select
-                                            titulo_poromo =
-                                                item.dataclass_promociones_cerca_de_ti.informacion_publcacion.titulo
-                                            descripcion =
-                                                item.dataclass_promociones_cerca_de_ti.informacion_publcacion.descripcion
-                                            nombre_tienda =
-                                                item.dataclass_promociones_cerca_de_ti.informacion_publcacion.nombre_tienda
-                                            img_tienda =
-                                                item.dataclass_promociones_cerca_de_ti.img.logo_img
-                                            dias_restantes =
-                                                item.dataclass_promociones_cerca_de_ti.dias_restantes
-
-                                            viewModel.agregar_estadisticas_publicacion(
-                                                "click",
-                                                id_promo,
-                                                localidad, uid_respald_user
-                                            )
-
+                                            nombre_tienda = item.dataclass_promociones_cerca_de_ti.informacion_publcacion.nombre_tienda
+                                            img_tienda = item.dataclass_promociones_cerca_de_ti.img.logo_img
+                                            dias_restantes = item.dataclass_promociones_cerca_de_ti.dias_restantes
+                                            viewModel.agregar_estadisticas_publicacion("click", id_promo, localidad, uid_respald_user)
                                         } else {
                                             mostrar_bottom_shet_registrate = true
-
                                         }
                                     },
                                     share_promo = { id_tienda, id, categoria ->
                                         compartir_hosting_promo(
                                             viewModel,
                                             item.dataclass_promociones_cerca_de_ti.texto_msje_whatsapp.compartir.msje_predermindo,
-                                            uid_respald_user,
-                                            id_tienda,
-                                            context,
-                                            localidad,
-                                            id,
-                                            categoria
+                                            uid_respald_user, id_tienda, context, localidad, id, categoria
                                         )
-                                        viewModel.agregar_estadisticas_publicacion(
-                                            "compartidos",
-                                            id,
-                                            localidad, uid_respald_user
-                                        )
+                                        viewModel.agregar_estadisticas_publicacion("compartidos", id, localidad, uid_respald_user)
                                     },
-                                    whatsap_promo = { id, id_tienda, categoira ->
+                                    whatsap_promo = { id, id_tienda, _ ->
                                         if (uid_respald_user.isNotEmpty()) {
                                             abrir_whattsapp(
-                                                uid_respald_user,
-                                                "promocion",
-                                                "",
-                                                "",
-                                                context,
-                                                item.dataclass_promociones_cerca_de_ti
-                                                    .informacion_publcacion.numero,
+                                                uid_respald_user, "promocion", "", "", context,
+                                                item.dataclass_promociones_cerca_de_ti.informacion_publcacion.numero,
                                                 "${item.dataclass_promociones_cerca_de_ti.texto_msje_whatsapp.whatsapp.msje_predermindo}" +
-                                                        "https://geinzworkapp.web.app/api/share?" +
-                                                        "t=prms" +
-                                                        "&l=$localidad" +
-                                                        "&pi=$id"
-
+                                                        "https://geinzworkapp.web.app/api/share?t=prms&l=$localidad&pi=$id"
                                             )
-                                            viewModel.agregar_estadisticas_publicacion(
-                                                "whatsapp",
-                                                id,
-                                                localidad, uid_respald_user
-                                            )
+                                            viewModel.agregar_estadisticas_publicacion("whatsapp", id, localidad, uid_respald_user)
                                         } else {
                                             mostrar_bottom_shet_registrate = true
                                         }
-
                                     },
                                     mostrar_perfil = { id, id_promo ->
                                         if (uid_respald_user.isNotEmpty()) {
-                                            viewModel.agregar_estadisticas_publicacion(
-                                                "click_perfil",
-                                                id_promo,
-                                                localidad, uid_respald_user
-                                            )
+                                            viewModel.agregar_estadisticas_publicacion("click_perfil", id_promo, localidad, uid_respald_user)
                                             show_bottom_sheeet = true
                                             id_tienda_select = id
                                         } else {
                                             mostrar_bottom_shet_registrate = true
                                         }
-                                    },onVerTodas = if (tiendaSeleccionada == null) {
+                                    },
+                                    onVerTodas = if (tiendaSeleccionada == null) {
                                         {
-                                            val idTiendaDeLaPromo = item.dataclass_promociones_cerca_de_ti
-                                                .informacion_publcacion.id_tienda
-                                            val nombreTiendaDeLaPromo = item.dataclass_promociones_cerca_de_ti
-                                                .informacion_publcacion.nombre_tienda
-
+                                            val idTiendaDeLaPromo = item.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_tienda
+                                            val nombreTiendaDeLaPromo = item.dataclass_promociones_cerca_de_ti.informacion_publcacion.nombre_tienda
                                             tienda_anterior = tiendaSeleccionada
                                             nombre_tienda_anterior = nombre_tienda_seleccionada
-
                                             tiendaSeleccionada = idTiendaDeLaPromo
                                             nombre_tienda_seleccionada = nombreTiendaDeLaPromo
                                             filtroTiendaAplicado = false
-                                            esperandoConfirmacionTienda = true  // ✅ CAMBIO: true para bloquear update automático
+                                            esperandoConfirmacionTienda = true
                                             pagos_tienda_confirmada = emptyList()
                                             comodidades_tienda_confirmada = emptyList()
-
                                             viewModel.limpiarCategoria()
                                             viewModel.limpiarSubcategorias()
                                             viewModel.limpiarRangoPrecio()
@@ -1508,138 +962,136 @@ fun ui_promos_cerca_de_ti(
                                             viewModel.resetear_respuesta_de_gemini()
                                             promosFiltradas = emptyList()
                                             valor_a_buscar = ""
-                                            limpiar_campo_de_busqueda = true
                                             viewModel.obtener_promociones_2da(localidad, "", idTiendaDeLaPromo)
                                         }
                                     } else null
                                 )
                             }
-
-
                         }
-                        // 🔹 Trigger de carga al llegar al último item
+
+                        // ── Paginación ──
                         item {
-
                             if (hayMasPaginas) {
-
                                 LaunchedEffect(promos.size) {
-
                                     if (!cargandoPagina) {
-
                                         if (viewModel.modoBusquedaIA) {
                                             viewModel.cargarSiguientePaginaPorIds()
                                         } else {
-                                            viewModel.cargarSiguientePagina(
-                                                localidad,
-                                                "",
-                                                tiendaSeleccionada
-                                            )
+                                            viewModel.cargarSiguientePagina(localidad, "", tiendaSeleccionada)
                                         }
-
                                     }
                                 }
-
                                 Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(24.dp),
+                                    modifier = Modifier.fillMaxWidth().padding(24.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    if (cargandoPagina) {
-                                        CircularProgressIndicator(modifier = Modifier.size(28.dp))
-                                    }
+                                    if (cargandoPagina) CircularProgressIndicator(modifier = Modifier.size(28.dp))
                                 }
-
                             } else {
                                 Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
+                                    modifier = Modifier.fillMaxWidth().padding(16.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(
-                                        text = "Ya viste todas las promos 🎉",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color.Gray
-                                    )
+                                    Text(text = "Ya viste todas las promos 🎉", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                                 }
                             }
                         }
-
                     }
-                    AnimatedVisibility(
-                        visible = mostrar_snackbar_tienda,
-                        enter = fadeIn() + slideInVertically { it },
-                        exit = fadeOut() + slideOutVertically { it },
+
+                    // ── Bottom overlay: FiltroSnackbarActivo + snackbar tienda ──
+                    Column(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .zIndex(10f)
+                            .fillMaxWidth()
                     ) {
-                        snackbar_tienda_con_logo(
-                            logo_url = snackbar_logo_tienda,
-                            total_promos = snackbar_total_promos,
-                            onVer = {
-                                mostrar_snackbar_tienda = false
-                                promos = promosFiltradas
-                                filtroTiendaAplicado = true
-                                nombre_tienda_mostrando = snackbar_nombre_tienda_snap
-                                valor_a_buscar = ""                // 🔥
-                                tags_tienda_confirmada = promosFiltradas
-                                    .flatMap { it.dataclass_promociones_cerca_de_ti.terminos_clave }
-                                    .distinct().filter { it.isNotEmpty() }
-                                rangos_tienda_confirmada = promosFiltradas
-                                    .map { it.dataclass_promociones_cerca_de_ti.rango }
-                                    .filter { it.isNotEmpty() }.distinct()
+                        FiltroSnackbarActivo(
+                            categoriaSeleccionada = categoriaSeleccionada,
+                            subcategoriasSeleccionadas = subcategoriasSeleccionadas.toList(),
+                            rangoPrecio = rango_precio,
+                            metodosPago = metodo_pago,
+                            comodidades = comodidad_selet,
+                            onEditarFiltros = { mostar_bottom_sheet_datos = true },
+                            onLimpiarTodo = {
+                                viewModel.limpiarCategoria()
+                                viewModel.limpiarSubcategorias()
+                                viewModel.limpiarRangoPrecio()
+                                viewModel.limpiarMetodosPago()
+                                viewModel.limpiar_comodidad()
+                                viewModel.limpiarTerminosNlp()
+                                viewModel.obtener_promociones_2da("barranca", "", null)
+                                valor_a_buscar = ""
                             },
-                            onDismiss = {
-                                mostrar_snackbar_tienda = false
-                                esperandoConfirmacionTienda = false
-
-                                tiendaSeleccionada = tienda_anterior
-                                nombre_tienda_seleccionada = nombre_tienda_anterior
-                                nombre_tienda_mostrando = nombre_tienda_anterior
-
-                                if (tienda_anterior != null) {
-                                    filtroTiendaAplicado = true
-                                    // 🔥 promos ya tienen los datos correctos de tienda_anterior
-                                    // NO llamar viewModel, NO tocar promos
-                                } else {
-                                    filtroTiendaAplicado = false
-                                    tags_tienda_confirmada = emptyList()
-                                    rangos_tienda_confirmada = emptyList()
-                                    pagos_tienda_confirmada = emptyList()
-                                    comodidades_tienda_confirmada = emptyList()
-                                    viewModel.limpiarSubcategorias()
-                                    viewModel.limpiarRangoPrecio()
-                                    viewModel.limpiarMetodosPago()
-                                    viewModel.limpiar_comodidad()
-                                    viewModel.obtener_promociones_2da(localidad, "", null)
-                                }
-                            }
+                            onQuitarCategoria = { viewModel.limpiarCategoria(); viewModel.limpiarSubcategorias() },
+                            onQuitarSubcategoria = { sub -> viewModel.toggle_subcategoria(sub) },
+                            onQuitarRango = { viewModel.setearRangoPrecioDesdeNLP(null) },
+                            onQuitarPago = { pago -> viewModel.toggleMetodoPago(pago) },
+                            onQuitarComodidad = { comod -> viewModel.togleRango_select(comod) },
                         )
-                    }
-                    SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
 
+                        AnimatedVisibility(
+                            visible = mostrar_snackbar_tienda,
+                            enter = fadeIn() + slideInVertically { it },
+                            exit = fadeOut() + slideOutVertically { it },
+                            modifier = Modifier.zIndex(10f)
+                        ) {
+                            snackbar_tienda_con_logo(
+                                logo_url = snackbar_logo_tienda,
+                                total_promos = snackbar_total_promos,
+                                onVer = {
+                                    mostrar_snackbar_tienda = false
+                                    promos = promosFiltradas
+                                    filtroTiendaAplicado = true
+                                    nombre_tienda_mostrando = snackbar_nombre_tienda_snap
+                                    valor_a_buscar = ""
+                                    tags_tienda_confirmada = promosFiltradas
+                                        .flatMap { it.dataclass_promociones_cerca_de_ti.terminos_clave }
+                                        .distinct().filter { it.isNotEmpty() }
+                                    rangos_tienda_confirmada = promosFiltradas
+                                        .map { it.dataclass_promociones_cerca_de_ti.rango }
+                                        .filter { it.isNotEmpty() }.distinct()
+                                },
+                                onDismiss = {
+                                    mostrar_snackbar_tienda = false
+                                    esperandoConfirmacionTienda = false
+                                    tiendaSeleccionada = tienda_anterior
+                                    nombre_tienda_seleccionada = nombre_tienda_anterior
+                                    nombre_tienda_mostrando = nombre_tienda_anterior
+                                    if (tienda_anterior != null) {
+                                        filtroTiendaAplicado = true
+                                    } else {
+                                        filtroTiendaAplicado = false
+                                        tags_tienda_confirmada = emptyList()
+                                        rangos_tienda_confirmada = emptyList()
+                                        pagos_tienda_confirmada = emptyList()
+                                        comodidades_tienda_confirmada = emptyList()
+                                        viewModel.limpiarSubcategorias()
+                                        viewModel.limpiarRangoPrecio()
+                                        viewModel.limpiarMetodosPago()
+                                        viewModel.limpiar_comodidad()
+                                        viewModel.obtener_promociones_2da(localidad, "", null)
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
                 }
 
-                if (mostar_bottom_sheet_datos) {
-                    Log.d("SHEET_DEBUG", "🔴 mostar_bottom_sheet_datos = true")
-                    Log.d("SHEET_DEBUG", "🏪 tiendaSeleccionada = $tiendaSeleccionada")
-                    Log.d("SHEET_DEBUG", "🏷️ tags_de_promos_filtradas = $tags_de_promos_filtradas")
+                // ── Bottom sheets ──
 
+                if (mostar_bottom_sheet_datos) {
                     if (tiendaSeleccionada != null) {
                         if (tags_tienda_confirmada.isEmpty()) {
-                            Log.d("SHEET_DEBUG", "⚠️ Sin tags → Toast")
                             Toast.makeText(context, "El negocio no cuenta con filtros", Toast.LENGTH_SHORT).show()
                             mostar_bottom_sheet_datos = false
                         } else {
-                            Log.d("SHEET_DEBUG", "✅ Entrando a bottom_sheet_filtrar_desde_tienda")
                             bottom_sheet_filtrar_desde_tienda(
                                 nombre_tienda = nombre_tienda_mostrando,
                                 lista_filtrado_negocio = tags_tienda_confirmada,
                                 rangos_disponibles = rangos_tienda_confirmada,
-                                pagos_tienda = pagos_tienda_confirmada,           // 🔥 falta
-                                comodidades_tienda = comodidades_tienda_confirmada, // 🔥 falta
+                                pagos_tienda = pagos_tienda_confirmada,
+                                comodidades_tienda = comodidades_tienda_confirmada,
                                 id_tienda = tiendaSeleccionada ?: "",
                                 viewModel = viewModel,
                                 onClose = { mostar_bottom_sheet_datos = false },
@@ -1655,28 +1107,23 @@ fun ui_promos_cerca_de_ti(
                             )
                         }
                     } else {
-                        Log.d("SHEET_DEBUG", "✅ Entrando a bottom_sheet_filtrados_promos_y_ofertas")
-                        bottom_sheet_filtrados_promos_y_ofertas(
-
+                        bottom_sheet_filtrados_general_promos_ofertas(
                             filtrado_ia = modoBusquedaIA,
                             datos_filtrado = resultado_open_ia,
-                            comodidad_selet = comodidad_selet,
-                            metodo_pago = metodo_pago,
-                            rango_precio = rango_precio,
                             viewModel = viewModel,
                             onClose = { mostar_bottom_sheet_datos = false },
                             onAutocompletar = { txt ->
                                 valor_a_buscar = txt
                                 mostar_bottom_sheet_datos = false
-                            },{
-                                valor_a_buscar = ""
-                            }
+                            },
+                            limpiar_textos = { valor_a_buscar = "" },
+
                         )
                     }
                 }
-//                if (mostrar_zoom_img && promoSeleccionada != null) {
+
                 if (mostrar_zoom_img) {
-                    key(tienda_seleccionada_clik_baner) { // 🔹 fuerza recreación al cambiar tienda
+                    key(tienda_seleccionada_clik_baner) {
                         ZoomableGalleryFullScreenVerticalPager(
                             promociones_de_una_tienda = tienda_seleccionada_clik_baner ?: "",
                             es_la_misma_tienda_o_no = tienda_seleccionada_clik_baner != null,
@@ -1696,6 +1143,7 @@ fun ui_promos_cerca_de_ti(
                     }
                     return
                 }
+
                 if (mostrar_todas_tiendas) {
                     bottom_sheet_todas_las_tiendas(
                         tiendas = tiendasConMasDeUnaPromo,
@@ -1704,22 +1152,21 @@ fun ui_promos_cerca_de_ti(
                             tiendaSeleccionada = tienda.id
                             nombre_tienda_seleccionada = tienda.nombre_tienda
                             esperandoConfirmacionTienda = false
-                            pagos_tienda_confirmada = emptyList()        // 🔥
-                            comodidades_tienda_confirmada = emptyList()  // 🔥
+                            pagos_tienda_confirmada = emptyList()
+                            comodidades_tienda_confirmada = emptyList()
                             viewModel.limpiarSubcategorias()
                             viewModel.limpiarRangoPrecio()
-                            viewModel.limpiarMetodosPago()               // 🔥
-                            viewModel.limpiar_comodidad()                // 🔥
+                            viewModel.limpiarMetodosPago()
+                            viewModel.limpiar_comodidad()
                             viewModel.obtener_promociones_2da(localidad, "", tienda.id)
                         },
                         onClose = { mostrar_todas_tiendas = false }
                     )
                 }
+
                 if (mostrar_bottom_shet_registrate) {
                     bottom_sheet_registrate(
-                        ondimis = {
-                            mostrar_bottom_shet_registrate = false
-                        },
+                        ondimis = { mostrar_bottom_shet_registrate = false },
                         iniciar_seccion_normal = {
                             iniciar_seccion()
                             mostrar_bottom_shet_registrate = false
@@ -1732,15 +1179,9 @@ fun ui_promos_cerca_de_ti(
                     )
                 }
 
-
                 if (show_bottom_sheeet) {
                     bottom_sheet_tiendas_filtradas(
-                        id_tienda_select,
-                        localidad,
-                        verificar_intener,
-                        viewModelFiltros,
-//                        dataclass_tienda_seleccionada,
-                        show_bottom_sheeet
+                        id_tienda_select, localidad, verificar_intener, viewModelFiltros, show_bottom_sheeet
                     ) {
                         show_bottom_sheeet = false
                     }
@@ -1749,8 +1190,6 @@ fun ui_promos_cerca_de_ti(
         }
 
         SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
-
-
     }
 }
 @Composable

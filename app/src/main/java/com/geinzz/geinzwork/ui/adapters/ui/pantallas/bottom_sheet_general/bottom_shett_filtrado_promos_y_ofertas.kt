@@ -20,6 +20,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -45,9 +46,11 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.Widgets
+import androidx.compose.material.icons.outlined.FilterAltOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -67,6 +70,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -82,6 +86,7 @@ import com.geinzz.geinzwork.viewModels.viewmodel_promos_cercanas
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.DatosResponse
@@ -89,6 +94,7 @@ import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.datos_para_f
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_close_gris
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.spacer_horizonta
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.banerGeinzWork
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun bottom_sheet_filtrados_promos_y_ofertas(
@@ -97,7 +103,7 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
     comodidad_selet: Set<String>, metodo_pago: Set<String>,
     rango_precio: String?,
     viewModel: viewmodel_promos_cercanas,
-    onClose: () -> Unit, onAutocompletar: (String) -> Unit,limpiar_textos:()-> Unit,
+    onClose: () -> Unit, onAutocompletar: (String) -> Unit, limpiar_textos: () -> Unit,
 ) {
     var expandido by remember { mutableStateOf(true) }
     Log.d("datos_padaso", "$filtrado_ia $datos_filtrado")
@@ -310,7 +316,8 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                             if (!verTodos) {
                                 LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                     items(subcategoriasVisibles) { subcategoria ->
-                                        val seleccionado = subcategoriasSeleccionadas.contains(subcategoria)
+                                        val seleccionado =
+                                            subcategoriasSeleccionadas.contains(subcategoria)
                                         chisp_filtrado_busqueda(
                                             carta_selecionada = seleccionado,
                                             filtrado = subcategoria.capitalizeFirst(),
@@ -338,7 +345,8 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                                     verticalArrangement = Arrangement.spacedBy(10.dp)
                                 ) {
                                     subcategorias_obtenidas.forEach { subcategoria ->
-                                        val seleccionado = subcategoriasSeleccionadas.contains(subcategoria)
+                                        val seleccionado =
+                                            subcategoriasSeleccionadas.contains(subcategoria)
                                         chisp_filtrado_busqueda(
                                             carta_selecionada = seleccionado,
                                             filtrado = subcategoria.capitalizeFirst(),
@@ -436,15 +444,11 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                     }
                 }
 
-                // ── 3. RANGOS + MÉTODOS + COMODIDADES ───────────────────
-                // Aparecen todos juntos cuando hay categoría elegida
-                // ── 3. RANGOS + MÉTODOS + COMODIDADES — siempre visibles ───
-                // ── 3. RANGOS + MÉTODOS + COMODIDADES — siempre visibles ───
+
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         spacer_vertical(2.dp)
                         texto_generico_one_line("Rangos de precio")
-                        spacer_vertical(10.dp)
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             items(rango_precios) { subcategoria ->
                                 val seleccionado = rango_precio == subcategoria
@@ -460,7 +464,6 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                         }
                         spacer_vertical(6.dp)
                         texto_generico_one_line("Métodos de pago")
-                        spacer_vertical(10.dp)
                         RadioCheckingMetodos(
                             lista = lista_filtrados_pagos,
                             seleccionados = metodo_pago,
@@ -505,26 +508,454 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                         }
                     }
                 }
-                val mostrarBotonAplicar =  huboCambio && (
-                if (filtrado_ia) {
-                    terminos_nlp_seleccionados.isNotEmpty() ||
-                            !rango_precio.isNullOrEmpty() ||
-                            comodidad_selet.isNotEmpty() ||
-                            metodo_pago.isNotEmpty()
-                } else {
-                    categoriaSeleccionada.isNotEmpty() ||
-                            subcategoriasSeleccionadas.isNotEmpty() ||
-                            !rango_precio.isNullOrEmpty() ||
-                            comodidad_selet.isNotEmpty() ||
-                            metodo_pago.isNotEmpty()
-                }
-                )
+                val mostrarBotonAplicar = huboCambio && (
+                        if (filtrado_ia) {
+                            terminos_nlp_seleccionados.isNotEmpty() ||
+                                    !rango_precio.isNullOrEmpty() ||
+                                    comodidad_selet.isNotEmpty() ||
+                                    metodo_pago.isNotEmpty()
+                        } else {
+                            categoriaSeleccionada.isNotEmpty() ||
+                                    subcategoriasSeleccionadas.isNotEmpty() ||
+                                    !rango_precio.isNullOrEmpty() ||
+                                    comodidad_selet.isNotEmpty() ||
+                                    metodo_pago.isNotEmpty()
+                        }
+                        )
                 if (mostrarBotonAplicar) {
                     item {
                         Button(
                             onClick = {
+                                val data =
+                                    if (filtrado_ia && terminos_nlp_seleccionados.isNotEmpty()) {
+                                        // 👈 modo NLP
+                                        datos_para_filtrado_manual(
+                                            categoria = terminos_nlp_seleccionados.joinToString(","),
+                                            subcategorias = terminos_nlp_seleccionados,
+                                            rango_precio = rango_precio,
+                                            pagos = metodo_pago.toList(),
+                                            comodidades = comodidad_selet.toList(),
+                                            localidad = "barranca"
+                                        )
+                                    } else {
+                                        // 👈 modo manual normal
+                                        datos_para_filtrado_manual(
+                                            categoria = categoriaSeleccionada,
+                                            subcategorias = subcategoriasSeleccionadas.toList(),
+                                            rango_precio = rango_precio,
+                                            pagos = metodo_pago.toList(),
+                                            comodidades = comodidad_selet.toList(),
+                                            localidad = "barranca"
+                                        )
+                                    }
+                                viewModel.busqueda_manual_filtrado(data)
+                                onClose()
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            texto_generico_one_line("Aplicar Filtros")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun bottom_sheet_filtrados_general_promos_ofertas(
+    filtrado_ia: Boolean,
+    datos_filtrado: DatosResponse?,
+    viewModel: viewmodel_promos_cercanas,
+    onClose: () -> Unit, onAutocompletar: (String) -> Unit, limpiar_textos: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val limite = 10
+    val lista_filtrados_pagos = remember {
+        listOf(
+            img_con_texto(R.drawable.yape_logo, "yape"),
+            img_con_texto(R.drawable.logo_plin, "plin"),
+            img_con_texto(R.drawable.visa_logo, "visa"),
+            img_con_texto(R.drawable.master_car_logo, "mastercard"),
+            img_con_texto(R.drawable.efectivo_logo, "efectivo"),
+            img_con_texto(R.drawable.logo_agora, "agora"),
+        )
+    }
+
+    val lista_comodidades = remember {
+        listOf(
+            img_con_texto(R.drawable.icon_wifi, "wifi"),
+            img_con_texto(R.drawable.icon_zona_expandida, "zona_expandida"),
+            img_con_texto(R.drawable.icon_servicios_higenicos, "servicios_higienicos"),
+            img_con_texto(R.drawable.icon_seguridad, "camaras_de_seguridad"),
+            img_con_texto(R.drawable.icon_sala_de_espera, "sala_de_espera"),
+            img_con_texto(R.drawable.icon_sala_para_ninos, "sala_juegos"),
+            img_con_texto(R.drawable.icon_mesa_para_ninos, "mesa_para_ninos"),
+            img_con_texto(R.drawable.icon_estacionamiento, "estacionamiento"),
+            img_con_texto(R.drawable.icon_enchufa, "enchufe"),
+            img_con_texto(R.drawable.icon_aire_acondicionado, "aire_acondicionado"),
+            img_con_texto(R.drawable.icon_ingreso_animales, "ingreso_mascotas"),
+        )
+    }
+
+    val rango_precios = remember {
+        listOf(
+            "0 - 10", "10 - 20", "20 - 30", "30 - 50", "50 - 80",
+            "80 - 120", "120 - 200", "200 - 350", "350 - 500",
+            "500 - 1000", "1000 - 2500", "2500 - 5000",
+            "5000 - 10000", "Más de 10000"
+        )
+    }
+
+    val obtener_cateogiras by viewModel.obtener_categorias.collectAsState()
+    var verTodos by remember { mutableStateOf(false) }
+    val terminos_nlp by viewModel.terminos_nlp.collectAsState()
+    val terminos_nlp_seleccionados by viewModel.terminos_nlp_seleccionados.collectAsState()
+    val obtener_cateogiras_filtro_generales by viewModel.obtener_categorias.collectAsState()
+    val categoriaSeleccionada by viewModel.categoria_seleccionada.collectAsState()
+    val rango_precio by viewModel.rangoPrecioSeleccionado.collectAsState()
+    val metodo_pago by viewModel.metodosPagoSeleccionados.collectAsState()
+    val comodidad_selet by viewModel.comodidadesSeleccionadas.collectAsState()
+    val subcategoriasSeleccionadas by viewModel.subcategoria_seleccionada.collectAsState()
+    val categoriaElegida = categoriaSeleccionada.isNotEmpty() && categoriaSeleccionada != "Todos"
+    val subcategorias_obtenidas = obtener_cateogiras
+        .firstOrNull { it.categoria == categoriaSeleccionada }
+        ?.subcategoria
+        ?: emptyList()
+    val subcategoriasVisibles = if (verTodos) subcategorias_obtenidas
+    else subcategorias_obtenidas.take(limite)
+
+    ModalBottomSheet(
+        sheetState = sheetState,
+        onDismissRequest = { onClose() },
+        modifier = Modifier.fillMaxWidth(),
+        dragHandle = null,
+        containerColor = MaterialTheme.colorScheme.background
+    ) {
+        FuenteControladaApp {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(0.dp),
+                modifier = Modifier
+                    .padding(bottom = 24.dp)
+                    .animateContentSize()
+            ) {
+
+                // ── HEADER ──────────────────────────────────────────────────
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                        Color.Transparent
+                                    )
+                                )
+                            )
+                            .padding(start = 5.dp, end = 5.dp, top = 28.dp, bottom = 20.dp)
+                    ) {
+                        Column {
+                            // Pill indicador superior
+                            Box(
+                                modifier = Modifier
+                                    .width(36.dp)
+                                    .height(4.dp)
+                                    .clip(RoundedCornerShape(2.dp))
+                                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f))
+                                    .align(Alignment.CenterHorizontally)
+                            )
+                            spacer_vertical(16.dp)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "Filtros",
+                                        style = MaterialTheme.typography.banerGeinzWork,
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        fontSize = 28.sp,
+                                    )
+                                    spacer_vertical(2.dp)
+                                    texto_generico_multilinea(
+                                        "Encuentra lo que buscas",
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                                // Botón limpiar todo — icono + texto compacto
+                                OutlinedButton(
+                                    onClick = {
+                                        viewModel.limpiarCategoria()
+                                        viewModel.limpiarSubcategorias()
+                                        viewModel.limpiarRangoPrecio()
+                                        viewModel.limpiarMetodosPago()
+                                        viewModel.limpiar_comodidad()
+                                        viewModel.limpiarTerminosNlp()
+                                        viewModel.obtener_promociones_2da("barranca", "", null)
+                                        onClose()
+                                        limpiar_textos()
+                                    },
+                                    shape = RoundedCornerShape(20.dp),
+                                    border = BorderStroke(
+                                        1.dp,
+                                        MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                                    ),
+                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.FilterAltOff,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(15.dp),
+                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                    )
+                                    Spacer(Modifier.width(5.dp))
+                                    Text(
+                                        text = "Limpiar",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    // Divider sutil
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f),
+                        thickness = 1.dp
+                    )
+                }
+
+                // ── SECCIÓN: CATEGORÍAS o NLP ────────────────────────────────
+                item {
+                    FiltroSeccion(
+                        numero = "01",
+                        titulo = if (filtrado_ia && terminos_nlp.isNotEmpty())
+                            "Tu búsqueda" else "Categoría",
+                        subtitulo = if (filtrado_ia && terminos_nlp.isNotEmpty())
+                            "Deselecciona lo que no quieres" else "¿Qué tipo de promo buscas?"
+                    ) {
+                        if (filtrado_ia && terminos_nlp.isNotEmpty()) {
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                terminos_nlp.forEach { termino ->
+                                    val seleccionado = terminos_nlp_seleccionados.contains(termino)
+                                    chisp_filtrado_busqueda(
+                                        carta_selecionada = seleccionado,
+                                        filtrado = termino.capitalizeFirst(),
+                                        btn_visible = false,
+                                        clik_card = { viewModel.toggleTerminoNlp(termino) },
+                                        onClick_delete = {}
+                                    )
+                                }
+                            }
+                        } else {
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(obtener_cateogiras_filtro_generales) { categoria ->
+                                    val seleccionado = categoriaSeleccionada == categoria.categoria
+                                    chisp_filtrado_busqueda(
+                                        carta_selecionada = seleccionado,
+                                        filtrado = categoria.categoria.capitalizeFirst(),
+                                        btn_visible = false,
+                                        clik_card = { viewModel.toggleCategoria(categoria.categoria) },
+                                        onClick_delete = {}
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ── SECCIÓN: SUBCATEGORÍAS ───────────────────────────────────
+                item {
+                    val mostrarExtras = categoriaElegida ||
+                            (filtrado_ia && terminos_nlp_seleccionados.isNotEmpty())
+
+                    AnimatedVisibility(
+                        visible = mostrarExtras,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
+                    ) {
+                        FiltroSeccion(
+                            numero = "02",
+                            titulo = "Subcategoría",
+                            subtitulo = "Afina tu búsqueda"
+                        ) {
+                            if (!verTodos) {
+                                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    items(subcategoriasVisibles) { subcategoria ->
+                                        val seleccionado =
+                                            subcategoriasSeleccionadas.contains(subcategoria)
+                                        chisp_filtrado_busqueda(
+                                            carta_selecionada = seleccionado,
+                                            filtrado = subcategoria.capitalizeFirst(),
+                                            btn_visible = false,
+                                            clik_card = { viewModel.toggle_subcategoria(subcategoria) },
+                                            onClick_delete = {}
+                                        )
+                                    }
+                                    if (subcategorias_obtenidas.size > limite) {
+                                        item {
+                                            chisp_filtrado_busqueda(
+                                                carta_selecionada = false,
+                                                filtrado = "Ver todos",
+                                                btn_visible = false,
+                                                clik_card = { verTodos = true },
+                                                onClick_delete = {}
+                                            )
+                                        }
+                                    }
+                                }
+                            } else {
+                                FlowRow(
+                                    maxItemsInEachRow = 3,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    subcategorias_obtenidas.forEach { subcategoria ->
+                                        val seleccionado =
+                                            subcategoriasSeleccionadas.contains(subcategoria)
+                                        chisp_filtrado_busqueda(
+                                            carta_selecionada = seleccionado,
+                                            filtrado = subcategoria.capitalizeFirst(),
+                                            btn_visible = false,
+                                            clik_card = { viewModel.toggle_subcategoria(subcategoria) },
+                                            onClick_delete = {}
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ── SECCIÓN: RANGO DE PRECIO ─────────────────────────────────
+                item {
+                    val mostrarExtras = categoriaElegida ||
+                            (filtrado_ia && terminos_nlp_seleccionados.isNotEmpty())
+
+                    AnimatedVisibility(
+                        visible = mostrarExtras,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
+                    ) {
+                        FiltroSeccion(
+                            numero = "03",
+                            titulo = "Rango de precio",
+                            subtitulo = "Precio en soles (S/)"
+                        ) {
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(rango_precios) { item ->
+                                    val seleccionado = rango_precio == item
+                                    chisp_filtrado_busqueda_resultados_busqueda(
+                                        "precio",
+                                        carta_selecionada = seleccionado,
+                                        filtrado = item.capitalizeFirst(),
+                                        btn_visible = false,
+                                        clik_card = { viewModel.setearRangoPrecioDesdeNLP(item) },
+                                        onClick_delete = {}
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ── SECCIÓN: PAGOS + COMODIDADES (grid 2 col) ────────────────
+                item {
+                    val mostrarExtras = categoriaElegida ||
+                            (filtrado_ia && terminos_nlp_seleccionados.isNotEmpty())
+
+                    AnimatedVisibility(
+                        visible = mostrarExtras,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
+                    ) {
+                        Column {
+                            // Número de sección
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                NumeroBadge("04")
+                                Column {
+                                    texto_generico_one_line("Más filtros")
+                                    Text(
+                                        text = "Pagos y comodidades",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                    )
+                                }
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                // Métodos de pago
+                                Surface(
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = MaterialTheme.colorScheme.surface,
+                                    tonalElevation = 2.dp,
+                                    border = BorderStroke(
+                                        1.dp,
+                                        MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)
+                                    )
+                                ) {
+                                    Box(modifier = Modifier.padding(12.dp)) {
+                                        desing_chips_texto_filtrado(
+                                            "Métodos de pago",
+                                            lista_filtrados_pagos,
+                                            metodo_pago
+                                        ) { txt -> viewModel.toggleMetodoPago(txt) }
+                                    }
+                                }
+                                // Comodidades
+                                Surface(
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = MaterialTheme.colorScheme.surface,
+                                    tonalElevation = 2.dp,
+                                    border = BorderStroke(
+                                        1.dp,
+                                        MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)
+                                    )
+                                ) {
+                                    Box(modifier = Modifier.padding(12.dp)) {
+                                        desing_chips_texto_filtrado(
+                                            "Comodidades",
+                                            lista_comodidades,
+                                            comodidad_selet
+                                        ) { txt -> viewModel.togleRango_select(txt) }
+                                    }
+                                }
+                            }
+                            spacer_vertical(8.dp)
+                        }
+                    }
+                }
+
+                // ── BOTÓN APLICAR ────────────────────────────────────────────
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Button(
+                            onClick = {
                                 val data = if (filtrado_ia && terminos_nlp_seleccionados.isNotEmpty()) {
-                                    // 👈 modo NLP
                                     datos_para_filtrado_manual(
                                         categoria = terminos_nlp_seleccionados.joinToString(","),
                                         subcategorias = terminos_nlp_seleccionados,
@@ -534,7 +965,6 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                                         localidad = "barranca"
                                     )
                                 } else {
-                                    // 👈 modo manual normal
                                     datos_para_filtrado_manual(
                                         categoria = categoriaSeleccionada,
                                         subcategorias = subcategoriasSeleccionadas.toList(),
@@ -547,14 +977,85 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                                 viewModel.busqueda_manual_filtrado(data)
                                 onClose()
                             },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp),
+                            shape = RoundedCornerShape(14.dp),
                         ) {
-                            texto_generico_one_line("Aplicar Filtros")
+                            Text(
+                                text = "Aplicar filtros",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontSize = 15.sp
+                            )
                         }
                     }
                 }
             }
         }
+    }
+}
+
+// ── COMPOSABLES DE APOYO ─────────────────────────────────────────────────────
+
+/**
+ * Sección con número badge, título, subtítulo y contenido.
+ * Se usa para cada bloque de filtro con separador visual consistente.
+ */
+@Composable
+private fun FiltroSeccion(
+    numero: String,
+    titulo: String,
+    subtitulo: String,
+    contenido: @Composable ColumnScope.() -> Unit
+) {
+    Column {
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.06f),
+            thickness = 1.dp
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            NumeroBadge(numero)
+            Column {
+                texto_generico_one_line(titulo)
+                Text(
+                    text = subtitulo,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+            }
+        }
+        Box(modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 4.dp)) {
+            Column { contenido() }
+        }
+        spacer_vertical(8.dp)
+    }
+}
+
+/**
+ * Badge numérico pequeño — indica el orden de cada sección de filtro.
+ */
+@Composable
+private fun NumeroBadge(numero: String) {
+    Box(
+        modifier = Modifier
+            .size(28.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = numero,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 10.sp
+        )
     }
 }
 
@@ -709,17 +1210,27 @@ fun bottom_sheet_filtrar_desde_tienda(
                                                 Surface(
                                                     shape = RoundedCornerShape(50.dp),
                                                     color = MaterialTheme.colorScheme.background,
-                                                    border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.3f))
+                                                    border = BorderStroke(
+                                                        1.dp,
+                                                        Color.Gray.copy(alpha = 0.3f)
+                                                    )
                                                 ) {
                                                     Row(
-                                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                        modifier = Modifier.padding(
+                                                            horizontal = 12.dp,
+                                                            vertical = 6.dp
+                                                        ),
                                                         verticalAlignment = Alignment.CenterVertically,
-                                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                                        horizontalArrangement = Arrangement.spacedBy(
+                                                            6.dp
+                                                        )
                                                     ) {
                                                         Image(
                                                             painter = painterResource(id = pago.img),
                                                             contentDescription = pago.texto,
-                                                            modifier = Modifier.size(20.dp).clip(CircleShape)
+                                                            modifier = Modifier
+                                                                .size(20.dp)
+                                                                .clip(CircleShape)
                                                         )
                                                         texto_generico_one_line(
                                                             pago.texto.capitalizeFirst(),
@@ -762,12 +1273,20 @@ fun bottom_sheet_filtrar_desde_tienda(
                                                 Surface(
                                                     shape = RoundedCornerShape(50.dp),
                                                     color = MaterialTheme.colorScheme.background,
-                                                    border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.3f))
+                                                    border = BorderStroke(
+                                                        1.dp,
+                                                        Color.Gray.copy(alpha = 0.3f)
+                                                    )
                                                 ) {
                                                     Row(
-                                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                        modifier = Modifier.padding(
+                                                            horizontal = 12.dp,
+                                                            vertical = 6.dp
+                                                        ),
                                                         verticalAlignment = Alignment.CenterVertically,
-                                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                                        horizontalArrangement = Arrangement.spacedBy(
+                                                            6.dp
+                                                        )
                                                     ) {
                                                         Image(
                                                             painter = painterResource(id = comodidad.img),
@@ -775,7 +1294,8 @@ fun bottom_sheet_filtrar_desde_tienda(
                                                             modifier = Modifier.size(18.dp)
                                                         )
                                                         texto_generico_one_line(
-                                                            comodidad.texto.replace("_", " ").capitalizeFirst(),
+                                                            comodidad.texto.replace("_", " ")
+                                                                .capitalizeFirst(),
                                                             style = MaterialTheme.typography.bodySmall
                                                         )
                                                     }
@@ -927,6 +1447,7 @@ fun bottom_sheet_filtrar_desde_tienda(
         }
     }
 }
+
 @Composable
 fun RadioCheckingMetodos(
     lista: List<img_con_texto>,
@@ -1082,5 +1603,23 @@ fun obtenerRangoDesdePrecio(precio: Int?): String? {
         in 2501..5000 -> "2500 - 5000"
         in 5001..10000 -> "5000 - 10000"
         else -> "Más de 10000"
+    }
+}
+
+@Composable
+fun desing_chips_texto_filtrado(
+    texto_principal: String,
+    lista: List<img_con_texto>,
+    seleccionados: Set<String>,
+    selecionado: (String) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+    texto_generico_one_line(texto_principal)
+    RadioCheckingMetodos(
+        lista = lista,
+        seleccionados = seleccionados,
+        onToggle = { texto ->
+            selecionado (texto) }
+    )
     }
 }

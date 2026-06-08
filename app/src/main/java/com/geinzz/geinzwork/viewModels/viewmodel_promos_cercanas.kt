@@ -225,8 +225,9 @@ class viewmodel_promos_cercanas : ViewModel() {
     val categoria_seleccionada: StateFlow<String> = _categoria_seleccionada
 
     fun toggleCategoria(cat: String) {
-        _categoria_seleccionada.value =
-            if (_categoria_seleccionada.value == cat) "" else cat
+        val nueva = if (_categoria_seleccionada.value == cat) "" else cat
+        _categoria_seleccionada.value = nueva
+        if (nueva.isEmpty()) limpiarSubcategorias()
     }
     private var ultimaTiendaCargada: String = ""
 
