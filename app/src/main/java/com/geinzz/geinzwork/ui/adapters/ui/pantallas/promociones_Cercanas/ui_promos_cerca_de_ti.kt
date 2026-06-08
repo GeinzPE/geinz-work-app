@@ -261,6 +261,7 @@ fun ui_promos_cerca_de_ti(
     var valor_a_buscar by remember { mutableStateOf("") }
 
     var indexImagenSeleccionada by remember { mutableStateOf(0) }
+    var filtrandoDesdeTienda by remember { mutableStateOf(false) } // 🔥 nueva bandera
 
     // Dentro de tu Composable
     var estadisticasAgregadas by remember { mutableStateOf(false) }
@@ -623,13 +624,14 @@ fun ui_promos_cerca_de_ti(
 
     LaunchedEffect(estado) {
         if (estado is viewmodel_promos_cercanas.estado_carga_promociones.succes) {
-            // 🔥 Si estamos esperando confirmación del usuario → NO actualizar promos
-            if (esperandoConfirmacionTienda) return@LaunchedEffect
+            // 🔥 Permitir si viene de filtro interno de tienda
+            if (esperandoConfirmacionTienda && !filtrandoDesdeTienda) return@LaunchedEffect
 
             val nuevos = (estado as viewmodel_promos_cercanas.estado_carga_promociones.succes).items
             promos = nuevos.distinctBy {
                 it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion
             }
+            filtrandoDesdeTienda = false // 🔥 reset
         }
     }
     var loadingTiendaShown by remember { mutableStateOf(false) }
@@ -701,6 +703,7 @@ fun ui_promos_cerca_de_ti(
                 snackbar_nombre_tienda_snap = nombre_tienda_seleccionada
                 snackbar_logo_tienda = tiendasConMasDeUnaPromo
                     .find { it.id == tiendaSeleccionada }?.logo_img ?: ""
+                esperandoConfirmacionTienda = true
                 mostrar_snackbar_tienda = true
             }
 
@@ -1043,9 +1046,9 @@ fun ui_promos_cerca_de_ti(
                                 AnimatedVisibility(visible = valor_a_buscar.isNotEmpty() && !estaOcupado) {
                                     Box(modifier = Modifier.fillMaxWidth()) {
                                         Text(
-                                            text = "${valor_a_buscar.length}/400",
+                                            text = "${valor_a_buscar.length}/250",
                                             fontSize = 10.sp,
-                                            color = if (valor_a_buscar.length >= 390) Color(0xFFEC1707) else Color.Gray,
+                                            color = if (valor_a_buscar.length >= 250) Color(0xFFEC1707) else Color.Gray,
                                             modifier = Modifier
                                                 .align(Alignment.CenterEnd)
                                                 .padding(end = 16.dp , top = 5.dp)
@@ -1270,6 +1273,7 @@ fun ui_promos_cerca_de_ti(
                                                     filtroTiendaAplicado = false
                                                     nombre_tienda_seleccionada = tienda.nombre_tienda
                                                     esperandoConfirmacionTienda = false
+//                                                    esperandoConfirmacionTienda = true
                                                     pagos_tienda_confirmada = emptyList()        // 🔥
                                                     comodidades_tienda_confirmada = emptyList()  // 🔥
                                                     viewModel.limpiarSubcategorias()
@@ -1477,17 +1481,35 @@ fun ui_promos_cerca_de_ti(
                                         } else {
                                             mostrar_bottom_shet_registrate = true
                                         }
-                                    },onVerTodas = if (hayFiltros && tiendaSeleccionada == null) {
+                                    },onVerTodas = if (tiendaSeleccionada == null) {
                                         {
-                                            viewModel.retornar_lista_nuevamente()
+                                            val idTiendaDeLaPromo = item.dataclass_promociones_cerca_de_ti
+                                                .informacion_publcacion.id_tienda
+                                            val nombreTiendaDeLaPromo = item.dataclass_promociones_cerca_de_ti
+                                                .informacion_publcacion.nombre_tienda
+
+                                            tienda_anterior = tiendaSeleccionada
+                                            nombre_tienda_anterior = nombre_tienda_seleccionada
+
+                                            tiendaSeleccionada = idTiendaDeLaPromo
+                                            nombre_tienda_seleccionada = nombreTiendaDeLaPromo
+                                            filtroTiendaAplicado = false
+                                            esperandoConfirmacionTienda = true  // ✅ CAMBIO: true para bloquear update automático
+                                            pagos_tienda_confirmada = emptyList()
+                                            comodidades_tienda_confirmada = emptyList()
+
+                                            viewModel.limpiarCategoria()
                                             viewModel.limpiarSubcategorias()
                                             viewModel.limpiarRangoPrecio()
                                             viewModel.limpiarMetodosPago()
                                             viewModel.limpiar_comodidad()
-                                            viewModel.resetear_respuesta_de_gemini()  // 🔥 limpiar NLP también
+                                            viewModel.limpiarTerminosNlp()
+                                            viewModel.resetearModoBusquedaIA()
+                                            viewModel.resetear_respuesta_de_gemini()
                                             promosFiltradas = emptyList()
                                             valor_a_buscar = ""
                                             limpiar_campo_de_busqueda = true
+                                            viewModel.obtener_promociones_2da(localidad, "", idTiendaDeLaPromo)
                                         }
                                     } else null
                                 )
@@ -1573,18 +1595,26 @@ fun ui_promos_cerca_de_ti(
                                 mostrar_snackbar_tienda = false
                                 esperandoConfirmacionTienda = false
 
-                                // 🔥 Restaurar a la tienda anterior confirmada
                                 tiendaSeleccionada = tienda_anterior
                                 nombre_tienda_seleccionada = nombre_tienda_anterior
                                 nombre_tienda_mostrando = nombre_tienda_anterior
 
                                 if (tienda_anterior != null) {
                                     filtroTiendaAplicado = true
-                                    // 🔥 promos ya están bien porque nunca se sobreescribieron al confirmar
+                                    // 🔥 promos ya tienen los datos correctos de tienda_anterior
+                                    // NO llamar viewModel, NO tocar promos
                                 } else {
                                     filtroTiendaAplicado = false
+                                    tags_tienda_confirmada = emptyList()
+                                    rangos_tienda_confirmada = emptyList()
+                                    pagos_tienda_confirmada = emptyList()
+                                    comodidades_tienda_confirmada = emptyList()
+                                    viewModel.limpiarSubcategorias()
+                                    viewModel.limpiarRangoPrecio()
+                                    viewModel.limpiarMetodosPago()
+                                    viewModel.limpiar_comodidad()
+                                    viewModel.obtener_promociones_2da(localidad, "", null)
                                 }
-                                // 🔥 NO tocar promos, NO tocar filtros, NO llamar viewModel
                             }
                         )
                     }
@@ -1614,6 +1644,7 @@ fun ui_promos_cerca_de_ti(
                                 viewModel = viewModel,
                                 onClose = { mostar_bottom_sheet_datos = false },
                                 onAplicarFiltro = { mensaje ->
+                                    filtrandoDesdeTienda = true
                                     scope.launch {
                                         snackbarHostState.showSnackbar(
                                             message = mensaje,

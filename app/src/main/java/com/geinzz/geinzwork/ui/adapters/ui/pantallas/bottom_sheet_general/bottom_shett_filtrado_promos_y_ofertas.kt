@@ -112,7 +112,15 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
     val comodidad_selet by viewModel.comodidadesSeleccionadas.collectAsState()
     val metodo_pago by viewModel.metodosPagoSeleccionados.collectAsState()
     val listaData by viewModel.listaResultados.collectAsState()
-
+    // ── 1. CATEGORÍAS — siempre visible ─────────────────────
+    val terminos_nlp by viewModel.terminos_nlp.collectAsState()
+    val terminos_nlp_seleccionados by viewModel.terminos_nlp_seleccionados.collectAsState()
+    val categoriaInicial = remember { categoriaSeleccionada }
+    val subcategoriasIniciales = remember { subcategoriasSeleccionadas.toSet() }
+    val rangoInicial = remember { rango_precio }
+    val comodidadesIniciales = remember { comodidad_selet.toSet() }
+    val pagosIniciales = remember { metodo_pago.toSet() }
+    val terminosIniciales = remember { terminos_nlp_seleccionados.toSet() }
     val texto_ser_guardado by viewModel.texto_usser_buscado.collectAsState()
     val subcategorias_obtenidas = obtener_cateogiras
         .firstOrNull { it.categoria == categoriaSeleccionada }
@@ -185,10 +193,13 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
             img_con_texto(R.drawable.icon_ingreso_animales, "ingreso_mascotas"),
         )
     }
-    // ── 1. CATEGORÍAS — siempre visible ─────────────────────
-    val terminos_nlp by viewModel.terminos_nlp.collectAsState()
-    val terminos_nlp_seleccionados by viewModel.terminos_nlp_seleccionados.collectAsState()
 
+    val huboCambio = categoriaSeleccionada != categoriaInicial ||
+            subcategoriasSeleccionadas.toSet() != subcategoriasIniciales ||
+            rango_precio != rangoInicial ||
+            comodidad_selet.toSet() != comodidadesIniciales ||
+            metodo_pago.toSet() != pagosIniciales ||
+            terminos_nlp_seleccionados.toSet() != terminosIniciales
     val limite = 10
     val subcategoriasVisibles = if (verTodos) subcategorias_obtenidas
     else subcategorias_obtenidas.take(limite)
@@ -468,6 +479,7 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                 }
 
                 val hayFiltrosActivos = categoriaSeleccionada.isNotEmpty() ||
+                        subcategoriasSeleccionadas.isNotEmpty() || // ✅ agregar
                         !rango_precio.isNullOrEmpty() ||
                         comodidad_selet.isNotEmpty() ||
                         metodo_pago.isNotEmpty() ||
@@ -493,17 +505,20 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                         }
                     }
                 }
-                val mostrarBotonAplicar = if (filtrado_ia) {
+                val mostrarBotonAplicar =  huboCambio && (
+                if (filtrado_ia) {
                     terminos_nlp_seleccionados.isNotEmpty() ||
                             !rango_precio.isNullOrEmpty() ||
                             comodidad_selet.isNotEmpty() ||
                             metodo_pago.isNotEmpty()
                 } else {
                     categoriaSeleccionada.isNotEmpty() ||
+                            subcategoriasSeleccionadas.isNotEmpty() ||
                             !rango_precio.isNullOrEmpty() ||
                             comodidad_selet.isNotEmpty() ||
                             metodo_pago.isNotEmpty()
                 }
+                )
                 if (mostrarBotonAplicar) {
                     item {
                         Button(

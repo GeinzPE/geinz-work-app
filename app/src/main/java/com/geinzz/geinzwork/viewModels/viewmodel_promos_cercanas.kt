@@ -609,6 +609,7 @@ class viewmodel_promos_cercanas : ViewModel() {
         listaFiltrada.value = filtrada
         _estadoPromos.value = estado_carga_promociones.succes(filtrada)
     }
+
     suspend fun obtenerPrimeraPaginaDesdeIds(
         lista: List<IdScore>
     ): List<obj_completo> {
@@ -923,51 +924,57 @@ class viewmodel_promos_cercanas : ViewModel() {
     }
 
 
-
-    fun busqueda_manual_filtrado(data:datos_para_filtrado_manual){
+    fun resetearModoBusquedaIA() {
+        modoBusquedaIA = false
+        listaIdsConScore = emptyList()
+        paginaActual_ = 0
+    }
+    fun busqueda_manual_filtrado(data: datos_para_filtrado_manual) {
         viewModelScope.launch {
             try {
                 loading = true
                 _respuesta_gemini.value = estado_Carga_respuesta_gemini.loading
-                resultado_encontrado_algolia =
-                    withContext(Dispatchers.IO) {
-                repo.send_params_filter_manual(data)
-                    }
+
+                resultado_encontrado_algolia = withContext(Dispatchers.IO) {
+                    repo.send_params_filter_manual(data)
+                }
+
                 val resultadosOrdenados = resultado_encontrado_algolia?.resultados
                     ?.sortedByDescending { it.score }
-                    ?.map {
-                        IdScore(it.id, it.score)
-                    }
+                    ?.map { IdScore(it.id, it.score) }
+
                 if (resultadosOrdenados.isNullOrEmpty()) {
                     _respuesta_gemini.value =
                         estado_Carga_respuesta_gemini.empty("No encontré resultados")
                     modoBusquedaIA = false
-                    limpiarTerminosNlp() // 👈
+                    limpiarTerminosNlp()
                     return@launch
                 }
-                resultadosOrdenados?.let { lista ->
-                    viewModelScope.launch {
-                        val primerasPromos = obtenerPrimeraPaginaDesdeIds(lista)
 
-//                             🔥 ESTO FALTABA - inicializar el acumulado con la primera página
-                        _promosAcumuladas.value = primerasPromos
-                        listaCompleta.value = primerasPromos
-                        listaFiltrada.value = primerasPromos
+                // ✅ sin launch anidado — todo en la misma corrutina
+                val primerasPromos = obtenerPrimeraPaginaDesdeIds(resultadosOrdenados)
 
-                        _respuesta_gemini.value = estado_Carga_respuesta_gemini.succes(
-                            cantidad = lista.size,
-                            items = primerasPromos
-                        )
+                _promosAcumuladas.value = primerasPromos
+                listaCompleta.value = primerasPromos
+                listaFiltrada.value = primerasPromos
 
-                        listaIdsConScore = lista.sortedByDescending { it.score }
-                        paginaActual_ = 1
-                        _hayMasPaginas.value = listaIdsConScore.size > PAGE_SIZE_IDS
-                        modoBusquedaIA = true
-                    }
-                }
+                // ✅ asignar listaIdsConScore ANTES de activar modoBusquedaIA
+                listaIdsConScore = resultadosOrdenados.sortedByDescending { it.score }
+                paginaActual_ = 1
+                _hayMasPaginas.value = listaIdsConScore.size > PAGE_SIZE_IDS
+                modoBusquedaIA = true  // ← al último, cuando todo está listo
 
-            }catch (e: Exception){
-                Log.d("e","error_eviar $e")
+                _respuesta_gemini.value = estado_Carga_respuesta_gemini.succes(
+                    cantidad = resultadosOrdenados.size,
+                    items = primerasPromos
+                )
+
+            } catch (e: Exception) {
+                Log.d("e", "error_eviar $e")
+                modoBusquedaIA = false
+                _respuesta_gemini.value = estado_Carga_respuesta_gemini.error("se produjo un error")
+            } finally {
+                loading = false
             }
         }
     }
@@ -977,74 +984,54 @@ class viewmodel_promos_cercanas : ViewModel() {
             try {
                 loading = true
                 _respuesta_gemini.value = estado_Carga_respuesta_gemini.loading
-                // ⏳ SOLO OPENAI
-                val resultadoLocal = repo.obtener_respuesta_open_ia(texto)
 
-                Log.d("OPENAI", "$resultadoLocal")
+                val resultadoLocal = repo.obtener_respuesta_open_ia(texto)
 
                 if (resultadoLocal != null) {
                     resultado = resultadoLocal
                     _terminos_nlp.value = resultadoLocal.productos
                     _terminos_nlp_seleccionados.value = resultadoLocal.productos
-                    // 🔥 ALGOLIA separado (no bloquea OpenAI)
-                    resultado_encontrado_algolia =
-                        withContext(Dispatchers.IO) {
-                            repo.send_get_resul_algoalia(resultadoLocal)
-                        }
+
+                    resultado_encontrado_algolia = withContext(Dispatchers.IO) {
+                        repo.send_get_resul_algoalia(resultadoLocal)
+                    }
+
                     val resultadosOrdenados = resultado_encontrado_algolia?.resultados
                         ?.sortedByDescending { it.score }
-                        ?.map {
-                            IdScore(it.id, it.score)
-                        }
+                        ?.map { IdScore(it.id, it.score) }
 
                     if (resultadosOrdenados.isNullOrEmpty()) {
                         _respuesta_gemini.value =
                             estado_Carga_respuesta_gemini.empty("No encontré resultados")
                         modoBusquedaIA = false
-                        limpiarTerminosNlp() // 👈
+                        limpiarTerminosNlp()
                         return@launch
                     }
-                    resultadosOrdenados?.let { lista ->
-                        viewModelScope.launch {
-                            val primerasPromos = obtenerPrimeraPaginaDesdeIds(lista)
 
-//                             🔥 ESTO FALTABA - inicializar el acumulado con la primera página
-                            _promosAcumuladas.value = primerasPromos
-                            listaCompleta.value = primerasPromos
-                            listaFiltrada.value = primerasPromos
+                    // ✅ sin launch anidado
+                    val primerasPromos = obtenerPrimeraPaginaDesdeIds(resultadosOrdenados)
 
-                            _respuesta_gemini.value = estado_Carga_respuesta_gemini.succes(
-                                cantidad = lista.size,
-                                items = primerasPromos
-                            )
+                    _promosAcumuladas.value = primerasPromos
+                    listaCompleta.value = primerasPromos
+                    listaFiltrada.value = primerasPromos
 
-                            listaIdsConScore = lista.sortedByDescending { it.score }
-                            paginaActual_ = 1
-                            _hayMasPaginas.value = listaIdsConScore.size > PAGE_SIZE_IDS
-                            modoBusquedaIA = true
-                        }
-                    }
+                    listaIdsConScore = resultadosOrdenados.sortedByDescending { it.score }
+                    paginaActual_ = 1
+                    _hayMasPaginas.value = listaIdsConScore.size > PAGE_SIZE_IDS
+                    modoBusquedaIA = true
 
-
-                    Log.d("ALGOLIA", "$resultadosOrdenados")
-                    Log.d("NLP_RESULT", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-                    Log.d("NLP_RESULT", "📝 Texto buscado: $texto")
-                    Log.d("NLP_RESULT", "🤖 Respuesta OpenAI: $resultadoLocal")
-                    Log.d("NLP_RESULT", "📦 productos: ${resultadoLocal?.productos}")
-                    Log.d("NLP_RESULT", "💰 precio_max: ${resultadoLocal?.precio_max}")
-                    Log.d("NLP_RESULT", "💳 metodos_pago: ${resultadoLocal?.metodos_pago}")
-                    Log.d("NLP_RESULT", "🛋️ comodidades: ${resultadoLocal?.comodidades}")
-                    Log.d("NLP_RESULT", "🔢 total IDs Algolia: ${resultadosOrdenados?.size}")
-                    Log.d("NLP_RESULT", "🏆 top 3 IDs: ${resultadosOrdenados?.take(3)}")
-                    Log.d("NLP_RESULT", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                    _respuesta_gemini.value = estado_Carga_respuesta_gemini.succes(
+                        cantidad = resultadosOrdenados.size,
+                        items = primerasPromos
+                    )
                 }
 
             } catch (e: Exception) {
                 e.printStackTrace()
                 modoBusquedaIA = false
-                limpiarTerminosNlp() // 👈
+                limpiarTerminosNlp()
                 _respuesta_gemini.value = estado_Carga_respuesta_gemini.error("se produjo un error")
-            }finally {
+            } finally {
                 loading = false
             }
         }
