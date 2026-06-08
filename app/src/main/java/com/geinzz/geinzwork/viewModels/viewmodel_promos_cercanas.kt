@@ -29,6 +29,7 @@ import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.filtrado_fee
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.tiendas_con_mas_de_una_promo
 import com.geinzz.geinzwork.model.repo_promos_cercanas
+import com.geinzz.geinzwork.retrofit.objet_retrofit
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
@@ -41,6 +42,10 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
 import kotlin.String
 import kotlin.collections.Set
 import kotlin.text.get
@@ -267,6 +272,38 @@ class viewmodel_promos_cercanas : ViewModel() {
                 Log.e("ViewModelPromos", "Error cargando bloque: ${e.message}")
             } finally {
                 cargando = false
+            }
+        }
+    }
+
+    private val _estadoMicrofono = MutableStateFlow<EstadoMicrofono>(EstadoMicrofono.Idle)
+    val estadoMicrofono: StateFlow<EstadoMicrofono> = _estadoMicrofono
+    fun resetear_microfono() {
+        _estadoMicrofono.value = EstadoMicrofono.Idle
+    }
+
+    fun iniciar_grabacion() {
+        _estadoMicrofono.value = EstadoMicrofono.Grabando
+    }
+    fun enviar_audio_a_whisper(file: File, onTextoListo: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                _estadoMicrofono.value = EstadoMicrofono.Procesando
+
+                val requestBody = file.asRequestBody("audio/3gpp".toMediaType())
+                val part = MultipartBody.Part.createFormData("file", file.name, requestBody)
+
+                val response = objet_retrofit.api.transcribirAudio(part)
+
+                withContext(Dispatchers.Main) {
+                    onTextoListo(response.texto)
+                }
+
+                _estadoMicrofono.value = EstadoMicrofono.Idle
+
+            } catch (e: Exception) {
+                Log.e("WHISPER", "Error: ${e.message}")
+                _estadoMicrofono.value = EstadoMicrofono.Error("Error: ${e.message}")
             }
         }
     }
@@ -1098,5 +1135,12 @@ class viewmodel_promos_cercanas : ViewModel() {
         data class empty(val txt: String) : estado_carga_promociones()
         data class succes(val items: List<obj_completo>) : estado_carga_promociones()
         data class error(val txt: String) : estado_carga_promociones()
+    }
+
+    sealed class EstadoMicrofono {
+        object Idle : EstadoMicrofono()
+        object Grabando : EstadoMicrofono()
+        object Procesando : EstadoMicrofono()
+        data class Error(val msg: String) : EstadoMicrofono()
     }
 }

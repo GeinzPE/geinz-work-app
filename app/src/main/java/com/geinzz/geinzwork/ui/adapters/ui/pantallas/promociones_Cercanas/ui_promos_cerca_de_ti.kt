@@ -1,18 +1,26 @@
 package com.geinzz.geinzwork.ui.adapters.ui.pantallas.promociones_Cercanas
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.media.MediaRecorder
 import android.os.Build
 import android.util.Log
 import androidx.compose.runtime.key
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -44,6 +52,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Store
@@ -60,11 +69,13 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -121,8 +132,9 @@ import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
 import com.geinzz.geinzwork.viewModels.viewmodel_datos_promociones
 import com.geinzz.geinzwork.viewModels.viewmodel_promos_cercanas
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
+import java.io.File
 
 
 @Composable
@@ -653,7 +665,7 @@ fun ui_promos_cerca_de_ti(
         }
     }
 
-
+    var segundosRestantes by remember { mutableIntStateOf(10) }
     LaunchedEffect(estadoTienda) {
 
         when (estadoTienda) {
@@ -782,50 +794,238 @@ fun ui_promos_cerca_de_ti(
 
                         item {
                             if (!hayFiltros && !filtroTiendaAplicado && tiendaSeleccionada == null) {
-                                LoadingOutlinedField(
-                                    loading = mostrar_carga_Respuesta_gemini
-                                ) {
+
+                                val estadoMicrofono by viewModel.estadoMicrofono.collectAsState()
+                                var mediaRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
+                                var archivoAudio by remember { mutableStateOf<File?>(null) }
+                                val estaGrabando = estadoMicrofono is viewmodel_promos_cercanas.EstadoMicrofono.Grabando
+                                val estaProcesando = estadoMicrofono is viewmodel_promos_cercanas.EstadoMicrofono.Procesando
+                                val estaOcupado = estaGrabando || estaProcesando || mostrar_carga_Respuesta_gemini
+
+                                val launcher = rememberLauncherForActivityResult(
+                                    ActivityResultContracts.RequestPermission()
+                                ) { granted ->
+                                    if (granted) {
+                                        val file = File(context.cacheDir, "audio_${System.currentTimeMillis()}.m4a")
+                                        archivoAudio = file
+                                        @Suppress("DEPRECATION")
+                                        val recorder = MediaRecorder().apply {
+                                            setAudioSource(MediaRecorder.AudioSource.MIC)
+                                            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                                            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                                            setOutputFile(file.absolutePath)
+                                            prepare()
+                                            start()
+                                        }
+                                        mediaRecorder = recorder
+                                        segundosRestantes = 10  // 🔥 reset
+                                        viewModel.iniciar_grabacion()
+                                    }
+                                }
+                                LaunchedEffect(estaGrabando) {
+                                    if (estaGrabando) {
+                                        segundosRestantes = 10
+                                        while (segundosRestantes > 0) {
+                                            delay(1000L)
+                                            segundosRestantes--
+                                        }
+                                        // ⏱️ Tiempo agotado → parar y enviar automáticamente
+                                        try {
+                                            mediaRecorder?.stop()
+                                            mediaRecorder?.release()
+                                            mediaRecorder = null
+                                        } catch (e: Exception) {
+                                            mediaRecorder = null
+                                            viewModel.resetear_microfono()
+                                            return@LaunchedEffect
+                                        }
+                                        archivoAudio?.let { file ->
+                                            viewModel.enviar_audio_a_whisper(file) { texto ->
+                                                valor_a_buscar = texto.take(500)
+                                            }
+                                        }
+                                    } else {
+                                        segundosRestantes = 10  // 🔥 reset cuando para
+                                    }
+                                }
+                                DisposableEffect(Unit) {
+                                    onDispose {
+                                        mediaRecorder?.apply {
+                                            try { stop() } catch (e: Exception) { }
+                                            release()
+                                        }
+                                        mediaRecorder = null
+                                        viewModel.resetear_microfono()
+                                    }
+                                }
+
+                                // pulso animado para el micrófono
+                                val infiniteTransition = rememberInfiniteTransition(label = "mic_pulse")
+                                val pulseScale by infiniteTransition.animateFloat(
+                                    initialValue = 1f,
+                                    targetValue = 1.15f,
+                                    animationSpec = infiniteRepeatable(
+                                        animation = tween(600, easing = FastOutSlowInEasing),
+                                        repeatMode = RepeatMode.Reverse
+                                    ),
+                                    label = "pulse_scale"
+                                )
+                                val pulseAlpha by infiniteTransition.animateFloat(
+                                    initialValue = 0.3f,
+                                    targetValue = 0.7f,
+                                    animationSpec = infiniteRepeatable(
+                                        animation = tween(600, easing = FastOutSlowInEasing),
+                                        repeatMode = RepeatMode.Reverse
+                                    ),
+                                    label = "pulse_alpha"
+                                )
+
+                                LoadingOutlinedField(loading = mostrar_carga_Respuesta_gemini) {
                                     OutlinedTextField(
                                         value = valor_a_buscar,
                                         onValueChange = {
-                                            valor_a_buscar = it
-
+                                            // 🔥 bloquear escritura cuando está ocupado
+                                            if (!estaOcupado && it.length <= 500) valor_a_buscar = it
                                         },
+                                        readOnly = estaOcupado, // 🔥 bloquea teclado
                                         placeholder = {
-                                            texto_generico_one_line(
-                                                "¿Qué buscas?",
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = Color.Gray
-                                            )
+                                            AnimatedContent(
+                                                targetState = when {
+                                                    estaGrabando -> "grabando"
+                                                    estaProcesando -> "procesando"
+                                                    mostrar_carga_Respuesta_gemini -> "buscando"
+                                                    else -> "idle"
+                                                },
+                                                label = "placeholder_anim"
+                                            ) { estado ->
+                                                when (estado) {
+                                                    "grabando" -> Row(
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                                    ) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .size(8.dp)
+                                                                .scale(pulseScale)
+                                                                .clip(CircleShape)
+                                                                .background(Color(0xFFEC1707).copy(alpha = pulseAlpha))
+                                                        )
+                                                        Text(
+                                                            "Escuchando...",
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            color = Color(0xFFEC1707)
+                                                        )
+                                                        // 🔥 Contador regresivo
+                                                        Text(
+                                                            text = "${segundosRestantes}s",
+                                                            style = MaterialTheme.typography.bodySmall,
+                                                            color = if (segundosRestantes <= 3) Color(0xFFEC1707) else Color(0xFFAAAAAA)
+                                                        )
+                                                    }
+                                                    "procesando" -> Row(
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                                    ) {
+                                                        CircularProgressIndicator(
+                                                            modifier = Modifier.size(12.dp),
+                                                            strokeWidth = 1.5.dp,
+                                                            color = Color.Gray
+                                                        )
+                                                        Text(
+                                                            "Procesando audio...",
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            color = Color.Gray
+                                                        )
+                                                    }
+                                                    "buscando" -> Row(
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                                    ) {
+                                                        CircularProgressIndicator(
+                                                            modifier = Modifier.size(12.dp),
+                                                            strokeWidth = 1.5.dp,
+                                                            color = Color.Gray
+                                                        )
+                                                        Text(
+                                                            "Buscando resultados...",
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            color = Color.Gray
+                                                        )
+                                                    }
+                                                    else -> Text(
+                                                        "¿Qué buscas?",
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        color = Color.Gray
+                                                    )
+                                                }
+                                            }
                                         },
-                                        modifier = Modifier
-                                            .fillMaxWidth(),
+                                        modifier = Modifier.fillMaxWidth(),
                                         shape = RoundedCornerShape(50),
                                         trailingIcon = {
-                                            IconButton(
-                                                onClick = {
-                                                    if (mostrar_lupa_busqueda) {
-                                                        viewModel.procesar_nlp_open_ia(
-                                                            valor_a_buscar,
+                                            when {
+                                                // 🔴 GRABANDO → cuadrado rojo pulsante
+                                                estaGrabando -> {
+                                                    IconButton(onClick = {
+                                                        try {
+                                                            mediaRecorder?.stop()
+                                                            mediaRecorder?.release()
+                                                            mediaRecorder = null
+                                                        } catch (e: Exception) {
+                                                            mediaRecorder = null
+                                                            viewModel.resetear_microfono()
+                                                            return@IconButton
+                                                        }
+                                                        archivoAudio?.let { file ->
+                                                            viewModel.enviar_audio_a_whisper(file) { texto ->
+                                                                valor_a_buscar = texto.take(500)
+                                                            }
+                                                        }
+                                                    }) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .size(20.dp)
+                                                                .scale(pulseScale)
+                                                                .clip(RoundedCornerShape(4.dp))
+                                                                .background(Color(0xFFEC1707))
                                                         )
                                                     }
                                                 }
-                                            ) {
 
-                                                AnimatedContent(
-                                                    targetState = mostrar_carga_Respuesta_gemini,
-                                                    label = "icon_animation"
-                                                ) { cargando ->
+                                                // ⏳ PROCESANDO o BUSCANDO → spinner bloqueado
+                                                estaProcesando || mostrar_carga_Respuesta_gemini -> {
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier
+                                                            .padding(12.dp)
+                                                            .size(22.dp),
+                                                        strokeWidth = 2.dp,
+                                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                                                    )
+                                                }
 
-                                                    if (cargando) {
-                                                        CircularProgressIndicator(
-                                                            modifier = Modifier.size(24.dp),
-                                                            strokeWidth = 2.dp
-                                                        )
-                                                    } else {
+                                                // 🔍 HAY TEXTO → lupa
+                                                valor_a_buscar.isNotEmpty() -> {
+                                                    IconButton(onClick = {
+                                                        if (mostrar_lupa_busqueda) {
+                                                            viewModel.procesar_nlp_open_ia(valor_a_buscar)
+                                                        }
+                                                    }) {
                                                         Icon(
                                                             imageVector = Icons.Default.Search,
                                                             contentDescription = "Buscar",
+                                                            tint = Color.Gray
+                                                        )
+                                                    }
+                                                }
+
+                                                // 🎙️ VACÍO → micrófono
+                                                else -> {
+                                                    IconButton(onClick = {
+                                                        launcher.launch(Manifest.permission.RECORD_AUDIO)
+                                                    }) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Mic,
+                                                            contentDescription = "Micrófono",
                                                             tint = Color.Gray
                                                         )
                                                     }
@@ -840,9 +1040,20 @@ fun ui_promos_cerca_de_ti(
                                     )
                                 }
 
+                                AnimatedVisibility(visible = valor_a_buscar.isNotEmpty() && !estaOcupado) {
+                                    Box(modifier = Modifier.fillMaxWidth()) {
+                                        Text(
+                                            text = "${valor_a_buscar.length}/400",
+                                            fontSize = 10.sp,
+                                            color = if (valor_a_buscar.length >= 390) Color(0xFFEC1707) else Color.Gray,
+                                            modifier = Modifier
+                                                .align(Alignment.CenterEnd)
+                                                .padding(end = 16.dp , top = 5.dp)
+                                        )
+                                    }
+                                }
                             }
                         }
-
                         item {
                             val itemFiltros = tiendas_con_mas_de_una_promo(
                                 id = "FILTROS_GENERALES",
