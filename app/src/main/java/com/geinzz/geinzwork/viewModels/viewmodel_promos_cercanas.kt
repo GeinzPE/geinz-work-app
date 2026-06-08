@@ -376,6 +376,24 @@ class viewmodel_promos_cercanas : ViewModel() {
         _filtro_tienda_sin_resultados.value = false
     }
 
+    private val _terminos_nlp = MutableStateFlow<List<String>>(emptyList())
+    val terminos_nlp: StateFlow<List<String>> = _terminos_nlp
+
+    private val _terminos_nlp_seleccionados = MutableStateFlow<List<String>>(emptyList())
+    val terminos_nlp_seleccionados: StateFlow<List<String>> = _terminos_nlp_seleccionados
+
+    fun toggleTerminoNlp(termino: String) {
+        val actuales = _terminos_nlp_seleccionados.value.toMutableList()
+        _terminos_nlp_seleccionados.value =
+            if (actuales.contains(termino)) actuales - termino
+            else actuales + termino
+    }
+
+    fun limpiarTerminosNlp() {
+        _terminos_nlp.value = emptyList()
+        _terminos_nlp_seleccionados.value = emptyList()
+    }
+
     private val _totalPromosTienda = MutableStateFlow(0)
     fun obtener_promociones_2da(localidad: String, tipo_filtrado: String, tienda_seleccionada: String?) {
 
@@ -383,6 +401,9 @@ class viewmodel_promos_cercanas : ViewModel() {
         _hayMasPaginas.value = true
         _promosAcumuladas.value = emptyList()
         listaCompleta.value = emptyList()
+        modoBusquedaIA = false  // 👈 resetear modo IA
+        listaIdsConScore = emptyList() // 👈 limpiar ids anteriores
+        paginaActual_ = 0 // 👈 resetear página
 
         viewModelScope.launch {
 
@@ -391,9 +412,10 @@ class viewmodel_promos_cercanas : ViewModel() {
                 _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.loading
 
                 try {
-                    val todasLasPromos = repo.obtener_todas_promos_de_tienda(
+                    val (todasLasPromos, pagos, comodidades) = repo.obtener_todas_promos_de_tienda(
                         tienda_seleccionada, localidad
                     )
+
 
                     if (todasLasPromos.isEmpty()) {
                         _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.empty(
@@ -406,11 +428,13 @@ class viewmodel_promos_cercanas : ViewModel() {
                     _promosAcumuladas.value = todasLasPromos
                     listaCompleta.value = todasLasPromos
                     listaFiltrada.value = todasLasPromos
-                    _hayMasPaginas.value = false  // ya trajo todo
+                    _hayMasPaginas.value = false
 
                     _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.succes(
                         items = todasLasPromos,
-                        total = todasLasPromos.size
+                        total = todasLasPromos.size,
+                        pagos = pagos,          // 🔥
+                        comodidades = comodidades // 🔥
                     )
                 } catch (e: Exception) {
                     _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.idle
@@ -880,10 +904,8 @@ class viewmodel_promos_cercanas : ViewModel() {
                 if (resultadosOrdenados.isNullOrEmpty()) {
                     _respuesta_gemini.value =
                         estado_Carga_respuesta_gemini.empty("No encontré resultados")
-
                     modoBusquedaIA = false
-
-
+                    limpiarTerminosNlp() // 👈
                     return@launch
                 }
                 resultadosOrdenados?.let { lista ->
@@ -912,6 +934,7 @@ class viewmodel_promos_cercanas : ViewModel() {
             }
         }
     }
+
     fun procesar_nlp_open_ia(texto: String) {
         viewModelScope.launch {
             try {
@@ -924,7 +947,8 @@ class viewmodel_promos_cercanas : ViewModel() {
 
                 if (resultadoLocal != null) {
                     resultado = resultadoLocal
-
+                    _terminos_nlp.value = resultadoLocal.productos
+                    _terminos_nlp_seleccionados.value = resultadoLocal.productos
                     // 🔥 ALGOLIA separado (no bloquea OpenAI)
                     resultado_encontrado_algolia =
                         withContext(Dispatchers.IO) {
@@ -939,10 +963,8 @@ class viewmodel_promos_cercanas : ViewModel() {
                     if (resultadosOrdenados.isNullOrEmpty()) {
                         _respuesta_gemini.value =
                             estado_Carga_respuesta_gemini.empty("No encontré resultados")
-
                         modoBusquedaIA = false
-
-
+                        limpiarTerminosNlp() // 👈
                         return@launch
                     }
                     resultadosOrdenados?.let { lista ->
@@ -968,13 +990,24 @@ class viewmodel_promos_cercanas : ViewModel() {
 
 
                     Log.d("ALGOLIA", "$resultadosOrdenados")
+                    Log.d("NLP_RESULT", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                    Log.d("NLP_RESULT", "📝 Texto buscado: $texto")
+                    Log.d("NLP_RESULT", "🤖 Respuesta OpenAI: $resultadoLocal")
+                    Log.d("NLP_RESULT", "📦 productos: ${resultadoLocal?.productos}")
+                    Log.d("NLP_RESULT", "💰 precio_max: ${resultadoLocal?.precio_max}")
+                    Log.d("NLP_RESULT", "💳 metodos_pago: ${resultadoLocal?.metodos_pago}")
+                    Log.d("NLP_RESULT", "🛋️ comodidades: ${resultadoLocal?.comodidades}")
+                    Log.d("NLP_RESULT", "🔢 total IDs Algolia: ${resultadosOrdenados?.size}")
+                    Log.d("NLP_RESULT", "🏆 top 3 IDs: ${resultadosOrdenados?.take(3)}")
+                    Log.d("NLP_RESULT", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                 }
 
             } catch (e: Exception) {
                 e.printStackTrace()
-                modoBusquedaIA=false
+                modoBusquedaIA = false
+                limpiarTerminosNlp() // 👈
                 _respuesta_gemini.value = estado_Carga_respuesta_gemini.error("se produjo un error")
-            } finally {
+            }finally {
                 loading = false
             }
         }
@@ -1048,8 +1081,13 @@ class viewmodel_promos_cercanas : ViewModel() {
 
 
     sealed class estado_carga_tienda_Seleccionada {
-        object loading:estado_carga_tienda_Seleccionada()
-        data class succes(val items: List<obj_completo>, val total: Int = 0) : estado_carga_tienda_Seleccionada()
+        object loading : estado_carga_tienda_Seleccionada()
+        data class succes(
+            val items: List<obj_completo>,
+            val total: Int = 0,
+            val pagos: List<String> = emptyList(),        // 🔥
+            val comodidades: List<String> = emptyList()   // 🔥
+        ) : estado_carga_tienda_Seleccionada()
         data class error(val texto_error: String) : estado_carga_tienda_Seleccionada()
         data class empty(val text_vacio: String) : estado_carga_tienda_Seleccionada()
         object idle : estado_carga_tienda_Seleccionada()

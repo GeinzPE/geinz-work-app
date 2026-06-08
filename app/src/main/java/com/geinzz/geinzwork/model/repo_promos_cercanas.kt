@@ -398,29 +398,69 @@ class repo_promos_cercanas {
     suspend fun obtener_todas_promos_de_tienda(
         tienda_seleccionada: String,
         localidad: String
-    ): List<obj_completo> {
+    ): Triple<List<obj_completo>, List<String>, List<String>> {
         return try {
-            val snapshot = db
+            // 🔥 Consultas en paralelo
+            val snapshotPromosDeferred = db
                 .collection("Tiendas")
                 .document(localidad)
                 .collection("promos_ofertas")
                 .whereEqualTo("estado", "activo")
                 .whereEqualTo("informacion.id_tienda", tienda_seleccionada)
                 .get()
-                .await()
+
+            val snapshotTiendaDeferred = db
+                .collection("Tiendas")
+                .document(localidad)
+                .collection("barranca")
+                .document(tienda_seleccionada)
+                .get()
+
+            val snapshotPromos = snapshotPromosDeferred.await()
+            val docTienda = snapshotTiendaDeferred.await()
 
             val (resultado, _) = procesarDocs(
-                docs = snapshot.documents,
-                limite = snapshot.size(),  // sin límite — trae todas
+                docs = snapshotPromos.documents,
+                limite = snapshotPromos.size(),
                 listaTiendasConMasDeUnaPromo = emptyList()
             )
-            resultado
+
+            // ── PAGOS desde doc real de la tienda ────────────────────
+            val metodos_pago_map = docTienda.get("metodos_pago") as? Map<*, *> ?: emptyMap<String, Any>()
+            val pagos = metodos_pago_map
+                .filterValues { valor ->
+                    val mapa = valor as? Map<*, *> ?: return@filterValues false
+                    mapa["enable"] as? Boolean == true
+                }
+                .keys
+                .filterIsInstance<String>()
+                .flatMap { key ->
+                    when (key) {
+                        "visa_mastercard" -> listOf("visa", "mastercard")
+                        else -> listOf(key)
+                    }
+                }
+
+            // ── COMODIDADES desde doc real de la tienda ──────────────
+            val servicios_list = docTienda.get("servicios_comodidades") as? List<*> ?: emptyList<Any>()
+            val comodidades = servicios_list
+                .filterIsInstance<Map<*, *>>()
+                .flatMap { mapa ->
+                    mapa.entries
+                        .filter { it.value as? Boolean == true }
+                        .map { it.key.toString().lowercase().trim().replace(" ", "_") }
+                }
+
+            Log.d("TIENDA_DATOS", "✅ pagos: $pagos")
+            Log.d("TIENDA_DATOS", "✅ comodidades: $comodidades")
+
+            Triple(resultado, pagos, comodidades)
+
         } catch (e: Exception) {
-            Log.e("TIENDA_PROMOS", "Error obteniendo promos de tienda", e)
-            emptyList()
+            Log.e("TIENDA_PROMOS", "❌ Error: $e")
+            Triple(emptyList(), emptyList(), emptyList())
         }
     }
-
     suspend fun obtener_promos_paginado2(
         es_primera_carga: Boolean,
         tienda_seleccionada: String?,
