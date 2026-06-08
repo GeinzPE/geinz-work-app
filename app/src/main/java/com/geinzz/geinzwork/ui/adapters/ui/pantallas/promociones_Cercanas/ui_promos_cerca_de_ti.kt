@@ -1052,6 +1052,9 @@ fun ui_promos_cerca_de_ti(
                                                     viewModel.limpiar_comodidad()                // 🔥
                                                     viewModel.obtener_promociones_2da(localidad, "", null)
                                                 } else {
+                                                    tienda_anterior = tiendaSeleccionada
+                                                    nombre_tienda_anterior = nombre_tienda_seleccionada
+
                                                     tiendaSeleccionada = id
                                                     filtroTiendaAplicado = false
                                                     nombre_tienda_seleccionada = tienda.nombre_tienda
@@ -1358,13 +1361,19 @@ fun ui_promos_cerca_de_ti(
                             onDismiss = {
                                 mostrar_snackbar_tienda = false
                                 esperandoConfirmacionTienda = false
-                                // 👈 revertir a la tienda anterior
+
+                                // 🔥 Restaurar a la tienda anterior confirmada
                                 tiendaSeleccionada = tienda_anterior
                                 nombre_tienda_seleccionada = nombre_tienda_anterior
                                 nombre_tienda_mostrando = nombre_tienda_anterior
-                                viewModel.limpiarSubcategorias()
-                                viewModel.limpiarRangoPrecio()
-                                viewModel.obtener_promociones_2da(localidad, "", tienda_anterior)
+
+                                if (tienda_anterior != null) {
+                                    filtroTiendaAplicado = true
+                                    // 🔥 promos ya están bien porque nunca se sobreescribieron al confirmar
+                                } else {
+                                    filtroTiendaAplicado = false
+                                }
+                                // 🔥 NO tocar promos, NO tocar filtros, NO llamar viewModel
                             }
                         )
                     }
