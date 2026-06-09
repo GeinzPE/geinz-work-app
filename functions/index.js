@@ -49,7 +49,7 @@ exports.generar_texto_ia = generar_texto_ia;
 exports.generar_texto_compartir_ia = generar_texto_compartir_ia;
 exports.generar_whatsapp_contacto_ia = generar_whatsapp_contacto_ia;
 exports.generar_titulo_descripcion_IA = generar_titulo_descripcion_IA;
-exports.crearPromocion= crearPromocion;
+exports.crearPromocion = crearPromocion;
 exports.extraerTerminosClaveIA = extraerTerminosClaveIA;
 exports.generar_descripcion_whatsapp_ia = generar_descripcion_whatsapp_ia;
 exports.pagar_plan__usuario = pagar_plan__usuario;
@@ -124,16 +124,16 @@ exports.transcribirAudio = onRequest(async (req, res) => {
     });
 
     // limpiar tmp
-    try { fs.unlinkSync(tmpFilePath); } catch (e) {}
+    try {
+      fs.unlinkSync(tmpFilePath);
+    } catch (e) {}
 
     res.status(200).json({ texto: transcription.text });
-
   } catch (e) {
     console.error("Error Whisper:", e);
     res.status(500).json({ error: "Error al transcribir" });
   }
 });
-
 
 // ==================== clasificador_IA ====================
 exports.extraerDatos = onRequest(async (req, res) => {
@@ -375,8 +375,39 @@ exports.filtrar_por_datos = onRequest(async (req, res) => {
 
     resultados.sort((a, b) => b.score - a.score);
 
+    // AHORA
     if (tipo === "bot") {
-      resultados = resultados.slice(0, 3);
+      if (productosQuery.length > 1) {
+        const usados = new Set();
+        const resultadosFinales = [];
+
+        for (const producto of productosQuery) {
+          // Busca el mejor score que matchee este producto y no haya sido usado
+          const mejor = resultados.find((r) => {
+            const hit = response.hits.find((h) => h.objectID === r.id);
+            const terminos = (hit?.terminos_clave || []).map((t) =>
+              t.toLowerCase().trim(),
+            );
+            const matchea = terminos.some(
+              (t) => t.includes(producto) || producto.includes(t),
+            );
+            return matchea && !usados.has(r.id);
+          });
+
+          if (mejor) {
+            usados.add(mejor.id);
+            resultadosFinales.push(mejor);
+            console.log(`✅ Producto "${producto}" → hit ${mejor.id}`);
+          } else {
+            console.log(`⚠️ Producto "${producto}" → sin match`);
+          }
+        }
+
+        resultados = resultadosFinales;
+      } else {
+        // 0 o 1 producto → top 3 como siempre
+        resultados = resultados.slice(0, 3);
+      }
     }
     const data = {
       tipo,
@@ -4123,43 +4154,68 @@ exports.share = onRequest(async (req, res) => {
     //   TIPOS QUE NO USAN LOCALIDAD
     // ============================
     const TIPOS_SIN_LOCALIDAD = [
-      "rew", "rewc", "ru", "prf", "prn", "scr", "prms", "in",
+      "rew",
+      "rewc",
+      "ru",
+      "prf",
+      "prn",
+      "scr",
+      "prms",
+      "in",
+      "pmspls",
     ];
-
     if (!TIPOS_SIN_LOCALIDAD.includes(tipo) && (!localidad || !categoria)) {
       return res.status(400).send("Faltan parámetros: localidad, categoria.");
     }
 
     let ref = null;
     let data = null;
-
+    const descripcion =
+      tipo === "pmspls"
+        ? "¡Mira las promos que un usuario encontró para ti en Geinz! 🔥"
+        : "Encuéntralo en Geinz";
     // ============================
     //     SELECCIÓN FIRESTORE
     // ============================
     if (tipo === "ti" || tipo === "p") {
-      ref = admin.firestore()
-        .collection("Tiendas").doc(localidad)
-        .collection(localidad).doc(id);
+      ref = admin
+        .firestore()
+        .collection("Tiendas")
+        .doc(localidad)
+        .collection(localidad)
+        .doc(id);
     } else if (tipo === "tu") {
-      ref = admin.firestore()
-        .collection("Tiendas").doc(localidad)
-        .collection(categoria).doc(id);
+      ref = admin
+        .firestore()
+        .collection("Tiendas")
+        .doc(localidad)
+        .collection(categoria)
+        .doc(id);
     } else if (tipo === "prms") {
-      ref = admin.firestore()
-        .collection("Tiendas").doc(localidad)
-        .collection(coll_completa).doc(id_promo_compartida);
+      ref = admin
+        .firestore()
+        .collection("Tiendas")
+        .doc(localidad)
+        .collection(coll_completa)
+        .doc(id_promo_compartida);
     } else if (tipo === "scr") {
-      ref = admin.firestore()
-        .collection("share_screen").doc(mapa_ids_scren);
+      ref = admin.firestore().collection("share_screen").doc(mapa_ids_scren);
     } else if (tipo === "prn") {
-      ref = admin.firestore()
-        .collection("Tiendas").doc(localidad)
-        .collection(localidad).doc(id)
-        .collection("notificaciones_enviadas").doc(id_promo_compartida);
+      ref = admin
+        .firestore()
+        .collection("Tiendas")
+        .doc(localidad)
+        .collection(localidad)
+        .doc(id)
+        .collection("notificaciones_enviadas")
+        .doc(id_promo_compartida);
     } else if (tipo === "in") {
-      ref = admin.firestore()
-        .collection("Tiendas").doc(localidad)
-        .collection("geinz_inmobiliaria").doc(id);
+      ref = admin
+        .firestore()
+        .collection("Tiendas")
+        .doc(localidad)
+        .collection("geinz_inmobiliaria")
+        .doc(id);
     }
     // rew | rewc | ru | prf → NO FIRESTORE
 
@@ -4182,13 +4238,19 @@ exports.share = onRequest(async (req, res) => {
       } else if (tipo === "tu") {
         titulo = capitalizeFirstLetter(data.nombre || "Lugar en Geinz");
       } else if (tipo === "prms") {
-        titulo = capitalizeFirstLetter(data?.informacion?.titulo || "Mira esta promo en Geinz");
+        titulo = capitalizeFirstLetter(
+          data?.informacion?.titulo || "Mira esta promo en Geinz",
+        );
       } else if (tipo === "scr") {
         titulo = capitalizeFirstLetter(data.titulo || "Geinz");
       } else if (tipo === "prn") {
-        titulo = capitalizeFirstLetter(data.datos_de_notificacion.nombre_tienda || "Geinz");
+        titulo = capitalizeFirstLetter(
+          data.datos_de_notificacion.nombre_tienda || "Geinz",
+        );
       } else if (tipo === "in") {
         titulo = capitalizeFirstLetter(data.nombre || "Geinz");
+      } else if (tipo === "pmspls") {
+        titulo = "Promos compartidas por usuario de Geinz";
       }
     }
 
@@ -4225,10 +4287,15 @@ exports.share = onRequest(async (req, res) => {
       } else if (tipo === "scr") {
         imagen = data.img || "https://geinzworkapp.web.app/default.jpg";
       } else if (tipo === "prn") {
-        imagen = data?.datos_de_notificacion?.img_notificacion || "https://geinzworkapp.web.app/default.jpg";
+        imagen =
+          data?.datos_de_notificacion?.img_notificacion ||
+          "https://geinzworkapp.web.app/default.jpg";
       } else if (tipo === "in") {
         const promos = data.listaImg || [];
-        imagen = promos.length > 0 ? promos[0] : "https://geinzworkapp.web.app/default.jpg";
+        imagen =
+          promos.length > 0
+            ? promos[0]
+            : "https://geinzworkapp.web.app/default.jpg";
       }
     }
 
@@ -4242,34 +4309,27 @@ exports.share = onRequest(async (req, res) => {
     if (tipo === "ti" || tipo === "p") {
       destino = `${BASE}/redirect?t=${tipo}&id=${id}&l=${localidadRaw}&c=${categoria}`;
       if (tipo === "p" && indice) destino += `&i=${indice}`;
-
     } else if (tipo === "tu") {
       destino = `${BASE}/redirect?t=tu&id=${id}&l=${localidadRaw}&c=${categoria}`;
-
     } else if (tipo === "prms") {
       destino = `${BASE}/redirect?t=prms&l=${localidadRaw}&pi=${id_promo_compartida}`;
-
     } else if (tipo === "scr") {
       destino = `${BASE}/redirect?t=scr&id=${id}`;
-
     } else if (tipo === "prn") {
       destino = `${BASE}/redirect?t=prn&id=${id}&l=${localidadRaw}&pi=${id_promo_compartida}`;
-
     } else if (tipo === "in") {
       destino = `${BASE}/redirect?t=in&id=${id}&l=${localidadRaw}`;
-
     } else if (tipo === "rew") {
       destino = `${BASE}/redirect?t=rew&id=${id}`;
-
     } else if (tipo === "rewc") {
       destino = `${BASE}/redirect?t=rewc&id=${id}`;
-
     } else if (tipo === "ru") {
       destino = `${BASE}/redirect?t=ru&id=${id}`;
-
     } else if (tipo === "prf") {
       destino = `${BASE}/redirect?t=prf&id=${id}`;
-
+    } else if (tipo === "pmspls") {
+      const p = req.query.p || "";
+      destino = `${BASE}/redirect?t=pmspls&l=${localidadRaw}&p=${p}`;
     } else {
       destino = `${BASE}/redirect?t=${tipo}&id=${id}`;
       if (localidadRaw) destino += `&l=${localidadRaw}`;
@@ -4286,7 +4346,7 @@ exports.share = onRequest(async (req, res) => {
           <meta property="og:image" content="${imagen}" />
           <meta property="og:image:width" content="1200" />
           <meta property="og:image:height" content="630" />
-          <meta property="og:description" content="Encuéntralo en Geinz" />
+        <meta property="og:description" content="${descripcion}" />
           <meta property="og:type" content="website" />
         </head>
         <body>
@@ -5085,13 +5145,12 @@ function normalizar(texto) {
     .trim();
 }
 
-
 exports.eliminarTiendasVencidas = onSchedule(
   {
-    schedule: "0 0 * * *",      // Cada día a las 12:00 AM (medianoche)
-    timeZone: "America/Lima",   // Zona horaria Perú (UTC-5)
-    timeoutSeconds: 540,        // 9 minutos máximo
-    memory: "256MiB",           // Mínimo necesario
+    schedule: "0 0 * * *", // Cada día a las 12:00 AM (medianoche)
+    timeZone: "America/Lima", // Zona horaria Perú (UTC-5)
+    timeoutSeconds: 540, // 9 minutos máximo
+    memory: "256MiB", // Mínimo necesario
   },
   async (event) => {
     const db = admin.firestore();
@@ -5138,10 +5197,10 @@ exports.eliminarTiendasVencidas = onSchedule(
             totalEliminadas += chunk.length;
 
             logger.info(
-              `Lote eliminado en [${localidadRef.id}]: ${chunk.length} tiendas`
+              `Lote eliminado en [${localidadRef.id}]: ${chunk.length} tiendas`,
             );
           }
-        })
+        }),
       );
 
       logger.info("Limpieza completada", {
@@ -5152,5 +5211,5 @@ exports.eliminarTiendasVencidas = onSchedule(
       logger.error("Error durante la limpieza de tiendas vencidas", { error });
       throw error; // Relanzar para que Firebase registre el fallo
     }
-  }
+  },
 );
