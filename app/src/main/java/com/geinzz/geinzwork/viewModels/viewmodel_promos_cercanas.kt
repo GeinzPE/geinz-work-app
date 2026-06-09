@@ -1037,7 +1037,58 @@ class viewmodel_promos_cercanas : ViewModel() {
             }
         }
     }
+    fun obtener_promos_por_ids_directos(ids: List<String>, localidad: String) {
+        ultimoDocumento = null
+        _hayMasPaginas.value = false
+        _promosAcumuladas.value = emptyList()
+        listaCompleta.value = emptyList()
+        modoBusquedaIA = false
+        listaIdsConScore = emptyList()
+        paginaActual_ = 0
+        _esPrimeraCarga.value = true
+        _estadoPromos.value = estado_carga_promociones.loading
 
+        viewModelScope.launch {
+            try {
+                val promos = repo.obtenerPromosPorIdsProcesadas_123(
+                    ids = ids,
+                    limite = ids.size,
+                    localidad = localidad
+                )
+
+                if (promos.isEmpty()) {
+                    _estadoPromos.value = estado_carga_promociones.empty("No hay promociones disponibles")
+                    _esPrimeraCarga.value = false
+                    return@launch
+                }
+
+                // 🔥 tiendas desde las promos recibidas
+                val tiendas = promos
+                    .map { it.dataclass_promociones_cerca_de_ti }
+                    .groupBy { it.informacion_publcacion.id_tienda }
+                    .map { (idTienda, lista) ->
+                        val primera = lista.first()
+                        tiendas_con_mas_de_una_promo(
+                            id = idTienda,
+                            nombre_tienda = primera.informacion_publcacion.nombre_tienda,
+                            logo_img = primera.img.logo_img,
+                            categoira = primera.informacion_publcacion.categoria
+                        )
+                    }
+
+                _tiendas_con_mas_de_una_promo.value = tiendas
+                _promosAcumuladas.value = promos
+                listaCompleta.value = promos
+                listaFiltrada.value = promos
+                _estadoPromos.value = estado_carga_promociones.succes(promos)
+                _esPrimeraCarga.value = false
+
+            } catch (e: Exception) {
+                _estadoPromos.value = estado_carga_promociones.error("Error al cargar promociones")
+                _esPrimeraCarga.value = false
+            }
+        }
+    }
     fun normalizar(texto: String): String {
         return texto
             .lowercase()

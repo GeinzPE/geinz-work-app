@@ -17,9 +17,13 @@ data class crear_cuenta_geinz(val tipo_completado: String)
 @Serializable
 data class screen_filtrado(val categoria: String, val localidad: String, val nombre_user: String)
 
-@Serializable
-data class promociones_y_ofertas(val localidad: String, val id_promo: String = "")
 
+@Serializable
+data class promociones_y_ofertas(
+    val localidad: String,
+    val id_promo: String = "",
+    val ids: List<String>? = null  // ← nullable, default null
+)
 @Serializable
 object login_scios
 

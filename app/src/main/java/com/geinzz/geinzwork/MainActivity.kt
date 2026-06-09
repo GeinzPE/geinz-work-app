@@ -248,6 +248,22 @@ class MainActivity : AppCompatActivity() {
                     UiAction.Abrir_pantalla_promos_cecanas(id_promocion, localidad)
                 )
             }
+            "pmspls" -> {
+                // El parámetro "p" trae los IDs separados por coma
+                // Ej: p=koOZB9Ju0w2TOQX2PdsT,xhsBaAgoWpa0Mfm92405,XuFt7RIL45p8tdUwBNak
+                val idsRaw = uri.getQueryParameter("p") ?: ""
+                val idsList = if (idsRaw.isNotEmpty()) {
+                    idsRaw.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                } else null
+
+                uiActionVM.emitir(
+                    UiAction.Abrir_pantalla_promos_cecanas(
+                        id_promocion = id_promocion,
+                        localida_tienda = localidad,
+                        ids = idsList
+                    )
+                )
+            }
 
 
 

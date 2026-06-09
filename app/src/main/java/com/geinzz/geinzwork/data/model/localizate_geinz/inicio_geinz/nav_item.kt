@@ -28,8 +28,11 @@ sealed class Items_menu(
 
 sealed class UiAction {
 
-    data class Abrir_pantalla_promos_cecanas(val id_promocion:String, val localida_tienda:String): UiAction()
-
+    data class Abrir_pantalla_promos_cecanas(
+        val id_promocion: String,
+        val localida_tienda: String,
+        val ids: List<String>? = null  // ← array de IDs, nullable con default null
+    ) : UiAction()
 
     data class abrir_pantalla_inmobiliara(val id_propiedad:String ,val localdiad_pripiedad:String):
         UiAction()

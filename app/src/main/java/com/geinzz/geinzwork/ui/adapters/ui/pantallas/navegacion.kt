@@ -161,8 +161,9 @@ fun nativationWrapper(
                     id_promo_params = action.id_promocion
                     navController.navigate(
                         promociones_y_ofertas(
-                            action.localida_tienda,
-                            id_promo_params
+                            localidad = action.localida_tienda,
+                            id_promo = id_promo_params,
+                            ids = action.ids
                         )
                     )
                 }
@@ -648,6 +649,7 @@ fun nativationWrapper(
                         "clik_directo",
                         activar_promo_params = datos.id_promo,
                         localidad = datos.localidad,
+                        ids = datos.ids,  // ← null si no vienen, la pantalla decide qué hacer
                         verificar_intener = isConnected,
                         iniciar_seccion = {
                             bottom_sheet_iniciar_seccion = true
@@ -916,25 +918,26 @@ fun nativationWrapper(
                 composable("promociones_nuevas") {
                     ui_promos_cerca_de_ti(
                         "promociones_nuevas",
-                        id_promo_params,
+                        activar_promo_params = id_promo_params,
                         localidad = "barranca",
+                        ids = null,  // ← sin ids en esta ruta
                         verificar_intener = isConnected,
                         iniciar_seccion = {
                             bottom_sheet_iniciar_seccion = true
                         },
                         crear_cuenta = {
                             navController.navigate(crear_cuenta_geinz("crear"))
-                        }, {
+                        },
+                        onBack = {
                             navController.navigate("pantalla_principal") {
                                 popUpTo("pantalla_principal") {
                                     inclusive = true
                                 }
                                 launchSingleTop = true
                             }
-
-                        })
+                        }
+                    )
                 }
-
                 composable<geinz_inmobiliaria> { navback ->
 
                     val servicio = navback.toRoute<geinz_inmobiliaria>()

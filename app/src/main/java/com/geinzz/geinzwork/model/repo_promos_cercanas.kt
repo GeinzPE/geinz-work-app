@@ -751,6 +751,27 @@ class repo_promos_cercanas {
         return Pair(resultado, ultimoDocValido)
     }
 
+    suspend fun obtenerPromosPorIdsProcesadas_123(
+        ids: List<String>,
+        limite: Int,
+        localidad: String = "barranca"  // ← agrega esto
+    ): List<obj_completo> {
+
+        val snapshot = db.collection("Tiendas")
+            .document(localidad)  // ← usa localidad en vez de hardcoded
+            .collection("promos_ofertas")
+            .whereIn(FieldPath.documentId(), ids)
+            .get()
+            .await()
+
+        val (procesadas, _) = procesarDocsSoloPromos(
+            docs = snapshot.documents,
+            limite = limite
+        )
+
+        return procesadas
+    }
+
     suspend fun obtenerPromosPorIdsProcesadas(
         ids: List<String>,
         limite: Int
