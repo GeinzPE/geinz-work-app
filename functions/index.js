@@ -4082,7 +4082,7 @@ exports.share = onRequest(async (req, res) => {
     // ============================
     //        PARÁMETROS
     // ============================
-    const tipo = req.query.t || req.query.tipo; // SIEMPRE CORTO
+    const tipo = req.query.t || req.query.tipo;
     const id = req.query.id;
     const localidadRaw = req.query.l || req.query.localidad;
     const categoria = req.query.c || req.query.categoria;
@@ -4097,7 +4097,7 @@ exports.share = onRequest(async (req, res) => {
     };
 
     const coll_completa = tipo === "prms" ? "promos_ofertas" : "promo";
-    // const coll_completa_datos_promos_intern= "prn"
+
     // ============================
     //        MAPA LOCALIDADES
     // ============================
@@ -4123,14 +4123,7 @@ exports.share = onRequest(async (req, res) => {
     //   TIPOS QUE NO USAN LOCALIDAD
     // ============================
     const TIPOS_SIN_LOCALIDAD = [
-      "rew",
-      "rewc",
-      "ru",
-      "prf",
-      "prn",
-      "scr",
-      "prms",
-      "in",
+      "rew", "rewc", "ru", "prf", "prn", "scr", "prms", "in",
     ];
 
     if (!TIPOS_SIN_LOCALIDAD.includes(tipo) && (!localidad || !categoria)) {
@@ -4144,44 +4137,29 @@ exports.share = onRequest(async (req, res) => {
     //     SELECCIÓN FIRESTORE
     // ============================
     if (tipo === "ti" || tipo === "p") {
-      ref = admin
-        .firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection(localidad)
-        .doc(id);
+      ref = admin.firestore()
+        .collection("Tiendas").doc(localidad)
+        .collection(localidad).doc(id);
     } else if (tipo === "tu") {
-      ref = admin
-        .firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection(categoria)
-        .doc(id);
+      ref = admin.firestore()
+        .collection("Tiendas").doc(localidad)
+        .collection(categoria).doc(id);
     } else if (tipo === "prms") {
-      ref = admin
-        .firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection(coll_completa)
-        .doc(id_promo_compartida);
+      ref = admin.firestore()
+        .collection("Tiendas").doc(localidad)
+        .collection(coll_completa).doc(id_promo_compartida);
     } else if (tipo === "scr") {
-      ref = admin.firestore().collection("share_screen").doc(mapa_ids_scren);
-    } else if (tipo == "prn") {
-      ref = admin
-        .firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection(localidad)
-        .doc(id)
-        .collection("notificaciones_enviadas")
-        .doc(id_promo_compartida);
-    } else if (tipo == "in") {
-      ref = admin
-        .firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection("geinz_inmobiliaria")
-        .doc(id);
+      ref = admin.firestore()
+        .collection("share_screen").doc(mapa_ids_scren);
+    } else if (tipo === "prn") {
+      ref = admin.firestore()
+        .collection("Tiendas").doc(localidad)
+        .collection(localidad).doc(id)
+        .collection("notificaciones_enviadas").doc(id_promo_compartida);
+    } else if (tipo === "in") {
+      ref = admin.firestore()
+        .collection("Tiendas").doc(localidad)
+        .collection("geinz_inmobiliaria").doc(id);
     }
     // rew | rewc | ru | prf → NO FIRESTORE
 
@@ -4204,16 +4182,12 @@ exports.share = onRequest(async (req, res) => {
       } else if (tipo === "tu") {
         titulo = capitalizeFirstLetter(data.nombre || "Lugar en Geinz");
       } else if (tipo === "prms") {
-        titulo = capitalizeFirstLetter(
-          data?.informacion?.titulo || "Mira esta promo en Geinz",
-        );
+        titulo = capitalizeFirstLetter(data?.informacion?.titulo || "Mira esta promo en Geinz");
       } else if (tipo === "scr") {
         titulo = capitalizeFirstLetter(data.titulo || "Geinz");
-      } else if (tipo == "prn") {
-        titulo = capitalizeFirstLetter(
-          data.datos_de_notificacion.nombre_tienda || "Geinz",
-        );
-      } else if (tipo == "in") {
+      } else if (tipo === "prn") {
+        titulo = capitalizeFirstLetter(data.datos_de_notificacion.nombre_tienda || "Geinz");
+      } else if (tipo === "in") {
         titulo = capitalizeFirstLetter(data.nombre || "Geinz");
       }
     }
@@ -4230,11 +4204,11 @@ exports.share = onRequest(async (req, res) => {
         imagen = data.img.principal;
       } else if (tipo === "p") {
         const promos = data.img_tienda?.lista_img?.promociones;
-        const idImagen = req.query.i || req.query.indice; // string
+        const idImagen = req.query.i || req.query.indice;
         if (promos && idImagen) {
-          imagen = promos[idImagen]; // obtiene la URL correcta
+          imagen = promos[idImagen];
           if (!imagen && data.img_tienda?.logo_tienda) {
-            imagen = data.img_tienda.logo_tienda; // fallback
+            imagen = data.img_tienda.logo_tienda;
           }
         } else if (data.img_tienda?.logo_tienda) {
           imagen = data.img_tienda.logo_tienda;
@@ -4242,29 +4216,19 @@ exports.share = onRequest(async (req, res) => {
       } else if (tipo === "prms") {
         const promos = data.img_container?.lista_img || [];
         if (promos.length > 0) {
-          imagen = promos[0]; // toma siempre la primera imagen si existe
+          imagen = promos[0];
         } else if (data.img_container?.logo_img) {
           imagen = data.img_container.logo_img;
         } else {
           imagen = "https://geinzworkapp.web.app/default.jpg";
         }
       } else if (tipo === "scr") {
-        if (data.img) {
-          imagen = data.img;
-        } else {
-          imagen = "https://geinzworkapp.web.app/default.jpg";
-        }
-      } else if (tipo == "prn") {
-        imagen =
-          data?.datos_de_notificacion?.img_notificacion ||
-          "https://geinzworkapp.web.app/default.jpg";
-      } else if (tipo == "in") {
+        imagen = data.img || "https://geinzworkapp.web.app/default.jpg";
+      } else if (tipo === "prn") {
+        imagen = data?.datos_de_notificacion?.img_notificacion || "https://geinzworkapp.web.app/default.jpg";
+      } else if (tipo === "in") {
         const promos = data.listaImg || [];
-        if (promos.length > 0) {
-          imagen = promos[0]; // toma siempre la primera imagen si existe
-        } else {
-          imagen = "https://geinzworkapp.web.app/default.jpg";
-        }
+        imagen = promos.length > 0 ? promos[0] : "https://geinzworkapp.web.app/default.jpg";
       }
     }
 
@@ -4273,21 +4237,43 @@ exports.share = onRequest(async (req, res) => {
     // ============================
     let destino;
 
-    if (tipo === "prms") {
-      destino =
-        `https://geinzworkapp.web.app/promociones.html` +
-        `?l=${localidad}` +
-        `&pi=${id_promo_compartida}`;
-    } else {
-      destino = `https://geinzworkapp.web.app/${tipo}?id=${id}`;
+    const BASE = "https://geinzworkapp.web.app";
 
-      if (localidad) destino += `&localidad=${localidad}`;
-      if (categoria) destino += `&categoria=${categoria}`;
-    }
-    if (localidad) destino += `&localidad=${localidad}`;
-    if (categoria) destino += `&categoria=${categoria}`;
-    if (tipo === "p" && indice) {
-      destino += `&indice=${indice}`;
+    if (tipo === "ti" || tipo === "p") {
+      destino = `${BASE}/redirect?t=${tipo}&id=${id}&l=${localidadRaw}&c=${categoria}`;
+      if (tipo === "p" && indice) destino += `&i=${indice}`;
+
+    } else if (tipo === "tu") {
+      destino = `${BASE}/redirect?t=tu&id=${id}&l=${localidadRaw}&c=${categoria}`;
+
+    } else if (tipo === "prms") {
+      destino = `${BASE}/redirect?t=prms&l=${localidadRaw}&pi=${id_promo_compartida}`;
+
+    } else if (tipo === "scr") {
+      destino = `${BASE}/redirect?t=scr&id=${id}`;
+
+    } else if (tipo === "prn") {
+      destino = `${BASE}/redirect?t=prn&id=${id}&l=${localidadRaw}&pi=${id_promo_compartida}`;
+
+    } else if (tipo === "in") {
+      destino = `${BASE}/redirect?t=in&id=${id}&l=${localidadRaw}`;
+
+    } else if (tipo === "rew") {
+      destino = `${BASE}/redirect?t=rew&id=${id}`;
+
+    } else if (tipo === "rewc") {
+      destino = `${BASE}/redirect?t=rewc&id=${id}`;
+
+    } else if (tipo === "ru") {
+      destino = `${BASE}/redirect?t=ru&id=${id}`;
+
+    } else if (tipo === "prf") {
+      destino = `${BASE}/redirect?t=prf&id=${id}`;
+
+    } else {
+      destino = `${BASE}/redirect?t=${tipo}&id=${id}`;
+      if (localidadRaw) destino += `&l=${localidadRaw}`;
+      if (categoria) destino += `&c=${categoria}`;
     }
 
     // ============================
@@ -4318,7 +4304,6 @@ exports.share = onRequest(async (req, res) => {
     res.status(500).send("Error interno");
   }
 });
-
 function capitalizeFirstLetter(str) {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1);

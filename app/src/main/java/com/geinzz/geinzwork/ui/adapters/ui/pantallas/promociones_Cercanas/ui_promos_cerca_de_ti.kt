@@ -791,6 +791,7 @@ fun ui_promos_cerca_de_ti(
                                             img_clikeada = { id ->
                                                 if (tiendaSeleccionada == id) {
                                                     tiendaSeleccionada = null
+                                                    filtrosDesdeBottomSheetGeneral = false
                                                     nombre_tienda_seleccionada = ""
                                                     nombre_tienda_mostrando = ""
                                                     esperandoConfirmacionTienda = false
@@ -809,6 +810,7 @@ fun ui_promos_cerca_de_ti(
                                                     nombre_tienda_anterior = nombre_tienda_seleccionada
                                                     tiendaSeleccionada = id
                                                     filtroTiendaAplicado = false
+                                                    filtrosDesdeBottomSheetGeneral = false
                                                     nombre_tienda_seleccionada = tienda.nombre_tienda
                                                     esperandoConfirmacionTienda = false
                                                     pagos_tienda_confirmada = emptyList()
@@ -818,6 +820,7 @@ fun ui_promos_cerca_de_ti(
                                                     viewModel.limpiarMetodosPago()
                                                     viewModel.limpiar_comodidad()
                                                     viewModel.obtener_promociones_2da(localidad, "", tiendaSeleccionada)
+
                                                 }
                                             }
                                         )
@@ -1005,13 +1008,14 @@ fun ui_promos_cerca_de_ti(
                             .fillMaxWidth()
                     ) {
                         FiltroSnackbarActivo(
-                            categoriaSeleccionada = categoriaSeleccionada,
-                            subcategoriasSeleccionadas = subcategoriasSeleccionadas.toList(),
-                            rangoPrecio = rango_precio,
-                            metodosPago = metodo_pago,
-                            comodidades = comodidad_selet,
+                            categoriaSeleccionada = if (filtrosDesdeBottomSheetGeneral && tiendaSeleccionada == null) categoriaSeleccionada else "",
+                            subcategoriasSeleccionadas = if (filtrosDesdeBottomSheetGeneral && tiendaSeleccionada == null) subcategoriasSeleccionadas.toList() else emptyList(),
+                            rangoPrecio = if (filtrosDesdeBottomSheetGeneral && tiendaSeleccionada == null) rango_precio else null,
+                            metodosPago = if (filtrosDesdeBottomSheetGeneral && tiendaSeleccionada == null) metodo_pago else emptySet(),
+                            comodidades = if (filtrosDesdeBottomSheetGeneral && tiendaSeleccionada == null) comodidad_selet else emptySet(),
                             onEditarFiltros = { mostar_bottom_sheet_datos = true },
                             onLimpiarTodo = {
+                                filtrosDesdeBottomSheetGeneral = false
                                 viewModel.limpiarCategoria()
                                 viewModel.limpiarSubcategorias()
                                 viewModel.limpiarRangoPrecio()
@@ -1096,12 +1100,10 @@ fun ui_promos_cerca_de_ti(
                                 viewModel = viewModel,
                                 onClose = { mostar_bottom_sheet_datos = false },
                                 onAplicarFiltro = { mensaje ->
+                                    filtrosDesdeBottomSheetGeneral = false
                                     filtrandoDesdeTienda = true
                                     scope.launch {
-                                        snackbarHostState.showSnackbar(
-                                            message = mensaje,
-                                            duration = SnackbarDuration.Short
-                                        )
+                                        snackbarHostState.showSnackbar(message = mensaje, duration = SnackbarDuration.Short)
                                     }
                                 }
                             )
@@ -1111,13 +1113,15 @@ fun ui_promos_cerca_de_ti(
                             filtrado_ia = modoBusquedaIA,
                             datos_filtrado = resultado_open_ia,
                             viewModel = viewModel,
-                            onClose = { mostar_bottom_sheet_datos = false },
+                            onClose = {
+                                filtrosDesdeBottomSheetGeneral = true
+                                mostar_bottom_sheet_datos = false
+                            },
                             onAutocompletar = { txt ->
                                 valor_a_buscar = txt
                                 mostar_bottom_sheet_datos = false
                             },
                             limpiar_textos = { valor_a_buscar = "" },
-
                         )
                     }
                 }
@@ -1151,6 +1155,7 @@ fun ui_promos_cerca_de_ti(
                         onTiendaClick = { tienda ->
                             tiendaSeleccionada = tienda.id
                             nombre_tienda_seleccionada = tienda.nombre_tienda
+                            filtrosDesdeBottomSheetGeneral = false
                             esperandoConfirmacionTienda = false
                             pagos_tienda_confirmada = emptyList()
                             comodidades_tienda_confirmada = emptyList()
