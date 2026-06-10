@@ -460,6 +460,7 @@ fun ui_promos_cerca_de_ti(
     LaunchedEffect(estado) {
         if (estado is viewmodel_promos_cercanas.estado_carga_promociones.succes) {
             if (esperandoConfirmacionTienda && !filtrandoDesdeTienda) return@LaunchedEffect
+
             val nuevos = (estado as viewmodel_promos_cercanas.estado_carga_promociones.succes).items
             promos = nuevos.distinctBy {
                 it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion
@@ -1263,6 +1264,16 @@ fun ui_promos_cerca_de_ti(
                                     filtroTiendaAplicado = true
                                     nombre_tienda_mostrando = snackbar_nombre_tienda_snap
                                     valor_a_buscar = ""
+
+                                    // 🔥 LIMPIAR FILTROS PREVIOS
+                                    viewModel.limpiarCategoria()
+                                    viewModel.limpiarSubcategorias()
+                                    viewModel.limpiarRangoPrecio()
+                                    viewModel.limpiarMetodosPago()
+                                    viewModel.limpiar_comodidad()
+                                    viewModel.limpiarTerminosNlp()
+                                    filtrosDesdeBottomSheetGeneral = false  // 🔥 oculta el banner de filtros activos
+
                                     tags_tienda_confirmada = promosFiltradas
                                         .flatMap { it.dataclass_promociones_cerca_de_ti.terminos_clave }
                                         .distinct().filter { it.isNotEmpty() }
@@ -1288,7 +1299,7 @@ fun ui_promos_cerca_de_ti(
                                         viewModel.limpiarRangoPrecio()
                                         viewModel.limpiarMetodosPago()
                                         viewModel.limpiar_comodidad()
-                                        viewModel.obtener_promociones_2da(localidad, "", null)
+//                                        viewModel.obtener_promociones_2da(localidad, "", null)
                                     }
                                 }
                             )

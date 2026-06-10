@@ -259,7 +259,8 @@ fun FiltroSnackbarActivo(
                                     texto       = categoriaSeleccionada.capitalizeFirst(),
                                     tipo        = "categoria",
                                     resDrawable = null,
-                                    onEliminar  = onQuitarCategoria
+                                    onEliminar  = { onEditarFiltros() },  // 🔥 abre bottom sheet
+                                    solo_visual = true                     // 🔥 sin X
                                 )
                             }
                         }
@@ -271,7 +272,8 @@ fun FiltroSnackbarActivo(
                                         texto       = sub.capitalizeFirst(),
                                         tipo        = "sub",
                                         resDrawable = null,
-                                        onEliminar  = { onQuitarSubcategoria(sub) }
+                                        onEliminar  = { onEditarFiltros() },  // 🔥 abre bottom sheet
+                                        solo_visual = true                     // 🔥 oculta la X
                                     )
                                 }
                             }
@@ -283,11 +285,11 @@ fun FiltroSnackbarActivo(
                                     texto       = "S/ $rangoPrecio",
                                     tipo        = "precio",
                                     resDrawable = null,
-                                    onEliminar  = onQuitarRango
+                                    onEliminar  = { onEditarFiltros() },
+                                    solo_visual = true
                                 )
                             }
                         }
-
                         if (hayPagos) {
                             FiltroGrupoExpandido("Métodos de pago") {
                                 metodosPago.forEach { pago ->
@@ -295,11 +297,13 @@ fun FiltroSnackbarActivo(
                                         texto       = pago.capitalizeFirst(),
                                         tipo        = "pago",
                                         resDrawable = logosPago[pago],
-                                        onEliminar  = { onQuitarPago(pago) }
+                                        onEliminar  = { onEditarFiltros() },
+                                        solo_visual = true
                                     )
                                 }
                             }
                         }
+
 
                         if (hayComodidades) {
                             FiltroGrupoExpandido("Comodidades") {
@@ -308,7 +312,8 @@ fun FiltroSnackbarActivo(
                                         texto       = comod.capitalizeFirst(),
                                         tipo        = "comodidad",
                                         resDrawable = logosComodidad[comod],
-                                        onEliminar  = { onQuitarComodidad(comod) }
+                                        onEliminar  = { onEditarFiltros() },
+                                        solo_visual = true
                                     )
                                 }
                             }
@@ -424,27 +429,26 @@ private fun FiltroChipEliminable(
     texto: String,
     tipo: String,
     resDrawable: Int?,
-    onEliminar: () -> Unit
+    onEliminar: () -> Unit,
+    solo_visual: Boolean = false   // 🔥 nuevo
 ) {
     val colors = chipColorsFor(tipo)
     Surface(
         shape = RoundedCornerShape(20.dp),
         color = colors.bg,
-        border = BorderStroke(0.5.dp, colors.border)
+        border = BorderStroke(0.5.dp, colors.border),
+        modifier = if (solo_visual) Modifier.clickable { onEliminar() } else Modifier  // 🔥 click en todo el chip
     ) {
         Row(
             modifier = Modifier.padding(start = 8.dp, end = 6.dp, top = 6.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            // Logo si existe
             if (resDrawable != null) {
                 Image(
                     painter = painterResource(id = resDrawable),
                     contentDescription = null,
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clip(CircleShape),
+                    modifier = Modifier.size(16.dp).clip(CircleShape),
                     contentScale = ContentScale.Crop
                 )
             }
@@ -453,21 +457,23 @@ private fun FiltroChipEliminable(
                 style = MaterialTheme.typography.labelSmall,
                 color = colors.text
             )
-            // Botón X
-            Box(
-                modifier = Modifier
-                    .size(16.dp)
-                    .clip(CircleShape)
-                    .background(colors.text.copy(alpha = 0.10f))
-                    .clickable { onEliminar() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Quitar $texto",
-                    modifier = Modifier.size(9.dp),
-                    tint = colors.text.copy(alpha = 0.6f)
-                )
+            // 🔥 Solo muestra la X si NO es solo_visual
+            if (!solo_visual) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(CircleShape)
+                        .background(colors.text.copy(alpha = 0.10f))
+                        .clickable { onEliminar() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Quitar $texto",
+                        modifier = Modifier.size(9.dp),
+                        tint = colors.text.copy(alpha = 0.6f)
+                    )
+                }
             }
         }
     }

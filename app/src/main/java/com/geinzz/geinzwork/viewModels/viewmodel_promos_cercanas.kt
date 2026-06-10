@@ -985,23 +985,32 @@ class viewmodel_promos_cercanas : ViewModel() {
             try {
                 loading = true
                 _respuesta_gemini.value = estado_Carga_respuesta_gemini.loading
+                Log.d("NLP", "▶ Iniciando búsqueda con texto: \"$texto\"")
 
                 val resultadoLocal = repo.obtener_respuesta_open_ia(texto)
+                Log.d("NLP", "📦 resultadoLocal: $resultadoLocal")
 
                 if (resultadoLocal != null) {
                     resultado = resultadoLocal
                     _terminos_nlp.value = resultadoLocal.productos
                     _terminos_nlp_seleccionados.value = resultadoLocal.productos
+                    Log.d("NLP", "🏷 términos NLP: ${resultadoLocal.productos}")
 
                     resultado_encontrado_algolia = withContext(Dispatchers.IO) {
                         repo.send_get_resul_algoalia(resultadoLocal)
+                    }
+                    Log.d("NLP", "🔍 resultados Algolia: ${resultado_encontrado_algolia?.resultados?.size} items")
+                    resultado_encontrado_algolia?.resultados?.forEach {
+                        Log.d("NLP", "   id=${it.id} score=${it.score}")
                     }
 
                     val resultadosOrdenados = resultado_encontrado_algolia?.resultados
                         ?.sortedByDescending { it.score }
                         ?.map { IdScore(it.id, it.score) }
+                    Log.d("NLP", "📊 ordenados: ${resultadosOrdenados?.size} items")
 
                     if (resultadosOrdenados.isNullOrEmpty()) {
+                        Log.d("NLP", "❌ Sin resultados → empty")
                         _respuesta_gemini.value =
                             estado_Carga_respuesta_gemini.empty("No encontré resultados")
                         modoBusquedaIA = false
@@ -1009,8 +1018,8 @@ class viewmodel_promos_cercanas : ViewModel() {
                         return@launch
                     }
 
-                    // ✅ sin launch anidado
                     val primerasPromos = obtenerPrimeraPaginaDesdeIds(resultadosOrdenados)
+                    Log.d("NLP", "✅ primerasPromos: ${primerasPromos.size} promos cargadas")
 
                     _promosAcumuladas.value = primerasPromos
                     listaCompleta.value = primerasPromos
@@ -1020,20 +1029,26 @@ class viewmodel_promos_cercanas : ViewModel() {
                     paginaActual_ = 1
                     _hayMasPaginas.value = listaIdsConScore.size > PAGE_SIZE_IDS
                     modoBusquedaIA = true
+                    Log.d("NLP", "📄 hayMasPaginas: ${listaIdsConScore.size > PAGE_SIZE_IDS}")
 
                     _respuesta_gemini.value = estado_Carga_respuesta_gemini.succes(
                         cantidad = resultadosOrdenados.size,
                         items = primerasPromos
                     )
+                    Log.d("NLP", "🎉 succes emitido — cantidad=${resultadosOrdenados.size}")
+
+                } else {
+                    Log.d("NLP", "⚠️ resultadoLocal es null")
                 }
 
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("NLP", "💥 Exception: ${e.message}", e)
                 modoBusquedaIA = false
                 limpiarTerminosNlp()
                 _respuesta_gemini.value = estado_Carga_respuesta_gemini.error("se produjo un error")
             } finally {
                 loading = false
+                Log.d("NLP", "⏹ finally — loading = false")
             }
         }
     }

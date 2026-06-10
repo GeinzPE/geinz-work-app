@@ -47,6 +47,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.outlined.FilterAltOff
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -58,6 +59,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -627,6 +629,22 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
     val subcategoriasVisibles = if (verTodos) subcategorias_obtenidas
     else subcategorias_obtenidas.take(limite)
 
+    // 🔥 SNAPSHOT al abrir — captura el estado inicial una sola vez
+    val snapshot_categoria = remember { categoriaSeleccionada }
+    val snapshot_subcategorias = remember { subcategoriasSeleccionadas.toSet() }
+    val snapshot_rango = remember { rango_precio }
+    val snapshot_pagos = remember { metodo_pago.toSet() }
+    val snapshot_comodidades = remember { comodidad_selet.toSet() }
+    val snapshot_terminos_nlp = remember { terminos_nlp_seleccionados.toSet() }
+
+    // 🔥 hay cambios si cualquier valor difiere del snapshot
+    val hay_cambios = categoriaSeleccionada != snapshot_categoria ||
+            subcategoriasSeleccionadas.toSet() != snapshot_subcategorias ||
+            rango_precio != snapshot_rango ||
+            metodo_pago.toSet() != snapshot_pagos ||
+            comodidad_selet.toSet() != snapshot_comodidades ||
+            terminos_nlp_seleccionados.toSet() != snapshot_terminos_nlp
+
     ModalBottomSheet(
         sheetState = sheetState,
         onDismissRequest = { onClose() },
@@ -639,7 +657,6 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
                 verticalArrangement = Arrangement.spacedBy(0.dp),
                 modifier = Modifier
                     .padding(bottom = 24.dp)
-                    .animateContentSize()
             ) {
 
                 // ── HEADER ──────────────────────────────────────────────────
@@ -658,7 +675,6 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
                             .padding(start = 5.dp, end = 5.dp, top = 28.dp, bottom = 20.dp)
                     ) {
                         Column {
-                            // Pill indicador superior
                             Box(
                                 modifier = Modifier
                                     .width(36.dp)
@@ -669,7 +685,9 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
                             )
                             spacer_vertical(16.dp)
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 5.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -686,7 +704,6 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
                                         style = MaterialTheme.typography.bodySmall
                                     )
                                 }
-                                // Botón limpiar todo — icono + texto compacto
                                 OutlinedButton(
                                     onClick = {
                                         viewModel.limpiarCategoria()
@@ -722,7 +739,6 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
                             }
                         }
                     }
-                    // Divider sutil
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f),
                         thickness = 1.dp
@@ -738,6 +754,7 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
                         subtitulo = if (filtrado_ia && terminos_nlp.isNotEmpty())
                             "Deselecciona lo que no quieres" else "¿Qué tipo de promo buscas?"
                     ) {
+                        spacer_vertical(5.dp)
                         if (filtrado_ia && terminos_nlp.isNotEmpty()) {
                             FlowRow(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -773,9 +790,9 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
 
                 // ── SECCIÓN: SUBCATEGORÍAS ───────────────────────────────────
                 item {
-                    val mostrarExtras = categoriaElegida ||
-                            (filtrado_ia && terminos_nlp_seleccionados.isNotEmpty())
-
+                    val mostrarExtras = remember(categoriaElegida, filtrado_ia, terminos_nlp_seleccionados) {
+                        categoriaElegida && !(filtrado_ia && terminos_nlp_seleccionados.isNotEmpty())
+                    }
                     AnimatedVisibility(
                         visible = mostrarExtras,
                         enter = fadeIn() + expandVertically(),
@@ -786,6 +803,7 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
                             titulo = "Subcategoría",
                             subtitulo = "Afina tu búsqueda"
                         ) {
+                            spacer_vertical(5.dp)
                             if (!verTodos) {
                                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     items(subcategoriasVisibles) { subcategoria ->
@@ -829,6 +847,26 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
                                         )
                                     }
                                 }
+                                spacer_vertical(8.dp)
+                                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                    TextButton(
+                                        onClick = { verTodos = false },
+                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.KeyboardArrowUp,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp),
+                                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                                        )
+                                        Spacer(Modifier.width(4.dp))
+                                        Text(
+                                            text = "Ver menos",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -836,8 +874,8 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
 
                 // ── SECCIÓN: RANGO DE PRECIO ─────────────────────────────────
                 item {
-                    val mostrarExtras = categoriaElegida ||
-                            (filtrado_ia && terminos_nlp_seleccionados.isNotEmpty())
+                    val mostrarExtras = categoriaElegida && !(filtrado_ia && terminos_nlp_seleccionados.isNotEmpty())
+
 
                     AnimatedVisibility(
                         visible = mostrarExtras,
@@ -849,6 +887,7 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
                             titulo = "Rango de precio",
                             subtitulo = "Precio en soles (S/)"
                         ) {
+                            spacer_vertical(5.dp)
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 items(rango_precios) { item ->
                                     val seleccionado = rango_precio == item
@@ -866,127 +905,110 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
                     }
                 }
 
-                // ── SECCIÓN: PAGOS + COMODIDADES (grid 2 col) ────────────────
+                // ── SECCIÓN: PAGOS + COMODIDADES ─────────────────────────────
                 item {
-                    val mostrarExtras = categoriaElegida ||
-                            (filtrado_ia && terminos_nlp_seleccionados.isNotEmpty())
+                    val mostrarExtras = categoriaElegida && !(filtrado_ia && terminos_nlp_seleccionados.isNotEmpty())
 
                     AnimatedVisibility(
                         visible = mostrarExtras,
                         enter = fadeIn() + expandVertically(),
                         exit = fadeOut() + shrinkVertically()
                     ) {
-                        Column {
-                            // Número de sección
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 20.dp, vertical = 16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        FiltroSeccion(
+                            numero = "04",
+                            titulo = "Más filtros",
+                            subtitulo = "Pagos y comodidades"
+                        ) {
+                            spacer_vertical(5.dp)
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                color = MaterialTheme.colorScheme.surface,
+                                tonalElevation = 2.dp,
+                                border = BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)
+                                )
                             ) {
-                                NumeroBadge("04")
-                                Column {
-                                    texto_generico_one_line("Más filtros")
-                                    Text(
-                                        text = "Pagos y comodidades",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                                    )
-                                }
-                            }
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 12.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                // Métodos de pago
-                                Surface(
-                                    modifier = Modifier.weight(1f),
-                                    shape = RoundedCornerShape(16.dp),
-                                    color = MaterialTheme.colorScheme.surface,
-                                    tonalElevation = 2.dp,
-                                    border = BorderStroke(
-                                        1.dp,
-                                        MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)
-                                    )
-                                ) {
-                                    Box(modifier = Modifier.padding(12.dp)) {
-                                        desing_chips_texto_filtrado(
-                                            "Métodos de pago",
-                                            lista_filtrados_pagos,
-                                            metodo_pago
-                                        ) { txt -> viewModel.toggleMetodoPago(txt) }
-                                    }
-                                }
-                                // Comodidades
-                                Surface(
-                                    modifier = Modifier.weight(1f),
-                                    shape = RoundedCornerShape(16.dp),
-                                    color = MaterialTheme.colorScheme.surface,
-                                    tonalElevation = 2.dp,
-                                    border = BorderStroke(
-                                        1.dp,
-                                        MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)
-                                    )
-                                ) {
-                                    Box(modifier = Modifier.padding(12.dp)) {
-                                        desing_chips_texto_filtrado(
-                                            "Comodidades",
-                                            lista_comodidades,
-                                            comodidad_selet
-                                        ) { txt -> viewModel.togleRango_select(txt) }
-                                    }
+                                Box(modifier = Modifier.padding(12.dp)) {
+                                    desing_chips_texto_filtrado(
+                                        "Métodos de pago",
+                                        lista_filtrados_pagos,
+                                        metodo_pago
+                                    ) { txt -> viewModel.toggleMetodoPago(txt) }
                                 }
                             }
                             spacer_vertical(8.dp)
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                color = MaterialTheme.colorScheme.surface,
+                                tonalElevation = 2.dp,
+                                border = BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)
+                                )
+                            ) {
+                                Box(modifier = Modifier.padding(12.dp)) {
+                                    desing_chips_texto_filtrado(
+                                        "Comodidades",
+                                        lista_comodidades,
+                                        comodidad_selet
+                                    ) { txt -> viewModel.togleRango_select(txt) }
+                                }
+                            }
                         }
                     }
                 }
 
-                // ── BOTÓN APLICAR ────────────────────────────────────────────
+                // ── BOTÓN APLICAR — solo si hay cambios ──────────────────────
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    AnimatedVisibility(
+                        visible = hay_cambios,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
                     ) {
-                        Button(
-                            onClick = {
-                                val data = if (filtrado_ia && terminos_nlp_seleccionados.isNotEmpty()) {
-                                    datos_para_filtrado_manual(
-                                        categoria = terminos_nlp_seleccionados.joinToString(","),
-                                        subcategorias = terminos_nlp_seleccionados,
-                                        rango_precio = rango_precio,
-                                        pagos = metodo_pago.toList(),
-                                        comodidades = comodidad_selet.toList(),
-                                        localidad = "barranca"
-                                    )
-                                } else {
-                                    datos_para_filtrado_manual(
-                                        categoria = categoriaSeleccionada,
-                                        subcategorias = subcategoriasSeleccionadas.toList(),
-                                        rango_precio = rango_precio,
-                                        pagos = metodo_pago.toList(),
-                                        comodidades = comodidad_selet.toList(),
-                                        localidad = "barranca"
-                                    )
-                                }
-                                viewModel.busqueda_manual_filtrado(data)
-                                onClose()
-                            },
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(52.dp),
-                            shape = RoundedCornerShape(14.dp),
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
-                            Text(
-                                text = "Aplicar filtros",
-                                style = MaterialTheme.typography.labelLarge,
-                                fontSize = 15.sp
-                            )
+                            Button(
+                                onClick = {
+                                    val data = if (filtrado_ia && terminos_nlp_seleccionados.isNotEmpty()) {
+                                        datos_para_filtrado_manual(
+                                            categoria = terminos_nlp_seleccionados.joinToString(","),
+                                            subcategorias = terminos_nlp_seleccionados,
+                                            rango_precio = rango_precio,
+                                            pagos = metodo_pago.toList(),
+                                            comodidades = comodidad_selet.toList(),
+                                            localidad = "barranca"
+                                        )
+                                    } else {
+                                        datos_para_filtrado_manual(
+                                            categoria = categoriaSeleccionada,
+                                            subcategorias = subcategoriasSeleccionadas.toList(),
+                                            rango_precio = rango_precio,
+                                            pagos = metodo_pago.toList(),
+                                            comodidades = comodidad_selet.toList(),
+                                            localidad = "barranca"
+                                        )
+                                    }
+                                    viewModel.busqueda_manual_filtrado(data)
+                                    onClose()
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(52.dp),
+                                shape = RoundedCornerShape(50.dp),
+                            ) {
+                                Text(
+                                    text = "Aplicar filtros",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontSize = 15.sp,
+                                    color = Color.White
+                                )
+                            }
                         }
                     }
                 }

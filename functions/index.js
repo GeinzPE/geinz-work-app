@@ -209,6 +209,258 @@ Texto: "${texto}"`;
   }
 });
 
+exports.filtrar_por_datos_chat_bot = onRequest(async (req, res) => {
+  // ─── TIMEOUT GLOBAL 9s (Cloud Functions límite = 10s) ────
+  const timeout = setTimeout(() => {
+    console.error("⏱️ TIMEOUT GLOBAL alcanzado");
+    if (!res.headersSent) {
+      return res.status(504).json({ error: "timeout", resultados: [], total: 0 });
+    }
+  }, 9000);
+
+  try {
+    // ─── VALIDACIÓN BÁSICA DEL BODY ───────────────────────
+    if (!req.body || typeof req.body !== "object") {
+      clearTimeout(timeout);
+      return res.status(400).json({ error: "body inválido" });
+    }
+
+    console.log("📥 REQUEST BODY:", JSON.stringify(req.body, null, 2));
+
+    const resultado    = req.body.resultado || req.body;
+    const nombreTienda = (resultado?.nombre || "").toLowerCase().trim().slice(0, 100);
+
+    // ─── HORA PERÚ ────────────────────────────────────────
+    const ahoraPeru = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "America/Lima" })
+    );
+    const horaPeru = ahoraPeru.getHours();
+
+    let horarioActual = "noche";
+    if (horaPeru >= 6 && horaPeru < 12)      horarioActual = "manana";
+    else if (horaPeru >= 12 && horaPeru < 18) horarioActual = "tarde";
+    console.log("⏰ Horario:", horarioActual);
+
+    // ─── INPUTS SANITIZADOS ───────────────────────────────
+    const rawPrecio   = resultado?.precio ?? resultado?.precio_max;
+    const precioInput = rawPrecio != null && rawPrecio !== "" ? Number(rawPrecio) : null;
+    const precioValido = Number.isFinite(precioInput) && precioInput >= 0 && precioInput <= 99999;
+
+    // Límites de seguridad en arrays
+    const MAX_ITEMS = 10;
+
+    const pagosQuery = Array.isArray(resultado?.metodos_pago)
+      ? resultado.metodos_pago.slice(0, MAX_ITEMS).map((p) => String(p).toLowerCase().trim()).filter(Boolean)
+      : [];
+
+    const comodidadesQuery = Array.isArray(resultado?.comodidades)
+      ? resultado.comodidades.slice(0, MAX_ITEMS).map((c) => String(c).toLowerCase().trim()).filter(Boolean)
+      : [];
+
+    const productosQuery = Array.isArray(resultado?.productos)
+      ? resultado.productos.slice(0, MAX_ITEMS).map((p) => String(p).toLowerCase().trim()).filter(Boolean)
+      : [];
+
+    const query = (nombreTienda || productosQuery.join(" ")).slice(0, 200);
+
+    // ─── FILTROS ALGOLIA ──────────────────────────────────
+    const filters        = [];
+    const timestampFiltro = Date.now();
+
+    filters.push(`(horario_publicacion:${horarioActual} OR horario_publicacion:todo_dia)`);
+    filters.push(`timestamp_fin > ${timestampFiltro}`);
+
+    const finalFilters = filters.join(" AND ");
+    console.log("🧩 Filtros:", finalFilters);
+    console.log("🔎 Query:", query);
+
+    // ─── BÚSQUEDA ALGOLIA CON TIMEOUT PROPIO ──────────────
+    let response;
+    try {
+      response = await Promise.race([
+        index_Algolia_promos.search(query, {
+          filters: finalFilters,
+          hitsPerPage: 20,
+          getRankingInfo: true,
+          optionalWords: query,
+          removeWordsIfNoResults: "allOptional",
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Algolia timeout")), 6000)
+        ),
+      ]);
+    } catch (algoliaError) {
+      console.error("❌ Error Algolia:", algoliaError.message);
+      clearTimeout(timeout);
+      return res.status(200).json({
+        momento_dia:                  horarioActual,
+        pago_exacto_encontrado:       null,
+        precio_exacto_encontrado:     null,
+        comodidad_exacta_encontrada:  null,
+        resultados:                   [],
+        resultados_alternativos:      [],
+        total:                        0,
+        aviso:                        "sin_resultados",
+      });
+    }
+
+    console.log("📦 Hits encontrados:", response.hits.length);
+
+    // ─── MAPA DE HITS para O(1) lookup ────────────────────
+    const hitsMap = new Map(response.hits.map((h) => [h.objectID, h]));
+
+    // ─── SCORING ──────────────────────────────────────────
+    const calcularScore = (h) => {
+      const textScore = h._rankingInfo?.nbTypos === 0 ? 40 : 20;
+
+      const terminosDB = (h.terminos_clave || []).map((t) => t.toLowerCase().trim());
+      const matchCount = productosQuery.filter((p) =>
+        terminosDB.some((t) => t.includes(p) || p.includes(t))
+      ).length;
+      const matchScore = productosQuery.length > 0
+        ? Math.round((matchCount / productosQuery.length) * 20) : 0;
+
+      let precioScore = 0;
+      let tienePrecioExacto = false;
+
+      if (precioValido) {
+        const dentroRango = precioInput >= h.precioMin && precioInput <= h.precioMax;
+        if (dentroRango) {
+          precioScore       = 20;
+          tienePrecioExacto = true;
+        } else {
+          const diff = Math.min(
+            Math.abs(precioInput - (h.precioMin || 0)),
+            Math.abs(precioInput - (h.precioMax || 0))
+          );
+          precioScore = Math.max(0, 20 - diff * 1.5);
+        }
+      }
+
+      const pagosDB   = (h.pagos || []).map((p) => p.toLowerCase());
+      const pagoMatch = pagosQuery.filter((p) => pagosDB.includes(p)).length;
+      const pagoScore = pagosQuery.length > 0
+        ? Math.round((pagoMatch / pagosQuery.length) * 10) : 0;
+      const tienePagoExacto = pagosQuery.length > 0 && pagoMatch === pagosQuery.length;
+
+      const comodDB    = (h.comodidades || []).map((c) => c.toLowerCase());
+      const comodMatch = comodidadesQuery.filter((c) => comodDB.includes(c)).length;
+      const comodScore = comodidadesQuery.length > 0
+        ? Math.round((comodMatch / comodidadesQuery.length) * 10) : 0;
+      const tieneComodidadExacta = comodidadesQuery.length > 0 && comodMatch === comodidadesQuery.length;
+
+      const totalScore = Math.min(100, Math.round(
+        textScore + matchScore + precioScore + pagoScore + comodScore
+      ));
+
+      return {
+        matchCount,
+        totalScore,
+        tienePagoExacto,
+        pagosDB,
+        tienePrecioExacto,
+        rango_precio: `${h.precioMin ?? "?"} - ${h.precioMax ?? "?"}`,
+        tieneComodidadExacta,
+        comodidades_disponibles: comodDB,
+      };
+    };
+
+    // ─── MAPEAR HITS ──────────────────────────────────────
+    let resultados = response.hits.map((h) => {
+      const s = calcularScore(h);
+      return {
+        id:                      h.objectID,
+        score:                   s.totalScore,
+        matchCount:              s.matchCount,
+        tienePagoExacto:         s.tienePagoExacto,
+        pagos_disponibles:       s.pagosDB,
+        tienePrecioExacto:       s.tienePrecioExacto,
+        rango_precio:            s.rango_precio,
+        tieneComodidadExacta:    s.tieneComodidadExacta,
+        comodidades_disponibles: s.comodidades_disponibles,
+        descripcion:             h.descripcion   || "",
+        name_tienda:             h.nombre_tienda || "",
+        img:                     h.imagen_promo  || "",
+      };
+    });
+
+    resultados.sort((a, b) => b.score - a.score);
+
+    // ─── POOL: múltiples productos con hitsMap O(1) ───────
+    let pool = resultados;
+
+    if (productosQuery.length > 1) {
+      const usados      = new Set();
+      const porProducto = [];
+
+      for (const producto of productosQuery) {
+        const mejor = pool.find((r) => {
+          if (usados.has(r.id)) return false;
+          const hit      = hitsMap.get(r.id);                          // O(1)
+          const terminos = (hit?.terminos_clave || []).map((t) => t.toLowerCase().trim());
+          return terminos.some((t) => t.includes(producto) || producto.includes(t));
+        });
+
+        if (mejor) {
+          usados.add(mejor.id);
+          porProducto.push(mejor);
+          console.log(`✅ Producto "${producto}" → hit ${mejor.id}`);
+        } else {
+          console.log(`⚠️ Producto "${producto}" → sin match`);
+        }
+      }
+      pool = porProducto;
+    } else {
+      pool = pool.slice(0, 3);
+    }
+
+    // ─── CLASIFICAR EXACTOS vs ALTERNATIVOS ───────────────
+    const clasificar = (r) =>
+      (pagosQuery.length === 0       || r.tienePagoExacto)      &&
+      (precioInput === null          || r.tienePrecioExacto)     &&
+      (comodidadesQuery.length === 0 || r.tieneComodidadExacta);
+
+    const exactos      = pool.filter((r) =>  clasificar(r));
+    const alternativos = pool.filter((r) => !clasificar(r));
+    const hayExactos   = exactos.length > 0;
+
+    // ─── FLAGS GLOBALES ───────────────────────────────────
+    const pago_exacto_encontrado      = pagosQuery.length > 0
+      ? pool.some((r) => r.tienePagoExacto)       : null;
+    const precio_exacto_encontrado    = precioValido
+      ? pool.some((r) => r.tienePrecioExacto)      : null;
+    const comodidad_exacta_encontrada = comodidadesQuery.length > 0
+      ? pool.some((r) => r.tieneComodidadExacta)   : null;
+
+    // ─── LIMPIAR CAMPOS INTERNOS ──────────────────────────
+    const limpiar = ({ tienePagoExacto, tienePrecioExacto,
+                        tieneComodidadExacta, matchCount, ...rest }) => rest;
+
+    const data = {
+      momento_dia:                  horarioActual,
+      pago_exacto_encontrado,
+      precio_exacto_encontrado,
+      comodidad_exacta_encontrada,
+      resultados:                   hayExactos
+                                      ? exactos.map(limpiar)
+                                      : alternativos.map(limpiar),
+      resultados_alternativos:      hayExactos
+                                      ? alternativos.map(limpiar)
+                                      : [],
+      total: hayExactos ? exactos.length : alternativos.length,
+    };
+
+    clearTimeout(timeout);
+    console.log("🏆 RESULTADO FINAL:", JSON.stringify(data, null, 2));
+    return res.status(200).json(data);
+
+  } catch (error) {
+    clearTimeout(timeout);
+    console.error("❌ ERROR en filtrar_por_datos_chat_bot:", error);
+    return res.status(500).json({ error: error.message });
+  }
+});
+
 exports.filtrar_por_datos = onRequest(async (req, res) => {
   try {
     console.log("📥 REQUEST BODY:", JSON.stringify(req.body, null, 2));
@@ -427,6 +679,64 @@ exports.filtrar_por_datos = onRequest(async (req, res) => {
 });
 
 // ==================== BUSQUEDA_ALGOLIA_BOT_GEINZ ====================
+
+
+exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
+  try {
+    const { localidad, nombre, subcategoria } = req.body;
+
+    let filters = [];
+
+    filters.push(`categoria:"turismo"`);
+
+    if (localidad) {
+      filters.push(`lugar:"${localidad}"`);
+    }
+
+    if (subcategoria) {
+      filters.push(`tag:"${subcategoria}"`);
+    }
+
+    const query = nombre || "";
+
+    const { hits } = await index.search(query, {
+      filters: filters.join(" AND "),
+      hitsPerPage: 20,
+      typoTolerance: true,
+      ignorePlurals: true,
+      removeStopWords: true,
+    });
+
+    const LIMITE = 5;
+
+    const data = hits
+      .sort(() => Math.random() - 0.5)
+      .slice(0, LIMITE)
+      .map((hit) => ({
+        id: hit.objectID,
+        titulo: hit.nombre || "",
+        descripcion: (hit.descripcion || "").substring(0, 150),
+        img: hit.img || "",
+        tipo: "turismo",
+      }));
+
+    return res.status(200).json({
+      ok: true,
+      total: data.length,
+      momento_dia: obtenerMomentoDia(),
+      data,
+    });
+
+  } catch (error) {
+    console.error("Error búsqueda algolia turismo:", error);
+
+    return res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
 
 exports.buscarNegocios_para_solucionar = onRequest(
   { cors: true },
