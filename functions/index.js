@@ -214,7 +214,9 @@ exports.filtrar_por_datos_chat_bot = onRequest(async (req, res) => {
   const timeout = setTimeout(() => {
     console.error("⏱️ TIMEOUT GLOBAL alcanzado");
     if (!res.headersSent) {
-      return res.status(504).json({ error: "timeout", resultados: [], total: 0 });
+      return res
+        .status(504)
+        .json({ error: "timeout", resultados: [], total: 0 });
     }
   }, 9000);
 
@@ -227,47 +229,63 @@ exports.filtrar_por_datos_chat_bot = onRequest(async (req, res) => {
 
     console.log("📥 REQUEST BODY:", JSON.stringify(req.body, null, 2));
 
-    const resultado    = req.body.resultado || req.body;
-    const nombreTienda = (resultado?.nombre || "").toLowerCase().trim().slice(0, 100);
+    const resultado = req.body.resultado || req.body;
+    const nombreTienda = (resultado?.nombre || "")
+      .toLowerCase()
+      .trim()
+      .slice(0, 100);
 
     // ─── HORA PERÚ ────────────────────────────────────────
     const ahoraPeru = new Date(
-      new Date().toLocaleString("en-US", { timeZone: "America/Lima" })
+      new Date().toLocaleString("en-US", { timeZone: "America/Lima" }),
     );
     const horaPeru = ahoraPeru.getHours();
 
     let horarioActual = "noche";
-    if (horaPeru >= 6 && horaPeru < 12)      horarioActual = "manana";
+    if (horaPeru >= 6 && horaPeru < 12) horarioActual = "manana";
     else if (horaPeru >= 12 && horaPeru < 18) horarioActual = "tarde";
     console.log("⏰ Horario:", horarioActual);
 
     // ─── INPUTS SANITIZADOS ───────────────────────────────
-    const rawPrecio   = resultado?.precio ?? resultado?.precio_max;
-    const precioInput = rawPrecio != null && rawPrecio !== "" ? Number(rawPrecio) : null;
-    const precioValido = Number.isFinite(precioInput) && precioInput >= 0 && precioInput <= 99999;
+    const rawPrecio = resultado?.precio ?? resultado?.precio_max;
+    const precioInput =
+      rawPrecio != null && rawPrecio !== "" ? Number(rawPrecio) : null;
+    const precioValido =
+      Number.isFinite(precioInput) && precioInput >= 0 && precioInput <= 99999;
 
     // Límites de seguridad en arrays
     const MAX_ITEMS = 10;
 
     const pagosQuery = Array.isArray(resultado?.metodos_pago)
-      ? resultado.metodos_pago.slice(0, MAX_ITEMS).map((p) => String(p).toLowerCase().trim()).filter(Boolean)
+      ? resultado.metodos_pago
+          .slice(0, MAX_ITEMS)
+          .map((p) => String(p).toLowerCase().trim())
+          .filter(Boolean)
       : [];
 
     const comodidadesQuery = Array.isArray(resultado?.comodidades)
-      ? resultado.comodidades.slice(0, MAX_ITEMS).map((c) => String(c).toLowerCase().trim()).filter(Boolean)
+      ? resultado.comodidades
+          .slice(0, MAX_ITEMS)
+          .map((c) => String(c).toLowerCase().trim())
+          .filter(Boolean)
       : [];
 
     const productosQuery = Array.isArray(resultado?.productos)
-      ? resultado.productos.slice(0, MAX_ITEMS).map((p) => String(p).toLowerCase().trim()).filter(Boolean)
+      ? resultado.productos
+          .slice(0, MAX_ITEMS)
+          .map((p) => String(p).toLowerCase().trim())
+          .filter(Boolean)
       : [];
 
     const query = (nombreTienda || productosQuery.join(" ")).slice(0, 200);
 
     // ─── FILTROS ALGOLIA ──────────────────────────────────
-    const filters        = [];
+    const filters = [];
     const timestampFiltro = Date.now();
 
-    filters.push(`(horario_publicacion:${horarioActual} OR horario_publicacion:todo_dia)`);
+    filters.push(
+      `(horario_publicacion:${horarioActual} OR horario_publicacion:todo_dia)`,
+    );
     filters.push(`timestamp_fin > ${timestampFiltro}`);
 
     const finalFilters = filters.join(" AND ");
@@ -286,21 +304,21 @@ exports.filtrar_por_datos_chat_bot = onRequest(async (req, res) => {
           removeWordsIfNoResults: "allOptional",
         }),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Algolia timeout")), 6000)
+          setTimeout(() => reject(new Error("Algolia timeout")), 6000),
         ),
       ]);
     } catch (algoliaError) {
       console.error("❌ Error Algolia:", algoliaError.message);
       clearTimeout(timeout);
       return res.status(200).json({
-        momento_dia:                  horarioActual,
-        pago_exacto_encontrado:       null,
-        precio_exacto_encontrado:     null,
-        comodidad_exacta_encontrada:  null,
-        resultados:                   [],
-        resultados_alternativos:      [],
-        total:                        0,
-        aviso:                        "sin_resultados",
+        momento_dia: horarioActual,
+        pago_exacto_encontrado: null,
+        precio_exacto_encontrado: null,
+        comodidad_exacta_encontrada: null,
+        resultados: [],
+        resultados_alternativos: [],
+        total: 0,
+        aviso: "sin_resultados",
       });
     }
 
@@ -313,45 +331,61 @@ exports.filtrar_por_datos_chat_bot = onRequest(async (req, res) => {
     const calcularScore = (h) => {
       const textScore = h._rankingInfo?.nbTypos === 0 ? 40 : 20;
 
-      const terminosDB = (h.terminos_clave || []).map((t) => t.toLowerCase().trim());
+      const terminosDB = (h.terminos_clave || []).map((t) =>
+        t.toLowerCase().trim(),
+      );
       const matchCount = productosQuery.filter((p) =>
-        terminosDB.some((t) => t.includes(p) || p.includes(t))
+        terminosDB.some((t) => t.includes(p) || p.includes(t)),
       ).length;
-      const matchScore = productosQuery.length > 0
-        ? Math.round((matchCount / productosQuery.length) * 20) : 0;
+      const matchScore =
+        productosQuery.length > 0
+          ? Math.round((matchCount / productosQuery.length) * 20)
+          : 0;
 
       let precioScore = 0;
       let tienePrecioExacto = false;
 
       if (precioValido) {
-        const dentroRango = precioInput >= h.precioMin && precioInput <= h.precioMax;
+        const dentroRango =
+          precioInput >= h.precioMin && precioInput <= h.precioMax;
         if (dentroRango) {
-          precioScore       = 20;
+          precioScore = 20;
           tienePrecioExacto = true;
         } else {
           const diff = Math.min(
             Math.abs(precioInput - (h.precioMin || 0)),
-            Math.abs(precioInput - (h.precioMax || 0))
+            Math.abs(precioInput - (h.precioMax || 0)),
           );
           precioScore = Math.max(0, 20 - diff * 1.5);
         }
       }
 
-      const pagosDB   = (h.pagos || []).map((p) => p.toLowerCase());
+      const pagosDB = (h.pagos || []).map((p) => p.toLowerCase());
       const pagoMatch = pagosQuery.filter((p) => pagosDB.includes(p)).length;
-      const pagoScore = pagosQuery.length > 0
-        ? Math.round((pagoMatch / pagosQuery.length) * 10) : 0;
-      const tienePagoExacto = pagosQuery.length > 0 && pagoMatch === pagosQuery.length;
+      const pagoScore =
+        pagosQuery.length > 0
+          ? Math.round((pagoMatch / pagosQuery.length) * 10)
+          : 0;
+      const tienePagoExacto =
+        pagosQuery.length > 0 && pagoMatch === pagosQuery.length;
 
-      const comodDB    = (h.comodidades || []).map((c) => c.toLowerCase());
-      const comodMatch = comodidadesQuery.filter((c) => comodDB.includes(c)).length;
-      const comodScore = comodidadesQuery.length > 0
-        ? Math.round((comodMatch / comodidadesQuery.length) * 10) : 0;
-      const tieneComodidadExacta = comodidadesQuery.length > 0 && comodMatch === comodidadesQuery.length;
+      const comodDB = (h.comodidades || []).map((c) => c.toLowerCase());
+      const comodMatch = comodidadesQuery.filter((c) =>
+        comodDB.includes(c),
+      ).length;
+      const comodScore =
+        comodidadesQuery.length > 0
+          ? Math.round((comodMatch / comodidadesQuery.length) * 10)
+          : 0;
+      const tieneComodidadExacta =
+        comodidadesQuery.length > 0 && comodMatch === comodidadesQuery.length;
 
-      const totalScore = Math.min(100, Math.round(
-        textScore + matchScore + precioScore + pagoScore + comodScore
-      ));
+      const totalScore = Math.min(
+        100,
+        Math.round(
+          textScore + matchScore + precioScore + pagoScore + comodScore,
+        ),
+      );
 
       return {
         matchCount,
@@ -369,18 +403,18 @@ exports.filtrar_por_datos_chat_bot = onRequest(async (req, res) => {
     let resultados = response.hits.map((h) => {
       const s = calcularScore(h);
       return {
-        id:                      h.objectID,
-        score:                   s.totalScore,
-        matchCount:              s.matchCount,
-        tienePagoExacto:         s.tienePagoExacto,
-        pagos_disponibles:       s.pagosDB,
-        tienePrecioExacto:       s.tienePrecioExacto,
-        rango_precio:            s.rango_precio,
-        tieneComodidadExacta:    s.tieneComodidadExacta,
+        id: h.objectID,
+        score: s.totalScore,
+        matchCount: s.matchCount,
+        tienePagoExacto: s.tienePagoExacto,
+        pagos_disponibles: s.pagosDB,
+        tienePrecioExacto: s.tienePrecioExacto,
+        rango_precio: s.rango_precio,
+        tieneComodidadExacta: s.tieneComodidadExacta,
         comodidades_disponibles: s.comodidades_disponibles,
-        descripcion:             h.descripcion   || "",
-        name_tienda:             h.nombre_tienda || "",
-        img:                     h.imagen_promo  || "",
+        descripcion: h.descripcion || "",
+        name_tienda: h.nombre_tienda || "",
+        img: h.imagen_promo || "",
       };
     });
 
@@ -390,15 +424,19 @@ exports.filtrar_por_datos_chat_bot = onRequest(async (req, res) => {
     let pool = resultados;
 
     if (productosQuery.length > 1) {
-      const usados      = new Set();
+      const usados = new Set();
       const porProducto = [];
 
       for (const producto of productosQuery) {
         const mejor = pool.find((r) => {
           if (usados.has(r.id)) return false;
-          const hit      = hitsMap.get(r.id);                          // O(1)
-          const terminos = (hit?.terminos_clave || []).map((t) => t.toLowerCase().trim());
-          return terminos.some((t) => t.includes(producto) || producto.includes(t));
+          const hit = hitsMap.get(r.id); // O(1)
+          const terminos = (hit?.terminos_clave || []).map((t) =>
+            t.toLowerCase().trim(),
+          );
+          return terminos.some(
+            (t) => t.includes(producto) || producto.includes(t),
+          );
         });
 
         if (mejor) {
@@ -416,44 +454,47 @@ exports.filtrar_por_datos_chat_bot = onRequest(async (req, res) => {
 
     // ─── CLASIFICAR EXACTOS vs ALTERNATIVOS ───────────────
     const clasificar = (r) =>
-      (pagosQuery.length === 0       || r.tienePagoExacto)      &&
-      (precioInput === null          || r.tienePrecioExacto)     &&
+      (pagosQuery.length === 0 || r.tienePagoExacto) &&
+      (precioInput === null || r.tienePrecioExacto) &&
       (comodidadesQuery.length === 0 || r.tieneComodidadExacta);
 
-    const exactos      = pool.filter((r) =>  clasificar(r));
+    const exactos = pool.filter((r) => clasificar(r));
     const alternativos = pool.filter((r) => !clasificar(r));
-    const hayExactos   = exactos.length > 0;
+    const hayExactos = exactos.length > 0;
 
     // ─── FLAGS GLOBALES ───────────────────────────────────
-    const pago_exacto_encontrado      = pagosQuery.length > 0
-      ? pool.some((r) => r.tienePagoExacto)       : null;
-    const precio_exacto_encontrado    = precioValido
-      ? pool.some((r) => r.tienePrecioExacto)      : null;
-    const comodidad_exacta_encontrada = comodidadesQuery.length > 0
-      ? pool.some((r) => r.tieneComodidadExacta)   : null;
+    const pago_exacto_encontrado =
+      pagosQuery.length > 0 ? pool.some((r) => r.tienePagoExacto) : null;
+    const precio_exacto_encontrado = precioValido
+      ? pool.some((r) => r.tienePrecioExacto)
+      : null;
+    const comodidad_exacta_encontrada =
+      comodidadesQuery.length > 0
+        ? pool.some((r) => r.tieneComodidadExacta)
+        : null;
 
     // ─── LIMPIAR CAMPOS INTERNOS ──────────────────────────
-    const limpiar = ({ tienePagoExacto, tienePrecioExacto,
-                        tieneComodidadExacta, matchCount, ...rest }) => rest;
+    const limpiar = ({
+      tienePagoExacto,
+      tienePrecioExacto,
+      tieneComodidadExacta,
+      matchCount,
+      ...rest
+    }) => rest;
 
     const data = {
-      momento_dia:                  horarioActual,
+      momento_dia: horarioActual,
       pago_exacto_encontrado,
       precio_exacto_encontrado,
       comodidad_exacta_encontrada,
-      resultados:                   hayExactos
-                                      ? exactos.map(limpiar)
-                                      : alternativos.map(limpiar),
-      resultados_alternativos:      hayExactos
-                                      ? alternativos.map(limpiar)
-                                      : [],
+      resultados: hayExactos ? exactos.map(limpiar) : alternativos.map(limpiar),
+      resultados_alternativos: hayExactos ? alternativos.map(limpiar) : [],
       total: hayExactos ? exactos.length : alternativos.length,
     };
 
     clearTimeout(timeout);
     console.log("🏆 RESULTADO FINAL:", JSON.stringify(data, null, 2));
     return res.status(200).json(data);
-
   } catch (error) {
     clearTimeout(timeout);
     console.error("❌ ERROR en filtrar_por_datos_chat_bot:", error);
@@ -680,7 +721,6 @@ exports.filtrar_por_datos = onRequest(async (req, res) => {
 
 // ==================== BUSQUEDA_ALGOLIA_BOT_GEINZ ====================
 
-
 exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
   try {
     const { localidad, nombre, subcategoria } = req.body;
@@ -726,7 +766,6 @@ exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
       momento_dia: obtenerMomentoDia(),
       data,
     });
-
   } catch (error) {
     console.error("Error búsqueda algolia turismo:", error);
 
@@ -736,7 +775,6 @@ exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
     });
   }
 });
-
 
 exports.buscarNegocios_para_solucionar = onRequest(
   { cors: true },
@@ -835,6 +873,7 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
         "tag",
         "plantilla",
         "msje_whatsapp",
+        "alias",
       ],
     });
 
@@ -880,7 +919,8 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
           "parecidas",
           "tag",
           "plantilla", // 👈 agregar
-          "msje_whatsapp", // 👈 agregar
+          "msje_whatsapp",
+          "alias", // 👈 agregar
         ],
       });
 
@@ -1079,6 +1119,7 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
         pla: tienePlan,
         ...(eraPlantillaSinCreditos && { era_plantilla: true }),
         msje_pla_wa: hit.msje_whatsapp || "",
+        alias: hit.alias || "",
         tipo: "tienda",
       };
     });
@@ -1149,6 +1190,18 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
       typoTolerance: true,
       ignorePlurals: true,
       removeStopWords: true,
+      attributesToRetrieve: [
+        // 👈 agregado
+        "objectID",
+        "nombre",
+        "descripcion",
+        "lugar",
+        "categoria",
+        "imagen_bot",
+        "plantilla",
+        "msje_whatsapp",
+        "alias",
+      ],
     });
 
     const ids = hits.map((h) => h.objectID);
@@ -1167,7 +1220,7 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
         ? Promise.all(
             idsConFlag.map((id) =>
               obtener_creditos_tienda_fn(id)
-                .then((r) => ({ id, mayor_a_100: r?.creditos > 100 })) // 👈
+                .then((r) => ({ id, mayor_a_100: r?.creditos > 100 }))
                 .catch(() => ({ id, mayor_a_100: false })),
             ),
           )
@@ -1183,11 +1236,9 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
       .map((hit) => {
         const extra = extraData[hit.objectID] || {};
 
-        // ✅ pla true solo si tiene plantilla Y más de 100 créditos
         const tienePlan =
           hit.plantilla === true && creditosMap[hit.objectID] === true;
 
-        // ✅ era plantilla pero sin créditos suficientes
         const eraPlantillaSinCreditos =
           hit.plantilla === true && creditosMap[hit.objectID] !== true;
 
@@ -1203,6 +1254,7 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
           pla: tienePlan,
           ...(eraPlantillaSinCreditos && { era_plantilla: true }),
           msje_pla_wa: hit.msje_whatsapp || "",
+          alias: hit.alias || "", // 👈 agregado
           tipo: "tienda",
         };
       });
@@ -1210,12 +1262,10 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
     const idsConFlagSet = new Set(idsConFlag);
     const idsSinFlagSet = new Set(idsSinFlag);
 
-    // ✅ solo los que tienen plantilla Y créditos > 100
     const conFlagValidos = data.filter(
       (d) => idsConFlagSet.has(d.id) && creditosMap[d.id] === true,
     );
 
-    // ✅ sin flag + los que tienen plantilla pero sin saldo → grupo normal
     const sinFlag = data.filter(
       (d) =>
         idsSinFlagSet.has(d.id) ||
@@ -1245,6 +1295,7 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
     return res.status(500).json({ ok: false, error: error.message });
   }
 });
+
 exports.agregar_error_firebase_bot = onRequest(async (req, res) => {
   try {
     // =========================
@@ -4674,6 +4725,243 @@ exports.share = onRequest(async (req, res) => {
     res.status(500).send("Error interno");
   }
 });
+
+// ─────────────────────────────────────────────
+// PERFIL SSR — SEO + Social Preview + Usuarios
+// ─────────────────────────────────────────────
+exports.perfilSSR = onRequest(async (req, res) => {
+  const alias = req.path.replace(/^\/perfil\//, "").trim();
+  if (!alias) return res.status(404).send("No encontrado");
+
+  const userAgent = req.headers["user-agent"] || "";
+
+  // ✅ Log para ver qué bot llega
+  logger.info("UA →", userAgent);
+
+  const esCrawlerSEO = /googlebot|bingbot/i.test(userAgent);
+  const esPreviewSocial =
+    /whatsapp|telegram|twitterbot|facebookexternalhit|facebookbot|linkedinbot|slackbot|discordbot|skype|viber|line|snapchat|pinterest|vkshare|w3c_validator|curl|python|wget/i.test(
+      userAgent,
+    );
+
+  // Usuario normal → sirve perfil.html
+  if (!esCrawlerSEO && !esPreviewSocial) {
+    try {
+      const response = await fetch("https://geinzworkapp.web.app/perfil.html");
+      let html = await response.text();
+      html = html
+        .replace(/src="\.\/js\//g, 'src="https://geinzworkapp.web.app/js/')
+        .replace(
+          /href="\.\/style\//g,
+          'href="https://geinzworkapp.web.app/style/',
+        )
+        .replace(/href="\.\/img\//g, 'href="https://geinzworkapp.web.app/img/')
+        .replace(/src="\.\/img\//g, 'src="https://geinzworkapp.web.app/img/')
+        .replace(/"\.\//g, '"https://geinzworkapp.web.app/');
+      res.set("Content-Type", "text/html");
+      return res.status(200).send(html);
+    } catch (e) {
+      logger.error("Error sirviendo perfil.html:", e);
+      return res.redirect(
+        302,
+        `https://geinzworkapp.web.app/perfil.html?alias=${encodeURIComponent(alias)}`,
+      );
+    }
+  }
+
+  try {
+    const db = admin.firestore();
+
+    const aliasSnap = await db.collection("alias_tiendas").doc(alias).get();
+    if (!aliasSnap.exists) return res.status(404).send("Perfil no encontrado");
+
+    const { id, localidad } = aliasSnap.data();
+
+    const tiendaSnap = await db
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection(localidad)
+      .doc(id)
+      .get();
+
+    if (!tiendaSnap.exists) return res.status(404).send("Tienda no disponible");
+
+    const t = tiendaSnap.data();
+    const promoId = req.query.p || null;
+
+    const nombre = t.nombre_tienda || "Tienda en Geinz";
+    const descripcion = t.descripcion || "";
+    const descSeo = t.descripcion_seo || descripcion || "Encuéntralo en Geinz";
+    let logo =
+      t.img_tienda?.logo_tienda || "https://geinzworkapp.web.app/default.jpg";
+
+    const direccion = t.ubicacion?.dirección || "";
+    const referencia = t.ubicacion?.referencia || "";
+    const zona = t.ubicacion?.zona || "";
+    const categoriaLabel = t.categoria_tienda || "";
+    const subcats = (t.subcategoria ?? []).join(", ");
+    const telefono = t.metodo_contacto?.llamada?.numero || "";
+    const whatsapp = t.metodo_contacto?.whatsapp?.numero || "";
+    const facebook = t.metodo_contacto?.facebook?.url || "";
+    const instagram = t.metodo_contacto?.instagram?.url || "";
+    const tiktok = t.metodo_contacto?.tiktok?.url || "";
+    const url = `https://geinzworkapp.web.app/perfil/${alias}`;
+
+    if (promoId) {
+      const promos = t.img_tienda?.lista_img?.promociones;
+      const promoImg = promos?.[promoId];
+      if (promoImg) {
+        logo = promoImg;
+      } else {
+        logger.warn(
+          `Promo "${promoId}" no encontrada en lista_img.promociones`,
+        );
+      }
+    }
+    const safe = (s) => (s || "").replace(/"/g, '\\"').replace(/\n/g, " ");
+
+    // ✅ Mismo HTML para AMBOS — crawlerSEO y previewSocial
+    // WhatsApp necesita og:image con URL absoluta HTTPS y sin redirección
+    const ogHtml = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${nombre} | GeinzWork</title>
+  <meta name="description"         content="${descSeo}">
+
+  <meta property="og:type"         content="website" />
+  <meta property="og:site_name"    content="GeinzWork" />
+  <meta property="og:title"        content="${nombre}" />
+  <meta property="og:description"  content="${descSeo}" />
+  <meta property="og:image"        content="${logo}" />
+  <meta property="og:image:secure_url" content="${logo}" />
+  <meta property="og:image:width"  content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type"   content="image/webp" />
+  <meta property="og:url"          content="${url}" />
+  <meta property="og:locale"       content="es_PE" />
+
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content="${nombre}" />
+  <meta name="twitter:description" content="${descSeo}" />
+  <meta name="twitter:image"       content="${logo}" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FoodEstablishment",
+    "name": "${safe(nombre)}",
+    "description": "${safe(descripcion)}",
+    "image": "${logo}",
+    "url": "${url}",
+    "telephone": "${telefono}",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "${safe(direccion)}",
+      "addressLocality": "${localidad}",
+      "addressCountry": "PE"
+    },
+    "servesCuisine": "${safe(subcats)}",
+    "sameAs": ["${facebook}","${instagram}","${tiktok}"]
+  }
+  </script>
+</head>
+<body>
+  <h1>${nombre}</h1>
+  <p>${descripcion}</p>
+  <h2>Ubicación</h2>
+  <p>${direccion}</p>
+  ${referencia ? `<p>Referencia: ${referencia}</p>` : ""}
+  ${zona ? `<p>Zona: ${zona}</p>` : ""}
+  <h2>Categoría</h2>
+  <p>${categoriaLabel}</p>
+  ${subcats ? `<p>Especialidades: ${subcats}</p>` : ""}
+  <h2>Contacto</h2>
+  ${telefono ? `<p>Teléfono: ${telefono}</p>` : ""}
+  ${whatsapp ? `<p>WhatsApp: ${whatsapp}</p>` : ""}
+  ${facebook ? `<p>Facebook: ${facebook}</p>` : ""}
+  ${instagram ? `<p>Instagram: ${instagram}</p>` : ""}
+  ${tiktok ? `<p>TikTok: ${tiktok}</p>` : ""}
+  ${esPreviewSocial ? `<script>window.location.href = "${url}";</script>` : ""}
+</body>
+</html>`;
+
+    return res.status(200).send(ogHtml);
+  } catch (e) {
+    logger.error("perfilSSR error:", e);
+    return res.status(500).send("Error interno");
+  }
+});
+
+// ─────────────────────────────────────────────
+// SITEMAP — genera todas las URLs de tiendas
+// ─────────────────────────────────────────────
+exports.sitemap = onRequest(async (req, res) => {
+  try {
+    const db = admin.firestore();
+    const snap = await db.collection("alias_tiendas").get();
+
+    logger.info("Total alias encontrados:", snap.size);
+    const staticUrls = `
+  <url>
+    <loc>https://geinzworkapp.web.app/</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://geinzworkapp.web.app/scree/nostros</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://geinzworkapp.web.app/logindata/login</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://geinzworkapp.web.app/redirect/pantalla_turismo?loc=barranca</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://geinzworkapp.web.app/redirect/emergencia?loc=barranca</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://geinzworkapp.web.app/scree/promos?loc=barranca</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>`;
+
+    const dynamicUrls = snap.docs
+      .map(
+        (doc) => `
+  <url>
+    <loc>https://geinzworkapp.web.app/perfil/${doc.id}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`,
+      )
+      .join("");
+
+    res.set("Content-Type", "application/xml");
+    res.set("Cache-Control", "public, max-age=3600");
+    res.status(200).send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${staticUrls}
+${dynamicUrls}
+</urlset>`);
+  } catch (e) {
+    logger.error("Error sitemap:", e);
+    res.status(500).send("Error generando sitemap");
+  }
+});
+
 function capitalizeFirstLetter(str) {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1);
