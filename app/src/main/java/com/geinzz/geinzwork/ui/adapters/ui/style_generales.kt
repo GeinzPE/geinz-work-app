@@ -72,6 +72,7 @@ import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.compartir_co
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.dataclass_promociones_cerca_de_ti
 import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.obj_completo
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
+import com.geinzz.geinzwork.herramientas_geinz.constantes.get_alias_tienda.obtenerAliasTienda
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.TextoExpandibleSuave
@@ -92,6 +93,10 @@ import com.github.panpf.zoomimage.compose.zoom.zoomable
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
 import com.valentinilk.shimmer.shimmer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.checkerframework.framework.qual.ConditionalPostconditionAnnotation
 import java.net.URLEncoder
 
@@ -649,25 +654,32 @@ fun ZoomableGalleryFullScreen(
     startIndex: Int = 0,
     onDismiss: () -> Unit
 ) {
-    if (imagenes.isEmpty()) return
-    val context = LocalContext.current
 
-    // ====================
-    // Accompanist PagerState
-    // ====================
-    val pagerState = com.google.accompanist.pager.rememberPagerState(initialPage = startIndex)
-    var allowScroll by remember { mutableStateOf(true) }
-    val zoomableState = rememberZoomableState()
-    var indice_cruzado by remember { mutableStateOf(startIndex) }
-    val localidad_pasada = when (it.localidad) {
-        "barranca" -> "ba"
-        "paramonga" -> "par"
-        "pativilca" -> "pat"
-        "supe" -> "su"
-        "puerto supe" -> "pue"
-        else -> it.localidad
+    if (imagenes.isEmpty()) return
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    var alias_tienda by remember { mutableStateOf("") }
+
+    // Obtener alias apenas abre
+    LaunchedEffect(Unit) {
+
+        alias_tienda = obtenerAliasTienda(
+            it.id_tienda,
+            it.localidad
+        ) ?: ""
     }
-    // Observamos cambios de página para actualizar indice_cruzado
+
+    val pagerState =
+        com.google.accompanist.pager.rememberPagerState(initialPage = startIndex)
+
+    var allowScroll by remember { mutableStateOf(true) }
+
+    val zoomableState = rememberZoomableState()
+
+    var indice_cruzado by remember { mutableStateOf(startIndex) }
+
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }
             .collect { page ->
@@ -679,21 +691,21 @@ fun ZoomableGalleryFullScreen(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
+
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = Color.Black
         ) {
+
             Box(modifier = Modifier.fillMaxSize()) {
 
-                // ====================
-                // Horizontal Pager Accompanist
-                // ====================
                 com.google.accompanist.pager.HorizontalPager(
                     state = pagerState,
                     count = imagenes.size,
                     modifier = Modifier.fillMaxSize(),
                     userScrollEnabled = allowScroll
                 ) { page ->
+
                     ZoomImage(
                         painter = rememberAsyncImagePainter(imagenes[page]),
                         contentDescription = null,
@@ -704,13 +716,13 @@ fun ZoomableGalleryFullScreen(
                     )
                 }
 
-                // Botón cerrar
                 IconButton(
                     onClick = onDismiss,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(16.dp)
                 ) {
+
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Cerrar",
@@ -718,8 +730,8 @@ fun ZoomableGalleryFullScreen(
                     )
                 }
 
-                // Botón WhatsApp para promociones
                 if (tag.equals("promociones", ignoreCase = true)) {
+
                     Row(
                         modifier = Modifier.align(Alignment.BottomCenter),
                         horizontalArrangement = Arrangement.spacedBy(5.dp)
@@ -731,162 +743,18 @@ fun ZoomableGalleryFullScreen(
                             txt_icono = "Me interesa",
                             modifier = Modifier.weight(1f),
                             clikeable = {
+
+                                val link =
+                                    "https://geinzworkapp.web.app/perfil/$alias_tienda?p=$indice_cruzado"
+
                                 abrir_whattsapp(
                                     id_user,
                                     "promocion",
                                     "",
                                     "",
-                                    context = context,
-                                    it.numero_tienda,
-                                    "Hola, quiero esta oferta que vi en su perfil en Geinz: " +
-                                            "https://geinzworkapp.web.app/api/share?" +
-                                            "t=p" +
-                                            "&id=${it.id_tienda}" +
-                                            "&l=${localidad_pasada}" +
-                                            "&c=${it.categoria}" +
-                                            "&i=${indice_cruzado}"
-                                )
-                            })
-
-                        btn_compartir(
-                            color = Color(0xFF8700F3),
-                            icono = R.drawable.compartir_icon_unico_blanco,
-                            txt_icono = "Compartir",
-                            modifier = Modifier.weight(1f),
-                            clikeable = {
-                                compartir_hosting_promo(
-                                    id_user,
-                                    it.nombre_tienda,
-                                    it.categoria,
                                     context,
-                                    it.localidad,
-                                    it.id_tienda, indice_cruzado.toString()
-                                )
-
-                            })
-                    }
-                }
-
-            }
-        }
-    }
-}
-
-
-
-@SuppressLint("UnusedBoxWithConstraintsScope")
-@Composable
-fun ZoomableGalleryFullScreen_para_promociones(
-    id_user: String,
-    id_promocion: String,
-    it: compartir_promocion,
-    tag: String = "",
-    imagenes: List<Pair<String, String>>, // Pair<url, idPromocion>
-    startIndex: Int = 0,
-    onDismiss: () -> Unit
-) {
-    if (imagenes.isEmpty()) return
-
-    val context = LocalContext.current
-
-    // ====================
-    // Accompanist PagerState
-    // ====================
-    val pagerState = com.google.accompanist.pager.rememberPagerState(initialPage = startIndex)
-    var allowScroll by remember { mutableStateOf(true) }
-    val zoomableState = rememberZoomableState()
-
-    // ID de la promoción actual
-    var indice_cruzado by remember { mutableStateOf(id_promocion) }
-
-    val localidad_pasada = when (it.localidad.lowercase()) {
-        "barranca" -> "ba"
-        "paramonga" -> "par"
-        "pativilca" -> "pat"
-        "supe" -> "su"
-        "puerto supe" -> "pue"
-        else -> it.localidad
-    }
-
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }
-            .collect { page ->
-                indice_cruzado = imagenes.getOrNull(page)?.first ?: id_promocion
-            }
-    }
-
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = Color.Black
-        ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-
-                // ====================
-                // Horizontal Pager Accompanist
-                // ====================
-                com.google.accompanist.pager.HorizontalPager(
-                    state = pagerState,
-                    count = imagenes.size,
-                    modifier = Modifier.fillMaxSize(),
-                    userScrollEnabled = allowScroll
-                ) { page ->
-                    val (idPromocion, url) = imagenes[page]
-                    ZoomImage(
-                        painter = rememberAsyncImagePainter(url),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .zoomable(zoomableState),
-                        contentScale = ContentScale.Fit
-                    )
-
-                }
-
-                // Botón cerrar
-                IconButton(
-                    onClick = onDismiss,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Cerrar",
-                        tint = Color.White
-                    )
-                }
-
-                // Botones WhatsApp y Compartir
-                if (tag.equals("promociones", ignoreCase = true)) {
-                    Row(
-                        modifier = Modifier.align(Alignment.BottomCenter),
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
-                    ) {
-
-                        btn_compartir(
-                            color = Color(0xFF178A3F),
-                            icono = R.drawable.whatsapp_icon,
-                            txt_icono = "Me interesa",
-                            modifier = Modifier.weight(1f),
-                            clikeable = {
-                                abrir_whattsapp(
-                                    id_user,
-                                    "promocion",
-                                    "",
-                                    "",
-                                    context = context,
                                     it.numero_tienda,
-                                    "Hola, quiero esta oferta que vi en su perfil en Geinz: " +
-                                            "https://geinzworkapp.web.app/api/share?" +
-                                            "t=p" +
-                                            "&id=${it.id_tienda}" +
-                                            "&l=${localidad_pasada}" +
-                                            "&c=${it.categoria}" +
-                                            "&i=${indice_cruzado}"
+                                    "Hola, quiero esta oferta que vi en su perfil en Geinz: $link"
                                 )
                             }
                         )
@@ -897,6 +765,154 @@ fun ZoomableGalleryFullScreen_para_promociones(
                             txt_icono = "Compartir",
                             modifier = Modifier.weight(1f),
                             clikeable = {
+
+                                compartir_hosting_promo(
+                                    id_user,
+                                    it.nombre_tienda,
+                                    it.categoria,
+                                    context,
+                                    it.localidad,
+                                    it.id_tienda,
+                                    indice_cruzado.toString()
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@SuppressLint("UnusedBoxWithConstraintsScope")
+@Composable
+fun ZoomableGalleryFullScreen_para_promociones(
+    id_user: String,
+    id_promocion: String,
+    it: compartir_promocion,
+    tag: String = "",
+    imagenes: List<Pair<String, String>>, // Pair<idPromocion, url>
+    startIndex: Int = 0,
+    onDismiss: () -> Unit
+) {
+
+    if (imagenes.isEmpty()) return
+
+    val context = LocalContext.current
+
+    var alias_tienda by remember { mutableStateOf("") }
+
+    // Obtener alias
+    LaunchedEffect(Unit) {
+
+        alias_tienda = obtenerAliasTienda(
+            it.id_tienda,
+            it.localidad
+        ) ?: ""
+    }
+
+    val pagerState =
+        com.google.accompanist.pager.rememberPagerState(initialPage = startIndex)
+
+    var allowScroll by remember { mutableStateOf(true) }
+
+    val zoomableState = rememberZoomableState()
+
+    // ID promoción actual
+    var indice_cruzado by remember { mutableStateOf(id_promocion) }
+
+    LaunchedEffect(pagerState) {
+
+        snapshotFlow { pagerState.currentPage }
+            .collect { page ->
+
+                indice_cruzado =
+                    imagenes.getOrNull(page)?.first ?: id_promocion
+            }
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = Color.Black
+        ) {
+
+            Box(modifier = Modifier.fillMaxSize()) {
+
+                com.google.accompanist.pager.HorizontalPager(
+                    state = pagerState,
+                    count = imagenes.size,
+                    modifier = Modifier.fillMaxSize(),
+                    userScrollEnabled = allowScroll
+                ) { page ->
+
+                    val (_, url) = imagenes[page]
+
+                    ZoomImage(
+                        painter = rememberAsyncImagePainter(url),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .zoomable(zoomableState),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                ) {
+
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar",
+                        tint = Color.White
+                    )
+                }
+
+                if (tag.equals("promociones", ignoreCase = true)) {
+
+                    Row(
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+
+                        btn_compartir(
+                            color = Color(0xFF178A3F),
+                            icono = R.drawable.whatsapp_icon,
+                            txt_icono = "Me interesa",
+                            modifier = Modifier.weight(1f),
+                            clikeable = {
+
+                                val link =
+                                    "https://geinzworkapp.web.app/perfil/$alias_tienda?p=$indice_cruzado"
+
+                                abrir_whattsapp(
+                                    id_user,
+                                    "promocion",
+                                    "",
+                                    "",
+                                    context = context,
+                                    it.numero_tienda,
+                                    "Hola, quiero esta oferta que vi en su perfil en Geinz: $link"
+                                )
+                            }
+                        )
+
+                        btn_compartir(
+                            color = Color(0xFF8700F3),
+                            icono = R.drawable.compartir_icon_unico_blanco,
+                            txt_icono = "Compartir",
+                            modifier = Modifier.weight(1f),
+                            clikeable = {
+
                                 compartir_hosting_promo(
                                     id_user,
                                     it.nombre_tienda,
@@ -910,7 +926,6 @@ fun ZoomableGalleryFullScreen_para_promociones(
                         )
                     }
                 }
-
             }
         }
     }
@@ -1281,51 +1296,56 @@ fun compartir_hosting_promo(
     id_tienda: String,
     indice_cruazado: String
 ) {
+
     try {
-        val localidad_pasada = when (localidad_tienda) {
-            "barranca" -> "ba"
-            "paramonga" -> "par"
-            "pativilca" -> "pat"
-            "supe" -> "su"
-            "puerto supe" -> "pue"
-            else -> localidad_tienda
-        }
+
         val repo_erese_socio = repo_eres_socio()
-        // Construimos el link de la Cloud Function
 
-        val link =
-            "https://geinzworkapp.web.app/api/share?" +
-                    "t=p" +
-                    "&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
-                    "&l=$localidad_pasada" +
-                    "&c=${URLEncoder.encode(categoria, "UTF-8")}" +
-                    "&i=$indice_cruazado"
+        CoroutineScope(Dispatchers.IO).launch {
 
+            val alias = obtenerAliasTienda(
+                id_tienda,
+                localidad_tienda
+            ) ?: return@launch
 
-        val texto = "Mira lo que encontre en $nombre_tienda 👀🔥 \n$link"
+            withContext(Dispatchers.Main) {
 
+                val link =
+                    "https://geinzworkapp.web.app/perfil/$alias?p=$indice_cruazado"
 
-        // Intent simple de compartir
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, texto)
+                val texto =
+                    "Mira lo que encontré en $nombre_tienda 👀🔥\n$link"
+
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, texto)
+                }
+
+                context.startActivity(
+                    Intent.createChooser(intent, "Compartir con")
+                        .apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                )
+
+                repo_erese_socio.agregar_contador(
+                    "compartidos",
+                    id_tienda,
+                    localidad_tienda,
+                    id_user
+                )
+            }
         }
 
-        // Abrimos el chooser para que el usuario seleccione la app
-        context.startActivity(
-            Intent.createChooser(intent, "Compartir con")
-                .apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-        )
-        repo_erese_socio.agregar_contador(
-            "compartidos",
-            id_tienda,
-            localidad_tienda, id_user
-        )
     } catch (e: Exception) {
+
         e.printStackTrace()
-        Toast.makeText(context, "Error al compartir el lugar", Toast.LENGTH_SHORT).show()
+
+        Toast.makeText(
+            context,
+            "Error al compartir el lugar",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 }
 

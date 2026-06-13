@@ -31,6 +31,7 @@ import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_l
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.to_metodo_pago
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
@@ -73,6 +74,9 @@ class repo_agregar_datos(context: Context) {
             data_class_tienda_geinz.ubicacion.latitud,
             data_class_tienda_geinz.ubicacion.longitud
         )
+        val aliasKey = generarAliasTienda(data_class_tienda_geinz.nombre_tienda)
+        val categoriaFormateada = formatearCategoria(data_class_tienda_geinz.categoria_tienda)
+
         val hasmap = hashMapOf<String, Any>(
             "categoria_tienda" to data_class_tienda_geinz.categoria_tienda,
             "descripcion" to data_class_tienda_geinz.descripcion,
@@ -96,9 +100,9 @@ class repo_agregar_datos(context: Context) {
             "img_tienda" to img_tienda(),
             "fechas" to data_class_tienda_geinz.fechas,
             "timeSlamp" to data_class_tienda_geinz.timeSlamp,
-            "puntos_tienda" to data_class_tienda_geinz.puntos_tienda
+            "puntos_tienda" to data_class_tienda_geinz.puntos_tienda,
+            "alias_key" to aliasKey  // ✅ NUEVO
         )
-
         db2.collection("Tiendas")
             .document(data_class_tienda_geinz.localida_tienda)
             .collection(data_class_tienda_geinz.localida_tienda)
@@ -106,6 +110,15 @@ class repo_agregar_datos(context: Context) {
             .set(hasmap)
             .addOnSuccessListener {
                 Log.d("datos_agregados", "correcto")
+
+                db2.collection("alias_tiendas")
+                    .document(aliasKey)
+                    .set(mapOf(
+                        "id"        to data_class_tienda_geinz.id_tienda,
+                        "localidad" to data_class_tienda_geinz.localida_tienda,
+                        "categoria" to categoriaFormateada
+                    ))
+
 
                 val datos = Item(
                     nombre = data_class_tienda_geinz.nombre_tienda,
@@ -117,9 +130,8 @@ class repo_agregar_datos(context: Context) {
                     latitud = data_class_tienda_geinz.ubicacion.latitud,
                     longitud = data_class_tienda_geinz.ubicacion.longitud,
                     geohasing = data_class_tienda_geinz.geogash
-
                 )
-                agregar_datos_alglia(datos)
+                agregar_datos_alglia(datos, aliasKey)
 
                 val nuevas_teindas_dias = nuevas_teindas_dias(
                     categoria = data_class_tienda_geinz.categoria_tienda,
@@ -140,7 +152,7 @@ class repo_agregar_datos(context: Context) {
             }
     }
 
-    fun agregar_datos_alglia(data_class_tienda_geinz: Item) {
+    fun agregar_datos_alglia(data_class_tienda_geinz: Item, aliasKey: String) {  // ✅ nuevo param
         val db = FirebaseFirestore.getInstance()
             .collection("lugares")
             .document(data_class_tienda_geinz.id_tienda)
@@ -160,7 +172,8 @@ class repo_agregar_datos(context: Context) {
                 "longitud" to data_class_tienda_geinz.longitud
             ),
             "zona" to zona,
-            "geohash" to data_class_tienda_geinz.geohasing
+            "geohash" to data_class_tienda_geinz.geohasing,
+            "alias" to aliasKey  // ✅ NUEVO
         )
         db.set(hashMap)
             .addOnSuccessListener { Log.d("creado_correcto", "${data_class_tienda_geinz.id_tienda} OK") }
@@ -547,150 +560,150 @@ class repo_agregar_datos(context: Context) {
     }
 
 
-    suspend fun guardar_datos_tienda(
-        algolia: Boolean,
-        nuevo: Boolean,
-        id_tienda: String,
-        localidad: String,
-        cat: String,
-        subcat: List<String>,
-        onResult: (Boolean) -> Unit = {}
-    ) {
-        val db = FirebaseFirestore.getInstance()
-
-        Log.d("GUARDAR_TIENDA", "==== INICIO guardar_datos_tienda ====")
-        Log.d("GUARDAR_TIENDA", "algolia = $algolia")
-        Log.d("GUARDAR_TIENDA", "nuevo = $nuevo")
-        Log.d("GUARDAR_TIENDA", "id_tienda = $id_tienda")
-        Log.d("GUARDAR_TIENDA", "localidad = $localidad")
-        Log.d("GUARDAR_TIENDA", "cat = $cat")
-        Log.d("GUARDAR_TIENDA", "subcat = $subcat")
-
-        val hashMapTiendas = mapOf(
-            "categoria_tienda" to cat,
-            "subcategoria" to subcat
-        )
-
-        val hashMapLugares = mapOf(
-            "categoria" to cat,
-            "tag" to subcat
-        )
-
-        Log.d("GUARDAR_TIENDA", "hashMapTiendas = $hashMapTiendas")
-        Log.d("GUARDAR_TIENDA", "hashMapLugares = $hashMapLugares")
-
-        try {
-
-            // ============================
-            //   UPDATE 1: Tiendas
-            // ============================
-            Log.d("GUARDAR_TIENDA", "↪ Actualizando TIENDAS...")
-            db.collection("Tiendas")
-                .document(localidad)
-                .collection(localidad)
-                .document(id_tienda)
-                .update(hashMapTiendas)
-                .await()
-            Log.d("GUARDAR_TIENDA", "✔ TIENDAS actualizado correctamente")
-
-
-            // ============================
-            //   UPDATE 2: Lugares
-            // ============================
-            if(!algolia){
-            Log.d("GUARDAR_TIENDA", "↪ Actualizando LUGARES...")
-            db.collection("lugares")
-                .document(id_tienda)
-                .update(hashMapLugares)
-                .await()
-            Log.d("GUARDAR_TIENDA", "✔ LUGARES actualizado correctamente")
-            }
-
-
-            // ============================
-            //   ELIMINAR si NO pertenece a Algolia
-            // ============================
-            if (!algolia) {
-                Log.d("GUARDAR_TIENDA", "↪ NO pertenece a algolia → eliminando de lugares")
-
-                db.collection("lugares")
-                    .document(id_tienda)
-                    .delete()
-                    .await()
-
-                Log.d("GUARDAR_TIENDA", "🗑 Eliminado de lugares")
-            } else {
-
-                Log.d("GUARDAR_TIENDA", "↪ SI pertenece a algolia → obteniendo datos tienda")
-
-                val datos_tienda_Espesifica = obtenerTiendaPorId(localidad, id_tienda)
-                Log.d("GUARDAR_TIENDA", "Datos tienda obtenidos: $datos_tienda_Espesifica")
-
-                val datos = Item(
-                    datos_tienda_Espesifica.nombre_tienda,
-                    datos_tienda_Espesifica.localidad_tienda,
-                    datos_tienda_Espesifica.id_tienda,
-                    datos_tienda_Espesifica.categoria,
-                    datos_tienda_Espesifica.logo_img,
-                    datos_tienda_Espesifica.lista_subcateogira,
-                    datos_tienda_Espesifica.latitud,
-                    datos_tienda_Espesifica.longitud,
-                    datos_tienda_Espesifica.geohasing
-                )
-
-                Log.d("GUARDAR_TIENDA", "Datos enviados a algolia: $datos")
-                agregar_datos_alglia(datos)
-            }
-
-
-            // ============================
-            //   ELIMINAR si NO es tienda nueva
-            // ============================
-            if (!nuevo) {
-                Log.d("GUARDAR_TIENDA", "↪ NO es tienda nueva → eliminando de nuevos_lugares")
-
-                db.collection("Tiendas")
-                    .document(localidad)
-                    .collection("nuevos_lugares")
-                    .document(id_tienda)
-                    .delete()
-                    .await()
-
-                Log.d("GUARDAR_TIENDA", "🗑 Eliminado de nuevos_lugares")
-            } else {
-
-                Log.d("GUARDAR_TIENDA", "↪ SI es tienda nueva → obteniendo datos tienda")
-
-                val datos_tienda_Espesifica = obtenerTiendaPorId(localidad, id_tienda)
-                Log.d("GUARDAR_TIENDA", "Datos tienda nueva: $datos_tienda_Espesifica")
-
-                val nuevas_teindas_dias = nuevas_teindas_dias(
-                    categoria = datos_tienda_Espesifica.categoria,
-                    direccion = datos_tienda_Espesifica.direccion,
-                    horario_atencion = datos_tienda_Espesifica.horario_atencion,
-                    id_tienda = datos_tienda_Espesifica.id_tienda,
-                    logo_img = datos_tienda_Espesifica.logo_img,
-                    nombre_tienda = datos_tienda_Espesifica.nombre_tienda,
-                    descripcion = datos_tienda_Espesifica.descripcion,
-                    lista_subcateogira = datos_tienda_Espesifica.lista_subcateogira,
-                    localidad_tienda = datos_tienda_Espesifica.localidad_tienda,
-                    fecha = emptyMap()
-                )
-
-                Log.d("GUARDAR_TIENDA", "Datos enviados a nuevos_lugares: $nuevas_teindas_dias")
-
-                agregar_por_14_dias_a_nuevos(nuevas_teindas_dias)
-            }
-
-            Log.d("GUARDAR_TIENDA", "==== FIN SIN ERRORES ====")
-            onResult(true)
-
-        } catch (e: Exception) {
-            Log.e("GUARDAR_TIENDA", "❌ ERROR EN guardar_datos_tienda", e)
-            onResult(false)
-        }
-    }
-
+//    suspend fun guardar_datos_tienda(
+//        algolia: Boolean,
+//        nuevo: Boolean,
+//        id_tienda: String,
+//        localidad: String,
+//        cat: String,
+//        subcat: List<String>,
+//        onResult: (Boolean) -> Unit = {}
+//    ) {
+//        val db = FirebaseFirestore.getInstance()
+//
+//        Log.d("GUARDAR_TIENDA", "==== INICIO guardar_datos_tienda ====")
+//        Log.d("GUARDAR_TIENDA", "algolia = $algolia")
+//        Log.d("GUARDAR_TIENDA", "nuevo = $nuevo")
+//        Log.d("GUARDAR_TIENDA", "id_tienda = $id_tienda")
+//        Log.d("GUARDAR_TIENDA", "localidad = $localidad")
+//        Log.d("GUARDAR_TIENDA", "cat = $cat")
+//        Log.d("GUARDAR_TIENDA", "subcat = $subcat")
+//
+//        val hashMapTiendas = mapOf(
+//            "categoria_tienda" to cat,
+//            "subcategoria" to subcat
+//        )
+//
+//        val hashMapLugares = mapOf(
+//            "categoria" to cat,
+//            "tag" to subcat
+//        )
+//
+//        Log.d("GUARDAR_TIENDA", "hashMapTiendas = $hashMapTiendas")
+//        Log.d("GUARDAR_TIENDA", "hashMapLugares = $hashMapLugares")
+//
+//        try {
+//
+//            // ============================
+//            //   UPDATE 1: Tiendas
+//            // ============================
+//            Log.d("GUARDAR_TIENDA", "↪ Actualizando TIENDAS...")
+//            db.collection("Tiendas")
+//                .document(localidad)
+//                .collection(localidad)
+//                .document(id_tienda)
+//                .update(hashMapTiendas)
+//                .await()
+//            Log.d("GUARDAR_TIENDA", "✔ TIENDAS actualizado correctamente")
+//
+//
+//            // ============================
+//            //   UPDATE 2: Lugares
+//            // ============================
+//            if(!algolia){
+//            Log.d("GUARDAR_TIENDA", "↪ Actualizando LUGARES...")
+//            db.collection("lugares")
+//                .document(id_tienda)
+//                .update(hashMapLugares)
+//                .await()
+//            Log.d("GUARDAR_TIENDA", "✔ LUGARES actualizado correctamente")
+//            }
+//
+//
+//            // ============================
+//            //   ELIMINAR si NO pertenece a Algolia
+//            // ============================
+//            if (!algolia) {
+//                Log.d("GUARDAR_TIENDA", "↪ NO pertenece a algolia → eliminando de lugares")
+//
+//                db.collection("lugares")
+//                    .document(id_tienda)
+//                    .delete()
+//                    .await()
+//
+//                Log.d("GUARDAR_TIENDA", "🗑 Eliminado de lugares")
+//            } else {
+//
+//                Log.d("GUARDAR_TIENDA", "↪ SI pertenece a algolia → obteniendo datos tienda")
+//
+//                val datos_tienda_Espesifica = obtenerTiendaPorId(localidad, id_tienda)
+//                Log.d("GUARDAR_TIENDA", "Datos tienda obtenidos: $datos_tienda_Espesifica")
+//
+//                val datos = Item(
+//                    datos_tienda_Espesifica.nombre_tienda,
+//                    datos_tienda_Espesifica.localidad_tienda,
+//                    datos_tienda_Espesifica.id_tienda,
+//                    datos_tienda_Espesifica.categoria,
+//                    datos_tienda_Espesifica.logo_img,
+//                    datos_tienda_Espesifica.lista_subcateogira,
+//                    datos_tienda_Espesifica.latitud,
+//                    datos_tienda_Espesifica.longitud,
+//                    datos_tienda_Espesifica.geohasing
+//                )
+//
+//                Log.d("GUARDAR_TIENDA", "Datos enviados a algolia: $datos")
+//                agregar_datos_alglia(datos)
+//            }
+//
+//
+//            // ============================
+//            //   ELIMINAR si NO es tienda nueva
+//            // ============================
+//            if (!nuevo) {
+//                Log.d("GUARDAR_TIENDA", "↪ NO es tienda nueva → eliminando de nuevos_lugares")
+//
+//                db.collection("Tiendas")
+//                    .document(localidad)
+//                    .collection("nuevos_lugares")
+//                    .document(id_tienda)
+//                    .delete()
+//                    .await()
+//
+//                Log.d("GUARDAR_TIENDA", "🗑 Eliminado de nuevos_lugares")
+//            } else {
+//
+//                Log.d("GUARDAR_TIENDA", "↪ SI es tienda nueva → obteniendo datos tienda")
+//
+//                val datos_tienda_Espesifica = obtenerTiendaPorId(localidad, id_tienda)
+//                Log.d("GUARDAR_TIENDA", "Datos tienda nueva: $datos_tienda_Espesifica")
+//
+//                val nuevas_teindas_dias = nuevas_teindas_dias(
+//                    categoria = datos_tienda_Espesifica.categoria,
+//                    direccion = datos_tienda_Espesifica.direccion,
+//                    horario_atencion = datos_tienda_Espesifica.horario_atencion,
+//                    id_tienda = datos_tienda_Espesifica.id_tienda,
+//                    logo_img = datos_tienda_Espesifica.logo_img,
+//                    nombre_tienda = datos_tienda_Espesifica.nombre_tienda,
+//                    descripcion = datos_tienda_Espesifica.descripcion,
+//                    lista_subcateogira = datos_tienda_Espesifica.lista_subcateogira,
+//                    localidad_tienda = datos_tienda_Espesifica.localidad_tienda,
+//                    fecha = emptyMap()
+//                )
+//
+//                Log.d("GUARDAR_TIENDA", "Datos enviados a nuevos_lugares: $nuevas_teindas_dias")
+//
+//                agregar_por_14_dias_a_nuevos(nuevas_teindas_dias)
+//            }
+//
+//            Log.d("GUARDAR_TIENDA", "==== FIN SIN ERRORES ====")
+//            onResult(true)
+//
+//        } catch (e: Exception) {
+//            Log.e("GUARDAR_TIENDA", "❌ ERROR EN guardar_datos_tienda", e)
+//            onResult(false)
+//        }
+//    }
+//
 
 
 
@@ -897,6 +910,98 @@ class repo_agregar_datos(context: Context) {
                     e
                 )
             }
+    }
+
+
+    fun registrarAliasATodas(
+        localidad: String,
+        onSuccess: () -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        db2.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .get()
+            .addOnSuccessListener { snapshot ->
+
+                val batch = db2.batch()
+
+                for (doc in snapshot.documents) {
+                    val idTienda      = doc.id
+                    val nombreTienda  = doc.getString("nombre_tienda") ?: continue
+                    val categoria     = doc.getString("categoria_tienda") ?: continue
+
+                    val alias             = generarAliasTienda(nombreTienda)
+                    val categoriaFormateada = formatearCategoria(categoria)
+
+                    // 1️⃣ Doc en alias_tiendas
+                    val aliasRef = db2.collection("alias_tiendas").document(alias)
+                    batch.set(aliasRef, mapOf(
+                        "id"        to idTienda,
+                        "localidad" to localidad,
+                        "categoria" to categoriaFormateada
+                    ), SetOptions.merge())
+
+                    // 2️⃣ Agrega alias_key dentro de cada tienda
+                    val tiendaRef = db2.collection("Tiendas")
+                        .document(localidad)
+                        .collection(localidad)
+                        .document(idTienda)
+                    batch.set(tiendaRef, mapOf("alias_key" to alias), SetOptions.merge())
+                }
+
+                batch.commit()
+                    .addOnSuccessListener { onSuccess() }
+                    .addOnFailureListener { e -> onError(e) }
+            }
+            .addOnFailureListener { e -> onError(e) }
+    }
+
+
+    fun pegarAliasEnLugares(
+        localidad: String,
+        onSuccess: () -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        db2.collection("Tiendas")
+            .document(localidad)
+            .collection(localidad)
+            .get()
+            .addOnSuccessListener { snapshot ->
+
+                val batch = db2.batch()
+
+                for (doc in snapshot.documents) {
+                    val idTienda = doc.id
+                    val alias = doc.getString("alias_key") ?: continue
+
+                    // Pega el alias en lugares/{idTienda}
+                    val lugarRef = db2.collection("lugares").document(idTienda)
+                    batch.set(lugarRef, mapOf("alias" to alias), SetOptions.merge())
+                }
+
+                batch.commit()
+                    .addOnSuccessListener { onSuccess() }
+                    .addOnFailureListener { e -> onError(e) }
+            }
+            .addOnFailureListener { e -> onError(e) }
+    }
+
+    fun generarAliasTienda(nombreTienda: String): String {
+        val base = nombreTienda
+            .lowercase()
+            .replace("á", "a").replace("é", "e").replace("í", "i")
+            .replace("ó", "o").replace("ú", "u").replace("ñ", "n")
+            .replace(Regex("[^a-z0-9]"), "")
+        val sufijo = (1000..9999).random()
+        return "$base$sufijo"
+    }
+
+    fun formatearCategoria(categoria: String): String {
+        return categoria
+            .trim()
+            .lowercase()
+            .replace(Regex("\\s+"), "+") // espacios → "+"
     }
 
 

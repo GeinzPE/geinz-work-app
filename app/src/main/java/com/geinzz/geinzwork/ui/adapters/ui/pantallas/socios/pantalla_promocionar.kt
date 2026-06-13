@@ -181,6 +181,7 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_expandibles
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen_cinco
 import com.geinzz.geinzwork.herramientas_geinz.constantes.constantes_subir_img_panel_tienda.generarIdImagen_nueve
+import com.geinzz.geinzwork.herramientas_geinz.constantes.get_alias_tienda.obtenerAliasTienda
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.model.repo_pantallas_promocionar
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.DatePickerExample_promociones
@@ -225,8 +226,11 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.valentinilk.shimmer.shimmer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -1863,8 +1867,8 @@ fun pantalla_promocionar(
 
                                     spacer_vertical(10.dp)
 
-                                val cargando = estado_texto_whatsapp_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_whatsap.Loading
-                                        || (iaGenerandoActual != null && iaGenerandoActual != "whatsapp")
+//                                val cargando = estado_texto_whatsapp_con_ia is viewmodel_pantallas_promocionar.ESstado_ia_msje_whatsap.Loading
+//                                        || (iaGenerandoActual != null && iaGenerandoActual != "whatsapp")
 
                                     if (viewmodel_pantalla_promocionar.titulo.isNotEmpty() && viewmodel_pantalla_promocionar.descripcion.isNotEmpty()) {
                                         Box(modifier = Modifier.fillMaxWidth().height(40.dp).clip(CircleShape)) {
@@ -5222,34 +5226,43 @@ fun compartirLugarFirebaseHosttiendas(
     localidad_tienda: String,
     id_tienda: String,
 ) {
+
     try {
-        val repo_erese_socio = repo_eres_socio()
-        // Construimos el link de la Cloud Function
-        val link = "https://geinzworkapp.web.app/api/share?" +
-                "t=ti" +
-                "&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
-                "&l=${URLEncoder.encode(localidad_tienda, "UTF-8")}" +
-                "&c=${URLEncoder.encode(categoria, "UTF-8")}"
 
-        val texto = "Hola \uD83D\uDC4B, aquí estaré publicando promociones y novedades: 🔥\n$link"
+        CoroutineScope(Dispatchers.IO).launch {
 
+            val alias = obtenerAliasTienda(id_tienda, localidad_tienda)
 
-        // Intent simple de compartir
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, texto)
+            withContext(Dispatchers.Main) {
+
+                val link = "https://geinzworkapp.web.app/perfil/$alias"
+
+                val texto =
+                    "Hola 👋, aquí estaré publicando promociones y novedades: 🔥\n$link"
+
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, texto)
+                }
+
+                context.startActivity(
+                    Intent.createChooser(intent, "Compartir con")
+                        .apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                )
+            }
         }
 
-        // Abrimos el chooser para que el usuario seleccione la app
-        context.startActivity(
-            Intent.createChooser(intent, "Compartir con")
-                .apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-        )
     } catch (e: Exception) {
+
         e.printStackTrace()
-        Toast.makeText(context, "Error al compartir el lugar", Toast.LENGTH_SHORT).show()
+
+        Toast.makeText(
+            context,
+            "Error al compartir el lugar",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 }
 

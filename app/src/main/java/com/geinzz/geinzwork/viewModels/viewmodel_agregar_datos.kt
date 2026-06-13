@@ -177,34 +177,34 @@ class viewmodel_agregar_datos : ViewModel() {
         }
     }
 
-    fun guaradr_cat_sub_nueva(
-        algolia: Boolean, nuevos_negocios: Boolean,
-        id_tienda: String,
-        localidad_tienda: String,
-        context: Context,
-        cat: String,
-        sub: List<String>,
-        onResult: (Boolean) -> Unit = {}
-    ) {
-        viewModelScope.launch {
-            val repo_instance = repo_agregar_datos(context)
-
-            try {
-                repo_instance.guardar_datos_tienda(
-                    algolia, nuevos_negocios,
-                    id_tienda = id_tienda,
-                    localidad = localidad_tienda,
-                    cat = cat,
-                    subcat = sub
-                ) { ok ->
-                    onResult(ok)
-                }
-            } catch (e: Exception) {
-                Log.e("guaradr_cat_sub_nueva", "❌ Error al guardar $e")
-                onResult(false)
-            }
-        }
-    }
+//    fun guaradr_cat_sub_nueva(
+//        algolia: Boolean, nuevos_negocios: Boolean,
+//        id_tienda: String,
+//        localidad_tienda: String,
+//        context: Context,
+//        cat: String,
+//        sub: List<String>,
+//        onResult: (Boolean) -> Unit = {}
+//    ) {
+//        viewModelScope.launch {
+//            val repo_instance = repo_agregar_datos(context)
+//
+//            try {
+//                repo_instance.guardar_datos_tienda(
+//                    algolia, nuevos_negocios,
+//                    id_tienda = id_tienda,
+//                    localidad = localidad_tienda,
+//                    cat = cat,
+//                    subcat = sub
+//                ) { ok ->
+//                    onResult(ok)
+//                }
+//            } catch (e: Exception) {
+//                Log.e("guaradr_cat_sub_nueva", "❌ Error al guardar $e")
+//                onResult(false)
+//            }
+//        }
+//    }
 
     fun limpiarCatSubTienda() {
         _cat_sub_tienda.value = datos_cambiar_cat_sub(
@@ -227,5 +227,31 @@ class viewmodel_agregar_datos : ViewModel() {
         }
     }
 
+
+    fun asignarAliasATodas(context: Context) {
+        val repo_instance = repo_agregar_datos(context)
+        repo_instance.registrarAliasATodas(
+            localidad = "barranca",
+            onSuccess = {
+                Log.d("Alias", "Todos los alias creados correctamente")
+            },
+            onError   = { e ->
+                Log.e("Alias", "Error: ${e.message}")
+            }
+        )
+    }
+
+    fun clonar_alias_tiendas_a_lugares(context: Context){
+        val repo_instance = repo_agregar_datos(context)
+        repo_instance.pegarAliasEnLugares(
+            localidad = "barranca",
+            onSuccess = {
+                Log.d("Alias", "Todos los alias creados correctamente")
+            },
+            onError   = { e ->
+                Log.e("Alias", "Error: ${e.message}")
+            }
+        )
+    }
 
 }

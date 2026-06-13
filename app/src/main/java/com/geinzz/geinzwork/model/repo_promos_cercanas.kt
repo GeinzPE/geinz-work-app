@@ -488,15 +488,22 @@ class repo_promos_cercanas {
                             val infoMap = doc.get("informacion") as? Map<*, *> ?: return@mapNotNull null
                             val imgMap = doc.get("img_container") as? Map<*, *> ?: emptyMap<String, Any>()
                             val idTienda = infoMap["id_tienda"] as? String ?: return@mapNotNull null
+
+                            // ✅ FIX: verificar que la promo NO esté expirada
+                            val datos = doc.get("datos_hora_fecha") as? Map<*, *> ?: emptyMap<String, Any>()
+                            val timestampFin = datos["timestamp_fin"] as? Timestamp
+                            val tiempo = timestampFin?.let { tiempoRestante(it) } ?: "Expirado"
+                            if (tiempo == "Expirado") return@mapNotNull null  // ← esta línea es la clave
+
                             val nombreTienda = infoMap["nombre_tienda"] as? String ?: ""
                             val logo = imgMap["logo_img"] as? String ?: ""
                             val categoria = infoMap["categoria"] as? String ?: ""
                             listOf(idTienda, nombreTienda, logo, categoria)
                         }
                         .groupBy { it[0] }
-                        .filter { it.value.size > 0 } // ✅ SOLO tiendas con MÁS DE UNA promo
+                        .filter { it.value.isNotEmpty() }
                         .map { (idTienda, promos) ->
-                            val p = promos.random() // ✅ promo ALEATORIA de esa tienda
+                            val p = promos.random()
                             tiendas_con_mas_de_una_promo(
                                 id = idTienda,
                                 nombre_tienda = p[1] as String,
@@ -504,7 +511,7 @@ class repo_promos_cercanas {
                                 categoira = p[3] as String
                             )
                         }
-                        .shuffled() // ✅ orden aleatorio de las tiendas también
+                        .shuffled()
 
                 } else {
                     emptyList()

@@ -57,6 +57,7 @@ import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.herramientas_geinz.constantes.get_alias_tienda.obtenerAliasTienda
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.repo_pantallas_promocionar
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_aceptar_etc_dialog_general
@@ -88,16 +89,14 @@ fun dialog_promociones_negocios(
     onDismiss: () -> Unit,
     crear_cuenta: () -> Unit,
     iniciar_seccion: () -> Unit,
-    onbac_preset: () -> Unit,onPromoClick:(id_promo:String,localiada:String)-> Unit
-
+    onbac_preset: () -> Unit,
+    onPromoClick: (id_promo: String, localiada: String) -> Unit
 ) {
     val context = LocalContext.current
-
     val firebaseAuth = FirebaseAuth.getInstance()
     val viewModel: viewmodel_datos_promociones = viewModel()
     val estado by viewModel.estadoPromocion.collectAsState()
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
-//    val datosTienda by viewmodel_filtrado._datos_tienda.observeAsState()
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
     var mostrarDialogozoom by remember { mutableStateOf(false) }
     var valor_img_completa by remember { mutableStateOf("") }
@@ -108,39 +107,37 @@ fun dialog_promociones_negocios(
             viewModel.obtener_datos_promociones(id_tienda, localidad, index)
         } else if (id_promo.isNotEmpty()) {
             viewModel.obtener_datos_promocion_notificacion(id_tienda, localidad, id_promo)
-
         }
     }
+
     val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
-    val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid
-    ?: ""
+    val id_user = uid_respald_user.takeIf { it.isNotEmpty() } ?: firebaseAuth.currentUser?.uid ?: ""
     var mostrar_bottom_datos by remember { mutableStateOf(false) }
     var mostar_dialog_registrate by remember { mutableStateOf(false) }
     var mostrar_pantalla_scrool_inifinito_notificaicones by remember { mutableStateOf(false) }
     var id_promo_seleciona_noficicon_scroll by remember { mutableStateOf("") }
     val insta_pantallas_promo = repo_pantallas_promocionar()
 
+    // ✅ link como estado para poder asignarlo desde LaunchedEffect (suspend)
+    var link by remember { mutableStateOf("") }
+
     DisposableEffect(Unit) {
         onDispose {
-            repo_pantallas_promocionar
-                .MedidorTiempoAnuncio
-                .finalizarUnaVez() ?: return@onDispose
+            repo_pantallas_promocionar.MedidorTiempoAnuncio.finalizarUnaVez() ?: return@onDispose
         }
     }
 
-    // 🔹 OVERLAY OSCURO
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.75f))
             .clickable(
                 indication = null,
-                interactionSource = remember { MutableInteractionSource() }) { onDismiss() },
+                interactionSource = remember { MutableInteractionSource() }
+            ) { onDismiss() },
         contentAlignment = Alignment.Center
     ) {
-
         when (estado) {
-
 
             is EstadoPromocion.Cargando -> {
                 Log.d("erorr_promocion", "cargando")
@@ -153,21 +150,11 @@ fun dialog_promociones_negocios(
             is EstadoPromocion.Exito -> {
                 val promo = (estado as EstadoPromocion.Exito).data
                 Log.d("erorr_promocion_Datos", "${promo.tipo_promo_o_notificaccion}")
+
                 if (promo.tipo_promo_o_notificaccion.equals("notifiacion_promo")) {
                     repo_pantallas_promocionar.MedidorTiempoAnuncio.iniciar()
                 }
-//                LaunchedEffect(mostrar_bottom_datos) {
-//                    if (mostrar_bottom_datos) {
-//                        viewmodel_filtrado.obtener_campos_tiendas_por_id(
-//                            promo.localidad, id_tienda
-//                        )
-//                    }
-//                }
-//                LaunchedEffect(datosTienda) {
-//                    if (!datosTienda.isNullOrEmpty()) {
-//                        dataclass_tienda_seleccionada = datosTienda!!.first()
-//                    }
-//                }
+
                 val localidad_pasada = when (promo.localidad) {
                     "barranca" -> "ba"
                     "paramonga" -> "par"
@@ -177,61 +164,45 @@ fun dialog_promociones_negocios(
                     else -> promo.localidad
                 }
 
-                val link = when (promo.tipo_promo_o_notificaccion) {
-                    "notifiacion_promo_solo_seguidores" -> {
-//notificacion_creada de 0 no existe promo directa
-                        promo.msje_predetermindao_whatsapp +
-                                "\n\n" +
-                                "https://geinzworkapp.web.app/api/share?" +
-                                "t=prn" +
-                                "&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
-                                "&l=${URLEncoder.encode(localidad_pasada, "UTF-8")}" +
-                                "&c=${URLEncoder.encode(promo.categoria, "UTF-8")}" +
-                                "&pi=${promo.id_promocion_parametro_link}"
-
-                    }
-
-                    "notifiacion_promo" -> {
-//notificacion_con_promodirecta
-                        buildString {
-                            append(promo.msje_predetermindao_whatsapp)
-                            append("\n\n")
-                            append("https://geinzworkapp.web.app/api/share?")
-                            append("t=prn")
-                            append("&id=${URLEncoder.encode(id_tienda, "UTF-8")}")
-                            append("&l=${URLEncoder.encode(localidad_pasada, "UTF-8")}")
-                            append("&c=${URLEncoder.encode(promo.categoria, "UTF-8")}")
-                            append("&pi=${promo.id_promocion_parametro_link}")
-                        }
-                    }
-
-                    "promocion_perfil" -> {
-
-                        buildString {
-                            append("¡Hola! Vi su promoción en Geinz y me interesa. ¿Podría darme más información, por favor?\n\n")
-                            append("https://geinzworkapp.web.app/api/share?")
-                            append("t=p")
-                            append("&id=${URLEncoder.encode(id_tienda, "UTF-8")}")
-                            append("&l=${URLEncoder.encode(localidad_pasada, "UTF-8")}")
-                            append("&c=${URLEncoder.encode(promo.categoria, "UTF-8")}")
-                            append("&i=$index")
+                // ✅ LaunchedEffect para manejar el suspend de obtenerAliasTienda
+                LaunchedEffect(promo) {
+                    link = when (promo.tipo_promo_o_notificaccion) {
+                        "notifiacion_promo_solo_seguidores" -> {
+                            promo.msje_predetermindao_whatsapp +
+                                    "\n\nhttps://geinzworkapp.web.app/api/share?" +
+                                    "t=prn" +
+                                    "&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
+                                    "&l=${URLEncoder.encode(localidad_pasada, "UTF-8")}" +
+                                    "&c=${URLEncoder.encode(promo.categoria, "UTF-8")}" +
+                                    "&pi=${promo.id_promocion_parametro_link}"
                         }
 
-                    }
+                        "notifiacion_promo" -> {
+                            buildString {
+                                append(promo.msje_predetermindao_whatsapp)
+                                append("\n\nhttps://geinzworkapp.web.app/api/share?")
+                                append("t=prn")
+                                append("&id=${URLEncoder.encode(id_tienda, "UTF-8")}")
+                                append("&l=${URLEncoder.encode(localidad_pasada, "UTF-8")}")
+                                append("&c=${URLEncoder.encode(promo.categoria, "UTF-8")}")
+                                append("&pi=${promo.id_promocion_parametro_link}")
+                            }
+                        }
 
-                    else -> {
-                        ""
+                        "promocion_perfil" -> {
+                            val alias = obtenerAliasTienda(id_tienda, localidad_pasada)
+                            "¡Hola! Vi su promoción en Geinz y me interesa. ¿Podría darme más información, por favor?\n\nhttps://geinzworkapp.web.app/perfil/$alias?p=$index"
+                        }
+
+                        else -> ""
                     }
                 }
 
-
                 FuenteControladaApp {
                     Column(
-                        modifier = Modifier
-                            .align(Alignment.Center),
+                        modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth(0.9f)
@@ -239,15 +210,12 @@ fun dialog_promociones_negocios(
                                 .clip(RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp))
                                 .background(Color.Black)
                                 .clickable(enabled = false) {
-                                    if (promo.tipo_promo_o_notificaccion.equals("notifiacion_promo") || promo.tipo_promo_o_notificaccion.equals(
-                                            "notifiacion_promo_solo_seguidores"
-                                        )
+                                    if (promo.tipo_promo_o_notificaccion.equals("notifiacion_promo") ||
+                                        promo.tipo_promo_o_notificaccion.equals("notifiacion_promo_solo_seguidores")
                                     ) {
-
                                         val segundos = repo_pantallas_promocionar
                                             .MedidorTiempoAnuncio
                                             .finalizarUnaVez() ?: return@clickable
-
                                         insta_pantallas_promo.registrarEventoNotificacion(
                                             localidadTienda = promo.localidad,
                                             idTienda = id_tienda,
@@ -257,9 +225,9 @@ fun dialog_promociones_negocios(
                                             segundos
                                         )
                                     }
-                                }, contentAlignment = Alignment.Center
+                                },
+                            contentAlignment = Alignment.Center
                         ) {
-
                             AsyncImage(
                                 model = promo.url_img,
                                 contentDescription = null,
@@ -268,10 +236,9 @@ fun dialog_promociones_negocios(
                                     .fillMaxSize()
                                     .clickable(
                                         indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }) {
-//
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) {
                                         if (promo.tipo_promo_o_notificaccion.equals("notifiacion_promo")) {
-
                                             insta_pantallas_promo.registrarEventoNotificacion(
                                                 localidadTienda = promo.localidad,
                                                 idTienda = id_tienda,
@@ -279,14 +246,9 @@ fun dialog_promociones_negocios(
                                                 idUser = id_user,
                                                 evento = repo_pantallas_promocionar.EventoNotificacion.CLICK_ANUNCIO
                                             )
-//                                            mostrar_pantalla_scrool_inifinito_notificaicones = true
-//                                            id_promo_seleciona_noficicon_scroll =
-//                                                promo.id_promocion_clikeable
-                                            onPromoClick( promo.id_promocion_clikeable,promo.localidad)
-
-                                        } else if (promo.tipo_promo_o_notificaccion.equals("notifiacion_promo_simple") || promo.tipo_promo_o_notificaccion.equals(
-                                                "notifiacion_promo_solo_seguidores"
-                                            )
+                                            onPromoClick(promo.id_promocion_clikeable, promo.localidad)
+                                        } else if (promo.tipo_promo_o_notificaccion.equals("notifiacion_promo_simple") ||
+                                            promo.tipo_promo_o_notificaccion.equals("notifiacion_promo_solo_seguidores")
                                         ) {
                                             mostrarDialogozoom = true
                                             valor_img_completa = promo.url_img
@@ -297,23 +259,19 @@ fun dialog_promociones_negocios(
                                                 idUser = id_user,
                                                 evento = repo_pantallas_promocionar.EventoNotificacion.CLICK_ANUNCIO
                                             )
-
                                         }
-
                                     }
                             )
-                            // ❌ BOTÓN CERRAR
+
                             IconButton(
                                 onClick = {
                                     onDismiss()
-                                    if (promo.tipo_promo_o_notificaccion.equals("notifiacion_promo") || promo.tipo_promo_o_notificaccion.equals(
-                                            "notifiacion_promo_solo_seguidores"
-                                        )
+                                    if (promo.tipo_promo_o_notificaccion.equals("notifiacion_promo") ||
+                                        promo.tipo_promo_o_notificaccion.equals("notifiacion_promo_solo_seguidores")
                                     ) {
                                         val segundos = repo_pantallas_promocionar
                                             .MedidorTiempoAnuncio
                                             .finalizarUnaVez() ?: return@IconButton
-
                                         insta_pantallas_promo.registrarEventoNotificacion(
                                             localidadTienda = promo.localidad,
                                             idTienda = id_tienda,
@@ -327,21 +285,18 @@ fun dialog_promociones_negocios(
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
                                     .padding(10.dp)
-                                    .background(
-                                        Color.Black.copy(alpha = 0.5f),
-                                        CircleShape
-                                    )
+                                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                                     .size(30.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = "Cerrar",
-                                    tint = Color.White, modifier = Modifier.padding(5.dp)
+                                    tint = Color.White,
+                                    modifier = Modifier.padding(5.dp)
                                 )
                             }
-
-
                         }
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth(0.9f)
@@ -351,7 +306,6 @@ fun dialog_promociones_negocios(
                                 .background(MaterialTheme.colorScheme.background),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // 🔹 Logo tienda
                             spacer_horizonta(10.dp)
                             AsyncImage(
                                 model = promo.img_logo_tienda,
@@ -361,19 +315,14 @@ fun dialog_promociones_negocios(
                                     .width(33.dp)
                                     .height(33.dp)
                                     .clip(CircleShape)
-
                             )
-
-                            // 🔹 Nombre tienda
                             texto_generico_one_line(
                                 promo.nombre_tienda.capitalizeFirst(),
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.padding(start = 5.dp)
                             )
+                            Spacer(modifier = Modifier.weight(1f))
 
-                            Spacer(modifier = Modifier.weight(1f)) // 🔹 Empuja los botones a la derecha
-
-                            // 🔹 Botón WhatsApp
                             Image(
                                 painterResource(R.drawable.whatsapp_icon),
                                 contentDescription = "whatsapp",
@@ -394,10 +343,8 @@ fun dialog_promociones_negocios(
                                             numero = promo.numero_contacto_teinda,
                                             mensajePredefinido = link
                                         )
-
-                                        if (promo.tipo_promo_o_notificaccion.equals("notifiacion_promo") || promo.tipo_promo_o_notificaccion.equals(
-                                                "notifiacion_promo_solo_seguidores"
-                                            )
+                                        if (promo.tipo_promo_o_notificaccion.equals("notifiacion_promo") ||
+                                            promo.tipo_promo_o_notificaccion.equals("notifiacion_promo_solo_seguidores")
                                         ) {
                                             insta_pantallas_promo.registrarEventoNotificacion(
                                                 localidadTienda = promo.localidad,
@@ -409,7 +356,6 @@ fun dialog_promociones_negocios(
                                             val segundos = repo_pantallas_promocionar
                                                 .MedidorTiempoAnuncio
                                                 .finalizarUnaVez() ?: return@clickable
-
                                             insta_pantallas_promo.registrarEventoNotificacion(
                                                 localidadTienda = promo.localidad,
                                                 idTienda = id_tienda,
@@ -419,12 +365,9 @@ fun dialog_promociones_negocios(
                                                 segundos
                                             )
                                         }
-
-
                                     }
                             )
 
-                            // 🔹 Botón Ver Perfil
                             spacer_horizonta(5.dp)
                             Box(
                                 modifier = Modifier
@@ -436,9 +379,8 @@ fun dialog_promociones_negocios(
                                     ) {
                                         if (id_user.isNotEmpty()) {
                                             mostrar_bottom_datos = true
-                                            if (promo.tipo_promo_o_notificaccion.equals("notifiacion_promo") || promo.tipo_promo_o_notificaccion.equals(
-                                                    "notifiacion_promo_solo_seguidores"
-                                                )
+                                            if (promo.tipo_promo_o_notificaccion.equals("notifiacion_promo") ||
+                                                promo.tipo_promo_o_notificaccion.equals("notifiacion_promo_solo_seguidores")
                                             ) {
                                                 insta_pantallas_promo.registrarEventoNotificacion(
                                                     localidadTienda = promo.localidad,
@@ -447,19 +389,6 @@ fun dialog_promociones_negocios(
                                                     idUser = id_user,
                                                     evento = repo_pantallas_promocionar.EventoNotificacion.CLICK_PERFIL
                                                 )
-
-//                                                val segundos = repo_pantallas_promocionar
-//                                                    .MedidorTiempoAnuncio
-//                                                    .finalizarUnaVez() ?: return@clickable
-//
-//                                                insta_pantallas_promo.registrarEventoNotificacion(
-//                                                    localidadTienda = promo.localidad,
-//                                                    idTienda = id_tienda,
-//                                                    idPromo = id_promo,
-//                                                    idUser = id_user,
-//                                                    evento = repo_pantallas_promocionar.EventoNotificacion.CERRAR_ANUNCIO,
-//                                                    valor = segundos
-//                                                )
                                             }
                                         } else {
                                             mostar_dialog_registrate = true
@@ -473,10 +402,8 @@ fun dialog_promociones_negocios(
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                                 )
                             }
-
-                            Spacer(modifier = Modifier.width(10.dp)) // margen derecho
+                            Spacer(modifier = Modifier.width(10.dp))
                         }
-
                     }
                 }
             }
@@ -491,7 +418,8 @@ fun dialog_promociones_negocios(
                     ) {
                         Text(
                             "Esta promoción,oferta o anuncio ya no se encuentra disponible",
-                            modifier = Modifier.padding(30.dp), textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(30.dp),
+                            textAlign = TextAlign.Center,
                             color = Color.White
                         )
                         Image(
@@ -500,7 +428,6 @@ fun dialog_promociones_negocios(
                             contentDescription = null
                         )
                     }
-
                 }
             }
 
@@ -515,26 +442,8 @@ fun dialog_promociones_negocios(
                 }
             }
 
-//            EstadoPromocion.Idle -> {
-//                onDismiss()
-//            }
             else -> {}
         }
-
-//        if (mostrar_pantalla_scrool_inifinito_notificaicones) {
-//
-//            ui_promos_cerca_de_ti(
-//                "promo_n_o_c",
-//                id_promo_seleciona_noficicon_scroll,
-//                localidad = localidad,
-//                verificar_intener = true,
-//                iniciar_seccion = { iniciar_seccion() },
-//                crear_cuenta = { crear_cuenta() },
-//                { onbac_preset() }
-//            )
-//
-//        }
-
 
         if (mostrarDialogozoom) {
             ZoomableGalleryFullScreen(
@@ -544,16 +453,14 @@ fun dialog_promociones_negocios(
                 startIndex = 0,
                 onDismiss = { mostrarDialogozoom = false }
             )
-
         }
     }
 
     if (mostrar_bottom_datos) {
         bottom_sheet_tiendas_filtradas(
-            id_tienda,localidad,
+            id_tienda, localidad,
             verificar_intener,
             viewmodel_filtrado,
-//            dataclass_tienda_seleccionada,
             mostrar_bottom_datos
         ) {
             mostrar_bottom_datos = false
@@ -568,6 +475,4 @@ fun dialog_promociones_negocios(
             texto_bottom_Sheet = "¡Regístrate para ver todos los detalles y disfrutar la experiencia completa!"
         )
     }
-
-
 }

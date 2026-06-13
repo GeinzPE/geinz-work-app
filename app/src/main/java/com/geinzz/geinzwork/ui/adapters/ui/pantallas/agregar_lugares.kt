@@ -462,6 +462,8 @@ fun datos_teindas() {
 
     // ── Carga de categorías ──────────────────────────────────────────────
     LaunchedEffect(Unit) {
+//        viewmodel_agregar_datos.asignarAliasATodas(context)
+//        viewmodel_agregar_datos.clonar_alias_tiendas_a_lugares(context)
         val (d1, d2) = repo_agregar_datos.obtener_categorias()
         lista_categorias = d1
         lista_subcategorias_full = d2

@@ -155,6 +155,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.Horario
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.widget_tienda
+import com.geinzz.geinzwork.herramientas_geinz.constantes.get_alias_tienda
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.Descuentos
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_cantidad_slado_geinz
 import com.geinzz.geinzwork.ui.adapters.ui.dialog_general.dialog_renovar_plan
@@ -185,8 +186,11 @@ import com.geinzz.geinzwork.viewModels.viewmodel_recargas
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.Dispatcher
 import java.net.URLEncoder
 
 
@@ -2536,22 +2540,39 @@ fun compartir_link_tienda(
     categoria: String,
     nombre_tienda: String
 ) {
-    // Construimos el link de la Cloud Function
-    val link = "https://geinzworkapp.web.app/api/share?" +
-            "t=ti" +
-            "&id=${URLEncoder.encode(id, "UTF-8")}" +
-            "&l=${URLEncoder.encode(localidad, "UTF-8")}" +
-            "&c=${URLEncoder.encode(categoria, "UTF-8")}"
 
-    val texto = "¡Mira $nombre_tienda en Geinz! 🔥\n$link"
+    CoroutineScope(Dispatchers.IO).launch {
 
-    // Intent simple ya sin imágenes, porque la preview la maneja Firebase Hosting
-    val intent = Intent(Intent.ACTION_SEND).apply {
-        type = "text/plain"
-        putExtra(Intent.EXTRA_TEXT, texto)
+        try {
+
+            val alias = get_alias_tienda.obtenerAliasTienda(id, localidad)
+
+            withContext(Dispatchers.Main) {
+
+                val link = "https://geinzworkapp.web.app/perfil/$alias"
+
+                val texto = "¡Mira $nombre_tienda en Geinz! 🔥\n$link"
+
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, texto)
+                }
+
+                context.startActivity(
+                    Intent.createChooser(intent, "Compartir con")
+                )
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+
+            Toast.makeText(
+                context,
+                "Error al compartir",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
-
-    context.startActivity(Intent.createChooser(intent, "Compartir con"))
 }
 
 

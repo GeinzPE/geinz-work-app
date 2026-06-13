@@ -130,6 +130,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data.model.obtener_img_tiendas
 import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.herramientas_geinz.constantes.get_alias_tienda.obtenerAliasTienda
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openFacebook
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
@@ -2208,36 +2209,42 @@ fun compartirLugarFirebaseHosttiendas(
     img: String,
     nombre_tienda: String
 ) {
+
     try {
+
         val repo_erese_socio = repo_eres_socio()
-        // Construimos el link de la Cloud Function
-        val link = "https://geinzworkapp.web.app/api/share?" +
-                "t=ti" +
-                "&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
-                "&l=${URLEncoder.encode(localidad_tienda, "UTF-8")}" +
-                "&c=${URLEncoder.encode(categoria, "UTF-8")}"
 
-        val texto = "¡Mira $nombre_tienda en Geinz! 🔥\n$link"
+        CoroutineScope(Dispatchers.IO).launch {
 
+            val alias = obtenerAliasTienda(id_tienda, localidad_tienda)
 
-        // Intent simple de compartir
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, texto)
+            withContext(Dispatchers.Main) {
+
+                val link = "https://geinzworkapp.web.app/perfil/$alias"
+
+                val texto = "¡Mira $nombre_tienda en Geinz! 🔥\n$link"
+
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, texto)
+                }
+
+                context.startActivity(
+                    Intent.createChooser(intent, "Compartir con")
+                        .apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                )
+
+                repo_erese_socio.agregar_contador(
+                    "compartidos",
+                    id_tienda,
+                    localidad_tienda,
+                    iduser
+                )
+            }
         }
 
-        // Abrimos el chooser para que el usuario seleccione la app
-        context.startActivity(
-            Intent.createChooser(intent, "Compartir con")
-                .apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-        )
-        repo_erese_socio.agregar_contador(
-            "compartidos",
-            id_tienda,
-            localidad_tienda, iduser
-        )
     } catch (e: Exception) {
         e.printStackTrace()
         Toast.makeText(context, "Error al compartir el lugar", Toast.LENGTH_SHORT).show()

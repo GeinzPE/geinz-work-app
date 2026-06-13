@@ -633,17 +633,17 @@ fun bottom_sheet_datos_promos_noti(
                                             style = MaterialTheme.typography.bodyMedium
                                         )
                                     }
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        texto_generico_one_line(
-                                            "Tiempo transcurrido",
-                                            style = MaterialTheme.typography.bodyMedium
-                                        )
-                                        Spacer(modifier = Modifier.weight(1f))
-                                        texto_generico_one_line(
-                                            datos.tiempo_transcurrido.toString(),
-                                            style = MaterialTheme.typography.bodyMedium
-                                        )
-                                    }
+//                                    Row(verticalAlignment = Alignment.CenterVertically) {
+//                                        texto_generico_one_line(
+//                                            "Tiempo transcurrido",
+//                                            style = MaterialTheme.typography.bodyMedium
+//                                        )
+//                                        Spacer(modifier = Modifier.weight(1f))
+//                                        texto_generico_one_line(
+//                                            datos.tiempo_transcurrido.toString(),
+//                                            style = MaterialTheme.typography.bodyMedium
+//                                        )
+//                                    }
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         texto_generico_one_line(
                                             "Inversion",

@@ -215,72 +215,72 @@ fun bottom_sheet_cambiar_datos_tiendas(ondimis: () -> Unit) {
                 // ============================================
                 //           CHIPS SUBCATEGORÍAS
                 // ============================================
-                chips_categoriasconvalor_inicial(
-                    lista_subcategoria,
-                    subcategorias_select
-                ) { seleccion ->
-                    subcategorias_select = seleccion
-                }
-                if (mosatar_btncambio_cat) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        texto_generico_one_line("búsqueda avanzada")
-
-                        Spacer(modifier = Modifier.weight(1f))
-
-                        Switch(
-                            checked = pertenece_algolia,
-                            onCheckedChange = { pertenece_algolia = it }
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        texto_generico_one_line("nuevos negocios")
-
-                        Spacer(modifier = Modifier.weight(1f))
-
-                        Switch(
-                            checked = pertenece_nuevo,
-                            onCheckedChange = { pertenece_nuevo = it }
-                        )
-                    }
-
-                    Button(onClick = {
-                        viewmodel_instance.guaradr_cat_sub_nueva(
-                            pertenece_algolia,pertenece_nuevo,
-                            id_tienda = id_tienda_cambio,
-                            localidad_tienda = "barranca",
-                            context = context,
-                            cat = cat_select,
-                            sub = subcategorias_select
-                        ) { ok ->
-                            if (ok) {
-                                ondimis()
-                                Toast.makeText(
-                                    context,
-                                    "Guardado correctamente",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                limpiarCampos()
-                            } else {
-                                Toast.makeText(context, "Error al guardar", Toast.LENGTH_SHORT)
-                                    .show()
-                            }
-                        }
-
-                    }) {
-                        texto_generico_one_line("guardar cambios")
-                    }
-                }
+//                chips_categoriasconvalor_inicial(
+//                    lista_subcategoria,
+//                    subcategorias_select
+//                ) { seleccion ->
+//                    subcategorias_select = seleccion
+//                }
+//                if (mosatar_btncambio_cat) {
+//                    Row(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(vertical = 6.dp),
+//                        verticalAlignment = Alignment.CenterVertically
+//                    ) {
+//                        texto_generico_one_line("búsqueda avanzada")
+//
+//                        Spacer(modifier = Modifier.weight(1f))
+//
+//                        Switch(
+//                            checked = pertenece_algolia,
+//                            onCheckedChange = { pertenece_algolia = it }
+//                        )
+//                    }
+//
+//                    Row(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(vertical = 6.dp),
+//                        verticalAlignment = Alignment.CenterVertically
+//                    ) {
+//                        texto_generico_one_line("nuevos negocios")
+//
+//                        Spacer(modifier = Modifier.weight(1f))
+//
+//                        Switch(
+//                            checked = pertenece_nuevo,
+//                            onCheckedChange = { pertenece_nuevo = it }
+//                        )
+//                    }
+//
+//                    Button(onClick = {
+//                        viewmodel_instance.guaradr_cat_sub_nueva(
+//                            pertenece_algolia,pertenece_nuevo,
+//                            id_tienda = id_tienda_cambio,
+//                            localidad_tienda = "barranca",
+//                            context = context,
+//                            cat = cat_select,
+//                            sub = subcategorias_select
+//                        ) { ok ->
+//                            if (ok) {
+//                                ondimis()
+//                                Toast.makeText(
+//                                    context,
+//                                    "Guardado correctamente",
+//                                    Toast.LENGTH_SHORT
+//                                ).show()
+//                                limpiarCampos()
+//                            } else {
+//                                Toast.makeText(context, "Error al guardar", Toast.LENGTH_SHORT)
+//                                    .show()
+//                            }
+//                        }
+//
+//                    }) {
+//                        texto_generico_one_line("guardar cambios")
+//                    }
+//                }
             }
         }
     }

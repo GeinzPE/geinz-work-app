@@ -64,6 +64,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.tasks.asDeferred
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
@@ -1754,15 +1755,12 @@ class repo_eres_socio {
                 "precio" to i.precio_publicacion.precio.toInt(),
 
                 "precioMin" to precioMin,
+               "precioMax" to precioMax,
+                "rango_precio" to i.precio_publicacion.rango,
+                "timestamp_inicio" to i.datos_hora_fecha.timestamp_inicio.seconds * 1000,
+                "timestamp_fin"    to i.datos_hora_fecha.timestamp_fin.seconds * 1000,
+                "expira_en_ttl" to i.datos_hora_fecha.timestamp_fin
 
-                "precioMax" to precioMax,
-
-                "timestamp_fin" to
-                        i.datos_hora_fecha.timestamp_inicio.seconds * 1000
-
-                ,
-                "timestamp_inicio" to
-                        i.datos_hora_fecha.timestamp_fin.seconds * 1000
 
 
             )
@@ -1786,12 +1784,30 @@ class repo_eres_socio {
                 ),
                 "comodidades" to hashmap_comodidades.filterValues { it as Boolean }.keys.toList(),
                 "terminos_clave" to array_extraido,
-                "random" to Math.random()
+                "random" to Math.random(),
+                "expira_en_ttl" to i.datos_hora_fecha.timestamp_fin
+            )
+            val ref3 = db.collection("promosFin").document(i.informacion.id_promocion)
+
+            val hashMapPromoFin = hashMapOf<String, Any>(
+                "id_promocion"  to i.informacion.id_promocion,
+                "id_tienda"     to i.informacion.id_tienda,
+                "localidad"     to localidad,
+                "numero"        to i.informacion.numero,
+                "nombre_tienda" to i.informacion.nombre_tienda,
+                "titulo"        to i.informacion.titulo,
+                "categoria"     to i.informacion.categoria,
+                "terminos_clave" to array_extraido,
+                "expira_en_ttl" to i.datos_hora_fecha.timestamp_fin
             )
 
-            subir_algolia_promociones.set(objetoAlgolia).await()
-            ref.set(hashMap, SetOptions.merge()).await()
-            ref2.set(hashMap, SetOptions.merge()).await()
+
+            listOf(
+                subir_algolia_promociones.set(objetoAlgolia),
+                ref.set(hashMap, SetOptions.merge()),
+                ref2.set(hashMap, SetOptions.merge()),
+                ref3.set(hashMapPromoFin, SetOptions.merge())
+            ).map { it.asDeferred() }.awaitAll()
 
             Result.success(Unit)
         } catch (e: Exception) {
@@ -1874,54 +1890,54 @@ class repo_eres_socio {
         }
     }
 
-
-    suspend fun guaradar_generacion_normal_por_7_dias(
-        id_generacion: String,
-        localidad: String,
-        id_tienda: String,
-        i: generacion_primarios,
-        tipo: String
-    ) {
-        val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
-            .document(id_tienda).collection("gen_con_IA_historial")
-            .document(id_generacion)
-        val hashmpa_gen_con_IA = hashMapOf<String, Any>(
-            "fecha" to Timestamp.now(),
-            "img_container" to "",
-            "caudidad" to timestampEn30Dias(7),
-            "id_promo_o_noti" to id_generacion,
-            "tipo" to tipo,
-            "generacions_con_IA" to i
-        )
-        val descripcionAcortada = acortarDescripcionNotificacion(
-            i.descripcion_original
-        )
-
-        val nombreGeneracion = crear_notificacion_conIA_corta(
-            i.titulo_original,
-            descripcionAcortada
-        )
-        nombreGeneracion.let {
-            hashmpa_gen_con_IA["nombre_generacion"] = it
-        }
-        val textosParaTerminos = mutableListOf<String>()
-        textosParaTerminos.add(i.titulo_original)
-        textosParaTerminos.add(i.descripcion_original)
-        i.lista_generaciones.forEach { opcion ->
-            textosParaTerminos.add(opcion.titulo ?: "")
-            textosParaTerminos.add(opcion.descripcion ?: "")
-        }
-        val textoCompacto = combinarTextosRelevantes(
-            titulos = textosParaTerminos.filterIndexed { index, _ -> index % 2 == 0 }, // títulos
-            descripciones = textosParaTerminos.filterIndexed { index, _ -> index % 2 != 0 } // descripciones
-        )
-
-        val terminos =
-            extraerTerminosLocal(textoCompacto) // función local que devuelve List<String>
-        hashmpa_gen_con_IA["terminos"] = terminos
-
-        gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
-    }
+//
+//    suspend fun guaradar_generacion_normal_por_7_dias(
+//        id_generacion: String,
+//        localidad: String,
+//        id_tienda: String,
+//        i: generacion_primarios,
+//        tipo: String
+//    ) {
+//        val gen_con_IA = db.collection("Tiendas").document(localidad).collection(localidad)
+//            .document(id_tienda).collection("gen_con_IA_historial")
+//            .document(id_generacion)
+//        val hashmpa_gen_con_IA = hashMapOf<String, Any>(
+//            "fecha" to Timestamp.now(),
+//            "img_container" to "",
+//            "caudidad" to timestampEn30Dias(7),
+//            "id_promo_o_noti" to id_generacion,
+//            "tipo" to tipo,
+//            "generacions_con_IA" to i
+//        )
+//        val descripcionAcortada = acortarDescripcionNotificacion(
+//            i.descripcion_original
+//        )
+//
+//        val nombreGeneracion = crear_notificacion_conIA_corta(
+//            i.titulo_original,
+//            descripcionAcortada
+//        )
+//        nombreGeneracion.let {
+//            hashmpa_gen_con_IA["nombre_generacion"] = it
+//        }
+//        val textosParaTerminos = mutableListOf<String>()
+//        textosParaTerminos.add(i.titulo_original)
+//        textosParaTerminos.add(i.descripcion_original)
+//        i.lista_generaciones.forEach { opcion ->
+//            textosParaTerminos.add(opcion.titulo ?: "")
+//            textosParaTerminos.add(opcion.descripcion ?: "")
+//        }
+//        val textoCompacto = combinarTextosRelevantes(
+//            titulos = textosParaTerminos.filterIndexed { index, _ -> index % 2 == 0 }, // títulos
+//            descripciones = textosParaTerminos.filterIndexed { index, _ -> index % 2 != 0 } // descripciones
+//        )
+//
+//        val terminos =
+//            extraerTerminosLocal(textoCompacto) // función local que devuelve List<String>
+//        hashmpa_gen_con_IA["terminos"] = terminos
+//
+//        gen_con_IA.set(hashmpa_gen_con_IA, SetOptions.merge()).await()
+//    }
 
 
 //    suspend fun extraer_terminos_genIA(texto: String): List<String> {

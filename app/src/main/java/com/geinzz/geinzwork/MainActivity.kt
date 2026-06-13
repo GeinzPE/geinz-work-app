@@ -22,6 +22,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.rememberNavController
 import com.geinzz.geinzwork.data.model.localizate_geinz.DeepLinkViewModelFactory
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.UiAction
+import com.geinzz.geinzwork.herramientas_geinz.constantes.get_alias_tienda.resolverAlias
 import com.geinzz.geinzwork.model.SessionRepository
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.nativationWrapper
@@ -147,7 +148,28 @@ class MainActivity : AppCompatActivity() {
         val index = uri.getQueryParameter("i")?.toIntOrNull() ?: 0
 
         val id_promocion = uri.getQueryParameter("pi")?:""
+        val pathSegments = uri.pathSegments
+        if (pathSegments.size >= 2 && pathSegments[0] == "perfil") {
+            val alias = pathSegments[1]
+            val promoIndex = uri.getQueryParameter("p")?.toIntOrNull()
 
+            Log.d("DeepLinkDebug", "ALIAS DETECTADO -> $alias, promo=$promoIndex")
+
+            resolverAlias(alias, this) { id, localidad, categoria ->
+                if (promoIndex != null) {
+                    // 🎁 Es una promo
+                    deepLinkViewModel.setPromoData(
+                        id = id,
+                        lugar = localidad,
+                        index = promoIndex
+                    )
+                } else {
+                    // 🏪 Es una tienda normal
+                    navegarATienda(id, localidad, categoria)
+                }
+            }
+            return
+        }
         // 🔹 normalización crítica
         val id = idRaw.removePrefix("/")
 
@@ -314,6 +336,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+        private fun navegarATienda(id: String, localidad: String, categoria: String) {
+        fun enc(value: String) = java.net.URLEncoder.encode(value, "UTF-8")
+
+        val ruta = "mostrar_tiendas/${enc(localidad)}/${enc(id)}/${enc(categoria)}"
+
+        Log.d("DeepLinkDebug", "NAVEGANDO -> $ruta")
+        navController.navigate(ruta) {
+            launchSingleTop = true
+            popUpTo(navController.graph.startDestinationId) {
+                inclusive = false
+            }
+        }
+    }
     private fun crearCanalNotificaciones() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(

@@ -1076,19 +1076,19 @@ class viewmodel_eres_socio : ViewModel() {
         i: generacion_primarios,
         tipo: String, id_generacion: String
     ) {
-        viewModelScope.launch {
-            try {
-                instace_repo.guaradar_generacion_normal_por_7_dias(
-                    id_generacion,
-                    localidad,
-                    id_tienda,
-                    i,
-                    tipo
-                )
-            } catch (e: Exception) {
-                Log.d("Error_al_agregar", "$e")
-            }
-        }
+//        viewModelScope.launch {
+//            try {
+//                instace_repo.guaradar_generacion_normal_por_7_dias(
+//                    id_generacion,
+//                    localidad,
+//                    id_tienda,
+//                    i,
+//                    tipo
+//                )
+//            } catch (e: Exception) {
+//                Log.d("Error_al_agregar", "$e")
+//            }
+//        }
     }
 
     fun agregar_generacions_obligatorias_subidas_notificaciones(
