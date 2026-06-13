@@ -1629,55 +1629,59 @@ exports.obtener_filtrado_manual_alogolia = onRequest(async (req, res) => {
 });
 
 exports.agregar_historial_usuario = onRequest(async (req, res) => {
+  // ✅ Solo POST
+  if (req.method !== "POST") {
+    return res.status(405).json({ ok: false, error: "Método no permitido" });
+  }
+
   try {
     const { numeroUser, contexto } = req.body;
 
     // 🔍 Validación
-    if (!numeroUser) {
-      return res.status(400).json({ ok: false, error: "Falta numeroUser" });
+    if (!numeroUser || typeof numeroUser !== "string" || !numeroUser.trim()) {
+      return res.status(400).json({ ok: false, error: "Falta o es inválido numeroUser" });
     }
 
     // 🔥 Parse seguro del contexto
     let contextoObj = null;
 
-    if (contexto) {
+    if (contexto !== undefined && contexto !== null) {
       try {
-        contextoObj =
-          typeof contexto === "string" ? JSON.parse(contexto) : contexto;
+        contextoObj = typeof contexto === "string" ? JSON.parse(contexto) : contexto;
       } catch (e) {
         console.error("❌ Error parseando contexto:", e);
+        return res.status(400).json({ ok: false, error: "Contexto inválido, no es JSON válido" });
       }
     }
 
     // 📍 Referencia
     const ref = admin
       .firestore()
-      .doc(
-        `Trabajadores_Usuarios_Drivers/usuario_bot_geinz/usuario_bot_geinz/${numeroUser}`,
-      );
+      .doc(`Trabajadores_Usuarios_Drivers/usuario_bot_geinz/usuario_bot_geinz/${numeroUser.trim()}`);
 
-    // 💾 Guardado con MERGE (NO sobreescribe todo)
+    // 💾 Guardado con merge
     await ref.set(
       {
-        contexto: contextoObj,
+        ...(contextoObj !== null && { contexto: contextoObj }),
         updated_at: admin.firestore.FieldValue.serverTimestamp(),
       },
-      { merge: true }, // 🔥 CLAVE
+      { merge: true }
     );
 
     return res.status(200).json({
       ok: true,
       mensaje: "Historial guardado correctamente",
+      numeroUser: numeroUser.trim(),
     });
+
   } catch (error) {
     console.error("🔥 ERROR GENERAL:", error);
     return res.status(500).json({
       ok: false,
-      error: "Error interno",
+      error: "Error interno del servidor",
     });
   }
 });
-
 // ==================== culqui ====================
 // ─── BACKEND: crearOrdenCulqi ───
 exports.crearOrdenCulqi = onCall(async (req) => {
