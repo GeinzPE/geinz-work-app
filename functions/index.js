@@ -393,7 +393,7 @@ exports.filtrar_por_datos_chat_bot = onRequest(async (req, res) => {
         tienePagoExacto,
         pagosDB,
         tienePrecioExacto,
-        rango_precio: `${h.precioMin ?? "?"} - ${h.precioMax ?? "?"}`,
+        precio: h.precio ?? null,
         tieneComodidadExacta,
         comodidades_disponibles: comodDB,
       };
@@ -409,10 +409,10 @@ exports.filtrar_por_datos_chat_bot = onRequest(async (req, res) => {
         tienePagoExacto: s.tienePagoExacto,
         pagos_disponibles: s.pagosDB,
         tienePrecioExacto: s.tienePrecioExacto,
-        rango_precio: s.rango_precio,
+        precio: s.precio,
         tieneComodidadExacta: s.tieneComodidadExacta,
-        comodidades_disponibles: s.comodidades_disponibles,
-        descripcion: h.descripcion || "",
+        // comodidades_disponibles: eliminado            // ← CAMBIO: campo removido
+        descripcion: (h.descripcion || "").slice(0, 120), // ← CAMBIO: máx 120 chars
         name_tienda: h.nombre_tienda || "",
         img: h.imagen_promo || "",
       };
@@ -4764,7 +4764,7 @@ exports.perfilSSR = onRequest(async (req, res) => {
       logger.error("Error sirviendo perfil.html:", e);
       return res.redirect(
         302,
-        `https://geinzworkapp.web.app/perfil.html?alias=${encodeURIComponent(alias)}`,
+        `https://geinzworkapp.web.app/perfil/${encodeURIComponent(alias)}`,
       );
     }
   }
@@ -5743,71 +5743,55 @@ function normalizar(texto) {
     .trim();
 }
 
-exports.eliminarTiendasVencidas = onSchedule(
+
+exports.limpiarPromosExpiradas = onSchedule(
   {
-    schedule: "0 0 * * *", // Cada día a las 12:00 AM (medianoche)
-    timeZone: "America/Lima", // Zona horaria Perú (UTC-5)
-    timeoutSeconds: 540, // 9 minutos máximo
-    memory: "256MiB", // Mínimo necesario
+    schedule: "every 15 minutes",
+    timeZone: "America/Lima",
   },
-  async (event) => {
-    const db = admin.firestore();
+  async () => {
+    const db    = admin.firestore();
     const ahora = admin.firestore.Timestamp.now();
-
-    logger.info("Iniciando limpieza de tiendas vencidas", {
-      timestamp: ahora.toDate().toISOString(),
-    });
-
-    try {
-      // Obtener todas las localidades (ciudades) disponibles
-      const localidadesSnap = await db.collection("Tiendas").listDocuments();
-
-      let totalEliminadas = 0;
-      let totalRevisadas = 0;
-
-      // Procesar cada localidad en paralelo
-      await Promise.all(
-        localidadesSnap.map(async (localidadRef) => {
-          // Consulta optimizada: solo traer tiendas cuya fecha_fin ya pasó
-          const tiendasVencidasSnap = await db
-            .collection("Tiendas")
-            .doc(localidadRef.id)
-            .collection("nuevos_lugares")
-            .where("fecha.fecha_fin", "<=", ahora)
-            .select("id_tienda") // Solo traer el campo necesario (menos lectura/ancho de banda)
-            .get();
-
-          if (tiendasVencidasSnap.empty) return;
-
-          totalRevisadas += tiendasVencidasSnap.size;
-
-          // Eliminar en lotes de 500 (límite de Firestore)
-          const BATCH_SIZE = 500;
-          const docs = tiendasVencidasSnap.docs;
-
-          for (let i = 0; i < docs.length; i += BATCH_SIZE) {
-            const batch = db.batch();
-            const chunk = docs.slice(i, i + BATCH_SIZE);
-
-            chunk.forEach((doc) => batch.delete(doc.ref));
-
-            await batch.commit();
-            totalEliminadas += chunk.length;
-
-            logger.info(
-              `Lote eliminado en [${localidadRef.id}]: ${chunk.length} tiendas`,
-            );
-          }
-        }),
-      );
-
-      logger.info("Limpieza completada", {
-        totalRevisadas,
-        totalEliminadas,
-      });
-    } catch (error) {
-      logger.error("Error durante la limpieza de tiendas vencidas", { error });
-      throw error; // Relanzar para que Firebase registre el fallo
+ 
+    // Solo los docs que ya expiraron — nunca itera los vigentes
+    const snap = await db
+      .collection("promosFin")
+      .where("expira_en_ttl", "<=", ahora)
+      .get();
+ 
+    if (snap.empty) {
+      logger.info("Sin promos expiradas.");
+      return;
     }
-  },
+ 
+    logger.info(`Expiradas: ${snap.size}`);
+ 
+    // Agrupa por localidad+categoria para hacer el menor número de writes posible
+    const grupos = {};
+    for (const doc of snap.docs) {
+      const { localidad, categoria, terminos_clave } = doc.data();
+      if (!localidad || !categoria || !Array.isArray(terminos_clave) || !terminos_clave.length) continue;
+ 
+      const key = `${localidad}||${categoria}`;
+      if (!grupos[key]) grupos[key] = { localidad, categoria, terminos: [] };
+      grupos[key].terminos.push(...terminos_clave);
+    }
+ 
+    // Un solo arrayRemove por localidad+categoria
+    // Ruta: /Tiendas/{localidad}/cache_filtrado/filtrado
+    await Promise.all(
+      Object.values(grupos).map(({ localidad, categoria, terminos }) =>
+        db
+          .collection("Tiendas")
+          .doc(localidad)
+          .collection("cache_filtrado")
+          .doc("filtrado")
+          .update({
+            [categoria]: admin.firestore.FieldValue.arrayRemove(...terminos),
+          })
+      )
+    );
+ 
+    logger.info("✅ Cache limpiado.");
+  }
 );

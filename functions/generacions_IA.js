@@ -1,6 +1,6 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const axios = require("axios");
-const admin = require("firebase-admin"); 
+const admin = require("firebase-admin");
 const db = admin.firestore();
 const GEMINIKEY = process.env.PRIVATEKEY_GEMINI;
 const GEMINI_URL =
@@ -135,10 +135,15 @@ Reglas estrictas:
     const monto_restante = saldo_actual - monto_descontado;
     const precio_por_moneda_num = parseFloat(precio_por_moneda);
 
-const precio_soles = (!isNaN(precio_por_moneda_num))
-  ? (monto_descontado * precio_por_moneda_num).toFixed(2)
-  : "0.00";
-console.log("🔍 precio_por_moneda tipo:", typeof precio_por_moneda, "valor:", precio_por_moneda);
+    const precio_soles = !isNaN(precio_por_moneda_num)
+      ? (monto_descontado * precio_por_moneda_num).toFixed(2)
+      : "0.00";
+    console.log(
+      "🔍 precio_por_moneda tipo:",
+      typeof precio_por_moneda,
+      "valor:",
+      precio_por_moneda,
+    );
 
     console.log("💰 Datos financieros:", {
       monto_descontado,
@@ -774,23 +779,32 @@ exports.extraerTerminosClaveIA = onCall(async (request) => {
   });
 
   if (!textoUsuario?.trim())
-    throw new HttpsError("invalid-argument", "El campo textoUsuario es requerido");
+    throw new HttpsError(
+      "invalid-argument",
+      "El campo textoUsuario es requerido",
+    );
   if (!categoria?.trim())
     throw new HttpsError("invalid-argument", "El campo categoria es requerido");
   if (!nombreNegocio?.trim())
-    throw new HttpsError("invalid-argument", "El campo nombreNegocio es requerido");
+    throw new HttpsError(
+      "invalid-argument",
+      "El campo nombreNegocio es requerido",
+    );
 
   const palabrasProhibidas = [
     ...categoria.toLowerCase().split(/\s+/),
     ...nombreNegocio.toLowerCase().split(/\s+/),
   ].filter((p) => p.length > 2);
 
-  console.log("[extraerTerminosClaveIA] palabrasProhibidas:", palabrasProhibidas);
+  console.log(
+    "[extraerTerminosClaveIA] palabrasProhibidas:",
+    palabrasProhibidas,
+  );
 
   const quitarTildes = (str) =>
     str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-const prompt = `
+  const prompt = `
 [INPUT]
 Texto: "${textoUsuario}"
 Categoria del negocio: "${categoria}"
@@ -828,9 +842,11 @@ Contesta ÚNICAMENTE con el array JSON. Ejemplo: ["tag1", "tag2"]
     const terminosNormalizados = Array.isArray(terminos)
       ? terminos
           .map((item) =>
-            typeof item === "string" ? item :
-            typeof item === "object" ? (item.term ?? item.value ?? Object.values(item)[0] ?? "") :
-            String(item)
+            typeof item === "string"
+              ? item
+              : typeof item === "object"
+                ? (item.term ?? item.value ?? Object.values(item)[0] ?? "")
+                : String(item),
           )
           .map((t) => quitarTildes(t.toLowerCase().trim()))
           .filter((t) => t.length > 2)
@@ -839,17 +855,22 @@ Contesta ÚNICAMENTE con el array JSON. Ejemplo: ["tag1", "tag2"]
           .slice(0, 6)
       : [];
 
-    console.log("[extraerTerminosClaveIA] RESULTADO FINAL:", terminosNormalizados);
+    console.log(
+      "[extraerTerminosClaveIA] RESULTADO FINAL:",
+      terminosNormalizados,
+    );
 
     return { ok: true, terminos: terminosNormalizados };
-
   } catch (error) {
     if (error instanceof HttpsError) throw error;
     console.error("[extraerTerminosClaveIA] ERROR:", {
       message: error.message,
       stack: error.stack,
     });
-    throw new HttpsError("internal", error.message || "Error extrayendo términos clave");
+    throw new HttpsError(
+      "internal",
+      error.message || "Error extrayendo términos clave",
+    );
   }
 });
 
@@ -1007,6 +1028,103 @@ ${texto.trim()}
 // ============================================
 // CREAR PROMOCIÓN (SOLO FIRESTORE)
 // ============================================
+
+async function _extraerTerminosClave(textoUsuario, categoria, nombreNegocio) {
+  const quitarTildes = (str) =>
+    str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  const palabrasProhibidas = [
+    ...categoria.toLowerCase().split(/\s+/),
+    ...nombreNegocio.toLowerCase().split(/\s+/),
+  ].filter((p) => p.length > 2);
+
+  const prompt = `
+[INPUT]
+Texto: "${textoUsuario}"
+Categoria del negocio: "${categoria}"
+Filtros prohibidos: "${nombreNegocio}"
+
+[INSTRUCCIONES]
+Extrae de 'Texto' un array JSON de strings con máximo 6 términos clave para motores de búsqueda.
+1. Prioriza ÚNICAMENTE: nombres propios, lugares, marcas, modelos, productos o servicios MUY específicos mencionados en el texto.
+2. PROHIBIDO: 
+   - Palabras genéricas que describan la categoría "${categoria}" (ej: si es transporte, excluir "viaje","pasaje","bus","ruta")
+   - Adjetivos, verbos, precios, palabras de marketing ("oferta","promo","descuento","oportunidad")
+   - Cualquier palabra o fragmento de 'Filtros prohibidos'
+3. Solo incluir términos que por sí solos sirvan como búsqueda específica en Google.
+4. Formato: minúsculas, singular, sin tildes, sin duplicados.
+5. Si no hay términos específicos válidos, devuelve [].
+
+[OUTPUT]
+Contesta ÚNICAMENTE con el array JSON. Ejemplo: ["tag1", "tag2"]
+`.trim();
+
+  const respuesta = await llamarGemini([{ text: prompt }]);
+
+  const jsonStr = respuesta
+    .trim()
+    .replace(/```json\n?/g, "")
+    .replace(/```\n?/g, "");
+
+  const terminos = JSON.parse(jsonStr);
+
+  return Array.isArray(terminos)
+    ? terminos
+        .map((item) =>
+          typeof item === "string"
+            ? item
+            : typeof item === "object"
+              ? (item.term ?? item.value ?? Object.values(item)[0] ?? "")
+              : String(item),
+        )
+        .map((t) => quitarTildes(t.toLowerCase().trim()))
+        .filter((t) => t.length > 2)
+        .filter((t) => !palabrasProhibidas.some((p) => t.includes(p)))
+        .filter((t, i, arr) => arr.indexOf(t) === i)
+        .slice(0, 6)
+    : [];
+}
+
+// ── Cloud Function pública (para previsualización desde el front) ─────────
+exports.extraerTerminosClaveIA = onCall(async (request) => {
+  const { textoUsuario, categoria, nombreNegocio } = request.data;
+
+  console.log("[extraerTerminosClaveIA] INICIO:", {
+    textoUsuario: textoUsuario?.slice(0, 80),
+    categoria,
+    nombreNegocio,
+  });
+
+  if (!textoUsuario?.trim())
+    throw new HttpsError(
+      "invalid-argument",
+      "El campo textoUsuario es requerido",
+    );
+  if (!categoria?.trim())
+    throw new HttpsError("invalid-argument", "El campo categoria es requerido");
+  if (!nombreNegocio?.trim())
+    throw new HttpsError(
+      "invalid-argument",
+      "El campo nombreNegocio es requerido",
+    );
+
+  try {
+    const terminos = await _extraerTerminosClave(
+      textoUsuario,
+      categoria,
+      nombreNegocio,
+    );
+    console.log("[extraerTerminosClaveIA] RESULTADO FINAL:", terminos);
+    return { ok: true, terminos };
+  } catch (error) {
+    console.error("[extraerTerminosClaveIA] ERROR:", error.message);
+    throw new HttpsError(
+      "internal",
+      error.message || "Error extrayendo términos clave",
+    );
+  }
+});
+
 exports.crearPromocion = onCall(async (request) => {
   try {
     const data = request.data.data || request.data;
@@ -1053,7 +1171,6 @@ exports.crearPromocion = onCall(async (request) => {
       urls_imagenes = [],
       img_bot: img_bot_param = "",
       logo_url = "",
-      // ── Financiero ──────────────────────────
       saldo_actual,
       saldo_descuento,
       precio_por_moneda,
@@ -1061,18 +1178,43 @@ exports.crearPromocion = onCall(async (request) => {
     } = data;
 
     // ── Validaciones ──────────────────────────────────────
-    if (!id_tienda || !id_promocion || !localidad) {
+    if (!id_tienda || !id_promocion || !localidad)
       throw new HttpsError("invalid-argument", "Faltan campos requeridos");
-    }
 
-    if (imagenes_base64.length === 0 && urls_imagenes.length === 0) {
+    if (imagenes_base64.length === 0 && urls_imagenes.length === 0)
       throw new HttpsError(
         "invalid-argument",
         "Debes subir al menos una imagen",
       );
+
+    // ── PASO 0: Términos clave ────────────────────────────
+    let terminosClave = [];
+
+    if (Array.isArray(terminos_clave_ia) && terminos_clave_ia.length > 0) {
+      // El front ya los mandó (previsualización aprobada por el usuario)
+      terminosClave = terminos_clave_ia;
+      console.log("✅ Términos clave recibidos del front:", terminosClave);
+    } else {
+      // No vienen o vienen vacíos — los extraemos aquí
+      try {
+        const texto = `${titulo || ""} ${descripcion || ""}`.trim();
+        if (texto && categoria && nombre_tienda) {
+          console.log("🤖 Extrayendo términos clave con Gemini...");
+          terminosClave = await _extraerTerminosClave(
+            texto,
+            categoria,
+            nombre_tienda,
+          );
+          console.log("✅ Términos clave extraídos:", terminosClave);
+        }
+      } catch (e) {
+        // No bloquea la publicación si Gemini falla
+        console.warn("⚠️ No se pudieron extraer términos clave:", e.message);
+        terminosClave = [];
+      }
     }
 
-    console.log("📌 terminos_clave_ia:", terminos_clave_ia);
+    console.log("📌 terminos_clave_ia:", terminosClave);
     console.log("📌 urls_imagenes recibidas:", urls_imagenes);
 
     // ── PASO 1: Obtener URLs ──────────────────────────────
@@ -1115,27 +1257,18 @@ exports.crearPromocion = onCall(async (request) => {
       };
 
       urls = await subirConReintento(3);
-      if (urls.length !== imagenes_base64.length) {
+      if (urls.length !== imagenes_base64.length)
         throw new HttpsError(
           "internal",
           "No se pudieron subir todas las imágenes",
         );
-      }
       img_bot = urls[0] ?? null;
     }
 
     // ── PASO 2: img_container ─────────────────────────────
-    const imgContainer = {
-      lista_img: urls,
-      logo_img: logo_url,
-    };
+    const imgContainer = { lista_img: urls, logo_img: logo_url };
 
     // ── PASO 3: Preparar datos ────────────────────────────
-    const terminosClave =
-      Array.isArray(terminos_clave_ia) && terminos_clave_ia.length > 0
-        ? terminos_clave_ia
-        : [];
-
     const comodidadesArray = [];
     const comodidadMap = {
       zonaExpandida: "zona_expandida",
@@ -1177,20 +1310,19 @@ exports.crearPromocion = onCall(async (request) => {
         )
       : nowTimestamp;
 
-    // ── Rango de precio fijo ──────────────────────────────
     const precioNum = parseInt(precio) || 0;
 
     const obtenerRangoPrecio = (p) => {
-      if (p <= 0)    return "";
-      if (p <= 10)   return "0 - 10";
-      if (p <= 20)   return "10 - 20";
-      if (p <= 30)   return "20 - 30";
-      if (p <= 50)   return "30 - 50";
-      if (p <= 80)   return "50 - 80";
-      if (p <= 120)  return "80 - 120";
-      if (p <= 200)  return "120 - 200";
-      if (p <= 350)  return "200 - 350";
-      if (p <= 500)  return "350 - 500";
+      if (p <= 0) return "";
+      if (p <= 10) return "0 - 10";
+      if (p <= 20) return "10 - 20";
+      if (p <= 30) return "20 - 30";
+      if (p <= 50) return "30 - 50";
+      if (p <= 80) return "50 - 80";
+      if (p <= 120) return "80 - 120";
+      if (p <= 200) return "120 - 200";
+      if (p <= 350) return "200 - 350";
+      if (p <= 500) return "350 - 500";
       if (p <= 1000) return "500 - 1000";
       if (p <= 2500) return "1000 - 2500";
       if (p <= 5000) return "2500 - 5000";
@@ -1198,7 +1330,6 @@ exports.crearPromocion = onCall(async (request) => {
     };
 
     const rangoCalculado = obtenerRangoPrecio(precioNum);
-
     const localidadLower = localidad.toLowerCase();
 
     // ── PASO 4: Construir documento promoción ─────────────
@@ -1243,6 +1374,7 @@ exports.crearPromocion = onCall(async (request) => {
       precio_publicacion: precio || "",
       rango_establecido: rangoCalculado,
       random: Math.random(),
+      expira_en_ttl: tsFin,
       terminos_clave: terminosClave,
       tipo_hora_dias: formato_fecha_hora,
       ubicacion: {
@@ -1271,7 +1403,9 @@ exports.crearPromocion = onCall(async (request) => {
     const ref3 = db
       .collection("promociones_filtrado_algolia")
       .doc(id_promocion);
-
+    const partes = rangoCalculado.split("-").map((s) => s.trim());
+    const precioMin = parseInt(partes[0]) || 0;
+    const precioMax = parseInt(partes[1]) || 0;
     const algoliaData = {
       activo: true,
       categoria: categoria || "",
@@ -1290,33 +1424,55 @@ exports.crearPromocion = onCall(async (request) => {
       terminos_clave: terminosClave,
       timestamp_fin: tsFin.seconds * 1000,
       timestamp_inicio: tsInicio.seconds * 1000,
+      expira_en_ttl: tsFin,
+      precio_min: precioMin,
+      precio_max: precioMax,
     };
 
-    // ── PASO 6: Escribir promoción en las 3 referencias ───
+    const ref4 = db.collection("promosFin").doc(id_promocion);
+
+    const promoFinData = {
+      id_promocion,
+      id_tienda,
+      localidad: localidadLower,
+      numero: numero || "",
+      nombre_tienda: nombre_tienda || "",
+      titulo: titulo || "",
+      categoria: categoria || "",
+      terminos_clave: terminosClave,
+      expira_en_ttl: tsFin,
+    };
+
+    // ── PASO 6: Escribir en Firestore ─────────────────────
     await Promise.all([
       ref1.set(promocionData, { merge: true }),
       ref2.set(promocionData, { merge: true }),
-      ref3.set(algoliaData,   { merge: true }),
+      ref3.set(algoliaData, { merge: true }),
+      ref4.set(promoFinData, { merge: true }),
     ]);
 
-    console.log(`✅ Promoción guardada en 3 rutas:
+    console.log(`✅ Promoción guardada:
   - Tiendas/${localidadLower}/promos_ofertas/${id_promocion}
   - Tiendas/${localidadLower}/${localidadLower}/${id_tienda}/promociones_geinz/${id_promocion}
-  - promociones_filtrado_algolia/${id_promocion}`);
+  - promociones_filtrado_algolia/${id_promocion}
+  - promosFin/${id_promocion}`);
 
     // ── PASO 7: Descuento de puntos y historial financiero ─
     if (saldo_descuento && precio_por_moneda) {
       const monto_descontado = saldo_descuento;
-      const monto_restante   = (saldo_actual || 0) - monto_descontado;
-      const precio_soles     = (monto_descontado * parseFloat(precio_por_moneda)).toFixed(2);
-      const id_transaccion   = uuidv4();
+      const monto_restante = (saldo_actual || 0) - monto_descontado;
+      const precio_soles = (
+        monto_descontado * parseFloat(precio_por_moneda)
+      ).toFixed(2);
+      const id_transaccion = uuidv4();
 
-      // Fecha Lima UTC-5
-      const ahora  = new Date();
+      const ahora = new Date();
       const offset = -5 * 60;
-      const lima   = new Date(ahora.getTime() + (offset - ahora.getTimezoneOffset()) * 60000);
-      const fecha  = `${String(lima.getMonth() + 1).padStart(2, "0")}/${String(lima.getDate()).padStart(2, "0")}/${lima.getFullYear()}`;
-      const hora   = `${String(lima.getHours()).padStart(2, "0")}:${String(lima.getMinutes()).padStart(2, "0")}`;
+      const lima = new Date(
+        ahora.getTime() + (offset - ahora.getTimezoneOffset()) * 60000,
+      );
+      const fecha = `${String(lima.getMonth() + 1).padStart(2, "0")}/${String(lima.getDate()).padStart(2, "0")}/${lima.getFullYear()}`;
+      const hora = `${String(lima.getHours()).padStart(2, "0")}:${String(lima.getMinutes()).padStart(2, "0")}`;
 
       const tiendaRef = db
         .collection("Tiendas")
@@ -1324,48 +1480,44 @@ exports.crearPromocion = onCall(async (request) => {
         .collection(localidadLower)
         .doc(id_tienda);
 
-      // Descontar puntos_tienda
       await tiendaRef.update({
         puntos_tienda: admin.firestore.FieldValue.increment(-monto_descontado),
       });
-      console.log("✅ puntos_tienda descontado:", -monto_descontado);
 
-      // Guardar historial financiero
       await tiendaRef
         .collection("historial_financiero")
         .doc(id_transaccion)
         .set({
           datos_recarga: {
-            estado:           "Aceptado",
-            monto_descontado: monto_descontado,
-            monto_restante:   monto_restante,
-            precio_soles:     precio_soles,
-            tipo_paquete:     tipo_paquete || "Crear Promoción",
+            estado: "Aceptado",
+            monto_descontado,
+            monto_restante,
+            precio_soles,
+            tipo_paquete: tipo_paquete || "Crear Promoción",
           },
           datos_tienda: {
-            id_tienda:        id_tienda,
+            id_tienda,
             localidad_tienda: localidad,
-            nombre_tienda:    nombre_tienda || "",
+            nombre_tienda: nombre_tienda || "",
           },
           hora_fecha: { fecha, hora },
           id_transaccion,
-          timestamp:        admin.firestore.FieldValue.serverTimestamp(),
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
           tipo_transacción: "descuento",
         });
 
       console.log("✅ Historial financiero guardado:", id_transaccion);
-      console.log("💰 Datos financieros:", { monto_descontado, monto_restante, precio_soles });
     } else {
       console.log("ℹ️ Sin datos financieros — historial no guardado");
     }
 
-    // ── Retorno ───────────────────────────────────────────
     return {
-      success:     true,
+      success: true,
       id_promocion,
       id_tienda,
       localidad,
-      mensaje:     "Promoción guardada exitosamente",
+      terminos_clave: terminosClave,
+      mensaje: "Promoción guardada exitosamente",
     };
   } catch (error) {
     console.error("Error crearPromocion:", error);
@@ -1378,8 +1530,13 @@ exports.pagar_plan__usuario = onCall(async (request) => {
   console.log("🚀 [pagar_plan] Iniciando función...");
 
   try {
-    const { precio_por_moneda, id_tienda, localidad,
-            dias_extra, monedas_costo } = request.data;
+    const {
+      precio_por_moneda,
+      id_tienda,
+      localidad,
+      dias_extra,
+      monedas_costo,
+    } = request.data;
 
     // Validaciones básicas
     if (!id_tienda || !localidad)
@@ -1389,45 +1546,32 @@ exports.pagar_plan__usuario = onCall(async (request) => {
     if (typeof monedas_costo !== "number" || monedas_costo <= 0)
       throw new HttpsError("invalid-argument", "monedas_costo inválido");
 
-    const refServicio = db.collection("Tiendas")
+    const refServicio = db
+      .collection("Tiendas")
       .doc(localidad)
       .collection("tiendas_servicios_geinz_activos")
       .doc(id_tienda);
 
-    const refTienda = db.collection("Tiendas")
+    const refTienda = db
+      .collection("Tiendas")
       .doc(localidad)
       .collection(localidad)
       .doc(id_tienda);
 
-
     // ✅ CAMBIO 1: leer ambos en paralelo, sin lanzar error si servicios no existe
 
-
     const [servicioDoc, tiendaDoc] = await Promise.all([
-
-
       refServicio.get(),
 
-
       refTienda.get(),
-
-
     ]);
-
-
 
     // Solo la tienda principal es obligatoria
 
-
     if (!tiendaDoc.exists)
-
-
       throw new HttpsError("not-found", "No se encontró la tienda");
 
-
-
     // Si servicios no existe, usar objeto vacío — se creará en el batch
-
 
     const dataServicio = servicioDoc.exists ? servicioDoc.data() : {};
 
@@ -1436,8 +1580,10 @@ exports.pagar_plan__usuario = onCall(async (request) => {
     const puntosActuales = Number(dataTienda?.puntos_tienda || 0);
 
     if (puntosActuales < monedas_costo)
-      throw new HttpsError("failed-precondition",
-        "La tienda no tiene suficientes monedas");
+      throw new HttpsError(
+        "failed-precondition",
+        "La tienda no tiene suficientes monedas",
+      );
 
     const monto_restante = puntosActuales - monedas_costo;
 
@@ -1451,30 +1597,44 @@ exports.pagar_plan__usuario = onCall(async (request) => {
     const nuevaFecha = new Date(fechaBase);
     nuevaFecha.setDate(nuevaFecha.getDate() + dias_extra);
 
-    const dd   = String(nuevaFecha.getDate()).padStart(2, "0");
-    const mm   = String(nuevaFecha.getMonth() + 1).padStart(2, "0");
+    const dd = String(nuevaFecha.getDate()).padStart(2, "0");
+    const mm = String(nuevaFecha.getMonth() + 1).padStart(2, "0");
     const yyyy = nuevaFecha.getFullYear();
     const fecha_fin = `${dd}/${mm}/${yyyy}`;
 
     // Historial
-    const ahora     = new Date();
-    const fechaStr  = ahora.toLocaleDateString("es-PE",
-      { day:"2-digit", month:"2-digit", year:"numeric", timeZone:"America/Lima" });
-    const horaStr   = ahora.toLocaleTimeString("es-PE",
-      { hour:"2-digit", minute:"2-digit", hour12:false, timeZone:"America/Lima" });
+    const ahora = new Date();
+    const fechaStr = ahora.toLocaleDateString("es-PE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      timeZone: "America/Lima",
+    });
+    const horaStr = ahora.toLocaleTimeString("es-PE", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "America/Lima",
+    });
     const id_transaccion = uuidv4();
-    const nombreTienda   = dataTienda?.nombre_tienda || "";
+    const nombreTienda = dataTienda?.nombre_tienda || "";
 
     const historialData = {
       datos_recarga: {
         estado: "Aceptado",
         monto_descontado: monedas_costo,
         monto_restante,
-        precio_soles: (Number(monedas_costo) * Number(precio_por_moneda)).toFixed(2),
+        precio_soles: (
+          Number(monedas_costo) * Number(precio_por_moneda)
+        ).toFixed(2),
         tipo_paquete: `Panel activo por ${dias_extra} días`,
       },
-      datos_tienda: { id_tienda, localidad_tienda: localidad, nombre_tienda: nombreTienda },
-      hora_fecha:   { fecha: fechaStr, hora: horaStr },
+      datos_tienda: {
+        id_tienda,
+        localidad_tienda: localidad,
+        nombre_tienda: nombreTienda,
+      },
+      hora_fecha: { fecha: fechaStr, hora: horaStr },
       id_transaccion,
       timestamp: admin.firestore.Timestamp.now(),
       tipo_transacción: "descuento",
@@ -1482,27 +1642,19 @@ exports.pagar_plan__usuario = onCall(async (request) => {
 
     const batch = db.batch();
 
-
     // ✅ CAMBIO 2: set con merge en vez de update — crea el doc si no existe
 
+    batch.set(
+      refServicio,
+      {
+        panel_admin: {
+          fecha_fin,
 
-    batch.set(refServicio, {
-
-
-      panel_admin: {
-
-
-        fecha_fin,
-
-
-        timestamp_fin: admin.firestore.Timestamp.fromDate(nuevaFecha),
-
-
+          timestamp_fin: admin.firestore.Timestamp.fromDate(nuevaFecha),
+        },
       },
-
-
-    }, { merge: true });  // ← merge conserva otros campos si ya existía
-
+      { merge: true },
+    ); // ← merge conserva otros campos si ya existía
 
     batch.set(
       refTienda.collection("historial_financiero").doc(id_transaccion),
@@ -1523,7 +1675,6 @@ exports.pagar_plan__usuario = onCall(async (request) => {
       id_transaccion,
       puntos_restantes: monto_restante,
     };
-
   } catch (error) {
     console.error("❌ ERROR pagar_plan__usuario:", error);
     if (error instanceof HttpsError) throw error;
