@@ -8,7 +8,7 @@ import kotlinx.coroutines.tasks.await
 
 object get_alias_tienda {
 
-    val db= FirebaseFirestore.getInstance()
+    val db = FirebaseFirestore.getInstance()
 
     suspend fun obtenerAliasTienda(
         id_tienda: String,
@@ -16,12 +16,12 @@ object get_alias_tienda {
     ): String? {
 
         val localidadCompleta = when (localidad.lowercase().trim()) {
-            "ba", "barranca"     -> "barranca"
-            "par", "paramonga"   -> "paramonga"
-            "pat", "pativilca"   -> "pativilca"
-            "su", "supe"         -> "supe"
+            "ba", "barranca" -> "barranca"
+            "par", "paramonga" -> "paramonga"
+            "pat", "pativilca" -> "pativilca"
+            "su", "supe" -> "supe"
             "pue", "puerto supe" -> "puerto supe"
-            else                 -> localidad
+            else -> localidad
         }
 
         return try {
@@ -47,7 +47,11 @@ object get_alias_tienda {
     }
 
 
-    fun resolverAlias(alias: String, contex: Context, onResult: (id: String, localidad: String, categoria: String) -> Unit) {
+    fun resolverAlias(
+        alias: String,
+        contex: Context,
+        onResult: (id: String, localidad: String, categoria: String) -> Unit
+    ) {
 
         db.collection("alias_tiendas")
             .document(alias)
@@ -58,7 +62,10 @@ object get_alias_tienda {
                     val localidad = document.getString("localidad") ?: ""
                     val categoria = document.getString("categoria") ?: ""
 
-                    Log.d("DeepLinkDebug", "ALIAS RESUELTO -> id=$id, loc=$localidad, cat=$categoria")
+                    Log.d(
+                        "DeepLinkDebug",
+                        "ALIAS RESUELTO -> id=$id, loc=$localidad, cat=$categoria"
+                    )
                     onResult(id, localidad, categoria)
                 } else {
                     Log.w("DeepLinkDebug", "Alias no encontrado: $alias")
@@ -69,6 +76,26 @@ object get_alias_tienda {
                 Log.e("DeepLinkDebug", "Error resolviendo alias", e)
             }
     }
+
+    fun resolver_Alias_de_turismo(
+        alias_String: String,
+        contex: Context,
+        onResult: (id: String, localidad: String, categoria: String) -> Unit,
+    ) {
+        db.collection("alias_turismo")
+            .document(alias_String)
+            .get().addOnSuccessListener() { docu ->
+                if (docu.exists()) {
+                    val id = docu.get("id") as? String ?: ""
+                    val categoria = docu.get("categoria") as String ?: ""
+                    val localidad = docu.get("localidad") as? String ?: ""
+                    onResult(id, localidad, categoria)
+                } else {
+                    Toast.makeText(contex, "lugar no encontrado", Toast.LENGTH_SHORT).show()
+                }
+            }
+    }
+}
 //    private fun navegarATienda(id: String, localidad: String, categoria: String) {
 //        fun enc(value: String) = java.net.URLEncoder.encode(value, "UTF-8")
 //
@@ -82,4 +109,3 @@ object get_alias_tienda {
 //            }
 //        }
 //    }
-}

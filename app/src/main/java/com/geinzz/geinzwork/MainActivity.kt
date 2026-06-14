@@ -19,10 +19,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.geinzz.geinzwork.data.model.localizate_geinz.DeepLinkViewModelFactory
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.UiAction
 import com.geinzz.geinzwork.herramientas_geinz.constantes.get_alias_tienda.resolverAlias
+import com.geinzz.geinzwork.herramientas_geinz.constantes.get_alias_tienda.resolver_Alias_de_turismo
 import com.geinzz.geinzwork.model.SessionRepository
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.nativationWrapper
@@ -43,12 +45,11 @@ import kotlinx.coroutines.flow.collectLatest
 import java.net.URLEncoder
 
 
-
 class MainActivity : AppCompatActivity() {
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var datosViewModel: viewModel_usuarios_general
     private lateinit var deepLinkViewModel: DeepLinkViewModel
-    private lateinit var navController: androidx.navigation.NavHostController
+    private lateinit var navController: NavHostController
     lateinit var cropLauncher: ActivityResultLauncher<Intent>
     private val uiActionVM: UiActionViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,7 +62,7 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         cropLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                if (result.resultCode == Activity.RESULT_OK) {
+                if (result.resultCode == RESULT_OK) {
                     val resultUri = UCrop.getOutput(result.data!!)
                     if (resultUri != null) {
                         onImageCropped(resultUri)
@@ -89,7 +90,7 @@ class MainActivity : AppCompatActivity() {
             FuenteControladaApp {
                 GeinzWorkTheme {
                     navController = rememberNavController()
-                    nativationWrapper(uiActionVM,navController,deepLinkViewModel)
+                    nativationWrapper(uiActionVM, navController, deepLinkViewModel)
 
                     LaunchedEffect(Unit) {
                         delay(150)
@@ -125,9 +126,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun manejarDeepLink(uri: Uri) {
-        Log.d("navegacion_rq", uri.toString())
-        val repo_eres_socio=repo_eres_socio()
+        fun enc(value: String) = URLEncoder.encode(value, "UTF-8")
 
+        Log.d("navegacion_rq", uri.toString())
+        val repo_eres_socio = repo_eres_socio()
+        var ruta_turismo_caso = ""
         val tipo = uri.getQueryParameter("t")
             ?: uri.getQueryParameter("tipo")
             ?: ""
@@ -142,12 +145,12 @@ class MainActivity : AppCompatActivity() {
             ?: uri.getQueryParameter("categoria")
             ?: ""
 
-        val cordenadaRaw = uri.getQueryParameter("cor") ?:""
+        val cordenadaRaw = uri.getQueryParameter("cor") ?: ""
 
 
         val index = uri.getQueryParameter("i")?.toIntOrNull() ?: 0
 
-        val id_promocion = uri.getQueryParameter("pi")?:""
+        val id_promocion = uri.getQueryParameter("pi") ?: ""
         val pathSegments = uri.pathSegments
         if (pathSegments.size >= 2 && pathSegments[0] == "perfil") {
             val alias = pathSegments[1]
@@ -169,6 +172,22 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             return
+        } else if (pathSegments.size > 2 && pathSegments[0] == "turismo") {
+            val alias = pathSegments[1]
+            resolver_Alias_de_turismo(
+                alias_String = alias,
+                contex = this,
+                onResult = { id, localida, categoria ->
+                    val ruta = "lugares_turisticos/${enc(localida)}/${enc(id)}"
+                    navController.navigate(ruta) {
+                        launchSingleTop = true
+                        popUpTo(navController.graph.startDestinationId) {
+                            inclusive = false
+                        }
+                    }
+                }
+            )
+            return  // ← importante, salir antes del when
         }
         // 🔹 normalización crítica
         val id = idRaw.removePrefix("/")
@@ -187,9 +206,9 @@ class MainActivity : AppCompatActivity() {
             "seyt" -> "servicios_y_tramites"
             "lgtr" -> "lugares_turisticos"
             "nemg" -> "salud_y_seguridad"
-            "ads"->"promocionar_ads"
-            "rec"->"promocionar_rec"
-            "in"->"inmobiliaria"
+            "ads" -> "promocionar_ads"
+            "rec" -> "promocionar_rec"
+            "in" -> "inmobiliaria"
 
             else -> null
         }
@@ -197,7 +216,6 @@ class MainActivity : AppCompatActivity() {
 
         val categoria = categoriaRaw.replace("+", " ")
 
-        fun enc(value: String) = URLEncoder.encode(value, "UTF-8")
 
         when (tipo.lowercase()) {
 
@@ -218,14 +236,20 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            "to"->{
+            "to" -> {
                 val ruta = "mostrar_tiendas/" +
                         "${enc(localidad)}/" +
                         "${enc(id)}/" +
                         "${enc(categoria)}"
 
                 Log.d("DeepLinkDebug", "cddddNAVEGANDO -> $ruta")
-                repo_eres_socio.agregar_contador_estadistica_noti("abierto",id,localidad,id_promocion,firebaseAuth.uid.toString())
+                repo_eres_socio.agregar_contador_estadistica_noti(
+                    "abierto",
+                    id,
+                    localidad,
+                    id_promocion,
+                    firebaseAuth.uid.toString()
+                )
 
                 navController.navigate(ruta) {
                     launchSingleTop = true
@@ -237,8 +261,8 @@ class MainActivity : AppCompatActivity() {
 
             // 🌍 TURISMO
             "turismo", "tu" -> {
-                val ruta = "lugares_turisticos/${enc(localidad)}/${enc(id)}"
-                navController.navigate(ruta) {
+//                val ruta = "lugares_turisticos/${enc(localidad)}/${enc(id)}"
+                navController.navigate(ruta_turismo_caso) {
                     launchSingleTop = true
                     popUpTo(navController.graph.startDestinationId) {
                         inclusive = false
@@ -255,7 +279,7 @@ class MainActivity : AppCompatActivity() {
                 )
             }
 
-            "prn"->{
+            "prn" -> {
                 deepLinkViewModel.setPromo_notificacion(
                     "promo_notificacion",
                     id_tienda = id,
@@ -265,11 +289,12 @@ class MainActivity : AppCompatActivity() {
 
             }
 
-            "prms"->{
+            "prms" -> {
                 uiActionVM.emitir(
                     UiAction.Abrir_pantalla_promos_cecanas(id_promocion, localidad)
                 )
             }
+
             "pmspls" -> {
                 // El parámetro "p" trae los IDs separados por coma
                 // Ej: p=koOZB9Ju0w2TOQX2PdsT,xhsBaAgoWpa0Mfm92405,XuFt7RIL45p8tdUwBNak
@@ -286,7 +311,6 @@ class MainActivity : AppCompatActivity() {
                     )
                 )
             }
-
 
 
             "prf" -> {
@@ -306,7 +330,7 @@ class MainActivity : AppCompatActivity() {
                 val (lat, lng) =
                     generar_qr_cordenadas_tienda.decodificarCoordenadas(cordenadaRaw!!)
                 uiActionVM.emitir(
-                    UiAction.Ruta(idRaw,lat, lng)
+                    UiAction.Ruta(idRaw, lat, lng)
                 )
             }
 
@@ -328,16 +352,17 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
-            "in"->{
+
+            "in" -> {
                 uiActionVM.emitir(
-                UiAction.abrir_pantalla_inmobiliara(idRaw, localidad)
+                    UiAction.abrir_pantalla_inmobiliara(idRaw, localidad)
                 )
             }
         }
     }
 
-        private fun navegarATienda(id: String, localidad: String, categoria: String) {
-        fun enc(value: String) = java.net.URLEncoder.encode(value, "UTF-8")
+    private fun navegarATienda(id: String, localidad: String, categoria: String) {
+        fun enc(value: String) = URLEncoder.encode(value, "UTF-8")
 
         val ruta = "mostrar_tiendas/${enc(localidad)}/${enc(id)}/${enc(categoria)}"
 
@@ -349,6 +374,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
     private fun crearCanalNotificaciones() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
