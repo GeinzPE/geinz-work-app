@@ -762,6 +762,7 @@ exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
         img: hit.img || "",
         tipo: "turismo",
         tag: hit.tag || [],
+        alias: hit.alias || "",  // ✅ campo añadido
       }));
 
     return res.status(200).json({
@@ -780,7 +781,6 @@ exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
     });
   }
 });
-
 exports.buscarNegocios_para_solucionar = onRequest(
   { cors: true },
   async (req, res) => {
