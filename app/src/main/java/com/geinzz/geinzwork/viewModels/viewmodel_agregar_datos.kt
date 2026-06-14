@@ -254,4 +254,25 @@ class viewmodel_agregar_datos : ViewModel() {
         )
     }
 
+
+    fun agregar_alias_turismo(context: Context){
+        viewModelScope.launch {
+            try {
+                val repo_instace = repo_agregar_datos(context)
+                repo_instace.registrarAliasTurismo(
+                    localidad = "barranca",
+                    onSuccess = {
+                        Log.d("Alias", "Todos los alias creados correctamente")
+                    },
+                    onError   = { e ->
+                        Log.e("Alias", "Error: ${e.message}")
+                    }
+                )
+            }catch (e: Exception){
+                Log.e("Alias", "Error: ${e.message}")
+
+            }
+        }
+    }
+
 }

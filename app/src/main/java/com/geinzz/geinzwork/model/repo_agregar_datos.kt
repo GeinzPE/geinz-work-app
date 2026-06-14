@@ -997,12 +997,73 @@ class repo_agregar_datos(context: Context) {
         return "$base$sufijo"
     }
 
+    fun generarAliasTurismo(nombre: String): String {
+        val base = nombre
+            .lowercase()
+            .replace("á", "a").replace("é", "e").replace("í", "i")
+            .replace("ó", "o").replace("ú", "u").replace("ñ", "n")
+            .replace(Regex("[^a-z0-9]"), "")  // quita espacios, tildes restantes, guiones, _, etc.
+        return "${base}brca"
+    }
+
+    fun registrarAliasTurismo(
+        localidad: String,
+        onSuccess: () -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        db2.collection("Tiendas")
+            .document(localidad)
+            .collection("lugares_turisticos")
+            .get()
+            .addOnSuccessListener { snapshot ->
+
+                val batch = db2.batch()
+
+                for (doc in snapshot.documents) {
+                    val idLugar = doc.id
+                    val titulo  = doc.getString("titulo") ?: continue
+
+                    val alias = generarAliasTurismo(titulo)
+
+                    // 1️⃣ Doc en alias_turismo
+                    val aliasRef = db2.collection("alias_turismo").document(alias)
+                    batch.set(aliasRef, mapOf(
+                        "id"        to idLugar,
+                        "localidad" to localidad,
+                        "categoria" to "lugares_turisticos"
+                    ), SetOptions.merge())
+
+                    // 2️⃣ Agrega alias_key dentro de cada lugar en Tiendas/.../lugares_turisticos
+                    val lugarTurRef = db2.collection("Tiendas")
+                        .document(localidad)
+                        .collection("lugares_turisticos")
+                        .document(idLugar)
+                    batch.set(lugarTurRef, mapOf("alias_key" to alias), SetOptions.merge())
+
+                    // 3️⃣ Pega el alias en /lugares/{idLugar} con campo "alias"
+                    val lugarRef = db2.collection("lugares").document(idLugar)
+                    batch.set(lugarRef, mapOf("alias" to alias), SetOptions.merge())
+                }
+
+                batch.commit()
+                    .addOnSuccessListener { onSuccess() }
+                    .addOnFailureListener { e -> onError(e) }
+            }
+            .addOnFailureListener { e -> onError(e) }
+    }
+
+
     fun formatearCategoria(categoria: String): String {
         return categoria
             .trim()
             .lowercase()
             .replace(Regex("\\s+"), "+") // espacios → "+"
     }
+
+
+
+
+
 
 
 }
