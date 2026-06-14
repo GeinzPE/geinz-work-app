@@ -723,7 +723,7 @@ exports.filtrar_por_datos = onRequest(async (req, res) => {
 
 exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
   try {
-    const { localidad, nombre, subcategoria } = req.body;
+    const { localidad, nombre, subcategoria, excluir_id } = req.body;
 
     let filters = [];
 
@@ -735,6 +735,9 @@ exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
 
     if (subcategoria) {
       filters.push(`tag:"${subcategoria}"`);
+    }
+    if (excluir_id) {
+      filters.push(`NOT objectID:"${excluir_id}"`);
     }
 
     const query = nombre || "";
@@ -758,12 +761,14 @@ exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
         descripcion: (hit.descripcion || "").substring(0, 150),
         img: hit.img || "",
         tipo: "turismo",
+        tag: hit.tag || [],
       }));
 
     return res.status(200).json({
       ok: true,
       total: data.length,
       momento_dia: obtenerMomentoDia(),
+      tipo: "turismo",
       data,
     });
   } catch (error) {
@@ -1147,7 +1152,7 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
 
 exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
   try {
-    const { localidad, categoria, subcategoria } = req.body;
+    const { localidad, categoria, subcategoria, excluir_id } = req.body;
 
     const query = "";
     let filters = [];
@@ -1182,6 +1187,9 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
           })
           .catch((e) => console.error("Stats sub:", e));
       }
+    }
+    if (excluir_id) {
+      filters.push(`NOT objectID:"${excluir_id}"`);
     }
 
     const { hits } = await index.search(query, {
@@ -1639,7 +1647,9 @@ exports.agregar_historial_usuario = onRequest(async (req, res) => {
 
     // 🔍 Validación
     if (!numeroUser || typeof numeroUser !== "string" || !numeroUser.trim()) {
-      return res.status(400).json({ ok: false, error: "Falta o es inválido numeroUser" });
+      return res
+        .status(400)
+        .json({ ok: false, error: "Falta o es inválido numeroUser" });
     }
 
     // 🔥 Parse seguro del contexto
@@ -1647,17 +1657,22 @@ exports.agregar_historial_usuario = onRequest(async (req, res) => {
 
     if (contexto !== undefined && contexto !== null) {
       try {
-        contextoObj = typeof contexto === "string" ? JSON.parse(contexto) : contexto;
+        contextoObj =
+          typeof contexto === "string" ? JSON.parse(contexto) : contexto;
       } catch (e) {
         console.error("❌ Error parseando contexto:", e);
-        return res.status(400).json({ ok: false, error: "Contexto inválido, no es JSON válido" });
+        return res
+          .status(400)
+          .json({ ok: false, error: "Contexto inválido, no es JSON válido" });
       }
     }
 
     // 📍 Referencia
     const ref = admin
       .firestore()
-      .doc(`Trabajadores_Usuarios_Drivers/usuario_bot_geinz/usuario_bot_geinz/${numeroUser.trim()}`);
+      .doc(
+        `Trabajadores_Usuarios_Drivers/usuario_bot_geinz/usuario_bot_geinz/${numeroUser.trim()}`,
+      );
 
     // 💾 Guardado con merge
     await ref.set(
@@ -1665,7 +1680,7 @@ exports.agregar_historial_usuario = onRequest(async (req, res) => {
         ...(contextoObj !== null && { contexto: contextoObj }),
         updated_at: admin.firestore.FieldValue.serverTimestamp(),
       },
-      { merge: true }
+      { merge: true },
     );
 
     return res.status(200).json({
@@ -1673,7 +1688,6 @@ exports.agregar_historial_usuario = onRequest(async (req, res) => {
       mensaje: "Historial guardado correctamente",
       numeroUser: numeroUser.trim(),
     });
-
   } catch (error) {
     console.error("🔥 ERROR GENERAL:", error);
     return res.status(500).json({
@@ -4898,15 +4912,176 @@ exports.perfilSSR = onRequest(async (req, res) => {
   }
 });
 
+exports.turismoSSR = onRequest(async (req, res) => {
+  const alias = req.path.replace(/^\/turismo\//, "").trim();
+  if (!alias) return res.status(404).send("No encontrado");
+
+  const userAgent = req.headers["user-agent"] || "";
+
+  const esCrawlerSEO = /googlebot|bingbot/i.test(userAgent);
+  const esPreviewSocial =
+    /whatsapp|telegram|twitterbot|facebookexternalhit|facebookbot|linkedinbot|slackbot|discordbot|skype|viber|line|snapchat|pinterest|vkshare|w3c_validator|curl|python|wget/i.test(
+      userAgent,
+    );
+
+  // ============================
+  //   USUARIO NORMAL → SPA
+  // ============================
+  if (!esCrawlerSEO && !esPreviewSocial) {
+    try {
+      const html = await getTurismoHtml();
+      res.set("Content-Type", "text/html");
+      // Cache en CDN de Hosting: 5 min, revalida en background
+      res.set("Cache-Control", "public, max-age=300, s-maxage=300, stale-while-revalidate=600");
+      return res.status(200).send(html);
+    } catch (e) {
+      logger.error("Error sirviendo turismo.html:", e);
+      return res.redirect(
+        302,
+        `https://geinzworkapp.web.app/turismo/${encodeURIComponent(alias)}`,
+      );
+    }
+  }
+
+  // ============================
+  //   BOTS → OG META TAGS
+  // ============================
+  try {
+    const db = admin.firestore();
+
+    // 1) Resolver alias
+    const aliasSnap = await db.collection("alias_turismo").doc(alias).get();
+    if (!aliasSnap.exists) return res.status(404).send("Lugar no encontrado");
+
+    const { id, localidad, categoria } = aliasSnap.data();
+
+    // 2) Documento del lugar
+    const lugarSnap = await db
+      .collection("Tiendas")
+      .doc(localidad)
+      .collection(categoria)
+      .doc(id)
+      .get();
+
+    if (!lugarSnap.exists) return res.status(404).send("Lugar no disponible");
+
+    const t = lugarSnap.data();
+
+    const titulo = capitalizeFirstLetter(t.titulo || "Lugar en Geinz");
+    const descripcion = t.descripcion || "Encuéntralo en Geinz";
+    const descCorta =
+      descripcion.length > 120
+        ? descripcion.slice(0, 117).trim() + "..."
+        : descripcion;
+
+    const imagen =
+      t.img?.principal || "https://geinzworkapp.web.app/default.jpg";
+
+    const url = `https://geinzworkapp.web.app/turismo/${alias}`;
+
+    const safe = (s) => (s || "").replace(/"/g, '\\"').replace(/\n/g, " ");
+
+    const ogHtml = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${titulo} | GeinzWork</title>
+  <meta name="description"         content="${descCorta}">
+
+  <meta property="og:type"         content="website" />
+  <meta property="og:site_name"    content="GeinzWork" />
+  <meta property="og:title"        content="${titulo}" />
+  <meta property="og:description"  content="${descCorta}" />
+  <meta property="og:image"        content="${imagen}" />
+  <meta property="og:image:secure_url" content="${imagen}" />
+  <meta property="og:image:width"  content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type"   content="image/webp" />
+  <meta property="og:url"          content="${url}" />
+  <meta property="og:locale"       content="es_PE" />
+
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content="${titulo}" />
+  <meta name="twitter:description" content="${descCorta}" />
+  <meta name="twitter:image"       content="${imagen}" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TouristAttraction",
+    "name": "${safe(titulo)}",
+    "description": "${safe(descripcion)}",
+    "image": "${imagen}",
+    "url": "${url}",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "${localidad}",
+      "addressCountry": "PE"
+    }
+  }
+  </script>
+</head>
+<body>
+  <h1>${titulo}</h1>
+  <p>${descripcion}</p>
+  ${esPreviewSocial ? `<script>window.location.href = "${url}";</script>` : ""}
+</body>
+</html>`;
+
+    res.set("Cache-Control", "public, max-age=3600, s-maxage=3600");
+    return res.status(200).send(ogHtml);
+  } catch (e) {
+    logger.error("turismoSSR error:", e);
+    return res.status(500).send("Error interno");
+  }
+});
+
+// ============================
+//   CACHE EN MEMORIA del HTML base
+//   (se reutiliza entre invocaciones "calientes")
+// ============================
+let _turismoHtmlCache = null;
+let _turismoHtmlCacheTime = 0;
+const TURISMO_HTML_TTL = 5 * 60 * 1000; // 5 minutos
+
+async function getTurismoHtml() {
+  const now = Date.now();
+
+  if (_turismoHtmlCache && now - _turismoHtmlCacheTime < TURISMO_HTML_TTL) {
+    return _turismoHtmlCache;
+  }
+
+  const response = await fetch("https://geinzworkapp.web.app/turismo.html");
+  let html = await response.text();
+
+  const BASE = "https://geinzworkapp.web.app/";
+
+  html = html
+    .replace(/(src|href)="\.\/(css|js|img|style)\//g, `$1="${BASE}$2/`)
+    .replace(/(src|href)="(css|js|img|style)\//g, `$1="${BASE}$2/`)
+    .replace(/"\.\//g, `"${BASE}`);
+
+  _turismoHtmlCache = html;
+  _turismoHtmlCacheTime = now;
+
+  return html;
+}
 // ─────────────────────────────────────────────
 // SITEMAP — genera todas las URLs de tiendas
 // ─────────────────────────────────────────────
 exports.sitemap = onRequest(async (req, res) => {
   try {
     const db = admin.firestore();
-    const snap = await db.collection("alias_tiendas").get();
 
-    logger.info("Total alias encontrados:", snap.size);
+    const [snapTiendas, snapTurismo] = await Promise.all([
+      db.collection("alias_tiendas").get(),
+      db.collection("alias_turismo").get(),
+    ]);
+
+    logger.info("Total alias_tiendas encontrados:", snapTiendas.size);
+    logger.info("Total alias_turismo encontrados:", snapTurismo.size);
+
     const staticUrls = `
   <url>
     <loc>https://geinzworkapp.web.app/</loc>
@@ -4942,7 +5117,7 @@ exports.sitemap = onRequest(async (req, res) => {
     <priority>0.7</priority>
   </url>`;
 
-    const dynamicUrls = snap.docs
+    const dynamicUrls = snapTiendas.docs
       .map(
         (doc) => `
   <url>
@@ -4953,19 +5128,30 @@ exports.sitemap = onRequest(async (req, res) => {
       )
       .join("");
 
+    const turismoUrls = snapTurismo.docs
+      .map(
+        (doc) => `
+  <url>
+    <loc>https://geinzworkapp.web.app/turismo/${doc.id}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`,
+      )
+      .join("");
+
     res.set("Content-Type", "application/xml");
     res.set("Cache-Control", "public, max-age=3600");
     res.status(200).send(`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${staticUrls}
 ${dynamicUrls}
+${turismoUrls}
 </urlset>`);
   } catch (e) {
     logger.error("Error sitemap:", e);
     res.status(500).send("Error generando sitemap");
   }
 });
-
 function capitalizeFirstLetter(str) {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -5747,40 +5933,45 @@ function normalizar(texto) {
     .trim();
 }
 
-
 exports.limpiarPromosExpiradas = onSchedule(
   {
     schedule: "every 15 minutes",
     timeZone: "America/Lima",
   },
   async () => {
-    const db    = admin.firestore();
+    const db = admin.firestore();
     const ahora = admin.firestore.Timestamp.now();
- 
+
     // Solo los docs que ya expiraron — nunca itera los vigentes
     const snap = await db
       .collection("promosFin")
       .where("expira_en_ttl", "<=", ahora)
       .get();
- 
+
     if (snap.empty) {
       logger.info("Sin promos expiradas.");
       return;
     }
- 
+
     logger.info(`Expiradas: ${snap.size}`);
- 
+
     // Agrupa por localidad+categoria para hacer el menor número de writes posible
     const grupos = {};
     for (const doc of snap.docs) {
       const { localidad, categoria, terminos_clave } = doc.data();
-      if (!localidad || !categoria || !Array.isArray(terminos_clave) || !terminos_clave.length) continue;
- 
+      if (
+        !localidad ||
+        !categoria ||
+        !Array.isArray(terminos_clave) ||
+        !terminos_clave.length
+      )
+        continue;
+
       const key = `${localidad}||${categoria}`;
       if (!grupos[key]) grupos[key] = { localidad, categoria, terminos: [] };
       grupos[key].terminos.push(...terminos_clave);
     }
- 
+
     // Un solo arrayRemove por localidad+categoria
     // Ruta: /Tiendas/{localidad}/cache_filtrado/filtrado
     await Promise.all(
@@ -5792,10 +5983,10 @@ exports.limpiarPromosExpiradas = onSchedule(
           .doc("filtrado")
           .update({
             [categoria]: admin.firestore.FieldValue.arrayRemove(...terminos),
-          })
-      )
+          }),
+      ),
     );
- 
+
     logger.info("✅ Cache limpiado.");
-  }
+  },
 );
