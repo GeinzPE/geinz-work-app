@@ -172,23 +172,23 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             return
-        } else if (pathSegments.size > 2 && pathSegments[0] == "turismo") {
-            val alias = pathSegments[1]
-            resolver_Alias_de_turismo(
-                alias_String = alias,
-                contex = this,
-                onResult = { id, localida, categoria ->
-                    val ruta = "lugares_turisticos/${enc(localida)}/${enc(id)}"
-                    navController.navigate(ruta) {
-                        launchSingleTop = true
-                        popUpTo(navController.graph.startDestinationId) {
-                            inclusive = false
-                        }
+        } else if (pathSegments.size >= 2 && pathSegments[0] == "turismo") {
+        val alias = pathSegments[1]
+        resolver_Alias_de_turismo(
+            alias_String = alias,
+            contex = this,
+            onResult = { id, localida, categoria ->
+                val ruta = "lugares_turisticos/${enc(localida)}/${enc(id)}"
+                navController.navigate(ruta) {
+                    launchSingleTop = true
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = false
                     }
                 }
-            )
-            return  // ← importante, salir antes del when
-        }
+            }
+        )
+        return
+    }
         // 🔹 normalización crítica
         val id = idRaw.removePrefix("/")
 
