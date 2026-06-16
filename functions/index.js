@@ -53,8 +53,13 @@ exports.crearPromocion = crearPromocion;
 exports.extraerTerminosClaveIA = extraerTerminosClaveIA;
 exports.generar_descripcion_whatsapp_ia = generar_descripcion_whatsapp_ia;
 exports.pagar_plan__usuario = pagar_plan__usuario;
-const axios = require("axios");
 
+
+const { screenaiQuery, getUserData } = require("./functions_trabajo");
+exports.screenaiQuery = screenaiQuery;
+exports.getUserData = getUserData;
+
+const axios = require("axios");
 const CULQI_KEY = process.env.CULQI_KEY;
 const PHONE_ID = process.env.ID_NUMBER_WHATSAPP;
 const WHATSAPP_TOKEN = process.env.ID_API_WHATSAPP;
