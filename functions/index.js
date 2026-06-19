@@ -55,7 +55,8 @@ exports.generar_descripcion_whatsapp_ia = generar_descripcion_whatsapp_ia;
 exports.pagar_plan__usuario = pagar_plan__usuario;
 
 
-const { screenaiQuery, getUserData } = require("./functions_trabajo");
+const { screenaiQuery, getUserData,suggestConfig } = require("./functions_trabajo");
+exports.suggestConfig = suggestConfig;
 exports.screenaiQuery = screenaiQuery;
 exports.getUserData = getUserData;
 
