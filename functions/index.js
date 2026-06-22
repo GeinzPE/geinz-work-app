@@ -24,6 +24,12 @@ const ttsClient = new textToSpeech.TextToSpeechClient();
 const geofire = require("geofire-common");
 admin.initializeApp();
 const {
+  screenaiQuery_extencion,
+}=require("./extencion")
+exports.screenaiQuery_extencion = screenaiQuery_extencion;
+
+
+const {
   obtener_creditos_tienda,
   obtener_creditos_tienda_fn,
   descontar_creditos_tienda,
@@ -44,7 +50,6 @@ const {
 
 exports.obtener_creditos_tienda = obtener_creditos_tienda;
 exports.descontar_creditos_tienda = descontar_creditos_tienda;
-
 exports.generar_texto_ia = generar_texto_ia;
 exports.generar_texto_compartir_ia = generar_texto_compartir_ia;
 exports.generar_whatsapp_contacto_ia = generar_whatsapp_contacto_ia;
@@ -59,6 +64,11 @@ const { screenaiQuery, getUserData,suggestConfig } = require("./functions_trabaj
 exports.suggestConfig = suggestConfig;
 exports.screenaiQuery = screenaiQuery;
 exports.getUserData = getUserData;
+
+
+const { crearOrdenCulqiPlan,confirmarPagoPlan  } = require("./pagos_scag");
+exports.crearOrdenCulqiPlan = crearOrdenCulqiPlan;
+exports.confirmarPagoPlan = confirmarPagoPlan;
 
 const axios = require("axios");
 const CULQI_KEY = process.env.CULQI_KEY;
@@ -1702,7 +1712,7 @@ exports.agregar_historial_usuario = onRequest(async (req, res) => {
     });
   }
 });
-// ==================== culqui ====================
+// ==================== culqi ====================
 // ─── BACKEND: crearOrdenCulqi ───
 exports.crearOrdenCulqi = onCall(async (req) => {
   const { monto, userId, nombre, email, orderId } = req.data;

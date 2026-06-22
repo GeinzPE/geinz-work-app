@@ -1,8 +1,3 @@
-/**
- * screenaiQuery.js — Cloud Function v2
- * Usa db2 (segunda app de Firebase) para buscar usuarios en /trabajos_ia/{alias}
- */
-
 "use strict";
 
 const { onRequest } = require("firebase-functions/v2/https");
@@ -16,7 +11,6 @@ const GEMINI_PRO_URL =
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 
 const USERS_COLLECTION = "trabajos_ia";
-// ─── MODEL MAP ────────────────────────────────────────────────────────────────
 const MODEL_MAP = {
   "gemini-flash": { family: "gemini", endpoint: GEMINI_FLASH_URL },
   "gemini-pro": { family: "gemini", endpoint: GEMINI_PRO_URL },
@@ -26,8 +20,18 @@ const MODEL_MAP = {
   gpt4o: { family: "openai", model: "gpt-4o" }, // ← alias
 };
 
+const {
+  SYSTEM_PROMPTS,
+  SYSTEM_PROMPT_VISION,
+  maxTokens,
+} = require("./modelo_promps_ia");
+// ─── MODEL MAP ────────────────────────────────────────────────────────────────
+
 // ─── DB2 (segunda app Firebase) ───────────────────────────────────────────────
 let db2 = null;
+let preciosCache = null;
+let preciosCacheTime = 0;
+const CACHE_TTL = 5 * 60 * 1000;
 
 const initDb2 = () => {
   if (db2) return db2;
@@ -55,181 +59,6 @@ const initDb2 = () => {
   return db2;
 };
 
-// ─── Modelos ──────────────────────────────────────────────────────────────────
-const SYSTEM_PROMPTS = {
-  general: `Eres un asistente de exámenes. Responde SOLO con las respuestas, sin explicar.
-
-FORMATO OBLIGATORIO — una línea por pregunta:
-  número) respuesta
-
-REGLAS:
-- Opción múltiple → devuelve el texto COMPLETO de la opción correcta.
-- NUNCA respondas únicamente con letras (A, B, C, D, E).
-- Si existen alternativas, copia el contenido exacto de la respuesta correcta.
-- Verdadero/Falso → solo "Verdadero" o "Falso".
-- Completar → solo la palabra o frase exacta.
-- Respuesta corta → máximo 6 palabras.
-- Si dice "explica", "describe" o "justifica" → 1 oración, máx 20 palabras.
-- NUNCA escribas "La respuesta es", introducciones ni markdown.`,
-
-  matematicas: `Eres asistente de exámenes de matemáticas. Da SOLO el resultado final.
-
-FORMATO: número) resultado
-
-REGLAS:
-- Solo el valor final, sin desarrollo.
-- Fracciones en forma reducida (ej: 3/4). Decimales: máx 2 cifras.
-- Ecuaciones: solo el valor (ej: x=5).
-- Geometría: incluye unidad (ej: 12 cm²).
-- Estadística: 2 decimales.
-- Si pide procedimiento → pasos mínimos, 1 línea cada uno.
-- NUNCA narrativa ni markdown.`,
-
-  programacion: `Eres asistente de exámenes de programación. Da SOLO la respuesta exacta.
-
-FORMATO: número) respuesta
-
-REGLAS:
-- Output de código → exactamente lo que imprime, con saltos de línea si los hay.
-- Errores → tipo exacto (ej: IndexError).
-- Complejidad → solo Big-O (ej: O(n log n)).
-- Concepto → máx 8 palabras.
-- Si pide código → solo el código, sin comentarios.
-- Si pide "explica" → 1 oración técnica, máx 15 palabras.
-- NUNCA introducciones ni markdown fuera del código.`,
-
-  lectura: `Eres asistente de exámenes de comprensión lectora. Da SOLO la respuesta.
-
-FORMATO: número) respuesta
-
-REGLAS:
-- Opción múltiple → texto EXACTO de la opción correcta.
-- Idea principal → 1 oración, máx 15 palabras.
-- Inferencia → 1 oración directa, máx 15 palabras.
-- Vocabulario → solo la palabra o sinónimo.
-- Pregunta abierta → máx 2 oraciones sin introducción.
-- NUNCA "según el texto", contexto ni markdown.`,
-
-  medicina: `Eres asistente de exámenes de medicina y ciencias de la salud. Da SOLO la respuesta.
-
-FORMATO: número) respuesta
-
-REGLAS:
-- Anatomía/fisiología → término o estructura exacta.
-- Diagnóstico → nombre clínico exacto de la enfermedad o síndrome.
-- Fármaco → nombre genérico + mecanismo en máx 6 palabras si se pide.
-- Opción múltiple → texto EXACTO de la opción correcta.
-- Si pide "explica el mecanismo" → 1 oración clínica, máx 20 palabras.
-- NUNCA introducciones, "se debe a", ni markdown.`,
-
-  quimica: `Eres asistente de exámenes de química. Da SOLO la respuesta exacta.
-
-FORMATO: número) respuesta
-
-REGLAS:
-- Fórmulas → notación química estándar (ej: H₂SO₄, NaCl).
-- Balanceo → ecuación balanceada completa en una línea.
-- Cálculo estequiométrico → solo el valor con unidad (ej: 2.5 mol).
-- Nomenclatura → nombre IUPAC exacto o fórmula según lo que pida.
-- pH/concentración → resultado con 2 decimales.
-- Si pide "explica" → 1 oración, máx 15 palabras.
-- NUNCA desarrollo ni markdown.`,
-
-  fisica: `Eres asistente de exámenes de física. Da SOLO el resultado.
-
-FORMATO: número) resultado
-
-REGLAS:
-- Cálculo → valor numérico con unidad SI (ej: 9.8 m/s²).
-- Fórmula → escríbela directamente (ej: F=ma).
-- Ley o principio → nombre exacto + máx 6 palabras si pide definición.
-- Vectores → magnitud y dirección si aplica.
-- Decimales: máx 2 cifras significativas.
-- Si pide "explica" → 1 oración física, máx 15 palabras.
-- NUNCA desarrollo de operaciones ni markdown.`,
-
-  historia: `Eres asistente de exámenes de historia. Da SOLO la respuesta.
-
-FORMATO: número) respuesta
-
-REGLAS:
-- Fecha → formato exacto pedido (año, década, siglo).
-- Personaje → nombre completo si se pide.
-- Evento → nombre oficial exacto.
-- Opción múltiple → texto EXACTO de la opción correcta.
-- Causa/consecuencia → 1 oración directa, máx 15 palabras.
-- NUNCA contexto adicional, relatos ni markdown.`,
-
-  ingles: `You are an exam assistant. Answer ONLY with the correct answer.
-
-FORMAT: número) answer
-
-RULES:
-- Multiple choice → EXACT text of the correct option.
-- Grammar → corrected word or phrase only.
-- Fill in the blank → exact word(s) that complete the sentence.
-- Vocabulary → exact synonym or definition in max 5 words.
-- Translation → direct translation, no alternatives.
-- If asked to "explain" → 1 sentence, max 15 words.
-- NEVER write introductions, "the answer is", or markdown.`,
-
-  biologia: `Eres asistente de exámenes de biología. Da SOLO la respuesta exacta.
-
-FORMATO: número) respuesta
-
-REGLAS:
-- Taxonomía → clasificación exacta pedida (reino, filo, clase, etc.).
-- Proceso biológico → nombre técnico exacto (ej: fotosíntesis, mitosis).
-- Estructura celular → nombre de la organela o parte exacta.
-- Opción múltiple → texto EXACTO de la opción correcta.
-- Genética → genotipo/fenotipo en notación estándar (ej: Aa, dominante).
-- Si pide "explica" → 1 oración, máx 15 palabras.
-- NUNCA descripciones largas ni markdown.`,
-};
-
-const SYSTEM_PROMPT_VISION = `Eres un asistente de exámenes. Analiza la imagen y responde TODAS las preguntas visibles.
-
-FORMATO OBLIGATORIO — una línea por pregunta:
-  número) respuesta
-
-REGLAS:
-- Identifica cada pregunta numerada y respóndela en orden.
-- Opción múltiple → devuelve el texto COMPLETO de la opción correcta.
-- NUNCA respondas únicamente con letras (A, B, C, D, E).
-- Si existen alternativas, copia el contenido exacto de la respuesta correcta.
-- Cálculo → solo el valor final con unidad si aplica.
-- Diagrama o gráfica → responde lo que pide, no describas la imagen.
-- Si pide "explica" o "describe" → máx 2 oraciones muy directas.
-- Si no ves claramente → número) [ilegible]
-- NUNCA describas la imagen, des introducción ni uses markdown.`;
-
-function maxTokens(category) {
-  switch (category) {
-    case "matematicas":
-      return 400;
-    case "fisica":
-      return 400;
-    case "quimica":
-      return 450;
-    case "programacion":
-      return 500;
-    case "ingles":
-      return 500;
-    case "biologia":
-      return 500;
-    case "medicina":
-      return 550;
-    case "historia":
-      return 500;
-    case "lectura":
-      return 600;
-    case "general":
-      return 500;
-    default:
-      return 500;
-  }
-}
-
 // ─── Helper: verificar alias en db2 ──────────────────────────────────────────
 async function verificarAlias(alias) {
   const database = initDb2();
@@ -244,7 +73,7 @@ async function verificarAlias(alias) {
     return {
       ok: false,
       status: 404,
-      error: "Alias no encontrado. Contacta al administrador.",
+      error: "Usuario no encontrado.",
     };
 
   const data = snap.data();
@@ -259,23 +88,73 @@ async function verificarAlias(alias) {
   return { ok: true, credits, data };
 }
 
-// ─── Helper: descontar crédito en db2 ────────────────────────────────────────
-async function descontarCredito(alias) {
-  const database = initDb2();
-  if (!database) return;
+// ─── OBTENER COSTOS POR CATEGORIA ────────
+function categoriaToDbKey(category) {
+  if (!category || category === "general" || category === "General") {
+    return "general";
+  }
+  return category.replace(/_/g, " ");
+}
 
-  const snap = await database.collection(USERS_COLLECTION).doc(alias).get();
-  const data = snap.data() || {};
-  const field = data.credits !== undefined ? "credits" : "creditos";
+async function obtenerCostoCategoria(category) {
+  try {
+    const database = initDb2();
+    if (!database) return 0;
 
-  await database
-    .collection(USERS_COLLECTION)
-    .doc(alias)
-    .update({
-      [field]: admin.firestore.FieldValue.increment(-1),
-      lastQuery: admin.firestore.FieldValue.serverTimestamp(),
-      totalQueries: admin.firestore.FieldValue.increment(1),
-    });
+    const ahora = Date.now();
+    if (!preciosCache || ahora - preciosCacheTime > CACHE_TTL) {
+      const snap = await database
+        .collection("precio_apartado")
+        .doc("scag_site")
+        .get();
+      preciosCache = snap.exists ? snap.data() : {};
+      preciosCacheTime = ahora;
+    }
+
+    const key = categoriaToDbKey(category);
+    const costo = preciosCache?.categoria?.[key];
+    return typeof costo === "number" ? costo : 0;
+  } catch (e) {
+    console.warn("[ScreenAI] No se pudo leer costo categoría:", e.message);
+    return 0;
+  }
+}
+// ─── Helper: detectar si la respuesta de la IA es válida para cobrar ────────
+function esRespuestaValida(answer, mode) {
+  if (!answer || !answer.trim()) return false;
+
+  const a = answer.trim().toLowerCase();
+
+  // Si TODA la respuesta es solo "ilegible" o equivalentes, no cobrar
+  const soloIlegible = /^(\d+\)\s*\[?ilegible\]?\s*\n?)+$/i.test(answer.trim());
+  if (soloIlegible) return false;
+
+  // Si la respuesta contiene una sola línea y es genérica de "sin respuesta"
+  const patronesInvalidos = [
+    /^sin respuesta\.?$/,
+    /^no se pudo (leer|procesar|identificar)/,
+    /^\[ilegible\]$/,
+    /^no hay preguntas/,
+    /^no veo (ninguna|texto|preguntas)/,
+    /^sin_contenido$/i,
+  ];
+  if (patronesInvalidos.some((re) => re.test(a))) return false;
+
+  // Si es modo imagen: contar cuántas líneas son "[ilegible]" vs líneas totales
+  if (mode === "image") {
+    const lineas = answer
+      .trim()
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+    if (lineas.length === 0) return false;
+
+    const ilegibles = lineas.filter((l) => /\[ilegible\]/i.test(l)).length;
+    // Si TODAS las líneas son ilegibles → no cobrar
+    if (ilegibles === lineas.length) return false;
+  }
+
+  return true;
 }
 
 // ─── CLOUD FUNCTION ───────────────────────────────────────────────────────────
@@ -334,7 +213,7 @@ const screenaiQuery = onRequest(
           .doc(alias)
           .get();
         if (!snap.exists) {
-          res.status(404).json({ ok: false, error: "Alias no encontrado." });
+          res.status(404).json({ ok: false, error: "Usuario no encontrado." });
           return;
         }
 
@@ -345,10 +224,12 @@ const screenaiQuery = onRequest(
           category: data.category || null,
           hotkeyToggle: data.hotkeyToggle || null,
           hotkeyQuery: data.hotkeyQuery || null,
+          hotkeyCapture: data.hotkeyCapture || null,
           position: data.position || null,
           theme: data.theme || "solid",
           highlightColor: data.highlightColor || "#fad232",
           autoClick: data.autoClick ?? true,
+          solutionMode: data.solutionMode || "detallado",
         });
       } catch (e) {
         console.error("[ScreenAI] config GET error:", e.message);
@@ -368,10 +249,12 @@ const screenaiQuery = onRequest(
         category,
         hotkeyToggle,
         hotkeyQuery,
+        hotkeyCapture,
         position,
         theme,
         highlightColor,
         autoClick,
+        solutionMode, // 👈 agregar aquí
       } = req.body || {};
 
       if (!alias || !alias.trim()) {
@@ -396,16 +279,19 @@ const screenaiQuery = onRequest(
         if (category !== undefined) updateData.category = category;
         if (hotkeyToggle !== undefined) updateData.hotkeyToggle = hotkeyToggle;
         if (hotkeyQuery !== undefined) updateData.hotkeyQuery = hotkeyQuery;
+        if (hotkeyCapture !== undefined)
+          updateData.hotkeyCapture = hotkeyCapture;
         if (position !== undefined) updateData.position = position;
         if (theme !== undefined) updateData.theme = theme;
         if (highlightColor !== undefined)
           updateData.highlightColor = highlightColor;
         if (autoClick !== undefined) updateData.autoClick = autoClick;
+        if (solutionMode !== undefined) updateData.solutionMode = solutionMode; // 👈 agregar aquí
 
         await database
           .collection(USERS_COLLECTION)
           .doc(alias.trim().toLowerCase())
-          .update(updateData);
+          .set(updateData, { merge: true });
 
         res.status(200).json({ ok: true });
       } catch (e) {
@@ -532,7 +418,6 @@ const screenaiQuery = onRequest(
         }
       }
 
-      // Solo descuenta si la IA devolvió algo
       if (!answer || !answer.trim()) {
         res
           .status(502)
@@ -541,29 +426,37 @@ const screenaiQuery = onRequest(
       }
 
       // DESPUÉS (correcto):
-      try {
-        const costo = await obtenerCostoDesdeDB(provider, mode);
-        const costoCategoria = await obtenerCostoCategoria(category, mode);
-        const costoTotal = costo + costoCategoria;
+      const valida = esRespuestaValida(answer, mode);
 
-        const { antes, despues } = await descontarCreditoN(
-          alias.toLowerCase(),
-          costoTotal,
+      if (valida) {
+        try {
+          const costo = await obtenerCostoDesdeDB(provider, mode);
+          const costoCategoria = await obtenerCostoCategoria(category, mode);
+          const costoTotal = costo + costoCategoria;
+
+          const { antes, despues } = await descontarCreditoN(
+            alias.toLowerCase(),
+            costoTotal,
+          );
+          await guardarHistorial(
+            alias.toLowerCase(),
+            provider,
+            category,
+            mode,
+            antes,
+            despues,
+            costoTotal,
+          );
+        } catch (e) {
+          console.warn("[ScreenAI] No se pudo descontar crédito:", e.message);
+        }
+      } else {
+        console.log(
+          `[ScreenAI] Respuesta inválida/ilegible — NO se descuenta crédito. alias=${alias} mode=${mode}`,
         );
-        await guardarHistorial(
-          alias.toLowerCase(),
-          provider,
-          category,
-          mode,
-          antes,
-          despues,
-          costoTotal,
-        );
-      } catch (e) {
-        console.warn("[ScreenAI] No se pudo descontar crédito:", e.message);
       }
 
-      res.status(200).json({ ok: true, answer });
+      res.status(200).json({ ok: true, answer, charged: valida });
     } catch (aiErr) {
       console.error("[ScreenAI] AI error:", aiErr.message);
       console.error(
@@ -605,6 +498,7 @@ async function callGeminiText(text, apiKey, endpoint, systemPrompt, tokens) {
       ?.text?.trim() ?? ""
   );
 }
+
 async function callGeminiVision(
   imageBase64,
   mimeType,
@@ -705,42 +599,6 @@ async function callOpenAIVision(
   return data?.choices?.[0]?.message?.content?.trim() ?? "Sin respuesta.";
 }
 
-async function obtenerCostoCategoria(category, mode) {
-  try {
-    const ahora = Date.now();
-    if (!preciosCache || ahora - preciosCacheTime > CACHE_TTL) {
-      const snap = await db2
-        .collection("precio_apartado")
-        .doc("scag_site")
-        .get();
-      preciosCache = snap.exists ? snap.data() : {};
-      preciosCacheTime = ahora;
-    }
-
-    const CATEGORY_KEY_MAP = {
-      general: "General",
-      matematicas: "Matemáticas",
-      fisica: "Física",
-      quimica: "Química",
-      biologia: "Biología",
-      medicina: "Medicina",
-      programacion: "Programación",
-      lectura: "Lectura",
-      historia: "Historia",
-      ingles: "Inglés",
-    };
-
-    const key = CATEGORY_KEY_MAP[category];
-    if (!key) return 0;
-
-    const costo = preciosCache?.categoria?.[key];
-    return typeof costo === "number" ? costo : 0;
-  } catch (e) {
-    console.warn("[ScreenAI] No se pudo leer costo categoría:", e.message);
-    return 0;
-  }
-}
-
 async function descontarCreditoN(alias, n) {
   const database = initDb2();
   if (!database) return { antes: null, despues: null };
@@ -795,10 +653,6 @@ async function guardarHistorial(
   }
 }
 
-let preciosCache = null;
-let preciosCacheTime = 0;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
-
 async function obtenerCostoDesdeDB(provider, mode) {
   try {
     const ahora = Date.now();
@@ -830,30 +684,8 @@ async function obtenerCostoDesdeDB(provider, mode) {
   }
 }
 
-async function descontarCredito(alias) {
-  const database = initDb2();
-  if (!database) return { antes: null, despues: null };
-
-  const snap = await database.collection(USERS_COLLECTION).doc(alias).get();
-  const data = snap.data() || {};
-  const field = data.credits !== undefined ? "credits" : "creditos";
-  const creditosAntes = data[field] ?? 0;
-  const creditosDespues = creditosAntes - 1;
-
-  await database
-    .collection(USERS_COLLECTION)
-    .doc(alias)
-    .update({
-      [field]: admin.firestore.FieldValue.increment(-1),
-      lastQuery: admin.firestore.FieldValue.serverTimestamp(),
-      totalQueries: admin.firestore.FieldValue.increment(1),
-    });
-
-  return { antes: creditosAntes, despues: creditosDespues };
-}
-
 const suggestConfig = onRequest(
-  { region: "us-central1", timeoutSeconds: 10, memory: "128MiB", cors: true },
+  { region: "us-central1", timeoutSeconds: 10, memory: "256MiB", cors: true },
   async (req, res) => {
     if (req.method === "OPTIONS") {
       res.status(204).send("");
@@ -883,26 +715,26 @@ const suggestConfig = onRequest(
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[¿¡]/g, "");
 
-    // ── Textos explicativos por categoría ──
+    // ── Textos explicativos actualizados con los nombres exactos de la DB ──
     const explanations = {
-      fisica:
-        "Seleccioné Gemini Pro porque tu tarea involucra física, ideal para razonamiento científico y cálculo. La categoría Física activa prompts especializados en fórmulas y teoremas.",
-      matematicas:
-        "Gemini Pro es el más preciso para matemáticas: maneja cálculo, álgebra y ecuaciones con alta exactitud. La categoría Matemáticas enfoca las respuestas en resolución paso a paso.",
-      quimica:
-        "Tu consulta es de química, donde Gemini Pro destaca en nomenclatura, balanceo y estequiometría. La categoría Química optimiza las respuestas con notación y fórmulas correctas.",
-      programacion:
-        "Gemini Pro es ideal para programación: entiende código, algoritmos y depuración en múltiples lenguajes. La categoría Programación prioriza respuestas con ejemplos de código.",
-      biologia:
-        "GPT-4o tiene mayor precisión en biología celular, genética y ecosistemas. La categoría Biología activa contexto especializado en ciencias de la vida.",
-      medicina:
-        "GPT-4o es riguroso para medicina clínica y farmacología. La categoría Medicina enfoca las respuestas con criterio clínico y terminología médica precisa.",
-      lectura:
-        "Gemini Flash es veloz y preciso para comprensión lectora, resúmenes y redacción. La categoría Lectura optimiza el análisis de textos y la coherencia argumentativa.",
-      historia:
-        "Gemini Flash responde rápido y con precisión en historia, geografía y ciencias sociales. La categoría Historia activa contexto cronológico y análisis de eventos.",
-      ingles:
-        "Gemini Flash es eficiente para inglés: gramática, traducción y comprensión lectora. La categoría Inglés enfoca las respuestas en corrección idiomática y vocabulario.",
+      "Modelado y Simulación":
+        "Seleccioné Gemini Pro porque tu tarea involucra física, ideal para razonamiento científico y cálculo. La categoría Modelado y Simulación activa prompts especializados en fórmulas y teoremas.",
+      "Análisis Estadístico y Datos":
+        "Gemini Pro es el más preciso para matemáticas: maneja cálculo, álgebra y ecuaciones con alta exactitud. La categoría Análisis Estadístico y Datos enfoca las respuestas en resolución paso a paso.",
+      "Fórmulas y Glosarios Técnicos":
+        "Tu consulta es de química, donde Gemini Pro destaca en nomenclatura, balanceo y estequiometría. La categoría Fórmulas y Glosarios Técnicos optimiza las respuestas con notación y fórmulas correctas.",
+      "Código y Lógica de Software":
+        "Gemini Pro es ideal para programación: entiende código, algoritmos y depuración en múltiples lenguajes. La categoría Código y Lógica de Software prioriza respuestas con ejemplos de código.",
+      "Análisis Técnico y Ambiental":
+        "GPT-4o tiene mayor precisión en biología celular, genética y ecosistemas. La categoría Análisis Técnico y Ambiental activa contexto especializado en ciencias de la vida.",
+      "Informes y Terminología Científica":
+        "GPT-4o es riguroso para medicina clínica y farmacología. La categoría Informes y Terminología Científica enfoca las respuestas con criterio clínico y terminología médica precisa.",
+      "Comprensión y Análisis Corporativo":
+        "Gemini Flash es veloz y preciso para comprensión lectora, resúmenes y redacción. La categoría Comprensión y Análisis Corporativo optimiza el análisis de textos y la coherencia argumentativa.",
+      "Documentación e Investigación":
+        "Gemini Flash responde rápido y con precisión en historia, geografía y ciencias sociales. La categoría Documentación e Investigación activa contexto cronológico y análisis de eventos.",
+      "Traducción y Redacción Global":
+        "Gemini Flash es eficiente para inglés: gramática, traducción y comprensión lectora. La categoría Traducción y Redacción Global enfoca las respuestas en corrección idiomática y vocabulario.",
       general:
         "Gemini Flash es el modelo más equilibrado para consultas generales. La categoría General permite respuestas versátiles sin restricción temática.",
     };
@@ -910,7 +742,7 @@ const suggestConfig = onRequest(
     const localMap = [
       {
         model: "gemini-pro",
-        cat: "fisica",
+        cat: "Modelado y Simulación",
         keys: [
           "fisica",
           "cuantica",
@@ -956,7 +788,7 @@ const suggestConfig = onRequest(
       },
       {
         model: "gemini-pro",
-        cat: "matematicas",
+        cat: "Análisis Estadístico y Datos",
         keys: [
           "matematica",
           "calculo",
@@ -1009,7 +841,7 @@ const suggestConfig = onRequest(
       },
       {
         model: "gemini-pro",
-        cat: "quimica",
+        cat: "Fórmulas y Glosarios Técnicos",
         keys: [
           "quimica",
           "organica",
@@ -1057,7 +889,7 @@ const suggestConfig = onRequest(
       },
       {
         model: "gemini-pro",
-        cat: "programacion",
+        cat: "Código y Lógica de Software",
         keys: [
           "programacion",
           "programar",
@@ -1150,7 +982,7 @@ const suggestConfig = onRequest(
       },
       {
         model: "gpt-4o",
-        cat: "biologia",
+        cat: "Análisis Técnico y Ambiental",
         keys: [
           "biologia",
           "genetica",
@@ -1198,7 +1030,7 @@ const suggestConfig = onRequest(
       },
       {
         model: "gpt-4o",
-        cat: "medicina",
+        cat: "Informes y Terminología Científica",
         keys: [
           "medicina",
           "diagnostico",
@@ -1257,7 +1089,7 @@ const suggestConfig = onRequest(
       },
       {
         model: "gemini-flash",
-        cat: "lectura",
+        cat: "Comprensión y Análisis Corporativo",
         keys: [
           "lectura",
           "literatura",
@@ -1298,7 +1130,7 @@ const suggestConfig = onRequest(
       },
       {
         model: "gemini-flash",
-        cat: "historia",
+        cat: "Documentación e Investigación",
         keys: [
           "historia",
           "guerra",
@@ -1356,7 +1188,7 @@ const suggestConfig = onRequest(
       },
       {
         model: "gemini-flash",
-        cat: "ingles",
+        cat: "Traducción y Redacción Global",
         keys: [
           "english",
           "translate",
@@ -1416,10 +1248,10 @@ const suggestConfig = onRequest(
       });
     }
 
-    // ── Fallback: Gemini solo para casos ambiguos sin keywords ──
-    const systemInstruction = `Clasifica la tarea del estudiante. Elige SIEMPRE el más cercano, nunca dejes sin respuesta.
-Modelos: gemini-flash(general/lectura/historia/ingles) gemini-pro(matematicas/fisica/quimica/programacion) gpt-4o(biologia/medicina) gpt-4o-mini(simple)
-Categorias: general matematicas fisica quimica biologia medicina programacion lectura historia ingles
+    // ── Fallback: Gemini actualizado con las categorías oficiales de tu DB ──
+    const systemInstruction = `Clasifica la tarea técnica. Elige SIEMPRE el más cercano, nunca dejes sin respuesta.
+Modelos: gemini-flash(General/Comprensión y Análisis Corporativo/Documentación e Investigación/Traducción y Redacción Global) gemini-pro(Análisis Estadístico y Datos/Modelado y Simulación/Fórmulas y Glosarios Técnicos/Código y Lógica de Software) gpt-4o(Análisis Técnico y Ambiental/Informes y Terminología Científica)
+Categorias: "General", "Análisis Estadístico y Datos", "Modelado y Simulación", "Fórmulas y Glosarios Técnicos", "Código y Lógica de Software", "Análisis Técnico y Ambiental", "Informes y Terminología Científica", "Comprensión y Análisis Corporativo", "Documentación e Investigación", "Traducción y Redacción Global"
 JSON sin markdown: {"model":"<val>","category":"<val>","text":"<1 sola linea explicando la eleccion>"}`;
 
     let raw = "";
@@ -1437,7 +1269,7 @@ JSON sin markdown: {"model":"<val>","category":"<val>","text":"<1 sola linea exp
       raw = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? "";
       if (!raw) throw new Error("Vacío");
 
-      const match = raw.match(/\{[\s\S]*?\}/);
+      const match = raw.match(/\{[\s\S]*?\\}/);
       if (!match) throw new Error("Sin JSON: " + raw);
 
       const parsed = JSON.parse(match[0]);
@@ -1449,22 +1281,22 @@ JSON sin markdown: {"model":"<val>","category":"<val>","text":"<1 sola linea exp
         "gpt-4o-mini",
       ];
       const validCategories = [
-        "general",
-        "matematicas",
-        "fisica",
-        "quimica",
-        "biologia",
-        "medicina",
-        "programacion",
-        "lectura",
-        "historia",
-        "ingles",
+        "General",
+        "Análisis Estadístico y Datos",
+        "Modelado y Simulación",
+        "Fórmulas y Glosarios Técnicos",
+        "Código y Lógica de Software",
+        "Análisis Técnico y Ambiental",
+        "Informes y Terminología Científica",
+        "Comprensión y Análisis Corporativo",
+        "Documentación e Investigación",
+        "Traducción y Redacción Global",
       ];
 
       if (!validModels.includes(parsed.model)) parsed.model = "gemini-flash";
       if (!validCategories.includes(parsed.category))
-        parsed.category = "general";
-      if (!parsed.text) parsed.text = explanations["general"];
+        parsed.category = "General";
+      if (!parsed.text) parsed.text = explanations["General"];
 
       console.log("[suggestConfig] Gemini clasificó:", {
         model: parsed.model,
@@ -1483,8 +1315,8 @@ JSON sin markdown: {"model":"<val>","category":"<val>","text":"<1 sola linea exp
       res.status(200).json({
         ok: true,
         model: "gemini-flash",
-        category: "general",
-        text: explanations["general"],
+        category: "General",
+        text: explanations["General"],
         source: "fallback",
       });
     }
@@ -1527,7 +1359,7 @@ const getUserData = onRequest(
 
       const snap = await database.collection(USERS_COLLECTION).doc(alias).get();
       if (!snap.exists) {
-        res.status(404).json({ ok: false, error: "Alias no encontrado." });
+        res.status(404).json({ ok: false, error: "Usuario no encontrado." });
         return;
       }
 
@@ -1547,4 +1379,21 @@ const getUserData = onRequest(
   },
 );
 
-module.exports = { screenaiQuery, getUserData, suggestConfig };
+module.exports = {
+  callOpenAIText,
+  callOpenAIVision,
+  callGeminiText,
+  callGeminiVision,
+  screenaiQuery,
+  getUserData,
+  suggestConfig,
+  verificarAlias,
+  esRespuestaValida,
+  obtenerCostoDesdeDB,
+  obtenerCostoCategoria,
+  descontarCreditoN,
+  guardarHistorial,
+  MODEL_MAP,
+  SYSTEM_PROMPTS,
+  maxTokens,
+};
