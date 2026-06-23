@@ -227,33 +227,39 @@ REGLAS: Rigurosidad científica. Sin explicaciones coloquiales.`,
 };
 
 // ─── PROMPT VISIÓN DETALLADO ──────────────────────────────────────────────────
-const SYSTEM_PROMPT_VISION_DETALLADO = `Experto en análisis de imágenes educativas. El usuario pagó por desglose detallado.
-FORMATO (máx 4 líneas):
-1) RESPUESTA_DIRECTA_O_RESULTADO
-- Datos: [valores, medidas o elementos extraídos de la imagen, máx 15 palabras]
-- Procedimiento: [lógica o cálculo aplicado paso a paso, máx 15 palabras]
-- Conclusión: [resultado final o confirmación de la respuesta, máx 10 palabras]
+const SYSTEM_PROMPT_VISION_DETALLADO = `Tutor experto en análisis de imágenes educativas. Responde cada pregunta visible con desglose completo.
+
+FORMATO por cada pregunta:
+número) RESPUESTA_DIRECTA
+- Por qué: [razón principal que justifica la respuesta, máx 15 palabras]
+- Proceso: [cálculo, regla o razonamiento aplicado paso a paso, máx 20 palabras]
+- Descarte: [por qué las otras opciones son incorrectas, máx 12 palabras]
+
 REGLAS CRÍTICAS:
-- NUNCA describas colores, estilos o estética de la imagen.
-- Ve directo a los datos numéricos o conceptuales visibles.
-- Si hay varias preguntas, responde cada una con el mismo formato.
-- Si la imagen es ilegible → SIN_CONTENIDO`;
+- Responde TODAS las preguntas visibles, una por una.
+- Nunca describas la imagen, colores ni estética.
+- Geometría → incluye fórmula usada y sustitución de valores.
+- Álgebra → muestra el despeje aunque sea breve.
+- Opción múltiple → escribe el texto COMPLETO de la opción correcta.
+- Si hay diagrama → extrae los datos numéricos y úsalos directamente.
+- Solo usa SIN_CONTENIDO si genuinamente no hay preguntas legibles.
+- NUNCA markdown, NUNCA introducciones.`;
 
 // ─── TOKENS MODO DETALLADO ────────────────────────────────────────────────────
 function maxTokens_DETALLADO(category) {
   switch (category) {
-    case "Análisis_Estadístico_y_Datos":       return 700;
-    case "Modelado_y_Simulación":              return 700;
-    case "Fórmulas_y_Glosarios_Técnicos":      return 700;
-    case "Código_y_Lógica_de_Software":        return 900;
-    case "Traducción_y_Redacción_Global":      return 800;
-    case "Análisis_Técnico_y_Ambiental":       return 750;
-    case "Informes_y_Terminología_Científica": return 800;
-    case "Documentación_e_Investigación":      return 750;
-    case "Comprensión_y_Análisis_Corporativo": return 850;
-    case "Vision_Procesamiento_Grafico":       return 800;
+    case "Análisis_Estadístico_y_Datos":       return 1200;
+    case "Modelado_y_Simulación":              return 1200;
+    case "Fórmulas_y_Glosarios_Técnicos":      return 1200;
+    case "Código_y_Lógica_de_Software":        return 1400;
+    case "Traducción_y_Redacción_Global":      return 1200;
+    case "Análisis_Técnico_y_Ambiental":       return 1200;
+    case "Informes_y_Terminología_Científica": return 1200;
+    case "Documentación_e_Investigación":      return 1200;
+    case "Comprensión_y_Análisis_Corporativo": return 1400;
+    case "Vision_Procesamiento_Grafico":       return 1500;
     case "General":
-    default:                                   return 750;
+    default:                                   return 1200;  // ← este es el que usa visión
   }
 }
 

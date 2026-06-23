@@ -468,6 +468,10 @@ const screenaiQuery = onRequest(
   },
 );
 
+
+
+
+
 // ─── GEMINI TEXT ──────────────────────────────────────────────────────────────
 async function callGeminiText(text, apiKey, endpoint, systemPrompt, tokens) {
   const isPro = endpoint.includes("2.5-pro");

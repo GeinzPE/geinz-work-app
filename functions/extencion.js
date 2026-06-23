@@ -114,6 +114,25 @@ async function callGeminiVision(
   systemPrompt,
   tokens,
 ) {
+  // 🔍 DEBUG: inspeccionar imagen antes de enviar
+  console.log("=== DEBUG callGeminiVision ===");
+  console.log("mimeType:", mimeType);
+  console.log("textHint:", textHint);
+  console.log("imageBase64 length:", imageBase64?.length ?? "undefined/null");
+  console.log("imageBase64 preview (primeros 100 chars):", imageBase64?.slice(0, 100));
+  console.log("imageBase64 tiene prefijo data:?", imageBase64?.startsWith("data:"));
+  console.log("tokens:", tokens);
+  console.log("endpoint:", endpoint);
+  console.log("systemPrompt:", systemPrompt?.slice(0, 200));
+
+  // ⚠️ Validaciones rápidas
+  if (!imageBase64) {
+    console.error("❌ imageBase64 está vacío o undefined");
+  }
+  if (imageBase64?.startsWith("data:")) {
+    console.warn("⚠️ imageBase64 incluye el prefijo 'data:...;base64,' — Gemini espera solo los datos puros");
+  }
+
   const { data } = await axios.post(
     `${endpoint}?key=${apiKey}`,
     {
@@ -138,6 +157,13 @@ async function callGeminiVision(
     },
     { headers: { "Content-Type": "application/json" }, timeout: 45000 },
   );
+
+  // 🔍 DEBUG: ver respuesta cruda de Gemini
+  console.log("=== RESPUESTA GEMINI ===");
+  console.log("candidates count:", data?.candidates?.length);
+  console.log("finish_reason:", data?.candidates?.[0]?.finishReason);
+  console.log("safetyRatings:", JSON.stringify(data?.candidates?.[0]?.safetyRatings));
+  console.log("text result:", data?.candidates?.[0]?.content?.parts?.[0]?.text?.slice(0, 300));
 
   return (
     data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? "Sin respuesta."
