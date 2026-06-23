@@ -6,7 +6,7 @@ if (!admin.apps.length) {
   admin.initializeApp();
 }
 
-const CULQI_KEY = process.env.CULQI_KEY;
+const CULQI_KEY_SCAG = process.env.CULQI_KEY_SCAG;
 
 // ── Conexión a la segunda base de datos (app2) ──────────────────────
 let db2 = null;
@@ -248,7 +248,7 @@ exports.crearOrdenCulqiPlan = onRequest({ cors: true }, async (req, res) => {
       },
       {
         headers: {
-          Authorization: `Bearer ${CULQI_KEY}`,
+          Authorization: `Bearer ${CULQI_KEY_SCAG}`,
           "Content-Type": "application/json",
         },
       },
@@ -349,7 +349,7 @@ exports.confirmarPagoPlan = onRequest({ cors: true }, async (req, res) => {
       },
       {
         headers: {
-          Authorization: `Bearer ${CULQI_KEY}`,
+          Authorization: `Bearer ${CULQI_KEY_SCAG}`,
           "Content-Type": "application/json",
         },
       },

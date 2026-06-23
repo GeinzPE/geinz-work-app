@@ -629,6 +629,7 @@ async function guardarHistorial(
   creditosAntes,
   creditosDespues,
   costoTotal,
+  solutionMode = null, // 👈 nuevo parámetro, opcional
 ) {
   const database = initDb2();
   if (!database) return;
@@ -646,6 +647,7 @@ async function guardarHistorial(
         costoSoles: parseFloat((costoTotal * 0.1).toFixed(2)),
         creditosAntes,
         creditosRestantes: creditosDespues,
+        ...(solutionMode ? { detalle: solutionMode } : {}), // 👈 solo se agrega si existe
         fecha: admin.firestore.FieldValue.serverTimestamp(),
       });
   } catch (e) {
@@ -681,6 +683,30 @@ async function obtenerCostoDesdeDB(provider, mode) {
   } catch (e) {
     console.warn("[ScreenAI] No se pudo leer precio desde DB:", e.message);
     return 1;
+  }
+}
+
+// ─── OBTENER COSTO POR MODO DE SOLUCIÓN (directo / detallado) ───────────────
+async function obtenerCostoSolucion(solutionMode) {
+  try {
+    const database = initDb2();
+    if (!database) return 0;
+
+    const ahora = Date.now();
+    if (!preciosCache || ahora - preciosCacheTime > CACHE_TTL) {
+      const snap = await database
+        .collection("precio_apartado")
+        .doc("scag_site")
+        .get();
+      preciosCache = snap.exists ? snap.data() : {};
+      preciosCacheTime = ahora;
+    }
+
+    const costo = preciosCache?.solucion?.[solutionMode];
+    return typeof costo === "number" ? costo : 0;
+  } catch (e) {
+    console.warn("[ScreenAI] No se pudo leer costo solución:", e.message);
+    return 0;
   }
 }
 
@@ -1391,6 +1417,7 @@ module.exports = {
   esRespuestaValida,
   obtenerCostoDesdeDB,
   obtenerCostoCategoria,
+  obtenerCostoSolucion,
   descontarCreditoN,
   guardarHistorial,
   MODEL_MAP,
