@@ -11,7 +11,6 @@ const CULQI_KEY_SCAG = process.env.CULQI_KEY_SCAG;
 // ── Conexión a la segunda base de datos (app2) ──────────────────────
 let db2 = null;
 
-
 const initDb2 = () => {
   if (db2) return db2;
   try {
@@ -64,7 +63,7 @@ async function emitirBoletaNubefact({
   direccion,
   tipoDocCliente,
 }) {
-  console.log("=== INICIANDO EMISIÓN BOLETA NUBEFACT ===");
+  console.log("=== INICIANDO EMISIÓN BOLETA NUBEFACT (SCAG AI) ===");
   console.log("Argumentos recibidos:", {
     userId,
     monedas,
@@ -82,7 +81,7 @@ async function emitirBoletaNubefact({
   const valorUnitario = montoNum / (1 + tasaIgv);
   const igvTotal = montoNum - valorUnitario;
 
-  console.log("Cálculo IGV:", {
+  console.log("Cálculo IGV SCAG AI:", {
     montoNum,
     valorUnitario: valorUnitario.toFixed(2),
     igvTotal: igvTotal.toFixed(2),
@@ -91,7 +90,7 @@ async function emitirBoletaNubefact({
   const payload = {
     operacion: "generar_comprobante",
     tipo_de_comprobante: 2,
-    serie: "BBB1",
+    serie: "BBB2", // 🚀 Serie única para SCAG AI (Local 0002)
     numero: 0,
     sunat_transaction: 1,
 
@@ -115,6 +114,7 @@ async function emitirBoletaNubefact({
       {
         unidad_de_medida: "ZZ",
         codigo: "MON001",
+        // 📝 Descripción adaptada a tu extensión
         descripcion: `SERVICIO DIGITAL - PROCESAMIENTO DE ${monedas} CONSULTAS EN LA NUBE`,
         cantidad: 1,
         valor_unitario: valorUnitario.toFixed(2),
@@ -131,35 +131,47 @@ async function emitirBoletaNubefact({
     codigo_unico: chargeId,
   };
 
-  console.log("Payload a enviar a NubeFact:", JSON.stringify(payload, null, 2));
+  console.log(
+    "Payload a enviar a NubeFact (SCAG AI):",
+    JSON.stringify(payload, null, 2),
+  );
 
   try {
     const response = await axios.post(
+      // 🔗 Tu nueva URL específica
       "https://api.nubefact.com/api/v1/02bb7d82-0b0c-4006-82a5-74b7437bea0b",
       payload,
       {
         headers: {
-          Authorization: `Token token="8eee1a640fd7485cbc1da29427f59792b196deb29b954a6eb131bdb8562492fa"`,
+          // 🔑 Tu nuevo Token asignado
+          Authorization: `Token token="b8b2a35495954bceaefe0716de425bbcb605a4094396474db278bd8a292121f6"`,
           "Content-Type": "application/json",
         },
       },
     );
 
-    console.log("✅ Respuesta completa NubeFact:", JSON.stringify(response.data, null, 2));
+    console.log(
+      "✅ Respuesta completa NubeFact SCAG AI:",
+      JSON.stringify(response.data, null, 2),
+    );
     console.log("🔗 enlace_del_pdf obtenido:", response.data.enlace_del_pdf);
 
     if (!response.data.enlace_del_pdf) {
-      console.error("⚠️ enlace_del_pdf es null/undefined. Respuesta completa:", response.data);
+      console.error(
+        "⚠️ enlace_del_pdf es null/undefined. Respuesta completa:",
+        response.data,
+      );
     }
 
     return response.data.enlace_del_pdf;
-
   } catch (error) {
-    console.error("❌ ERROR EN NUBEFACT:");
+    console.error("❌ ERROR EN NUBEFACT SCAG AI:");
     if (error.response) {
       console.error("Status HTTP:", error.response.status);
-      console.error("Data del error:", JSON.stringify(error.response.data, null, 2));
-      console.error("Headers respuesta:", error.response.headers);
+      console.error(
+        "Data del error:",
+        JSON.stringify(error.response.data, null, 2),
+      );
     } else {
       console.error("Mensaje:", error.message);
     }
@@ -300,15 +312,8 @@ exports.crearOrdenCulqiPlan = onRequest({ cors: true }, async (req, res) => {
 });
 
 exports.confirmarPagoPlan = onRequest({ cors: true }, async (req, res) => {
-  const {
-    alias,
-    plan_select,
-    precio_soles,
-    creditos,
-    token,
-    email,
-    id_pago,
-  } = req.body || {};
+  const { alias, plan_select, precio_soles, creditos, token, email, id_pago } =
+    req.body || {};
 
   if (!alias || !plan_select || !precio_soles || !token || !id_pago) {
     res.status(400).json({
@@ -422,7 +427,10 @@ exports.confirmarPagoPlan = onRequest({ cors: true }, async (req, res) => {
         urlComprobante: urlBoletaStorage,
       });
     } catch (histErr) {
-      console.error("⚠️ Error guardando historial de recarga:", histErr.message);
+      console.error(
+        "⚠️ Error guardando historial de recarga:",
+        histErr.message,
+      );
     }
 
     res.status(200).json({

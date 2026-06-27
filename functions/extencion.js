@@ -21,6 +21,22 @@ const MODEL_MAP = {
   gpt4o: { family: "openai", model: "gpt-4o" },
 };
 
+const PRECIO_USD_POR_MILLON = {
+  "gemini-flash": { input: 0.3, output: 2.5 },
+  "gemini-pro": { input: 1.25, output: 10.0 },
+  "gpt-4o": { input: 2.5, output: 10.0 },
+  "gpt-4o-mini": { input: 0.15, output: 0.6 },
+  "gpt4o-mini": { input: 0.15, output: 0.6 },
+  gpt4o: { input: 2.5, output: 10.0 },
+};
+
+function calcularCostoRealUSD(provider, tokensInput, tokensOutput) {
+  const precio = PRECIO_USD_POR_MILLON[provider];
+  if (!precio) return 0;
+  const costoInput = ((Number(tokensInput) || 0) / 1_000_000) * precio.input;
+  const costoOutput = ((Number(tokensOutput) || 0) / 1_000_000) * precio.output;
+  return costoInput + costoOutput;
+}
 let db2 = null;
 const CACHE_TTL = 5 * 60 * 1000;
 
@@ -76,32 +92,72 @@ const initDb2 = () => {
 async function callGeminiText(text, apiKey, endpoint, systemPrompt, tokens) {
   const isPro = endpoint.includes("2.5-pro");
 
-  const userText = isPro
-    ? `${text}\n\nIMPORTANTE: Si hay opciones (A, B, C, D), escribe SOLO el contenido de la opción correcta, NUNCA la letra sola.`
-    : text;
+  // 🛠️ FIX 1: Limpiamos la instrucción del usuario. No dupliques órdenes si ya están en el SYSTEM_PROMPT.
+  // Dejamos que el systemPrompt controle la estructura de la respuesta de forma limpia.
+  const userText = text;
 
-  const { data } = await axios.post(
-    `${endpoint}?key=${apiKey}`,
-    {
-      system_instruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: "user", parts: [{ text: userText }] }],
-      generationConfig: {
-        temperature: 0.0,
-        maxOutputTokens: tokens,
-        ...(isPro && { thinkingConfig: { thinkingBudget: 512 } }),
+  try {
+    const { data } = await axios.post(
+      `${endpoint}?key=${apiKey}`,
+      {
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: "user", parts: [{ text: userText }] }],
+        generationConfig: {
+          temperature: 0.0,
+          maxOutputTokens: tokens,
+          ...(isPro && { thinkingConfig: { thinkingBudget: 512 } }),
+        },
       },
-    },
-    {
-      headers: { "Content-Type": "application/json" },
-      timeout: isPro ? 60000 : 30000,
-    },
-  );
+      {
+        headers: { "Content-Type": "application/json" },
+        timeout: isPro ? 60000 : 30000,
+      },
+    );
 
-  return (
-    data?.candidates?.[0]?.content?.parts
-      ?.find((p) => p.text && !p.thought)
-      ?.text?.trim() ?? ""
-  );
+    // 🛠️ FIX 2: Extracción segura y robusta del texto de respuesta
+    let answer = "";
+    const parts = data?.candidates?.[0]?.content?.parts;
+
+    if (parts && Array.isArray(parts)) {
+      // Buscamos el bloque de texto que contenga la respuesta final de forma segura
+      // Ignoramos los bloques que el SDK de Google marque nativamente como thoughts o bloques de razonamiento interno
+      const textPart = parts.find(
+        (p) => p.text && p.thought !== true && !p.hasOwnProperty("thought"),
+      );
+
+      // Si el filtro estricto falla, tomamos el último elemento de texto disponible (que suele ser la respuesta final post-razonamiento)
+      answer = textPart
+        ? textPart.text.trim()
+        : (parts[parts.length - 1]?.text?.trim() ?? "");
+    }
+
+    // 🛠️ FIX 3: Control de respuestas vacías o fallas lógicas
+    if (!answer || answer === "" || answer === "SIN_CONTENIDO") {
+      console.warn("⚠️ Gemini Text retornó un resultado vacío o restrictivo.");
+      answer = "Sin respuesta.";
+    }
+
+    // Estructura de metadatos de uso limpia (Mantiene tu lógica de cobros intacta)
+    const usage = {
+      tokensInput: data?.usageMetadata?.promptTokenCount ?? 0,
+      tokensOutput:
+        (data?.usageMetadata?.candidatesTokenCount ?? 0) +
+        (data?.usageMetadata?.thoughtsTokenCount ?? 0),
+      tokensTotal: data?.usageMetadata?.totalTokenCount ?? 0,
+    };
+
+    return { answer, usage };
+  } catch (error) {
+    console.error(
+      "❌ Error catastrófico en la llamada a Gemini Text:",
+      error.message,
+    );
+    // Retornamos estructura limpia para proteger el flujo del backend
+    return {
+      answer: "Sin respuesta.",
+      usage: { tokensInput: 0, tokensOutput: 0, tokensTotal: 0 },
+    };
+  }
 }
 
 // ── GEMINI VISION ─────────────────────────────────────────────────────────────
@@ -114,85 +170,148 @@ async function callGeminiVision(
   systemPrompt,
   tokens,
 ) {
-  // 🔍 DEBUG: inspeccionar imagen antes de enviar
+  const isPro = endpoint.includes("2.5-pro");
   console.log("=== DEBUG callGeminiVision ===");
   console.log("mimeType:", mimeType);
   console.log("textHint:", textHint);
-  console.log("imageBase64 length:", imageBase64?.length ?? "undefined/null");
-  console.log("imageBase64 preview (primeros 100 chars):", imageBase64?.slice(0, 100));
-  console.log("imageBase64 tiene prefijo data:?", imageBase64?.startsWith("data:"));
   console.log("tokens:", tokens);
-  console.log("endpoint:", endpoint);
-  console.log("systemPrompt:", systemPrompt?.slice(0, 200));
 
-  // ⚠️ Validaciones rápidas
-  if (!imageBase64) {
-    console.error("❌ imageBase64 está vacío o undefined");
-  }
-  if (imageBase64?.startsWith("data:")) {
-    console.warn("⚠️ imageBase64 incluye el prefijo 'data:...;base64,' — Gemini espera solo los datos puros");
+  // 🛠️ FIX 1: Limpieza automática del prefijo Base64 si el frontend lo envía mal
+  let cleanBase64 = imageBase64;
+  if (imageBase64 && imageBase64.startsWith("data:")) {
+    console.log(
+      "⚠️ Detectado prefijo data: en Base64. Limpiando automáticamente...",
+    );
+    cleanBase64 = imageBase64.split(",")[1];
   }
 
-  const { data } = await axios.post(
-    `${endpoint}?key=${apiKey}`,
-    {
-      system_instruction: { parts: [{ text: systemPrompt }] },
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { inline_data: { mime_type: mimeType, data: imageBase64 } },
-            {
-              text:
-                "Responde TODAS las preguntas." +
-                (textHint ? `\nContexto: ${textHint}` : ""),
-            },
-          ],
+  if (!cleanBase64) {
+    console.error("❌ El contenido de la imagen está vacío o corrupto.");
+    return {
+      answer: "Sin respuesta.",
+      usage: { tokensInput: 0, tokensOutput: 0, tokensTotal: 0 },
+    };
+  }
+
+  try {
+    // 🛠️ FIX 2: Ajuste del prompt del usuario para no contradecir los SYSTEM_PROMPTS
+    const userPromptText = textHint
+      ? `Analiza detalladamente esta imagen siguiendo las instrucciones del sistema.\nContexto adicional: ${textHint}`
+      : "Analiza detalladamente esta imagen siguiendo las instrucciones del sistema.";
+
+    const { data } = await axios.post(
+      `${endpoint}?key=${apiKey}`,
+      {
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: [
+          {
+            role: "user",
+            parts: [
+              { inline_data: { mime_type: mimeType, data: cleanBase64 } },
+              { text: userPromptText },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: tokens,
+          ...(isPro && { thinkingConfig: { thinkingBudget: 512 } }),
         },
-      ],
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: tokens,
       },
-    },
-    { headers: { "Content-Type": "application/json" }, timeout: 45000 },
-  );
+      { headers: { "Content-Type": "application/json" }, timeout: 45000 },
+    );
 
-  // 🔍 DEBUG: ver respuesta cruda de Gemini
-  console.log("=== RESPUESTA GEMINI ===");
-  console.log("candidates count:", data?.candidates?.length);
-  console.log("finish_reason:", data?.candidates?.[0]?.finishReason);
-  console.log("safetyRatings:", JSON.stringify(data?.candidates?.[0]?.safetyRatings));
-  console.log("text result:", data?.candidates?.[0]?.content?.parts?.[0]?.text?.slice(0, 300));
+    console.log("=== RESPUESTA GEMINI ===");
+    const finishReason = data?.candidates?.[0]?.finishReason;
+    console.log("finish_reason:", finishReason);
 
-  return (
-    data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? "Sin respuesta."
-  );
+    let answer = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+    // 🛠️ FIX 3: Control de respuestas inválidas o vacías por bloqueos/errores
+    if (!answer || answer === "" || answer === "SIN_CONTENIDO") {
+      console.warn(
+        "⚠️ Gemini retornó una estructura vacía o restrictiva. Activando fallback.",
+      );
+      answer = "Sin respuesta.";
+    }
+
+    const usage = {
+      tokensInput: data?.usageMetadata?.promptTokenCount ?? 0,
+      tokensOutput:
+        (data?.usageMetadata?.candidatesTokenCount ?? 0) +
+        (data?.usageMetadata?.thoughtsTokenCount ?? 0),
+      tokensTotal: data?.usageMetadata?.totalTokenCount ?? 0,
+    };
+
+    return { answer, usage };
+  } catch (error) {
+    console.error(
+      "❌ Error catastrófico en la llamada a Gemini Vision:",
+      error.message,
+    );
+    // Retornamos la estructura limpia para que tu backend no se caiga (crash)
+    return {
+      answer: "Sin respuesta.",
+      usage: { tokensInput: 0, tokensOutput: 0, tokensTotal: 0 },
+    };
+  }
 }
-
 // ── OPENAI TEXT ───────────────────────────────────────────────────────────────
-async function callOpenAIText(text, apiKey, model, systemPrompt, tokens) {
-  const { data } = await axios.post(
-    OPENAI_URL,
-    {
-      model,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: text },
-      ],
-      max_tokens: tokens,
-      temperature: 0.0,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+async function callOpenAIVext(text, apiKey, model, systemPrompt, tokens) {
+  try {
+    const { data } = await axios.post(
+      OPENAI_URL,
+      {
+        model,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: text },
+        ],
+        max_tokens: tokens,
+        temperature: 0.0, // Perfecto para exámenes (busca la respuesta más exacta posible)
       },
-      timeout: 30000,
-    },
-  );
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        timeout: 30000, // 30 segundos está bien para texto plano
+      },
+    );
 
-  return data?.choices?.[0]?.message?.content?.trim() ?? "";
+    let answer = data?.choices?.[0]?.message?.content?.trim();
+
+    // 🛠️ FIX 1: Control de respuestas vacías o fallas lógicas de escape
+    if (!answer || answer === "" || answer === "SIN_CONTENIDO") {
+      console.warn("⚠️ OpenAI Text retornó un resultado vacío o restrictivo.");
+      answer = "Sin respuesta.";
+    }
+
+    // 🛠️ FIX 2: Conteo de tokens ultra seguro
+    const tokensInput = data?.usage?.prompt_tokens ?? 0;
+    const tokensOutput = data?.usage?.completion_tokens ?? 0;
+    const tokensTotal = data?.usage?.total_tokens ?? tokensInput + tokensOutput;
+
+    const usage = {
+      tokensInput,
+      tokensOutput,
+      tokensTotal,
+    };
+
+    return { answer, usage };
+  } catch (error) {
+    // 🛠️ FIX 3: Captura de errores de API (ej: Insufficient Quota, Rate Limit, Invalid API Key)
+    console.error(
+      "❌ Error catastrófico en la llamada a OpenAI Text:",
+      error?.response?.data?.error?.message || error.message,
+    );
+
+    // Retornamos estructura limpia para que tu backend no sufra un crash y el usuario reciba el string controlado
+    return {
+      answer: "Sin respuesta.",
+      usage: { tokensInput: 0, tokensOutput: 0, tokensTotal: 0 },
+    };
+  }
 }
 
 // ── OPENAI VISION ─────────────────────────────────────────────────────────────
@@ -205,43 +324,98 @@ async function callOpenAIVision(
   systemPrompt,
   tokens,
 ) {
-  const { data } = await axios.post(
-    OPENAI_URL,
-    {
-      model,
-      messages: [
-        { role: "system", content: systemPrompt },
-        {
-          role: "user",
-          content: [
-            {
-              type: "image_url",
-              image_url: { url: `data:${mimeType};base64,${imageBase64}` },
-            },
-            {
-              type: "text",
-              text:
-                "Responde todas las preguntas." +
-                (textHint ? `\nContexto: ${textHint}` : ""),
-            },
-          ],
-        },
-      ],
-      max_tokens: tokens,
-      temperature: 0.2,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+  console.log("=== DEBUG callOpenAIVision ===");
+  console.log("model:", model);
+  console.log("mimeType:", mimeType);
+
+  // 🛠️ FIX 1: Estandarizar el Base64 (OpenAI requiere el prefijo obligatoriamente)
+  let finalImageUrl = imageBase64;
+  if (imageBase64 && !imageBase64.startsWith("data:")) {
+    finalImageUrl = `data:${mimeType};base64,${imageBase64}`;
+  } else if (imageBase64 && imageBase64.startsWith("data:")) {
+    finalImageUrl = imageBase64;
+  }
+
+  if (!finalImageUrl) {
+    console.error("❌ El contenido de la imagen de OpenAI está vacío.");
+    return {
+      answer: "Sin respuesta.",
+      usage: { tokensInput: 0, tokensOutput: 0, tokensTotal: 0 },
+    };
+  }
+
+  try {
+    // 🛠️ FIX 2: Alinear el prompt del usuario con las instrucciones del sistema
+    const userPromptText = textHint
+      ? `Analiza detalladamente esta imagen siguiendo las instrucciones del sistema.\nContexto adicional: ${textHint}`
+      : "Analiza detalladamente esta imagen siguiendo las instrucciones del sistema.";
+
+    const { data } = await axios.post(
+      OPENAI_URL,
+      {
+        model,
+        messages: [
+          { role: "system", content: systemPrompt },
+          {
+            role: "user",
+            content: [
+              {
+                type: "image_url",
+                image_url: { url: finalImageUrl },
+              },
+              {
+                type: "text",
+                text: userPromptText,
+              },
+            ],
+          },
+        ],
+        max_tokens: tokens,
+        temperature: 0.2,
       },
-      timeout: 45000,
-    },
-  );
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        timeout: 45000,
+      },
+    );
 
-  return data?.choices?.[0]?.message?.content?.trim() ?? "Sin respuesta.";
+    let answer = data?.choices?.[0]?.message?.content?.trim();
+
+    // 🛠️ FIX 3: Control de respuestas vacías o comodines de escape de tu negocio
+    if (!answer || answer === "" || answer === "SIN_CONTENIDO") {
+      console.warn("⚠️ OpenAI retornó un string vacío o restringido.");
+      answer = "Sin respuesta.";
+    }
+
+    // 🛠️ FIX 4: Mapeo de tokens ultra seguro para asegurar la precisión de tu ganancia
+    const tokensInput = data?.usage?.prompt_tokens ?? 0;
+    const tokensOutput = data?.usage?.completion_tokens ?? 0;
+
+    // Si OpenAI cambia la estructura o devuelve el total de forma explícita, lo priorizamos
+    const tokensTotal = data?.usage?.total_tokens ?? tokensInput + tokensOutput;
+
+    const usage = {
+      tokensInput,
+      tokensOutput,
+      tokensTotal,
+    };
+
+    return { answer, usage };
+  } catch (error) {
+    // Si la API de OpenAI explota por falta de saldo, clave inválida o timeout, esto salva tu backend
+    console.error(
+      "❌ Error catastrófico en la llamada a OpenAI Vision:",
+      error?.response?.data?.error?.message || error.message,
+    );
+    return {
+      answer: "Sin respuesta.",
+      usage: { tokensInput: 0, tokensOutput: 0, tokensTotal: 0 },
+    };
+  }
 }
-
 // ── Cloud Function principal ──────────────────────────────────────────────────
 const screenaiQuery_extencion = onRequest(
   { region: "us-central1", timeoutSeconds: 120, memory: "256MiB", cors: true },
@@ -304,12 +478,10 @@ const screenaiQuery_extencion = onRequest(
       try {
         const database = initDb2();
         if (!database) {
-          res
-            .status(500)
-            .json({
-              ok: false,
-              error: "No se pudo conectar a la base de datos.",
-            });
+          res.status(500).json({
+            ok: false,
+            error: "No se pudo conectar a la base de datos.",
+          });
           return;
         }
 
@@ -372,12 +544,10 @@ const screenaiQuery_extencion = onRequest(
       try {
         const database = initDb2();
         if (!database) {
-          res
-            .status(500)
-            .json({
-              ok: false,
-              error: "No se pudo conectar a la base de datos.",
-            });
+          res.status(500).json({
+            ok: false,
+            error: "No se pudo conectar a la base de datos.",
+          });
           return;
         }
 
@@ -441,7 +611,7 @@ const screenaiQuery_extencion = onRequest(
     console.log("[ScreenAI] POST body de alias:", aliasRaw);
     const alias = String(aliasRaw ?? "").trim();
 
-  if (!alias) {
+    if (!alias) {
       res.status(401).json({ ok: false, error: "Alias requerido." });
       return;
     }
@@ -460,7 +630,7 @@ const screenaiQuery_extencion = onRequest(
     const MAX_CHARS_SELECCION = 5000;
     if (mode === "text" && text.trim().length > MAX_CHARS_SELECCION) {
       console.warn(
-        `[ScreenAI] Selección rechazada por longitud. Alias: "${alias}", Caracteres: ${text.trim().length}`
+        `[ScreenAI] Selección rechazada por longitud. Alias: "${alias}", Caracteres: ${text.trim().length}`,
       );
       res.status(413).json({
         ok: false,
@@ -471,14 +641,15 @@ const screenaiQuery_extencion = onRequest(
     }
 
     // Para imágenes siempre forzamos esta categoría especial
-    const category =
-      mode === "image" ? "Vision_Procesamiento_Grafico" : categoryRaw;
+    const category = categoryRaw;
+    const categoryKey = category.replace(/ /g, "_");
     console.log(
       `[ScreenAI] Procesando IA. Alias: "${alias}", Modo: "${mode}", ` +
         `Proveedor: "${provider}", Categoría: "${category}", SolutionMode: "${solutionMode}"`,
     );
 
     // ── Verificar alias y créditos ────────────────────────────────────────────
+    let creditosDisponibles = 0;
     try {
       const verification = await verificarAlias(alias);
       if (!verification.ok) {
@@ -490,7 +661,10 @@ const screenaiQuery_extencion = onRequest(
           .json({ ok: false, error: verification.error });
         return;
       }
-      console.log(`[ScreenAI] Cuenta verificada para IA. Alias: "${alias}"`);
+      creditosDisponibles = Number(verification.credits) || 0;
+      console.log(
+        `[ScreenAI] Cuenta verificada para IA. Alias: "${alias}", Créditos: ${creditosDisponibles}`,
+      );
     } catch (e) {
       console.error("[ScreenAI] Error crítico en verificación:", e.message);
       res
@@ -513,25 +687,40 @@ const screenaiQuery_extencion = onRequest(
     const OPENAI_KEY = process.env.PIRVATE_KEY_OPENIA_APITRABAJO;
 
     let answer = "";
+    // usage por defecto en caso de algún path no contemplado
+    let usage = { tokensInput: 0, tokensOutput: 0, tokensTotal: 0 };
+
     try {
       // ── Tokens según solutionMode ─────────────────────────────────────────
       const tokens =
         solutionMode === "detallado"
-          ? maxTokens_DETALLADO(category)
-          : maxTokens(category);
-
+          ? maxTokens_DETALLADO(categoryKey, provider)
+          : maxTokens(categoryKey, provider);
       // ── costoTotal ────────────────────────────────────────────────────────
       // ── costoTotal (precio real desde Firestore: modelo + categoría + modo solución) ──
       // Para imágenes no existe una categoría de precio propia → se cobra como "general"
-      const categoryParaCosto = mode === "image" ? "general" : category;
-
       const costoModelo = await obtenerCostoDesdeDB(provider, mode);
-      const costoCategoria = await obtenerCostoCategoria(
-        categoryParaCosto,
-        mode,
-      );
+
+      const {
+        costo: costoCategoria,
+        costoPorMoneda,
+        tipoCambio,
+      } = await obtenerCostoCategoria(category, mode);
       const costoSolucion = await obtenerCostoSolucion(solutionMode);
       const costoTotal = costoModelo + costoCategoria + costoSolucion;
+
+      // ── Validar créditos suficientes ANTES de llamar a la IA ───────────────
+      if (creditosDisponibles < costoTotal) {
+        console.warn(
+          `[ScreenAI] Créditos insuficientes, Disponibles: ${creditosDisponibles}, Costo: ${costoTotal}`,
+        );
+        res.status(402).json({
+          ok: false,
+          code: "INSUFFICIENT_CREDITS",
+          error: "No tienes créditos suficientes para esta consulta.",
+        });
+        return;
+      }
 
       // ── systemPrompt correcto según modo e imagen/texto ───────────────────
       let systemPrompt;
@@ -546,7 +735,10 @@ const screenaiQuery_extencion = onRequest(
             ? SYSTEM_PROMPTS_DETALLADO
             : SYSTEM_PROMPTS;
         systemPrompt =
-          promptSet[category] || promptSet.general || SYSTEM_PROMPTS.general;
+          promptSet[categoryKey] || promptSet.general || SYSTEM_PROMPTS.general;
+        console.log(
+          `[ScreenAI] categoryKey: "${categoryKey}", promptFound: ${!!promptSet[categoryKey]}, promptPreview: "${systemPrompt?.substring(0, 80)}"`,
+        );
       }
 
       console.log(
@@ -557,30 +749,36 @@ const screenaiQuery_extencion = onRequest(
       // ── Llamada a la IA ───────────────────────────────────────────────────
       if (mode === "text") {
         switch (modelInfo.family) {
-          case "gemini":
+          case "gemini": {
             console.log(
               `[ScreenAI] callGeminiText → endpoint: "${modelInfo.endpoint}"`,
             );
-            answer = await callGeminiText(
+            const result = await callGeminiText(
               text,
               GEMINI_KEY,
               modelInfo.endpoint,
               systemPrompt,
               tokens,
             );
+            answer = result.answer;
+            usage = result.usage;
             break;
-          case "openai":
+          }
+          case "openai": {
             console.log(
               `[ScreenAI] callOpenAIText → modelo: "${modelInfo.model}"`,
             );
-            answer = await callOpenAIText(
+            const result = await callOpenAIText(
               text,
               OPENAI_KEY,
               modelInfo.model,
               systemPrompt,
               tokens,
             );
+            answer = result.answer;
+            usage = result.usage;
             break;
+          }
         }
       } else {
         // mode === "image"
@@ -588,11 +786,11 @@ const screenaiQuery_extencion = onRequest(
           textHint ||
           "Resuelve el examen de la imagen según las instrucciones del sistema.";
         switch (modelInfo.family) {
-          case "gemini":
+          case "gemini": {
             console.log(
               `[ScreenAI] callGeminiVision → endpoint: "${modelInfo.endpoint}", hint: "${finalHint}"`,
             );
-            answer = await callGeminiVision(
+            const result = await callGeminiVision(
               imageBase64,
               mimeType,
               finalHint,
@@ -601,12 +799,15 @@ const screenaiQuery_extencion = onRequest(
               systemPrompt,
               tokens,
             );
+            answer = result.answer;
+            usage = result.usage;
             break;
-          case "openai":
+          }
+          case "openai": {
             console.log(
               `[ScreenAI] callOpenAIVision → modelo: "${modelInfo.model}", hint: "${finalHint}"`,
             );
-            answer = await callOpenAIVision(
+            const result = await callOpenAIVision(
               imageBase64,
               mimeType,
               finalHint,
@@ -615,12 +816,16 @@ const screenaiQuery_extencion = onRequest(
               systemPrompt,
               tokens,
             );
+            answer = result.answer;
+            usage = result.usage;
             break;
+          }
         }
       }
 
       console.log(
-        `[ScreenAI] Respuesta de IA recibida. Caracteres: ${answer?.length ?? 0}`,
+        `[ScreenAI] Respuesta de IA recibida. Caracteres: ${answer?.length ?? 0}. ` +
+          `Tokens → input: ${usage.tokensInput}, output: ${usage.tokensOutput}, total: ${usage.tokensTotal}`,
       );
 
       if (!answer || !answer.trim()) {
@@ -631,9 +836,39 @@ const screenaiQuery_extencion = onRequest(
         return;
       }
 
-      // ── Validar y descontar créditos ──────────────────────────────────────
+      // ── Costo REAL de la API ──────────────────────────────────────────────────
+      const costoRealUSD = calcularCostoRealUSD(
+        provider,
+        usage.tokensInput,
+        usage.tokensOutput,
+      );
+      const TIPO_CAMBIO_USD_PEN = 3.75;
+      const costoRealSoles = parseFloat(
+        (costoRealUSD * TIPO_CAMBIO_USD_PEN).toFixed(6),
+      );
+
+      // ✅ costoEnSoles definido aquí, antes de usarlo
+      const costoEnSoles = parseFloat((costoTotal * costoPorMoneda).toFixed(4));
+
+      const margenGananciaSoles = parseFloat(
+        (costoEnSoles - costoRealSoles).toFixed(6),
+      );
+      const margenGananciaPorcentaje =
+        costoRealSoles > 0
+          ? parseFloat(
+              (
+                ((costoEnSoles - costoRealSoles) / costoRealSoles) *
+                100
+              ).toFixed(2),
+            )
+          : 0;
+      const multiplicadorGanancia =
+        costoRealSoles > 0
+          ? parseFloat((costoEnSoles / costoRealSoles).toFixed(2))
+          : 0;
+
+      // ── Validar y descontar créditos ──────────────────────────────────────────
       const valida = esRespuestaValida(answer, mode);
-      console.log(`[ScreenAI] esRespuestaValida: ${valida}`);
 
       if (valida) {
         try {
@@ -641,10 +876,7 @@ const screenaiQuery_extencion = onRequest(
             alias.toLowerCase(),
             costoTotal,
           );
-          console.log(
-            `[ScreenAI] Créditos descontados. Antes: ${antes}, Después: ${despues}, ` +
-              `Costo cobrado: ${costoTotal}`,
-          );
+
           await guardarHistorial(
             alias.toLowerCase(),
             provider,
@@ -653,7 +885,30 @@ const screenaiQuery_extencion = onRequest(
             antes,
             despues,
             costoTotal,
+            costoEnSoles,
+            costoPorMoneda,
             solutionMode,
+            {
+              tokensInput: usage.tokensInput,
+              tokensOutput: usage.tokensOutput,
+              tokensTotal: usage.tokensTotal,
+              costoRealUSD: parseFloat(costoRealUSD.toFixed(6)),
+              costoRealSoles,
+              margenGananciaSoles,
+              margenGananciaPorcentaje,
+              multiplicadorGanancia,
+              tipoCambioUSD: TIPO_CAMBIO_USD_PEN,
+              precioInputPorMillon: PRECIO_USD_POR_MILLON[provider]?.input ?? 0,
+              precioOutputPorMillon:
+                PRECIO_USD_POR_MILLON[provider]?.output ?? 0,
+              costoRealInputUSD:
+                (usage.tokensInput / 1_000_000) *
+                (PRECIO_USD_POR_MILLON[provider]?.input ?? 0),
+              costoRealOutputUSD:
+                (usage.tokensOutput / 1_000_000) *
+                (PRECIO_USD_POR_MILLON[provider]?.output ?? 0),
+            },
+            answer, // 🆕 acá pasas la respuesta completa de la IA
           );
         } catch (e) {
           console.warn("[ScreenAI] No se pudo descontar crédito:", e.message);

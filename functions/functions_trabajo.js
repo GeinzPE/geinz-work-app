@@ -82,8 +82,6 @@ async function verificarAlias(alias) {
     return { ok: false, status: 403, error: "Cuenta suspendida." };
 
   const credits = data.credits ?? data.creditos ?? null;
-  if (typeof credits === "number" && credits <= 0)
-    return { ok: false, status: 402, error: "Sin créditos disponibles." };
 
   return { ok: true, credits, data };
 }
@@ -99,24 +97,54 @@ function categoriaToDbKey(category) {
 async function obtenerCostoCategoria(category) {
   try {
     const database = initDb2();
-    if (!database) return 0;
+    if (!database) {
+      console.warn("[obtenerCostoCategoria] ❌ No se pudo inicializar DB.");
+      return { costo: 0, costoPorMoneda: 0, tipoCambio: 1 };
+    }
 
     const ahora = Date.now();
-    if (!preciosCache || ahora - preciosCacheTime > CACHE_TTL) {
+    const cacheVencido = !preciosCache || ahora - preciosCacheTime > CACHE_TTL;
+    console.log(
+      `[obtenerCostoCategoria] Cache vencido: ${cacheVencido}, category: "${category}"`,
+    );
+
+    if (cacheVencido) {
+      console.log("[obtenerCostoCategoria] Leyendo precios desde Firestore...");
       const snap = await database
         .collection("precio_apartado")
         .doc("scag_site")
         .get();
       preciosCache = snap.exists ? snap.data() : {};
       preciosCacheTime = ahora;
+      console.log(
+        "[obtenerCostoCategoria] preciosCache cargado:",
+        JSON.stringify(preciosCache),
+      );
+    } else {
+      console.log("[obtenerCostoCategoria] Usando cache existente.");
     }
 
     const key = categoriaToDbKey(category);
     const costo = preciosCache?.categoria?.[key];
-    return typeof costo === "number" ? costo : 0;
+    const costoPorMoneda = preciosCache?.costo_por_moneda ?? 0;
+    const tipoCambio = preciosCache?.tipo_cambio ?? 1;
+
+    console.log(
+      `[obtenerCostoCategoria] key: "${key}", costo: ${costo}, costoPorMoneda: ${costoPorMoneda}, tipoCambio: ${tipoCambio}`,
+    );
+    console.log(
+      `[obtenerCostoCategoria] categorias disponibles en cache:`,
+      JSON.stringify(preciosCache?.categoria ?? {}),
+    );
+
+    return {
+      costo: typeof costo === "number" ? costo : 0,
+      costoPorMoneda,
+      tipoCambio,
+    };
   } catch (e) {
-    console.warn("[ScreenAI] No se pudo leer costo categoría:", e.message);
-    return 0;
+    console.error("[obtenerCostoCategoria] ❌ ERROR:", e.message, e.stack);
+    return { costo: 0, costoPorMoneda: 0, tipoCambio: 1 };
   }
 }
 // ─── Helper: detectar si la respuesta de la IA es válida para cobrar ────────
@@ -427,17 +455,38 @@ const screenaiQuery = onRequest(
 
       // DESPUÉS (correcto):
       const valida = esRespuestaValida(answer, mode);
-
+      // Reemplaza el bloque "if (valida)" actual por esto:
       if (valida) {
         try {
-          const costo = await obtenerCostoDesdeDB(provider, mode);
-          const costoCategoria = await obtenerCostoCategoria(category, mode);
-          const costoTotal = costo + costoCategoria;
+          // Leer solutionMode del perfil del usuario
+          const database = initDb2();
+          let solutionMode = "directo";
+          if (database) {
+            const perfilSnap = await database
+              .collection(USERS_COLLECTION)
+              .doc(alias.toLowerCase())
+              .get();
+            solutionMode = perfilSnap.data()?.solutionMode || "directo";
+          }
+
+          // Costos en monedas desde DB
+          const costoModelo = await obtenerCostoDesdeDB(provider, mode);
+          const { costo: costoCategoria, costoPorMoneda } =
+            await obtenerCostoCategoria(category);
+          const costoSolucion = await obtenerCostoSolucion(solutionMode);
+
+          // Total en monedas y en soles
+          const costoTotalMonedas =
+            costoModelo + costoCategoria + costoSolucion;
+          const costoEnSoles = parseFloat(
+            (costoTotalMonedas * costoPorMoneda).toFixed(4),
+          );
 
           const { antes, despues } = await descontarCreditoN(
             alias.toLowerCase(),
-            costoTotal,
+            costoTotalMonedas,
           );
+
           await guardarHistorial(
             alias.toLowerCase(),
             provider,
@@ -445,7 +494,10 @@ const screenaiQuery = onRequest(
             mode,
             antes,
             despues,
-            costoTotal,
+            costoTotalMonedas, // creditosConsumidos
+            costoEnSoles, // costoSoles
+            costoPorMoneda, // costo_por_moneda
+            solutionMode, // modo solución
           );
         } catch (e) {
           console.warn("[ScreenAI] No se pudo descontar crédito:", e.message);
@@ -467,10 +519,6 @@ const screenaiQuery = onRequest(
     }
   },
 );
-
-
-
-
 
 // ─── GEMINI TEXT ──────────────────────────────────────────────────────────────
 async function callGeminiText(text, apiKey, endpoint, systemPrompt, tokens) {
@@ -632,26 +680,72 @@ async function guardarHistorial(
   mode,
   creditosAntes,
   creditosDespues,
-  costoTotal,
-  solutionMode = null, // 👈 nuevo parámetro, opcional
+  creditosConsumidos,
+  costoSoles,
+  costoPorMoneda,
+  solutionMode,
+  apiMeta = {},
+  respuestaIA = "",
 ) {
   const database = initDb2();
   if (!database) return;
-
   try {
+    const MAX_LEN_RESPUESTA = 50000;
+    const respuestaGuardada =
+      typeof respuestaIA === "string" && respuestaIA.length > MAX_LEN_RESPUESTA
+        ? respuestaIA.slice(0, MAX_LEN_RESPUESTA) + "…(truncado)"
+        : respuestaIA;
+
     await database
       .collection(USERS_COLLECTION)
       .doc(alias)
       .collection("historial")
       .add({
+        // ── Identificación ─────────────────────────────────────────
         modelo: provider,
         categoria: category,
         tipo: mode === "image" ? "Captura de pantalla" : "Selección de texto",
-        creditosConsumidos: costoTotal,
-        costoSoles: parseFloat((costoTotal * 0.1).toFixed(2)),
+        solutionMode: solutionMode || "directo",
+
+        // ── Créditos del usuario ───────────────────────────────────
         creditosAntes,
         creditosRestantes: creditosDespues,
-        ...(solutionMode ? { detalle: solutionMode } : {}), // 👈 solo se agrega si existe
+        creditosConsumidos,
+
+        // ── Lo que cobras tú al usuario ────────────────────────────
+        costoSoles, // total en soles que le cobras al usuario
+        costoPorMoneda, // factor de conversión créditos → soles
+
+        // ── Lo que te cobró la API a ti (costo real) ───────────────
+        costoRealUSD: apiMeta.costoRealUSD ?? 0, // USD pagados a Gemini/OpenAI
+        costoRealSoles: apiMeta.costoRealSoles ?? 0, // equivalente en soles
+        tipoCambioUSD: apiMeta.tipoCambioUSD ?? 0, // tipo de cambio usado
+
+        // ── Tokens (detalle exacto de consumo de la API) ───────────
+        tokensInput: apiMeta.tokensInput ?? 0, // tokens del prompt enviado
+        tokensOutput: apiMeta.tokensOutput ?? 0, // tokens de la respuesta recibida
+        tokensTotal: apiMeta.tokensTotal ?? 0, // suma total
+        // 🆕 Desglose de precio por token (para auditoría futura)
+        // ✅ PON ESTO
+        precioInputPorMillon: apiMeta.precioInputPorMillon ?? 0,
+        precioOutputPorMillon: apiMeta.precioOutputPorMillon ?? 0,
+        costoRealInputUSD: apiMeta.costoRealInputUSD ?? 0,
+        costoRealOutputUSD: apiMeta.costoRealOutputUSD ?? 0,
+        // ── Ganancia tuya ──────────────────────────────────────────
+        margenGananciaSoles: apiMeta.margenGananciaSoles ?? 0, // soles de ganancia
+        margenGananciaPorcentaje: apiMeta.margenGananciaPorcentaje ?? 0, // % de margen
+        multiplicadorGanancia: apiMeta.multiplicadorGanancia ?? 0, // ej: 5x sobre costo real
+
+        // ── Respuesta IA ───────────────────────────────────────────
+        respuestaIA: respuestaGuardada,
+        respuestaTruncada:
+          typeof respuestaIA === "string" &&
+          respuestaIA.length > MAX_LEN_RESPUESTA,
+        // 🆕 Longitud original para saber si fue truncada y cuánto
+        respuestaLongitudOriginal:
+          typeof respuestaIA === "string" ? respuestaIA.length : 0,
+
+        // ── Timestamp ─────────────────────────────────────────────
         fecha: admin.firestore.FieldValue.serverTimestamp(),
       });
   } catch (e) {
@@ -715,644 +809,223 @@ async function obtenerCostoSolucion(solutionMode) {
 }
 
 const suggestConfig = onRequest(
-  { region: "us-central1", timeoutSeconds: 10, memory: "256MiB", cors: true },
+  {
+    region: "us-central1",
+    timeoutSeconds: 10,
+    memory: "256MiB",
+    cors: true,
+  },
   async (req, res) => {
+    // ── Control de CORS Preflight ──
     if (req.method === "OPTIONS") {
-      res.status(204).send("");
-      return;
+      return res.status(204).send("");
     }
+
+    // ── Restricción de Método ──
     if (req.method !== "POST") {
-      res.status(405).json({ ok: false, error: "Método no permitido." });
-      return;
+      return res.status(405).json({ ok: false, error: "Método no permitido." });
     }
 
-    const { prompt } = req.body || {};
-    if (!prompt?.trim()) {
-      res.status(400).json({ ok: false, error: "Prompt requerido." });
-      return;
-    }
-
-    const GEMINI_KEY = process.env.PIRVATE_KEY_GEMINI_APITRABAJO;
-    if (!GEMINI_KEY) {
-      res.status(500).json({ ok: false, error: "API key no configurada." });
-      return;
-    }
-
-    // ── Normalización ──
-    const p = prompt
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[¿¡]/g, "");
-
-    // ── Textos explicativos actualizados con los nombres exactos de la DB ──
-    const explanations = {
-      "Modelado y Simulación":
-        "Seleccioné Gemini Pro porque tu tarea involucra física, ideal para razonamiento científico y cálculo. La categoría Modelado y Simulación activa prompts especializados en fórmulas y teoremas.",
-      "Análisis Estadístico y Datos":
-        "Gemini Pro es el más preciso para matemáticas: maneja cálculo, álgebra y ecuaciones con alta exactitud. La categoría Análisis Estadístico y Datos enfoca las respuestas en resolución paso a paso.",
-      "Fórmulas y Glosarios Técnicos":
-        "Tu consulta es de química, donde Gemini Pro destaca en nomenclatura, balanceo y estequiometría. La categoría Fórmulas y Glosarios Técnicos optimiza las respuestas con notación y fórmulas correctas.",
-      "Código y Lógica de Software":
-        "Gemini Pro es ideal para programación: entiende código, algoritmos y depuración en múltiples lenguajes. La categoría Código y Lógica de Software prioriza respuestas con ejemplos de código.",
-      "Análisis Técnico y Ambiental":
-        "GPT-4o tiene mayor precisión en biología celular, genética y ecosistemas. La categoría Análisis Técnico y Ambiental activa contexto especializado en ciencias de la vida.",
-      "Informes y Terminología Científica":
-        "GPT-4o es riguroso para medicina clínica y farmacología. La categoría Informes y Terminología Científica enfoca las respuestas con criterio clínico y terminología médica precisa.",
-      "Comprensión y Análisis Corporativo":
-        "Gemini Flash es veloz y preciso para comprensión lectora, resúmenes y redacción. La categoría Comprensión y Análisis Corporativo optimiza el análisis de textos y la coherencia argumentativa.",
-      "Documentación e Investigación":
-        "Gemini Flash responde rápido y con precisión en historia, geografía y ciencias sociales. La categoría Documentación e Investigación activa contexto cronológico y análisis de eventos.",
-      "Traducción y Redacción Global":
-        "Gemini Flash es eficiente para inglés: gramática, traducción y comprensión lectora. La categoría Traducción y Redacción Global enfoca las respuestas en corrección idiomática y vocabulario.",
-      general:
-        "Gemini Flash es el modelo más equilibrado para consultas generales. La categoría General permite respuestas versátiles sin restricción temática.",
-    };
-
-    const localMap = [
-      {
-        model: "gemini-pro",
-        cat: "Modelado y Simulación",
-        keys: [
-          "fisica",
-          "cuantica",
-          "quantum",
-          "relatividad",
-          "termodinamica",
-          "cinematica",
-          "dinamica",
-          "estatica",
-          "electromagnetismo",
-          "magnetismo",
-          "electrostatica",
-          "optica",
-          "ondas",
-          "calor",
-          "energia",
-          "trabajo mecanico",
-          "momento lineal",
-          "momento angular",
-          "ley de newton",
-          "caida libre",
-          "movimiento parabolico",
-          "mrua",
-          "mru",
-          "fuerza",
-          "potencia",
-          "presion",
-          "fluidos",
-          "viscosidad",
-          "campo electrico",
-          "campo magnetico",
-          "circuito",
-          "ley de ohm",
-          "capacitor",
-          "resistencia electrica",
-          "fisica 1",
-          "fisica 2",
-          "fisica 3",
-          "lab de fisica",
-          "informe de fisica",
-          "practica de fisica",
-        ],
-      },
-      {
-        model: "gemini-pro",
-        cat: "Análisis Estadístico y Datos",
-        keys: [
-          "matematica",
-          "calculo",
-          "integral",
-          "derivada",
-          "algebra",
-          "estadistica",
-          "probabilidad",
-          "geometria",
-          "trigonometria",
-          "logaritmo",
-          "ecuacion",
-          "matriz",
-          "determinante",
-          "vectores",
-          "limites",
-          "series",
-          "sucesiones",
-          "funcion",
-          "polinomio",
-          "inecuacion",
-          "conjunto",
-          "combinatoria",
-          "permutacion",
-          "binomio",
-          "calculo 1",
-          "calculo 2",
-          "algebra lineal",
-          "matematica discreta",
-          "matematica basica",
-          "pre calculo",
-          "raiz cuadrada",
-          "regla de tres",
-          "porcentaje",
-          "fraccion",
-          "numero complejo",
-          "espacio vectorial",
-          "transformada",
-          "laplace",
-          "fourier",
-          "ecuacion diferencial",
-          "variable aleatoria",
-          "distribucion normal",
-          "chi cuadrado",
-          "lab de matematica",
-          "ejercicio de mat",
-          "practica de mat",
-          "examen de mat",
-        ],
-      },
-      {
-        model: "gemini-pro",
-        cat: "Fórmulas y Glosarios Técnicos",
-        keys: [
-          "quimica",
-          "organica",
-          "inorganica",
-          "estequiometria",
-          "tabla periodica",
-          "enlace quimico",
-          "mol ",
-          "moles",
-          "reaccion quimica",
-          "acido",
-          "base",
-          "ph ",
-          "oxidacion",
-          "reduccion",
-          "redox",
-          "hidrocarburo",
-          "alcohol",
-          "cetona",
-          "aldehido",
-          "ester",
-          "eter",
-          "amina",
-          "amida",
-          "nomenclatura quimica",
-          "formula quimica",
-          "balancear",
-          "concentracion",
-          "molaridad",
-          "molalidad",
-          "gas ideal",
-          "ley de boyle",
-          "ley de charles",
-          "termodinamica quimica",
-          "entalpia",
-          "entropia",
-          "cinetica quimica",
-          "equilibrio quimico",
-          "quimica 1",
-          "quimica 2",
-          "lab de quimica",
-          "informe de quimica",
-          "practica de quimica",
-        ],
-      },
-      {
-        model: "gemini-pro",
-        cat: "Código y Lógica de Software",
-        keys: [
-          "programacion",
-          "programar",
-          "algoritmo",
-          "codigo",
-          "codificar",
-          "debug",
-          "depurar",
-          "software",
-          "desarrollo web",
-          "desarrollo movil",
-          "aplicacion",
-          "app ",
-          "base de datos",
-          "java ",
-          "javascript",
-          "python ",
-          "c++",
-          "c# ",
-          "php ",
-          "ruby ",
-          "swift ",
-          "kotlin ",
-          "typescript",
-          "html ",
-          "css ",
-          "sql ",
-          "mysql",
-          "postgresql",
-          "mongodb",
-          "firebase",
-          "django",
-          "flask",
-          "spring",
-          "react ",
-          "angular ",
-          "vue ",
-          "nodejs",
-          "express ",
-          "rest api",
-          " api ",
-          "json ",
-          "xml ",
-          "backend",
-          "frontend",
-          "fullstack",
-          "poo",
-          "programacion orientada",
-          "clase ",
-          "objeto ",
-          "herencia",
-          "polimorfismo",
-          "encapsulamiento",
-          "funcion ",
-          "metodo ",
-          "variable ",
-          "arreglo ",
-          "array ",
-          "lista ",
-          "pila ",
-          "cola ",
-          "grafo ",
-          "arbol ",
-          "recursion",
-          "compilar",
-          "interprete",
-          "pseudocodigo",
-          "diagrama de flujo",
-          "uml",
-          "casos de uso",
-          "arquitectura de software",
-          "patron de diseno",
-          "mvc ",
-          "microservicio",
-          "docker",
-          "git ",
-          "github",
-          "linux",
-          "bash ",
-          "practica de prog",
-          "examen de prog",
-          "proyecto de sistemas",
-          "tesis de sistemas",
-          "senati prog",
-          "computacion",
-          "informatica",
-          "ing de sistemas",
-          "ciencias de la computacion",
-        ],
-      },
-      {
-        model: "gpt-4o",
-        cat: "Análisis Técnico y Ambiental",
-        keys: [
-          "biologia",
-          "genetica",
-          "adn",
-          "arn",
-          "celula",
-          "eucariota",
-          "procariota",
-          "mitosis",
-          "meiosis",
-          "evolucion",
-          "ecosistema",
-          "fotosintesis",
-          "respiracion celular",
-          "metabolismo",
-          "proteina",
-          "lipido",
-          "carbohidrato",
-          "enzima",
-          "hormona",
-          "sistema nervioso",
-          "sistema inmune",
-          "microbiologia",
-          "bacterias",
-          "virus",
-          "parasito",
-          "hongo",
-          "biotecnologia",
-          "clonacion",
-          "secuenciacion",
-          "bioquimica",
-          "membrana celular",
-          "organelo",
-          "cloroplasto",
-          "mitocondria",
-          "ecologia",
-          "cadena alimenticia",
-          "bioma",
-          "biologia 1",
-          "biologia 2",
-          "lab de biologia",
-          "informe de biologia",
-          "practica de biologia",
-        ],
-      },
-      {
-        model: "gpt-4o",
-        cat: "Informes y Terminología Científica",
-        keys: [
-          "medicina",
-          "diagnostico",
-          "sintoma",
-          "farmaco",
-          "farmacologia",
-          "patologia",
-          "anatomia",
-          "fisiologia",
-          "histologia",
-          "embriologia",
-          "semiologia",
-          "propedeutica",
-          "clinica",
-          "cirugia",
-          "enfermedad",
-          "tratamiento",
-          "dosis",
-          "medicamento",
-          "antibiotico",
-          "vacuna",
-          "inmunologia",
-          "cardiologia",
-          "neurologia",
-          "oncologia",
-          "pediatria",
-          "ginecologia",
-          "obstetricia",
-          "traumatologia",
-          "ortopedia",
-          "dermatologia",
-          "oftalmologia",
-          "otorrinolaringologia",
-          "urologia",
-          "nefrologia",
-          "hepatologia",
-          "gastroenterologia",
-          "endocrinologia",
-          "psiquiatria",
-          "salud publica",
-          "epidemiologia",
-          "bioestadistica",
-          "historia clinica",
-          "anamnesis",
-          "examen fisico",
-          "diagnostico diferencial",
-          "medicina 1",
-          "medicina 2",
-          "internado",
-          "serums",
-          "upch",
-          "unmsm medicina",
-          "san marcos medicina",
-          "cayetano",
-        ],
-      },
-      {
-        model: "gemini-flash",
-        cat: "Comprensión y Análisis Corporativo",
-        keys: [
-          "lectura",
-          "literatura",
-          "comprension lectora",
-          "resumen de",
-          "analiza este texto",
-          "analiza el texto",
-          "redaccion",
-          "ortografia",
-          "lenguaje",
-          "comunicacion",
-          "ensayo",
-          "parrafo",
-          "introduccion conclusion",
-          "tesis de grado",
-          "monografia",
-          "informe escrito",
-          "abstract",
-          "marco teorico",
-          "antecedentes",
-          "justificacion",
-          "hipotesis",
-          "metodologia",
-          "conclusion de",
-          "obra literaria",
-          "novela",
-          "cuento",
-          "poema",
-          "autor",
-          "personaje",
-          "narrativa",
-          "dramaturgia",
-          "retorica",
-          "argumentacion",
-          "debate",
-          "exposicion oral",
-        ],
-      },
-      {
-        model: "gemini-flash",
-        cat: "Documentación e Investigación",
-        keys: [
-          "historia",
-          "guerra",
-          "revolucion",
-          "siglo xix",
-          "siglo xx",
-          "siglo xxi",
-          "imperio",
-          "civilizacion",
-          "batalla",
-          "independencia",
-          "colonia",
-          "virreinato",
-          "republica",
-          "conquista",
-          "inca",
-          "azteca",
-          "maya",
-          "grecia antigua",
-          "roma antigua",
-          "edad media",
-          "renacimiento",
-          "ilustracion",
-          "primera guerra",
-          "segunda guerra",
-          "guerra fria",
-          "holocausto",
-          "nazismo",
-          "fascismo",
-          "comunismo",
-          "capitalismo",
-          "liberalismo",
-          "socialismo",
-          "geopolitica",
-          "geografia",
-          "peru historia",
-          "historia del peru",
-          "historia universal",
-          "ciencias sociales",
-          "filosofia",
-          "logica",
-          "etica",
-          "epistemologia",
-          "kant",
-          "platon",
-          "aristoteles",
-          "socrates",
-          "economia",
-          "macroeconomia",
-          "microeconomia",
-          "pib",
-          "inflacion",
-          "mercado",
-        ],
-      },
-      {
-        model: "gemini-flash",
-        cat: "Traducción y Redacción Global",
-        keys: [
-          "english",
-          "translate",
-          "grammar",
-          "vocabulary",
-          "writing in english",
-          "essay in english",
-          "reading comprehension",
-          "listening",
-          "speaking",
-          "pronunciation",
-          "toefl",
-          "ielts",
-          "past simple",
-          "present perfect",
-          "future tense",
-          "conditional",
-          "modal verbs",
-          "ingles basico",
-          "ingles intermedio",
-          "ingles avanzado",
-          "nivel b1",
-          "nivel b2",
-          "nivel c1",
-          "phrasal verb",
-          "idiom",
-          "preposition",
-          "article the",
-          "passive voice",
-          "reported speech",
-          "traduci",
-          "traduccion",
-          "traducir",
-        ],
-      },
-    ];
-
-    // ── Score: gana la categoría con más keywords encontradas ──
-    let bestMatch = null;
-    let bestScore = 0;
-
-    for (const { keys, model, cat } of localMap) {
-      const score = keys.filter((k) => p.includes(k)).length;
-      if (score > bestScore) {
-        bestScore = score;
-        bestMatch = { model, cat };
-      }
-    }
-
-    if (bestMatch && bestScore >= 1) {
-      return res.status(200).json({
-        ok: true,
-        model: bestMatch.model,
-        category: bestMatch.cat,
-        text: explanations[bestMatch.cat],
-        source: "local",
-      });
-    }
-
-    // ── Fallback: Gemini actualizado con las categorías oficiales de tu DB ──
-    const systemInstruction = `Clasifica la tarea técnica. Elige SIEMPRE el más cercano, nunca dejes sin respuesta.
-Modelos: gemini-flash(General/Comprensión y Análisis Corporativo/Documentación e Investigación/Traducción y Redacción Global) gemini-pro(Análisis Estadístico y Datos/Modelado y Simulación/Fórmulas y Glosarios Técnicos/Código y Lógica de Software) gpt-4o(Análisis Técnico y Ambiental/Informes y Terminología Científica)
-Categorias: "General", "Análisis Estadístico y Datos", "Modelado y Simulación", "Fórmulas y Glosarios Técnicos", "Código y Lógica de Software", "Análisis Técnico y Ambiental", "Informes y Terminología Científica", "Comprensión y Análisis Corporativo", "Documentación e Investigación", "Traducción y Redacción Global"
-JSON sin markdown: {"model":"<val>","category":"<val>","text":"<1 sola linea explicando la eleccion>"}`;
-
-    let raw = "";
     try {
-      const { data } = await axios.post(
-        `${GEMINI_FLASH_URL}?key=${GEMINI_KEY}`,
+      const { prompt } = req.body || {};
+      if (!prompt?.trim()) {
+        return res.status(400).json({ ok: false, error: "Prompt requerido." });
+      }
+
+      // ── Validación de la API Key en el Entorno ──
+      const GEMINI_KEY = process.env.PIRVATE_KEY_GEMINI_APITRABAJO || process.env.PRIVATE_KEY_GEMINI_APITRABAJO;
+      if (!GEMINI_KEY) {
+        return res.status(500).json({ ok: false, error: "API key no configurada." });
+      }
+
+      // ── 1. Normalización del Texto del Usuario ──
+      const p = prompt
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[¿¡]/g, "");
+
+      console.log("[suggestConfig] prompt normalizado:", p);
+
+      // ── 2. Textos Explicativos Oficiales de la DB ──
+      const explanations = {
+        "Modelado y Simulación": "Seleccioné Gemini Pro porque tu tarea involucra física, ideal para razonamiento científico y cálculo. La categoría Modelado y Simulación activa prompts especializados en fórmulas y teoremas.",
+        "Análisis Estadístico y Datos": "Gemini Pro es el más preciso para matemáticas: maneja cálculo, álgebra y ecuaciones con alta exactitud. La categoría Análisis Estadístico y Datos enfoca las respuestas en resolución paso a paso.",
+        "Fórmulas y Glosarios Técnicos": "Tu consulta es de química, donde Gemini Pro destaca en nomenclatura, balanceo y estequiometría. La categoría Fórmulas y Glosarios Técnicos optimiza las respuestas con notación y fórmulas correctas.",
+        "Código y Lógica de Software": "Gemini Pro es ideal para programación: entiende código, algoritmos y depuración en múltiples lenguajes. La categoría Código y Lógica de Software prioriza respuestas con ejemplos de código.",
+        "Análisis Técnico y Ambiental": "GPT-4o tiene mayor precisión en biología celular, genética y ecosistemas. La categoría Análisis Técnico y Ambiental activa contexto especializado en ciencias de la vida.",
+        "Informes y Terminología Científica": "GPT-4o es riguroso para medicina clínica y farmacología. La categoría Informes y Terminología Científica enfoca las respuestas con criterio clínico y terminología médica precisa.",
+        "Comprensión y Análisis Corporativo": "Gemini Flash es veloz y preciso para comprensión lectora, resúmenes y redacción. La categoría Comprensión y Análisis Corporativo optimiza el análisis de textos y la coherencia argumentativa.",
+        "Documentación e Investigación": "Gemini Flash responde rápido y con precisión en historia, geografía y ciencias sociales. La categoría Documentación e Investigación activa contexto cronológico y análisis de eventos.",
+        "Traducción y Redacción Global": "Gemini Flash es eficiente para inglés: gramática, traducción y comprensión lectora. La categoría Traducción y Redacción Global enfoca las respuestas en corrección idiomática y vocabulario.",
+        "General": "Gemini Flash es el modelo más equilibrado para consultas generales. La categoría General permite respuestas versátiles sin restricción temática.",
+      };
+
+      // ── 3. Diccionario Local de Keywords (igual al original) ──
+      const localMap = [
         {
-          system_instruction: { parts: [{ text: systemInstruction }] },
-          contents: [{ role: "user", parts: [{ text: prompt.slice(0, 300) }] }],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 80 },
+          model: "gemini-pro",
+          cat: "Modelado y Simulación",
+          keys: ["fisica", "cuantica", "quantum", "relatividad", "termodinamica", "cinematica", "dinamica", "estatica", "electromagnetismo", "magnetismo", "electrostatica", "optica", "ondas", "calor", "energia", "trabajo mecanico", "momento lineal", "momento angular", "ley de newton", "caida libre", "movimiento parabolico", "mrua", "mru", "fuerza", "potencia", "presion", "fluidos", "viscosidad", "campo electrico", "campo magnetico", "circuito", "ley de ohm", "capacitor", "resistencia electrica", "fisica 1", "fisica 2", "fisica 3", "lab de fisica", "informe de fisica", "practica de fisica"],
         },
-        { headers: { "Content-Type": "application/json" }, timeout: 20000 },
+        {
+          model: "gemini-pro",
+          cat: "Análisis Estadístico y Datos",
+          keys: ["matematica", "calculo", "integral", "derivada", "algebra", "estadistica", "probabilidad", "geometria", "trigonometria", "logaritmo", "ecuacion", "matriz", "determinante", "vectores", "limites", "series", "sucesiones", "funcion", "polinomio", "inecuacion", "conjunto", "combinatoria", "permutacion", "binomio", "calculo 1", "calculo 2", "algebra lineal", "matematica discreta", "matematica basica", "pre calculo", "raiz cuadrada", "regla de tres", "porcentaje", "fraccion", "numero complejo", "espacio vectorial", "transformada", "laplace", "fourier", "ecuacion diferencial", "variable aleatoria", "distribucion normal", "chi cuadrado", "lab de matematica", "ejercicio de mat", "practica de mat", "examen de mat"],
+        },
+        {
+          model: "gemini-pro",
+          cat: "Fórmulas y Glosarios Técnicos",
+          keys: ["quimica", "organica", "inorganica", "estequiometria", "tabla periodica", "enlace quimico", "mol ", "moles", "reaccion quimica", "acido", "base", "ph ", "oxidacion", "reduccion", "redox", "hidrocarburo", "alcohol", "cetona", "aldehido", "ester", "eter", "amina", "amida", "nomenclatura quimica", "formula quimica", "balancear", "concentracion", "molaridad", "molalidad", "gas ideal", "ley de boyle", "ley de charles", "termodinamica quimica", "entalpia", "entropia", "cinetica quimica", "equilibrio quimico", "quimica 1", "quimica 2", "lab de quimica", "informe de quimica", "practica de quimica"],
+        },
+        {
+          model: "gemini-pro",
+          cat: "Código y Lógica de Software",
+          keys: ["programacion", "programar", "algoritmo", "codigo", "codificar", "debug", "depurar", "software", "desarrollo web", "desarrollo movil", "aplicacion", "app ", "base de datos", "java ", "javascript", "python ", "c++", "c# ", "php ", "ruby ", "swift ", "kotlin ", "typescript", "html ", "css ", "sql ", "mysql", "postgresql", "mongodb", "firebase", "django", "flask", "spring", "react ", "angular ", "vue ", "nodejs", "express ", "rest api", " api ", "json ", "xml ", "backend", "frontend", "fullstack", "poo", "programacion orientada", "clase ", "objeto ", "herencia", "polimorfismo", "encapsulamiento", "funcion ", "metodo ", "variable ", "arreglo ", "array ", "lista ", "pila ", "cola ", "grafo ", "arbol ", "recursion", "compilar", "interprete", "pseudocodigo", "diagrama de flujo", "uml", "casos de uso", "arquitectura de software", "patron de diseno", "mvc ", "microservicio", "docker", "git ", "github", "linux", "bash ", "practica de prog", "examen de prog", "proyecto de sistemas", "tesis de sistemas", "senati prog", "computacion", "informatica", "ing de sistemas", "ciencias de la computacion"],
+        },
+        {
+          model: "gpt-4o",
+          cat: "Análisis Técnico y Ambiental",
+          keys: ["biologia", "genetica", "adn", "arn", "celula", "eucariota", "procariota", "mitosis", "meiosis", "evolucion", "ecosistema", "fotosintesis", "respiracion celular", "metabolismo", "proteina", "lipido", "carbohidrato", "enzima", "hormona", "sistema nervioso", "sistema inmune", "microbiologia", "bacterias", "virus", "parasito", "hongo", "biotecnologia", "clonacion", "secuenciacion", "bioquimica", "membrana celular", "organelo", "cloroplasto", "mitocondria", "ecologia", "cadena alimenticia", "bioma", "biologia 1", "biologia 2", "lab de biologia", "informe de biologia", "practica de biologia"],
+        },
+        {
+          model: "gpt-4o",
+          cat: "Informes y Terminología Científica",
+          keys: ["medicina", "diagnostico", "sintoma", "farmaco", "farmacologia", "patologia", "anatomia", "fisiologia", "histologia", "embriologia", "semiologia", "propedeutica", "clinica", "cirugia", "enfermedad", "tratamiento", "dosis", "medicamento", "antibiotico", "vacuna", "inmunologia", "cardiologia", "neurologia", "oncologia", "pediatria", "ginecologia", "obstetricia", "traumatologia", "ortopedia", "dermatologia", "oftalmologia", "otorrinolaringologia", "urologia", "nefrologia", "hepatologia", "gastroenterologia", "endocrinologia", "psiquiatria", "salud publica", "epidemiologia", "bioestadistica", "historia clinica", "anamnesis", "examen fisico", "diagnostico diferencial", "medicina 1", "medicina 2", "internado", "serums", "upch", "unmsm medicina", "san marcos medicina", "cayetano"],
+        },
+        {
+          model: "gemini-flash",
+          cat: "Comprensión y Análisis Corporativo",
+          keys: ["lectura", "literatura", "comprension lectora", "resumen de", "analiza este texto", "analiza el texto", "redaccion", "ortografia", "lenguaje", "comunicacion", "ensayo", "parrafo", "introduccion conclusion", "tesis de grado", "monografia", "informe escrito", "abstract", "marco teorico", "antecedentes", "justificacion", "hipotesis", "metodologia", "conclusion de", "obra literaria", "novela", "cuento", "poema", "autor", "personaje", "narrativa", "dramaturgia", "retorica", "argumentacion", "debate", "exposicion oral"],
+        },
+        {
+          model: "gemini-flash",
+          cat: "Documentación e Investigación",
+          keys: ["historia", "guerra", "revolucion", "siglo xix", "siglo xx", "siglo xxi", "imperio", "civilizacion", "batalla", "independencia", "colonia", "virreinato", "republica", "conquista", "inca", "azteca", "maya", "grecia antigua", "roma antigua", "edad media", "renacimiento", "ilustracion", "primera guerra", "segunda guerra", "guerra fria", "holocausto", "nazismo", "fascismo", "comunismo", "capitalismo", "liberalismo", "socialismo", "geopolitica", "geografia", "peru historia", "historia del peru", "historia universal", "ciencias sociales", "filosofia", "logica", "etica", "epistemologia", "kant", "platon", "aristoteles", "socrates", "economia", "macroeconomia", "microeconomia", "pib", "inflacion", "mercado"],
+        },
+        {
+          model: "gemini-flash",
+          cat: "Traducción y Redacción Global",
+          keys: ["english", "translate", "grammar", "vocabulary", "writing in english", "essay in english", "reading comprehension", "listening", "speaking", "pronunciation", "toefl", "ielts", "past simple", "present perfect", "future tense", "conditional", "modal verbs", "ingles basico", "ingles intermedio", "ingles avanzado", "nivel b1", "nivel b2", "nivel c1", "phrasal verb", "idiom", "preposition", "article the", "passive voice", "reported speech", "traduci", "traduccion", "traducir"],
+        },
+      ];
+
+      // ── 4. Sistema de Puntuación Local ──
+      let bestMatch = null;
+      let bestScore = 0;
+
+      for (const { keys, model, cat } of localMap) {
+        const score = keys.filter((k) => p.includes(k)).length;
+        if (score > bestScore) {
+          bestScore = score;
+          bestMatch = { model, cat };
+        }
+      }
+
+      console.log("[suggestConfig] local score:", bestScore, "| match:", bestMatch?.cat ?? "ninguno");
+
+      // FIX: umbral subido de 1 a 3.
+      // Con 1 o 2 keywords sueltas el local era impreciso y nunca dejaba pasar a la IA.
+      // Con 3+ keywords coincidentes el match es suficientemente claro para responder directo.
+      if (bestMatch && bestScore >= 3) {
+        console.log("[suggestConfig] resuelto por LOCAL → cat:", bestMatch.cat, "| model:", bestMatch.model);
+        return res.status(200).json({
+          ok: true,
+          model: bestMatch.model,
+          category: bestMatch.cat,
+          text: explanations[bestMatch.cat],
+          source: "local",
+        });
+      }
+
+      // ── 5. Clasificación por IA ──
+      console.log("[suggestConfig] score insuficiente, pasando a IA...");
+
+      const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+      // FIX: gpt-4o-mini eliminado — no estaba en el systemInstruction original y causaba
+      // que la validación rechazara respuestas y cayera siempre en "gemini-flash / General".
+      const validModels = ["gemini-flash", "gemini-pro", "gpt-4o"];
+      const validCategories = Object.keys(explanations);
+
+      // FIX: systemInstruction ahora incluye TODAS las categorías del explanations.
+      // La versión original solo tenía 10, dejando categorías sin ruta posible para la IA.
+      const systemInstruction = `Clasifica la consulta técnica del usuario. Elige estrictamente una sola opción de cada lista permitida basándote en la afinidad del tema.
+
+MODELOS PERMITIDOS:
+- gemini-flash: General, Comprensión y Análisis Corporativo, Documentación e Investigación, Traducción y Redacción Global
+- gemini-pro: Análisis Estadístico y Datos, Modelado y Simulación, Fórmulas y Glosarios Técnicos, Código y Lógica de Software
+- gpt-4o: Análisis Técnico y Ambiental, Informes y Terminología Científica
+
+CATEGORÍAS PERMITIDAS EXACTAS (copia una tal cual, sin modificar):
+"General", "Modelado y Simulación", "Análisis Estadístico y Datos", "Fórmulas y Glosarios Técnicos", "Código y Lógica de Software", "Análisis Técnico y Ambiental", "Informes y Terminología Científica", "Comprensión y Análisis Corporativo", "Documentación e Investigación", "Traducción y Redacción Global"
+
+Reglas de salida:
+1. Escoge siempre la categoría más parecida. No la dejes en blanco.
+2. En el campo "text", escribe en una sola frase breve el motivo de tu clasificación.
+3. Responde ÚNICAMENTE un objeto JSON plano, sin bloques de código markdown:
+{"model":"nombre","category":"nombre","text":"explicación"}`;
+
+      const { data } = await axios.post(
+        `${GEMINI_URL}?key=${GEMINI_KEY}`,
+        {
+          system_instruction: {
+            parts: [{ text: systemInstruction }],
+          },
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: prompt.trim().slice(0, 1000) }],
+            },
+          ],
+          generationConfig: {
+            temperature: 0,
+            maxOutputTokens: 500,
+          },
+        },
+        {
+          headers: { "Content-Type": "application/json" },
+          timeout: 8000,
+        }
       );
 
-      raw = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? "";
-      if (!raw) throw new Error("Vacío");
+      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "{}";
+      console.log("[suggestConfig] respuesta cruda de IA:", rawText);
 
-      const match = raw.match(/\{[\s\S]*?\\}/);
-      if (!match) throw new Error("Sin JSON: " + raw);
+      // Extrae el primer bloque JSON válido aunque la IA agregue texto alrededor
+      const jsonMatch = rawText.match(/\{[^{}]*\}/s);
+      if (!jsonMatch) throw new Error("No se encontró JSON. Respuesta cruda: " + rawText.slice(0, 120));
+      const parsed = JSON.parse(jsonMatch[0]);
+      console.log("[suggestConfig] parsed:", parsed);
 
-      const parsed = JSON.parse(match[0]);
+      const model = validModels.includes(parsed.model) ? parsed.model : "gemini-flash";
+      const category = validCategories.includes(parsed.category) ? parsed.category : "General";
+      const text = typeof parsed.text === "string" && parsed.text.trim()
+        ? parsed.text.slice(0, 180)
+        : explanations["General"];
 
-      const validModels = [
-        "gemini-flash",
-        "gemini-pro",
-        "gpt-4o",
-        "gpt-4o-mini",
-      ];
-      const validCategories = [
-        "General",
-        "Análisis Estadístico y Datos",
-        "Modelado y Simulación",
-        "Fórmulas y Glosarios Técnicos",
-        "Código y Lógica de Software",
-        "Análisis Técnico y Ambiental",
-        "Informes y Terminología Científica",
-        "Comprensión y Análisis Corporativo",
-        "Documentación e Investigación",
-        "Traducción y Redacción Global",
-      ];
+      console.log("[suggestConfig] resuelto por IA → cat:", category, "| model:", model);
 
-      if (!validModels.includes(parsed.model)) parsed.model = "gemini-flash";
-      if (!validCategories.includes(parsed.category))
-        parsed.category = "General";
-      if (!parsed.text) parsed.text = explanations["General"];
-
-      console.log("[suggestConfig] Gemini clasificó:", {
-        model: parsed.model,
-        category: parsed.category,
-      });
-
-      res.status(200).json({
+      return res.status(200).json({
         ok: true,
-        model: parsed.model,
-        category: parsed.category,
-        text: parsed.text.slice(0, 180),
+        model,
+        category,
+        text,
         source: "ai",
       });
+
     } catch (e) {
-      console.error("[suggestConfig] ERROR:", e.message, "| raw:", raw);
-      res.status(200).json({
+      console.error("[suggestConfig Fallback Triggered]:", e.response?.data || e.message);
+
+      return res.status(200).json({
         ok: true,
         model: "gemini-flash",
         category: "General",
-        text: explanations["General"],
+        text: "Gemini Flash es el modelo más equilibrado para consultas generales. La categoría General permite respuestas versátiles sin restricción temática.",
         source: "fallback",
       });
     }
-  },
+  }
 );
-
 const getUserData = onRequest(
   { region: "us-central1", timeoutSeconds: 20, memory: "256MiB", cors: true },
   async (req, res) => {
