@@ -425,19 +425,15 @@ const screenaiQuery_extencion = onRequest(
       JSON.stringify(req.query),
     );
 
-    // ── CORS Preflight ────────────────────────────────────────────────────────
     if (req.method === "OPTIONS") {
       console.log("[ScreenAI] Manejando petición OPTIONS (CORS Preflight)");
       res.status(204).send("");
       return;
     }
 
-    // ── GET ?check=1&alias=xxx — verificar alias y créditos ───────────────────
     if (req.method === "GET" && req.query.check === "1") {
       const alias = (req.query.alias || "").trim().toLowerCase();
-      console.log(
-        `[ScreenAI] Flujo GET check=1 iniciado para alias: "${alias}"`,
-      );
+      console.log(`[ScreenAI] Flujo GET check=1 iniciado para alias: "${alias}"`);
 
       if (!alias) {
         res.status(400).json({ ok: false, error: "Alias requerido." });
@@ -450,25 +446,18 @@ const screenaiQuery_extencion = onRequest(
           res.status(result.status).json({ ok: false, error: result.error });
           return;
         }
-        console.log(
-          `[ScreenAI] Alias "${alias}" verificado. Créditos: ${result.credits}`,
-        );
+        console.log(`[ScreenAI] Alias "${alias}" verificado. Créditos: ${result.credits}`);
         res.status(200).json({ ok: true, credits: result.credits });
       } catch (e) {
         console.error("[ScreenAI] verificarAlias error:", e.message);
-        res
-          .status(500)
-          .json({ ok: false, error: "Error al verificar alias: " + e.message });
+        res.status(500).json({ ok: false, error: "Error al verificar alias: " + e.message });
       }
       return;
     }
 
-    // ── GET ?config=1&alias=xxx — leer configuración del usuario ──────────────
     if (req.method === "GET" && req.query.config === "1") {
       const alias = (req.query.alias || "").trim().toLowerCase();
-      console.log(
-        `[ScreenAI] Flujo GET config=1 iniciado para alias: "${alias}"`,
-      );
+      console.log(`[ScreenAI] Flujo GET config=1 iniciado para alias: "${alias}"`);
 
       if (!alias) {
         res.status(400).json({ ok: false, error: "Alias requerido." });
@@ -478,27 +467,18 @@ const screenaiQuery_extencion = onRequest(
       try {
         const database = initDb2();
         if (!database) {
-          res.status(500).json({
-            ok: false,
-            error: "No se pudo conectar a la base de datos.",
-          });
+          res.status(500).json({ ok: false, error: "No se pudo conectar a la base de datos." });
           return;
         }
 
-        const snap = await database
-          .collection(USERS_COLLECTION)
-          .doc(alias)
-          .get();
+        const snap = await database.collection(USERS_COLLECTION).doc(alias).get();
         if (!snap.exists) {
           res.status(404).json({ ok: false, error: "Usuario no encontrado." });
           return;
         }
 
         const data = snap.data();
-        console.log(
-          `[ScreenAI] Config recuperada para "${alias}":`,
-          JSON.stringify(data),
-        );
+        console.log(`[ScreenAI] Config recuperada para "${alias}":`, JSON.stringify(data));
         res.status(200).json({
           ok: true,
           provider: data.provider || null,
@@ -513,14 +493,11 @@ const screenaiQuery_extencion = onRequest(
         });
       } catch (e) {
         console.error("[ScreenAI] config GET error:", e.message);
-        res
-          .status(500)
-          .json({ ok: false, error: "Error al leer config: " + e.message });
+        res.status(500).json({ ok: false, error: "Error al leer config: " + e.message });
       }
       return;
     }
 
-    // ── POST ?saveconfig=1 — guardar configuración del usuario ────────────────
     if (req.method === "POST" && req.query.saveconfig === "1") {
       console.log("[saveconfig] body:", JSON.stringify(req.body));
       const {
@@ -544,10 +521,7 @@ const screenaiQuery_extencion = onRequest(
       try {
         const database = initDb2();
         if (!database) {
-          res.status(500).json({
-            ok: false,
-            error: "No se pudo conectar a la base de datos.",
-          });
+          res.status(500).json({ ok: false, error: "No se pudo conectar a la base de datos." });
           return;
         }
 
@@ -558,39 +532,26 @@ const screenaiQuery_extencion = onRequest(
         if (category !== undefined) updateData.category = category;
         if (hotkeyToggle !== undefined) updateData.hotkeyToggle = hotkeyToggle;
         if (hotkeyQuery !== undefined) updateData.hotkeyQuery = hotkeyQuery;
-        if (hotkeyCapture !== undefined)
-          updateData.hotkeyCapture = hotkeyCapture;
+        if (hotkeyCapture !== undefined) updateData.hotkeyCapture = hotkeyCapture;
         if (position !== undefined) updateData.position = position;
         if (theme !== undefined) updateData.theme = theme;
-        if (highlightColor !== undefined)
-          updateData.highlightColor = highlightColor;
+        if (highlightColor !== undefined) updateData.highlightColor = highlightColor;
         if (solutionMode !== undefined) updateData.solutionMode = solutionMode;
 
         const targetAlias = alias.trim().toLowerCase();
-        console.log(
-          `[ScreenAI] Guardando config para "${targetAlias}":`,
-          JSON.stringify(updateData),
-        );
+        console.log(`[ScreenAI] Guardando config para "${targetAlias}":`, JSON.stringify(updateData));
 
-        await database
-          .collection(USERS_COLLECTION)
-          .doc(targetAlias)
-          .set(updateData, { merge: true });
+        await database.collection(USERS_COLLECTION).doc(targetAlias).set(updateData, { merge: true });
 
-        console.log(
-          `[ScreenAI] Config guardada correctamente para "${targetAlias}"`,
-        );
+        console.log(`[ScreenAI] Config guardada correctamente para "${targetAlias}"`);
         res.status(200).json({ ok: true });
       } catch (e) {
         console.error("[ScreenAI] saveconfig error:", e.message);
-        res
-          .status(500)
-          .json({ ok: false, error: "Error al guardar config: " + e.message });
+        res.status(500).json({ ok: false, error: "Error al guardar config: " + e.message });
       }
       return;
     }
 
-    // ── POST → consulta IA ────────────────────────────────────────────────────
     if (req.method !== "POST") {
       res.status(405).json({ ok: false, error: "Método no permitido." });
       return;
@@ -605,8 +566,20 @@ const screenaiQuery_extencion = onRequest(
       imageBase64 = "",
       mimeType = "image/png",
       textHint = "",
-      solutionMode = "detallado", // "directo" | "detallado"
+      solutionMode = "detallado",
     } = req.body || {};
+
+    // 📦 LOG DETALLADO DEL BODY RECIBIDO
+    console.log("📦 ============ BODY RECIBIDO ============");
+    console.log("👤 alias:", JSON.stringify(aliasRaw));
+    console.log("🎯 mode:", JSON.stringify(mode));
+    console.log("🤖 provider:", JSON.stringify(provider));
+    console.log("📂 category (raw):", JSON.stringify(categoryRaw));
+    console.log("🔑 solutionMode:", JSON.stringify(solutionMode));
+    console.log("📝 text (primeros 100 chars):", JSON.stringify(text?.substring(0, 100)));
+    console.log("🖼️  imageBase64 presente:", imageBase64 ? `✅ SÍ (${imageBase64.length} chars)` : "❌ NO");
+    console.log("💬 textHint:", JSON.stringify(textHint));
+    console.log("📦 ========================================");
 
     console.log("[ScreenAI] POST body de alias:", aliasRaw);
     const alias = String(aliasRaw ?? "").trim();
@@ -620,13 +593,10 @@ const screenaiQuery_extencion = onRequest(
       return;
     }
     if (mode === "image" && !imageBase64.trim()) {
-      res
-        .status(400)
-        .json({ ok: false, error: "Campo 'imageBase64' requerido." });
+      res.status(400).json({ ok: false, error: "Campo 'imageBase64' requerido." });
       return;
     }
 
-    // ── Límite de caracteres en modo texto ────────────────────────────────────
     const MAX_CHARS_SELECCION = 5000;
     if (mode === "text" && text.trim().length > MAX_CHARS_SELECCION) {
       console.warn(
@@ -640,80 +610,65 @@ const screenaiQuery_extencion = onRequest(
       return;
     }
 
-    // Para imágenes siempre forzamos esta categoría especial
     const category = categoryRaw;
     const categoryKey = category.replace(/ /g, "_");
+
+    // 🧩 LOG DE SELECCIÓN DE PROMPT
+    console.log("🧩 ============ SELECCIÓN DE PROMPT ============");
+    console.log("🔤 categoryKey generado:", JSON.stringify(categoryKey));
+    console.log("🗂️  solutionMode activo:", JSON.stringify(solutionMode));
+    const promptSet = solutionMode === "detallado" ? SYSTEM_PROMPTS_DETALLADO : SYSTEM_PROMPTS;
+    console.log("📋 promptSet usado:", solutionMode === "detallado" ? "SYSTEM_PROMPTS_DETALLADO ✅" : "SYSTEM_PROMPTS (directo) ⚠️");
+    console.log("🔍 prompt encontrado para categoryKey:", promptSet[categoryKey] ? "✅ SÍ" : "❌ NO — cayó a general");
+    console.log("📄 prompt preview (80 chars):", JSON.stringify(promptSet[categoryKey]?.substring(0, 80) ?? promptSet.general?.substring(0, 80)));
+    console.log("🧩 ===============================================");
+
     console.log(
       `[ScreenAI] Procesando IA. Alias: "${alias}", Modo: "${mode}", ` +
         `Proveedor: "${provider}", Categoría: "${category}", SolutionMode: "${solutionMode}"`,
     );
 
-    // ── Verificar alias y créditos ────────────────────────────────────────────
     let creditosDisponibles = 0;
     try {
       const verification = await verificarAlias(alias);
       if (!verification.ok) {
-        console.warn(
-          `[ScreenAI] Verificación fallida para "${alias}": ${verification.error}`,
-        );
-        res
-          .status(verification.status)
-          .json({ ok: false, error: verification.error });
+        console.warn(`[ScreenAI] Verificación fallida para "${alias}": ${verification.error}`);
+        res.status(verification.status).json({ ok: false, error: verification.error });
         return;
       }
       creditosDisponibles = Number(verification.credits) || 0;
-      console.log(
-        `[ScreenAI] Cuenta verificada para IA. Alias: "${alias}", Créditos: ${creditosDisponibles}`,
-      );
+      console.log(`[ScreenAI] Cuenta verificada para IA. Alias: "${alias}", Créditos: ${creditosDisponibles}`);
     } catch (e) {
       console.error("[ScreenAI] Error crítico en verificación:", e.message);
-      res
-        .status(500)
-        .json({ ok: false, error: "Error al verificar cuenta: " + e.message });
+      res.status(500).json({ ok: false, error: "Error al verificar cuenta: " + e.message });
       return;
     }
 
-    // ── Seleccionar modelo ────────────────────────────────────────────────────
     const modelInfo = MODEL_MAP[provider];
     if (!modelInfo) {
-      res
-        .status(400)
-        .json({ ok: false, error: `Proveedor desconocido: ${provider}` });
+      res.status(400).json({ ok: false, error: `Proveedor desconocido: ${provider}` });
       return;
     }
 
-    // ── Keys desde variables de entorno ──────────────────────────────────────
     const GEMINI_KEY = process.env.PIRVATE_KEY_GEMINI_APITRABAJO;
     const OPENAI_KEY = process.env.PIRVATE_KEY_OPENIA_APITRABAJO;
 
     let answer = "";
-    // usage por defecto en caso de algún path no contemplado
     let usage = { tokensInput: 0, tokensOutput: 0, tokensTotal: 0 };
 
     try {
-      // ── Tokens según solutionMode ─────────────────────────────────────────
       const tokens =
         solutionMode === "detallado"
           ? maxTokens_DETALLADO(categoryKey, provider)
           : maxTokens(categoryKey, provider);
-      // ── costoTotal ────────────────────────────────────────────────────────
-      // ── costoTotal (precio real desde Firestore: modelo + categoría + modo solución) ──
-      // Para imágenes no existe una categoría de precio propia → se cobra como "general"
-      const costoModelo = await obtenerCostoDesdeDB(provider, mode);
 
-      const {
-        costo: costoCategoria,
-        costoPorMoneda,
-        tipoCambio,
-      } = await obtenerCostoCategoria(category, mode);
+      const costoModelo = await obtenerCostoDesdeDB(provider, mode);
+      const { costo: costoCategoria, costoPorMoneda, tipoCambio } = await obtenerCostoCategoria(category, mode);
       const costoSolucion = await obtenerCostoSolucion(solutionMode);
       const costoTotal = costoModelo + costoCategoria + costoSolucion;
 
-      // ── Validar créditos suficientes ANTES de llamar a la IA ───────────────
       if (creditosDisponibles < costoTotal) {
-        console.warn(
-          `[ScreenAI] Créditos insuficientes, Disponibles: ${creditosDisponibles}, Costo: ${costoTotal}`,
-        );
+        console.warn(`[ScreenAI] Créditos insuficientes, Disponibles: ${creditosDisponibles}, Costo: ${costoTotal}`);
         res.status(402).json({
           ok: false,
           code: "INSUFFICIENT_CREDITS",
@@ -722,7 +677,6 @@ const screenaiQuery_extencion = onRequest(
         return;
       }
 
-      // ── systemPrompt correcto según modo e imagen/texto ───────────────────
       let systemPrompt;
       if (mode === "image") {
         systemPrompt =
@@ -730,92 +684,52 @@ const screenaiQuery_extencion = onRequest(
             ? SYSTEM_PROMPT_VISION_DETALLADO
             : SYSTEM_PROMPT_VISION;
       } else {
-        const promptSet =
-          solutionMode === "detallado"
-            ? SYSTEM_PROMPTS_DETALLADO
-            : SYSTEM_PROMPTS;
-        systemPrompt =
-          promptSet[categoryKey] || promptSet.general || SYSTEM_PROMPTS.general;
+        systemPrompt = promptSet[categoryKey] || promptSet.general || SYSTEM_PROMPTS.general;
         console.log(
           `[ScreenAI] categoryKey: "${categoryKey}", promptFound: ${!!promptSet[categoryKey]}, promptPreview: "${systemPrompt?.substring(0, 80)}"`,
         );
       }
 
-      console.log(
-        `[ScreenAI] Familia IA: "${modelInfo.family}", Tokens: ${tokens}, ` +
-          `CostoTotal: ${costoTotal}, SolutionMode: "${solutionMode}"`,
-      );
+      // 🚀 LOG ANTES DE LLAMAR LA IA
+      console.log("🚀 ============ LLAMADA A IA ============");
+      console.log("🏷️  modelo endpoint/model:", JSON.stringify(modelInfo.endpoint || modelInfo.model));
+      console.log("🪙 tokens asignados:", tokens);
+      console.log("💰 costoTotal:", costoTotal);
+      console.log("📐 maxTokens_DETALLADO hubiera dado:", maxTokens_DETALLADO(categoryKey, provider));
+      console.log("📐 maxTokens_DIRECTO hubiera dado:", maxTokens(categoryKey, provider));
+      console.log("🗣️  systemPrompt preview (120 chars):", JSON.stringify(systemPrompt?.substring(0, 120)));
+      console.log("🚀 ========================================");
 
-      // ── Llamada a la IA ───────────────────────────────────────────────────
       if (mode === "text") {
         switch (modelInfo.family) {
           case "gemini": {
-            console.log(
-              `[ScreenAI] callGeminiText → endpoint: "${modelInfo.endpoint}"`,
-            );
-            const result = await callGeminiText(
-              text,
-              GEMINI_KEY,
-              modelInfo.endpoint,
-              systemPrompt,
-              tokens,
-            );
+            console.log(`[ScreenAI] callGeminiText → endpoint: "${modelInfo.endpoint}"`);
+            const result = await callGeminiText(text, GEMINI_KEY, modelInfo.endpoint, systemPrompt, tokens);
             answer = result.answer;
             usage = result.usage;
             break;
           }
           case "openai": {
-            console.log(
-              `[ScreenAI] callOpenAIText → modelo: "${modelInfo.model}"`,
-            );
-            const result = await callOpenAIText(
-              text,
-              OPENAI_KEY,
-              modelInfo.model,
-              systemPrompt,
-              tokens,
-            );
+            console.log(`[ScreenAI] callOpenAIText → modelo: "${modelInfo.model}"`);
+            const result = await callOpenAIText(text, OPENAI_KEY, modelInfo.model, systemPrompt, tokens);
             answer = result.answer;
             usage = result.usage;
             break;
           }
         }
       } else {
-        // mode === "image"
-        const finalHint =
-          textHint ||
-          "Resuelve el examen de la imagen según las instrucciones del sistema.";
+        const finalHint = textHint || "Resuelve el examen de la imagen según las instrucciones del sistema.";
         switch (modelInfo.family) {
           case "gemini": {
-            console.log(
-              `[ScreenAI] callGeminiVision → endpoint: "${modelInfo.endpoint}", hint: "${finalHint}"`,
-            );
-            const result = await callGeminiVision(
-              imageBase64,
-              mimeType,
-              finalHint,
-              GEMINI_KEY,
-              modelInfo.endpoint,
-              systemPrompt,
-              tokens,
-            );
+            console.log(`[ScreenAI] callGeminiVision → endpoint: "${modelInfo.endpoint}", hint: "${finalHint}"`);
+            const result = await callGeminiVision(imageBase64, mimeType, finalHint, GEMINI_KEY, modelInfo.endpoint, systemPrompt, tokens);
             answer = result.answer;
             usage = result.usage;
             break;
           }
           case "openai": {
-            console.log(
-              `[ScreenAI] callOpenAIVision → modelo: "${modelInfo.model}", hint: "${finalHint}"`,
-            );
-            const result = await callOpenAIVision(
-              imageBase64,
-              mimeType,
-              finalHint,
-              OPENAI_KEY,
-              modelInfo.model,
-              systemPrompt,
-              tokens,
-            );
+            console.log(`[ScreenAI] callOpenAIVision → modelo: "${modelInfo.model}", hint: "${finalHint}"`);
+            const result = await callOpenAIVision(imageBase64, mimeType, finalHint, OPENAI_KEY, modelInfo.model, systemPrompt, tokens);
             answer = result.answer;
             usage = result.usage;
             break;
@@ -830,53 +744,29 @@ const screenaiQuery_extencion = onRequest(
 
       if (!answer || !answer.trim()) {
         console.error("[ScreenAI] La respuesta de la IA llegó vacía.");
-        res
-          .status(502)
-          .json({ ok: false, error: "La IA no devolvió respuesta." });
+        res.status(502).json({ ok: false, error: "La IA no devolvió respuesta." });
         return;
       }
 
-      // ── Costo REAL de la API ──────────────────────────────────────────────────
-      const costoRealUSD = calcularCostoRealUSD(
-        provider,
-        usage.tokensInput,
-        usage.tokensOutput,
-      );
+      const costoRealUSD = calcularCostoRealUSD(provider, usage.tokensInput, usage.tokensOutput);
       const TIPO_CAMBIO_USD_PEN = 3.75;
-      const costoRealSoles = parseFloat(
-        (costoRealUSD * TIPO_CAMBIO_USD_PEN).toFixed(6),
-      );
-
-      // ✅ costoEnSoles definido aquí, antes de usarlo
+      const costoRealSoles = parseFloat((costoRealUSD * TIPO_CAMBIO_USD_PEN).toFixed(6));
       const costoEnSoles = parseFloat((costoTotal * costoPorMoneda).toFixed(4));
-
-      const margenGananciaSoles = parseFloat(
-        (costoEnSoles - costoRealSoles).toFixed(6),
-      );
+      const margenGananciaSoles = parseFloat((costoEnSoles - costoRealSoles).toFixed(6));
       const margenGananciaPorcentaje =
         costoRealSoles > 0
-          ? parseFloat(
-              (
-                ((costoEnSoles - costoRealSoles) / costoRealSoles) *
-                100
-              ).toFixed(2),
-            )
+          ? parseFloat((((costoEnSoles - costoRealSoles) / costoRealSoles) * 100).toFixed(2))
           : 0;
       const multiplicadorGanancia =
         costoRealSoles > 0
           ? parseFloat((costoEnSoles / costoRealSoles).toFixed(2))
           : 0;
 
-      // ── Validar y descontar créditos ──────────────────────────────────────────
       const valida = esRespuestaValida(answer, mode);
 
       if (valida) {
         try {
-          const { antes, despues } = await descontarCreditoN(
-            alias.toLowerCase(),
-            costoTotal,
-          );
-
+          const { antes, despues } = await descontarCreditoN(alias.toLowerCase(), costoTotal);
           await guardarHistorial(
             alias.toLowerCase(),
             provider,
@@ -899,36 +789,24 @@ const screenaiQuery_extencion = onRequest(
               multiplicadorGanancia,
               tipoCambioUSD: TIPO_CAMBIO_USD_PEN,
               precioInputPorMillon: PRECIO_USD_POR_MILLON[provider]?.input ?? 0,
-              precioOutputPorMillon:
-                PRECIO_USD_POR_MILLON[provider]?.output ?? 0,
-              costoRealInputUSD:
-                (usage.tokensInput / 1_000_000) *
-                (PRECIO_USD_POR_MILLON[provider]?.input ?? 0),
-              costoRealOutputUSD:
-                (usage.tokensOutput / 1_000_000) *
-                (PRECIO_USD_POR_MILLON[provider]?.output ?? 0),
+              precioOutputPorMillon: PRECIO_USD_POR_MILLON[provider]?.output ?? 0,
+              costoRealInputUSD: (usage.tokensInput / 1_000_000) * (PRECIO_USD_POR_MILLON[provider]?.input ?? 0),
+              costoRealOutputUSD: (usage.tokensOutput / 1_000_000) * (PRECIO_USD_POR_MILLON[provider]?.output ?? 0),
             },
-            answer, // 🆕 acá pasas la respuesta completa de la IA
+            answer,
           );
         } catch (e) {
           console.warn("[ScreenAI] No se pudo descontar crédito:", e.message);
         }
       } else {
-        console.log(
-          `[ScreenAI] Respuesta inválida — NO se descuenta crédito. alias=${alias}, mode=${mode}`,
-        );
+        console.log(`[ScreenAI] Respuesta inválida — NO se descuenta crédito. alias=${alias}, mode=${mode}`);
       }
 
-      console.log(
-        `[ScreenAI] Petición finalizada OK para "${alias}". HTTP 200.`,
-      );
+      console.log(`[ScreenAI] Petición finalizada OK para "${alias}". HTTP 200.`);
       res.status(200).json({ ok: true, answer, charged: valida });
     } catch (aiErr) {
       console.error("[ScreenAI] Error en llamada a IA:", aiErr.message);
-      console.error(
-        "[ScreenAI] AI response data:",
-        JSON.stringify(aiErr.response?.data),
-      );
+      console.error("[ScreenAI] AI response data:", JSON.stringify(aiErr.response?.data));
       res.status(502).json({ ok: false, error: aiErr.message });
     }
   },
