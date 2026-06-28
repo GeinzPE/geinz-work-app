@@ -41,16 +41,7 @@ let db2 = null;
 const CACHE_TTL = 5 * 60 * 1000;
 
 // ── Importación de prompts y tokens ──────────────────────────────────────────
-const {
-  SYSTEM_PROMPTS,
-  SYSTEM_PROMPTS_DETALLADO,
-  SYSTEM_PROMPT_VISION,
-  SYSTEM_PROMPT_VISION_DETALLADO,
-  maxTokens,
-  maxTokens_DETALLADO,
-} = require("./modelo_promps_ia");
 
-// ── Importación de funciones de negocio (sin las call* que ya están aquí) ────
 const {
   verificarAlias,
   esRespuestaValida,
@@ -60,6 +51,18 @@ const {
   descontarCreditoN,
   guardarHistorial,
 } = require("./functions_trabajo");
+// ── Importación de funciones de negocio (sin las call* que ya están aquí) ────
+const {
+  SYSTEM_PROMPTS,
+  SYSTEM_PROMPTS_DETALLADO,
+  SYSTEM_PROMPTS_SUPER_DETALLADO,       // ← agregar
+  SYSTEM_PROMPT_VISION,
+  SYSTEM_PROMPT_VISION_DETALLADO,
+  SYSTEM_PROMPT_VISION_SUPER_DETALLADO, // ← agregar
+  maxTokens,
+  maxTokens_DETALLADO,
+  maxTokens_SUPER_DETALLADO,            // ← agregar
+} = require("./modelo_promps_ia");
 
 // ── Inicialización de Firestore secundario (app2) ─────────────────────────────
 const initDb2 = () => {
@@ -257,7 +260,7 @@ async function callGeminiVision(
   }
 }
 // ── OPENAI TEXT ───────────────────────────────────────────────────────────────
-async function callOpenAIVext(text, apiKey, model, systemPrompt, tokens) {
+async function callOpenAIText(text, apiKey, model, systemPrompt, tokens) {
   try {
     const { data } = await axios.post(
       OPENAI_URL,
@@ -617,15 +620,23 @@ const screenaiQuery_extencion = onRequest(
     console.log("🧩 ============ SELECCIÓN DE PROMPT ============");
     console.log("🔤 categoryKey generado:", JSON.stringify(categoryKey));
     console.log("🗂️  solutionMode activo:", JSON.stringify(solutionMode));
-    const promptSet = solutionMode === "detallado" ? SYSTEM_PROMPTS_DETALLADO : SYSTEM_PROMPTS;
-    console.log("📋 promptSet usado:", solutionMode === "detallado" ? "SYSTEM_PROMPTS_DETALLADO ✅" : "SYSTEM_PROMPTS (directo) ⚠️");
+    const promptSet =
+      solutionMode === "super_detallado"
+        ? SYSTEM_PROMPTS_SUPER_DETALLADO
+        : solutionMode === "detallado"
+          ? SYSTEM_PROMPTS_DETALLADO
+          : SYSTEM_PROMPTS;
+    console.log("📋 promptSet usado:",
+      solutionMode === "super_detallado" ? "SYSTEM_PROMPTS_SUPER_DETALLADO ✅" :
+        solutionMode === "detallado" ? "SYSTEM_PROMPTS_DETALLADO ✅" :
+          "SYSTEM_PROMPTS (directo) ⚠️");
     console.log("🔍 prompt encontrado para categoryKey:", promptSet[categoryKey] ? "✅ SÍ" : "❌ NO — cayó a general");
     console.log("📄 prompt preview (80 chars):", JSON.stringify(promptSet[categoryKey]?.substring(0, 80) ?? promptSet.general?.substring(0, 80)));
     console.log("🧩 ===============================================");
 
     console.log(
       `[ScreenAI] Procesando IA. Alias: "${alias}", Modo: "${mode}", ` +
-        `Proveedor: "${provider}", Categoría: "${category}", SolutionMode: "${solutionMode}"`,
+      `Proveedor: "${provider}", Categoría: "${category}", SolutionMode: "${solutionMode}"`,
     );
 
     let creditosDisponibles = 0;
@@ -658,9 +669,11 @@ const screenaiQuery_extencion = onRequest(
 
     try {
       const tokens =
-        solutionMode === "detallado"
-          ? maxTokens_DETALLADO(categoryKey, provider)
-          : maxTokens(categoryKey, provider);
+        solutionMode === "super_detallado"
+          ? maxTokens_SUPER_DETALLADO(categoryKey, provider)
+          : solutionMode === "detallado"
+            ? maxTokens_DETALLADO(categoryKey, provider)
+            : maxTokens(categoryKey, provider);
 
       const costoModelo = await obtenerCostoDesdeDB(provider, mode);
       const { costo: costoCategoria, costoPorMoneda, tipoCambio } = await obtenerCostoCategoria(category, mode);
@@ -680,9 +693,11 @@ const screenaiQuery_extencion = onRequest(
       let systemPrompt;
       if (mode === "image") {
         systemPrompt =
-          solutionMode === "detallado"
-            ? SYSTEM_PROMPT_VISION_DETALLADO
-            : SYSTEM_PROMPT_VISION;
+          solutionMode === "super_detallado"
+            ? SYSTEM_PROMPT_VISION_SUPER_DETALLADO
+            : solutionMode === "detallado"
+              ? SYSTEM_PROMPT_VISION_DETALLADO
+              : SYSTEM_PROMPT_VISION;
       } else {
         systemPrompt = promptSet[categoryKey] || promptSet.general || SYSTEM_PROMPTS.general;
         console.log(
@@ -739,7 +754,7 @@ const screenaiQuery_extencion = onRequest(
 
       console.log(
         `[ScreenAI] Respuesta de IA recibida. Caracteres: ${answer?.length ?? 0}. ` +
-          `Tokens → input: ${usage.tokensInput}, output: ${usage.tokensOutput}, total: ${usage.tokensTotal}`,
+        `Tokens → input: ${usage.tokensInput}, output: ${usage.tokensOutput}, total: ${usage.tokensTotal}`,
       );
 
       if (!answer || !answer.trim()) {
