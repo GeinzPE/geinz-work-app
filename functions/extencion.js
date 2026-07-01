@@ -3,6 +3,7 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const axios = require("axios");
+const { Timestamp } = require("firebase-admin/firestore");
 
 // ── URLs de los modelos ───────────────────────────────────────────────────────
 const GEMINI_FLASH_URL =
@@ -29,7 +30,7 @@ const PRECIO_USD_POR_MILLON = {
   "gpt4o-mini": { input: 0.15, output: 0.6 },
   gpt4o: { input: 2.5, output: 10.0 },
 };
-
+const TIPO_CAMBIO_USD_PEN = 3.75;
 function calcularCostoRealUSD(provider, tokensInput, tokensOutput) {
   const precio = PRECIO_USD_POR_MILLON[provider];
   if (!precio) return 0;
@@ -53,15 +54,18 @@ const {
 } = require("./functions_trabajo");
 // ── Importación de funciones de negocio (sin las call* que ya están aquí) ────
 const {
-  SYSTEM_PROMPTS,
-  SYSTEM_PROMPTS_DETALLADO,
-  SYSTEM_PROMPTS_SUPER_DETALLADO,       // ← agregar
-  SYSTEM_PROMPT_VISION,
-  SYSTEM_PROMPT_VISION_DETALLADO,
-  SYSTEM_PROMPT_VISION_SUPER_DETALLADO, // ← agregar
-  maxTokens,
+  SYSTEM_PROMPTS_VISION_SUPER_DETALLADO,
+  SYSTEM_PROMPTS_VISION_DIRECTO,
+  SYSTEM_PROMPTS_VISION_DETALLADO,
+  maxTokens_SUPER_DETALLADO,
+  SYSTEM_PROMPT_VISION_SUPER_DETALLADO,
+  SYSTEM_PROMPTS_SUPER_DETALLADO,
   maxTokens_DETALLADO,
-  maxTokens_SUPER_DETALLADO,            // ← agregar
+  SYSTEM_PROMPT_VISION_DETALLADO,
+  SYSTEM_PROMPTS_DETALLADO,
+  maxTokens,
+  SYSTEM_PROMPT_VISION,
+  SYSTEM_PROMPTS,
 } = require("./modelo_promps_ia");
 
 // ── Inicialización de Firestore secundario (app2) ─────────────────────────────
@@ -108,7 +112,7 @@ async function callGeminiText(text, apiKey, endpoint, systemPrompt, tokens) {
         generationConfig: {
           temperature: 0.0,
           maxOutputTokens: tokens,
-          ...(isPro && { thinkingConfig: { thinkingBudget: 512 } }),
+          ...(isPro && { thinkingConfig: { thinkingBudget: 800 } }),
         },
       },
       {
@@ -164,6 +168,7 @@ async function callGeminiText(text, apiKey, endpoint, systemPrompt, tokens) {
 }
 
 // ── GEMINI VISION ─────────────────────────────────────────────────────────────
+// ── GEMINI VISION ─────────────────────────────────────────────────────────────
 async function callGeminiVision(
   imageBase64,
   mimeType,
@@ -179,7 +184,7 @@ async function callGeminiVision(
   console.log("textHint:", textHint);
   console.log("tokens:", tokens);
 
-  // 🛠️ FIX 1: Limpieza automática del prefijo Base64 si el frontend lo envía mal
+  // FIX: Limpieza automática del prefijo Base64 si el frontend lo envía mal
   let cleanBase64 = imageBase64;
   if (imageBase64 && imageBase64.startsWith("data:")) {
     console.log(
@@ -197,7 +202,6 @@ async function callGeminiVision(
   }
 
   try {
-    // 🛠️ FIX 2: Ajuste del prompt del usuario para no contradecir los SYSTEM_PROMPTS
     const userPromptText = textHint
       ? `Analiza detalladamente esta imagen siguiendo las instrucciones del sistema.\nContexto adicional: ${textHint}`
       : "Analiza detalladamente esta imagen siguiendo las instrucciones del sistema.";
@@ -228,12 +232,32 @@ async function callGeminiVision(
     const finishReason = data?.candidates?.[0]?.finishReason;
     console.log("finish_reason:", finishReason);
 
-    let answer = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    // ✅ FIX PRINCIPAL: igual que callGeminiText, ignorar bloques de thinking
+    let answer = "";
+    const parts = data?.candidates?.[0]?.content?.parts;
 
-    // 🛠️ FIX 3: Control de respuestas inválidas o vacías por bloqueos/errores
+    if (parts && Array.isArray(parts)) {
+      console.log("🧩 Total de partes recibidas:", parts.length);
+      parts.forEach((p, i) => {
+        console.log(
+          `  part[${i}]: thought=${p.thought}, chars=${p.text?.length ?? 0}`,
+        );
+      });
+
+      // Busca el primer bloque que NO sea thinking
+      const textPart = parts.find(
+        (p) => p.text && p.thought !== true && !p.hasOwnProperty("thought"),
+      );
+
+      // Si el filtro falla, toma el último bloque disponible
+      answer = textPart
+        ? textPart.text.trim()
+        : (parts[parts.length - 1]?.text?.trim() ?? "");
+    }
+
     if (!answer || answer === "" || answer === "SIN_CONTENIDO") {
       console.warn(
-        "⚠️ Gemini retornó una estructura vacía o restrictiva. Activando fallback.",
+        "⚠️ Gemini Vision retornó una estructura vacía o restrictiva.",
       );
       answer = "Sin respuesta.";
     }
@@ -252,7 +276,6 @@ async function callGeminiVision(
       "❌ Error catastrófico en la llamada a Gemini Vision:",
       error.message,
     );
-    // Retornamos la estructura limpia para que tu backend no se caiga (crash)
     return {
       answer: "Sin respuesta.",
       usage: { tokensInput: 0, tokensOutput: 0, tokensTotal: 0 },
@@ -419,6 +442,32 @@ async function callOpenAIVision(
     };
   }
 }
+
+function limpiarRespuesta(texto) {
+  const lineasCorte = [
+    "Re-Identifico",
+    "Re-Aplico",
+    "Re-Re",
+    "Tampoco coincide",
+    "Sigue sin coincidir",
+    "No coincide",
+    "Se reevalúa",
+    "Forzando la opción",
+    "El problema está mal planteado",
+  ];
+
+  const lines = texto.split("\n");
+  const resultado = [];
+
+  for (const line of lines) {
+    if (lineasCorte.some((frase) => line.includes(frase))) {
+      break;
+    }
+    resultado.push(line);
+  }
+
+  return resultado.join("\n").trim();
+}
 // ── Cloud Function principal ──────────────────────────────────────────────────
 const screenaiQuery_extencion = onRequest(
   { region: "us-central1", timeoutSeconds: 120, memory: "256MiB", cors: true },
@@ -436,7 +485,9 @@ const screenaiQuery_extencion = onRequest(
 
     if (req.method === "GET" && req.query.check === "1") {
       const alias = (req.query.alias || "").trim().toLowerCase();
-      console.log(`[ScreenAI] Flujo GET check=1 iniciado para alias: "${alias}"`);
+      console.log(
+        `[ScreenAI] Flujo GET check=1 iniciado para alias: "${alias}"`,
+      );
 
       if (!alias) {
         res.status(400).json({ ok: false, error: "Alias requerido." });
@@ -449,18 +500,24 @@ const screenaiQuery_extencion = onRequest(
           res.status(result.status).json({ ok: false, error: result.error });
           return;
         }
-        console.log(`[ScreenAI] Alias "${alias}" verificado. Créditos: ${result.credits}`);
+        console.log(
+          `[ScreenAI] Alias "${alias}" verificado. Créditos: ${result.credits}`,
+        );
         res.status(200).json({ ok: true, credits: result.credits });
       } catch (e) {
         console.error("[ScreenAI] verificarAlias error:", e.message);
-        res.status(500).json({ ok: false, error: "Error al verificar alias: " + e.message });
+        res
+          .status(500)
+          .json({ ok: false, error: "Error al verificar alias: " + e.message });
       }
       return;
     }
 
     if (req.method === "GET" && req.query.config === "1") {
       const alias = (req.query.alias || "").trim().toLowerCase();
-      console.log(`[ScreenAI] Flujo GET config=1 iniciado para alias: "${alias}"`);
+      console.log(
+        `[ScreenAI] Flujo GET config=1 iniciado para alias: "${alias}"`,
+      );
 
       if (!alias) {
         res.status(400).json({ ok: false, error: "Alias requerido." });
@@ -470,18 +527,27 @@ const screenaiQuery_extencion = onRequest(
       try {
         const database = initDb2();
         if (!database) {
-          res.status(500).json({ ok: false, error: "No se pudo conectar a la base de datos." });
+          res.status(500).json({
+            ok: false,
+            error: "No se pudo conectar a la base de datos.",
+          });
           return;
         }
 
-        const snap = await database.collection(USERS_COLLECTION).doc(alias).get();
+        const snap = await database
+          .collection(USERS_COLLECTION)
+          .doc(alias)
+          .get();
         if (!snap.exists) {
           res.status(404).json({ ok: false, error: "Usuario no encontrado." });
           return;
         }
 
         const data = snap.data();
-        console.log(`[ScreenAI] Config recuperada para "${alias}":`, JSON.stringify(data));
+        console.log(
+          `[ScreenAI] Config recuperada para "${alias}":`,
+          JSON.stringify(data),
+        );
         res.status(200).json({
           ok: true,
           provider: data.provider || null,
@@ -496,7 +562,9 @@ const screenaiQuery_extencion = onRequest(
         });
       } catch (e) {
         console.error("[ScreenAI] config GET error:", e.message);
-        res.status(500).json({ ok: false, error: "Error al leer config: " + e.message });
+        res
+          .status(500)
+          .json({ ok: false, error: "Error al leer config: " + e.message });
       }
       return;
     }
@@ -524,7 +592,10 @@ const screenaiQuery_extencion = onRequest(
       try {
         const database = initDb2();
         if (!database) {
-          res.status(500).json({ ok: false, error: "No se pudo conectar a la base de datos." });
+          res.status(500).json({
+            ok: false,
+            error: "No se pudo conectar a la base de datos.",
+          });
           return;
         }
 
@@ -535,22 +606,34 @@ const screenaiQuery_extencion = onRequest(
         if (category !== undefined) updateData.category = category;
         if (hotkeyToggle !== undefined) updateData.hotkeyToggle = hotkeyToggle;
         if (hotkeyQuery !== undefined) updateData.hotkeyQuery = hotkeyQuery;
-        if (hotkeyCapture !== undefined) updateData.hotkeyCapture = hotkeyCapture;
+        if (hotkeyCapture !== undefined)
+          updateData.hotkeyCapture = hotkeyCapture;
         if (position !== undefined) updateData.position = position;
         if (theme !== undefined) updateData.theme = theme;
-        if (highlightColor !== undefined) updateData.highlightColor = highlightColor;
+        if (highlightColor !== undefined)
+          updateData.highlightColor = highlightColor;
         if (solutionMode !== undefined) updateData.solutionMode = solutionMode;
 
         const targetAlias = alias.trim().toLowerCase();
-        console.log(`[ScreenAI] Guardando config para "${targetAlias}":`, JSON.stringify(updateData));
+        console.log(
+          `[ScreenAI] Guardando config para "${targetAlias}":`,
+          JSON.stringify(updateData),
+        );
 
-        await database.collection(USERS_COLLECTION).doc(targetAlias).set(updateData, { merge: true });
+        await database
+          .collection(USERS_COLLECTION)
+          .doc(targetAlias)
+          .set(updateData, { merge: true });
 
-        console.log(`[ScreenAI] Config guardada correctamente para "${targetAlias}"`);
+        console.log(
+          `[ScreenAI] Config guardada correctamente para "${targetAlias}"`,
+        );
         res.status(200).json({ ok: true });
       } catch (e) {
         console.error("[ScreenAI] saveconfig error:", e.message);
-        res.status(500).json({ ok: false, error: "Error al guardar config: " + e.message });
+        res
+          .status(500)
+          .json({ ok: false, error: "Error al guardar config: " + e.message });
       }
       return;
     }
@@ -579,8 +662,14 @@ const screenaiQuery_extencion = onRequest(
     console.log("🤖 provider:", JSON.stringify(provider));
     console.log("📂 category (raw):", JSON.stringify(categoryRaw));
     console.log("🔑 solutionMode:", JSON.stringify(solutionMode));
-    console.log("📝 text (primeros 100 chars):", JSON.stringify(text?.substring(0, 100)));
-    console.log("🖼️  imageBase64 presente:", imageBase64 ? `✅ SÍ (${imageBase64.length} chars)` : "❌ NO");
+    console.log(
+      "📝 text (primeros 100 chars):",
+      JSON.stringify(text?.substring(0, 100)),
+    );
+    console.log(
+      "🖼️  imageBase64 presente:",
+      imageBase64 ? `✅ SÍ (${imageBase64.length} chars)` : "❌ NO",
+    );
     console.log("💬 textHint:", JSON.stringify(textHint));
     console.log("📦 ========================================");
 
@@ -596,7 +685,9 @@ const screenaiQuery_extencion = onRequest(
       return;
     }
     if (mode === "image" && !imageBase64.trim()) {
-      res.status(400).json({ ok: false, error: "Campo 'imageBase64' requerido." });
+      res
+        .status(400)
+        .json({ ok: false, error: "Campo 'imageBase64' requerido." });
       return;
     }
 
@@ -626,38 +717,61 @@ const screenaiQuery_extencion = onRequest(
         : solutionMode === "detallado"
           ? SYSTEM_PROMPTS_DETALLADO
           : SYSTEM_PROMPTS;
-    console.log("📋 promptSet usado:",
-      solutionMode === "super_detallado" ? "SYSTEM_PROMPTS_SUPER_DETALLADO ✅" :
-        solutionMode === "detallado" ? "SYSTEM_PROMPTS_DETALLADO ✅" :
-          "SYSTEM_PROMPTS (directo) ⚠️");
-    console.log("🔍 prompt encontrado para categoryKey:", promptSet[categoryKey] ? "✅ SÍ" : "❌ NO — cayó a general");
-    console.log("📄 prompt preview (80 chars):", JSON.stringify(promptSet[categoryKey]?.substring(0, 80) ?? promptSet.general?.substring(0, 80)));
+    console.log(
+      "📋 promptSet usado:",
+      solutionMode === "super_detallado"
+        ? "SYSTEM_PROMPTS_SUPER_DETALLADO ✅"
+        : solutionMode === "detallado"
+          ? "SYSTEM_PROMPTS_DETALLADO ✅"
+          : "SYSTEM_PROMPTS (directo) ⚠️",
+    );
+    console.log(
+      "🔍 prompt encontrado para categoryKey:",
+      promptSet[categoryKey] ? "✅ SÍ" : "❌ NO — cayó a general",
+    );
+    console.log(
+      "📄 prompt preview (80 chars):",
+      JSON.stringify(
+        promptSet[categoryKey]?.substring(0, 80) ??
+          promptSet.general?.substring(0, 80),
+      ),
+    );
     console.log("🧩 ===============================================");
 
     console.log(
       `[ScreenAI] Procesando IA. Alias: "${alias}", Modo: "${mode}", ` +
-      `Proveedor: "${provider}", Categoría: "${category}", SolutionMode: "${solutionMode}"`,
+        `Proveedor: "${provider}", Categoría: "${category}", SolutionMode: "${solutionMode}"`,
     );
 
     let creditosDisponibles = 0;
     try {
       const verification = await verificarAlias(alias);
       if (!verification.ok) {
-        console.warn(`[ScreenAI] Verificación fallida para "${alias}": ${verification.error}`);
-        res.status(verification.status).json({ ok: false, error: verification.error });
+        console.warn(
+          `[ScreenAI] Verificación fallida para "${alias}": ${verification.error}`,
+        );
+        res
+          .status(verification.status)
+          .json({ ok: false, error: verification.error });
         return;
       }
       creditosDisponibles = Number(verification.credits) || 0;
-      console.log(`[ScreenAI] Cuenta verificada para IA. Alias: "${alias}", Créditos: ${creditosDisponibles}`);
+      console.log(
+        `[ScreenAI] Cuenta verificada para IA. Alias: "${alias}", Créditos: ${creditosDisponibles}`,
+      );
     } catch (e) {
       console.error("[ScreenAI] Error crítico en verificación:", e.message);
-      res.status(500).json({ ok: false, error: "Error al verificar cuenta: " + e.message });
+      res
+        .status(500)
+        .json({ ok: false, error: "Error al verificar cuenta: " + e.message });
       return;
     }
 
     const modelInfo = MODEL_MAP[provider];
     if (!modelInfo) {
-      res.status(400).json({ ok: false, error: `Proveedor desconocido: ${provider}` });
+      res
+        .status(400)
+        .json({ ok: false, error: `Proveedor desconocido: ${provider}` });
       return;
     }
 
@@ -676,12 +790,18 @@ const screenaiQuery_extencion = onRequest(
             : maxTokens(categoryKey, provider);
 
       const costoModelo = await obtenerCostoDesdeDB(provider, mode);
-      const { costo: costoCategoria, costoPorMoneda, tipoCambio } = await obtenerCostoCategoria(category, mode);
+      const {
+        costo: costoCategoria,
+        costoPorMoneda,
+        tipoCambio,
+      } = await obtenerCostoCategoria(category, mode);
       const costoSolucion = await obtenerCostoSolucion(solutionMode);
       const costoTotal = costoModelo + costoCategoria + costoSolucion;
 
       if (creditosDisponibles < costoTotal) {
-        console.warn(`[ScreenAI] Créditos insuficientes, Disponibles: ${creditosDisponibles}, Costo: ${costoTotal}`);
+        console.warn(
+          `[ScreenAI] Créditos insuficientes, Disponibles: ${creditosDisponibles}, Costo: ${costoTotal}`,
+        );
         res.status(402).json({
           ok: false,
           code: "INSUFFICIENT_CREDITS",
@@ -692,60 +812,114 @@ const screenaiQuery_extencion = onRequest(
 
       let systemPrompt;
       if (mode === "image") {
-        systemPrompt =
+        const visionPromptSet =
           solutionMode === "super_detallado"
-            ? SYSTEM_PROMPT_VISION_SUPER_DETALLADO
+            ? SYSTEM_PROMPTS_VISION_SUPER_DETALLADO
             : solutionMode === "detallado"
-              ? SYSTEM_PROMPT_VISION_DETALLADO
-              : SYSTEM_PROMPT_VISION;
+              ? SYSTEM_PROMPTS_VISION_DETALLADO
+              : SYSTEM_PROMPTS_VISION_DIRECTO;
+        systemPrompt = visionPromptSet[categoryKey] || visionPromptSet.general;
+        console.log(
+          `[ScreenAI] VISION categoryKey: "${categoryKey}", promptFound: ${!!visionPromptSet[categoryKey]}, solutionMode: "${solutionMode}"`,
+        );
       } else {
-        systemPrompt = promptSet[categoryKey] || promptSet.general || SYSTEM_PROMPTS.general;
+        systemPrompt =
+          promptSet[categoryKey] || promptSet.general || SYSTEM_PROMPTS.general;
         console.log(
           `[ScreenAI] categoryKey: "${categoryKey}", promptFound: ${!!promptSet[categoryKey]}, promptPreview: "${systemPrompt?.substring(0, 80)}"`,
         );
       }
-
       // 🚀 LOG ANTES DE LLAMAR LA IA
       console.log("🚀 ============ LLAMADA A IA ============");
-      console.log("🏷️  modelo endpoint/model:", JSON.stringify(modelInfo.endpoint || modelInfo.model));
+      console.log(
+        "🏷️  modelo endpoint/model:",
+        JSON.stringify(modelInfo.endpoint || modelInfo.model),
+      );
       console.log("🪙 tokens asignados:", tokens);
       console.log("💰 costoTotal:", costoTotal);
-      console.log("📐 maxTokens_DETALLADO hubiera dado:", maxTokens_DETALLADO(categoryKey, provider));
-      console.log("📐 maxTokens_DIRECTO hubiera dado:", maxTokens(categoryKey, provider));
-      console.log("🗣️  systemPrompt preview (120 chars):", JSON.stringify(systemPrompt?.substring(0, 120)));
+      console.log(
+        "📐 maxTokens_DETALLADO hubiera dado:",
+        maxTokens_DETALLADO(categoryKey, provider),
+      );
+      console.log(
+        "📐 maxTokens_DIRECTO hubiera dado:",
+        maxTokens(categoryKey, provider),
+      );
+      console.log(
+        "🗣️  systemPrompt preview (120 chars):",
+        JSON.stringify(systemPrompt?.substring(0, 120)),
+      );
       console.log("🚀 ========================================");
 
       if (mode === "text") {
         switch (modelInfo.family) {
           case "gemini": {
-            console.log(`[ScreenAI] callGeminiText → endpoint: "${modelInfo.endpoint}"`);
-            const result = await callGeminiText(text, GEMINI_KEY, modelInfo.endpoint, systemPrompt, tokens);
-            answer = result.answer;
+            console.log(
+              `[ScreenAI] callGeminiText → endpoint: "${modelInfo.endpoint}"`,
+            );
+            const result = await callGeminiText(
+              text,
+              GEMINI_KEY,
+              modelInfo.endpoint,
+              systemPrompt,
+              tokens,
+            );
+            answer = limpiarRespuesta(result.answer);
             usage = result.usage;
             break;
           }
           case "openai": {
-            console.log(`[ScreenAI] callOpenAIText → modelo: "${modelInfo.model}"`);
-            const result = await callOpenAIText(text, OPENAI_KEY, modelInfo.model, systemPrompt, tokens);
-            answer = result.answer;
+            console.log(
+              `[ScreenAI] callOpenAIText → modelo: "${modelInfo.model}"`,
+            );
+            const result = await callOpenAIText(
+              text,
+              OPENAI_KEY,
+              modelInfo.model,
+              systemPrompt,
+              tokens,
+            );
+            answer = limpiarRespuesta(result.answer);
             usage = result.usage;
             break;
           }
         }
       } else {
-        const finalHint = textHint || "Resuelve el examen de la imagen según las instrucciones del sistema.";
+        const finalHint =
+          textHint ||
+          "Resuelve el examen de la imagen según las instrucciones del sistema.";
         switch (modelInfo.family) {
           case "gemini": {
-            console.log(`[ScreenAI] callGeminiVision → endpoint: "${modelInfo.endpoint}", hint: "${finalHint}"`);
-            const result = await callGeminiVision(imageBase64, mimeType, finalHint, GEMINI_KEY, modelInfo.endpoint, systemPrompt, tokens);
-            answer = result.answer;
+            console.log(
+              `[ScreenAI] callGeminiVision → endpoint: "${modelInfo.endpoint}", hint: "${finalHint}"`,
+            );
+            const result = await callGeminiVision(
+              imageBase64,
+              mimeType,
+              finalHint,
+              GEMINI_KEY,
+              modelInfo.endpoint,
+              systemPrompt,
+              tokens,
+            );
+            answer = limpiarRespuesta(result.answer);
             usage = result.usage;
             break;
           }
           case "openai": {
-            console.log(`[ScreenAI] callOpenAIVision → modelo: "${modelInfo.model}", hint: "${finalHint}"`);
-            const result = await callOpenAIVision(imageBase64, mimeType, finalHint, OPENAI_KEY, modelInfo.model, systemPrompt, tokens);
-            answer = result.answer;
+            console.log(
+              `[ScreenAI] callOpenAIVision → modelo: "${modelInfo.model}", hint: "${finalHint}"`,
+            );
+            const result = await callOpenAIVision(
+              imageBase64,
+              mimeType,
+              finalHint,
+              OPENAI_KEY,
+              modelInfo.model,
+              systemPrompt,
+              tokens,
+            );
+            answer = limpiarRespuesta(result.answer);
             usage = result.usage;
             break;
           }
@@ -754,23 +928,38 @@ const screenaiQuery_extencion = onRequest(
 
       console.log(
         `[ScreenAI] Respuesta de IA recibida. Caracteres: ${answer?.length ?? 0}. ` +
-        `Tokens → input: ${usage.tokensInput}, output: ${usage.tokensOutput}, total: ${usage.tokensTotal}`,
+          `Tokens → input: ${usage.tokensInput}, output: ${usage.tokensOutput}, total: ${usage.tokensTotal}`,
       );
 
       if (!answer || !answer.trim()) {
         console.error("[ScreenAI] La respuesta de la IA llegó vacía.");
-        res.status(502).json({ ok: false, error: "La IA no devolvió respuesta." });
+        res
+          .status(502)
+          .json({ ok: false, error: "La IA no devolvió respuesta." });
         return;
       }
 
-      const costoRealUSD = calcularCostoRealUSD(provider, usage.tokensInput, usage.tokensOutput);
-      const TIPO_CAMBIO_USD_PEN = 3.75;
-      const costoRealSoles = parseFloat((costoRealUSD * TIPO_CAMBIO_USD_PEN).toFixed(6));
+      const costoRealUSD = calcularCostoRealUSD(
+        provider,
+        usage.tokensInput,
+        usage.tokensOutput,
+      );
+
+      const costoRealSoles = parseFloat(
+        (costoRealUSD * TIPO_CAMBIO_USD_PEN).toFixed(6),
+      );
       const costoEnSoles = parseFloat((costoTotal * costoPorMoneda).toFixed(4));
-      const margenGananciaSoles = parseFloat((costoEnSoles - costoRealSoles).toFixed(6));
+      const margenGananciaSoles = parseFloat(
+        (costoEnSoles - costoRealSoles).toFixed(6),
+      );
       const margenGananciaPorcentaje =
         costoRealSoles > 0
-          ? parseFloat((((costoEnSoles - costoRealSoles) / costoRealSoles) * 100).toFixed(2))
+          ? parseFloat(
+              (
+                ((costoEnSoles - costoRealSoles) / costoRealSoles) *
+                100
+              ).toFixed(2),
+            )
           : 0;
       const multiplicadorGanancia =
         costoRealSoles > 0
@@ -781,7 +970,10 @@ const screenaiQuery_extencion = onRequest(
 
       if (valida) {
         try {
-          const { antes, despues } = await descontarCreditoN(alias.toLowerCase(), costoTotal);
+          const { antes, despues } = await descontarCreditoN(
+            alias.toLowerCase(),
+            costoTotal,
+          );
           await guardarHistorial(
             alias.toLowerCase(),
             provider,
@@ -804,9 +996,14 @@ const screenaiQuery_extencion = onRequest(
               multiplicadorGanancia,
               tipoCambioUSD: TIPO_CAMBIO_USD_PEN,
               precioInputPorMillon: PRECIO_USD_POR_MILLON[provider]?.input ?? 0,
-              precioOutputPorMillon: PRECIO_USD_POR_MILLON[provider]?.output ?? 0,
-              costoRealInputUSD: (usage.tokensInput / 1_000_000) * (PRECIO_USD_POR_MILLON[provider]?.input ?? 0),
-              costoRealOutputUSD: (usage.tokensOutput / 1_000_000) * (PRECIO_USD_POR_MILLON[provider]?.output ?? 0),
+              precioOutputPorMillon:
+                PRECIO_USD_POR_MILLON[provider]?.output ?? 0,
+              costoRealInputUSD:
+                (usage.tokensInput / 1_000_000) *
+                (PRECIO_USD_POR_MILLON[provider]?.input ?? 0),
+              costoRealOutputUSD:
+                (usage.tokensOutput / 1_000_000) *
+                (PRECIO_USD_POR_MILLON[provider]?.output ?? 0),
             },
             answer,
           );
@@ -814,17 +1011,907 @@ const screenaiQuery_extencion = onRequest(
           console.warn("[ScreenAI] No se pudo descontar crédito:", e.message);
         }
       } else {
-        console.log(`[ScreenAI] Respuesta inválida — NO se descuenta crédito. alias=${alias}, mode=${mode}`);
+        console.log(
+          `[ScreenAI] Respuesta inválida — NO se descuenta crédito. alias=${alias}, mode=${mode}`,
+        );
       }
 
-      console.log(`[ScreenAI] Petición finalizada OK para "${alias}". HTTP 200.`);
+      console.log(
+        `[ScreenAI] Petición finalizada OK para "${alias}". HTTP 200.`,
+      );
       res.status(200).json({ ok: true, answer, charged: valida });
     } catch (aiErr) {
       console.error("[ScreenAI] Error en llamada a IA:", aiErr.message);
-      console.error("[ScreenAI] AI response data:", JSON.stringify(aiErr.response?.data));
+      console.error(
+        "[ScreenAI] AI response data:",
+        JSON.stringify(aiErr.response?.data),
+      );
       res.status(502).json({ ok: false, error: aiErr.message });
     }
   },
 );
 
-module.exports = { screenaiQuery_extencion };
+// ── Cloud Function principal: VISIÓN vía n8n ─────────────────────────────────
+const screenaiQuery_vision_n8n = onRequest(
+  { region: "us-central1", timeoutSeconds: 90, memory: "256MiB", cors: true },
+  async (req, res) => {
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+    if (req.method !== "POST") {
+      res.status(405).json({ ok: false, error: "Método no permitido." });
+      return;
+    }
+
+    const {
+      alias: aliasRaw = "",
+      provider = "gemini-flash",
+      category: categoryRaw = "general",
+      solutionMode = "detallado",
+      imageBase64 = "",
+      mimeType = "image/jpeg",
+    } = req.body || {};
+
+    const alias = String(aliasRaw ?? "")
+      .trim()
+      .toLowerCase();
+
+    // ── VALIDACIONES BÁSICAS ──────────────────────────────────────────────────
+    if (!alias) {
+      res.status(401).json({ ok: false, error: "Alias requerido." });
+      return;
+    }
+    if (!imageBase64 || !imageBase64.trim()) {
+      res
+        .status(400)
+        .json({ ok: false, error: "Campo 'imageBase64' requerido." });
+      return;
+    }
+
+    const MIN_BASE64_CHARS = 6800;
+    if (imageBase64.length < MIN_BASE64_CHARS) {
+      console.warn(
+        `[vision-n8n] Imagen rechazada por tamaño mínimo. alias="${alias}", chars=${imageBase64.length}`,
+      );
+      res.status(400).json({
+        ok: false,
+        code: "IMAGE_TOO_SMALL",
+        error: "La imagen enviada es demasiado pequeña o inválida.",
+      });
+      return;
+    }
+
+    const modelInfo = MODEL_MAP[provider];
+    if (!modelInfo) {
+      res
+        .status(400)
+        .json({ ok: false, error: `Proveedor desconocido: ${provider}` });
+      return;
+    }
+
+    console.log(
+      "📦 [vision-n8n] alias:",
+      alias,
+      "| provider:",
+      provider,
+      "| category:",
+      categoryRaw,
+      "| solutionMode:",
+      solutionMode,
+      "| imageBase64 length:",
+      imageBase64.length,
+    );
+
+    // ── VERIFICAR ALIAS Y CRÉDITOS ────────────────────────────────────────────
+    let creditosDisponibles = 0;
+    try {
+      const verification = await verificarAlias(alias);
+      if (!verification.ok) {
+        console.warn(
+          `[vision-n8n] Alias inválido: "${alias}" → ${verification.error}`,
+        );
+        res
+          .status(verification.status)
+          .json({ ok: false, error: verification.error });
+        return;
+      }
+      creditosDisponibles = Number(verification.credits) || 0;
+      console.log(
+        `[vision-n8n] Alias OK. Créditos disponibles: ${creditosDisponibles}`,
+      );
+    } catch (e) {
+      console.error("[vision-n8n] Error verificando alias:", e.message);
+      res
+        .status(500)
+        .json({ ok: false, error: "Error al verificar cuenta: " + e.message });
+      return;
+    }
+
+    // ── CALCULAR COSTO ANTES DE LLAMAR A LA IA ────────────────────────────────
+    let costoTotal = 0;
+    let costoPorMoneda = 1;
+    try {
+      const costoModelo = await obtenerCostoDesdeDB(provider, "image");
+      const { costo: costoCategoria, costoPorMoneda: cpM } =
+        await obtenerCostoCategoria(categoryRaw, "image");
+      const costoSolucion = await obtenerCostoSolucion(solutionMode);
+      costoPorMoneda = cpM;
+      costoTotal = costoModelo + costoCategoria + costoSolucion;
+      console.log(
+        `[vision-n8n] Costo calculado: ${costoTotal} (modelo:${costoModelo} + cat:${costoCategoria} + sol:${costoSolucion})`,
+      );
+    } catch (e) {
+      console.error("[vision-n8n] Error calculando costo:", e.message);
+      res.status(500).json({ ok: false, error: "Error al calcular costo." });
+      return;
+    }
+
+    if (creditosDisponibles < costoTotal) {
+      console.warn(
+        `[vision-n8n] Créditos insuficientes. Disponibles: ${creditosDisponibles}, Necesita: ${costoTotal}`,
+      );
+      res.status(402).json({
+        ok: false,
+        code: "INSUFFICIENT_CREDITS",
+        error: "No tienes créditos suficientes para esta consulta.",
+      });
+      return;
+    }
+
+    // ── PROMPT Y TOKENS ───────────────────────────────────────────────────────
+    const categoryKey = categoryRaw.replace(/ /g, "_");
+
+    const visionPromptSet =
+      solutionMode === "super_detallado"
+        ? SYSTEM_PROMPTS_VISION_SUPER_DETALLADO
+        : solutionMode === "detallado"
+          ? SYSTEM_PROMPTS_VISION_DETALLADO
+          : SYSTEM_PROMPTS_VISION_DIRECTO;
+
+    const systemPrompt =
+      visionPromptSet[categoryKey] || visionPromptSet.general;
+    const tokens =
+      solutionMode === "super_detallado"
+        ? maxTokens_SUPER_DETALLADO(categoryKey, provider)
+        : solutionMode === "detallado"
+          ? maxTokens_DETALLADO(categoryKey, provider)
+          : maxTokens(categoryKey, provider);
+
+    const finalHint =
+      "Resuelve el examen de la imagen según las instrucciones del sistema.";
+
+    const GEMINI_KEY = process.env.PIRVATE_KEY_GEMINI_APITRABAJO;
+    const OPENAI_KEY = process.env.PIRVATE_KEY_OPENIA_APITRABAJO;
+
+    // ── LLAMADA A LA IA ───────────────────────────────────────────────────────
+    let answer = "";
+    let usage = { tokensInput: 0, tokensOutput: 0, tokensTotal: 0 };
+
+    try {
+      let result;
+      if (modelInfo.family === "gemini") {
+        result = await callGeminiVision(
+          imageBase64,
+          mimeType,
+          finalHint,
+          GEMINI_KEY,
+          modelInfo.endpoint,
+          systemPrompt,
+          tokens,
+        );
+      } else if (modelInfo.family === "openai") {
+        result = await callOpenAIVision(
+          imageBase64,
+          mimeType,
+          finalHint,
+          OPENAI_KEY,
+          modelInfo.model,
+          systemPrompt,
+          tokens,
+        );
+      } else {
+        res.status(400).json({
+          ok: false,
+          error: `Familia no soportada: ${modelInfo.family}`,
+        });
+        return;
+      }
+
+      answer = limpiarRespuesta(result.answer);
+      usage = result.usage;
+
+      console.log(
+        `[vision-n8n] Respuesta IA. chars: ${answer?.length ?? 0} | ` +
+          `tokens → input: ${usage.tokensInput}, output: ${usage.tokensOutput}`,
+      );
+    } catch (err) {
+      console.error("[vision-n8n] Error llamando IA:", err.message);
+      res.status(502).json({ ok: false, error: err.message });
+      return;
+    }
+
+    if (!answer || !answer.trim()) {
+      console.error(
+        "[vision-n8n] IA devolvió respuesta vacía. NO se descuenta crédito.",
+      );
+      res
+        .status(502)
+        .json({ ok: false, error: "La IA no devolvió respuesta." });
+      return;
+    }
+
+    const valida = esRespuestaValida(answer, "image");
+
+    if (valida) {
+      try {
+        const costoRealUSD = calcularCostoRealUSD(
+          provider,
+          usage.tokensInput,
+          usage.tokensOutput,
+        );
+        const costoRealSoles = parseFloat(
+          (costoRealUSD * TIPO_CAMBIO_USD_PEN).toFixed(6),
+        );
+        const costoEnSoles = parseFloat(
+          (costoTotal * costoPorMoneda).toFixed(4),
+        );
+        const margenGananciaSoles = parseFloat(
+          (costoEnSoles - costoRealSoles).toFixed(6),
+        );
+        const margenGananciaPorcentaje =
+          costoRealSoles > 0
+            ? parseFloat(
+                (
+                  ((costoEnSoles - costoRealSoles) / costoRealSoles) *
+                  100
+                ).toFixed(2),
+              )
+            : 0;
+        const multiplicadorGanancia =
+          costoRealSoles > 0
+            ? parseFloat((costoEnSoles / costoRealSoles).toFixed(2))
+            : 0;
+
+        console.log(
+          `[vision-n8n] Intentando descontar crédito. alias=${alias}, costoTotal=${costoTotal}`,
+        );
+        const { antes, despues } = await descontarCreditoN(alias, costoTotal);
+        console.log(
+          `[vision-n8n] Crédito descontado OK. antes=${antes}, despues=${despues}`,
+        );
+
+        console.log(`[vision-n8n] Intentando guardar historial...`);
+        await guardarHistorial(
+          alias,
+          provider,
+          categoryRaw,
+          "image",
+          antes,
+          despues,
+          costoTotal,
+          costoEnSoles,
+          costoPorMoneda,
+          solutionMode,
+          {
+            tokensInput: usage.tokensInput,
+            tokensOutput: usage.tokensOutput,
+            tokensTotal: usage.tokensTotal,
+            costoRealUSD: parseFloat(costoRealUSD.toFixed(6)),
+            costoRealSoles,
+            margenGananciaSoles,
+            margenGananciaPorcentaje,
+            multiplicadorGanancia,
+            tipoCambioUSD: TIPO_CAMBIO_USD_PEN,
+            precioInputPorMillon: PRECIO_USD_POR_MILLON[provider]?.input ?? 0,
+            precioOutputPorMillon: PRECIO_USD_POR_MILLON[provider]?.output ?? 0,
+            costoRealInputUSD:
+              (usage.tokensInput / 1_000_000) *
+              (PRECIO_USD_POR_MILLON[provider]?.input ?? 0),
+            costoRealOutputUSD:
+              (usage.tokensOutput / 1_000_000) *
+              (PRECIO_USD_POR_MILLON[provider]?.output ?? 0),
+            fuente: "n8n",
+          },
+          answer,
+        );
+        console.log(`[vision-n8n] Historial guardado OK.`);
+      } catch (e) {
+        console.error(
+          "[vision-n8n] ❌ ERROR en descuento/historial:",
+          e.message,
+        );
+        console.error("[vision-n8n] ❌ Stack:", e.stack);
+      }
+    } else {
+      console.log(
+        `[vision-n8n] Respuesta inválida — NO se descuenta. alias=${alias}, answer preview: "${answer?.substring(0, 80)}"`,
+      );
+    }
+    res.status(200).json({ ok: true, answer, usage, charged: valida });
+  },
+);
+
+const screenaiQuery_texto_n8n = onRequest(
+  { region: "us-central1", timeoutSeconds: 90, memory: "256MiB", cors: true },
+  async (req, res) => {
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+    if (req.method !== "POST") {
+      res.status(405).json({ ok: false, error: "Método no permitido." });
+      return;
+    }
+
+    const {
+      alias: aliasRaw = "",
+      provider = "gemini-flash",
+      category: categoryRaw = "general",
+      solutionMode = "detallado",
+      text = "",
+    } = req.body || {};
+
+    const alias = String(aliasRaw ?? "")
+      .trim()
+      .toLowerCase();
+
+    // ── VALIDACIONES BÁSICAS ──────────────────────────────────────────────────
+    if (!alias) {
+      res.status(401).json({ ok: false, error: "Alias requerido." });
+      return;
+    }
+    if (!text || !text.trim()) {
+      res.status(400).json({ ok: false, error: "Campo 'text' requerido." });
+      return;
+    }
+
+    const MIN_TEXT_CHARS = 3;
+    if (text.trim().length < MIN_TEXT_CHARS) {
+      console.warn(
+        `[texto-n8n] Texto rechazado por tamaño mínimo. alias="${alias}", chars=${text.trim().length}`,
+      );
+      res.status(400).json({
+        ok: false,
+        code: "TEXT_TOO_SMALL",
+        error: "El texto enviado es demasiado corto o inválido.",
+      });
+      return;
+    }
+
+    const modelInfo = MODEL_MAP[provider];
+    if (!modelInfo) {
+      res
+        .status(400)
+        .json({ ok: false, error: `Proveedor desconocido: ${provider}` });
+      return;
+    }
+
+    console.log(
+      "📦 [texto-n8n] alias:",
+      alias,
+      "| provider:",
+      provider,
+      "| category:",
+      categoryRaw,
+      "| solutionMode:",
+      solutionMode,
+      "| text length:",
+      text.length,
+    );
+
+    // ── VERIFICAR ALIAS Y CRÉDITOS ────────────────────────────────────────────
+    let creditosDisponibles = 0;
+    try {
+      const verification = await verificarAlias(alias);
+      if (!verification.ok) {
+        console.warn(
+          `[texto-n8n] Alias inválido: "${alias}" → ${verification.error}`,
+        );
+        res
+          .status(verification.status)
+          .json({ ok: false, error: verification.error });
+        return;
+      }
+      creditosDisponibles = Number(verification.credits) || 0;
+      console.log(
+        `[texto-n8n] Alias OK. Créditos disponibles: ${creditosDisponibles}`,
+      );
+    } catch (e) {
+      console.error("[texto-n8n] Error verificando alias:", e.message);
+      res
+        .status(500)
+        .json({ ok: false, error: "Error al verificar cuenta: " + e.message });
+      return;
+    }
+
+    // ── CALCULAR COSTO ANTES DE LLAMAR A LA IA ────────────────────────────────
+    let costoTotal = 0;
+    let costoPorMoneda = 1;
+    try {
+      const costoModelo = await obtenerCostoDesdeDB(provider, "text");
+      const { costo: costoCategoria, costoPorMoneda: cpM } =
+        await obtenerCostoCategoria(categoryRaw, "text");
+      const costoSolucion = await obtenerCostoSolucion(solutionMode);
+      costoPorMoneda = cpM;
+      costoTotal = costoModelo + costoCategoria + costoSolucion;
+      console.log(
+        `[texto-n8n] Costo calculado: ${costoTotal} (modelo:${costoModelo} + cat:${costoCategoria} + sol:${costoSolucion})`,
+      );
+    } catch (e) {
+      console.error("[texto-n8n] Error calculando costo:", e.message);
+      res.status(500).json({ ok: false, error: "Error al calcular costo." });
+      return;
+    }
+
+    if (creditosDisponibles < costoTotal) {
+      console.warn(
+        `[texto-n8n] Créditos insuficientes. Disponibles: ${creditosDisponibles}, Necesita: ${costoTotal}`,
+      );
+      res.status(402).json({
+        ok: false,
+        code: "INSUFFICIENT_CREDITS",
+        error: "No tienes créditos suficientes para esta consulta.",
+      });
+      return;
+    }
+
+    // ── PROMPT Y TOKENS ───────────────────────────────────────────────────────
+    const categoryKey = categoryRaw.replace(/ /g, "_");
+    const tokens =
+      solutionMode === "super_detallado"
+        ? maxTokens_SUPER_DETALLADO(categoryKey, provider)
+        : solutionMode === "detallado"
+          ? maxTokens_DETALLADO(categoryKey, provider)
+          : maxTokens(categoryKey, provider);
+
+    const promptSet =
+      solutionMode === "super_detallado"
+        ? SYSTEM_PROMPTS_SUPER_DETALLADO
+        : solutionMode === "detallado"
+          ? SYSTEM_PROMPTS_DETALLADO
+          : SYSTEM_PROMPTS;
+
+    const systemPrompt = promptSet[categoryKey] || promptSet.general;
+
+    const GEMINI_KEY = process.env.PIRVATE_KEY_GEMINI_APITRABAJO;
+    const OPENAI_KEY = process.env.PIRVATE_KEY_OPENIA_APITRABAJO;
+
+    // ── LLAMADA A LA IA ───────────────────────────────────────────────────────
+    let answer = "";
+    let usage = { tokensInput: 0, tokensOutput: 0, tokensTotal: 0 };
+
+    try {
+      let result;
+      if (modelInfo.family === "gemini") {
+        result = await callGeminiText(
+          text,
+          GEMINI_KEY,
+          modelInfo.endpoint,
+          systemPrompt,
+          tokens,
+        );
+      } else if (modelInfo.family === "openai") {
+        result = await callOpenAIText(
+          text,
+          OPENAI_KEY,
+          modelInfo.model,
+          systemPrompt,
+          tokens,
+        );
+      } else {
+        res.status(400).json({
+          ok: false,
+          error: `Familia no soportada: ${modelInfo.family}`,
+        });
+        return;
+      }
+
+      answer = limpiarRespuesta(result.answer);
+      usage = result.usage;
+
+      console.log(
+        `[texto-n8n] Respuesta IA. chars: ${answer?.length ?? 0} | ` +
+          `tokens → input: ${usage.tokensInput}, output: ${usage.tokensOutput}`,
+      );
+    } catch (err) {
+      console.error("[texto-n8n] Error llamando IA:", err.message);
+      res.status(502).json({ ok: false, error: err.message });
+      return;
+    }
+
+    if (!answer || !answer.trim()) {
+      console.error(
+        "[texto-n8n] IA devolvió respuesta vacía. NO se descuenta crédito.",
+      );
+      res
+        .status(502)
+        .json({ ok: false, error: "La IA no devolvió respuesta." });
+      return;
+    }
+
+    const valida = esRespuestaValida(answer, "text");
+
+    if (valida) {
+      try {
+        const costoRealUSD = calcularCostoRealUSD(
+          provider,
+          usage.tokensInput,
+          usage.tokensOutput,
+        );
+        const costoRealSoles = parseFloat(
+          (costoRealUSD * TIPO_CAMBIO_USD_PEN).toFixed(6),
+        );
+        const costoEnSoles = parseFloat(
+          (costoTotal * costoPorMoneda).toFixed(4),
+        );
+        const margenGananciaSoles = parseFloat(
+          (costoEnSoles - costoRealSoles).toFixed(6),
+        );
+        const margenGananciaPorcentaje =
+          costoRealSoles > 0
+            ? parseFloat(
+                (
+                  ((costoEnSoles - costoRealSoles) / costoRealSoles) *
+                  100
+                ).toFixed(2),
+              )
+            : 0;
+        const multiplicadorGanancia =
+          costoRealSoles > 0
+            ? parseFloat((costoEnSoles / costoRealSoles).toFixed(2))
+            : 0;
+
+        console.log(
+          `[texto-n8n] Intentando descontar crédito. alias=${alias}, costoTotal=${costoTotal}`,
+        );
+        const { antes, despues } = await descontarCreditoN(alias, costoTotal);
+        console.log(
+          `[texto-n8n] Crédito descontado OK. antes=${antes}, despues=${despues}`,
+        );
+
+        console.log(`[texto-n8n] Intentando guardar historial...`);
+        await guardarHistorial(
+          alias,
+          provider,
+          categoryRaw,
+          "text",
+          antes,
+          despues,
+          costoTotal,
+          costoEnSoles,
+          costoPorMoneda,
+          solutionMode,
+          {
+            tokensInput: usage.tokensInput,
+            tokensOutput: usage.tokensOutput,
+            tokensTotal: usage.tokensTotal,
+            costoRealUSD: parseFloat(costoRealUSD.toFixed(6)),
+            costoRealSoles,
+            margenGananciaSoles,
+            margenGananciaPorcentaje,
+            multiplicadorGanancia,
+            tipoCambioUSD: TIPO_CAMBIO_USD_PEN,
+            precioInputPorMillon: PRECIO_USD_POR_MILLON[provider]?.input ?? 0,
+            precioOutputPorMillon: PRECIO_USD_POR_MILLON[provider]?.output ?? 0,
+            costoRealInputUSD:
+              (usage.tokensInput / 1_000_000) *
+              (PRECIO_USD_POR_MILLON[provider]?.input ?? 0),
+            costoRealOutputUSD:
+              (usage.tokensOutput / 1_000_000) *
+              (PRECIO_USD_POR_MILLON[provider]?.output ?? 0),
+            fuente: "n8n",
+          },
+          answer,
+        );
+        console.log(`[texto-n8n] Historial guardado OK.`);
+      } catch (e) {
+        console.error(
+          "[texto-n8n] ❌ ERROR en descuento/historial:",
+          e.message,
+        );
+        console.error("[texto-n8n] ❌ Stack:", e.stack);
+      }
+    } else {
+      console.log(
+        `[texto-n8n] Respuesta inválida — NO se descuenta. alias=${alias}, answer preview: "${answer?.substring(0, 80)}"`,
+      );
+    }
+
+    res.status(200).json({ ok: true, answer, usage, charged: valida });
+  },
+);
+
+const historialn8n = onRequest(
+  {
+    region: "us-central1",
+    timeoutSeconds: 120,
+    memory: "256MiB",
+    cors: true,
+  },
+  async (req, res) => {
+    try {
+      const db = initDb2();
+      if (!db) {
+        return res.status(500).json({
+          ok: false,
+          error: "No se pudo conectar a la base de datos.",
+        });
+      }
+
+      // ── Alias del usuario (body o query) ──────────────────────────────────
+      const alias = req.body?.alias || req.query?.alias;
+      if (!alias) {
+        return res
+          .status(400)
+          .json({ ok: false, error: "Falta el parámetro 'alias'" });
+      }
+
+      // ── Rango: últimos 7 días ──────────────────────────────────────────────
+      const ahora = new Date();
+      const hace7Dias = new Date(ahora);
+      hace7Dias.setDate(ahora.getDate() - 7);
+      const desde = Timestamp.fromDate(hace7Dias);
+
+      // ── Leer colección historial ───────────────────────────────────────────
+      const snap = await db
+        .collection("trabajos_ia")
+        .doc(alias)
+        .collection("historial")
+        .where("fecha", ">=", desde)
+        .orderBy("fecha", "desc")
+        .get();
+
+      if (snap.empty) {
+        return res.status(200).json({
+          ok: true,
+          mensaje: "Sin registros en los últimos 7 días",
+          resumen: null,
+        });
+      }
+
+      // ── Acumuladores ───────────────────────────────────────────────────────
+      let totalDocs = 0;
+      let creditosConsumidosTotal = 0;
+      let creditosAntesInicial = null;
+      let creditosRestantesActual = null;
+
+      const categorias = {};
+      const modelos = {};
+      const modos = {};
+      const tipos = {};
+
+      snap.forEach((doc, idx) => {
+        const d = doc.data();
+        totalDocs++;
+
+        if (idx === 0) creditosRestantesActual = d.creditosRestantes ?? null;
+        creditosAntesInicial = d.creditosAntes ?? null;
+        creditosConsumidosTotal += d.creditosConsumidos ?? 0;
+
+        if (d.categoria)
+          categorias[d.categoria] = (categorias[d.categoria] ?? 0) + 1;
+        if (d.modelo) modelos[d.modelo] = (modelos[d.modelo] ?? 0) + 1;
+        if (d.solutionMode)
+          modos[d.solutionMode] = (modos[d.solutionMode] ?? 0) + 1;
+        if (d.tipo) tipos[d.tipo] = (tipos[d.tipo] ?? 0) + 1;
+      });
+
+      const ordenarDesc = (obj) =>
+        Object.fromEntries(Object.entries(obj).sort(([, a], [, b]) => b - a));
+
+      const resumen = {
+        periodo: {
+          desde: hace7Dias.toISOString(),
+          hasta: ahora.toISOString(),
+        },
+        totalConsultas: totalDocs,
+        creditos: {
+          creditosAntesDelPeriodo: creditosAntesInicial,
+          creditosRestantesActuales: creditosRestantesActual,
+          creditosConsumidosTotales: creditosConsumidosTotal,
+        },
+        categorias: ordenarDesc(categorias),
+        modelos: ordenarDesc(modelos),
+        modos: ordenarDesc(modos),
+        tipos: ordenarDesc(tipos),
+      };
+
+      return res.status(200).json({ ok: true, resumen });
+    } catch (err) {
+      console.error("historialn8n error:", err);
+      return res.status(500).json({ ok: false, error: err.message });
+    }
+  },
+);
+
+const guardarConsultaPendiente = onRequest(
+  {
+    region: "us-central1",
+    timeoutSeconds: 120,
+    memory: "256MiB",
+    cors: true,
+  },
+  async (req, res) => {
+    try {
+      const db = initDb2();
+      if (!db) {
+        return res.status(500).json({
+          ok: false,
+          error: "No se pudo conectar a la base de datos.",
+        });
+      }
+
+      const {
+        alias,
+        provider,
+        category,
+        solutionMode,
+        imageBase64,
+        mimeType,
+        textHint,
+      } = req.body;
+
+      if (!alias) {
+        return res.status(400).json({
+          ok: false,
+          error: "Falta el parámetro 'alias'.",
+        });
+      }
+
+      const data = {
+        provider: provider || null,
+        category: category || null,
+        solutionMode: solutionMode || null,
+        imageBase64: imageBase64 || null,
+        mimeType: mimeType || null,
+        textHint: textHint || null,
+        fecha: new Date().toISOString(),
+      };
+
+      await db
+        .collection("trabajos_ia")
+        .doc(alias)
+        .collection("consultas")
+        .doc("pendiente")
+        .set(data);
+
+      return res.status(200).json({
+        ok: true,
+        message: "Consulta pendiente guardada correctamente.",
+        data,
+      });
+    } catch (error) {
+      console.error("Error guardando consulta pendiente:", error);
+      return res.status(500).json({
+        ok: false,
+        error: "Error interno al guardar la consulta pendiente.",
+      });
+    }
+  },
+);
+
+const obtenerConsultaPendiente = onRequest(
+  {
+    region: "us-central1",
+    timeoutSeconds: 120,
+    memory: "256MiB",
+    cors: true,
+  },
+  async (req, res) => {
+    try {
+      const db = initDb2();
+      if (!db) {
+        return res.status(500).json({
+          ok: false,
+          error: "No se pudo conectar a la base de datos.",
+        });
+      }
+
+      const alias = req.query.alias || req.body.alias;
+
+      if (!alias) {
+        return res.status(400).json({
+          ok: false,
+          error: "Falta el parámetro 'alias'.",
+        });
+      }
+
+      const docRef = db
+        .collection("trabajos_ia")
+        .doc(alias)
+        .collection("consultas")
+        .doc("pendiente");
+
+      const docSnap = await docRef.get();
+
+      if (!docSnap.exists) {
+        return res.status(404).json({
+          ok: false,
+          error: "No se encontró una consulta pendiente para ese alias.",
+        });
+      }
+
+      return res.status(200).json({
+        ok: true,
+        message: "Consulta pendiente obtenida correctamente.",
+        data: docSnap.data(),
+      });
+    } catch (error) {
+      console.error("Error obteniendo consulta pendiente:", error);
+      return res.status(500).json({
+        ok: false,
+        error: "Error interno al obtener la consulta pendiente.",
+      });
+    }
+  },
+);
+
+const guardarContextoBotn8n = onRequest(
+  {
+    region: "us-central1",
+    timeoutSeconds: 60,
+    memory: "256MiB",
+    cors: true,
+  },
+  async (req, res) => {
+    try {
+      const db = initDb2();
+      if (!db) {
+        return res.status(500).json({
+          ok: false,
+          error: "No se pudo conectar a la base de datos.",
+        });
+      }
+
+      const { alias, context } = req.body;
+
+      if (!alias) {
+        return res.status(400).json({
+          ok: false,
+          error: "Falta el parámetro 'alias'.",
+        });
+      }
+
+      if (!context || typeof context !== "string") {
+        return res.status(400).json({
+          ok: false,
+          error: "Falta el parámetro 'context' o no es un string válido.",
+        });
+      }
+
+      const aliasLimpio = String(alias).trim().toLowerCase();
+
+      await db.collection("trabajos_ia").doc(aliasLimpio).set(
+        {
+          context_bot: context,
+          context_bot_fecha: new Date().toISOString(),
+        },
+        { merge: true },
+      );
+
+      return res.status(200).json({
+        ok: true,
+        message: "Contexto guardado correctamente.",
+        alias: aliasLimpio,
+        context,
+      });
+    } catch (error) {
+      console.error("Error guardando contexto del bot:", error);
+      return res.status(500).json({
+        ok: false,
+        error: "Error interno al guardar el contexto.",
+      });
+    }
+  },
+);
+
+module.exports = {
+  guardarContextoBotn8n,
+  obtenerConsultaPendiente,
+  guardarConsultaPendiente,
+  historialn8n,
+  screenaiQuery_extencion,
+  screenaiQuery_vision_n8n,
+  screenaiQuery_texto_n8n,
+};

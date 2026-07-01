@@ -256,7 +256,6 @@ exports.crearOrdenCulqiPlan = onRequest({ cors: true }, async (req, res) => {
           phone_number: "999999999",
         },
         expiration_date: Math.floor(Date.now() / 1000) + 900,
-        confirm: false,
       },
       {
         headers: {
@@ -443,5 +442,130 @@ exports.confirmarPagoPlan = onRequest({ cors: true }, async (req, res) => {
     console.error("ERROR CHARGE:", culqiError || error.message);
     const motivo = culqiError?.user_message || "Error en el pago";
     res.status(400).json({ error: motivo });
+  }
+});
+
+exports.webhookCulqiOrder = onRequest({ cors: true }, async (req, res) => {
+  try {
+    const evento = req.body || {};
+    if (evento.type !== "order.status.changed") {
+      res.sendStatus(200);
+      return;
+    }
+
+    // 🔧 Parseo defensivo: Culqi documenta "data" como string,
+    // aunque a veces llega ya como objeto según el proveedor/integración.
+    let dataEvento = evento.data;
+    if (typeof dataEvento === "string") {
+      try {
+        dataEvento = JSON.parse(dataEvento);
+      } catch (e) {
+        console.error("⚠️ No se pudo parsear evento.data:", e.message);
+        res.sendStatus(200);
+        return;
+      }
+    }
+
+    const ordenId = dataEvento?.id;
+    if (!ordenId) {
+      res.sendStatus(200);
+      return;
+    }
+
+    // 🔒 Importante: no confíes ciegamente en el body del webhook,
+    // vuelve a consultar la orden a la API de Culqi para verificar su estado real.
+    const ordenReal = await axios.get(
+      `https://api.culqi.com/v2/orders/${ordenId}`,
+      { headers: { Authorization: `Bearer ${CULQI_KEY_SCAG}` } },
+    );
+
+    if (ordenReal.data.state !== "paid") {
+      res.sendStatus(200);
+      return;
+    }
+
+    const dbPlanes = initDb2();
+
+    // Buscamos el pago pendiente asociado a esa orden
+    const snap = await dbPlanes
+      .collection("pagos_scag")
+      .where("culqi_order_id", "==", ordenId)
+      .limit(1)
+      .get();
+
+    if (snap.empty) {
+      // Ya fue procesado antes (idempotencia) o no existe
+      res.sendStatus(200);
+      return;
+    }
+
+    const pagoDoc = snap.docs[0];
+    const { alias, creditos, precio_soles, plan_select, email } =
+      pagoDoc.data();
+    const creditosComprados = Number(creditos || 0);
+    const perfilRef = dbPlanes.collection("trabajos_ia").doc(alias);
+
+    let creditosAntes = 0;
+    let creditosRestantes = 0;
+
+    await dbPlanes.runTransaction(async (tx) => {
+      const perfilSnap = await tx.get(perfilRef);
+      creditosAntes = perfilSnap.exists
+        ? Number(perfilSnap.data()?.creditos || 0)
+        : 0;
+      creditosRestantes = creditosAntes + creditosComprados;
+
+      tx.set(
+        perfilRef,
+        {
+          creditos: creditosRestantes,
+          id_pago: admin.firestore.FieldValue.delete(),
+        },
+        { merge: true },
+      );
+    });
+
+    await pagoDoc.ref.delete();
+
+    // (Opcional pero recomendado) boleta + historial, igual que en confirmarPagoPlan
+    let urlBoletaStorage = null;
+    try {
+      const urlNubefact = await emitirBoletaNubefact({
+        userId: alias,
+        monedas: creditosComprados,
+        chargeId: ordenId,
+        monto: Number(precio_soles),
+        email: email || "",
+        nombre: "Consumidor final",
+      });
+      urlBoletaStorage = await guardarPDFEnStorage(urlNubefact, ordenId, alias);
+      await perfilRef.set({ urlBoleta: urlBoletaStorage }, { merge: true });
+    } catch (e) {
+      console.error("⚠️ Error boleta webhook:", e.response?.data || e.message);
+    }
+
+    try {
+      await agregarHistorialUsuario(dbPlanes, alias, {
+        categoria: "",
+        costoSoles: Number(precio_soles),
+        creditosAntes,
+        creditosConsumidos: 0,
+        creditosRestantes,
+        fecha: admin.firestore.Timestamp.now(),
+        modelo: "",
+        tipo: "Recarga (billetera/QR)",
+        urlComprobante: urlBoletaStorage,
+      });
+    } catch (e) {
+      console.error("⚠️ Error historial webhook:", e.message);
+    }
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.error(
+      "ERROR WEBHOOK CULQI:",
+      error.response?.data || error.message,
+    );
+    res.sendStatus(200); // Culqi reintenta si no respondes 200; evalúa si quieres eso
   }
 });

@@ -25,9 +25,20 @@ const geofire = require("geofire-common");
 admin.initializeApp();
 const {
   screenaiQuery_extencion,
+  screenaiQuery_vision_n8n,
+  screenaiQuery_texto_n8n,
+  historialn8n,
+  guardarConsultaPendiente,
+  obtenerConsultaPendiente,
+  guardarContextoBotn8n
 }=require("./extencion")
+exports.screenaiQuery_vision_n8n=screenaiQuery_vision_n8n
 exports.screenaiQuery_extencion = screenaiQuery_extencion;
-
+exports.screenaiQuery_texto_n8n=screenaiQuery_texto_n8n;
+exports.historialn8n=historialn8n
+exports.guardarConsultaPendiente=guardarConsultaPendiente
+exports.obtenerConsultaPendiente=obtenerConsultaPendiente
+exports.guardarContextoBotn8n=guardarContextoBotn8n
 
 const {
   obtener_creditos_tienda,
@@ -60,10 +71,13 @@ exports.generar_descripcion_whatsapp_ia = generar_descripcion_whatsapp_ia;
 exports.pagar_plan__usuario = pagar_plan__usuario;
 
 
-const { screenaiQuery, getUserData,suggestConfig } = require("./functions_trabajo");
+const { screenaiQuery, getUserData,suggestConfig,getPreciosPlanes,obtener_prompt,obtener_prompt_vision } = require("./functions_trabajo");
 exports.suggestConfig = suggestConfig;
 exports.screenaiQuery = screenaiQuery;
 exports.getUserData = getUserData;
+exports.getPreciosPlanes=getPreciosPlanes;
+exports.obtener_prompt=obtener_prompt;
+exports.obtener_prompt_vision=obtener_prompt_vision;
 
 
 const { crearOrdenCulqiPlan,confirmarPagoPlan  } = require("./pagos_scag");
