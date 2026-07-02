@@ -7,7 +7,8 @@ if (!admin.apps.length) {
 }
 
 const CULQI_KEY_SCAG = process.env.CULQI_KEY_SCAG;
-
+const PHONE_ID = process.env.SCAG_WHATSAP_ID;
+const WHATSAPP_TOKEN = process.env.SCAG_AI_WHATSAP_KEY;
 // ── Conexión a la segunda base de datos (app2) ──────────────────────
 let db2 = null;
 
@@ -138,12 +139,12 @@ async function emitirBoletaNubefact({
 
   try {
     const response = await axios.post(
-      // 🔗 Tu nueva URL específica
+   
       "https://api.nubefact.com/api/v1/02bb7d82-0b0c-4006-82a5-74b7437bea0b",
       payload,
       {
         headers: {
-          // 🔑 Tu nuevo Token asignado
+         
           Authorization: `Token token="b8b2a35495954bceaefe0716de425bbcb605a4094396474db278bd8a292121f6"`,
           "Content-Type": "application/json",
         },
@@ -179,10 +180,8 @@ async function emitirBoletaNubefact({
   }
 }
 
-// ── Descarga el PDF de Nubefact y lo sube a Storage (bucket de app2) ──
 async function guardarPDFEnStorage(urlPdf, idTransaccion, alias) {
-  // Nombre exacto de tu bucket principal — ve a Firebase Console > Storage y cópialo
-  const bucketName = process.env.STORAGE_BUCKET_MAIN; // ej: "geinzworkapp.appspot.com"
+  const bucketName = process.env.STORAGE_BUCKET_MAIN; 
   const bucket = admin.storage().bucket(bucketName);
 
   console.log("📦 Subiendo PDF al bucket:", bucket.name);
@@ -201,7 +200,7 @@ async function guardarPDFEnStorage(urlPdf, idTransaccion, alias) {
 
   return `https://storage.googleapis.com/${bucket.name}/${rutaArchivo}`;
 }
-// ── Registra una entrada en el historial del usuario ─────────────────
+
 async function agregarHistorialUsuario(dbPlanes, alias, datos) {
   const historialRef = dbPlanes
     .collection("trabajos_ia")
@@ -215,7 +214,7 @@ async function agregarHistorialUsuario(dbPlanes, alias, datos) {
 
 exports.crearOrdenCulqiPlan = onRequest({ cors: true }, async (req, res) => {
   try {
-    const { alias, plan_select, precio_soles, creditos, email } =
+    const { alias, plan_select, precio_soles, creditos, email, telefono } =
       req.body || {};
 
     if (!alias || !plan_select || !precio_soles) {
@@ -247,15 +246,16 @@ exports.crearOrdenCulqiPlan = onRequest({ cors: true }, async (req, res) => {
       {
         amount: Math.round(monto * 100),
         currency_code: "PEN",
-        description: `Plan ${plan_select} - Geinz`,
+        description: `Plan ${plan_select}`,
         order_number: orderNumber,
         client_details: {
           first_name: "Cliente",
-          last_name: "Geinz",
-          email: email || `cliente-${alias}@geinzworkapp.web.app`,
-          phone_number: "999999999",
+          last_name: "Scag AI",
+          email: email || `soybenjadesing@gmail.com`,
+          phone_number: telefono || "937659216",
         },
         expiration_date: Math.floor(Date.now() / 1000) + 900,
+        confirm: false,
       },
       {
         headers: {
@@ -277,6 +277,8 @@ exports.crearOrdenCulqiPlan = onRequest({ cors: true }, async (req, res) => {
       estado: "pendiente",
       order_number_culqi: orderNumber,
       culqi_order_id,
+      email: email || null, 
+      telefono: telefono || null,
     };
 
     let idPago;
@@ -311,8 +313,16 @@ exports.crearOrdenCulqiPlan = onRequest({ cors: true }, async (req, res) => {
 });
 
 exports.confirmarPagoPlan = onRequest({ cors: true }, async (req, res) => {
-  const { alias, plan_select, precio_soles, creditos, token, email, id_pago } =
-    req.body || {};
+  const {
+    alias,
+    plan_select,
+    precio_soles,
+    creditos,
+    token,
+    email,
+    telefono,
+    id_pago,
+  } = req.body || {}; 
 
   if (!alias || !plan_select || !precio_soles || !token || !id_pago) {
     res.status(400).json({
@@ -332,23 +342,22 @@ exports.confirmarPagoPlan = onRequest({ cors: true }, async (req, res) => {
   const creditosComprados = Number(creditos || 0);
 
   try {
-    // ── 1. Cobro con Culqi ──
     const response = await axios.post(
       "https://api.culqi.com/v2/charges",
       {
         amount: Math.round(monto * 100),
         currency_code: "PEN",
-        email: email || `cliente-${alias}@geinzworkapp.web.app`,
+        email: email || `soybenjadesing@gmail.com`,
         source_id: token,
         capture: true,
-        description: `Compra de plan ${plan_select} - Geinz`,
+        description: `Compra de plan ${plan_select} - Scag AI`,
         antifraud_details: {
           address: "Barranca",
           address_city: "Barranca",
           country_code: "PE",
           first_name: "Cliente",
-          last_name: "Geinz",
-          phone: "999999999",
+          last_name: "Scag AI",
+          phone: telefono || "937659216", 
         },
       },
       {
@@ -361,7 +370,6 @@ exports.confirmarPagoPlan = onRequest({ cors: true }, async (req, res) => {
 
     const charge = response.data;
 
-    // ── 2. Acreditar créditos al usuario (suma sobre el saldo actual) ──
     const perfilRef = dbPlanes.collection("trabajos_ia").doc(alias);
     let creditosAntes = 0;
     let creditosRestantes = 0;
@@ -383,10 +391,8 @@ exports.confirmarPagoPlan = onRequest({ cors: true }, async (req, res) => {
       );
     });
 
-    // ── 3. Borrar el doc de pago pendiente en pagos_scag ──
     await dbPlanes.collection("pagos_scag").doc(id_pago).delete();
 
-    // ── 4. Emitir boleta NubeFact y subirla a Storage ──
     let urlBoletaStorage = null;
     try {
       const urlNubefact = await emitirBoletaNubefact({
@@ -394,8 +400,9 @@ exports.confirmarPagoPlan = onRequest({ cors: true }, async (req, res) => {
         monedas: creditosComprados,
         chargeId: charge.id,
         monto,
-        email: email || "",
+        email: email || "soybenjadesing@gmail.com",
         nombre: "Consumidor final",
+        telefono: telefono || "",
       });
 
       urlBoletaStorage = await guardarPDFEnStorage(
@@ -445,127 +452,207 @@ exports.confirmarPagoPlan = onRequest({ cors: true }, async (req, res) => {
   }
 });
 
-exports.webhookCulqiOrder = onRequest({ cors: true }, async (req, res) => {
+async function enviarPDFWhatsApp(numero, pdfUrl) {
   try {
-    const evento = req.body || {};
-    if (evento.type !== "order.status.changed") {
-      res.sendStatus(200);
-      return;
-    }
+    const telefono = `51${numero}`;
 
-    // 🔧 Parseo defensivo: Culqi documenta "data" como string,
-    // aunque a veces llega ya como objeto según el proveedor/integración.
-    let dataEvento = evento.data;
-    if (typeof dataEvento === "string") {
-      try {
-        dataEvento = JSON.parse(dataEvento);
-      } catch (e) {
-        console.error("⚠️ No se pudo parsear evento.data:", e.message);
+    console.log("📄 Enviando PDF a WhatsApp:", {
+      telefono,
+      pdfUrl,
+    });
+
+    const res = await axios.post(
+      `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
+      {
+        messaging_product: "whatsapp",
+        to: telefono,
+        type: "document",
+        document: {
+          link: pdfUrl,
+          filename: "boleta_geinz.pdf",
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    console.log("✅ PDF enviado correctamente:", res.data);
+
+    return true;
+  } catch (error) {
+    console.error(
+      "❌ ERROR ENVIANDO PDF WHATSAPP:",
+      error.response?.data || error.message,
+    );
+
+    return false;
+  }
+}
+exports.webhookCulqiOrder_scagAI = onRequest(
+  { cors: true },
+  async (req, res) => {
+    try {
+      const evento = req.body || {};
+
+    
+      console.log(
+        "📩 Webhook Culqi recibido:",
+        JSON.stringify(evento, null, 2),
+      );
+
+      if (evento.type !== "order.status.changed") {
+        console.log("ℹ️ Evento ignorado, type:", evento.type);
         res.sendStatus(200);
         return;
       }
-    }
 
-    const ordenId = dataEvento?.id;
-    if (!ordenId) {
-      res.sendStatus(200);
-      return;
-    }
+      // 🔧 Parseo defensivo: Culqi documenta "data" como string,
+      // aunque a veces llega ya como objeto según el proveedor/integración.
+      let dataEvento = evento.data;
+      if (typeof dataEvento === "string") {
+        try {
+          dataEvento = JSON.parse(dataEvento);
+        } catch (e) {
+          console.error("⚠️ No se pudo parsear evento.data:", e.message);
+          res.sendStatus(200);
+          return;
+        }
+      }
 
-    // 🔒 Importante: no confíes ciegamente en el body del webhook,
-    // vuelve a consultar la orden a la API de Culqi para verificar su estado real.
-    const ordenReal = await axios.get(
-      `https://api.culqi.com/v2/orders/${ordenId}`,
-      { headers: { Authorization: `Bearer ${CULQI_KEY_SCAG}` } },
-    );
+      // 🔑 CAMBIO CLAVE: Culqi puede mandar el objeto de la orden
+      // directamente en "data" o anidado en "data.object", según el
+      // formato del evento. Soportamos ambos casos.
+      const ordenObj = dataEvento;
+      const ordenId = ordenObj?.id;
 
-    if (ordenReal.data.state !== "paid") {
-      res.sendStatus(200);
-      return;
-    }
+      if (!ordenId) {
+        console.error(
+          "⚠️ No se encontró id de orden en el evento. dataEvento:",
+          JSON.stringify(dataEvento),
+        );
+        res.sendStatus(200);
+        return;
+      }
 
-    const dbPlanes = initDb2();
+      console.log("🆔 Orden ID detectada:", ordenId);
 
-    // Buscamos el pago pendiente asociado a esa orden
-    const snap = await dbPlanes
-      .collection("pagos_scag")
-      .where("culqi_order_id", "==", ordenId)
-      .limit(1)
-      .get();
-
-    if (snap.empty) {
-      // Ya fue procesado antes (idempotencia) o no existe
-      res.sendStatus(200);
-      return;
-    }
-
-    const pagoDoc = snap.docs[0];
-    const { alias, creditos, precio_soles, plan_select, email } =
-      pagoDoc.data();
-    const creditosComprados = Number(creditos || 0);
-    const perfilRef = dbPlanes.collection("trabajos_ia").doc(alias);
-
-    let creditosAntes = 0;
-    let creditosRestantes = 0;
-
-    await dbPlanes.runTransaction(async (tx) => {
-      const perfilSnap = await tx.get(perfilRef);
-      creditosAntes = perfilSnap.exists
-        ? Number(perfilSnap.data()?.creditos || 0)
-        : 0;
-      creditosRestantes = creditosAntes + creditosComprados;
-
-      tx.set(
-        perfilRef,
-        {
-          creditos: creditosRestantes,
-          id_pago: admin.firestore.FieldValue.delete(),
-        },
-        { merge: true },
+      // 🔒 Importante: no confíes ciegamente en el body del webhook,
+      // vuelve a consultar la orden a la API de Culqi para verificar su estado real.
+      const ordenReal = await axios.get(
+        `https://api.culqi.com/v2/orders/${ordenId}`,
+        { headers: { Authorization: `Bearer ${CULQI_KEY_SCAG}` } },
       );
-    });
 
-    await pagoDoc.ref.delete();
+      console.log("📦 Estado real de la orden en Culqi:", ordenReal.data.state);
 
-    // (Opcional pero recomendado) boleta + historial, igual que en confirmarPagoPlan
-    let urlBoletaStorage = null;
-    try {
-      const urlNubefact = await emitirBoletaNubefact({
-        userId: alias,
-        monedas: creditosComprados,
-        chargeId: ordenId,
-        monto: Number(precio_soles),
-        email: email || "",
-        nombre: "Consumidor final",
+      if (ordenReal.data.state !== "paid") {
+        res.sendStatus(200);
+        return;
+      }
+
+      const dbPlanes = initDb2();
+
+      // Buscamos el pago pendiente asociado a esa orden
+      const snap = await dbPlanes
+        .collection("pagos_scag")
+        .where("culqi_order_id", "==", ordenId)
+        .limit(1)
+        .get();
+
+      if (snap.empty) {
+        console.log(
+          "ℹ️ No se encontró pago pendiente para culqi_order_id:",
+          ordenId,
+          "(ya procesado antes o no existe)",
+        );
+        res.sendStatus(200);
+        return;
+      }
+
+      const pagoDoc = snap.docs[0];
+      const { alias, creditos, precio_soles, plan_select, email, telefono } =
+        pagoDoc.data(); // AGREGADO: telefono
+      const creditosComprados = Number(creditos || 0);
+      const perfilRef = dbPlanes.collection("trabajos_ia").doc(alias);
+
+      let creditosAntes = 0;
+      let creditosRestantes = 0;
+
+      await dbPlanes.runTransaction(async (tx) => {
+        const perfilSnap = await tx.get(perfilRef);
+        creditosAntes = perfilSnap.exists
+          ? Number(perfilSnap.data()?.creditos || 0)
+          : 0;
+        creditosRestantes = creditosAntes + creditosComprados;
+
+        tx.set(
+          perfilRef,
+          {
+            creditos: creditosRestantes,
+            id_pago: admin.firestore.FieldValue.delete(),
+          },
+          { merge: true },
+        );
       });
-      urlBoletaStorage = await guardarPDFEnStorage(urlNubefact, ordenId, alias);
-      await perfilRef.set({ urlBoleta: urlBoletaStorage }, { merge: true });
-    } catch (e) {
-      console.error("⚠️ Error boleta webhook:", e.response?.data || e.message);
-    }
 
-    try {
-      await agregarHistorialUsuario(dbPlanes, alias, {
-        categoria: "",
-        costoSoles: Number(precio_soles),
-        creditosAntes,
-        creditosConsumidos: 0,
-        creditosRestantes,
-        fecha: admin.firestore.Timestamp.now(),
-        modelo: "",
-        tipo: "Recarga (billetera/QR)",
-        urlComprobante: urlBoletaStorage,
-      });
-    } catch (e) {
-      console.error("⚠️ Error historial webhook:", e.message);
-    }
+      await pagoDoc.ref.delete();
 
-    res.sendStatus(200);
-  } catch (error) {
-    console.error(
-      "ERROR WEBHOOK CULQI:",
-      error.response?.data || error.message,
-    );
-    res.sendStatus(200); // Culqi reintenta si no respondes 200; evalúa si quieres eso
-  }
-});
+      console.log(
+        `✅ Créditos acreditados para alias "${alias}": ${creditosAntes} → ${creditosRestantes}`,
+      );
+
+      // (Opcional pero recomendado) boleta + historial, igual que en confirmarPagoPlan
+      let urlBoletaStorage = null;
+      try {
+        const urlNubefact = await emitirBoletaNubefact({
+          userId: alias,
+          monedas: creditosComprados,
+          chargeId: ordenId,
+          monto: Number(precio_soles),
+          email: email || "",
+          nombre: "Consumidor final",
+          telefono: telefono || "", // AGREGADO: solo si emitirBoletaNubefact acepta este campo
+        });
+        urlBoletaStorage = await guardarPDFEnStorage(
+          urlNubefact,
+          ordenId,
+          alias,
+        );
+        await perfilRef.set({ urlBoleta: urlBoletaStorage }, { merge: true });
+      } catch (e) {
+        console.error(
+          "⚠️ Error boleta webhook:",
+          e.response?.data || e.message,
+        );
+      }
+
+      try {
+        await agregarHistorialUsuario(dbPlanes, alias, {
+          categoria: "",
+          costoSoles: Number(precio_soles),
+          creditosAntes,
+          creditosConsumidos: 0,
+          creditosRestantes,
+          fecha: admin.firestore.Timestamp.now(),
+          modelo: "",
+          tipo: "Recarga",
+          urlComprobante: urlBoletaStorage,
+        });
+      } catch (e) {
+        console.error("⚠️ Error historial webhook:", e.message);
+      }
+
+      res.sendStatus(200);
+    } catch (error) {
+      console.error(
+        "ERROR WEBHOOK CULQI:",
+        error.response?.data || error.message,
+      );
+      res.sendStatus(200); // Culqi reintenta si no respondes 200; evalúa si quieres eso
+    }
+  },
+);

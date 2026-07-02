@@ -71,17 +71,21 @@ exports.generar_descripcion_whatsapp_ia = generar_descripcion_whatsapp_ia;
 exports.pagar_plan__usuario = pagar_plan__usuario;
 
 
-const { screenaiQuery, getUserData,suggestConfig,getPreciosPlanes,obtener_prompt,obtener_prompt_vision } = require("./functions_trabajo");
+const { screenaiQuery, getUserData,getUserData_Extencion,suggestConfig,getPreciosPlanes,obtener_prompt,obtener_prompt_vision,setContextoTemporal,getContextoTemporal } = require("./functions_trabajo");
 exports.suggestConfig = suggestConfig;
 exports.screenaiQuery = screenaiQuery;
 exports.getUserData = getUserData;
+exports.getUserData_Extencion = getUserData_Extencion;
 exports.getPreciosPlanes=getPreciosPlanes;
 exports.obtener_prompt=obtener_prompt;
 exports.obtener_prompt_vision=obtener_prompt_vision;
+exports.setContextoTemporal=setContextoTemporal;
+exports.getContextoTemporal=getContextoTemporal;
 
 
-const { crearOrdenCulqiPlan,confirmarPagoPlan  } = require("./pagos_scag");
+const { crearOrdenCulqiPlan,confirmarPagoPlan,webhookCulqiOrder_scagAI  } = require("./pagos_scag");
 exports.crearOrdenCulqiPlan = crearOrdenCulqiPlan;
+exports.webhookCulqiOrder_scagAI = webhookCulqiOrder_scagAI;
 exports.confirmarPagoPlan = confirmarPagoPlan;
 
 const axios = require("axios");

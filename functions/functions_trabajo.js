@@ -925,6 +925,9 @@ Modelos y categorías válidas:
   },
 );
 
+const BOT_SCAG_COLLECTION = "bot_scag";
+const TRABAJOS_IA_COLLECTION = "trabajos_ia";
+
 const getUserData = onRequest(
   { region: "us-central1", timeoutSeconds: 20, memory: "256MiB", cors: true },
   async (req, res) => {
@@ -937,15 +940,12 @@ const getUserData = onRequest(
       return;
     }
 
-    const alias = (
-      req.method === "GET" ? req.query.alias : (req.body || {}).alias
-    )
-      ?.toString()
-      .trim()
-      .toLowerCase();
+    const body = req.method === "GET" ? req.query : req.body || {};
+    const numero = body.numero?.toString().trim();
+    const nombre = body.nombre?.toString().trim() || "";
 
-    if (!alias) {
-      res.status(400).json({ ok: false, error: "Alias requerido." });
+    if (!numero) {
+      res.status(400).json({ ok: false, error: "Número requerido." });
       return;
     }
 
@@ -959,7 +959,49 @@ const getUserData = onRequest(
         return;
       }
 
-      const snap = await database.collection(USERS_COLLECTION).doc(alias).get();
+      // ── 1. Buscar el registro en bot_scag ──
+      const botRef = database.collection(BOT_SCAG_COLLECTION).doc(numero);
+      const botSnap = await botRef.get();
+
+      // ── 2. Si NO existe el documento, lo creamos (solo numero y nombre, sin alias) ──
+      if (!botSnap.exists) {
+        console.log(`[getUserData] Número nuevo, creando: ${numero}`);
+        await botRef.set({
+          numero,
+          nombre,
+          creadoEn: admin.firestore.Timestamp.now(),
+        });
+
+        res.status(200).json({
+          ok: true,
+          esNuevo: true, // no tiene alias -> es nuevo
+          alias: null,
+          data: null,
+        });
+        return;
+      }
+
+      // ── 3. El documento ya existía, revisamos si tiene alias ──
+      const botData = botSnap.data();
+      const alias = botData?.alias;
+
+      // Sin alias configurado -> lo tratamos como "nuevo" también
+      if (!alias) {
+        res.status(200).json({
+          ok: true,
+          esNuevo: true, // sin alias = todavía no vinculó cuenta = nuevo
+          alias: null,
+          data: null,
+        });
+        return;
+      }
+
+      // ── 4. Con el alias, buscamos en trabajos_ia (mismo flujo de siempre) ──
+      const snap = await database
+        .collection(TRABAJOS_IA_COLLECTION)
+        .doc(alias)
+        .get();
+
       if (!snap.exists) {
         res.status(404).json({ ok: false, error: "Usuario no encontrado." });
         return;
@@ -971,9 +1013,82 @@ const getUserData = onRequest(
         clean[key] = value?.toDate ? value.toDate().toISOString() : value;
       }
 
-      res.status(200).json({ ok: true, alias, data: clean });
+      res.status(200).json({ ok: true, esNuevo: false, alias, data: clean });
     } catch (e) {
       console.error("[getUserData] error:", e.message);
+      res
+        .status(500)
+        .json({ ok: false, error: "Error al obtener datos: " + e.message });
+    }
+  },
+);
+
+
+const getUserData_Extencion = onRequest(
+  { region: "us-central1", timeoutSeconds: 20, memory: "256MiB", cors: true },
+  async (req, res) => {
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+    if (req.method !== "GET" && req.method !== "POST") {
+      console.log(`[getUserData_Extencion] Método no permitido: ${req.method}`);
+      res.status(405).json({ ok: false, error: "Método no permitido." });
+      return;
+    }
+
+    const body = req.method === "GET" ? req.query : req.body || {};
+    const alias = body.alias?.toString().trim();
+
+    console.log(`[getUserData_Extencion] Método: ${req.method} | Query/Body recibido:`, body);
+    console.log(`[getUserData_Extencion] Alias extraído: "${alias}"`);
+
+    if (!alias) {
+      console.log(`[getUserData_Extencion] Alias vacío o no llegó, devolviendo 400.`);
+      res.status(400).json({ ok: false, error: "Alias requerido." });
+      return;
+    }
+
+    try {
+      const database = initDb2();
+      if (!database) {
+        console.log(`[getUserData_Extencion] No se pudo conectar a la base de datos.`);
+        res.status(500).json({
+          ok: false,
+          error: "No se pudo conectar a la base de datos.",
+        });
+        return;
+      }
+
+      console.log(`[getUserData_Extencion] Buscando en colección "${TRABAJOS_IA_COLLECTION}" el documento con ID: "${alias}"`);
+
+      // Buscamos directo en trabajos_ia por el alias
+      const snap = await database
+        .collection(TRABAJOS_IA_COLLECTION)
+        .doc(alias)
+        .get();
+
+      console.log(`[getUserData_Extencion] ¿Documento existe?: ${snap.exists}`);
+
+      if (!snap.exists) {
+        console.log(`[getUserData_Extencion] No se encontró "${alias}" en "${TRABAJOS_IA_COLLECTION}". Devolviendo 404.`);
+        res.status(404).json({ ok: false, error: "Usuario no encontrado." });
+        return;
+      }
+
+      const data = snap.data();
+      console.log(`[getUserData_Extencion] Datos crudos encontrados:`, data);
+
+      const clean = {};
+      for (const [key, value] of Object.entries(data)) {
+        clean[key] = value?.toDate ? value.toDate().toISOString() : value;
+      }
+
+      console.log(`[getUserData_Extencion] Datos limpios a devolver:`, clean);
+
+      res.status(200).json({ ok: true, esNuevo: false, alias, data: clean });
+    } catch (e) {
+      console.error("[getUserData_Extencion] error:", e.message);
       res
         .status(500)
         .json({ ok: false, error: "Error al obtener datos: " + e.message });
@@ -1020,7 +1135,11 @@ const getPreciosPlanes = onRequest(
 );
 
 // ── HELPER: elimina saltos de línea del prompt ────────────────
-const flatPrompt = (str) => str.replace(/\n+/g, " ").replace(/\s{2,}/g, " ").trim();
+const flatPrompt = (str) =>
+  str
+    .replace(/\n+/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 
 // ── FUNCIÓN 1: texto ──────────────────────────────────────────
 const obtener_prompt = onRequest(
@@ -1029,7 +1148,9 @@ const obtener_prompt = onRequest(
     const { modo, tipo, categoria, provider } = req.body;
 
     if (!modo || !tipo || !provider) {
-      return res.status(400).json({ error: "Faltan parámetros: modo, tipo, provider" });
+      return res
+        .status(400)
+        .json({ error: "Faltan parámetros: modo, tipo, provider" });
     }
 
     const cat = categoria || "general";
@@ -1041,24 +1162,52 @@ const obtener_prompt = onRequest(
       switch (modo) {
         case "directo":
           prompt = flatPrompt(SYSTEM_PROMPT_VISION);
-          promptTexto = flatPrompt(SYSTEM_PROMPTS[cat] || SYSTEM_PROMPTS["general"]);
+          promptTexto = flatPrompt(
+            SYSTEM_PROMPTS[cat] || SYSTEM_PROMPTS["general"],
+          );
           tokens = maxTokens("Vision_Procesamiento_Grafico", provider);
           break;
         case "detallado":
           prompt = flatPrompt(SYSTEM_PROMPT_VISION_DETALLADO);
-          promptTexto = flatPrompt(SYSTEM_PROMPTS_DETALLADO[cat] || SYSTEM_PROMPTS_DETALLADO["general"]);
-          tokens = maxTokens_DETALLADO("Vision_Procesamiento_Grafico", provider);
+          promptTexto = flatPrompt(
+            SYSTEM_PROMPTS_DETALLADO[cat] ||
+              SYSTEM_PROMPTS_DETALLADO["general"],
+          );
+          tokens = maxTokens_DETALLADO(
+            "Vision_Procesamiento_Grafico",
+            provider,
+          );
           break;
         case "super_detallado":
           prompt = flatPrompt(SYSTEM_PROMPT_VISION_SUPER_DETALLADO);
-          promptTexto = flatPrompt(SYSTEM_PROMPTS_SUPER_DETALLADO[cat] || SYSTEM_PROMPTS_SUPER_DETALLADO["general"]);
-          tokens = maxTokens_SUPER_DETALLADO("Vision_Procesamiento_Grafico", provider);
+          promptTexto = flatPrompt(
+            SYSTEM_PROMPTS_SUPER_DETALLADO[cat] ||
+              SYSTEM_PROMPTS_SUPER_DETALLADO["general"],
+          );
+          tokens = maxTokens_SUPER_DETALLADO(
+            "Vision_Procesamiento_Grafico",
+            provider,
+          );
           break;
         default:
-          return res.status(400).json({ error: "modo inválido. Usa: directo | detallado | super_detallado" });
+          return res
+            .status(400)
+            .json({
+              error:
+                "modo inválido. Usa: directo | detallado | super_detallado",
+            });
       }
-      return res.status(200).json({ prompt_vision: prompt, prompt_texto: promptTexto, max_tokens: tokens, categoria: cat, modo, tipo, provider });
-
+      return res
+        .status(200)
+        .json({
+          prompt_vision: prompt,
+          prompt_texto: promptTexto,
+          max_tokens: tokens,
+          categoria: cat,
+          modo,
+          tipo,
+          provider,
+        });
     } else if (tipo === "texto") {
       switch (modo) {
         case "directo":
@@ -1066,22 +1215,43 @@ const obtener_prompt = onRequest(
           tokens = maxTokens(cat, provider);
           break;
         case "detallado":
-          prompt = flatPrompt(SYSTEM_PROMPTS_DETALLADO[cat] || SYSTEM_PROMPTS_DETALLADO["general"]);
+          prompt = flatPrompt(
+            SYSTEM_PROMPTS_DETALLADO[cat] ||
+              SYSTEM_PROMPTS_DETALLADO["general"],
+          );
           tokens = maxTokens_DETALLADO(cat, provider);
           break;
         case "super_detallado":
-          prompt = flatPrompt(SYSTEM_PROMPTS_SUPER_DETALLADO[cat] || SYSTEM_PROMPTS_SUPER_DETALLADO["general"]);
+          prompt = flatPrompt(
+            SYSTEM_PROMPTS_SUPER_DETALLADO[cat] ||
+              SYSTEM_PROMPTS_SUPER_DETALLADO["general"],
+          );
           tokens = maxTokens_SUPER_DETALLADO(cat, provider);
           break;
         default:
-          return res.status(400).json({ error: "modo inválido. Usa: directo | detallado | super_detallado" });
+          return res
+            .status(400)
+            .json({
+              error:
+                "modo inválido. Usa: directo | detallado | super_detallado",
+            });
       }
-      return res.status(200).json({ prompt_texto: prompt, max_tokens: tokens, categoria: cat, modo, tipo, provider });
-
+      return res
+        .status(200)
+        .json({
+          prompt_texto: prompt,
+          max_tokens: tokens,
+          categoria: cat,
+          modo,
+          tipo,
+          provider,
+        });
     } else {
-      return res.status(400).json({ error: "tipo inválido. Usa: vision | texto" });
+      return res
+        .status(400)
+        .json({ error: "tipo inválido. Usa: vision | texto" });
     }
-  }
+  },
 );
 
 // ── FUNCIÓN 2: solo vision ────────────────────────────────────
@@ -1091,7 +1261,9 @@ const obtener_prompt_vision = onRequest(
     const { modo, categoria, provider } = req.body;
 
     if (!modo || !provider) {
-      return res.status(400).json({ error: "Faltan parámetros: modo, provider" });
+      return res
+        .status(400)
+        .json({ error: "Faltan parámetros: modo, provider" });
     }
 
     const cat = categoria || "general";
@@ -1102,27 +1274,159 @@ const obtener_prompt_vision = onRequest(
     switch (modo) {
       case "directo":
         prompt_vision = flatPrompt(SYSTEM_PROMPT_VISION);
-        prompt_categoria = flatPrompt(SYSTEM_PROMPTS[cat] || SYSTEM_PROMPTS["general"]);
+        prompt_categoria = flatPrompt(
+          SYSTEM_PROMPTS[cat] || SYSTEM_PROMPTS["general"],
+        );
         tokens_vision = maxTokens("Vision_Procesamiento_Grafico", provider);
         break;
       case "detallado":
         prompt_vision = flatPrompt(SYSTEM_PROMPT_VISION_DETALLADO);
-        prompt_categoria = flatPrompt(SYSTEM_PROMPTS_DETALLADO[cat] || SYSTEM_PROMPTS_DETALLADO["general"]);
-        tokens_vision = maxTokens_DETALLADO("Vision_Procesamiento_Grafico", provider);
+        prompt_categoria = flatPrompt(
+          SYSTEM_PROMPTS_DETALLADO[cat] || SYSTEM_PROMPTS_DETALLADO["general"],
+        );
+        tokens_vision = maxTokens_DETALLADO(
+          "Vision_Procesamiento_Grafico",
+          provider,
+        );
         break;
       case "super_detallado":
         prompt_vision = flatPrompt(SYSTEM_PROMPT_VISION_SUPER_DETALLADO);
-        prompt_categoria = flatPrompt(SYSTEM_PROMPTS_SUPER_DETALLADO[cat] || SYSTEM_PROMPTS_SUPER_DETALLADO["general"]);
-        tokens_vision = maxTokens_SUPER_DETALLADO("Vision_Procesamiento_Grafico", provider);
+        prompt_categoria = flatPrompt(
+          SYSTEM_PROMPTS_SUPER_DETALLADO[cat] ||
+            SYSTEM_PROMPTS_SUPER_DETALLADO["general"],
+        );
+        tokens_vision = maxTokens_SUPER_DETALLADO(
+          "Vision_Procesamiento_Grafico",
+          provider,
+        );
         break;
       default:
-        return res.status(400).json({ error: "modo inválido. Usa: directo | detallado | super_detallado" });
+        return res
+          .status(400)
+          .json({
+            error: "modo inválido. Usa: directo | detallado | super_detallado",
+          });
     }
 
-    return res.status(200).json({ prompt_vision, prompt_categoria, tokens_vision, categoria: cat, modo, provider });
-  }
+    return res
+      .status(200)
+      .json({
+        prompt_vision,
+        prompt_categoria,
+        tokens_vision,
+        categoria: cat,
+        modo,
+        provider,
+      });
+  },
 );
+
+const setContextoTemporal = onRequest(
+  { region: "us-central1", timeoutSeconds: 20, memory: "256MiB", cors: true },
+  async (req, res) => {
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+    if (req.method !== "POST") {
+      res.status(405).json({ ok: false, error: "Método no permitido." });
+      return;
+    }
+
+    const { numero, contexto_temporal } = req.body || {};
+    const numeroLimpio = numero?.toString().trim();
+
+    if (!numeroLimpio) {
+      res.status(400).json({ ok: false, error: "Número requerido." });
+      return;
+    }
+    if (contexto_temporal === undefined) {
+      res
+        .status(400)
+        .json({ ok: false, error: "contexto_temporal requerido." });
+      return;
+    }
+
+    try {
+      const database = initDb2();
+      if (!database) {
+        res.status(500).json({
+          ok: false,
+          error: "No se pudo conectar a la base de datos.",
+        });
+        return;
+      }
+
+      const botRef = database.collection(BOT_SCAG_COLLECTION).doc(numeroLimpio);
+
+      await botRef.set({ contexto_temporal }, { merge: true });
+
+      res.status(200).json({ ok: true, numero: numeroLimpio });
+    } catch (e) {
+      console.error("[setContextoTemporal] error:", e.message);
+      res
+        .status(500)
+        .json({ ok: false, error: "Error al guardar contexto: " + e.message });
+    }
+  },
+);
+
+// ── Obtiene solo el contexto temporal del usuario ──
+const getContextoTemporal = onRequest(
+  { region: "us-central1", timeoutSeconds: 20, memory: "256MiB", cors: true },
+  async (req, res) => {
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+    if (req.method !== "GET" && req.method !== "POST") {
+      res.status(405).json({ ok: false, error: "Método no permitido." });
+      return;
+    }
+
+    const body = req.method === "GET" ? req.query : req.body || {};
+    const numeroLimpio = body.numero?.toString().trim();
+
+    if (!numeroLimpio) {
+      res.status(400).json({ ok: false, error: "Número requerido." });
+      return;
+    }
+
+    try {
+      const database = initDb2();
+      if (!database) {
+        res.status(500).json({
+          ok: false,
+          error: "No se pudo conectar a la base de datos.",
+        });
+        return;
+      }
+
+      const botRef = database.collection(BOT_SCAG_COLLECTION).doc(numeroLimpio);
+      const botSnap = await botRef.get();
+
+      if (!botSnap.exists) {
+        res
+          .status(404)
+          .json({ ok: false, error: "Número no encontrado en bot_scag." });
+        return;
+      }
+
+      const contexto_temporal = botSnap.data()?.contexto_temporal ?? null;
+
+      res.status(200).json({ ok: true, contexto_temporal });
+    } catch (e) {
+      console.error("[getContextoTemporal] error:", e.message);
+      res
+        .status(500)
+        .json({ ok: false, error: "Error al obtener contexto: " + e.message });
+    }
+  },
+);
+
 module.exports = {
+  setContextoTemporal,
+  getContextoTemporal,
   obtener_prompt_vision,
   obtener_prompt,
   getPreciosPlanes,
@@ -1132,6 +1436,7 @@ module.exports = {
   callGeminiVision,
   screenaiQuery,
   getUserData,
+  getUserData_Extencion,
   suggestConfig,
   verificarAlias,
   esRespuestaValida,

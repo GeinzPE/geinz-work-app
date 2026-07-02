@@ -13,6 +13,7 @@ const GEMINI_PRO_URL =
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 
 const USERS_COLLECTION = "trabajos_ia";
+
 const MODEL_MAP = {
   "gemini-flash": { family: "gemini", endpoint: GEMINI_FLASH_URL },
   "gemini-pro": { family: "gemini", endpoint: GEMINI_PRO_URL },
@@ -1760,6 +1761,7 @@ const guardarConsultaPendiente = onRequest(
       }
 
       const data = {
+        alias: alias,
         provider: provider || null,
         category: category || null,
         solutionMode: solutionMode || null,
@@ -1817,9 +1819,30 @@ const obtenerConsultaPendiente = onRequest(
         });
       }
 
+      // 1. Buscar el documento en bot_scag usando el alias recibido como ID
+      const buscarAliasRef = db.collection("bot_scag").doc(alias);
+      const buscarAliasSnap = await buscarAliasRef.get();
+
+      if (!buscarAliasSnap.exists) {
+        return res.status(404).json({
+          ok: false,
+          error: "No se encontró el alias en bot_scag.",
+        });
+      }
+
+      const aliasEncontrado = buscarAliasSnap.data().alias;
+
+      if (!aliasEncontrado) {
+        return res.status(404).json({
+          ok: false,
+          error: "El documento en bot_scag no tiene el campo 'alias'.",
+        });
+      }
+
+      // 2. Usar ese alias encontrado para buscar la consulta pendiente
       const docRef = db
         .collection("trabajos_ia")
-        .doc(alias)
+        .doc(aliasEncontrado)
         .collection("consultas")
         .doc("pendiente");
 
