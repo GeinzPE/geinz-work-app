@@ -21,17 +21,100 @@ const MODEL_MAP = {
 };
 
 const {
-  SYSTEM_PROMPTS_SUPER_DETALLADO,
-  SYSTEM_PROMPT_VISION_SUPER_DETALLADO,
-  SYSTEM_PROMPTS,
-  SYSTEM_PROMPTS_DETALLADO,
-  SYSTEM_PROMPT_VISION,
-  SYSTEM_PROMPT_VISION_DETALLADO,
+  salidafinal,
+  ESPECIALIDADES,
+  CATEGORY_LABELS,
+  TOKEN_LIMITS,
+  MODELOS_IA,
   maxTokens,
   maxTokens_DETALLADO,
   maxTokens_SUPER_DETALLADO,
-} = require("./modelo_promps_ia");
-// ─── MODEL MAP ────────────────────────────────────────────────────────────────
+  maxTokensConBuffer,
+} = require("./promps_scag_ai");
+
+// ─── COMPATIBILIDAD CON EL SISTEMA VIEJO DE PROMPTS ──────────────────────────
+// Antes existían SYSTEM_PROMPTS / SYSTEM_PROMPTS_DETALLADO /
+// SYSTEM_PROMPTS_SUPER_DETALLADO / SYSTEM_PROMPT_VISION* como objetos ya
+// armados con las keys camelCase exactas ("estructurasDatosAlgoritmos", etc).
+// Ahora esas keys viven en ESPECIALIDADES (promps_scag_ai.js) y el texto que
+// realmente llega desde la DB / el body suele venir "bonito", con espacios
+// y tildes (ej: "Estructuras de Datos y Algoritmos", "Química General").
+//
+// En vez de tocar cada lugar del código que hace SYSTEM_PROMPTS[categoria],
+// se recrean esas mismas variables como objetos "proxy": al leer
+// SYSTEM_PROMPTS[cualquierTexto] se normaliza el texto, se resuelve la key
+// correcta de ESPECIALIDADES y se arma el prompt con salidafinal(). Así el
+// resto del archivo no necesita cambiar.
+
+// Quita tildes, pasa a minúsculas y elimina espacios/guiones/guiones bajos
+// para poder comparar "Estructuras de Datos y Algoritmos",
+// "Estructuras_de_Datos_y_Algoritmos" y "estructurasDatosAlgoritmos" como si
+// fueran el mismo texto.
+function normalizarCategoria(str) {
+  return (str || "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // quita tildes/acentos
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ""); // quita espacios, guiones, guiones bajos, etc.
+}
+
+// Mapa: texto normalizado -> key camelCase real de ESPECIALIDADES.
+// Se arma una sola vez al cargar el módulo, a partir de:
+//  - las keys camelCase (ej: "programacion", "estructurasDatosAlgoritmos")
+//  - los labels bonitos con guion bajo (ej: "Estructuras_de_Datos_y_Algoritmos")
+//  - los mismos labels pero con espacio en vez de guion bajo (como suelen
+//    llegar desde la DB / el front)
+const CATEGORIA_KEY_MAP = {};
+for (const key of Object.keys(ESPECIALIDADES)) {
+  CATEGORIA_KEY_MAP[normalizarCategoria(key)] = key;
+}
+for (const [key, label] of Object.entries(CATEGORY_LABELS)) {
+  CATEGORIA_KEY_MAP[normalizarCategoria(label)] = key;
+  CATEGORIA_KEY_MAP[normalizarCategoria(label.replace(/_/g, " "))] = key;
+}
+
+// Dado cualquier texto de categoría (con tildes, espacios, mayúsculas,
+// guiones bajos, o ya en camelCase), devuelve la key real de ESPECIALIDADES.
+// Si no encuentra coincidencia, cae a "general" (usa PROFESOR_GENERAL).
+function resolverCategoria(categoriaInput) {
+  const norm = normalizarCategoria(categoriaInput);
+  if (!norm || norm === "general") return "general";
+  return CATEGORIA_KEY_MAP[norm] || "general";
+}
+
+// Fábrica de diccionarios "proxy" para texto: SYSTEM_PROMPTS[categoria],
+// SYSTEM_PROMPTS_DETALLADO[categoria], SYSTEM_PROMPTS_SUPER_DETALLADO[categoria]
+function crearDiccionarioPrompts(nivel) {
+  return new Proxy(
+    {},
+    {
+      get(_target, prop) {
+        if (typeof prop !== "string") return undefined;
+        const catKey = resolverCategoria(prop);
+        return salidafinal(catKey, "texto", nivel).systemPrompt;
+      },
+    },
+  );
+}
+
+const SYSTEM_PROMPTS = crearDiccionarioPrompts("directo");
+const SYSTEM_PROMPTS_DETALLADO = crearDiccionarioPrompts("detallado");
+const SYSTEM_PROMPTS_SUPER_DETALLADO = crearDiccionarioPrompts("super");
+
+// Los prompts de visión no dependen de la categoría (son solo instrucciones
+// de formato), así que se calculan una única vez al cargar el módulo.
+const SYSTEM_PROMPT_VISION = salidafinal("general", "vision", "directo").systemPrompt;
+const SYSTEM_PROMPT_VISION_DETALLADO = salidafinal(
+  "general",
+  "vision",
+  "detallado",
+).systemPrompt;
+const SYSTEM_PROMPT_VISION_SUPER_DETALLADO = salidafinal(
+  "general",
+  "vision",
+  "super",
+).systemPrompt;
 
 // ─── DB2 (segunda app Firebase) ───────────────────────────────────────────────
 let db2 = null;
@@ -406,7 +489,12 @@ const screenaiQuery = onRequest(
     let answer = "";
     try {
       const systemPrompt = SYSTEM_PROMPTS[category] || SYSTEM_PROMPTS.general;
-      const tokens = maxTokens(category);
+      // 👇 antes faltaba pasar "provider": maxTokens ahora distingue entre
+      // modelos económicos (gemini-flash / gpt-4o-mini) y pesados
+      // (gemini-pro / gpt-4o), así que sin el provider siempre calculaba el
+      // tope de los modelos "pesados". Se corrige para que respete el tope
+      // real del modelo elegido.
+      const tokens = maxTokens(category, provider);
 
       if (mode === "text") {
         switch (modelInfo.family) {
@@ -1023,7 +1111,6 @@ const getUserData = onRequest(
   },
 );
 
-
 const getUserData_Extencion = onRequest(
   { region: "us-central1", timeoutSeconds: 20, memory: "256MiB", cors: true },
   async (req, res) => {
@@ -1040,11 +1127,16 @@ const getUserData_Extencion = onRequest(
     const body = req.method === "GET" ? req.query : req.body || {};
     const alias = body.alias?.toString().trim();
 
-    console.log(`[getUserData_Extencion] Método: ${req.method} | Query/Body recibido:`, body);
+    console.log(
+      `[getUserData_Extencion] Método: ${req.method} | Query/Body recibido:`,
+      body,
+    );
     console.log(`[getUserData_Extencion] Alias extraído: "${alias}"`);
 
     if (!alias) {
-      console.log(`[getUserData_Extencion] Alias vacío o no llegó, devolviendo 400.`);
+      console.log(
+        `[getUserData_Extencion] Alias vacío o no llegó, devolviendo 400.`,
+      );
       res.status(400).json({ ok: false, error: "Alias requerido." });
       return;
     }
@@ -1052,7 +1144,9 @@ const getUserData_Extencion = onRequest(
     try {
       const database = initDb2();
       if (!database) {
-        console.log(`[getUserData_Extencion] No se pudo conectar a la base de datos.`);
+        console.log(
+          `[getUserData_Extencion] No se pudo conectar a la base de datos.`,
+        );
         res.status(500).json({
           ok: false,
           error: "No se pudo conectar a la base de datos.",
@@ -1060,7 +1154,9 @@ const getUserData_Extencion = onRequest(
         return;
       }
 
-      console.log(`[getUserData_Extencion] Buscando en colección "${TRABAJOS_IA_COLLECTION}" el documento con ID: "${alias}"`);
+      console.log(
+        `[getUserData_Extencion] Buscando en colección "${TRABAJOS_IA_COLLECTION}" el documento con ID: "${alias}"`,
+      );
 
       // Buscamos directo en trabajos_ia por el alias
       const snap = await database
@@ -1071,7 +1167,9 @@ const getUserData_Extencion = onRequest(
       console.log(`[getUserData_Extencion] ¿Documento existe?: ${snap.exists}`);
 
       if (!snap.exists) {
-        console.log(`[getUserData_Extencion] No se encontró "${alias}" en "${TRABAJOS_IA_COLLECTION}". Devolviendo 404.`);
+        console.log(
+          `[getUserData_Extencion] No se encontró "${alias}" en "${TRABAJOS_IA_COLLECTION}". Devolviendo 404.`,
+        );
         res.status(404).json({ ok: false, error: "Usuario no encontrado." });
         return;
       }
@@ -1190,24 +1288,19 @@ const obtener_prompt = onRequest(
           );
           break;
         default:
-          return res
-            .status(400)
-            .json({
-              error:
-                "modo inválido. Usa: directo | detallado | super_detallado",
-            });
+          return res.status(400).json({
+            error: "modo inválido. Usa: directo | detallado | super_detallado",
+          });
       }
-      return res
-        .status(200)
-        .json({
-          prompt_vision: prompt,
-          prompt_texto: promptTexto,
-          max_tokens: tokens,
-          categoria: cat,
-          modo,
-          tipo,
-          provider,
-        });
+      return res.status(200).json({
+        prompt_vision: prompt,
+        prompt_texto: promptTexto,
+        max_tokens: tokens,
+        categoria: cat,
+        modo,
+        tipo,
+        provider,
+      });
     } else if (tipo === "texto") {
       switch (modo) {
         case "directo":
@@ -1229,23 +1322,18 @@ const obtener_prompt = onRequest(
           tokens = maxTokens_SUPER_DETALLADO(cat, provider);
           break;
         default:
-          return res
-            .status(400)
-            .json({
-              error:
-                "modo inválido. Usa: directo | detallado | super_detallado",
-            });
+          return res.status(400).json({
+            error: "modo inválido. Usa: directo | detallado | super_detallado",
+          });
       }
-      return res
-        .status(200)
-        .json({
-          prompt_texto: prompt,
-          max_tokens: tokens,
-          categoria: cat,
-          modo,
-          tipo,
-          provider,
-        });
+      return res.status(200).json({
+        prompt_texto: prompt,
+        max_tokens: tokens,
+        categoria: cat,
+        modo,
+        tipo,
+        provider,
+      });
     } else {
       return res
         .status(400)
@@ -1301,23 +1389,19 @@ const obtener_prompt_vision = onRequest(
         );
         break;
       default:
-        return res
-          .status(400)
-          .json({
-            error: "modo inválido. Usa: directo | detallado | super_detallado",
-          });
+        return res.status(400).json({
+          error: "modo inválido. Usa: directo | detallado | super_detallado",
+        });
     }
 
-    return res
-      .status(200)
-      .json({
-        prompt_vision,
-        prompt_categoria,
-        tokens_vision,
-        categoria: cat,
-        modo,
-        provider,
-      });
+    return res.status(200).json({
+      prompt_vision,
+      prompt_categoria,
+      tokens_vision,
+      categoria: cat,
+      modo,
+      provider,
+    });
   },
 );
 
@@ -1448,4 +1532,5 @@ module.exports = {
   MODEL_MAP,
   SYSTEM_PROMPTS,
   maxTokens,
+  resolverCategoria,
 };

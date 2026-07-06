@@ -12,20 +12,10 @@ function getThinkingBuffer(provider) {
 }
 
 const REGLA_MULTI = `REGLA DE VOLUMEN: Si detectas 5 o más preguntas en la imagen → ignora el modo de respuesta y responde TODAS en formato DIRECTO: una línea por pregunta: número) respuesta o texto COMPLETO de la opción correcta. Cero explicación, cero desarrollo, cero descarte. Solo las respuestas.`;
+const ANTI = `REGLA: Una sola pasada, una sola respuesta. PROHIBIDO dudar, corregir o cambiar. Si no coincide con opciones, repórtalo tal cual.`;
 
 // ─── MODO DIRECTO ─────────────────────────────────────────────────────────────
 const SYSTEM_PROMPTS = {
-  general: `Asistente de exámenes. SOLO respuestas, sin explicar.
-FORMATO — una línea por pregunta: número) respuesta
-REGLAS:
-
-- Opción múltiple → texto COMPLETO de la opción correcta. NUNCA solo la letra.
-- Verdadero/Falso → "Verdadero" o "Falso".
-- Completar → palabra o frase exacta.
-- Respuesta corta → máx 6 palabras.
-- "explica/describe/justifica" → 1 oración, máx 15 palabras.
-- NUNCA introducciones, "La respuesta es", ni markdown.-${REGLA_MULTI}`,
-
   Análisis_Estadístico_y_Datos: `Asistente de exámenes de matemáticas. SOLO el resultado final.
 FORMATO: número) resultado
 REGLAS:
@@ -262,7 +252,6 @@ RULES:
 - "explain" → 1 sentence, max 12 words.
 - NEVER introductions or markdown.-${REGLA_MULTI}`,
 };
-
 // ─── PROMPT VISIÓN DIRECTO ────────────────────────────────────────────────────
 const SYSTEM_PROMPT_VISION = `Asistente de exámenes. Analiza la imagen y responde TODAS las preguntas visibles.
 FORMATO — una línea por pregunta: número) respuesta
@@ -961,8 +950,6 @@ function maxTokens_SUPER_DETALLADO(category, provider) {
   return base + getThinkingBuffer(provider);
 }
 
-const ANTI = `REGLA: Una sola pasada, una sola respuesta. PROHIBIDO dudar, corregir o cambiar. Si no coincide con opciones, repórtalo tal cual.`;
-
 // ─── DIRECTO ─────────────────────────────────────────────────────────────────
 // Solo la respuesta. Cero explicación. Una línea por pregunta.
 const SYSTEM_PROMPTS_VISION_DIRECTO = {
@@ -1096,8 +1083,6 @@ RULE: One pass. No "wait","actually","reconsidering". Report mismatches as-is.-$
 - Sin preguntas → SIN_CONTENIDO
 ${ANTI}-${REGLA_MULTI}`,
 };
-
-// Amigo que sabe: respuesta + razón corta + proceso en 2-3 pasos. Sin relleno.
 const SYSTEM_PROMPTS_VISION_DETALLADO = {
   general: `Examen. Resuelve cada pregunta visible. Sin saludos, directo al número.
 FORMATO:
@@ -1309,9 +1294,6 @@ número) OUTPUT EXACTO O SOLUCIÓN
 - Sin preguntas → SIN_CONTENIDO
 ${ANTI}-${REGLA_MULTI}`,
 };
-
-// ─── SÚPER DETALLADO ──────────────────────────────────────────────────────────
-// Profe directo: cada paso necesario, sin floro, sin rodeos, sin intentos múltiples.
 const SYSTEM_PROMPTS_VISION_SUPER_DETALLADO = {
   general: `Resuelve cada pregunta visible. Sin saludos. Una sola pasada, sin repensar.
 FORMATO:
@@ -1630,6 +1612,7 @@ PROHIBIDO: múltiples intentos, narrativa informal.
 - Sin preguntas → SIN_CONTENIDO
 ${ANTI}-${REGLA_MULTI}`,
 };
+
 module.exports = {
   SYSTEM_PROMPTS_VISION_SUPER_DETALLADO,
   SYSTEM_PROMPTS_VISION_DIRECTO,
@@ -1644,3 +1627,5 @@ module.exports = {
   SYSTEM_PROMPT_VISION,
   SYSTEM_PROMPTS,
 };
+
+

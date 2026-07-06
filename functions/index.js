@@ -30,16 +30,23 @@ const {
   historialn8n,
   guardarConsultaPendiente,
   obtenerConsultaPendiente,
-  guardarContextoBotn8n
-}=require("./extencion")
-exports.screenaiQuery_vision_n8n=screenaiQuery_vision_n8n
+  guardarContextoBotn8n,
+  obtenerCategorias_datas,
+  guardar_contacto_user,
+  obtener_contacto_user,
+  nuevo_registro,
+} = require("./extencion");
+exports.nuevo_registro = nuevo_registro;
+exports.screenaiQuery_vision_n8n = screenaiQuery_vision_n8n;
 exports.screenaiQuery_extencion = screenaiQuery_extencion;
-exports.screenaiQuery_texto_n8n=screenaiQuery_texto_n8n;
-exports.historialn8n=historialn8n
-exports.guardarConsultaPendiente=guardarConsultaPendiente
-exports.obtenerConsultaPendiente=obtenerConsultaPendiente
-exports.guardarContextoBotn8n=guardarContextoBotn8n
-
+exports.screenaiQuery_texto_n8n = screenaiQuery_texto_n8n;
+exports.historialn8n = historialn8n;
+exports.guardarConsultaPendiente = guardarConsultaPendiente;
+exports.obtenerConsultaPendiente = obtenerConsultaPendiente;
+exports.guardarContextoBotn8n = guardarContextoBotn8n;
+exports.obtenerCategorias_datas = obtenerCategorias_datas;
+exports.guardar_contacto_user = guardar_contacto_user;
+exports.obtener_contacto_user = obtener_contacto_user;
 const {
   obtener_creditos_tienda,
   obtener_creditos_tienda_fn,
@@ -48,6 +55,8 @@ const {
   actualizar_creditos_tienda,
 } = require("./test_db2");
 
+const { textoAVozOpenAI } = require("./ttsopenIA");
+exports.textoAVozOpenAI = textoAVozOpenAI;
 const {
   generar_texto_ia,
   generar_texto_compartir_ia,
@@ -70,23 +79,48 @@ exports.extraerTerminosClaveIA = extraerTerminosClaveIA;
 exports.generar_descripcion_whatsapp_ia = generar_descripcion_whatsapp_ia;
 exports.pagar_plan__usuario = pagar_plan__usuario;
 
-
-const { screenaiQuery, getUserData,getUserData_Extencion,suggestConfig,getPreciosPlanes,obtener_prompt,obtener_prompt_vision,setContextoTemporal,getContextoTemporal } = require("./functions_trabajo");
+const {
+  screenaiQuery,
+  getUserData,
+  getUserData_Extencion,
+  suggestConfig,
+  getPreciosPlanes,
+  obtener_prompt,
+  obtener_prompt_vision,
+  setContextoTemporal,
+  getContextoTemporal,
+} = require("./functions_trabajo");
 exports.suggestConfig = suggestConfig;
 exports.screenaiQuery = screenaiQuery;
 exports.getUserData = getUserData;
 exports.getUserData_Extencion = getUserData_Extencion;
-exports.getPreciosPlanes=getPreciosPlanes;
-exports.obtener_prompt=obtener_prompt;
-exports.obtener_prompt_vision=obtener_prompt_vision;
-exports.setContextoTemporal=setContextoTemporal;
-exports.getContextoTemporal=getContextoTemporal;
+exports.getPreciosPlanes = getPreciosPlanes;
+exports.obtener_prompt = obtener_prompt;
+exports.obtener_prompt_vision = obtener_prompt_vision;
+exports.setContextoTemporal = setContextoTemporal;
+exports.getContextoTemporal = getContextoTemporal;
 
+const { textoAVozn8n_elevenlabs_2 } = require("./voice_elevenlabs.js");
+exports.textoAVozn8n_elevenlabs_2 = textoAVozn8n_elevenlabs_2;
 
-const { crearOrdenCulqiPlan,confirmarPagoPlan,webhookCulqiOrder_scagAI  } = require("./pagos_scag");
+const {
+  crearOrdenCulqiPlan,
+  confirmarPagoPlan,
+  webhookCulqiOrder_scagAI,
+} = require("./pagos_scag");
 exports.crearOrdenCulqiPlan = crearOrdenCulqiPlan;
 exports.webhookCulqiOrder_scagAI = webhookCulqiOrder_scagAI;
 exports.confirmarPagoPlan = confirmarPagoPlan;
+
+const {
+  clasificador_geinz_categorias_negocios,clasificador_geinz_turismo,buscar_por_categoria_subcateogira_Actualizado,obtener_lugares_emergencia_Actualizado,elegir_mejor_promo
+} = require("./asistentes_AI_geinz");
+exports.clasificador_geinz_categorias_negocios =
+  clasificador_geinz_categorias_negocios;
+exports.clasificador_geinz_turismo = clasificador_geinz_turismo;
+exports.buscar_por_categoria_subcateogira_Actualizado = buscar_por_categoria_subcateogira_Actualizado;
+exports.obtener_lugares_emergencia_Actualizado = obtener_lugares_emergencia_Actualizado;
+exports.elegir_mejor_promo = elegir_mejor_promo;elegir_mejor_promo
 
 const axios = require("axios");
 const CULQI_KEY = process.env.CULQI_KEY;
@@ -770,8 +804,19 @@ exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
     if (subcategoria) {
       filters.push(`tag:"${subcategoria}"`);
     }
-    if (excluir_id) {
-      filters.push(`NOT objectID:"${excluir_id}"`);
+
+    // ✅ Normaliza excluir_id: puede venir como string, null, array vacío, o array con nulls
+    const excluirIds = Array.isArray(excluir_id)
+      ? excluir_id.filter((id) => id !== null && id !== undefined && id !== "")
+      : excluir_id
+        ? [excluir_id]
+        : [];
+
+    if (excluirIds.length > 0) {
+      const excluirFilters = excluirIds
+        .map((id) => `NOT objectID:"${id}"`)
+        .join(" AND ");
+      filters.push(excluirFilters);
     }
 
     const query = nombre || "";
@@ -796,7 +841,7 @@ exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
         img: hit.img || "",
         tipo: "turismo",
         tag: hit.tag || [],
-        alias: hit.alias || "",  // ✅ campo añadido
+        alias: hit.alias || "",
       }));
 
     return res.status(200).json({
@@ -815,6 +860,7 @@ exports.busqueda_algolia_turismo_bot_geinz = onRequest(async (req, res) => {
     });
   }
 });
+
 exports.buscarNegocios_para_solucionar = onRequest(
   { cors: true },
   async (req, res) => {
@@ -871,6 +917,10 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
     if (localidad) {
       filters.push(`lugar:"${localidad}"`);
     }
+
+    // ✅ Nuevo: excluir categorías turismo y salud (solo tiendas)
+    filters.push(`NOT categoria:"turismo"`);
+    filters.push(`NOT categoria:"salud"`);
 
     console.log("🔧 [buscar_tienda] Filtros aplicados:", filters);
 
@@ -957,9 +1007,9 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
           "imagen_bot",
           "parecidas",
           "tag",
-          "plantilla", // 👈 agregar
+          "plantilla",
           "msje_whatsapp",
-          "alias", // 👈 agregar
+          "alias",
         ],
       });
 
@@ -1093,7 +1143,7 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
             idsConFlag.map((id) =>
               obtener_creditos_tienda_fn(id)
                 .then((r) => {
-                  const mayor_a_100 = r?.creditos > 100; // 👈 calcular aquí
+                  const mayor_a_100 = r?.creditos > 100;
                   console.log(
                     `💰 [creditos] ${id} → creditos: ${r?.creditos} | mayor_a_100: ${mayor_a_100}`,
                   );
@@ -1183,7 +1233,6 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
     });
   }
 });
-
 exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
   try {
     const { localidad, categoria, subcategoria, excluir_id } = req.body;
@@ -4966,7 +5015,10 @@ exports.turismoSSR = onRequest(async (req, res) => {
       const html = await getTurismoHtml();
       res.set("Content-Type", "text/html");
       // Cache en CDN de Hosting: 5 min, revalida en background
-      res.set("Cache-Control", "public, max-age=300, s-maxage=300, stale-while-revalidate=600");
+      res.set(
+        "Cache-Control",
+        "public, max-age=300, s-maxage=300, stale-while-revalidate=600",
+      );
       return res.status(200).send(html);
     } catch (e) {
       logger.error("Error sirviendo turismo.html:", e);

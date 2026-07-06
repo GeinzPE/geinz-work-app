@@ -13,6 +13,7 @@
   },
   "main": "index.js",
   "dependencies": {
+    "@elevenlabs/elevenlabs-js": "^2.56.0",
     "@google-cloud/speech": "^7.2.1",
     "@google-cloud/text-to-speech": "^6.4.0",
     "algoliasearch": "^4.27.0",

@@ -55,19 +55,18 @@ const {
 } = require("./functions_trabajo");
 // ── Importación de funciones de negocio (sin las call* que ya están aquí) ────
 const {
-  SYSTEM_PROMPTS_VISION_SUPER_DETALLADO,
-  SYSTEM_PROMPTS_VISION_DIRECTO,
-  SYSTEM_PROMPTS_VISION_DETALLADO,
-  maxTokens_SUPER_DETALLADO,
-  SYSTEM_PROMPT_VISION_SUPER_DETALLADO,
-  SYSTEM_PROMPTS_SUPER_DETALLADO,
-  maxTokens_DETALLADO,
-  SYSTEM_PROMPT_VISION_DETALLADO,
-  SYSTEM_PROMPTS_DETALLADO,
+  salidafinal,
+  ESPECIALIDADES,
+  CATEGORY_LABELS,
+  TOKEN_LIMITS,
+  MODELOS_IA,
   maxTokens,
-  SYSTEM_PROMPT_VISION,
-  SYSTEM_PROMPTS,
-} = require("./modelo_promps_ia");
+  maxTokens_DETALLADO,
+  maxTokens_SUPER_DETALLADO,
+  maxTokensConBuffer,
+  resolverCategoryKey,
+  thinkingBudgetPorNivel, // ← NUEVO
+} = require("./promps_scag_ai");
 
 // ── Inicialización de Firestore secundario (app2) ─────────────────────────────
 const initDb2 = () => {
@@ -97,7 +96,14 @@ const initDb2 = () => {
 };
 
 // ── GEMINI TEXT ───────────────────────────────────────────────────────────────
-async function callGeminiText(text, apiKey, endpoint, systemPrompt, tokens) {
+async function callGeminiText(
+  text,
+  apiKey,
+  endpoint,
+  systemPrompt,
+  tokens,
+  thinkingBudget = 800,
+) {
   const isPro = endpoint.includes("2.5-pro");
 
   // 🛠️ FIX 1: Limpiamos la instrucción del usuario. No dupliques órdenes si ya están en el SYSTEM_PROMPT.
@@ -113,7 +119,8 @@ async function callGeminiText(text, apiKey, endpoint, systemPrompt, tokens) {
         generationConfig: {
           temperature: 0.0,
           maxOutputTokens: tokens,
-          ...(isPro && { thinkingConfig: { thinkingBudget: 800 } }),
+          ...(isPro &&
+            thinkingBudget > 0 && { thinkingConfig: { thinkingBudget } }),
         },
       },
       {
@@ -178,6 +185,7 @@ async function callGeminiVision(
   endpoint,
   systemPrompt,
   tokens,
+  thinkingBudget = 512,
 ) {
   const isPro = endpoint.includes("2.5-pro");
   console.log("=== DEBUG callGeminiVision ===");
@@ -223,7 +231,8 @@ async function callGeminiVision(
         generationConfig: {
           temperature: 0.2,
           maxOutputTokens: tokens,
-          ...(isPro && { thinkingConfig: { thinkingBudget: 512 } }),
+          ...(isPro &&
+            thinkingBudget > 0 && { thinkingConfig: { thinkingBudget } }),
         },
       },
       { headers: { "Content-Type": "application/json" }, timeout: 45000 },
@@ -470,6 +479,7 @@ function limpiarRespuesta(texto) {
   return resultado.join("\n").trim();
 }
 // ── Cloud Function principal ──────────────────────────────────────────────────
+// ── Cloud Function principal ──────────────────────────────────────────────────
 const screenaiQuery_extencion = onRequest(
   { region: "us-central1", timeoutSeconds: 120, memory: "256MiB", cors: true },
   async (req, res) => {
@@ -704,38 +714,27 @@ const screenaiQuery_extencion = onRequest(
       });
       return;
     }
-
     const category = categoryRaw;
-    const categoryKey = category.replace(/ /g, "_");
+    const categoryKey = resolverCategoryKey(category);
 
     // 🧩 LOG DE SELECCIÓN DE PROMPT
     console.log("🧩 ============ SELECCIÓN DE PROMPT ============");
     console.log("🔤 categoryKey generado:", JSON.stringify(categoryKey));
     console.log("🗂️  solutionMode activo:", JSON.stringify(solutionMode));
-    const promptSet =
+
+    // ── FIX: ya no existen SYSTEM_PROMPTS / SYSTEM_PROMPTS_DETALLADO / etc.
+    // Ahora todo pasa por salidafinal(category, tipo, base, provider).
+    const baseSeleccionada =
       solutionMode === "super_detallado"
-        ? SYSTEM_PROMPTS_SUPER_DETALLADO
+        ? "super"
         : solutionMode === "detallado"
-          ? SYSTEM_PROMPTS_DETALLADO
-          : SYSTEM_PROMPTS;
+          ? "detallado"
+          : "directo";
+
+    console.log("📋 base usada:", JSON.stringify(baseSeleccionada));
     console.log(
-      "📋 promptSet usado:",
-      solutionMode === "super_detallado"
-        ? "SYSTEM_PROMPTS_SUPER_DETALLADO ✅"
-        : solutionMode === "detallado"
-          ? "SYSTEM_PROMPTS_DETALLADO ✅"
-          : "SYSTEM_PROMPTS (directo) ⚠️",
-    );
-    console.log(
-      "🔍 prompt encontrado para categoryKey:",
-      promptSet[categoryKey] ? "✅ SÍ" : "❌ NO — cayó a general",
-    );
-    console.log(
-      "📄 prompt preview (80 chars):",
-      JSON.stringify(
-        promptSet[categoryKey]?.substring(0, 80) ??
-          promptSet.general?.substring(0, 80),
-      ),
+      "🔍 especialidad encontrada para categoryKey:",
+      ESPECIALIDADES[categoryKey] ? "✅ SÍ" : "❌ NO — cayó a general",
     );
     console.log("🧩 ===============================================");
 
@@ -790,6 +789,8 @@ const screenaiQuery_extencion = onRequest(
             ? maxTokens_DETALLADO(categoryKey, provider)
             : maxTokens(categoryKey, provider);
 
+      const thinkingBudget = thinkingBudgetPorNivel(baseSeleccionada, provider);
+
       const costoModelo = await obtenerCostoDesdeDB(provider, mode);
       const {
         costo: costoCategoria,
@@ -811,23 +812,30 @@ const screenaiQuery_extencion = onRequest(
         return;
       }
 
+      // ── FIX: selección de systemPrompt vía salidafinal en vez de
+      // SYSTEM_PROMPTS_VISION_* / SYSTEM_PROMPTS_* que ya no existen.
       let systemPrompt;
       if (mode === "image") {
-        const visionPromptSet =
-          solutionMode === "super_detallado"
-            ? SYSTEM_PROMPTS_VISION_SUPER_DETALLADO
-            : solutionMode === "detallado"
-              ? SYSTEM_PROMPTS_VISION_DETALLADO
-              : SYSTEM_PROMPTS_VISION_DIRECTO;
-        systemPrompt = visionPromptSet[categoryKey] || visionPromptSet.general;
+        const resultadoPrompt = salidafinal(
+          categoryKey,
+          "vision",
+          baseSeleccionada,
+          provider,
+        );
+        systemPrompt = resultadoPrompt.systemPrompt;
         console.log(
-          `[ScreenAI] VISION categoryKey: "${categoryKey}", promptFound: ${!!visionPromptSet[categoryKey]}, solutionMode: "${solutionMode}"`,
+          `[ScreenAI] VISION categoryKey: "${categoryKey}", promptFound: ${!!ESPECIALIDADES[categoryKey]}, solutionMode: "${solutionMode}"`,
         );
       } else {
-        systemPrompt =
-          promptSet[categoryKey] || promptSet.general || SYSTEM_PROMPTS.general;
+        const resultadoPrompt = salidafinal(
+          categoryKey,
+          "texto",
+          baseSeleccionada,
+          provider,
+        );
+        systemPrompt = resultadoPrompt.systemPrompt;
         console.log(
-          `[ScreenAI] categoryKey: "${categoryKey}", promptFound: ${!!promptSet[categoryKey]}, promptPreview: "${systemPrompt?.substring(0, 80)}"`,
+          `[ScreenAI] categoryKey: "${categoryKey}", promptFound: ${!!ESPECIALIDADES[categoryKey]}, promptPreview: "${systemPrompt?.substring(0, 80)}"`,
         );
       }
       // 🚀 LOG ANTES DE LLAMAR LA IA
@@ -864,6 +872,7 @@ const screenaiQuery_extencion = onRequest(
               modelInfo.endpoint,
               systemPrompt,
               tokens,
+              thinkingBudget,
             );
             answer = limpiarRespuesta(result.answer);
             usage = result.usage;
@@ -902,6 +911,7 @@ const screenaiQuery_extencion = onRequest(
               modelInfo.endpoint,
               systemPrompt,
               tokens,
+              thinkingBudget,
             );
             answer = limpiarRespuesta(result.answer);
             usage = result.usage;
@@ -1161,23 +1171,22 @@ const screenaiQuery_vision_n8n = onRequest(
     }
 
     // ── PROMPT Y TOKENS ───────────────────────────────────────────────────────
-    const categoryKey = categoryRaw.replace(/ /g, "_");
+    const categoryKey = resolverCategoryKey(categoryRaw);
 
-    const visionPromptSet =
+    const baseSeleccionada =
       solutionMode === "super_detallado"
-        ? SYSTEM_PROMPTS_VISION_SUPER_DETALLADO
+        ? "super"
         : solutionMode === "detallado"
-          ? SYSTEM_PROMPTS_VISION_DETALLADO
-          : SYSTEM_PROMPTS_VISION_DIRECTO;
+          ? "detallado"
+          : "directo";
 
-    const systemPrompt =
-      visionPromptSet[categoryKey] || visionPromptSet.general;
-    const tokens =
-      solutionMode === "super_detallado"
-        ? maxTokens_SUPER_DETALLADO(categoryKey, provider)
-        : solutionMode === "detallado"
-          ? maxTokens_DETALLADO(categoryKey, provider)
-          : maxTokens(categoryKey, provider);
+    const { systemPrompt, maxTokens: tokens } = salidafinal(
+      categoryKey,
+      "vision",
+      baseSeleccionada,
+      provider,
+    );
+    const thinkingBudget = thinkingBudgetPorNivel(baseSeleccionada, provider);
 
     const finalHint =
       "Resuelve el examen de la imagen según las instrucciones del sistema.";
@@ -1200,6 +1209,7 @@ const screenaiQuery_vision_n8n = onRequest(
           modelInfo.endpoint,
           systemPrompt,
           tokens,
+          thinkingBudget,
         );
       } else if (modelInfo.family === "openai") {
         result = await callOpenAIVision(
@@ -1458,22 +1468,21 @@ const screenaiQuery_texto_n8n = onRequest(
     }
 
     // ── PROMPT Y TOKENS ───────────────────────────────────────────────────────
-    const categoryKey = categoryRaw.replace(/ /g, "_");
-    const tokens =
+    const categoryKey = resolverCategoryKey(categoryRaw);
+    const baseSeleccionada =
       solutionMode === "super_detallado"
-        ? maxTokens_SUPER_DETALLADO(categoryKey, provider)
+        ? "super"
         : solutionMode === "detallado"
-          ? maxTokens_DETALLADO(categoryKey, provider)
-          : maxTokens(categoryKey, provider);
+          ? "detallado"
+          : "directo";
 
-    const promptSet =
-      solutionMode === "super_detallado"
-        ? SYSTEM_PROMPTS_SUPER_DETALLADO
-        : solutionMode === "detallado"
-          ? SYSTEM_PROMPTS_DETALLADO
-          : SYSTEM_PROMPTS;
-
-    const systemPrompt = promptSet[categoryKey] || promptSet.general;
+    const { systemPrompt, maxTokens: tokens } = salidafinal(
+      categoryKey,
+      "texto",
+      baseSeleccionada,
+      provider,
+    );
+    const thinkingBudget = thinkingBudgetPorNivel(baseSeleccionada, provider);
 
     const GEMINI_KEY = process.env.PIRVATE_KEY_GEMINI_APITRABAJO;
     const OPENAI_KEY = process.env.PIRVATE_KEY_OPENIA_APITRABAJO;
@@ -1491,6 +1500,7 @@ const screenaiQuery_texto_n8n = onRequest(
           modelInfo.endpoint,
           systemPrompt,
           tokens,
+          thinkingBudget,
         );
       } else if (modelInfo.family === "openai") {
         result = await callOpenAIText(
@@ -1793,6 +1803,83 @@ const guardarConsultaPendiente = onRequest(
   },
 );
 
+const obtenerCategorias_datas = onRequest(
+  {
+    region: "us-central1",
+    timeoutSeconds: 120,
+    memory: "256MiB",
+    cors: true,
+  },
+  async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      return res.status(204).send("");
+    }
+
+    console.log("[obtenerCategorias] ── Inicio de request ──");
+
+    try {
+      const db = initDb2();
+      console.log(
+        "[obtenerCategorias] initDb2() devolvió:",
+        db ? "OK (instancia válida)" : "NULL",
+      );
+
+      if (!db) {
+        console.error("[obtenerCategorias] db es null, abortando.");
+        return res.status(500).json({
+          ok: false,
+          error: "No se pudo conectar a la base de datos.",
+        });
+      }
+
+      console.log("[obtenerCategorias] Consultando: precio_apartado/scag_site");
+      const docRef = db.collection("precio_apartado").doc("scag_site");
+      const snap = await docRef.get();
+
+      console.log("[obtenerCategorias] snap.exists:", snap.exists);
+      console.log("[obtenerCategorias] snap.id:", snap.id);
+      console.log("[obtenerCategorias] snap.ref.path:", snap.ref.path);
+
+      if (!snap.exists) {
+        console.warn(
+          "[obtenerCategorias] El documento no existe en esta ruta.",
+        );
+        return res.status(404).json({
+          ok: false,
+          error: "No se encontró el documento de categorías.",
+        });
+      }
+
+      const docData = snap.data() || {};
+      const categorias = docData.categoria || {};
+      console.log("[obtenerCategorias] campos del doc:", Object.keys(docData));
+      console.log(
+        "[obtenerCategorias] categorias:",
+        JSON.stringify(categorias),
+      );
+      console.log(
+        "[obtenerCategorias] cantidad de categorias:",
+        Object.keys(categorias).length,
+      );
+
+      return res.status(200).json({
+        ok: true,
+        categorias,
+      });
+    } catch (err) {
+      console.error("[obtenerCategorias] Error:", err.message);
+      console.error("[obtenerCategorias] Stack:", err.stack);
+      return res.status(500).json({
+        ok: false,
+        error: err.message || "Error interno del servidor.",
+      });
+    }
+  },
+);
 const obtenerConsultaPendiente = onRequest(
   {
     region: "us-central1",
@@ -1929,7 +2016,263 @@ const guardarContextoBotn8n = onRequest(
   },
 );
 
+const guardar_contacto_user = onRequest(
+  {
+    region: "us-central1",
+    timeoutSeconds: 120,
+    memory: "256MiB",
+    cors: true,
+  },
+  async (req, res) => {
+    try {
+      const db = initDb2();
+      if (!db) {
+        return res.status(500).json({
+          ok: false,
+          error: "No se pudo conectar a la base de datos.",
+        });
+      }
+
+      const { uid, facturacionEmail, facturacionTelefono } = req.body || {};
+
+      // Validamos que venga el identificador del usuario
+      if (!uid || typeof uid !== "string") {
+        return res.status(400).json({
+          ok: false,
+          error: "El parámetro 'uid' es requerido y debe ser un string.",
+        });
+      }
+
+      // Validamos que, si vienen, facturacionEmail y facturacionTelefono sean strings (o null)
+      const emailValido =
+        facturacionEmail === null ||
+        facturacionEmail === undefined ||
+        typeof facturacionEmail === "string";
+
+      const telefonoValido =
+        facturacionTelefono === null ||
+        facturacionTelefono === undefined ||
+        typeof facturacionTelefono === "string";
+
+      if (!emailValido || !telefonoValido) {
+        return res.status(400).json({
+          ok: false,
+          error:
+            "facturacionEmail y facturacionTelefono deben ser string o null.",
+        });
+      }
+
+      // Si ambos son null/undefined, no hay nada que guardar
+      if (
+        (facturacionEmail === null || facturacionEmail === undefined) &&
+        (facturacionTelefono === null || facturacionTelefono === undefined)
+      ) {
+        return res.status(400).json({
+          ok: false,
+          error:
+            "Debes enviar al menos uno de los dos: facturacionEmail o facturacionTelefono.",
+        });
+      }
+
+      // Armamos el objeto a actualizar solo con los campos que llegaron definidos
+      const datosActualizar = {};
+
+      if (facturacionEmail !== undefined) {
+        datosActualizar.facturacionEmail =
+          facturacionEmail === null ? null : facturacionEmail.trim();
+      }
+
+      if (facturacionTelefono !== undefined) {
+        datosActualizar.facturacionTelefono =
+          facturacionTelefono === null ? null : facturacionTelefono.trim();
+      }
+
+      // Guardamos en la base de datos (merge para no pisar otros campos del documento)
+      await db
+        .collection("trabajos_ia")
+        .doc(uid)
+        .set(datosActualizar, { merge: true });
+
+      return res.status(200).json({
+        ok: true,
+        mensaje: "Datos de facturación guardados correctamente.",
+        data: datosActualizar,
+      });
+    } catch (error) {
+      console.error("Error en guardar_contacto_user:", error);
+      return res.status(500).json({
+        ok: false,
+        error: "Ocurrió un error al guardar los datos de facturación.",
+      });
+    }
+  },
+);
+
+const obtener_contacto_user = onRequest(
+  {
+    region: "us-central1",
+    timeoutSeconds: 120,
+    memory: "256MiB",
+    cors: true,
+  },
+  async (req, res) => {
+    try {
+      const db = initDb2();
+      if (!db) {
+        return res.status(500).json({
+          ok: false,
+          error: "No se pudo conectar a la base de datos.",
+        });
+      }
+
+      // Aceptamos el uid tanto por query (?uid=...) como por body (para GET o POST)
+      const uid = (req.query && req.query.uid) || (req.body && req.body.uid);
+
+      if (!uid || typeof uid !== "string") {
+        return res.status(400).json({
+          ok: false,
+          error: "El parámetro 'uid' es requerido y debe ser un string.",
+        });
+      }
+
+      const docRef = db.collection("trabajos_ia").doc(uid);
+      const docSnap = await docRef.get();
+
+      if (!docSnap.exists) {
+        return res.status(404).json({
+          ok: false,
+          error: "No se encontró el documento para el uid proporcionado.",
+        });
+      }
+
+      const data = docSnap.data() || {};
+
+      return res.status(200).json({
+        ok: true,
+        data: {
+          facturacionEmail:
+            data.facturacionEmail !== undefined ? data.facturacionEmail : null,
+          facturacionTelefono:
+            data.facturacionTelefono !== undefined
+              ? data.facturacionTelefono
+              : null,
+        },
+      });
+    } catch (error) {
+      console.error("Error en obtener_contacto_user:", error);
+      return res.status(500).json({
+        ok: false,
+        error: "Ocurrió un error al obtener los datos de facturación.",
+      });
+    }
+  },
+);
+
+const nuevo_registro = onRequest(
+  {
+    region: "us-central1",
+    timeoutSeconds: 120,
+    memory: "256MiB",
+    cors: true,
+  },
+  async (req, res) => {
+    console.log("📲 [enviarWhatsApp_registro] Body recibido:", req.body);
+
+    try {
+      const { telefono, nombre_user } = req.body;
+
+      if (!telefono) {
+        console.error(
+          "⚠️ [enviarWhatsApp_registro] telefono vacío o undefined, usando default",
+        );
+      }
+      if (!nombre_user) {
+        console.error(
+          "⚠️ [enviarWhatsApp_registro] nombre_user vacío o undefined",
+        );
+      }
+
+      const telefonoFinal = `51${telefono || "937659216"}`;
+
+      const payload = {
+        messaging_product: "whatsapp",
+        to: telefonoFinal,
+        type: "template",
+        template: {
+          name: "registro",
+          language: {
+            code: "es",
+          },
+          components: [
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  text: nombre_user,
+                },
+              ],
+            },
+          ],
+        },
+      };
+
+      console.log("========== WHATSAPP TEMPLATE ==========");
+      console.log("PHONE_ID:", PHONE_ID);
+      console.log("telefono:", telefonoFinal);
+      console.log("nombre_user:", nombre_user);
+      console.log("payload:");
+      console.log(JSON.stringify(payload, null, 2));
+      console.log("======================================");
+
+      const respuesta = await axios.post(
+        `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      console.log(
+        "✅ WhatsApp enviado correctamente. Status:",
+        respuesta.status,
+      );
+      console.log(
+        "✅ Respuesta completa:",
+        JSON.stringify(respuesta.data, null, 2),
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "WhatsApp enviado correctamente",
+        data: respuesta.data,
+      });
+    } catch (error) {
+      console.error("❌ ERROR WHATSAPP - status:", error.response?.status);
+      console.error(
+        "❌ ERROR WHATSAPP - data:",
+        JSON.stringify(error.response?.data, null, 2) || error.message,
+      );
+      console.error("❌ ERROR WHATSAPP - message:", error.message);
+
+      return res.status(500).json({
+        success: false,
+        message: "Error al enviar WhatsApp",
+        error: error.response?.data || error.message,
+      });
+    }
+  },
+);
+
+
 module.exports = {
+  nuevo_registro,
+  obtener_contacto_user,
+  guardar_contacto_user,
+  obtenerCategorias_datas,
   guardarContextoBotn8n,
   obtenerConsultaPendiente,
   guardarConsultaPendiente,
