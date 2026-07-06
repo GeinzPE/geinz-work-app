@@ -718,13 +718,13 @@ exports.obtener_lugares_emergencia_Actualizado = onRequest(async (req, res) => {
   }
 });
 
-// ============================================================
-// 🟣 SELECTOR DE MEJOR PROMOCIÓN (Gemini 2.5 Flash - optimizado)
-// ============================================================
+// --- Normaliza array de pagos a string estable (para agrupar bien) ---
+function normalizarPagos(pagos) {
+  if (Array.isArray(pagos)) return [...pagos].sort().join(",");
+  return pagos || "";
+}
 
 // --- Normaliza y recorta los resultados antes de mandarlos al prompt ---
-// maxItems: cuántas promos como máximo se incluyen
-// maxDescLen: largo máximo de la descripción (evita gastar tokens de más)
 function prepararResultados(lista, maxItems = 8, maxDescLen = 120) {
   if (!Array.isArray(lista)) return [];
 
@@ -733,24 +733,53 @@ function prepararResultados(lista, maxItems = 8, maxDescLen = 120) {
     sc: r.sc ?? "",
     t: r.t ?? "",
     desc: (r.desc || "").toString().slice(0, maxDescLen),
-    pagos: r.pagos ?? "",
+    pagos: normalizarPagos(r.pagos),
     precio: r.precio ?? "",
     como: r.como ?? "",
-    // normaliza a string para que compactar() los imprima consistentes
     p_ok: r.p_ok === true ? "true" : r.p_ok === false ? "false" : "",
     pr_ok: r.pr_ok === true ? "true" : r.pr_ok === false ? "false" : "",
   }));
 }
 
-// --- Formato compacto (evita repetir nombres de campo como JSON) ---
+// --- Agrupa promos que comparten tienda + método de pago ---
+function agruparPorTiendaYPago(lista) {
+  const grupos = {};
+  for (const r of lista) {
+    const key = `${r.t}||${r.pagos}`;
+    if (!grupos[key]) {
+      grupos[key] = { t: r.t, pagos: r.pagos, items: [] };
+    }
+    grupos[key].items.push({
+      id: r.id,
+      sc: r.sc,
+      desc: r.desc,
+      precio: r.precio,
+      como: r.como,
+      p_ok: r.p_ok,
+      pr_ok: r.pr_ok,
+    });
+  }
+  return Object.values(grupos);
+}
+
+// --- Formato compacto AGRUPADO: tienda/pagos una sola vez, desc por promo ---
 function compactar(lista) {
   if (!lista.length) return "ninguna";
-  return lista
-    .map(
-      (r) =>
-        `${r.id}~${r.sc}~${r.t}~${r.desc}~${r.pagos}~${r.precio}~${r.como}~${r.p_ok}~${r.pr_ok}`,
-    )
-    .join("\n");
+
+  const grupos = agruparPorTiendaYPago(lista);
+
+  return grupos
+    .map((g) => {
+      const header = `TIENDA:${g.t}|PAGOS:${g.pagos || "no_especificado"}`;
+      const items = g.items
+        .map(
+          (it) =>
+            `  ${it.id}~${it.sc}~${it.desc}~${it.precio}~${it.como}~${it.p_ok}~${it.pr_ok}`,
+        )
+        .join("\n");
+      return `${header}\n${items}`;
+    })
+    .join("\n\n");
 }
 
 function construirPromptPromo(
@@ -762,11 +791,12 @@ function construirPromptPromo(
 ) {
   return `Eres un informador peruano. Elige la mejor promo para el usuario.
 
-FORMATO DE DATOS (una promo por línea, separado por ~):
-id~sc~t~desc~pagos~precio~como~p_ok~pr_ok
+FORMATO DE DATOS (agrupado por tienda y pagos para ahorrar tokens; cada línea debajo del header es una promo distinta de esa misma tienda):
+TIENDA:nombre|PAGOS:métodos
+  id~sc~desc~precio~como~p_ok~pr_ok
 
 GLOSARIO:
-sc=score relevancia(mayor=mejor) | t=tienda | desc=descripción | pagos=métodos aceptados | precio=rango en soles(vacío=no especificado) | como=comodidades | p_ok=true/false/vacío(match de pago pedido) | pr_ok=true/false/vacío(match de precio pedido) | vacío=usuario no filtró eso
+sc=score relevancia(mayor=mejor) | desc=descripción | precio=rango en soles(vacío=no especificado) | como=comodidades | p_ok=true/false/vacío(match de pago pedido) | pr_ok=true/false/vacío(match de precio pedido) | vacío=usuario no filtró eso
 
 CONTEXTO
 Momento: ${momento}
@@ -781,6 +811,7 @@ ${compactar(alt)}
 
 REGLAS
 - Usa SOLO estos datos, nunca inventes
+- Si varias promos son de la misma tienda (mismo header TIENDA), compáralas por desc/precio/como y elige la(s) que mejor calce con lo que pidió el usuario
 - Ten en cuenta lo que pidió el usuario en su mensaje para elegir mejor y ajustar el tono de la respuesta
 - Si p_ok=false, avisa que no hay con ese pago y ofrece la alternativa con sus pagos reales
 - Si todo viene vacío, el usuario no filtró nada: recomienda directo
@@ -790,6 +821,7 @@ REGLAS
 - Usa el momento del día de forma natural
 - Máximo 2 líneas y 2 emojis
 - Si no hay promos ni alternativas, dilo directo
+- NUNCA SALUDES con hola ni que buena ni que tal o similares
 
 DECISIÓN
 - 2+ promos relevantes → varios=true, incluye sus ids
@@ -798,6 +830,8 @@ DECISIÓN
 }
 
 exports.elegir_mejor_promo = onRequest(async (req, res) => {
+  const inicioTiempo = Date.now();
+
   try {
     const { momento, resultados, alt, nombre_usuario, mensaje_usuario } =
       req.body;
@@ -861,9 +895,18 @@ exports.elegir_mejor_promo = onRequest(async (req, res) => {
 
     const geminiData = await geminiRes.json();
 
+    // =========================
+    // 📊 LOG DETALLADO DE TOKENS
+    // =========================
+    const usage = geminiData?.usageMetadata || {};
+    const promptTokens = usage.promptTokenCount ?? 0;
+    const respuestaTokens = usage.candidatesTokenCount ?? 0;
+    const pensamientoTokens = usage.thoughtsTokenCount ?? 0;
+    const totalTokens = usage.totalTokenCount ?? 0;
+    const tiempoMs = Date.now() - inicioTiempo;
+
     console.log(
-      "📊 TOKENS USADOS:",
-      JSON.stringify(geminiData?.usageMetadata || {}),
+      `📊 TOKENS | prompt: ${promptTokens} | respuesta: ${respuestaTokens} | thinking: ${pensamientoTokens} | TOTAL: ${totalTokens} | tiempo: ${tiempoMs}ms | usuario: ${nombreUsuario} | promos_enviadas: ${resultadosFiltrados.length} | alt_enviadas: ${altFiltrada.length}`,
     );
 
     const rawText =
@@ -890,6 +933,15 @@ exports.elegir_mejor_promo = onRequest(async (req, res) => {
     return res.status(200).json({
       ok: true,
       data: resultado,
+      _debug: {
+        tokens: {
+          prompt: promptTokens,
+          respuesta: respuestaTokens,
+          thinking: pensamientoTokens,
+          total: totalTokens,
+        },
+        tiempoMs,
+      },
     });
   } catch (error) {
     console.error("❌ Error elegir_mejor_promo:", error.message);

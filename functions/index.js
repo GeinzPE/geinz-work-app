@@ -120,7 +120,7 @@ exports.clasificador_geinz_categorias_negocios =
 exports.clasificador_geinz_turismo = clasificador_geinz_turismo;
 exports.buscar_por_categoria_subcateogira_Actualizado = buscar_por_categoria_subcateogira_Actualizado;
 exports.obtener_lugares_emergencia_Actualizado = obtener_lugares_emergencia_Actualizado;
-exports.elegir_mejor_promo = elegir_mejor_promo;elegir_mejor_promo
+exports.elegir_mejor_promo = elegir_mejor_promo;
 
 const axios = require("axios");
 const CULQI_KEY = process.env.CULQI_KEY;
