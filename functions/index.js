@@ -113,12 +113,13 @@ exports.webhookCulqiOrder_scagAI = webhookCulqiOrder_scagAI;
 exports.confirmarPagoPlan = confirmarPagoPlan;
 
 const {
-  clasificador_geinz_categorias_negocios,clasificador_geinz_turismo,buscar_por_categoria_subcateogira_Actualizado,obtener_lugares_emergencia_Actualizado,elegir_mejor_promo
+  geinz_buscar_unificado,
+  clasificador_geinz_turismo,
+  obtener_lugares_emergencia_Actualizado
+  ,elegir_mejor_promo
 } = require("./asistentes_AI_geinz");
-exports.clasificador_geinz_categorias_negocios =
-  clasificador_geinz_categorias_negocios;
+exports.geinz_buscar_unificado = geinz_buscar_unificado;
 exports.clasificador_geinz_turismo = clasificador_geinz_turismo;
-exports.buscar_por_categoria_subcateogira_Actualizado = buscar_por_categoria_subcateogira_Actualizado;
 exports.obtener_lugares_emergencia_Actualizado = obtener_lugares_emergencia_Actualizado;
 exports.elegir_mejor_promo = elegir_mejor_promo;
 
