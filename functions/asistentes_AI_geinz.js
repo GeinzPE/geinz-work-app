@@ -18,7 +18,7 @@ const { obtener_creditos_tienda_fn } = require("./test_db2");
 // va a tirar "similarity is not defined". Falta algo como:
 //   const similarity = require("./similarity"); // o el paquete que uses
 // Avísame cuál usas y te lo dejo importado correctamente.
-
+const similarity = require("string-similarity-js");
 const openai = new OpenAI({
   apiKey: process.env.API_KEYO_OPEN_IA,
 });
@@ -165,6 +165,54 @@ function verificar_apertura_tienda(horario_atencion) {
 let categoriasCache = null;
 let categoriasCacheTimestamp = 0;
 
+function parsearClasificacionIA(rawContent) {
+  const defaults = {
+    nombre: null,
+    categoria: null,
+    subcategoria: null,
+    tipo: "tiendas",
+    search: false,
+    heredar_contexto: false,
+    pregunta: false,
+    registro: false,
+    excluir_id: null,
+  };
+
+  if (!rawContent || typeof rawContent !== "string") return defaults;
+
+  let parsed;
+  try {
+    parsed = JSON.parse(rawContent);
+  } catch (e) {
+    console.error("❌ Error parseando clasificación:", e.message, "| RAW:", rawContent.slice(0, 200));
+    return defaults;
+  }
+
+  // 🔧 Normaliza campos: "null" string → null real
+  const limpiarNull = (v) => {
+    if (typeof v === "string" && v.trim().toLowerCase() === "null") return null;
+    return v;
+  };
+
+  // 🔧 Normaliza booleanos que a veces llegan como string "true"/"false"
+  const limpiarBool = (v) => {
+    if (typeof v === "boolean") return v;
+    if (typeof v === "string") return v.trim().toLowerCase() === "true";
+    return false;
+  };
+
+  return {
+    nombre: limpiarNull(parsed.nombre) || null,
+    categoria: limpiarNull(parsed.categoria) || null,
+    subcategoria: limpiarNull(parsed.subcategoria) || null,
+    tipo: parsed.tipo || "tiendas",
+    search: limpiarBool(parsed.search),
+    heredar_contexto: limpiarBool(parsed.heredar_contexto),
+    pregunta: limpiarBool(parsed.pregunta),
+    registro: limpiarBool(parsed.registro),
+    excluir_id: limpiarNull(parsed.excluir_id) || null,
+  };
+}
 async function obtenerCategoriasConSub() {
   const ahora = Date.now();
   if (categoriasCache && ahora - categoriasCacheTimestamp < CACHE_TTL_MS) {
@@ -199,21 +247,21 @@ async function obtenerCategoriasConSub() {
 // Decide: nombre propio vs categoria. NO decide subcategoria todavía.
 // ----------------------------------------------------------------------------
 function construirPromptClasificacion(mensaje, contextoPrevio, lista) {
-  const contextoStr = JSON.stringify(
-    contextoPrevio?.contexto_usuario ?? contextoPrevio ?? {
-      tipo: "GEINZ",
-      categoria: "null",
-      extra: "null",
-      id: null,
-      nombre: "null",
-    },
-  );
+  const contextoRaw = contextoPrevio?.contexto_usuario ?? contextoPrevio;
+
+  const contextoStr =
+    contextoRaw === undefined || contextoRaw === null
+      ? "null"
+      : typeof contextoRaw === "string"
+        ? contextoRaw
+        : JSON.stringify(contextoRaw);
 
   const categoriasStr = lista.join(",");
 
   return `contexto anterior del usuario es: ${contextoStr}
 Responde SOLO con JSON válido:
 {"nombre":string|null,"categoria":string|null,"subcategoria":null,"tipo":"tiendas","search":boolean,"heredar_contexto":boolean,"pregunta":boolean,"registro":boolean,"excluir_id":string|null}
+IMPORTANTE: cuando un campo no aplique, usa el valor JSON null (sin comillas). NUNCA escribas el texto "null" entre comillas como si fuera un string.
 CATEGORIAS: ${categoriasStr}
 REGLAS DE SEGURIDAD (Prioridad Máxima):
 1. Si detectas entidades de auxilio públicas (serenazgo, policia, comisaria, bomberos, samu, hospital, posta, ambulancia) o palabras de crisis (robo, auxilio, fuego, choque) → categoria="emergencia"
@@ -234,7 +282,6 @@ REGLAS:
 
 MENSAJE DEL USUARIO: "${mensaje}"`;
 }
-
 // ----------------------------------------------------------------------------
 // 3.2b Prompt 2: SELECTOR DE SUBCATEGORIA
 // Solo se llama si hay categoria, NO hay nombre y NO se hereda del contexto.
@@ -243,7 +290,14 @@ MENSAJE DEL USUARIO: "${mensaje}"`;
 // responde "NEGOCIO: [nombre normalizado]" y el endpoint reenruta a búsqueda por nombre.
 // ----------------------------------------------------------------------------
 function construirPromptSubcategoria(mensaje, contextoPrevio, subcategorias) {
-  const contextoStr = JSON.stringify(contextoPrevio?.contexto_usuario ?? contextoPrevio ?? {});
+  const contextoRaw = contextoPrevio?.contexto_usuario ?? contextoPrevio;
+
+  const contextoStr =
+    contextoRaw === undefined || contextoRaw === null
+      ? "null"
+      : typeof contextoRaw === "string"
+        ? contextoRaw
+        : JSON.stringify(contextoRaw);
 
   return `CONTEXTO DEL USUARIO:
 ${contextoStr}
@@ -276,7 +330,7 @@ MENSAJE DEL USUARIO: "${mensaje}"`;
 // ----------------------------------------------------------------------------
 async function buscarPorNombreTienda({ localidad, nombre, search }) {
   console.log("🔍 [buscar_tienda] Parámetros recibidos:", { localidad, nombre, search });
-
+ 
   const ATTRS_NOMBRE = [
     "objectID",
     "nombre",
@@ -290,21 +344,21 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
     "msje_whatsapp",
     "alias",
   ];
-
+ 
   const filters = [];
   if (localidad) filters.push(`lugar:"${localidad}"`);
   filters.push(`NOT categoria:"turismo"`);
   filters.push(`NOT categoria:"salud"`);
   console.log("🔧 [buscar_tienda] Filtros aplicados:", filters);
-
+ 
   const query = (nombre || "").toLowerCase().trim();
   console.log("🔎 [buscar_tienda] Query normalizado:", query);
-
+ 
   if (!query) {
     console.warn("⚠️ [buscar_tienda] Query vacío, retornando lista vacía");
     return [];
   }
-
+ 
   console.log("🚀 [buscar_tienda] Iniciando búsqueda en Algolia...");
   let { hits } = await index.search(query, {
     filters: filters.join(" AND "),
@@ -315,7 +369,7 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
     attributesToRetrieve: ATTRS_NOMBRE,
   });
   console.log(`✅ [buscar_tienda] Algolia retornó ${hits.length} hits normales`);
-
+ 
   if (hits.length > 0) {
     hits = hits.map((h) => ({ ...h, similarity: 1, match_keyword: query }));
     console.log(
@@ -323,36 +377,50 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
       hits.map((h) => ({ id: h.objectID, nombre: h.nombre })),
     );
   }
-
+ 
   if (hits.length === 0) {
     console.log("🔄 [buscar_tienda] Sin hits normales, iniciando fallback inteligente...");
-
+ 
     const { hits: hitsFallback } = await index.search("", {
       filters: filters.join(" AND "),
       hitsPerPage: 150,
       attributesToRetrieve: ATTRS_NOMBRE,
     });
     console.log(`📥 [buscar_tienda] Fallback: ${hitsFallback.length} candidatos para comparar`);
-
+ 
+    // 🔧 CAMBIO 2: nuevo umbral (antes 0.35) + validación de longitud
+    const UMBRAL_MINIMO = 0.55;
+    const RATIO_LONGITUD_MINIMO = 0.6;
+ 
     hits = hitsFallback
       .map((h) => {
         let bestScore = 0;
         let bestKeyword = null;
-
+ 
         if (typeof h.nombre === "string") {
           const value = h.nombre.toLowerCase();
-          let score = similarity.stringSimilarity(query, value);
-          if (value.includes(query)) score += 0.2;
-          if (score > bestScore) {
-            bestScore = score;
-            bestKeyword = h.nombre;
+          // 🔧 CAMBIO 2: chequeo de longitud antes de calcular similarity
+          const minLen = Math.min(query.length, value.length);
+          const maxLen = Math.max(query.length, value.length);
+          const lengthOk = maxLen > 0 ? minLen / maxLen >= RATIO_LONGITUD_MINIMO : false;
+          if (lengthOk) {
+            let score = similarity.stringSimilarity(query, value);
+            if (value.includes(query)) score += 0.2;
+            if (score > bestScore) {
+              bestScore = score;
+              bestKeyword = h.nombre;
+            }
           }
         }
-
+ 
         if (Array.isArray(h.parecidas)) {
           for (const p of h.parecidas) {
             if (typeof p !== "string") continue;
             const value = p.toLowerCase();
+            const minLen = Math.min(query.length, value.length);
+            const maxLen = Math.max(query.length, value.length);
+            const lengthOk = maxLen > 0 ? minLen / maxLen >= RATIO_LONGITUD_MINIMO : false;
+            if (!lengthOk) continue;
             let score = similarity.stringSimilarity(query, value);
             if (value.includes(query)) score += 0.2;
             if (score > bestScore) {
@@ -361,11 +429,15 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
             }
           }
         }
-
+ 
         if (Array.isArray(h.tag)) {
           for (const t of h.tag) {
             if (typeof t !== "string") continue;
             const value = t.toLowerCase();
+            const minLen = Math.min(query.length, value.length);
+            const maxLen = Math.max(query.length, value.length);
+            const lengthOk = maxLen > 0 ? minLen / maxLen >= RATIO_LONGITUD_MINIMO : false;
+            if (!lengthOk) continue;
             let score = similarity.stringSimilarity(query, value);
             if (value.includes(query)) score += 0.15;
             if (score > bestScore) {
@@ -374,80 +446,86 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
             }
           }
         }
-
+ 
         if (typeof h.categoria === "string") {
           const value = h.categoria.toLowerCase();
-          let score = similarity.stringSimilarity(query, value);
-          if (value.includes(query)) score += 0.1;
-          if (score > bestScore) {
-            bestScore = score;
-            bestKeyword = h.categoria;
+          const minLen = Math.min(query.length, value.length);
+          const maxLen = Math.max(query.length, value.length);
+          const lengthOk = maxLen > 0 ? minLen / maxLen >= RATIO_LONGITUD_MINIMO : false;
+          if (lengthOk) {
+            let score = similarity.stringSimilarity(query, value);
+            if (value.includes(query)) score += 0.1;
+            if (score > bestScore) {
+              bestScore = score;
+              bestKeyword = h.categoria;
+            }
           }
         }
-
-        if (bestScore >= 0.35) {
+ 
+        // 🔧 CAMBIO 2: 0.55 en vez de 0.35
+        if (bestScore >= UMBRAL_MINIMO) {
           console.log(
             `✅ [fallback] "${h.nombre}" pasó filtro → score: ${bestScore.toFixed(2)}, keyword: ${bestKeyword}`,
           );
           return { ...h, similarity: bestScore, match_keyword: bestKeyword };
         }
-
+ 
         console.log(`❌ [fallback] "${h.nombre}" descartado → score: ${bestScore.toFixed(2)}`);
         return null;
       })
       .filter(Boolean)
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, 10);
-
+ 
     console.log(`📊 [buscar_tienda] Fallback final: ${hits.length} hits seleccionados`);
   }
-
+ 
   const ids = hits.map((h) => h.objectID);
   console.log("🆔 [buscar_tienda] IDs a consultar en Firestore:", ids);
-
+ 
   const idsConFlag = hits.filter((h) => h.plantilla === true).map((h) => h.objectID);
   const idsSinFlag = hits.filter((h) => h.plantilla !== true).map((h) => h.objectID);
   console.log("🏷️ [buscar_tienda] IDs con plantilla:", idsConFlag);
   console.log("🏷️ [buscar_tienda] IDs sin plantilla:", idsSinFlag);
-
+ 
   console.log("⚡ [buscar_tienda] Consultando extraData y créditos en paralelo...");
   const [extraData, creditosResults] = await Promise.all([
     obtenerDatosPorIds(localidad, ids),
     idsConFlag.length > 0
       ? Promise.all(
-          idsConFlag.map((id) =>
-            obtener_creditos_tienda_fn(id)
-              .then((r) => {
-                const mayor_a_100 = r?.creditos > 100;
-                console.log(
-                  `💰 [creditos] ${id} → creditos: ${r?.creditos} | mayor_a_100: ${mayor_a_100}`,
-                );
-                return { id, mayor_a_100 };
-              })
-              .catch((e) => {
-                console.error(`❌ [creditos] Error obteniendo créditos para ${id}:`, e.message);
-                return { id, mayor_a_100: false };
-              }),
-          ),
-        )
+        idsConFlag.map((id) =>
+          obtener_creditos_tienda_fn(id)
+            .then((r) => {
+              const mayor_a_100 = r?.creditos > 100;
+              console.log(
+                `💰 [creditos] ${id} → creditos: ${r?.creditos} | mayor_a_100: ${mayor_a_100}`,
+              );
+              return { id, mayor_a_100 };
+            })
+            .catch((e) => {
+              console.error(`❌ [creditos] Error obteniendo créditos para ${id}:`, e.message);
+              return { id, mayor_a_100: false };
+            }),
+        ),
+      )
       : Promise.resolve([]),
   ]);
   console.log("✅ [buscar_tienda] extraData obtenida para IDs:", Object.keys(extraData));
-
+ 
   const creditosMap = Object.fromEntries(
     creditosResults.map(({ id, mayor_a_100 }) => [id, mayor_a_100]),
   );
   console.log("💳 [buscar_tienda] creditosMap:", creditosMap);
-
+ 
   const data = hits.map((hit) => {
     const extra = extraData[hit.objectID] || {};
     const tienePlan = hit.plantilla === true && creditosMap[hit.objectID] === true;
     const eraPlantillaSinCreditos = hit.plantilla === true && creditosMap[hit.objectID] !== true;
-
+ 
     console.log(
       `🏪 [buscar_tienda] Mapeando tienda: ${hit.nombre} | plantilla: ${hit.plantilla} | tienePlan: ${tienePlan}`,
     );
-
+ 
     const base = {
       id: hit.objectID,
       tienda: hit.nombre || "",
@@ -455,9 +533,9 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
       match_keyword: hit.match_keyword || null,
       similarity: Number((hit.similarity || 0).toFixed(2)),
     };
-
+ 
     if (search === true) return base;
-
+ 
     return {
       ...base,
       desc: (hit.descripcion || "").substring(0, 150),
@@ -472,7 +550,7 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
       tipo: "tienda",
     };
   });
-
+ 
   console.log(`🎯 [buscar_tienda] Respuesta final: ${data.length} tiendas`);
   return data;
 }
@@ -541,12 +619,12 @@ async function buscarPorCategoria({ localidad, categoria, subcategoria, excluir_
     obtenerDatosPorIds(localidad, ids),
     idsConFlag.length > 0
       ? Promise.all(
-          idsConFlag.map((id) =>
-            obtener_creditos_tienda_fn(id)
-              .then((r) => ({ id, mayor_a_100: r?.creditos > 100 }))
-              .catch(() => ({ id, mayor_a_100: false })),
-          ),
-        )
+        idsConFlag.map((id) =>
+          obtener_creditos_tienda_fn(id)
+            .then((r) => ({ id, mayor_a_100: r?.creditos > 100 }))
+            .catch(() => ({ id, mayor_a_100: false })),
+        ),
+      )
       : Promise.resolve([]),
   ]);
 
@@ -638,7 +716,7 @@ function parsearRespuestaIA(raw) {
     if (limpio.startsWith('"') || limpio.startsWith("'")) {
       try {
         limpio = JSON.parse(limpio);
-      } catch (e) {}
+      } catch (e) { }
     }
     limpio = limpio.replace(/([,{]\s*)([a-zA-Z_]\w*)\s*:/g, '$1"$2":');
     const match = limpio.match(/\{.*\}/s);
@@ -654,12 +732,23 @@ function parsearRespuestaIA(raw) {
 // 3.5 🚀 ENDPOINT COMPLETO: clasifica -> (subcategoria si aplica) -> busca -> Gemini elige y redacta -> arma salida EXACTA
 // ----------------------------------------------------------------------------
 exports.geinz_buscar_unificado = onRequest(async (req, res) => {
-  // ⏱️ Inicio de medición de tiempo total
   const tiempoInicioTotal = Date.now();
 
-  // 🔢 Acumuladores de tokens
   let tokensOpenAI = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
   let tokensGemini = { promptTokenCount: 0, candidatesTokenCount: 0, totalTokenCount: 0 };
+
+  // 🪵 Acumulador de trazas/debug para la respuesta final
+  const trace = {
+    tipo_busqueda: null, // "nombre" | "categoria" | "sin_resultado"
+    clasificacion_raw: null,
+    prompt_clasificacion: null,
+    subcategoria_usada: null,
+    prompt_subcategoria: null,
+    reenrutado_a_nombre: false, // true si prompt2 detectó NEGOCIO cuando prompt1 dijo categoria
+    heredo_contexto: false,
+    prompt_respuesta_gemini: null,
+    respuesta_gemini_raw: null,
+  };
 
   try {
     const { mensaje, contexto_previo, localidad, excluir_id, nombre_usuario } = req.body;
@@ -671,20 +760,20 @@ exports.geinz_buscar_unificado = onRequest(async (req, res) => {
     const momento_dia = obtenerMomentoDia();
 
     // ==========================================================================
-    // 1a) PROMPT 1 — CLASIFICADOR: SOLO nombres de categoría, decide nombre vs categoria
+    // 1a) PROMPT 1 — CLASIFICADOR
     // ==========================================================================
     const { lista, mapaSub } = await obtenerCategoriasConSub();
     const promptClasificacion = construirPromptClasificacion(mensaje, contexto_previo, lista);
+    trace.prompt_clasificacion = promptClasificacion; // 🪵 guardamos el prompt exacto usado
 
     const completionClasificacion = await openai.chat.completions.create({
-      model: "gpt-5-nano",
+      model: "gpt-5.4-nano",
       messages: [{ role: "user", content: promptClasificacion }],
       response_format: { type: "json_object" },
-      reasoning_effort: "minimal", // 🔧 evita tokens de razonamiento oculto en una clasificación simple
+      reasoning_effort: "none",
       max_completion_tokens: 300,
     });
 
-    // 🔢 Capturar tokens de OpenAI (llamada 1: clasificador)
     if (completionClasificacion?.usage) {
       tokensOpenAI = {
         prompt_tokens: completionClasificacion.usage.prompt_tokens || 0,
@@ -693,30 +782,22 @@ exports.geinz_buscar_unificado = onRequest(async (req, res) => {
       };
     }
 
-    let clasificacion;
-    try {
-      clasificacion = JSON.parse(completionClasificacion.choices[0]?.message?.content || "{}");
-    } catch (e) {
-      console.error("❌ Error parseando clasificación:", e.message);
-      clasificacion = { nombre: null, categoria: null, search: false, excluir_id: null, heredar_contexto: false };
-    }
+    const clasificacion = parsearClasificacionIA(completionClasificacion.choices[0]?.message?.content);
+
+    trace.clasificacion_raw = clasificacion; // 🪵 guardamos el JSON crudo devuelto por el modelo
 
     let { nombre, categoria, search } = clasificacion;
     const { heredar_contexto } = clasificacion;
+    trace.heredo_contexto = !!heredar_contexto;
 
     // ==========================================================================
     // 1b) PROMPT 2 — SELECTOR DE SUBCATEGORIA
-    // Solo se llama si: NO hay nombre, NO se hereda del contexto, y la categoria tiene subcategorias.
-    // Si el modelo detecta que en realidad es un nombre de negocio (NEGOCIO: [nombre]),
-    // se reenruta automáticamente a búsqueda por nombre.
     // ==========================================================================
     let subcategoria = null;
 
     if (nombre) {
-      // Ya se detectó nombre en el prompt 1 → no se gasta tokens en subcategoria
       subcategoria = null;
     } else if (heredar_contexto) {
-      // Rechazo/continuación → se hereda subcategoria EXACTA del contexto previo, sin llamar a la IA de nuevo
       const ctxUsuario = contexto_previo?.contexto_usuario ?? contexto_previo ?? {};
       subcategoria = ctxUsuario?.subcategoria || null;
     } else if (categoria) {
@@ -724,15 +805,15 @@ exports.geinz_buscar_unificado = onRequest(async (req, res) => {
 
       if (subsDisponibles.length > 0) {
         const promptSubcategoria = construirPromptSubcategoria(mensaje, contexto_previo, subsDisponibles);
+        trace.prompt_subcategoria = promptSubcategoria; // 🪵 guardamos el prompt exacto usado
 
         const completionSubcategoria = await openai.chat.completions.create({
-          model: "gpt-5-nano",
+          model: "gpt-5.4-nano",
           messages: [{ role: "user", content: promptSubcategoria }],
-          reasoning_effort: "minimal", // 🔧 respuesta de una sola línea, no requiere razonar de más
+          reasoning_effort: "none",
           max_completion_tokens: 60,
         });
 
-        // 🔢 Sumar tokens de OpenAI (llamada 2: selector de subcategoría)
         if (completionSubcategoria?.usage) {
           tokensOpenAI.prompt_tokens += completionSubcategoria.usage.prompt_tokens || 0;
           tokensOpenAI.completion_tokens += completionSubcategoria.usage.completion_tokens || 0;
@@ -743,15 +824,16 @@ exports.geinz_buscar_unificado = onRequest(async (req, res) => {
 
         const matchNegocio = rawSub.match(/^NEGOCIO\s*:\s*(.+)$/i);
         if (matchNegocio) {
-          // 🔁 Reenrutar a búsqueda por nombre: el prompt 1 no lo detectó, pero el prompt 2 sí
           nombre = matchNegocio[1].trim();
           categoria = null;
           subcategoria = null;
+          trace.reenrutado_a_nombre = true; // 🪵 el prompt 2 detectó que era un negocio, no una categoría
         } else {
           subcategoria = rawSub || null;
         }
       }
     }
+    trace.subcategoria_usada = subcategoria; // 🪵 subcategoría final (heredada, elegida por IA, o null)
 
     // ==========================================================================
     // 2) BUSCAR — por nombre O por categoria+subcategoria, nunca ambos
@@ -759,8 +841,10 @@ exports.geinz_buscar_unificado = onRequest(async (req, res) => {
     let resultadosBusqueda = [];
 
     if (nombre) {
+      trace.tipo_busqueda = "nombre"; // 🪵
       resultadosBusqueda = await buscarPorNombreTienda({ localidad, nombre, search });
     } else if (categoria) {
+      trace.tipo_busqueda = "categoria"; // 🪵
       const resultado = await buscarPorCategoria({
         localidad,
         categoria,
@@ -768,12 +852,15 @@ exports.geinz_buscar_unificado = onRequest(async (req, res) => {
         excluir_id: excluir_id || clasificacion.excluir_id,
       });
       resultadosBusqueda = resultado.data;
+    } else {
+      trace.tipo_busqueda = "sin_criterio"; // 🪵 ni nombre ni categoria (caso raro, ej geinz/emergencia)
     }
 
     // 3) 2da IA (GEMINI) -> elige 1 negocio y redacta el mensaje
     let response;
 
     if (!resultadosBusqueda.length) {
+      trace.tipo_busqueda = trace.tipo_busqueda === "sin_criterio" ? "sin_criterio" : "sin_resultado"; // 🪵
       response = {
         id: "sin_id",
         mensaje: "No encontré nada por ahora, cuéntame qué buscas o prueba con otro nombre",
@@ -806,6 +893,8 @@ REGLAS:
 - Si el usuario menciona un nombre exacto de negocio → elegir ese sin importar si está abierto o cerrado
 FORMATO OBLIGATORIO:
 {"id":"{id}","mensaje":"...","intencion":"NEGOCIO"}`;
+
+      trace.prompt_respuesta_gemini = promptRespuesta; // 🪵 guardamos el prompt exacto enviado a Gemini
 
       const bodyGemini = {
         contents: [{ parts: [{ text: promptRespuesta }] }],
@@ -843,7 +932,6 @@ FORMATO OBLIGATORIO:
       } else {
         const geminiData = await geminiRes.json();
 
-        // 🔢 Capturar tokens de Gemini
         if (geminiData?.usageMetadata) {
           tokensGemini = {
             promptTokenCount: geminiData.usageMetadata.promptTokenCount || 0,
@@ -853,6 +941,7 @@ FORMATO OBLIGATORIO:
         }
 
         const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+        trace.respuesta_gemini_raw = rawText; // 🪵 guardamos la respuesta cruda de Gemini
         response = parsearRespuestaIA(rawText);
         if (!response || !Object.keys(response).length) {
           response = { id: "sin_id", mensaje: rawText || "Sin respuesta", intencion: "ERROR_FORMATO_IA" };
@@ -908,13 +997,11 @@ FORMATO OBLIGATORIO:
     const esTiendaSinPlantilla = !usa_plantilla;
     const token_wsap = usa_plantilla ? generarToken() : "";
 
-    // ⏱️ Fin de medición de tiempo total
     const tiempoTotalMs = Date.now() - tiempoInicioTotal;
 
-    // 🔢 Consolidado de tokens usados en ambas IAs
     const tokens_usados = {
       openai: {
-        modelo: "gpt-5-nano",
+        modelo: "gpt-5.4-nano",
         nota: "suma de 1 o 2 llamadas: clasificador (solo categorias) + selector de subcategoria (si aplico)",
         prompt_tokens: tokensOpenAI.prompt_tokens,
         completion_tokens: tokensOpenAI.completion_tokens,
@@ -927,6 +1014,20 @@ FORMATO OBLIGATORIO:
       },
       total_tokens_combinado: tokensOpenAI.total_tokens + tokensGemini.totalTokenCount,
     };
+
+    // 🪵 Log en consola (para Cloud Logging) de la traza completa del flujo
+    console.log("🧭 [geinz_tienda_completo] TRACE:", JSON.stringify({
+      mensaje,
+      tipo_busqueda: trace.tipo_busqueda,
+      heredo_contexto: trace.heredo_contexto,
+      reenrutado_a_nombre: trace.reenrutado_a_nombre,
+      clasificacion_raw: trace.clasificacion_raw,
+      subcategoria_usada: trace.subcategoria_usada,
+      total_resultados: resultadosBusqueda.length,
+      id_elegido: idFinal,
+      tokens_usados,
+      tiempo_total_ms: tiempoTotalMs,
+    }));
 
     return res.status(200).json({
       ...response,
@@ -943,20 +1044,36 @@ FORMATO OBLIGATORIO:
       nombre_negocio,
       token_wsap,
       alias_tienda,
-      // 👇 métricas de tokens y tiempo
       tokens_usados,
       tiempo_total_ms: tiempoTotalMs,
       tiempo_total_seg: Number((tiempoTotalMs / 1000).toFixed(2)),
+      // 👇 NUEVO: traza completa del flujo (qué camino tomó, qué prompts usó)
+      debug_trace: {
+        tipo_busqueda: trace.tipo_busqueda,
+        heredo_contexto: trace.heredo_contexto,
+        reenrutado_a_nombre: trace.reenrutado_a_nombre,
+        clasificacion_raw: trace.clasificacion_raw,
+        subcategoria_usada: trace.subcategoria_usada,
+        total_resultados: resultadosBusqueda.length,
+        prompts_usados: {
+          clasificacion: trace.prompt_clasificacion,
+          subcategoria: trace.prompt_subcategoria,
+          respuesta_gemini: trace.prompt_respuesta_gemini,
+        },
+        respuesta_gemini_raw: trace.respuesta_gemini_raw,
+      },
     });
   } catch (error) {
     console.error("❌ [geinz_tienda_completo] Error:", error.message);
     console.error("❌ [geinz_tienda_completo] Stack:", error.stack);
+    console.error("❌ [geinz_tienda_completo] Trace hasta el fallo:", JSON.stringify(trace));
 
     const tiempoTotalMs = Date.now() - tiempoInicioTotal;
 
     return res.status(500).json({
       ok: false,
       error: error.message,
+      debug_trace: trace, // 🪵 aunque falle, mandamos lo que se alcanzó a registrar
       tokens_usados: {
         openai: tokensOpenAI,
         gemini: tokensGemini,
@@ -1055,7 +1172,7 @@ exports.clasificador_geinz_turismo = onRequest(async (req, res) => {
     const prompt = construirPromptTurismo(mensaje, contexto_previo, categorias);
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-5-nano",
+      model: "gpt-5.4-nano",
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
     });
@@ -1103,7 +1220,7 @@ exports.obtener_lugares_emergencia_Actualizado = onRequest(async (req, res) => {
     const promptEmergencia = construirPromptEmergencia(mensaje);
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-5-nano",
+      model: "gpt-5.4-nano",
       messages: [{ role: "user", content: promptEmergencia }],
     });
 
@@ -1354,5 +1471,256 @@ exports.elegir_mejor_promo = onRequest(async (req, res) => {
   } catch (error) {
     console.error("❌ Error elegir_mejor_promo:", error.message);
     return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+
+// ============================================================================
+// 📌 DEPENDENCIAS QUE YA TIENES DEFINIDAS EN TU ARCHIVO (no las repito aquí):
+// db, index (Algolia), onRequest, fetch, GEMINI_URL, GEMINIKEY,
+// obtenerDatosPorIds, verificar_apertura_tienda, obtener_creditos_tienda_fn,
+// obtenerMomentoDia, pick, CTAS, STIKER_TIENDA, parsearRespuestaIA
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// 🔎 Trae UN negocio puntual: por ID directo (index.getObject) o, si no hay id,
+// por NOMBRE (búsqueda simple en Algolia, se queda con el mejor hit).
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// 🔎 Trae UN negocio puntual: por ID directo (index.getObject) o, si no hay id,
+// por NOMBRE (búsqueda simple en Algolia, se queda con el mejor hit).
+// ----------------------------------------------------------------------------
+async function obtenerNegocioPorIdONombre({ id, nombre, localidad }) {
+  const ATTRS = [
+    "objectID",
+    "nombre",
+    "descripcion",
+    "lugar",
+    "categoria",
+    "imagen_bot",
+    "alias",
+  ];
+
+  let hit = null;
+
+  if (id) {
+    try {
+      hit = await index.getObject(id, { attributesToRetrieve: ATTRS });
+    } catch (e) {
+      console.error("❌ [info_negocio] No se encontró objeto por id:", id, e.message);
+      hit = null;
+    }
+  }
+
+  if (!hit && nombre) {
+    const query = nombre.toLowerCase().trim();
+    const filters = [];
+    if (localidad) filters.push(`lugar:"${localidad}"`);
+    filters.push(`NOT categoria:"turismo"`);
+    filters.push(`NOT categoria:"salud"`);
+
+    const { hits } = await index.search(query, {
+      filters: filters.join(" AND "),
+      hitsPerPage: 1,
+      typoTolerance: true,
+      ignorePlurals: true,
+      removeStopWords: true,
+      attributesToRetrieve: ATTRS,
+    });
+
+    hit = hits?.[0] || null;
+  }
+
+  return hit;
+}
+
+// ----------------------------------------------------------------------------
+// 🚀 ENDPOINT: info directa de un negocio (por id o nombre) -> Gemini SOLO
+// redacta el mensaje. El link con alias lo arma el código, nunca Gemini.
+// ----------------------------------------------------------------------------
+exports.geinz_info_negocio = onRequest(async (req, res) => {
+  const tiempoInicioTotal = Date.now();
+  let tokensGemini = { promptTokenCount: 0, candidatesTokenCount: 0, totalTokenCount: 0 };
+
+  try {
+    const { id, nombre, mensaje, localidad, nombre_usuario } = req.body;
+
+    if (!id && (!nombre || !nombre.trim())) {
+      return res.status(400).json({ ok: false, error: "Debes enviar 'id' o 'nombre' del negocio" });
+    }
+
+    const momento_dia = obtenerMomentoDia();
+
+    // 1) Traer el negocio puntual
+    const hit = await obtenerNegocioPorIdONombre({ id, nombre, localidad });
+
+    if (!hit) {
+      return res.status(200).json({
+        id: "sin_id",
+        mensaje: "No encontré ese negocio, prueba con otro nombre",
+        mensaje_safe: "No encontré ese negocio, prueba con otro nombre",
+        intencion: "SIN_DATOS",
+        tokens_usados: { gemini: tokensGemini },
+        tiempo_total_ms: Date.now() - tiempoInicioTotal,
+      });
+    }
+
+    // 2) Extra data (solo horario, para saber si está abierto/cerrado)
+    const extraData = await obtenerDatosPorIds(localidad, [hit.objectID]);
+    const extra = extraData[hit.objectID] || {};
+    const open_state = verificar_apertura_tienda(extra.horario);
+
+    // 3) Data que se le pasa a Gemini — sin plantilla, sin créditos, sin
+    //    whatsapp. Solo lo necesario para que redacte el mensaje.
+    const datoParaPrompt = {
+      id: hit.objectID,
+      tienda: hit.nombre || "",
+      desc: (hit.descripcion || "").substring(0, 150),
+      loc: hit.lugar || "",
+      cat: hit.categoria || "",
+      tipo: "tienda",
+      open_closed: open_state === true ? "abierto" : "cerrado",
+    };
+
+    // 4) PROMPT GEMINI — SOLO redacta el mensaje. El link/alias lo arma el
+    //    código después, Gemini no debe mencionarlo ni construirlo.
+    const promptRespuesta = `Responde en JSON válido.
+DATOS DEL NEGOCIO:
+${JSON.stringify(datoParaPrompt)}
+El usuario se llama: ${nombre_usuario || ""} úsalo siempre
+MENSAJE/PREGUNTA DEL USUARIO: "${mensaje || ""}"
+REGLAS:
+- Responde AL GRANO exactamente lo que el usuario pregunta sobre ESTE negocio (id:${hit.objectID}, nombre:${hit.nombre}), basándote SOLO en los DATOS
+- Nunca SALUDES, habla como conversación continua, como si ya se conocieran, LENGUAJE LOCAL SIEMPRE MUY AMIGABLE nada robótico ni corporativo, habla como un pata de Barranca peruano, canchero, ALGO INFORMATIVO SIN VENDER TANTO
+- mensaje: máximo 2 líneas (máximo 2 frases)
+- incluir SOLO si existen: estado (🟢 Abierto / 🔴 Cerrado según open_closed), descripción siempre informativa
+- sin comillas dentro del mensaje
+- USA EL MOMENTO DEL DIA SIEMPRE QUE ES: ${momento_dia}
+- NO menciones links, perfiles, ni la app Geinz, eso lo agrega el sistema aparte
+FORMATO OBLIGATORIO:
+{"id":"${hit.objectID}","mensaje":"...","intencion":"NEGOCIO"}`;
+
+    const bodyGemini = {
+      contents: [{ parts: [{ text: promptRespuesta }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            mensaje: { type: "string" },
+            intencion: { type: "string" },
+          },
+          required: ["id", "mensaje", "intencion"],
+        },
+        thinkingConfig: { thinkingBudget: 0 },
+        maxOutputTokens: 220,
+        temperature: 0.7,
+      },
+    };
+
+    let response;
+
+    const geminiRes = await fetch(`${GEMINI_URL}?key=${GEMINIKEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bodyGemini),
+    });
+
+    if (!geminiRes.ok) {
+      const errText = await geminiRes.text();
+      console.error("❌ [info_negocio] Error Gemini API:", geminiRes.status, errText);
+      response = {
+        id: hit.objectID,
+        mensaje: "Tuve un problema consultando la info, intenta de nuevo en un momento",
+        intencion: "ERROR_GEMINI",
+      };
+    } else {
+      const geminiData = await geminiRes.json();
+
+      if (geminiData?.usageMetadata) {
+        tokensGemini = {
+          promptTokenCount: geminiData.usageMetadata.promptTokenCount || 0,
+          candidatesTokenCount: geminiData.usageMetadata.candidatesTokenCount || 0,
+          totalTokenCount: geminiData.usageMetadata.totalTokenCount || 0,
+        };
+      }
+
+      const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+      response = parsearRespuestaIA(rawText);
+      if (!response || !Object.keys(response).length) {
+        response = { id: hit.objectID, mensaje: rawText || "Sin respuesta", intencion: "ERROR_FORMATO_IA" };
+      }
+    }
+
+    // 5) ARMAR SALIDA — sin plantilla, sin créditos. El link con alias lo
+    //    arma el CÓDIGO directamente (nunca Gemini/el prompt).
+    const idFinal = response?.id || hit.objectID;
+    const mensajeFinal = String(response?.mensaje || "").trim();
+    const imagenFinal = hit.imagen_bot || "";
+    const nombre_negocio = hit.nombre || "";
+    const categoria_match = hit.categoria || "general";
+    const categoriaFinal = encodeURIComponent(categoria_match).replace(/%20/g, "+");
+    const alias_tienda = hit.alias || "";
+
+    // 🔧 Link + mensaje predeterminado armados por CÓDIGO, no por Gemini.
+    // Siempre que exista alias, se agrega al final del mensaje.
+    const link_construido = alias_tienda ? `https://geinzworkapp.web.app/perfil/${alias_tienda}` : "";
+
+    const mensaje_safe = link_construido
+      ? `${mensajeFinal} 📲 Si quieres más info, chécalo en Geinz: ${link_construido}`
+      : mensajeFinal;
+
+    const imagen_stiker = pick(STIKER_TIENDA);
+
+    const data = ["TIENDA", nombre_negocio, categoria_match, "null", idFinal].join("|");
+
+    const tiempoTotalMs = Date.now() - tiempoInicioTotal;
+
+    const tokens_usados = {
+      gemini: {
+        prompt_tokens: tokensGemini.promptTokenCount,
+        completion_tokens: tokensGemini.candidatesTokenCount,
+        total_tokens: tokensGemini.totalTokenCount,
+      },
+    };
+
+    // 🪵 Log de la traza (para Cloud Logging)
+    console.log("🧭 [geinz_info_negocio] TRACE:", JSON.stringify({
+      id_solicitado: id || null,
+      nombre_solicitado: nombre || null,
+      id_encontrado: hit.objectID,
+      nombre_negocio,
+      tokens_usados,
+      tiempo_total_ms: tiempoTotalMs,
+    }));
+
+    return res.status(200).json({
+      ...response,
+      id: idFinal,
+      imagen: imagenFinal,
+      mensaje_safe,
+      data,
+      siker: imagen_stiker,
+      cat_detectada: categoriaFinal,
+      nombre_negocio,
+      alias_tienda,
+      tokens_usados,
+      tiempo_total_ms: tiempoTotalMs,
+      tiempo_total_seg: Number((tiempoTotalMs / 1000).toFixed(2)),
+    });
+  } catch (error) {
+    console.error("❌ [geinz_info_negocio] Error:", error.message);
+    console.error("❌ [geinz_info_negocio] Stack:", error.stack);
+
+    const tiempoTotalMs = Date.now() - tiempoInicioTotal;
+
+    return res.status(500).json({
+      ok: false,
+      error: error.message,
+      tokens_usados: { gemini: tokensGemini },
+      tiempo_total_ms: tiempoTotalMs,
+      tiempo_total_seg: Number((tiempoTotalMs / 1000).toFixed(2)),
+    });
   }
 });

@@ -116,12 +116,14 @@ const {
   geinz_buscar_unificado,
   clasificador_geinz_turismo,
   obtener_lugares_emergencia_Actualizado
-  ,elegir_mejor_promo
+  ,elegir_mejor_promo,
+  geinz_info_negocio
 } = require("./asistentes_AI_geinz");
 exports.geinz_buscar_unificado = geinz_buscar_unificado;
 exports.clasificador_geinz_turismo = clasificador_geinz_turismo;
 exports.obtener_lugares_emergencia_Actualizado = obtener_lugares_emergencia_Actualizado;
 exports.elegir_mejor_promo = elegir_mejor_promo;
+exports.geinz_info_negocio=geinz_info_negocio;
 
 const axios = require("axios");
 const CULQI_KEY = process.env.CULQI_KEY;
