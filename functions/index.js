@@ -117,13 +117,30 @@ const {
   clasificador_geinz_turismo,
   obtener_lugares_emergencia_Actualizado
   ,elegir_mejor_promo,
-  geinz_info_negocio
+  geinz_info_negocio,
+  dispersador_geinz,
 } = require("./asistentes_AI_geinz");
 exports.geinz_buscar_unificado = geinz_buscar_unificado;
 exports.clasificador_geinz_turismo = clasificador_geinz_turismo;
 exports.obtener_lugares_emergencia_Actualizado = obtener_lugares_emergencia_Actualizado;
 exports.elegir_mejor_promo = elegir_mejor_promo;
 exports.geinz_info_negocio=geinz_info_negocio;
+exports.dispersador_geinz=dispersador_geinz;
+
+const {
+  procesar_audio_whatsapp
+} =require("./wisper.js");
+exports.procesar_audio_whatsapp=procesar_audio_whatsapp;
+
+
+
+
+const {
+  geinz_webhook_principal
+} =require("./dispensador_competo_geinz_pruevas.js");
+exports.geinz_webhook_principal=geinz_webhook_principal;
+
+
 
 const axios = require("axios");
 const CULQI_KEY = process.env.CULQI_KEY;

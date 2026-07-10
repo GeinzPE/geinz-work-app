@@ -23,7 +23,7 @@ const openai = new OpenAI({
   apiKey: process.env.API_KEYO_OPEN_IA,
 });
 
-const db = admin.firestore();
+const db = admin.firestore(); 
 
 const APP_ID = process.env.ALGOLIA_APP_ID || "";
 const API_KEY = process.env.ALGOLIA_API_KEY || "";
@@ -184,7 +184,12 @@ function parsearClasificacionIA(rawContent) {
   try {
     parsed = JSON.parse(rawContent);
   } catch (e) {
-    console.error("❌ Error parseando clasificación:", e.message, "| RAW:", rawContent.slice(0, 200));
+    console.error(
+      "❌ Error parseando clasificación:",
+      e.message,
+      "| RAW:",
+      rawContent.slice(0, 200),
+    );
     return defaults;
   }
 
@@ -220,7 +225,9 @@ async function obtenerCategoriasConSub() {
     return categoriasCache;
   }
 
-  console.log("🔄 Refrescando categorías+subcategorias (negocios) desde Firestore");
+  console.log(
+    "🔄 Refrescando categorías+subcategorias (negocios) desde Firestore",
+  );
   const snapshot = await db
     .collection("Tiendas")
     .doc("categorias")
@@ -329,8 +336,12 @@ MENSAJE DEL USUARIO: "${mensaje}"`;
 // 3.3 Búsqueda por NOMBRE de tienda (función interna, basada en buscar_por_nombre__tienda)
 // ----------------------------------------------------------------------------
 async function buscarPorNombreTienda({ localidad, nombre, search }) {
-  console.log("🔍 [buscar_tienda] Parámetros recibidos:", { localidad, nombre, search });
- 
+  console.log("🔍 [buscar_tienda] Parámetros recibidos:", {
+    localidad,
+    nombre,
+    search,
+  });
+
   const ATTRS_NOMBRE = [
     "objectID",
     "nombre",
@@ -344,21 +355,21 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
     "msje_whatsapp",
     "alias",
   ];
- 
+
   const filters = [];
   if (localidad) filters.push(`lugar:"${localidad}"`);
   filters.push(`NOT categoria:"turismo"`);
   filters.push(`NOT categoria:"salud"`);
   console.log("🔧 [buscar_tienda] Filtros aplicados:", filters);
- 
+
   const query = (nombre || "").toLowerCase().trim();
   console.log("🔎 [buscar_tienda] Query normalizado:", query);
- 
+
   if (!query) {
     console.warn("⚠️ [buscar_tienda] Query vacío, retornando lista vacía");
     return [];
   }
- 
+
   console.log("🚀 [buscar_tienda] Iniciando búsqueda en Algolia...");
   let { hits } = await index.search(query, {
     filters: filters.join(" AND "),
@@ -368,8 +379,10 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
     removeStopWords: true,
     attributesToRetrieve: ATTRS_NOMBRE,
   });
-  console.log(`✅ [buscar_tienda] Algolia retornó ${hits.length} hits normales`);
- 
+  console.log(
+    `✅ [buscar_tienda] Algolia retornó ${hits.length} hits normales`,
+  );
+
   if (hits.length > 0) {
     hits = hits.map((h) => ({ ...h, similarity: 1, match_keyword: query }));
     console.log(
@@ -377,32 +390,37 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
       hits.map((h) => ({ id: h.objectID, nombre: h.nombre })),
     );
   }
- 
+
   if (hits.length === 0) {
-    console.log("🔄 [buscar_tienda] Sin hits normales, iniciando fallback inteligente...");
- 
+    console.log(
+      "🔄 [buscar_tienda] Sin hits normales, iniciando fallback inteligente...",
+    );
+
     const { hits: hitsFallback } = await index.search("", {
       filters: filters.join(" AND "),
       hitsPerPage: 150,
       attributesToRetrieve: ATTRS_NOMBRE,
     });
-    console.log(`📥 [buscar_tienda] Fallback: ${hitsFallback.length} candidatos para comparar`);
- 
+    console.log(
+      `📥 [buscar_tienda] Fallback: ${hitsFallback.length} candidatos para comparar`,
+    );
+
     // 🔧 CAMBIO 2: nuevo umbral (antes 0.35) + validación de longitud
     const UMBRAL_MINIMO = 0.55;
     const RATIO_LONGITUD_MINIMO = 0.6;
- 
+
     hits = hitsFallback
       .map((h) => {
         let bestScore = 0;
         let bestKeyword = null;
- 
+
         if (typeof h.nombre === "string") {
           const value = h.nombre.toLowerCase();
           // 🔧 CAMBIO 2: chequeo de longitud antes de calcular similarity
           const minLen = Math.min(query.length, value.length);
           const maxLen = Math.max(query.length, value.length);
-          const lengthOk = maxLen > 0 ? minLen / maxLen >= RATIO_LONGITUD_MINIMO : false;
+          const lengthOk =
+            maxLen > 0 ? minLen / maxLen >= RATIO_LONGITUD_MINIMO : false;
           if (lengthOk) {
             let score = similarity.stringSimilarity(query, value);
             if (value.includes(query)) score += 0.2;
@@ -412,14 +430,15 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
             }
           }
         }
- 
+
         if (Array.isArray(h.parecidas)) {
           for (const p of h.parecidas) {
             if (typeof p !== "string") continue;
             const value = p.toLowerCase();
             const minLen = Math.min(query.length, value.length);
             const maxLen = Math.max(query.length, value.length);
-            const lengthOk = maxLen > 0 ? minLen / maxLen >= RATIO_LONGITUD_MINIMO : false;
+            const lengthOk =
+              maxLen > 0 ? minLen / maxLen >= RATIO_LONGITUD_MINIMO : false;
             if (!lengthOk) continue;
             let score = similarity.stringSimilarity(query, value);
             if (value.includes(query)) score += 0.2;
@@ -429,14 +448,15 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
             }
           }
         }
- 
+
         if (Array.isArray(h.tag)) {
           for (const t of h.tag) {
             if (typeof t !== "string") continue;
             const value = t.toLowerCase();
             const minLen = Math.min(query.length, value.length);
             const maxLen = Math.max(query.length, value.length);
-            const lengthOk = maxLen > 0 ? minLen / maxLen >= RATIO_LONGITUD_MINIMO : false;
+            const lengthOk =
+              maxLen > 0 ? minLen / maxLen >= RATIO_LONGITUD_MINIMO : false;
             if (!lengthOk) continue;
             let score = similarity.stringSimilarity(query, value);
             if (value.includes(query)) score += 0.15;
@@ -446,12 +466,13 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
             }
           }
         }
- 
+
         if (typeof h.categoria === "string") {
           const value = h.categoria.toLowerCase();
           const minLen = Math.min(query.length, value.length);
           const maxLen = Math.max(query.length, value.length);
-          const lengthOk = maxLen > 0 ? minLen / maxLen >= RATIO_LONGITUD_MINIMO : false;
+          const lengthOk =
+            maxLen > 0 ? minLen / maxLen >= RATIO_LONGITUD_MINIMO : false;
           if (lengthOk) {
             let score = similarity.stringSimilarity(query, value);
             if (value.includes(query)) score += 0.1;
@@ -461,7 +482,7 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
             }
           }
         }
- 
+
         // 🔧 CAMBIO 2: 0.55 en vez de 0.35
         if (bestScore >= UMBRAL_MINIMO) {
           console.log(
@@ -469,63 +490,81 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
           );
           return { ...h, similarity: bestScore, match_keyword: bestKeyword };
         }
- 
-        console.log(`❌ [fallback] "${h.nombre}" descartado → score: ${bestScore.toFixed(2)}`);
+
+        console.log(
+          `❌ [fallback] "${h.nombre}" descartado → score: ${bestScore.toFixed(2)}`,
+        );
         return null;
       })
       .filter(Boolean)
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, 10);
- 
-    console.log(`📊 [buscar_tienda] Fallback final: ${hits.length} hits seleccionados`);
+
+    console.log(
+      `📊 [buscar_tienda] Fallback final: ${hits.length} hits seleccionados`,
+    );
   }
- 
+
   const ids = hits.map((h) => h.objectID);
   console.log("🆔 [buscar_tienda] IDs a consultar en Firestore:", ids);
- 
-  const idsConFlag = hits.filter((h) => h.plantilla === true).map((h) => h.objectID);
-  const idsSinFlag = hits.filter((h) => h.plantilla !== true).map((h) => h.objectID);
+
+  const idsConFlag = hits
+    .filter((h) => h.plantilla === true)
+    .map((h) => h.objectID);
+  const idsSinFlag = hits
+    .filter((h) => h.plantilla !== true)
+    .map((h) => h.objectID);
   console.log("🏷️ [buscar_tienda] IDs con plantilla:", idsConFlag);
   console.log("🏷️ [buscar_tienda] IDs sin plantilla:", idsSinFlag);
- 
-  console.log("⚡ [buscar_tienda] Consultando extraData y créditos en paralelo...");
+
+  console.log(
+    "⚡ [buscar_tienda] Consultando extraData y créditos en paralelo...",
+  );
   const [extraData, creditosResults] = await Promise.all([
     obtenerDatosPorIds(localidad, ids),
     idsConFlag.length > 0
       ? Promise.all(
-        idsConFlag.map((id) =>
-          obtener_creditos_tienda_fn(id)
-            .then((r) => {
-              const mayor_a_100 = r?.creditos > 100;
-              console.log(
-                `💰 [creditos] ${id} → creditos: ${r?.creditos} | mayor_a_100: ${mayor_a_100}`,
-              );
-              return { id, mayor_a_100 };
-            })
-            .catch((e) => {
-              console.error(`❌ [creditos] Error obteniendo créditos para ${id}:`, e.message);
-              return { id, mayor_a_100: false };
-            }),
-        ),
-      )
+          idsConFlag.map((id) =>
+            obtener_creditos_tienda_fn(id)
+              .then((r) => {
+                const mayor_a_100 = r?.creditos > 100;
+                console.log(
+                  `💰 [creditos] ${id} → creditos: ${r?.creditos} | mayor_a_100: ${mayor_a_100}`,
+                );
+                return { id, mayor_a_100 };
+              })
+              .catch((e) => {
+                console.error(
+                  `❌ [creditos] Error obteniendo créditos para ${id}:`,
+                  e.message,
+                );
+                return { id, mayor_a_100: false };
+              }),
+          ),
+        )
       : Promise.resolve([]),
   ]);
-  console.log("✅ [buscar_tienda] extraData obtenida para IDs:", Object.keys(extraData));
- 
+  console.log(
+    "✅ [buscar_tienda] extraData obtenida para IDs:",
+    Object.keys(extraData),
+  );
+
   const creditosMap = Object.fromEntries(
     creditosResults.map(({ id, mayor_a_100 }) => [id, mayor_a_100]),
   );
   console.log("💳 [buscar_tienda] creditosMap:", creditosMap);
- 
+
   const data = hits.map((hit) => {
     const extra = extraData[hit.objectID] || {};
-    const tienePlan = hit.plantilla === true && creditosMap[hit.objectID] === true;
-    const eraPlantillaSinCreditos = hit.plantilla === true && creditosMap[hit.objectID] !== true;
- 
+    const tienePlan =
+      hit.plantilla === true && creditosMap[hit.objectID] === true;
+    const eraPlantillaSinCreditos =
+      hit.plantilla === true && creditosMap[hit.objectID] !== true;
+
     console.log(
       `🏪 [buscar_tienda] Mapeando tienda: ${hit.nombre} | plantilla: ${hit.plantilla} | tienePlan: ${tienePlan}`,
     );
- 
+
     const base = {
       id: hit.objectID,
       tienda: hit.nombre || "",
@@ -533,9 +572,9 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
       match_keyword: hit.match_keyword || null,
       similarity: Number((hit.similarity || 0).toFixed(2)),
     };
- 
+
     if (search === true) return base;
- 
+
     return {
       ...base,
       desc: (hit.descripcion || "").substring(0, 150),
@@ -550,7 +589,7 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
       tipo: "tienda",
     };
   });
- 
+
   console.log(`🎯 [buscar_tienda] Respuesta final: ${data.length} tiendas`);
   return data;
 }
@@ -560,7 +599,12 @@ async function buscarPorNombreTienda({ localidad, nombre, search }) {
 // buscar_por_categoria_subcateogira_Actualizado). La subcategoria ya viene
 // resuelta desde afuera (prompt 2), aquí solo se hace la búsqueda en Algolia.
 // ----------------------------------------------------------------------------
-async function buscarPorCategoria({ localidad, categoria, subcategoria, excluir_id }) {
+async function buscarPorCategoria({
+  localidad,
+  categoria,
+  subcategoria,
+  excluir_id,
+}) {
   const categoriaLimpia = (categoria || "").trim().toLowerCase();
   const momento_dia = obtenerMomentoDia();
 
@@ -584,10 +628,15 @@ async function buscarPorCategoria({ localidad, categoria, subcategoria, excluir_
 
   if (categoriaLimpia) {
     const refCat = db.collection("estadisticas").doc(categoriaLimpia);
-    refCat.set({ categoria: categoriaLimpia }, { merge: true }).catch((e) => console.error("Stats init:", e));
+    refCat
+      .set({ categoria: categoriaLimpia }, { merge: true })
+      .catch((e) => console.error("Stats init:", e));
     refCat
       .collection("busquedas_categoria")
-      .add({ timestamp: FieldValue.serverTimestamp(), localidad: localidad || null })
+      .add({
+        timestamp: FieldValue.serverTimestamp(),
+        localidad: localidad || null,
+      })
       .catch((e) => console.error("Stats cat:", e));
 
     if (subcategoria) {
@@ -612,19 +661,23 @@ async function buscarPorCategoria({ localidad, categoria, subcategoria, excluir_
   });
 
   const ids = hits.map((h) => h.objectID);
-  const idsConFlag = hits.filter((h) => h.plantilla === true).map((h) => h.objectID);
-  const idsSinFlag = hits.filter((h) => h.plantilla !== true).map((h) => h.objectID);
+  const idsConFlag = hits
+    .filter((h) => h.plantilla === true)
+    .map((h) => h.objectID);
+  const idsSinFlag = hits
+    .filter((h) => h.plantilla !== true)
+    .map((h) => h.objectID);
 
   const [extraData, creditosResults] = await Promise.all([
     obtenerDatosPorIds(localidad, ids),
     idsConFlag.length > 0
       ? Promise.all(
-        idsConFlag.map((id) =>
-          obtener_creditos_tienda_fn(id)
-            .then((r) => ({ id, mayor_a_100: r?.creditos > 100 }))
-            .catch(() => ({ id, mayor_a_100: false })),
-        ),
-      )
+          idsConFlag.map((id) =>
+            obtener_creditos_tienda_fn(id)
+              .then((r) => ({ id, mayor_a_100: r?.creditos > 100 }))
+              .catch(() => ({ id, mayor_a_100: false })),
+          ),
+        )
       : Promise.resolve([]),
   ]);
 
@@ -636,8 +689,10 @@ async function buscarPorCategoria({ localidad, categoria, subcategoria, excluir_
     .sort(() => Math.random() - 0.5)
     .map((hit) => {
       const extra = extraData[hit.objectID] || {};
-      const tienePlan = hit.plantilla === true && creditosMap[hit.objectID] === true;
-      const eraPlantillaSinCreditos = hit.plantilla === true && creditosMap[hit.objectID] !== true;
+      const tienePlan =
+        hit.plantilla === true && creditosMap[hit.objectID] === true;
+      const eraPlantillaSinCreditos =
+        hit.plantilla === true && creditosMap[hit.objectID] !== true;
 
       return {
         id: hit.objectID,
@@ -663,7 +718,9 @@ async function buscarPorCategoria({ localidad, categoria, subcategoria, excluir_
     (d) => idsConFlagSet.has(d.id) && creditosMap[d.id] === true,
   );
   const sinFlag = data.filter(
-    (d) => idsSinFlagSet.has(d.id) || (idsConFlagSet.has(d.id) && creditosMap[d.id] !== true),
+    (d) =>
+      idsSinFlagSet.has(d.id) ||
+      (idsConFlagSet.has(d.id) && creditosMap[d.id] !== true),
   );
 
   const topFlag = conFlagValidos.slice(0, 3);
@@ -712,18 +769,26 @@ function generarToken() {
 function parsearRespuestaIA(raw) {
   if (!raw || typeof raw !== "string") return {};
   try {
-    let limpio = raw.replace(/```json|```/gi, "").replace(/\n/g, " ").trim();
+    let limpio = raw
+      .replace(/```json|```/gi, "")
+      .replace(/\n/g, " ")
+      .trim();
     if (limpio.startsWith('"') || limpio.startsWith("'")) {
       try {
         limpio = JSON.parse(limpio);
-      } catch (e) { }
+      } catch (e) {}
     }
     limpio = limpio.replace(/([,{]\s*)([a-zA-Z_]\w*)\s*:/g, '$1"$2":');
     const match = limpio.match(/\{.*\}/s);
     if (!match) return {};
     return JSON.parse(match[0]);
   } catch (e) {
-    console.error("❌ Error parseando respuesta IA (tienda):", e.message, "| RAW:", raw.slice(0, 200));
+    console.error(
+      "❌ Error parseando respuesta IA (tienda):",
+      e.message,
+      "| RAW:",
+      raw.slice(0, 200),
+    );
     return {};
   }
 }
@@ -734,8 +799,16 @@ function parsearRespuestaIA(raw) {
 exports.geinz_buscar_unificado = onRequest(async (req, res) => {
   const tiempoInicioTotal = Date.now();
 
-  let tokensOpenAI = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
-  let tokensGemini = { promptTokenCount: 0, candidatesTokenCount: 0, totalTokenCount: 0 };
+  let tokensOpenAI = {
+    prompt_tokens: 0,
+    completion_tokens: 0,
+    total_tokens: 0,
+  };
+  let tokensGemini = {
+    promptTokenCount: 0,
+    candidatesTokenCount: 0,
+    totalTokenCount: 0,
+  };
 
   // 🪵 Acumulador de trazas/debug para la respuesta final
   const trace = {
@@ -751,10 +824,13 @@ exports.geinz_buscar_unificado = onRequest(async (req, res) => {
   };
 
   try {
-    const { mensaje, contexto_previo, localidad, excluir_id, nombre_usuario } = req.body;
+    const { mensaje, contexto_previo, localidad, excluir_id, nombre_usuario } =
+      req.body;
 
     if (!mensaje || typeof mensaje !== "string" || !mensaje.trim()) {
-      return res.status(400).json({ ok: false, error: "El campo 'mensaje' es requerido" });
+      return res
+        .status(400)
+        .json({ ok: false, error: "El campo 'mensaje' es requerido" });
     }
 
     const momento_dia = obtenerMomentoDia();
@@ -763,7 +839,11 @@ exports.geinz_buscar_unificado = onRequest(async (req, res) => {
     // 1a) PROMPT 1 — CLASIFICADOR
     // ==========================================================================
     const { lista, mapaSub } = await obtenerCategoriasConSub();
-    const promptClasificacion = construirPromptClasificacion(mensaje, contexto_previo, lista);
+    const promptClasificacion = construirPromptClasificacion(
+      mensaje,
+      contexto_previo,
+      lista,
+    );
     trace.prompt_clasificacion = promptClasificacion; // 🪵 guardamos el prompt exacto usado
 
     const completionClasificacion = await openai.chat.completions.create({
@@ -782,7 +862,9 @@ exports.geinz_buscar_unificado = onRequest(async (req, res) => {
       };
     }
 
-    const clasificacion = parsearClasificacionIA(completionClasificacion.choices[0]?.message?.content);
+    const clasificacion = parsearClasificacionIA(
+      completionClasificacion.choices[0]?.message?.content,
+    );
 
     trace.clasificacion_raw = clasificacion; // 🪵 guardamos el JSON crudo devuelto por el modelo
 
@@ -798,13 +880,18 @@ exports.geinz_buscar_unificado = onRequest(async (req, res) => {
     if (nombre) {
       subcategoria = null;
     } else if (heredar_contexto) {
-      const ctxUsuario = contexto_previo?.contexto_usuario ?? contexto_previo ?? {};
+      const ctxUsuario =
+        contexto_previo?.contexto_usuario ?? contexto_previo ?? {};
       subcategoria = ctxUsuario?.subcategoria || null;
     } else if (categoria) {
       const subsDisponibles = mapaSub[categoria.toLowerCase()] || [];
 
       if (subsDisponibles.length > 0) {
-        const promptSubcategoria = construirPromptSubcategoria(mensaje, contexto_previo, subsDisponibles);
+        const promptSubcategoria = construirPromptSubcategoria(
+          mensaje,
+          contexto_previo,
+          subsDisponibles,
+        );
         trace.prompt_subcategoria = promptSubcategoria; // 🪵 guardamos el prompt exacto usado
 
         const completionSubcategoria = await openai.chat.completions.create({
@@ -815,12 +902,17 @@ exports.geinz_buscar_unificado = onRequest(async (req, res) => {
         });
 
         if (completionSubcategoria?.usage) {
-          tokensOpenAI.prompt_tokens += completionSubcategoria.usage.prompt_tokens || 0;
-          tokensOpenAI.completion_tokens += completionSubcategoria.usage.completion_tokens || 0;
-          tokensOpenAI.total_tokens += completionSubcategoria.usage.total_tokens || 0;
+          tokensOpenAI.prompt_tokens +=
+            completionSubcategoria.usage.prompt_tokens || 0;
+          tokensOpenAI.completion_tokens +=
+            completionSubcategoria.usage.completion_tokens || 0;
+          tokensOpenAI.total_tokens +=
+            completionSubcategoria.usage.total_tokens || 0;
         }
 
-        const rawSub = (completionSubcategoria.choices[0]?.message?.content || "").trim();
+        const rawSub = (
+          completionSubcategoria.choices[0]?.message?.content || ""
+        ).trim();
 
         const matchNegocio = rawSub.match(/^NEGOCIO\s*:\s*(.+)$/i);
         if (matchNegocio) {
@@ -842,7 +934,11 @@ exports.geinz_buscar_unificado = onRequest(async (req, res) => {
 
     if (nombre) {
       trace.tipo_busqueda = "nombre"; // 🪵
-      resultadosBusqueda = await buscarPorNombreTienda({ localidad, nombre, search });
+      resultadosBusqueda = await buscarPorNombreTienda({
+        localidad,
+        nombre,
+        search,
+      });
     } else if (categoria) {
       trace.tipo_busqueda = "categoria"; // 🪵
       const resultado = await buscarPorCategoria({
@@ -860,18 +956,27 @@ exports.geinz_buscar_unificado = onRequest(async (req, res) => {
     let response;
 
     if (!resultadosBusqueda.length) {
-      trace.tipo_busqueda = trace.tipo_busqueda === "sin_criterio" ? "sin_criterio" : "sin_resultado"; // 🪵
+      trace.tipo_busqueda =
+        trace.tipo_busqueda === "sin_criterio"
+          ? "sin_criterio"
+          : "sin_resultado"; // 🪵
       response = {
         id: "sin_id",
-        mensaje: "No encontré nada por ahora, cuéntame qué buscas o prueba con otro nombre",
+        mensaje:
+          "No encontré nada por ahora, cuéntame qué buscas o prueba con otro nombre",
         intencion: "SIN_DATOS",
       };
     } else {
-      const contextoStr = JSON.stringify(contexto_previo?.contexto_usuario ?? contexto_previo ?? {});
+      const contextoStr = JSON.stringify(
+        contexto_previo?.contexto_usuario ?? contexto_previo ?? {},
+      );
 
       const datosParaPrompt = resultadosBusqueda.map((d) => {
         const { open_state, ...resto } = d;
-        return { ...resto, open_closed: open_state === true ? "abierto" : "cerrado" };
+        return {
+          ...resto,
+          open_closed: open_state === true ? "abierto" : "cerrado",
+        };
       });
 
       const promptRespuesta = `Responde en JSON válido.
@@ -923,10 +1028,15 @@ FORMATO OBLIGATORIO:
 
       if (!geminiRes.ok) {
         const errText = await geminiRes.text();
-        console.error("❌ Error Gemini API (tienda):", geminiRes.status, errText);
+        console.error(
+          "❌ Error Gemini API (tienda):",
+          geminiRes.status,
+          errText,
+        );
         response = {
           id: "sin_id",
-          mensaje: "Tuve un problema consultando la info, intenta de nuevo en un momento",
+          mensaje:
+            "Tuve un problema consultando la info, intenta de nuevo en un momento",
           intencion: "ERROR_GEMINI",
         };
       } else {
@@ -935,16 +1045,22 @@ FORMATO OBLIGATORIO:
         if (geminiData?.usageMetadata) {
           tokensGemini = {
             promptTokenCount: geminiData.usageMetadata.promptTokenCount || 0,
-            candidatesTokenCount: geminiData.usageMetadata.candidatesTokenCount || 0,
+            candidatesTokenCount:
+              geminiData.usageMetadata.candidatesTokenCount || 0,
             totalTokenCount: geminiData.usageMetadata.totalTokenCount || 0,
           };
         }
 
-        const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+        const rawText =
+          geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
         trace.respuesta_gemini_raw = rawText; // 🪵 guardamos la respuesta cruda de Gemini
         response = parsearRespuestaIA(rawText);
         if (!response || !Object.keys(response).length) {
-          response = { id: "sin_id", mensaje: rawText || "Sin respuesta", intencion: "ERROR_FORMATO_IA" };
+          response = {
+            id: "sin_id",
+            mensaje: rawText || "Sin respuesta",
+            intencion: "ERROR_FORMATO_IA",
+          };
         }
       }
     }
@@ -956,7 +1072,10 @@ FORMATO OBLIGATORIO:
     const mensajeFinal = String(response?.mensaje || "").trim();
 
     const match = apiData.find(
-      (d) => String(d?.id || "").trim().replace(/"/g, "") === String(idFinal).trim().replace(/"/g, ""),
+      (d) =>
+        String(d?.id || "")
+          .trim()
+          .replace(/"/g, "") === String(idFinal).trim().replace(/"/g, ""),
     );
 
     const imagenFinal = match?.img || "";
@@ -965,9 +1084,16 @@ FORMATO OBLIGATORIO:
     const subcategoria_tienda = subcategoria || "";
 
     const nombre_negocio =
-      match?.nombre || match?.name || match?.titulo || match?.negocio || match?.tienda || "";
+      match?.nombre ||
+      match?.name ||
+      match?.titulo ||
+      match?.negocio ||
+      match?.tienda ||
+      "";
     const categoria_para_data = match?.cat || match?.category || "";
-    const sub = subcategoria_tienda ? `${categoria_para_data} sub:${subcategoria_tienda}` : categoria_para_data;
+    const sub = subcategoria_tienda
+      ? `${categoria_para_data} sub:${subcategoria_tienda}`
+      : categoria_para_data;
     const extra = kwArr.length ? kwArr.join(",") : "null";
 
     const data = ["TIENDA", nombre_negocio, sub, extra, idFinal].join("|");
@@ -979,9 +1105,14 @@ FORMATO OBLIGATORIO:
     const era_plantilla_pero_misio = match?.era_plantilla || false;
     const alias_tienda = match?.alias || "";
 
-    const categoriaFinal = encodeURIComponent(categoria_match).replace(/%20/g, "+");
+    const categoriaFinal = encodeURIComponent(categoria_match).replace(
+      /%20/g,
+      "+",
+    );
 
-    const link_construido = alias_tienda ? `https://geinzworkapp.web.app/perfil/${alias_tienda}` : "";
+    const link_construido = alias_tienda
+      ? `https://geinzworkapp.web.app/perfil/${alias_tienda}`
+      : "";
 
     const mensaje_safe = usa_plantilla
       ? mensajeFinal
@@ -1012,22 +1143,26 @@ FORMATO OBLIGATORIO:
         completion_tokens: tokensGemini.candidatesTokenCount,
         total_tokens: tokensGemini.totalTokenCount,
       },
-      total_tokens_combinado: tokensOpenAI.total_tokens + tokensGemini.totalTokenCount,
+      total_tokens_combinado:
+        tokensOpenAI.total_tokens + tokensGemini.totalTokenCount,
     };
 
     // 🪵 Log en consola (para Cloud Logging) de la traza completa del flujo
-    console.log("🧭 [geinz_tienda_completo] TRACE:", JSON.stringify({
-      mensaje,
-      tipo_busqueda: trace.tipo_busqueda,
-      heredo_contexto: trace.heredo_contexto,
-      reenrutado_a_nombre: trace.reenrutado_a_nombre,
-      clasificacion_raw: trace.clasificacion_raw,
-      subcategoria_usada: trace.subcategoria_usada,
-      total_resultados: resultadosBusqueda.length,
-      id_elegido: idFinal,
-      tokens_usados,
-      tiempo_total_ms: tiempoTotalMs,
-    }));
+    console.log(
+      "🧭 [geinz_tienda_completo] TRACE:",
+      JSON.stringify({
+        mensaje,
+        tipo_busqueda: trace.tipo_busqueda,
+        heredo_contexto: trace.heredo_contexto,
+        reenrutado_a_nombre: trace.reenrutado_a_nombre,
+        clasificacion_raw: trace.clasificacion_raw,
+        subcategoria_usada: trace.subcategoria_usada,
+        total_resultados: resultadosBusqueda.length,
+        id_elegido: idFinal,
+        tokens_usados,
+        tiempo_total_ms: tiempoTotalMs,
+      }),
+    );
 
     return res.status(200).json({
       ...response,
@@ -1066,7 +1201,10 @@ FORMATO OBLIGATORIO:
   } catch (error) {
     console.error("❌ [geinz_tienda_completo] Error:", error.message);
     console.error("❌ [geinz_tienda_completo] Stack:", error.stack);
-    console.error("❌ [geinz_tienda_completo] Trace hasta el fallo:", JSON.stringify(trace));
+    console.error(
+      "❌ [geinz_tienda_completo] Trace hasta el fallo:",
+      JSON.stringify(trace),
+    );
 
     const tiempoTotalMs = Date.now() - tiempoInicioTotal;
 
@@ -1077,22 +1215,129 @@ FORMATO OBLIGATORIO:
       tokens_usados: {
         openai: tokensOpenAI,
         gemini: tokensGemini,
-        total_tokens_combinado: tokensOpenAI.total_tokens + tokensGemini.totalTokenCount,
+        total_tokens_combinado:
+          tokensOpenAI.total_tokens + tokensGemini.totalTokenCount,
       },
       tiempo_total_ms: tiempoTotalMs,
       tiempo_total_seg: Number((tiempoTotalMs / 1000).toFixed(2)),
     });
   }
 });
+
+
+
+
+
+
+
+
+
+
+
 // ============================================================================
 // ============================================================================
 //   4. MÓDULO TURISMO
 // ============================================================================
 // ============================================================================
 
+function obtenerMomentoDia() {
+  const hora = new Date().getHours();
+  if (hora >= 5 && hora < 12) return "mañana";
+  if (hora >= 12 && hora < 19) return "tarde";
+  return "noche";
+}
+ 
+function pick(arr) {
+  return !Array.isArray(arr) || !arr.length
+    ? ""
+    : arr[Math.floor(Math.random() * arr.length)];
+}
+ 
+function tokensVacios() {
+  return { prompt_tokens: 0, completion_tokens: 0, thoughts_tokens: 0, total_tokens: 0 };
+}
+ 
+function sumarTokens(total, extra) {
+  total.prompt_tokens += extra?.prompt_tokens || 0;
+  total.completion_tokens += extra?.completion_tokens || 0;
+  total.thoughts_tokens += extra?.thoughts_tokens || 0;
+  total.total_tokens += extra?.total_tokens || 0;
+}
+ 
+/**
+ * Llama a Gemini.
+ * CLAVE: thinkingBudget: 0 — sin esto, Gemini 2.5 Flash "piensa" internamente
+ * antes de responder y esos tokens de razonamiento se cobran igual, aunque
+ * la tarea sea trivial (elegir un id y escribir 2 líneas). Eso era lo que
+ * disparaba el gasto a ~4k tokens por llamada.
+ */
+async function llamarGemini(prompt, { jsonMode = true, systemMessage = null, maxOutputTokens = 300 } = {}) {
+  const contents = [];
+  if (systemMessage) {
+    contents.push({ role: "user", parts: [{ text: systemMessage }] });
+    contents.push({ role: "model", parts: [{ text: "Entendido." }] });
+  }
+  contents.push({ role: "user", parts: [{ text: prompt }] });
+ 
+  const body = {
+    contents,
+    generationConfig: {
+      ...(jsonMode ? { responseMimeType: "application/json" } : {}),
+      maxOutputTokens,
+      thinkingConfig: { thinkingBudget: 0 }, // apaga el thinking, no lo necesitamos aquí
+    },
+  };
+ 
+  const resp = await fetch(`${GEMINI_URL}?key=${GEMINIKEY}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+ 
+  const data = await resp.json();
+ 
+  const texto =
+    data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") || "{}";
+ 
+  const tokens = {
+    prompt_tokens: data?.usageMetadata?.promptTokenCount || 0,
+    completion_tokens: data?.usageMetadata?.candidatesTokenCount || 0,
+    thoughts_tokens: data?.usageMetadata?.thoughtsTokenCount || 0,
+    total_tokens: data?.usageMetadata?.totalTokenCount || 0,
+  };
+ 
+  return { texto, tokens, raw: data };
+}
+ 
+
+async function llamarOpenAIClasificador(prompt) {
+  const completion = await openai.chat.completions.create({
+    model: "gpt-5.4-nano",
+    messages: [{ role: "user", content: prompt }],
+    response_format: { type: "json_object" },
+    reasoning_effort: "none",
+  });
+ 
+  const texto = completion.choices[0]?.message?.content || "{}";
+ 
+  const tokens = {
+    prompt_tokens: completion.usage?.prompt_tokens || 0,
+    completion_tokens: completion.usage?.completion_tokens || 0,
+    thoughts_tokens: completion.usage?.completion_tokens_details?.reasoning_tokens || 0,
+    total_tokens: completion.usage?.total_tokens || 0,
+  };
+ 
+  return { texto, tokens, raw: completion };
+}
+ 
+// ============================================================
+// 1. CLASIFICADOR DE TURISMO — OpenAI (gpt-5.4-nano, reasoning minimal)
+//    Prompt tal cual, NO TOCAR.
+// ============================================================
+ 
 let subcategoriasTurismoCache = null;
 let subcategoriasTurismoCacheTimestamp = 0;
-
+ 
 async function obtenerSubcategoriasTurismo() {
   const ahora = Date.now();
   if (
@@ -1102,16 +1347,17 @@ async function obtenerSubcategoriasTurismo() {
     console.log("♻️ Usando subcategorías de turismo desde cache");
     return subcategoriasTurismoCache;
   }
-
+ 
   console.log("🔄 Refrescando subcategorías de turismo desde Firestore");
   const snap = await db.doc("Tiendas/categorias/categorias/turismo").get();
   const subcategorias = snap.exists ? (snap.get("subcategorias") ?? []) : [];
-
+ 
   subcategoriasTurismoCache = subcategorias;
   subcategoriasTurismoCacheTimestamp = ahora;
   return subcategorias;
 }
-
+ 
+// PROMPT TAL CUAL — NO TOCAR
 function construirPromptTurismo(mensaje, contextoPrevio, categorias) {
   const contextoStr = JSON.stringify(
     contextoPrevio || {
@@ -1122,160 +1368,756 @@ function construirPromptTurismo(mensaje, contextoPrevio, categorias) {
       nombre: "null",
     },
   );
-
+ 
   return `Responde SOLO JSON válido. Sin explicaciones, sin markdown.
 CATEGORIAS: ${categorias.join(",")}
 CONTEXTO PREVIO: ${contextoStr}
 MENSAJE DEL USUARIO: "${mensaje}"
-
+ 
 MAPEO RAPIDO:
 agua|rio|nadar|refrescar|mojar|laguna|cascada|fresquito|bañarse → "playa" o "rio"
 historia|ruinas|antiguo|colonial|inca|prehispanico → "historico" o "arqueologico"
 vista|cerro|panorama|alto|paisaje → "mirador"
 naturaleza|caminar|verde|aire libre|tranquilo → "parque" o "recreativo"
 fe|misa|rezar|iglesia|virgen → "iglesia"
-
+ 
 DETECCION:
-
+ 
 1. NOMBRE PROPIO: si el user menciona un nombre específico de lugar ("se llama X", "existe X", "hay un X", "conoces X")
    → nombre: [nombre limpio] | categoria: null | excluir_id: null — PRIORIDAD MAXIMA
-
+ 
 2. SOLO ZONA (barranca, paramonga, pativilca, supe) sin detalle
    → nombre: null | categoria: [elegir de CATEGORIAS]
-
+ 
 3. SIN LUGAR ESPECIFICO
    → nombre: null | categoria: [elegir de CATEGORIAS segun intencion]
-
+ 
 4. USER DICE "dame otro", "más", "otro similar", "otra opción"
    → nombre: null | categoria: [heredar categoria del CONTEXTO PREVIO]
-
+ 
 5. USER RECHAZA o pide algo diferente
    → nombre: null | categoria: [re-evaluar segun nueva intencion]
-
+ 
 LIMPIEZA: minusculas, sin tildes, sin inventar.
-
+ 
 SALIDA: {"tipo":"turismo","nombre":"...","categoria":"...","excluir_id":"..."}
-
+ 
 - Si el user dice "otro", "no quiero ese", "muéstrame más" → excluir_id: [id del CONTEXTO PREVIO]
 - En cualquier otro caso → excluir_id: null`;
 }
-
-exports.clasificador_geinz_turismo = onRequest(async (req, res) => {
+ 
+async function clasificarTurismo(mensaje, contexto_previo) {
+  const categorias = await obtenerSubcategoriasTurismo();
+  const prompt = construirPromptTurismo(mensaje, contexto_previo, categorias);
+ 
+  const { texto, tokens } = await llamarOpenAIClasificador(prompt);
+ 
+  let resultado;
   try {
-    const { mensaje, contexto_previo } = req.body;
-
+    resultado = JSON.parse(texto);
+  } catch (e) {
+    console.error(
+      "❌ Error parseando respuesta de OpenAI (turismo):",
+      e.message,
+      "| RAW:",
+      texto,
+    );
+    resultado = {
+      tipo: "turismo",
+      nombre: null,
+      categoria: null,
+      excluir_id: null,
+    };
+  }
+ 
+  return { resultado, tokens };
+}
+ 
+// ============================================================
+// 2. OBTENER LUGARES TURISTICOS (antes exports.busqueda_algolia_turismo_bot_geinz)
+//    Ahora es función normal, ya NO es export/onRequest.
+//    Cuerpo y SALIDA exactamente igual que el original.
+//    Busca por el nombre y/o categoría que arrojó el clasificador.
+// ============================================================
+ 
+async function obtenerLugaresTuristicos(localidad, nombre, subcategoria, excluir_id) {
+  let filters = [];
+ 
+  filters.push(`categoria:"turismo"`);
+ 
+  if (localidad) {
+    filters.push(`lugar:"${localidad}"`);
+  }
+ 
+  if (subcategoria) {
+    filters.push(`tag:"${subcategoria}"`);
+  }
+ 
+  const excluirIds = Array.isArray(excluir_id)
+    ? excluir_id.filter((id) => id !== null && id !== undefined && id !== "")
+    : excluir_id
+      ? [excluir_id]
+      : [];
+ 
+  if (excluirIds.length > 0) {
+    const excluirFilters = excluirIds
+      .map((id) => `NOT objectID:"${id}"`)
+      .join(" AND ");
+    filters.push(excluirFilters);
+  }
+ 
+  const query = nombre || ""; // busca por el nombre propio detectado por el clasificador
+ 
+  const { hits } = await index.search(query, {
+    filters: filters.join(" AND "),
+    hitsPerPage: 20,
+    typoTolerance: true,
+    ignorePlurals: true,
+    removeStopWords: true,
+  });
+ 
+  const LIMITE = 5;
+ 
+  const data = hits
+    .sort(() => Math.random() - 0.5)
+    .slice(0, LIMITE)
+    .map((hit) => ({
+      id: hit.objectID,
+      titulo: hit.nombre || "",
+      descripcion: (hit.descripcion || "").substring(0, 150),
+      img: hit.img || "",
+      tipo: "turismo",
+      tag: hit.tag || [],
+      alias: hit.alias || "",
+    }));
+ 
+  return {
+    ok: true,
+    total: data.length,
+    momento_dia: obtenerMomentoDia(),
+    tipo: "turismo",
+    data,
+  };
+}
+ 
+// ============================================================
+// 2.1 DATA "LIGERA" PARA EL AGENTE
+//    El agente solo necesita elegir un id y redactar 2 líneas.
+//    NO necesita `img` (URLs larguísimas de Firebase) ni `alias`
+//    (eso se usa después en el agregador, con el match completo).
+//    Esto es lo que más tokens ahorra en el prompt.
+// ============================================================
+ 
+function construirDataLigeraParaAgente(lugaresData) {
+  return (lugaresData || []).map((l) => ({
+    id: l.id,
+    nombre: l.titulo,
+    tag: Array.isArray(l.tag) ? l.tag.join(",") : "",
+    resumen: (l.descripcion || "").substring(0, 80),
+  }));
+}
+ 
+// ============================================================
+// 3. AGENTE FINAL TURISMO (antes nodo n8n "Agente final turismo2")
+//    Solo se manda la DATA ligera, nada más. System message tal cual el n8n,
+//    con las expresiones {{ }} reemplazadas por sus valores reales
+//    porque ya no corre dentro de n8n.
+// ============================================================
+ 
+function construirSystemMessageAgente({ data, usuario, momento_dia }) {
+  return `DATA:
+${JSON.stringify(data)}
+ 
+INSTRUCCION CRITICA: Responde UNICAMENTE con el JSON, sin texto antes ni después, sin markdown, sin explicaciones.
+ 
+REGLAS:
+- Usar SOLO la DATA
+- PROHIBIDO saludar, PROHIBIDO decir Hola, PROHIBIDO empezar con el nombre, habla como si ya estuvieran en medio de una conversación, lenguaje local siempre
+- Elegir el lugar más relevante SEGÚN la intención del USUARIO
+- El id DEBE ser exactamente el id del lugar escogido de la DATA, OBLIGATORIO
+- mensaje: 1-2 líneas, tono amigable con clase
+- usar exactamente 2 emojis
+- sin comillas dobles dentro del mensaje
+- usuario: ${usuario}
+- USA EL MOMENTO DEL DIA SIEMPRE: ${momento_dia}
+- no inventar
+ 
+FORMATO OBLIGATORIO, EXACTAMENTE ASI:
+{"id":"AQUI_EL_ID","mensaje":"AQUI_EL_MENSAJE"}`;
+}
+ 
+async function agenteFinalTurismo(mensajeUsuario, lugaresData, usuario, momento_dia) {
+  const dataLigera = construirDataLigeraParaAgente(lugaresData);
+ 
+  const systemMessage = construirSystemMessageAgente({
+    data: dataLigera,
+    usuario,
+    momento_dia,
+  });
+ 
+  const { texto, tokens } = await llamarGemini(mensajeUsuario, {
+    jsonMode: true,
+    systemMessage,
+    maxOutputTokens: 250,
+  });
+ 
+  return { texto, tokens };
+}
+ 
+// ============================================================
+// 4. AGREGADOR DE IMAGENES — versión turismo, tal cual tu código JS,
+//    pero adaptado: ya no hay $items/$input de n8n, las imágenes
+//    salen directo del resultado de obtenerLugaresTuristicos (match por id,
+//    usando la DATA completa, con img y alias — esto NO se le manda al agente,
+//    solo se usa acá para armar la salida).
+//    LA SALIDA NO CAMBIA respecto a tu código original (rama turismo).
+// ============================================================
+ 
+const stiker_turismo = [
+  "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/STIKER%2Fdanierl_playa_11zon.webp?alt=media&token=814c832b-d9cb-4062-83f6-a4b560a183f2",
+  "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/STIKER%2Fdaniel_turista2_11zon.webp?alt=media&token=af13f197-597e-4c77-9f3e-5d565bce518a",
+  "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/STIKER%2Fdaniel_relajado_11zon.webp?alt=media&token=14bd62ee-79e2-4408-8b89-efe773da1872",
+  "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/STIKER%2Fdanierl_turista_11zon.webp?alt=media&token=cb0a245e-336f-4afe-82b4-c5571771653b",
+  "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/STIKER%2FDise%C3%B1o%20sin%20t%C3%ADtulo%20(21)-Photoroom-convertido-de-png.webp?alt=media&token=54454bc2-d962-4312-98c5-53681e7b29b3",
+];
+ 
+function parseIA(raw) {
+  if (!raw || typeof raw !== "string") return {};
+  try {
+    raw = raw.replace(/```json|```/gi, "").replace(/\n/g, " ").trim();
+    if (raw.startsWith('"') || raw.startsWith("'")) {
+      try { raw = JSON.parse(raw); } catch(e) {}
+    }
+    raw = raw.replace(/([,{]\s*)([a-zA-Z_]\w*)\s*:/g, '$1"$2":');
+    const match = raw.match(/\{.*\}/s);
+    if (!match) return {};
+    return JSON.parse(match[0]);
+  } catch(e) {
+    console.log("❌ ERROR PARSE IA:", e.message, "| RAW:", raw.slice(0, 120));
+    return {};
+  }
+}
+ 
+function agregarImagenesTurismo(responseRaw, apiResponse) {
+  let link_construido = "";
+ 
+  let response = parseIA(responseRaw);
+  if (response?.mensaje && typeof response.mensaje === "string") {
+    const inner = parseIA(response.mensaje);
+    if (inner?.id && inner?.intencion) {
+      console.log("🔁 DOUBLE PARSE: JSON encontrado dentro de 'mensaje'");
+      response = { ...inner };
+    }
+  }
+  if (!response || !Object.keys(response).length) {
+    response = { mensaje: responseRaw || "Sin respuesta", id: null, intencion: "ERROR_FORMATO_IA", estado: "FALLBACK" };
+  }
+  console.log("📦 RESPONSE:", response);
+ 
+  const apiData = Array.isArray(apiResponse.data) ? apiResponse.data : Object.values(apiResponse.data || {});
+  const responseId = String(response?.id || "").trim().replace(/"/g, "");
+  const match = apiData.find((d) => String(d?.id || "").trim().replace(/"/g, "") === responseId);
+ 
+  const idFinal      = response?.id || match?.id || "sin_id";
+  const mensajeFinal = String(response?.mensaje || "").trim();
+  const imagenFinal  = match?.img || "";
+  const keywords = response?.keywords || response?.palabras_clave || [];
+  const kwArr = Array.isArray(keywords) ? keywords : [];
+ 
+  const nombre = match?.nombre || match?.name || match?.titulo || match?.lugar || "";
+  const tags   = Array.isArray(match?.tag) ? match.tag.join(",") : "turismo";
+  const extra  = kwArr.length ? kwArr.join(",") : "null";
+  const data = ["TURISMO", nombre, tags, extra, idFinal].join("|");
+ 
+  const alias_turismo = match?.alias || "";
+  link_construido = alias_turismo
+    ? `https://geinzworkapp.web.app/turismo/${alias_turismo}`
+    : "";
+ 
+  const ctas = ["👉 Mira su perfil aqui","🔥 Descúbrelo en Geinz","📍 Mira todos los detalles","🚀 Explóralo ahora","😎 Dale un vistazo aquí","✨ Mira en Geinz","👀 Chequéalo aquí","📲 Ábrelo en la app"];
+ 
+  const mensaje_safe = mensajeFinal
+    ? (link_construido ? `${mensajeFinal}  ${pick(ctas)}: ${link_construido}` : mensajeFinal)
+    : (link_construido ? `${pick(ctas)}: ${link_construido}` : "");
+ 
+  const imagen_stiker = pick(stiker_turismo);
+ 
+  console.log("MATCH:", JSON.stringify(match));
+  console.log("DATA TURISMO:", data);
+  console.log("IMAGEN:", imagenFinal);
+ 
+  // Estructura idéntica a tu código original (rama turismo). Los campos
+  // exclusivos de tienda quedan igual que salían para tipo="turismo": vacíos/false.
+  return {
+    ...response,
+    id: idFinal,
+    imagen: imagenFinal,
+    mensaje_safe,
+    data,
+    siker: imagen_stiker,
+    msje_pla_wa: "",
+    plantilla: false,
+    wha: "",
+    cat_detectada: "",
+    era_plantilla_pero_misio: false,
+    nombre_negocio: "",
+    token_wsap: "",
+    alias_tienda: "",
+  };
+}
+ 
+// ============================================================
+// 5. CLOUD FUNCTION PRINCIPAL — orquesta todo el flujo
+// ============================================================
+ 
+exports.clasificador_geinz_turismo = onRequest(async (req, res) => {
+  const inicio = Date.now();
+  // Clasificador (nombre/categoría/excluir_id) → OpenAI gpt-5.4-nano
+  const tokensOpenAI = tokensVacios();
+  // Agente final (redacta el mensaje) → Gemini
+  const tokensGemini = tokensVacios();
+  const pasos = [];
+ 
+  try {
+    const { mensaje, contexto_previo, localidad, usuario } = req.body;
+ 
     if (!mensaje || typeof mensaje !== "string" || !mensaje.trim()) {
       return res.status(400).json({ ok: false, error: "El campo 'mensaje' es requerido" });
     }
-
-    const categorias = await obtenerSubcategoriasTurismo();
-    const prompt = construirPromptTurismo(mensaje, contexto_previo, categorias);
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-5.4-nano",
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" },
+ 
+    // 1) Clasificación (categoría / nombre / excluir_id) — OpenAI gpt-5.4-nano, reasoning minimal
+    const t1 = Date.now();
+    const { resultado: clasificacion, tokens: tokensClasificador } =
+      await clasificarTurismo(mensaje, contexto_previo);
+    sumarTokens(tokensOpenAI, tokensClasificador);
+    pasos.push({
+      paso: "clasificador",
+      motor: "openai",
+      tiempo_ms: Date.now() - t1,
+      tokens: tokensClasificador,
+      resultado: clasificacion,
     });
-
-    const raw = completion.choices[0]?.message?.content || "{}";
-
-    let resultado;
-    try {
-      resultado = JSON.parse(raw);
-    } catch (e) {
-      console.error("❌ Error parseando respuesta de OpenAI (turismo):", e.message, "| RAW:", raw);
-      resultado = { tipo: "turismo", nombre: null, categoria: null, excluir_id: null };
-    }
-
-    return res.status(200).json({ ok: true, data: resultado });
+ 
+    // 2) Búsqueda de lugares en Algolia, por el nombre y/o categoría que dijo el usuario
+    const t2 = Date.now();
+    const lugares = await obtenerLugaresTuristicos(
+      localidad,
+      clasificacion?.nombre,
+      clasificacion?.categoria,
+      clasificacion?.excluir_id,
+    );
+    pasos.push({
+      paso: "busqueda_algolia",
+      motor: "algolia",
+      tiempo_ms: Date.now() - t2,
+      tokens: null, // Algolia no gasta tokens de IA
+      resultado: { total: lugares.total, ids: lugares.data.map((d) => d.id) },
+    });
+ 
+    // 3) Agente final: elige el lugar y redacta el mensaje (solo recibe DATA ligera) — Gemini
+    const t3 = Date.now();
+    const usuarioNombre = usuario || "amigo";
+    const { texto: respuestaAgenteRaw, tokens: tokensAgente } = await agenteFinalTurismo(
+      mensaje,
+      lugares.data,
+      usuarioNombre,
+      lugares.momento_dia,
+    );
+    sumarTokens(tokensGemini, tokensAgente);
+    pasos.push({
+      paso: "agente_final",
+      motor: "gemini",
+      tiempo_ms: Date.now() - t3,
+      tokens: tokensAgente,
+      resultado: respuestaAgenteRaw,
+    });
+ 
+    // 4) Agregador de imágenes — arma la salida final tal cual el flujo original
+    const t4 = Date.now();
+    const salidaFinal = agregarImagenesTurismo(respuestaAgenteRaw, lugares);
+    pasos.push({
+      paso: "agregador_imagenes",
+      motor: "local",
+      tiempo_ms: Date.now() - t4,
+      tokens: null,
+      resultado: { id: salidaFinal.id, imagen: !!salidaFinal.imagen },
+    });
+ 
+    const tiempo_ms = Date.now() - inicio;
+    const tokens_usados = {
+      gemini: tokensGemini,
+      openai: tokensOpenAI,
+      total: tokensGemini.total_tokens + tokensOpenAI.total_tokens,
+      pasos, // desglose paso a paso: qué se hizo, cuánto tardó y cuánto costó cada uno
+    };
+ 
+    console.log("💰 TOKENS:", JSON.stringify({ gemini: tokensGemini, openai: tokensOpenAI }), "| ⏱️ TIEMPO_MS:", tiempo_ms);
+    console.log("🪜 PASOS:", JSON.stringify(pasos));
+ 
+    return res.status(200).json({
+      ...salidaFinal,
+      tokens_usados,
+      tiempo_ms,
+    });
   } catch (error) {
     console.error("❌ Error clasificador_geinz_turismo:", error.message);
-    return res.status(500).json({ ok: false, error: error.message });
+    const tiempo_ms = Date.now() - inicio;
+    return res.status(500).json({ ok: false, error: error.message, tiempo_ms, pasos });
   }
 });
+ 
+
+
+
+
+
 
 // ============================================================================
 // ============================================================================
 //   5. MÓDULO EMERGENCIAS (SALUD / SEGURIDAD)
 // ============================================================================
 // ============================================================================
-
+// ---------- Prompt clasificación SALUD / SEGURIDAD ----------
 function construirPromptEmergencia(mensaje) {
   return `Clasifica el mensaje en una sola palabra: SALUD o SEGURIDAD.
-SIEMPRE TIENES QUE VER CUAL ES MEJOR PARA LA SITUACION SIN COMETER ERRORES.
+
+SALUD: hospital, clínica, ambulancia, accidente, herido, enfermedad, dolor, sangre, parto, desmayo, intoxicación, farmacia, emergencia médica.
+SEGURIDAD: robo, asalto, delincuencia, policía, comisaría, bomberos, incendio, disparo, pelea, amenaza, extorsión, serenazgo, ladrón.
+
+Si el mensaje menciona directamente una palabra de la lista SALUD (por ejemplo "hospital"), responde SALUD sin dudar, sin importar el resto del contexto.
+Si el mensaje menciona directamente una palabra de la lista SEGURIDAD, responde SEGURIDAD sin dudar.
 
 Responde ÚNICAMENTE con esa palabra, sin explicaciones, sin puntos, sin comillas, sin markdown.
 
 MENSAJE: "${mensaje}"`;
 }
 
-exports.obtener_lugares_emergencia_Actualizado = onRequest(async (req, res) => {
-  try {
-    const { localidad, mensaje } = req.body;
+// ---------- Prompt selector de contacto ----------
+//    A Gemini SOLO le llega "id" y "n" (nombre) de cada entidad — nunca
+//    teléfonos, dirección, referencia ni coordenadas. Esos datos los arma
+//    el código después, en construirRespuestaFinal, haciendo match por "id"
+//    contra el array completo "data". Gemini nunca toca esa información.
+function construirSystemPromptSelector(entidadesLigeras, nombreUsuario) {
+  return `Eres el selector de contactos de Geinz. Tu única función es encontrar la entidad que el usuario solicita o la que mejor pueda ayudarlo.
 
-    if (!mensaje || typeof mensaje !== "string" || !mensaje.trim()) {
-      return res.status(400).json({ ok: false, error: "El campo 'mensaje' es requerido" });
+ENTIDADES DISPONIBLES (ID y Nombre):
+
+${JSON.stringify(entidadesLigeras)}
+
+INSTRUCCIONES DE SELECCIÓN:
+1. Si el usuario menciona un nombre que está en la Data (ej: "Divpol", "Serenazgo", "Hospital"), selecciona ESE ID sin dudar.
+2. Si el usuario describe una situación (ej: "me robaron"), selecciona la entidad de seguridad más cercana (Comisaría o Divpol).
+3. Bajo ninguna circunstancia respondas con un ID vacío si hay datos disponibles.
+
+REGLAS DE RESPUESTA:
+- Tono: Calmado y directo para ${nombreUsuario}.
+- Longitud: Máximo 2 líneas.
+- Formato: JSON ESTRICTO.
+
+{ 
+  "id": "ID_DEL_CONTACTO_ELEGIDO siempre de la lista de entidades sin inventar ni acrotar nada", 
+  "mensaje": "Texto de apoyo con el nombre de la entidad seleccionada y el nombre", 
+  "intencion": "EMERGENCIA", 
+  "estado": "AYUDA_EMERGENCIA" 
+}`;
+}
+
+// ---------- Construye la versión ligera que SÍ se manda a Gemini (solo id + n) ----------
+function construirEntidadesLigeras(data) {
+  return data.map((d) => ({ id: d.id, n: d.n }));
+}
+
+// ---------- Validador de clasificación: detecta respuestas cortadas/vacías/basura ----------
+function validarClasificacion(textoRaw) {
+  const limpio = (textoRaw || "")
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+
+  if (limpio.includes("SALUD")) return "salud";
+  if (limpio.includes("SEGURIDAD")) return "seguridad";
+
+  return null; // 👈 null = no se pudo determinar, hay que reintentar
+}
+
+// ---------- Paso 1: clasificar mensaje con OpenAI (con reintento automático) ----------
+async function clasificarMensaje(mensaje, intento = 1) {
+  const MAX_INTENTOS = 2;
+
+  console.log(`🟡 [clasificarMensaje] INICIO (intento ${intento}) | mensaje:`, mensaje);
+
+  const t0 = Date.now();
+  const promptEmergencia = construirPromptEmergencia(mensaje);
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-5.4-nano",
+    messages: [{ role: "user", content: promptEmergencia }],
+    max_completion_tokens: 10,
+  });
+  const tiempoMs = Date.now() - t0;
+
+  const rawTexto = completion.choices[0]?.message?.content || "";
+  console.log("🧠 RAW IA:", rawTexto);
+
+  const categoriaValidada = validarClasificacion(rawTexto);
+
+  const usage = {
+    tiempo_ms: tiempoMs,
+    prompt_tokens: completion.usage?.prompt_tokens ?? null,
+    completion_tokens: completion.usage?.completion_tokens ?? null,
+    total_tokens: completion.usage?.total_tokens ?? null,
+  };
+
+  console.log("⏱️ OpenAI:", usage);
+
+  if (categoriaValidada === null && intento < MAX_INTENTOS) {
+    console.log(`⚠️ [clasificarMensaje] Respuesta no reconocida ("${rawTexto}"), reintentando...`);
+    const reintento = await clasificarMensaje(mensaje, intento + 1);
+    return {
+      categoria: reintento.categoria,
+      usage: {
+        tiempo_ms: usage.tiempo_ms + reintento.usage.tiempo_ms,
+        prompt_tokens: (usage.prompt_tokens || 0) + (reintento.usage.prompt_tokens || 0),
+        completion_tokens: (usage.completion_tokens || 0) + (reintento.usage.completion_tokens || 0),
+        total_tokens: (usage.total_tokens || 0) + (reintento.usage.total_tokens || 0),
+        intentos: (reintento.usage.intentos || 1) + 1,
+      },
+    };
+  }
+
+  const categoria = categoriaValidada || "general";
+
+  console.log("🚨 CLASIFICACION EMERGENCIA:", categoria, "| intentos usados:", intento);
+  console.log("🟢 [clasificarMensaje] FIN | categoria:", categoria, "| tiempo_ms:", tiempoMs);
+
+  return { categoria, usage: { ...usage, intentos: intento } };
+}
+
+// ---------- Paso 2: buscar en Algolia (localidad + categoría directo en el filtro) ----------
+async function buscarLugares(localidad, categoria) {
+  console.log("🟡 [buscarLugares] INICIO | localidad:", localidad, "| categoria:", categoria);
+
+  const t0 = Date.now();
+
+  let filtersArray = [];
+  if (localidad) filtersArray.push(`lugar:"${localidad}"`);
+  if (categoria && categoria !== "general") filtersArray.push(`categoria:"${categoria}"`);
+
+  const filters =
+    filtersArray.length > 0 ? filtersArray.join(" AND ") : undefined;
+
+  console.log("🔎 [buscarLugares] filtros Algolia:", filters || "(sin filtro)");
+
+  const result = await index.search("", { filters, hitsPerPage: 20 });
+
+  console.log("📦 [buscarLugares] HITS CRUDOS ALGOLIA:", JSON.stringify(result.hits, null, 2));
+  console.log("📦 [buscarLugares] TOTAL HITS CRUDOS:", result.hits.length);
+
+  const data = result.hits.map((d) => {
+    let ubicacion = null;
+    if (
+      d.ubicacion &&
+      d.ubicacion.latitud != null &&
+      d.ubicacion.longitud != null
+    ) {
+      ubicacion = { lat: d.ubicacion.latitud, lng: d.ubicacion.longitud };
     }
 
-    const promptEmergencia = construirPromptEmergencia(mensaje);
+    return {
+      id: d.id ?? d.objectID,
+      c: d.categoria ?? null,
+      n: d.nombre ?? null,
+      num: {
+        llamada: d.llamada ? [d.llamada] : [],
+        whatsapp: d.whatsapp ? [d.whatsapp] : [],
+      },
+      dir: d.dir ?? null,
+      ref: d.ref ?? null,
+      ...(ubicacion && { ub: ubicacion }),
+    };
+  });
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-5.4-nano",
-      messages: [{ role: "user", content: promptEmergencia }],
-    });
+  const tiempoMs = Date.now() - t0;
+  console.log("⏱️ Algolia:", { tiempo_ms: tiempoMs, resultados: data.length });
+  console.log("🟢 [buscarLugares] FIN | data mapeada:", JSON.stringify(data, null, 2));
 
-    const clasificacionRaw = (completion.choices[0]?.message?.content || "")
-      .toUpperCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
+  return { data, usage: { tiempo_ms: tiempoMs } };
+}
 
-    console.log("🧠 RAW IA:", completion.choices[0]?.message?.content);
+// ---------- Paso 3: llamar a Gemini vía HTTP para elegir el contacto ----------
+//    entidadesLigeras: SOLO { id, n } — sin teléfonos, dirección, referencia ni coordenadas.
+async function seleccionarContacto(entidadesLigeras, mensajeUsuario, nombreUsuario) {
+  console.log("🟡 [seleccionarContacto] INICIO | entidades disponibles:", entidadesLigeras.length, "| mensajeUsuario:", mensajeUsuario);
+  console.log("📤 [seleccionarContacto] ENTIDADES ENVIADAS A GEMINI (solo id+n):", JSON.stringify(entidadesLigeras));
 
-    const categoria = clasificacionRaw.includes("SALUD")
-      ? "salud"
-      : clasificacionRaw.includes("SEGURIDAD")
-        ? "seguridad"
-        : "general";
+  const t0 = Date.now();
+  const systemMessage = construirSystemPromptSelector(entidadesLigeras, nombreUsuario);
 
-    console.log("🚨 CLASIFICACION EMERGENCIA:", categoria);
+  const body = {
+    contents: [{ role: "user", parts: [{ text: mensajeUsuario }] }],
+    systemInstruction: { parts: [{ text: systemMessage }] },
+    generationConfig: {
+      temperature: 0.2,
+      maxOutputTokens: 200,
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+  };
 
-    let filtersArray = [];
-    if (localidad) filtersArray.push(`lugar:"${localidad}"`);
-    if (categoria && categoria !== "general") filtersArray.push(`categoria:"${categoria}"`);
+  const resp = await fetch(`${GEMINI_URL}?key=${GEMINIKEY}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 
-    const filters = filtersArray.length > 0 ? filtersArray.join(" AND ") : undefined;
+  const json = await resp.json();
+  const tiempoMs = Date.now() - t0;
 
-    const result = await index.search("", { filters, hitsPerPage: 20 });
+  const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-    const data = result.hits.map((d) => {
-      let ubicacion = null;
-      if (d.ubicacion && d.ubicacion.latitud != null && d.ubicacion.longitud != null) {
-        ubicacion = { lat: d.ubicacion.latitud, lng: d.ubicacion.longitud };
+  console.log("🤖 RAW Gemini:", rawText);
+
+  let outputIA;
+  try {
+    outputIA = JSON.parse(rawText.replace(/```json|```/g, "").trim());
+  } catch (e) {
+    console.log("❌ [seleccionarContacto] ERROR parseando Gemini:", e.message);
+    throw new Error("No se pudo parsear la respuesta de Gemini: " + rawText);
+  }
+
+  const usage = {
+    tiempo_ms: tiempoMs,
+    prompt_tokens: json.usageMetadata?.promptTokenCount ?? null,
+    completion_tokens: json.usageMetadata?.candidatesTokenCount ?? null,
+    total_tokens: json.usageMetadata?.totalTokenCount ?? null,
+  };
+
+  console.log("⏱️ Gemini:", usage);
+  console.log("🟢 [seleccionarContacto] FIN | outputIA:", JSON.stringify(outputIA));
+
+  return { outputIA, usage };
+}
+
+// ---------- Paso 4: armar salida final (igual que "agregar_link_de_maps") ----------
+//    Aquí SÍ se usa "data" completo (con num, dir, ref, ub, c) para armar la
+//    respuesta real — Gemini nunca vio estos campos, solo eligió el "id".
+function construirRespuestaFinal(outputIA, data) {
+  console.log("🟡 [construirRespuestaFinal] INICIO | buscando id:", outputIA.id, "entre", data.length, "contactos");
+
+  const contacto = data.find((c) => c.id === outputIA.id);
+
+  if (!contacto) {
+    console.log("❌ [construirRespuestaFinal] NO SE ENCONTRÓ la entidad con id:", outputIA.id);
+    return { error: "No se encontró la entidad", tiene_link: false };
+  }
+
+  console.log("✅ [construirRespuestaFinal] CONTACTO ENCONTRADO:", JSON.stringify(contacto));
+
+  const listaLlamadas = contacto.num?.llamada || [];
+  const listaWhatsapp = contacto.num?.whatsapp?.[0]
+    ? contacto.num.whatsapp
+    : [];
+
+  const bloqueContactos =
+    listaLlamadas.length && listaWhatsapp.length
+      ? `📞 Contáctalos al: ${listaLlamadas.join(" - ")} o 💬 Escríbeles al: ${listaWhatsapp.join(" - ")}`
+      : listaLlamadas.length
+        ? `📞 Contáctalos al: ${listaLlamadas.join(" - ")}`
+        : listaWhatsapp.length
+          ? `💬 Escríbeles al: ${listaWhatsapp.join(" - ")}`
+          : "";
+
+  const lat = contacto.ub?.lat || null;
+  const lng = contacto.ub?.lng || null;
+  const tiene_link = !!(lat && lng);
+  const direccion = contacto.dir || "";
+  const referencia = contacto.ref || "";
+  const mensajeBase = String(outputIA.mensaje).trim();
+  const base = {
+    id: outputIA.id,
+    intencion: outputIA.intencion,
+    estado: outputIA.estado,
+    tiene_link,
+  };
+
+  const resultadoFinal = tiene_link
+    ? {
+        ...base,
+        mensaje_texto:
+          `${mensajeBase} ubicalos en *${direccion}* ,con referencia *${referencia ? `(${referencia})* , ` : ""}`.trim(),
+        telefonos: listaLlamadas,
+        whatsapp: listaWhatsapp,
+        lat,
+        lng,
       }
-
-      return {
-        id: d.id ?? d.objectID,
-        c: d.categoria ?? null,
-        n: d.nombre ?? null,
-        num: {
-          llamada: d.llamada ? [d.llamada] : [],
-          whatsapp: d.whatsapp ? [d.whatsapp] : [],
-        },
-        dir: d.dir ?? null,
-        ref: d.ref ?? null,
-        ...(ubicacion && { ub: ubicacion }),
+    : {
+        ...base,
+        mensaje_safe:
+          `${mensajeBase} ${bloqueContactos} 🏠 ${direccion} ${referencia ? `💡 ${referencia}` : ""} ✅`.trim(),
       };
-    });
+
+  console.log("🟢 [construirRespuestaFinal] FIN | resultado:", JSON.stringify(resultadoFinal));
+
+  return resultadoFinal;
+}
+
+// ---------- Función única exportada ----------
+exports.obtener_lugares_emergencia_Actualizado = onRequest(async (req, res) => {
+  const tInicio = Date.now();
+  try {
+    const { localidad, mensaje, nombreUsuario } = req.body;
+
+    console.log("🚀 [obtener_lugares_emergencia] REQUEST BODY:", JSON.stringify(req.body));
+
+    if (!mensaje || typeof mensaje !== "string" || !mensaje.trim()) {
+      console.log("❌ [obtener_lugares_emergencia] falta el campo 'mensaje'");
+      return res
+        .status(400)
+        .json({ ok: false, error: "El campo 'mensaje' es requerido" });
+    }
+
+    // 1) Clasificar (SALUD/SEGURIDAD/general)
+    const { categoria, usage: usageOpenAI } = await clasificarMensaje(mensaje);
+
+    // 2) Buscar en Algolia filtrando por localidad + categoría — "data" completo,
+    //    con teléfonos/dirección/coordenadas, se queda solo en el backend.
+    const { data, usage: usageAlgolia } = await buscarLugares(localidad, categoria);
+
+    console.log("📊 [obtener_lugares_emergencia] DATA FILTRADA POR CATEGORIA:", data.length, "resultados");
+
+    // 3) A Gemini SOLO le llega { id, n } de cada entidad — nunca datos sensibles/de contacto
+    const entidadesLigeras = construirEntidadesLigeras(data);
+    const { outputIA, usage: usageGemini } = await seleccionarContacto(
+      entidadesLigeras,
+      mensaje,
+      nombreUsuario || "usuario",
+    );
+
+    // 4) El código arma la respuesta final buscando el "id" elegido dentro del
+    //    "data" completo (con teléfonos, dirección, coordenadas)
+    const resultado = construirRespuestaFinal(outputIA, data);
+
+    const tiempoTotalMs = Date.now() - tInicio;
+
+    const debugInfo = {
+      tiempo_total_ms: tiempoTotalMs,
+      categoria_detectada: categoria,
+      openai: usageOpenAI,
+      algolia: usageAlgolia,
+      gemini: usageGemini,
+    };
+
+    console.log("📊 RESUMEN TIEMPOS/TOKENS:", JSON.stringify(debugInfo));
 
     res.set("Cache-Control", "public, max-age=300");
-
-    return res.status(200).json({ ok: true, categoria, total: data.length, data });
+    return res.status(200).json({ ...resultado, _debug: debugInfo });
   } catch (error) {
-    console.error("ERROR obtener_lugares_emergencia:", error);
-    return res.status(500).json({ ok: false, mensaje: "Error interno al buscar lugares" });
+    console.error("❌ ERROR obtener_lugares_emergencia:", error.message);
+    return res
+      .status(500)
+      .json({ ok: false, mensaje: "Error interno al buscar lugares" });
   }
 });
-
 // ============================================================================
 // ============================================================================
 //   6. MÓDULO PROMOCIONES
@@ -1330,14 +2172,23 @@ function compactar(lista) {
     .map((g) => {
       const header = `TIENDA:${g.t}|PAGOS:${g.pagos || "no_especificado"}`;
       const items = g.items
-        .map((it) => `  ${it.id}~${it.sc}~${it.desc}~${it.precio}~${it.como}~${it.p_ok}~${it.pr_ok}`)
+        .map(
+          (it) =>
+            `  ${it.id}~${it.sc}~${it.desc}~${it.precio}~${it.como}~${it.p_ok}~${it.pr_ok}`,
+        )
         .join("\n");
       return `${header}\n${items}`;
     })
     .join("\n\n");
 }
 
-function construirPromptPromo(momento, nombreUsuario, resultados, alt, mensajeUsuario) {
+function construirPromptPromo(
+  momento,
+  nombreUsuario,
+  resultados,
+  alt,
+  mensajeUsuario,
+) {
   return `Informador peruano. Elige la mejor promo.
 
 FORMATO: TIENDA:nombre|PAGOS:métodos
@@ -1362,7 +2213,8 @@ exports.elegir_mejor_promo = onRequest(async (req, res) => {
   const inicioTiempo = Date.now();
 
   try {
-    const { momento, resultados, alt, nombre_usuario, mensaje_usuario } = req.body;
+    const { momento, resultados, alt, nombre_usuario, mensaje_usuario } =
+      req.body;
 
     if (!Array.isArray(resultados)) {
       return res.status(400).json({
@@ -1415,7 +2267,9 @@ exports.elegir_mejor_promo = onRequest(async (req, res) => {
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
       console.error("❌ Error Gemini API:", geminiRes.status, errText);
-      return res.status(502).json({ ok: false, error: "Error al consultar Gemini" });
+      return res
+        .status(502)
+        .json({ ok: false, error: "Error al consultar Gemini" });
     }
 
     const geminiData = await geminiRes.json();
@@ -1432,16 +2286,24 @@ exports.elegir_mejor_promo = onRequest(async (req, res) => {
     );
 
     if (respuestaTokens >= body.generationConfig.maxOutputTokens - 10) {
-      console.warn("⚠️ Respuesta posiblemente truncada por maxOutputTokens, revisar prompt o subir el tope");
+      console.warn(
+        "⚠️ Respuesta posiblemente truncada por maxOutputTokens, revisar prompt o subir el tope",
+      );
     }
 
-    const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    const rawText =
+      geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
 
     let resultado;
     try {
       resultado = JSON.parse(rawText);
     } catch (e) {
-      console.error("❌ Error parseando respuesta de Gemini:", e.message, "| RAW:", rawText);
+      console.error(
+        "❌ Error parseando respuesta de Gemini:",
+        e.message,
+        "| RAW:",
+        rawText,
+      );
       resultado = {
         tipo: "bot",
         varios: false,
@@ -1450,9 +2312,15 @@ exports.elegir_mejor_promo = onRequest(async (req, res) => {
       };
     }
 
-    if (typeof resultado.mensaje === "string" && resultado.mensaje.length > MAX_MENSAJE_CHARS) {
-      console.warn(`✂️ Mensaje recortado: ${resultado.mensaje.length} chars → ${MAX_MENSAJE_CHARS}`);
-      resultado.mensaje = resultado.mensaje.slice(0, MAX_MENSAJE_CHARS).trim() + "...";
+    if (
+      typeof resultado.mensaje === "string" &&
+      resultado.mensaje.length > MAX_MENSAJE_CHARS
+    ) {
+      console.warn(
+        `✂️ Mensaje recortado: ${resultado.mensaje.length} chars → ${MAX_MENSAJE_CHARS}`,
+      );
+      resultado.mensaje =
+        resultado.mensaje.slice(0, MAX_MENSAJE_CHARS).trim() + "...";
     }
 
     return res.status(200).json({
@@ -1473,7 +2341,6 @@ exports.elegir_mejor_promo = onRequest(async (req, res) => {
     return res.status(500).json({ ok: false, error: error.message });
   }
 });
-
 
 // ============================================================================
 // 📌 DEPENDENCIAS QUE YA TIENES DEFINIDAS EN TU ARCHIVO (no las repito aquí):
@@ -1507,7 +2374,11 @@ async function obtenerNegocioPorIdONombre({ id, nombre, localidad }) {
     try {
       hit = await index.getObject(id, { attributesToRetrieve: ATTRS });
     } catch (e) {
-      console.error("❌ [info_negocio] No se encontró objeto por id:", id, e.message);
+      console.error(
+        "❌ [info_negocio] No se encontró objeto por id:",
+        id,
+        e.message,
+      );
       hit = null;
     }
   }
@@ -1540,13 +2411,19 @@ async function obtenerNegocioPorIdONombre({ id, nombre, localidad }) {
 // ----------------------------------------------------------------------------
 exports.geinz_info_negocio = onRequest(async (req, res) => {
   const tiempoInicioTotal = Date.now();
-  let tokensGemini = { promptTokenCount: 0, candidatesTokenCount: 0, totalTokenCount: 0 };
+  let tokensGemini = {
+    promptTokenCount: 0,
+    candidatesTokenCount: 0,
+    totalTokenCount: 0,
+  };
 
   try {
     const { id, nombre, mensaje, localidad, nombre_usuario } = req.body;
 
     if (!id && (!nombre || !nombre.trim())) {
-      return res.status(400).json({ ok: false, error: "Debes enviar 'id' o 'nombre' del negocio" });
+      return res
+        .status(400)
+        .json({ ok: false, error: "Debes enviar 'id' o 'nombre' del negocio" });
     }
 
     const momento_dia = obtenerMomentoDia();
@@ -1629,10 +2506,15 @@ FORMATO OBLIGATORIO:
 
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
-      console.error("❌ [info_negocio] Error Gemini API:", geminiRes.status, errText);
+      console.error(
+        "❌ [info_negocio] Error Gemini API:",
+        geminiRes.status,
+        errText,
+      );
       response = {
         id: hit.objectID,
-        mensaje: "Tuve un problema consultando la info, intenta de nuevo en un momento",
+        mensaje:
+          "Tuve un problema consultando la info, intenta de nuevo en un momento",
         intencion: "ERROR_GEMINI",
       };
     } else {
@@ -1641,15 +2523,21 @@ FORMATO OBLIGATORIO:
       if (geminiData?.usageMetadata) {
         tokensGemini = {
           promptTokenCount: geminiData.usageMetadata.promptTokenCount || 0,
-          candidatesTokenCount: geminiData.usageMetadata.candidatesTokenCount || 0,
+          candidatesTokenCount:
+            geminiData.usageMetadata.candidatesTokenCount || 0,
           totalTokenCount: geminiData.usageMetadata.totalTokenCount || 0,
         };
       }
 
-      const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+      const rawText =
+        geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
       response = parsearRespuestaIA(rawText);
       if (!response || !Object.keys(response).length) {
-        response = { id: hit.objectID, mensaje: rawText || "Sin respuesta", intencion: "ERROR_FORMATO_IA" };
+        response = {
+          id: hit.objectID,
+          mensaje: rawText || "Sin respuesta",
+          intencion: "ERROR_FORMATO_IA",
+        };
       }
     }
 
@@ -1660,12 +2548,17 @@ FORMATO OBLIGATORIO:
     const imagenFinal = hit.imagen_bot || "";
     const nombre_negocio = hit.nombre || "";
     const categoria_match = hit.categoria || "general";
-    const categoriaFinal = encodeURIComponent(categoria_match).replace(/%20/g, "+");
+    const categoriaFinal = encodeURIComponent(categoria_match).replace(
+      /%20/g,
+      "+",
+    );
     const alias_tienda = hit.alias || "";
 
     // 🔧 Link + mensaje predeterminado armados por CÓDIGO, no por Gemini.
     // Siempre que exista alias, se agrega al final del mensaje.
-    const link_construido = alias_tienda ? `https://geinzworkapp.web.app/perfil/${alias_tienda}` : "";
+    const link_construido = alias_tienda
+      ? `https://geinzworkapp.web.app/perfil/${alias_tienda}`
+      : "";
 
     const mensaje_safe = link_construido
       ? `${mensajeFinal} 📲 Si quieres más info, chécalo en Geinz: ${link_construido}`
@@ -1673,7 +2566,13 @@ FORMATO OBLIGATORIO:
 
     const imagen_stiker = pick(STIKER_TIENDA);
 
-    const data = ["TIENDA", nombre_negocio, categoria_match, "null", idFinal].join("|");
+    const data = [
+      "TIENDA",
+      nombre_negocio,
+      categoria_match,
+      "null",
+      idFinal,
+    ].join("|");
 
     const tiempoTotalMs = Date.now() - tiempoInicioTotal;
 
@@ -1686,14 +2585,17 @@ FORMATO OBLIGATORIO:
     };
 
     // 🪵 Log de la traza (para Cloud Logging)
-    console.log("🧭 [geinz_info_negocio] TRACE:", JSON.stringify({
-      id_solicitado: id || null,
-      nombre_solicitado: nombre || null,
-      id_encontrado: hit.objectID,
-      nombre_negocio,
-      tokens_usados,
-      tiempo_total_ms: tiempoTotalMs,
-    }));
+    console.log(
+      "🧭 [geinz_info_negocio] TRACE:",
+      JSON.stringify({
+        id_solicitado: id || null,
+        nombre_solicitado: nombre || null,
+        id_encontrado: hit.objectID,
+        nombre_negocio,
+        tokens_usados,
+        tiempo_total_ms: tiempoTotalMs,
+      }),
+    );
 
     return res.status(200).json({
       ...response,
@@ -1724,3 +2626,180 @@ FORMATO OBLIGATORIO:
     });
   }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ============================================================
+// DISPERSADOR IA — Clasificador de intención (antes nodo n8n "dispersador IA2")
+//    Motor: OpenAI gpt-5.4-mini, reasoning_effort: low
+//    Prompt tal cual el original — NO TOCAR
+// ============================================================
+
+function tokensVacios() {
+  return { prompt_tokens: 0, completion_tokens: 0, thoughts_tokens: 0, total_tokens: 0 };
+}
+
+function sumarTokens(total, extra) {
+  total.prompt_tokens += extra?.prompt_tokens || 0;
+  total.completion_tokens += extra?.completion_tokens || 0;
+  total.thoughts_tokens += extra?.thoughts_tokens || 0;
+  total.total_tokens += extra?.total_tokens || 0;
+}
+
+// PROMPT TAL CUAL — NO TOCAR
+function construirSystemMessageDispersador(contextoUsuario) {
+  return `Eres un clasificador. Responde SOLO con una palabra.
+CONTEXTO: ${JSON.stringify(contextoUsuario || {})}
+PASOS (seguir en orden):
+0. Si CONTEXTO.extra contiene "ESPERANDO_NOMBRE_PROMO" Y el mensaje NO tiene señales de cambio de intención (no dice "no", "olvida", "mejor otra cosa", "ya no", ni pide algo claramente distinto como emergencia/peligro) → responde PROMOCIONES. Para.
+1. VERIFICA EL EXTRA PARA QUE TENGAS MAYOR CONTEXTO Y CLASIFIQUES SEGUN LA CONVERSACION
+2. Si el mensaje tiene "otro/otra/otros" → responde NEGOCIO o TURISMO según el contexto. Para.
+3. Si el mensaje menciona un nombre, negocio o lugar → ignora el contexto y clasifica solo.
+4. Si hay contexto previo y el mensaje menciona ofertas, promos, descuentos, precios o falta de dinero sin nombrar nada nuevo → responde PROMOCIONES. Para.
+5. CONTINUIDAD_INFO solo si: hay contexto previo, no hay nombre nuevo, y el mensaje pregunta algo concreto del mismo negocio y el mismo "tipo" sino obiar esto.
+6. Si dudas entre CONTINUIDAD_INFO y otra → elige NEGOCIO o TURISMO.
+CATEGORÍAS:
+- EMERGENCIA: peligro de vida real ahora mismo, o pide número de SAMU/policía/serenazgo/salud.
+- PELIGRO: amenaza, extorsión o delito real. No expresiones de enojo.
+- CONTINUIDAD_INFO: pregunta concreta sobre el mismo negocio del contexto y el mismo "tipo" .
+- PROMOCIONES: busca descuentos, ofertas, precios bajos o dice que no tiene dinero.
+- NEGOCIO: busca tienda, producto, servicio, o quiere comer/tomar/consumir algo nombre de tienda o negocio.
+- TURISMO: busca lugares para visitar. No incluye querer comer o consumir.
+- GEINZ: saludo, soporte, registrar su negocio, mensaje sin sentido claro.
+PRIORIDAD: EMERGENCIA > PELIGRO > paso 0 (ESPERANDO) > CONTINUIDAD_INFO > PROMOCIONES > NEGOCIO > TURISMO > GEINZ
+Responde solo: EMERGENCIA | PELIGRO | CONTINUIDAD_INFO | PROMOCIONES | NEGOCIO | TURISMO | GEINZ`;
+}
+
+async function llamarOpenAIDispersador(mensajeUsuario, contextoUsuario) {
+  const systemMessage = construirSystemMessageDispersador(contextoUsuario);
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-5.4-mini",
+    messages: [
+      { role: "system", content: systemMessage },
+      { role: "user", content: mensajeUsuario },
+    ],
+    reasoning_effort: "low",
+  });
+
+  const texto = (completion.choices[0]?.message?.content || "").trim();
+
+  const tokens = {
+    prompt_tokens: completion.usage?.prompt_tokens || 0,
+    completion_tokens: completion.usage?.completion_tokens || 0,
+    thoughts_tokens: completion.usage?.completion_tokens_details?.reasoning_tokens || 0,
+    total_tokens: completion.usage?.total_tokens || 0,
+  };
+
+  return { texto, tokens, raw: completion };
+}
+
+const CATEGORIAS_VALIDAS = [
+  "EMERGENCIA",
+  "PELIGRO",
+  "CONTINUIDAD_INFO",
+  "PROMOCIONES",
+  "NEGOCIO",
+  "TURISMO",
+  "GEINZ",
+];
+
+function limpiarCategoria(raw) {
+  const limpio = (raw || "").trim().toUpperCase();
+  return CATEGORIAS_VALIDAS.includes(limpio) ? limpio : "GEINZ"; // fallback seguro
+}
+
+// ============================================================
+// CLOUD FUNCTION PRINCIPAL
+// ============================================================
+
+exports.dispersador_geinz = onRequest(async (req, res) => {
+  const inicio = Date.now();
+  const tokensOpenAI = tokensVacios();
+
+  try {
+    const { mensaje, contexto_usuario } = req.body;
+
+    if (!mensaje || typeof mensaje !== "string" || !mensaje.trim()) {
+      return res.status(400).json({ ok: false, error: "El campo 'mensaje' es requerido" });
+    }
+
+    const { texto: categoriaRaw, tokens } = await llamarOpenAIDispersador(
+      mensaje,
+      contexto_usuario,
+    );
+    sumarTokens(tokensOpenAI, tokens);
+
+    const categoria = limpiarCategoria(categoriaRaw);
+
+    const tiempo_ms = Date.now() - inicio;
+
+    console.log("🧭 CATEGORIA:", categoria, "| RAW:", categoriaRaw, "| TOKENS:", JSON.stringify(tokensOpenAI));
+
+    return res.status(200).json({
+      ok: true,
+      categoria,
+      tokens_usados: tokensOpenAI,
+      tiempo_ms,
+    });
+  } catch (error) {
+    console.error("❌ Error dispersador_geinz:", error.message);
+    const tiempo_ms = Date.now() - inicio;
+    return res.status(500).json({ ok: false, error: error.message, tiempo_ms });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
