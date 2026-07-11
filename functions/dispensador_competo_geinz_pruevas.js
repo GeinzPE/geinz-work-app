@@ -259,8 +259,8 @@ PASOS (seguir en orden):
 5. CONTINUIDAD_INFO solo si: hay contexto previo, no hay nombre nuevo, y el mensaje pregunta algo concreto del mismo negocio y el mismo "tipo" sino obiar esto.
 6. Si dudas entre CONTINUIDAD_INFO y otra → elige NEGOCIO o TURISMO.
 CATEGORÍAS:
-- EMERGENCIA: peligro de vida real ahora mismo, o pide número de SAMU/policía/serenazgo/salud.
-- PELIGRO: amenaza, extorsión o delito real. No expresiones de enojo.
+- EMERGENCIA: peligro de vida real ahora mismo, o pide número de SAMU/policía/serenazgo.
+- PELIGRO: amenaza, extorsión o delito real. No expresiones de enojo del usuario no emergencia real.
 - CONTINUIDAD_INFO: pregunta concreta sobre el mismo negocio del contexto y el mismo "tipo" .
 - PROMOCIONES: busca descuentos, ofertas, precios bajos o dice que no tiene dinero.
 - NEGOCIO: busca tienda, producto, servicio, o quiere comer/tomar/consumir algo nombre de tienda o negocio.

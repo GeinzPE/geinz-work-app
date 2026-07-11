@@ -1778,6 +1778,18 @@ exports.clasificador_geinz_turismo = onRequest(async (req, res) => {
 // ============================================================================
 // ============================================================================
 // ---------- Prompt clasificación SALUD / SEGURIDAD ----------
+// ============================================================================
+// ============================================================================
+//   5. MÓDULO EMERGENCIAS (SALUD / SEGURIDAD)
+// ============================================================================
+// ============================================================================
+
+// ---------- CONFIG WhatsApp (mismo patrón que tus otras funciones) ----------
+const WHATSAPP_TOKEN = process.env.ID_API_WHATSAPP; // Bearer token (empieza con EAA...)
+const WHATSAPP_PHONE_NUMBER_ID = process.env.ID_NUMBER_WHATSAPP; // el ID numérico
+const WHATSAPP_API_VERSION = "v20.0";
+
+// ---------- Prompt clasificación SALUD / SEGURIDAD ----------
 function construirPromptEmergencia(mensaje) {
   return `Clasifica el mensaje en una sola palabra: SALUD o SEGURIDAD.
 
@@ -1795,8 +1807,7 @@ MENSAJE: "${mensaje}"`;
 // ---------- Prompt selector de contacto ----------
 //    A Gemini SOLO le llega "id" y "n" (nombre) de cada entidad — nunca
 //    teléfonos, dirección, referencia ni coordenadas. Esos datos los arma
-//    el código después, en construirRespuestaFinal, haciendo match por "id"
-//    contra el array completo "data". Gemini nunca toca esa información.
+//    el código después, en construirRespuestaFinal, haciendo match por "id".
 function construirSystemPromptSelector(entidadesLigeras, nombreUsuario) {
   return `Eres el selector de contactos de Geinz. Tu única función es encontrar la entidad que el usuario solicita o la que mejor pueda ayudarlo.
 
@@ -1806,10 +1817,11 @@ ${JSON.stringify(entidadesLigeras)}
 
 INSTRUCCIONES DE SELECCIÓN:
 1. Si el usuario menciona un nombre que está en la Data (ej: "Divpol", "Serenazgo", "Hospital"), selecciona ESE ID sin dudar.
-2. Si el usuario describe una situación (ej: "me robaron"), selecciona la entidad de seguridad más cercana (Comisaría o Divpol).
+2. Si el usuario describe una situación (ej: "me robaron"), selecciona la entidad de seguridad más cercana.
 3. Bajo ninguna circunstancia respondas con un ID vacío si hay datos disponibles.
 
 REGLAS DE RESPUESTA:
+- NUNCA DECIR "Te conectaremos con ellos"
 - Tono: Calmado y directo para ${nombreUsuario}.
 - Longitud: Máximo 2 líneas.
 - Formato: JSON ESTRICTO.
@@ -1838,7 +1850,7 @@ function validarClasificacion(textoRaw) {
   if (limpio.includes("SALUD")) return "salud";
   if (limpio.includes("SEGURIDAD")) return "seguridad";
 
-  return null; // 👈 null = no se pudo determinar, hay que reintentar
+  return null;
 }
 
 // ---------- Paso 1: clasificar mensaje con OpenAI (con reintento automático) ----------
@@ -1911,7 +1923,6 @@ async function buscarLugares(localidad, categoria) {
 
   const result = await index.search("", { filters, hitsPerPage: 20 });
 
-  console.log("📦 [buscarLugares] HITS CRUDOS ALGOLIA:", JSON.stringify(result.hits, null, 2));
   console.log("📦 [buscarLugares] TOTAL HITS CRUDOS:", result.hits.length);
 
   const data = result.hits.map((d) => {
@@ -1940,15 +1951,13 @@ async function buscarLugares(localidad, categoria) {
 
   const tiempoMs = Date.now() - t0;
   console.log("⏱️ Algolia:", { tiempo_ms: tiempoMs, resultados: data.length });
-  console.log("🟢 [buscarLugares] FIN | data mapeada:", JSON.stringify(data, null, 2));
 
   return { data, usage: { tiempo_ms: tiempoMs } };
 }
 
 // ---------- Paso 3: llamar a Gemini vía HTTP para elegir el contacto ----------
-//    entidadesLigeras: SOLO { id, n } — sin teléfonos, dirección, referencia ni coordenadas.
 async function seleccionarContacto(entidadesLigeras, mensajeUsuario, nombreUsuario) {
-  console.log("🟡 [seleccionarContacto] INICIO | entidades disponibles:", entidadesLigeras.length, "| mensajeUsuario:", mensajeUsuario);
+  console.log("🟡 [seleccionarContacto] INICIO | entidades disponibles:", entidadesLigeras.length);
   console.log("📤 [seleccionarContacto] ENTIDADES ENVIADAS A GEMINI (solo id+n):", JSON.stringify(entidadesLigeras));
 
   const t0 = Date.now();
@@ -1974,7 +1983,6 @@ async function seleccionarContacto(entidadesLigeras, mensajeUsuario, nombreUsuar
   const tiempoMs = Date.now() - t0;
 
   const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
   console.log("🤖 RAW Gemini:", rawText);
 
   let outputIA;
@@ -1999,8 +2007,6 @@ async function seleccionarContacto(entidadesLigeras, mensajeUsuario, nombreUsuar
 }
 
 // ---------- Paso 4: armar salida final (igual que "agregar_link_de_maps") ----------
-//    Aquí SÍ se usa "data" completo (con num, dir, ref, ub, c) para armar la
-//    respuesta real — Gemini nunca vio estos campos, solo eligió el "id".
 function construirRespuestaFinal(outputIA, data) {
   console.log("🟡 [construirRespuestaFinal] INICIO | buscando id:", outputIA.id, "entre", data.length, "contactos");
 
@@ -2038,6 +2044,8 @@ function construirRespuestaFinal(outputIA, data) {
     intencion: outputIA.intencion,
     estado: outputIA.estado,
     tiene_link,
+    telefonos: listaLlamadas,
+    whatsapp: listaWhatsapp,
   };
 
   const resultadoFinal = tiene_link
@@ -2045,8 +2053,6 @@ function construirRespuestaFinal(outputIA, data) {
         ...base,
         mensaje_texto:
           `${mensajeBase} ubicalos en *${direccion}* ,con referencia *${referencia ? `(${referencia})* , ` : ""}`.trim(),
-        telefonos: listaLlamadas,
-        whatsapp: listaWhatsapp,
         lat,
         lng,
       }
@@ -2061,31 +2067,136 @@ function construirRespuestaFinal(outputIA, data) {
   return resultadoFinal;
 }
 
-// ---------- Función única exportada ----------
+// ============================================================================
+// PASO 5 — ENVÍO DIRECTO POR WHATSAPP (antes nodo n8n "template_emergencia" + Switch1)
+//    Ya no vuelve a n8n: la Cloud Function manda el mensaje directo a Meta.
+// ============================================================================
+
+// ---- Caso "con link" → plantilla "emergencia_user|es" con botón de ubicación ----
+async function enviarPlantillaEmergencia(recipientPhoneNumber, resultado) {
+  const telefonosLine = [
+    resultado.telefonos?.length ? `📞 Llámalos al: ${resultado.telefonos[0]}` : "",
+    resultado.whatsapp?.length ? ` 💬 Escríbeles al: ${resultado.whatsapp[0]}` : "",
+  ].join(" o ").trim();
+
+  const url = `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
+
+  const body = {
+    messaging_product: "whatsapp",
+    to: recipientPhoneNumber,
+    type: "template",
+    template: {
+      name: "emergencia_user",
+      language: { code: "es" },
+      components: [
+        {
+          type: "header",
+          parameters: [{ type: "text", text: "MANTEN LA CALMA" }],
+        },
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: resultado.mensaje_texto },
+            { type: "text", text: telefonosLine },
+          ],
+        },
+        {
+          type: "button",
+          sub_type: "url",
+          index: "0",
+          parameters: [{ type: "text", text: `${resultado.lat},${resultado.lng}` }],
+        },
+      ],
+    },
+  };
+
+  console.log("📤 [enviarPlantillaEmergencia] BODY:", JSON.stringify(body));
+
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${WHATSAPP_TOKEN}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    const errText = await resp.text();
+    console.log("❌ [enviarPlantillaEmergencia] ERROR:", resp.status, errText);
+    throw new Error(`Error enviando plantilla emergencia: ${resp.status} ${errText}`);
+  }
+
+  console.log("✅ [enviarPlantillaEmergencia] Plantilla enviada OK");
+  return resp.json();
+}
+
+// ---- Caso "sin link" → mensaje de texto normal con mensaje_safe ----
+async function enviarMensajeTextoEmergencia(recipientPhoneNumber, resultado) {
+  const url = `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
+
+  const body = {
+    messaging_product: "whatsapp",
+    to: recipientPhoneNumber,
+    type: "text",
+    text: { body: resultado.mensaje_safe },
+  };
+
+  console.log("📤 [enviarMensajeTextoEmergencia] BODY:", JSON.stringify(body));
+
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${WHATSAPP_TOKEN}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    const errText = await resp.text();
+    console.log("❌ [enviarMensajeTextoEmergencia] ERROR:", resp.status, errText);
+    throw new Error(`Error enviando mensaje texto emergencia: ${resp.status} ${errText}`);
+  }
+
+  console.log("✅ [enviarMensajeTextoEmergencia] Mensaje enviado OK");
+  return resp.json();
+}
+
+// ---- Orquestador: decide plantilla vs texto según "tiene_link" (mismo Switch1 de n8n) ----
+async function enviarRespuestaEmergencia(recipientPhoneNumber, resultado) {
+  if (resultado.tiene_link) {
+    console.log("🔀 [enviarRespuestaEmergencia] Rama CON LINK → plantilla");
+    return enviarPlantillaEmergencia(recipientPhoneNumber, resultado);
+  } else {
+    console.log("🔀 [enviarRespuestaEmergencia] Rama SIN LINK → texto plano");
+    return enviarMensajeTextoEmergencia(recipientPhoneNumber, resultado);
+  }
+}
+
+// ============================================================================
+// FUNCIÓN PRINCIPAL EXPORTADA
+// ============================================================================
 exports.obtener_lugares_emergencia_Actualizado = onRequest(async (req, res) => {
   const tInicio = Date.now();
   try {
-    const { localidad, mensaje, nombreUsuario } = req.body;
+    const { localidad, mensaje, nombreUsuario, numero_usuario } = req.body;
 
     console.log("🚀 [obtener_lugares_emergencia] REQUEST BODY:", JSON.stringify(req.body));
 
     if (!mensaje || typeof mensaje !== "string" || !mensaje.trim()) {
-      console.log("❌ [obtener_lugares_emergencia] falta el campo 'mensaje'");
-      return res
-        .status(400)
-        .json({ ok: false, error: "El campo 'mensaje' es requerido" });
+      console.log("❌ falta el campo 'mensaje'");
+      return res.status(400).json({ ok: false, error: "El campo 'mensaje' es requerido" });
+    }
+
+    if (!numero_usuario) {
+      console.log("❌ falta el campo 'numero_usuario'");
+      return res.status(400).json({ ok: false, error: "El campo 'numero_usuario' es requerido para enviar la respuesta por WhatsApp" });
     }
 
     // 1) Clasificar (SALUD/SEGURIDAD/general)
     const { categoria, usage: usageOpenAI } = await clasificarMensaje(mensaje);
 
-    // 2) Buscar en Algolia filtrando por localidad + categoría — "data" completo,
-    //    con teléfonos/dirección/coordenadas, se queda solo en el backend.
+    // 2) Buscar en Algolia filtrando por localidad + categoría
     const { data, usage: usageAlgolia } = await buscarLugares(localidad, categoria);
 
-    console.log("📊 [obtener_lugares_emergencia] DATA FILTRADA POR CATEGORIA:", data.length, "resultados");
+    console.log("📊 DATA FILTRADA POR CATEGORIA:", data.length, "resultados");
 
-    // 3) A Gemini SOLO le llega { id, n } de cada entidad — nunca datos sensibles/de contacto
+    // 3) A Gemini SOLO le llega { id, n } de cada entidad
     const entidadesLigeras = construirEntidadesLigeras(data);
     const { outputIA, usage: usageGemini } = await seleccionarContacto(
       entidadesLigeras,
@@ -2093,9 +2204,15 @@ exports.obtener_lugares_emergencia_Actualizado = onRequest(async (req, res) => {
       nombreUsuario || "usuario",
     );
 
-    // 4) El código arma la respuesta final buscando el "id" elegido dentro del
-    //    "data" completo (con teléfonos, dirección, coordenadas)
+    // 4) Armar la respuesta final (con o sin link)
     const resultado = construirRespuestaFinal(outputIA, data);
+
+    // 5) Enviar DIRECTO por WhatsApp (antes esto lo hacía n8n con Switch1 + template_emergencia)
+    if (!resultado.error) {
+      await enviarRespuestaEmergencia(numero_usuario, resultado);
+    } else {
+      console.log("⚠️ No se envía WhatsApp porque hubo error armando el resultado:", resultado.error);
+    }
 
     const tiempoTotalMs = Date.now() - tInicio;
 
@@ -2113,9 +2230,7 @@ exports.obtener_lugares_emergencia_Actualizado = onRequest(async (req, res) => {
     return res.status(200).json({ ...resultado, _debug: debugInfo });
   } catch (error) {
     console.error("❌ ERROR obtener_lugares_emergencia:", error.message);
-    return res
-      .status(500)
-      .json({ ok: false, mensaje: "Error interno al buscar lugares" });
+    return res.status(500).json({ ok: false, mensaje: "Error interno al buscar lugares" });
   }
 });
 // ============================================================================
