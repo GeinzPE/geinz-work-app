@@ -115,32 +115,28 @@ exports.confirmarPagoPlan = confirmarPagoPlan;
 const {
   geinz_buscar_unificado,
   clasificador_geinz_turismo,
-  obtener_lugares_emergencia_Actualizado
-  ,elegir_mejor_promo,
+  obtener_lugares_emergencia_Actualizado,
+  elegir_mejor_promo,
   geinz_info_negocio,
   dispersador_geinz,
 } = require("./asistentes_AI_geinz");
 exports.geinz_buscar_unificado = geinz_buscar_unificado;
 exports.clasificador_geinz_turismo = clasificador_geinz_turismo;
-exports.obtener_lugares_emergencia_Actualizado = obtener_lugares_emergencia_Actualizado;
+exports.obtener_lugares_emergencia_Actualizado =
+  obtener_lugares_emergencia_Actualizado;
 exports.elegir_mejor_promo = elegir_mejor_promo;
-exports.geinz_info_negocio=geinz_info_negocio;
-exports.dispersador_geinz=dispersador_geinz;
+exports.geinz_info_negocio = geinz_info_negocio;
+exports.dispersador_geinz = dispersador_geinz;
+
+const { procesar_audio_whatsapp } = require("./wisper.js");
+exports.procesar_audio_whatsapp = procesar_audio_whatsapp;
 
 const {
-  procesar_audio_whatsapp
-} =require("./wisper.js");
-exports.procesar_audio_whatsapp=procesar_audio_whatsapp;
-
-
-
-
-const {
-  geinz_webhook_principal
-} =require("./dispensador_competo_geinz_pruevas.js");
-exports.geinz_webhook_principal=geinz_webhook_principal;
-
-
+  geinz_webhook_principal,
+  geinz_procesar_buffer,
+} = require("./dispensador_competo_geinz_pruevas.js");
+exports.geinz_webhook_principal = geinz_webhook_principal;
+exports.geinz_procesar_buffer = geinz_procesar_buffer;
 
 const axios = require("axios");
 const CULQI_KEY = process.env.CULQI_KEY;
@@ -242,7 +238,9 @@ exports.extraerDatos = onRequest(async (req, res) => {
 -"nombre":null,
 - "productos":array (producto/servicio/lugar) → corregir ortografía, minúscula, 
 sin tildes, sin personas, sin palabras vacías, no inventar, 
-no duplicar ,sin diminutivo,forma canónica 
+no duplicar, sin diminutivo, forma canónica.
+IMPORTANTE: si un producto tiene varias palabras, sepáralas SIEMPRE con espacio simple 
+(ej: "lomo saltado", "four loko"). Nunca uses guión bajo ni guión medio.
 - "precio_max": número entero o null
 - "metodos_pago": solo de ["yape","plin","efectivo","agora","visa","mastercard"], no duplicar  
 - "comodidades": array solo de ["aire_acondicionado","camaras_de_seguridad","enchufe","estacionamiento",
@@ -251,9 +249,10 @@ no duplicar ,sin diminutivo,forma canónica
 detectar implícito, no inventar, no duplicar  
 
 Texto: "${texto}"`;
+
     // 🚀 OpenAI
     const response = await openai.chat.completions.create({
-      model: "gpt-5-nano",
+      model: "gpt-5.4-nano", // 👈 modelo actualizado (más preciso y rápido que gpt-5-nano)
       messages: [
         {
           role: "system",
@@ -286,6 +285,13 @@ Texto: "${texto}"`;
       });
     }
 
+    // 🧹 Normalización de seguridad: por si el modelo aún devuelve "_"
+    if (Array.isArray(resultado.productos)) {
+      resultado.productos = resultado.productos.map((p) =>
+        String(p).toLowerCase().trim().replace(/_/g, " "),
+      );
+    }
+
     return res.status(200).json(resultado);
   } catch (error) {
     logger.error("Error general:", error);
@@ -296,6 +302,106 @@ Texto: "${texto}"`;
     });
   }
 });
+
+
+// ==================== EXTRACTOR DE PROMOCIONES DE LA APP GEINZ ====================
+
+function construir_prompt_NLP_para_busqueda(textoUsuario, categoria, nombreNegocio) {
+  return `
+[INPUT]
+Texto: "${textoUsuario}"
+Categoria del negocio: "${categoria}"
+Filtros prohibidos: "${nombreNegocio}"
+
+[INSTRUCCIONES]
+Extrae de 'Texto' un array JSON de strings con máximo 6 términos clave para motores de búsqueda.
+1. Prioriza ÚNICAMENTE: nombres propios, lugares, marcas, modelos, productos o servicios MUY específicos mencionados en el texto.
+2. PROHIBIDO:
+   - Palabras genéricas que describan la categoría "${categoria}" (ej: si es transporte, excluir "viaje","pasaje","bus","ruta")
+   - Adjetivos, verbos, precios, palabras de marketing ("oferta","promo","descuento","oportunidad")
+   - Cualquier palabra o fragmento de '${nombreNegocio}'
+3. Solo incluir términos que por sí solos sirvan como búsqueda específica en Google.
+4. Formato: minúsculas, singular, sin tildes, sin duplicados.
+5. Si no hay términos específicos válidos, devuelve [].
+
+[OUTPUT]
+Contesta ÚNICAMENTE con el array JSON. Ejemplo: ["tag1", "tag2"]
+`.trim();
+}
+
+function parsearRespuestaJSON(raw) {
+  if (!raw || raw.trim() === "") return [];
+
+  try {
+    const lista = JSON.parse(raw);
+    if (Array.isArray(lista)) return lista;
+  } catch (_) {}
+
+  const start = raw.indexOf("[");
+  const end = raw.lastIndexOf("]");
+  if (start !== -1 && end !== -1 && end > start) {
+    const cleaned = raw.substring(start, end + 1);
+    try {
+      const lista = JSON.parse(cleaned);
+      if (Array.isArray(lista)) return lista;
+    } catch (_) {}
+  }
+
+  return raw
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .replace("[", "")
+    .replace("]", "")
+    .split(",")
+    .map((s) => s.replace(/"/g, "").trim())
+    .filter((s) => s.length > 0);
+}
+
+exports.extraer_datos_de_texto_completo = onRequest(
+  { region: "us-central1", cors: true },
+  async (req, res) => {
+    try {
+      if (req.method !== "POST") {
+        res.status(405).json({ error: "Método no permitido, usa POST" });
+        return;
+      }
+
+      const { texto, categoria_tienda, nombre_negocio } = req.body;
+
+      if (!texto || !categoria_tienda) {
+        res.status(400).json({ error: "Faltan parámetros: texto y categoria_tienda son requeridos" });
+        return;
+      }
+
+      const prompt = construir_prompt_NLP_para_busqueda(
+        texto,
+        categoria_tienda,
+        nombre_negocio || ""
+      );
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-5.4-nano",
+        messages: [{ role: "user", content: prompt }],
+        reasoning_effort: "none",
+        max_completion_tokens: 300,
+      });
+
+      const raw = completion.choices[0]?.message?.content?.trim() || "";
+
+      logger.info("Respuesta cruda de OpenAI:", raw);
+
+      const resultado = parsearRespuestaJSON(raw);
+
+      logger.info("Resultado final:", resultado);
+
+      res.status(200).json({ tags: resultado });
+    } catch (error) {
+      logger.error("Error en extraer_datos_de_texto_completo:", error);
+      res.status(500).json({ error: "Error interno al procesar la solicitud" });
+    }
+  }
+);
+
 
 exports.filtrar_por_datos_chat_bot = onRequest(async (req, res) => {
   // ─── TIMEOUT GLOBAL 9s (Cloud Functions límite = 10s) ────

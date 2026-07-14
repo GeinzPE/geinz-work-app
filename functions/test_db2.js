@@ -283,6 +283,112 @@ async function descontar_creditos_tiendas(
    descontar_creditos_tienda — HTTP endpoint
    ✅ Un solo descuento: primero maestra, luego copia
 ═══════════════════════════════════════════════════════ */
+// ============================================================
+// 👇 FUNCIÓN PELADA — reusable desde otro archivo (webhook, etc.)
+//    Mismos parámetros, misma lógica, mismo resultado que el endpoint.
+// ============================================================
+async function descontarCreditosTienda({ id, token_id, tipo }) {
+  console.log("🚀 [descontarCreditosTienda] PARAMS:", { id, token_id, tipo });
+
+  if (!id) throw new Error("ID requerido");
+  if (!token_id) throw new Error("token_id requerido");
+  if (!tipo) throw new Error("tipo requerido (plantilla | whatsapp)");
+
+  const database = initDb2();
+  if (!database) throw new Error("DB2 no inicializada");
+
+  // Leer precios desde DB2
+  const preciosSnap = await database
+    .collection("precio_apartado")
+    .doc("bot_daniel")
+    .get();
+
+  if (!preciosSnap.exists) {
+    throw new Error("No se encontró precio_apartado/bot_daniel");
+  }
+
+  const COSTO_WHATSAPP = Number(preciosSnap.get("contacto_directo") || 0);
+  const COSTO_PLANTILLA = Number(preciosSnap.get("plantillas") || 0);
+
+  if (!COSTO_WHATSAPP || !COSTO_PLANTILLA) {
+    throw new Error("Precios inválidos en precio_apartado/bot_daniel");
+  }
+
+  const descuento = tipo === "whatsapp" ? COSTO_WHATSAPP : COSTO_PLANTILLA;
+  console.log("💲 [descontarCreditosTienda] descuento →", descuento, "| tipo →", tipo);
+
+  /* ══════════════════════════════════════
+     1️⃣ Descontar desde la MAESTRA
+        (puntos_tienda Geinz → copia DB2 → historial)
+  ══════════════════════════════════════ */
+  const resultado = await descontar_creditos_tiendas(
+    id,
+    descuento,
+    tipo === "whatsapp"
+      ? "Contacto directo (WhatsApp)"
+      : "Envio de plantillas (asistente Whatsapp)",
+  );
+
+  console.log("✅ [descontarCreditosTienda] Descuento completado:", resultado);
+
+  /* ══════════════════════════════════════
+     2️⃣ Crear token interacción en DB2
+  ══════════════════════════════════════ */
+  const now = admin.firestore.Timestamp.now();
+  const fechaId = new Date().toISOString().split("T")[0];
+  const tiendaRef = database.collection("creditos_tienda").doc(id);
+  const tokenRef = tiendaRef.collection("interaccion_directa_bot").doc(token_id);
+  const historialBotRef = tiendaRef.collection("historial_bot_envios").doc();
+  const estadisticaRef = tiendaRef.collection("estadisticas").doc(fechaId);
+  const fin = admin.firestore.Timestamp.fromMillis(
+    now.toMillis() + 24 * 60 * 60 * 1000,
+  );
+
+  await Promise.all([
+    tokenRef.set({
+      inicio: now,
+      fin,
+      usado: false,
+      estado: "enviado",
+      createdAt: now,
+      historial_id: historialBotRef.id,
+      monedas: descuento,
+    }),
+    historialBotRef.set({
+      timestamp: now,
+      monedas_descontadas: descuento,
+      saldo_antes: resultado.saldo_anterior,
+      saldo_despues: resultado.saldo_restante,
+      tipo: "recomendacion_asistente",
+      token_id,
+    }),
+    estadisticaRef.set(
+      {
+        enviados: admin.firestore.FieldValue.increment(1),
+        monedasGastadas: admin.firestore.FieldValue.increment(descuento),
+        updatedAt: now,
+      },
+      { merge: true },
+    ),
+  ]);
+
+  console.log("🎟️ [descontarCreditosTienda] Token creado:", token_id);
+
+  return {
+    ok: true,
+    tienda_id: id,
+    token_id,
+    historial_id: historialBotRef.id,
+    saldo_anterior: resultado.saldo_anterior,
+    descontado: descuento,
+    saldo_actual: resultado.saldo_restante,
+    id_transaccion_financiero: resultado.id_transaccion,
+  };
+}
+
+// ============================================================
+// 👇 onRequest — wrapper delgado, solo para llamadas HTTP externas
+// ============================================================
 exports.descontar_creditos_tienda = onRequest(
   { cors: true, region: "us-central1", memory: "512MiB" },
   async (req, res) => {
@@ -295,98 +401,18 @@ exports.descontar_creditos_tienda = onRequest(
 
       console.log("🚀 BODY:", req.body);
 
-      if (!id) return res.status(400).json({ ok: false, error: "ID requerido" });
-      if (!token_id) return res.status(400).json({ ok: false, error: "token_id requerido" });
-      if (!tipo) return res.status(400).json({ ok: false, error: "tipo requerido (plantilla | whatsapp)" });
+      const resultado = await descontarCreditosTienda({ id, token_id, tipo });
 
-      const database = initDb2();
-      if (!database) return res.status(500).json({ ok: false, error: "DB2 no inicializada" });
-
-      // Leer precios desde DB2
-      const preciosSnap = await database.collection("precio_apartado").doc("bot_daniel").get();
-      if (!preciosSnap.exists) {
-        return res.status(500).json({ ok: false, error: "No se encontró precio_apartado/bot_daniel" });
-      }
-
-      const COSTO_WHATSAPP  = Number(preciosSnap.get("contacto_directo") || 0);
-      const COSTO_PLANTILLA = Number(preciosSnap.get("plantillas") || 0);
-
-      if (!COSTO_WHATSAPP || !COSTO_PLANTILLA) {
-        return res.status(500).json({ ok: false, error: "Precios inválidos en precio_apartado/bot_daniel" });
-      }
-
-      const descuento = tipo === "whatsapp" ? COSTO_WHATSAPP : COSTO_PLANTILLA;
-      console.log("💲 descuento →", descuento, "| tipo →", tipo);
-
-      /* ══════════════════════════════════════
-         1️⃣ Descontar desde la MAESTRA
-            (puntos_tienda Geinz → copia DB2 → historial)
-      ══════════════════════════════════════ */
-      const resultado = await descontar_creditos_tiendas(
-        id,
-        descuento,
-        tipo === "whatsapp"
-          ? "Contacto directo (WhatsApp)"
-          : "Envio de plantillas (asistente Whatsapp)",
-      );
-
-      console.log("✅ Descuento completado:", resultado);
-
-      /* ══════════════════════════════════════
-         2️⃣ Crear token interacción en DB2
-      ══════════════════════════════════════ */
-      const now        = admin.firestore.Timestamp.now();
-      const fechaId    = new Date().toISOString().split("T")[0];
-      const tiendaRef  = database.collection("creditos_tienda").doc(id);
-      const tokenRef   = tiendaRef.collection("interaccion_directa_bot").doc(token_id);
-      const historialBotRef = tiendaRef.collection("historial_bot_envios").doc();
-      const estadisticaRef  = tiendaRef.collection("estadisticas").doc(fechaId);
-      const fin = admin.firestore.Timestamp.fromMillis(now.toMillis() + 24 * 60 * 60 * 1000);
-
-      await Promise.all([
-        tokenRef.set({
-          inicio: now,
-          fin,
-          usado: false,
-          estado: "enviado",
-          createdAt: now,
-          historial_id: historialBotRef.id,
-          monedas: descuento,
-        }),
-        historialBotRef.set({
-          timestamp: now,
-          monedas_descontadas: descuento,
-          saldo_antes: resultado.saldo_anterior,
-          saldo_despues: resultado.saldo_restante,
-          tipo: "recomendacion_asistente",
-          token_id,
-        }),
-        estadisticaRef.set({
-          enviados: admin.firestore.FieldValue.increment(1),
-          monedasGastadas: admin.firestore.FieldValue.increment(descuento),
-          updatedAt: now,
-        }, { merge: true }),
-      ]);
-
-      console.log("🎟️ Token creado:", token_id);
-
-      return res.status(200).json({
-        ok: true,
-        tienda_id: id,
-        token_id,
-        historial_id: historialBotRef.id,
-        saldo_anterior: resultado.saldo_anterior,
-        descontado: descuento,
-        saldo_actual: resultado.saldo_restante,
-        id_transaccion_financiero: resultado.id_transaccion,
-      });
-
+      return res.status(200).json(resultado);
     } catch (e) {
       console.error("❌ Error en descontar_creditos_tienda:", e);
       return res.status(500).json({ ok: false, error: e.message });
     }
   },
 );
+
+// 👇 CLAVE: se exporta también pelada, para poder importarla desde otro archivo
+exports.descontarCreditosTienda = descontarCreditosTienda;
 
 /* ═══════════════════════════════════════════════════════
    eliminar_deuda_actual
