@@ -118,6 +118,14 @@ data class ResAlgoliaFiltrado(
     val resultados: List<Resultado>
 )
 
+data class extraer_datos_de_texto_completo_dataclass(
+    val texto: String,
+    val categoria_tienda: String,
+    val nombre_negocio: String
+)
+data class extrator_promociones_recibido(
+    val tags: List<String>
+)
 data class Resultado(
     val id: String,
     val score: Int,

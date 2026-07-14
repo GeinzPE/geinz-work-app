@@ -11,6 +11,10 @@ import com.geinzz.geinzwork.data.model.DatosPublicidadIA
 import com.geinzz.geinzwork.data.model.PreciosApp
 import com.geinzz.geinzwork.data.model.agregar_promociones
 import com.geinzz.geinzwork.data.model.contenido_publicidad
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.ResAlgoliaFiltrado
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.datos_para_filtrado_manual
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.extraer_datos_de_texto_completo_dataclass
+import com.geinzz.geinzwork.data.model.data_class_promo_cerca_de_ti.extrator_promociones_recibido
 import com.geinzz.geinzwork.data.model.data_whatsapp_info
 import com.geinzz.geinzwork.data.model.dataclass_review.ImagenReview
 import com.geinzz.geinzwork.data.model.datos_notificacion
@@ -34,6 +38,7 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.construirPromptNLP
 import com.geinzz.geinzwork.herramientas_geinz.constantes.construir_prompt_NLP_para_busqueda
 import com.geinzz.geinzwork.herramientas_geinz.constantes.extraer_terminos_para_GenIA
 import com.geinzz.geinzwork.herramientas_geinz.constantes.generarPromptNombreGeneracionIA
+import com.geinzz.geinzwork.retrofit.objet_retrofit
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.GeofencingManager
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.acortarDescripcionNotificacion
 import com.geinzz.geinzwork.utils.constantes.constantes.mostrarFechaDialog_horaDialog.obtenerFechaConDias
@@ -1688,13 +1693,19 @@ class repo_eres_socio {
                 .document(i.informacion.id_promocion)
             val array_extraido = try {
                 withTimeout(20_000) {
-                    extraer_datos_de_texto_completo(
-                        i.informacion.titulo + i.informacion.descripcion,
-                        i.informacion.categoria,i.informacion.nombre_tienda
+                    val data = extraer_datos_de_texto_completo_dataclass(
+                        texto = i.informacion.titulo + i.informacion.descripcion,
+                        categoria_tienda = i.informacion.categoria,
+                        nombre_negocio = i.informacion.nombre_tienda
                     )
+                    val respuesta = extrador_datos_de_promociones(data)
+                    respuesta.tags
                 }
             } catch (e: TimeoutCancellationException) {
                 Log.e("TIMEOUT", "extraer_datos_de_texto_completo tardó demasiado")
+                emptyList<String>()
+            } catch (e: Exception) {
+                Log.e("ERROR_NLP", "Fallo al extraer datos: ${e.message}")
                 emptyList<String>()
             }
             val subir_algolia_promociones =
@@ -1816,6 +1827,9 @@ class repo_eres_socio {
         }
     }
 
+    suspend fun extrador_datos_de_promociones(data: extraer_datos_de_texto_completo_dataclass): extrator_promociones_recibido {
+        return objet_retrofit.api.obtener_texto_para_promociones(data)
+    }
     suspend fun extraer_datos_de_texto_completo(
         texto: String,
         categoria_tienda: String,nombre_negocio:String

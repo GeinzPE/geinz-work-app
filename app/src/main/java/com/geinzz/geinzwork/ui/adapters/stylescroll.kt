@@ -286,11 +286,9 @@ fun ZoomableGalleryFullScreenVerticalPager(
                                     viewmodelPromosCercanas = viewModel,
                                     msje = promo.texto_msje_whatsapp.compartir.msje_predermindo,
                                     id_user = id_user,
-                                    id_tienda = idTienda,
                                     context = context,
                                     localidad_tienda = localidad,
                                     idpromo = idPromo,
-                                    categoria = categoria
                                 )
 
                                 viewModel.agregar_estadisticas_publicacion(

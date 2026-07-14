@@ -1,5 +1,6 @@
 package com.geinzz.geinzwork.utils.constantes
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -81,6 +82,7 @@ import coil3.request.error
 import coil3.request.placeholder
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.metodos_pagos_agregados_publiaciones
+import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.github.panpf.zoomimage.ZoomImage
 import com.github.panpf.zoomimage.compose.rememberZoomState
 import kotlinx.coroutines.delay
@@ -526,6 +528,7 @@ object constantes_reprodutor_video {
 
     @Composable
     fun GaleriaHorizontalInstagram_promociones_solo_imagen(
+        precio_publicacion: String,
         pagos: List<String>,
         imagenes: List<String>,
         modifier: Modifier = Modifier,
@@ -533,7 +536,7 @@ object constantes_reprodutor_video {
         long_listatener: () -> Int
     ) {
         val pagerState = rememberPagerState { imagenes.size }
-
+Log.d("precioproedasd","$precio_publicacion el preico de caldasd")
         Box(
             modifier = modifier
                 .fillMaxWidth()
@@ -584,14 +587,33 @@ object constantes_reprodutor_video {
                     )
                 }
             }
-            if(pagos.isNotEmpty()){
-
-            metodos_pagos_colocados(
-                pagos = pagos,
-                modifier = Modifier.align(Alignment.BottomStart).padding(5.dp)
-            )
+            if (precio_publicacion.isNotEmpty()) {
+                Log.d("precio_priubuaisd",precio_publicacion)
+                agregar_costo_promociones(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(5.dp), precio_publicacion)
+            }
+            if (pagos.isNotEmpty()) {
+                metodos_pagos_colocados(
+                    pagos = pagos,
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(5.dp)
+                )
             }
         }
+    }
+}
+
+@Composable
+fun agregar_costo_promociones(modifier: Modifier = Modifier, preciopromo: String) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(50))
+            .background(Color.Black)
+    ) {
+        texto_generico_one_line("S/$preciopromo", style = MaterialTheme.typography.labelMedium,modifier = Modifier.padding(10.dp))
     }
 }
 

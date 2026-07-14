@@ -1158,7 +1158,20 @@ fun bottom_sheet_filtrar_desde_tienda(
             Log.d("FILTRO_TIENDA", "comodidades filtradas: ${it.map { c -> c.texto }}")
         }
     }
-
+    val rango_precios = remember {
+        listOf(
+            "0 - 10", "10 - 20", "20 - 30", "30 - 50", "50 - 80",
+            "80 - 120", "120 - 200", "200 - 350", "350 - 500",
+            "500 - 1000", "1000 - 2500", "2500 - 5000",
+            "5000 - 10000", "Más de 10000"
+        )
+    }
+    val rangosOrdenados = remember(rangos_disponibles) {
+        rangos_disponibles.sortedBy { rango ->
+            val index = rango_precios.indexOf(rango)
+            if (index == -1) Int.MAX_VALUE else index  // si no está en la lista, va al final
+        }
+    }
     ModalBottomSheet(
         sheetState = sheetState,
         onDismissRequest = { onClose() },
@@ -1412,12 +1425,14 @@ fun bottom_sheet_filtrar_desde_tienda(
                     }
                 }
 
+
+
                 item {
                     spacer_vertical(10.dp)
                     texto_generico_one_line("Rangos de precio(s) disponibles")
                     spacer_vertical(10.dp)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        items(rangos_disponibles) { rango ->
+                        items(rangosOrdenados) { rango ->   // 👈 usa la lista ya ordenada
                             val seleccionado = rango_precio == rango
                             chisp_filtrado_busqueda_resultados_busqueda(
                                 "precio",

@@ -34,6 +34,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -433,7 +434,9 @@ class viewmodel_promos_cercanas : ViewModel() {
     }
 
     private val _totalPromosTienda = MutableStateFlow(0)
+    private var jobPromociones: Job? = null
     fun obtener_promociones_2da(localidad: String, tipo_filtrado: String, tienda_seleccionada: String?) {
+        jobPromociones?.cancel()   // 👈 AGREGA ESTA LÍNEA: cancela la petición anterior si sigue en curso
 
         ultimoDocumento = null
         _hayMasPaginas.value = true
@@ -443,9 +446,9 @@ class viewmodel_promos_cercanas : ViewModel() {
         listaIdsConScore = emptyList() // 👈 limpiar ids anteriores
         paginaActual_ = 0 // 👈 resetear página
 
-        viewModelScope.launch {
+        jobPromociones = viewModelScope.launch{
 
-            if (tienda_seleccionada != null) {
+        if (tienda_seleccionada != null) {
                 // ── MODO TIENDA: trae TODO sin paginación ──────────────────
                 _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.loading
 
@@ -508,7 +511,7 @@ class viewmodel_promos_cercanas : ViewModel() {
                     listaCompleta.value = nueva
                     listaFiltrada.value = nueva
 
-                    if (esPrimeraCarga.value) {
+                    if (esPrimeraCarga.value || _tiendas_con_mas_de_una_promo.value.isEmpty()) {   // 👈 cambio
                         val tiendas = nueva
                             .map { it.lista_tiendas_con_mas_promo }
                             .firstOrNull { it.isNotEmpty() }
@@ -521,6 +524,8 @@ class viewmodel_promos_cercanas : ViewModel() {
                             it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion
                         }
                     )
+                    Log.d("BUG_TIENDA", "🧬 _estadoPromos.value asignado — total=${nueva.size}")
+
                     _esPrimeraCarga.value = false
 
                 } catch (e: Exception) {
@@ -1077,21 +1082,7 @@ class viewmodel_promos_cercanas : ViewModel() {
                     return@launch
                 }
 
-                // 🔥 tiendas desde las promos recibidas
-                val tiendas = promos
-                    .map { it.dataclass_promociones_cerca_de_ti }
-                    .groupBy { it.informacion_publcacion.id_tienda }
-                    .map { (idTienda, lista) ->
-                        val primera = lista.first()
-                        tiendas_con_mas_de_una_promo(
-                            id = idTienda,
-                            nombre_tienda = primera.informacion_publcacion.nombre_tienda,
-                            logo_img = primera.img.logo_img,
-                            categoira = primera.informacion_publcacion.categoria
-                        )
-                    }
 
-                _tiendas_con_mas_de_una_promo.value = tiendas
                 _promosAcumuladas.value = promos
                 listaCompleta.value = promos
                 listaFiltrada.value = promos
@@ -1103,6 +1094,24 @@ class viewmodel_promos_cercanas : ViewModel() {
                 _esPrimeraCarga.value = false
             }
         }
+    }
+
+    fun limpiar_estado_promos_completo() {
+        ultimoDocumento = null
+        _hayMasPaginas.value = false
+        _promosAcumuladas.value = emptyList()
+        listaCompleta.value = emptyList()
+        listaFiltrada.value = emptyList()
+        modoBusquedaIA = false
+        listaIdsConScore = emptyList()
+        paginaActual_ = 0
+        _esPrimeraCarga.value = true
+        _estadoPromos.value = estado_carga_promociones.loading
+
+        // 🔥 lo que faltaba: limpiar también tiendas y estado relacionado
+        _tiendas_con_mas_de_una_promo.value = emptyList()
+        _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.idle
+        _totalPromosTienda.value = 0
     }
     fun normalizar(texto: String): String {
         return texto
@@ -1187,7 +1196,10 @@ class viewmodel_promos_cercanas : ViewModel() {
     sealed class estado_carga_promociones {
         object loading : estado_carga_promociones()
         data class empty(val txt: String) : estado_carga_promociones()
-        data class succes(val items: List<obj_completo>) : estado_carga_promociones()
+        data class succes(
+            val items: List<obj_completo>,
+            val requestId: Long = System.nanoTime()   // 👈 AGREGAR: fuerza que cada emisión sea única
+        ) : estado_carga_promociones()
         data class error(val txt: String) : estado_carga_promociones()
     }
 

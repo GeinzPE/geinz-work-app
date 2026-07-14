@@ -668,7 +668,7 @@ class repo_promos_cercanas {
                 comodidades = emptyList(),
                 pagos = pagos,
                 rango = doc.getString("rango_establecido") ?: "",
-                precio = "",
+                precio = doc.getString("precio_publicacion") ?: "",
                 terminos_clave = terminos_clave
             )
 
