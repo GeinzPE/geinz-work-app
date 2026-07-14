@@ -310,7 +310,49 @@ class viewmodel_promos_cercanas : ViewModel() {
         }
     }
 
+    fun filtrar_terminos_nlp_seleccionados() {
+        val seleccionados = _terminos_nlp_seleccionados.value
+        Log.d("BUG_NLP_FILTRO", "🎯 filtrar_terminos_nlp_seleccionados() — seleccionados=$seleccionados")
 
+        if (seleccionados.isEmpty()) {
+            Log.d("BUG_NLP_FILTRO", "⚠️ seleccionados vacío — abortando")
+            _estadoPromos.value = estado_carga_promociones.empty("Selecciona al menos un término")
+            return
+        }
+
+        val base = listaCompleta.value
+        Log.d("BUG_NLP_FILTRO", "📦 listaCompleta.value tiene ${base.size} promos ANTES de filtrar")
+
+        base.forEachIndexed { index, obj ->
+            val data = obj.dataclass_promociones_cerca_de_ti
+            Log.d("BUG_NLP_FILTRO", "   [$index] titulo='${data.informacion_publcacion.titulo}' | terminos_clave=${data.terminos_clave} | categoria='${data.informacion_publcacion.categoria}'")
+        }
+
+        val filtradas = base.filter { obj ->
+            val data = obj.dataclass_promociones_cerca_de_ti
+            val textoCompleto = buildString {
+                append(data.terminos_clave.joinToString(" "))
+                append(" ")
+                append(data.informacion_publcacion.titulo)
+                append(" ")
+                append(data.informacion_publcacion.categoria)
+            }.lowercase()
+
+            val matchea = seleccionados.any { termino -> textoCompleto.contains(termino.lowercase()) }
+            Log.d("BUG_NLP_FILTRO", "   🔍 comparando textoCompleto='$textoCompleto' contra seleccionados=$seleccionados -> matchea=$matchea")
+            matchea
+        }
+
+        Log.d("BUG_NLP_FILTRO", "✅ Resultado filtro: ${filtradas.size} promos matchearon de ${base.size} totales")
+
+        listaFiltrada.value = filtradas
+        _promosAcumuladas.value = filtradas
+
+        _estadoPromos.value = if (filtradas.isEmpty())
+            estado_carga_promociones.empty("No hay resultados para los términos seleccionados")
+        else
+            estado_carga_promociones.succes(filtradas)
+    }
     fun resetPromos() {
         _promosCargadas.value = emptyList()
         paginaActual = 0

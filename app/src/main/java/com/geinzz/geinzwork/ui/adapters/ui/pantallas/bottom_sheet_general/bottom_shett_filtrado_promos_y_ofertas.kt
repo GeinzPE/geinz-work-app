@@ -528,29 +528,22 @@ fun bottom_sheet_filtrados_promos_y_ofertas(
                     item {
                         Button(
                             onClick = {
-                                val data =
-                                    if (filtrado_ia && terminos_nlp_seleccionados.isNotEmpty()) {
-                                        // 👈 modo NLP
-                                        datos_para_filtrado_manual(
-                                            categoria = terminos_nlp_seleccionados.joinToString(","),
-                                            subcategorias = terminos_nlp_seleccionados,
-                                            rango_precio = rango_precio,
-                                            pagos = metodo_pago.toList(),
-                                            comodidades = comodidad_selet.toList(),
-                                            localidad = "barranca"
-                                        )
-                                    } else {
-                                        // 👈 modo manual normal
-                                        datos_para_filtrado_manual(
-                                            categoria = categoriaSeleccionada,
-                                            subcategorias = subcategoriasSeleccionadas.toList(),
-                                            rango_precio = rango_precio,
-                                            pagos = metodo_pago.toList(),
-                                            comodidades = comodidad_selet.toList(),
-                                            localidad = "barranca"
-                                        )
-                                    }
-                                viewModel.busqueda_manual_filtrado(data)
+                                if (filtrado_ia && terminos_nlp_seleccionados.isNotEmpty()) {
+                                    // 👈 modo NLP: filtra LOCAL sobre lo que ya trajo Algolia,
+                                    // no vuelve a pegarle al backend con "cachufa" como categoría
+                                    viewModel.filtrar_terminos_nlp_seleccionados()
+                                } else {
+                                    // 👈 modo manual normal: sí va al backend
+                                    val data = datos_para_filtrado_manual(
+                                        categoria = categoriaSeleccionada,
+                                        subcategorias = subcategoriasSeleccionadas.toList(),
+                                        rango_precio = rango_precio,
+                                        pagos = metodo_pago.toList(),
+                                        comodidades = comodidad_selet.toList(),
+                                        localidad = "barranca"
+                                    )
+                                    viewModel.busqueda_manual_filtrado(data)
+                                }
                                 onClose()
                             },
                             modifier = Modifier.fillMaxWidth()
@@ -629,6 +622,9 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
     val subcategoriasVisibles = if (verTodos) subcategorias_obtenidas
     else subcategorias_obtenidas.take(limite)
 
+    // 🔵 LOG: cada recomposición, vemos el estado actual de términos NLP
+    Log.d("BUG_NLP_FILTRO", "🔄 Recomposición — filtrado_ia=$filtrado_ia | terminos_nlp=$terminos_nlp | seleccionados=$terminos_nlp_seleccionados")
+
     // 🔥 SNAPSHOT al abrir — captura el estado inicial una sola vez
     val snapshot_categoria = remember { categoriaSeleccionada }
     val snapshot_subcategorias = remember { subcategoriasSeleccionadas.toSet() }
@@ -637,6 +633,11 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
     val snapshot_comodidades = remember { comodidad_selet.toSet() }
     val snapshot_terminos_nlp = remember { terminos_nlp_seleccionados.toSet() }
 
+    // 🔵 LOG: qué se capturó en el snapshot al abrir el bottom sheet
+    LaunchedEffect(Unit) {
+        Log.d("BUG_NLP_FILTRO", "📸 SNAPSHOT capturado — categoria=$snapshot_categoria | subcategorias=$snapshot_subcategorias | rango=$snapshot_rango | pagos=$snapshot_pagos | comodidades=$snapshot_comodidades | terminos_nlp=$snapshot_terminos_nlp")
+    }
+
     // 🔥 hay cambios si cualquier valor difiere del snapshot
     val hay_cambios = categoriaSeleccionada != snapshot_categoria ||
             subcategoriasSeleccionadas.toSet() != snapshot_subcategorias ||
@@ -644,6 +645,9 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
             metodo_pago.toSet() != snapshot_pagos ||
             comodidad_selet.toSet() != snapshot_comodidades ||
             terminos_nlp_seleccionados.toSet() != snapshot_terminos_nlp
+
+    // 🔵 LOG: por qué hay_cambios es true o false
+    Log.d("BUG_NLP_FILTRO", "🧮 hay_cambios=$hay_cambios | terminos_nlp_actual=${terminos_nlp_seleccionados.toSet()} vs snapshot=$snapshot_terminos_nlp")
 
     ModalBottomSheet(
         sheetState = sheetState,
@@ -706,6 +710,7 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
                                 }
                                 OutlinedButton(
                                     onClick = {
+                                        Log.d("BUG_NLP_FILTRO", "🧹 CLICK en 'Limpiar' — reseteando todo")
                                         viewModel.limpiarCategoria()
                                         viewModel.limpiarSubcategorias()
                                         viewModel.limpiarRangoPrecio()
@@ -766,7 +771,10 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
                                         carta_selecionada = seleccionado,
                                         filtrado = termino.capitalizeFirst(),
                                         btn_visible = false,
-                                        clik_card = { viewModel.toggleTerminoNlp(termino) },
+                                        clik_card = {
+                                            Log.d("BUG_NLP_FILTRO", "👆 TOGGLE término='$termino' | estaba_seleccionado=$seleccionado | lista_antes=$terminos_nlp_seleccionados")
+                                            viewModel.toggleTerminoNlp(termino)
+                                        },
                                         onClick_delete = {}
                                     )
                                 }
@@ -975,17 +983,14 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
                         ) {
                             Button(
                                 onClick = {
-                                    val data = if (filtrado_ia && terminos_nlp_seleccionados.isNotEmpty()) {
-                                        datos_para_filtrado_manual(
-                                            categoria = terminos_nlp_seleccionados.joinToString(","),
-                                            subcategorias = terminos_nlp_seleccionados,
-                                            rango_precio = rango_precio,
-                                            pagos = metodo_pago.toList(),
-                                            comodidades = comodidad_selet.toList(),
-                                            localidad = "barranca"
-                                        )
+                                    Log.d("BUG_NLP_FILTRO", "✅ CLICK 'Aplicar filtros' — filtrado_ia=$filtrado_ia | terminos_nlp_seleccionados=$terminos_nlp_seleccionados | isNotEmpty=${terminos_nlp_seleccionados.isNotEmpty()}")
+
+                                    if (filtrado_ia && terminos_nlp_seleccionados.isNotEmpty()) {
+                                        Log.d("BUG_NLP_FILTRO", "➡️ Rama NLP — llamando filtrar_terminos_nlp_seleccionados() con seleccionados=$terminos_nlp_seleccionados")
+                                        viewModel.filtrar_terminos_nlp_seleccionados()
                                     } else {
-                                        datos_para_filtrado_manual(
+                                        Log.d("BUG_NLP_FILTRO", "➡️ Rama MANUAL — categoria=$categoriaSeleccionada | subcategorias=$subcategoriasSeleccionadas | rango=$rango_precio | pagos=$metodo_pago | comodidades=$comodidad_selet")
+                                        val data = datos_para_filtrado_manual(
                                             categoria = categoriaSeleccionada,
                                             subcategorias = subcategoriasSeleccionadas.toList(),
                                             rango_precio = rango_precio,
@@ -993,8 +998,8 @@ fun bottom_sheet_filtrados_general_promos_ofertas(
                                             comodidades = comodidad_selet.toList(),
                                             localidad = "barranca"
                                         )
+                                        viewModel.busqueda_manual_filtrado(data)
                                     }
-                                    viewModel.busqueda_manual_filtrado(data)
                                     onClose()
                                 },
                                 modifier = Modifier

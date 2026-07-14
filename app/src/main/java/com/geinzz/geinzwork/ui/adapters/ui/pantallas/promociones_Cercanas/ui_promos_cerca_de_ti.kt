@@ -997,8 +997,15 @@ fun ui_promos_cerca_de_ti(
                                                             }
                                                         } else {
                                                             Log.d("BUG_TIENDA", "➡️ Seleccionando NUEVA tienda id=$id (anterior=$tiendaSeleccionada)")
-                                                            tienda_anterior = tiendaSeleccionada
-                                                            nombre_tienda_anterior = nombre_tienda_seleccionada
+
+                                                            // 🔥 FIX: solo actualizamos tienda_anterior si la tienda actual YA estaba confirmada.
+                                                            // Si esperandoConfirmacionTienda=true, tiendaSeleccionada es una selección pendiente
+                                                            // (nunca confirmada) y no debe pisar tienda_anterior.
+                                                            if (!esperandoConfirmacionTienda) {
+                                                                tienda_anterior = tiendaSeleccionada
+                                                                nombre_tienda_anterior = nombre_tienda_seleccionada
+                                                            }
+
                                                             tiendaSeleccionada = id
                                                             filtroTiendaAplicado = false
                                                             filtrosDesdeBottomSheetGeneral = false
