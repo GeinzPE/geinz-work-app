@@ -3,32 +3,45 @@ package com.geinzz.geinzwork
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import com.geinzz.geinzwork.ui.adapters.ui.loadings.OnboardingPrincipal
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.GeinzWorkTheme
 
 class SplashActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_splash)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+
         val sharedPref = getSharedPreferences("onboarding", MODE_PRIVATE)
         val isFirstTime = sharedPref.getBoolean("first_time", true)
 
-        if (isFirstTime) {
-            startActivity(Intent(this, OnboardingActivity::class.java))
-
-
+        val destino = if (isFirstTime) {
+            OnboardingActivity::class.java
         } else {
-            startActivity(Intent(this, MainActivity::class.java))
+            MainActivity::class.java
         }
 
+        startActivity(Intent(this, destino))
         finish()
     }
 }

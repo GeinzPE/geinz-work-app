@@ -294,25 +294,36 @@ fun FiltradosChipsLocalidades(
     localidadSeleccionada: String,
     onLocalidadSeleccionada: (String) -> Unit
 ) {
+    val localidadesBloqueadas = listOf("paramonga", "supe", "pativilca")
 
     LazyRow(
         modifier = Modifier.padding(top = 5.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(lista_localidades) { localidad ->
+            val nombreLocalidad = localidad.nombre_localidad.toString()
             val isSelected =
-                localidadSeleccionada.equals(localidad.nombre_localidad, ignoreCase = true)
+                localidadSeleccionada.equals(nombreLocalidad, ignoreCase = true)
+            val isBloqueada =
+                localidadesBloqueadas.any { it.equals(nombreLocalidad, ignoreCase = true) }
+
             val color_chips by animateColorAsState(
-                targetValue = if (!isSelected)
-                    MaterialTheme.colorScheme.primary
-                else
-                    Color.White,
+                targetValue = when {
+                    isBloqueada -> Color.Gray.copy(alpha = 0.4f)
+                    !isSelected -> MaterialTheme.colorScheme.primary
+                    else -> Color.White
+                },
                 animationSpec = tween(
                     durationMillis = 500,
                     easing = LinearOutSlowInEasing
                 ), label = ""
             )
-            val color_text = if (!isSelected) Color.White else Color.Black
+            val color_text = when {
+                isBloqueada -> Color.White.copy(alpha = 0.6f)
+                !isSelected -> Color.White
+                else -> Color.Black
+            }
+
             Row(
                 modifier = Modifier
                     .clip(CircleShape)
@@ -320,17 +331,18 @@ fun FiltradosChipsLocalidades(
                     .height(45.dp)
                     .padding(horizontal = 15.dp, vertical = 10.dp)
                     .clickable(
+                        enabled = !isBloqueada,
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }) {
                         if (!isSelected) {
-                            onLocalidadSeleccionada(localidad.nombre_localidad.toString())
+                            onLocalidadSeleccionada(nombreLocalidad)
                         }
                     },
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 texto_generico_one_line(
-                    localidad.nombre_localidad.toString().capitalizeFirst(),
+                    nombreLocalidad.capitalizeFirst(),
                     color = color_text, style = MaterialTheme.typography.bodyMedium
                 )
                 spacer_horizonta(5.dp)
@@ -342,7 +354,6 @@ fun FiltradosChipsLocalidades(
                     )
                 }
             }
-
         }
     }
 }

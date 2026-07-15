@@ -2,8 +2,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="Theme.ApiSclasScrenn" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/violetaQR</item>
+        <item name="windowSplashScreenBackground">@color/negropuro_data</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash_screen</item>
         <item name="postSplashScreenTheme">@style/Base.Theme.GeinzWork</item>
+        <item name="android:windowSplashScreenBrandingImage">@drawable/bottom_geinz_splash</item>
     </style>
 </resources>

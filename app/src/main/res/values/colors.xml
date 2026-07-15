@@ -20,6 +20,9 @@
     <color name="selecion_multiple">#808080</color>
 
     <color name="violetaQR">#8800F6</color>
+    <color name="negropuro_data">#000000</color> <!-- Blanco para el modo oscuro -->
+
+
     <color name="heartOutlineColor">#000000</color>
     <color name="color_blanco_negro">#DFDDE0</color>
 

@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="heartOutlineColor">#FFFFFF</color> <!-- Blanco para el modo oscuro -->
+
+    <color name="negropuro_data">#000000</color> <!-- Blanco para el modo oscuro -->
+
     <color name="white">#FFFFFFFF</color>
     <color name="color_blanco_negro">#202020</color>
     <color name="roundcustom">#303030</color>
