@@ -41,7 +41,8 @@ data class lugares_turisticos(
     val referencia: String = "",
     val latitud: Double = 0.0,
     val longitud: Double = 0.0,
-    val subcategoria_filtrado: List<String> = emptyList()
+    val subcategoria_filtrado: List<String> = emptyList(),
+    val alias_turimo:String=""
 ) : Parcelable
 
 

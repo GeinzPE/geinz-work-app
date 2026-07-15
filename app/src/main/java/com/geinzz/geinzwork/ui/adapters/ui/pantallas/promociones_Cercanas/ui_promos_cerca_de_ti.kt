@@ -1725,7 +1725,7 @@ fun carta_promocion_geinz(
                             text = if (promos_ids) {
                                 "Ver todas las promos"
                             } else {
-                                "Ver promociones seleccionadas"
+                                "Ver promos completas"
                             },
                             fontSize = 11.sp,
                             color = Color.Gray,

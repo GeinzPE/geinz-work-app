@@ -56,18 +56,19 @@ class repo_lugares_turisticos {
             val longitud = ubicacion?.get("longitud") as? Number ?: 0
             val latitud = ubicacion?.get("latitud") as? Number ?: 0
             val lista_categorias = data?.get("categoria") as? List<String> ?: emptyList()
+            val alias_key=data?.get("alias_key") as? String?:""
 
             val lista = lugares_turisticos(
-                id,
-                titulo,
-                descripcion,
-                lista_img_ref,
-                img_principal,
-                dirección,
-                referencia,
-                latitud.toDouble(),
-                longitud.toDouble(),
-                lista_categorias
+                id_lugar_turistico = id,
+                titulo = titulo,
+                descripcion = descripcion,
+                lista_img = lista_img_ref,
+                img_principal = img_principal,
+                direcccion = dirección,
+                referencia = referencia,
+                latitud = latitud.toDouble(),
+                longitud = longitud.toDouble(),
+                subcategoria_filtrado = lista_categorias,alias_key
             )
             lista_lugares.add(lista)
         }
@@ -94,7 +95,7 @@ class repo_lugares_turisticos {
         val longitud = ubicacion?.get("longitud") as? Number ?: 0
         val latitud = ubicacion?.get("latitud") as? Number ?: 0
         val lista_categorias = data?.get("categoria") as? List<String> ?: emptyList()
-
+val alias_key=data?.get("alias_key") as? String?:""
 
         // ✅ Retornamos el objeto completo
         return lugares_turisticos(
@@ -107,7 +108,7 @@ class repo_lugares_turisticos {
             referencia = referencia,
             latitud = latitud.toDouble(),
             longitud = longitud.toDouble(),
-            subcategoria_filtrado = lista_categorias
+            subcategoria_filtrado = lista_categorias,alias_key
         )
     }
 
@@ -320,6 +321,7 @@ class repo_lugares_turisticos {
             val longitud = (ubicacion["longitud"] as? Number)?.toDouble() ?: 0.0
 
             val subcategoria = data["subcategoria_filtrado"] as? List<String> ?: emptyList()
+            val alias_key=data?.get("alias_key") as? String?:""
 
             return lugares_turisticos(
                 id_lugar_turistico = id,
@@ -331,7 +333,8 @@ class repo_lugares_turisticos {
                 referencia = "",
                 latitud = latitud,
                 longitud = longitud,
-                subcategoria_filtrado = subcategoria
+                subcategoria_filtrado = subcategoria,alias_key
+
             )
         }
 

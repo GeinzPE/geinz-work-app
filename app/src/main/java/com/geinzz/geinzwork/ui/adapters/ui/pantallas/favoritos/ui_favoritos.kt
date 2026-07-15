@@ -540,14 +540,14 @@ fun iu_favoritos(
                                     viewModelFiltros.calcularHorarioParaTienda(item.id_tienda_lugar, item.horario_tienda_box)
                                 }
                                 carta_desing_fv(
-                                    viewModelFiltros.horariosTiendas.collectAsState().value[item.id_tienda_lugar] ?: HorarioDia_box(),
-                                    verificar_intener,
-                                    fv_por_fuera,
-                                    viewModelFiltros,
-                                    id_user,
-                                    context,
-                                    item,
-                                    tick
+                                    HorarioDia_box = viewModelFiltros.horariosTiendas.collectAsState().value[item.id_tienda_lugar] ?: HorarioDia_box(),
+                                    verificar_internet = verificar_intener,
+                                    fv_bool = fv_por_fuera,
+                                    viewModelFiltros = viewModelFiltros,
+                                    id_user = id_user,
+                                    context = context,
+                                    item = item,
+                                    tick = tick
                                 ) { id_tienda, localida ->
                                     bottomhseet_tienda = true
                                     id_tienda_select = id_tienda
@@ -555,6 +555,9 @@ fun iu_favoritos(
                                 }
                             }
 
+                        }
+                        item {
+                            spacer_vertical(40.dp)
                         }
                     }
 
