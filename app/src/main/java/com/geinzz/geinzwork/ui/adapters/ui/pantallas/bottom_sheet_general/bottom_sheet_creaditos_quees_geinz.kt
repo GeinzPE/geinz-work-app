@@ -80,13 +80,13 @@ fun bottom_sheet_creadtior_quees_geinzz(
 
                     item {
                         texto_generico_multilinea(
-                            "Impulsa tu negocio con los créditos Geinz, la herramienta oficial de crecimiento para comercios en el Norte Chico. " +
+                            texto = "Impulsa tu negocio con los créditos Geinz, la herramienta oficial de crecimiento para comercios en el Norte Chico. " +
                                     "Al adquirirlos y gestionar tu panel premium, tomas el control total de tu presencia digital:\n\n" +
-                                    "• **Gestión en Tiempo Real:** Actualiza tus horarios, contactos, redes sociales y métodos de pago al instante.\n" +
-                                    "• **Escaparate Visual:** Cambia tus fotos de perfil, ambiente y productos para mantener tu negocio siempre atractivo.\n" +
-                                    "• **Marketing Directo:** Utiliza tus créditos para enviar notificaciones push a tus seguidores y publicar promociones exclusivas con mayor alcance.\n" +
-                                    "• **Inteligencia de Negocio:** Accede a estadísticas detalladas sobre cuántas personas visualizan, guardan o interactúan con tu perfil.\n" +
-                                    "• **IA Geinz:** Tu negocio será prioridad para nuestro asistente de WhatsApp, recomendándote activamente en conversaciones con usuarios locales.\n\n" +
+                                    "• Gestión en Tiempo Real: Actualiza tus horarios, contactos, redes sociales y métodos de pago al instante.\n" +
+                                    "• Escaparate Visual: Cambia tus fotos de perfil, ambiente y productos para mantener tu negocio siempre atractivo.\n" +
+                                    "• Marketing Directo: Utiliza tus créditos para enviar notificaciones push a tus seguidores y publicar promociones exclusivas con mayor alcance.\n" +
+                                    "• Inteligencia de Negocio: Accede a estadísticas detalladas sobre cuántas personas visualizan, guardan o interactúan con tu perfil.\n" +
+                                    "• IA Geinz: Tu negocio será prioridad para nuestro asistente de WhatsApp, recomendándote activamente en conversaciones con usuarios locales.\n\n" +
                                     "Cada crédito es una inversión para que tu comercio no solo sea visible, sino que sea el preferido en el norte chico.",
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),

@@ -457,6 +457,10 @@ class viewmodel_promos_cercanas : ViewModel() {
     private var backupNlp_paginaActual_: Int = 0
     private var backupNlp_hayMasPaginas: Boolean = true
     private var hayBackupNlp: Boolean = false
+    private var backupNlp_terminos: List<String> = emptyList()
+    private var backupNlp_terminosSeleccionados: List<String> = emptyList()
+    private var backupNlp_resultado: DatosResponse? = null
+    private var backupNlp_valorBuscado: String = ""
 
     private val _filtro_tienda_sin_resultados = MutableStateFlow(false)
     val filtro_tienda_sin_resultados: StateFlow<Boolean> = _filtro_tienda_sin_resultados
@@ -484,8 +488,8 @@ class viewmodel_promos_cercanas : ViewModel() {
     }
 
 
-    fun restaurar_busqueda_nlp_si_existe() {
-        if (!hayBackupNlp) return
+    fun restaurar_busqueda_nlp_si_existe(): String {
+        if (!hayBackupNlp) return ""
         modoBusquedaIA = backupNlp_modoBusquedaIA
         listaIdsConScore = backupNlp_listaIdsConScore
         listaCompleta.value = backupNlp_listaCompleta
@@ -493,11 +497,17 @@ class viewmodel_promos_cercanas : ViewModel() {
         _promosAcumuladas.value = backupNlp_promosAcumuladas
         paginaActual_ = backupNlp_paginaActual_
         _hayMasPaginas.value = backupNlp_hayMasPaginas
+        _terminos_nlp.value = backupNlp_terminos
+        _terminos_nlp_seleccionados.value = backupNlp_terminosSeleccionados
+        resultado = backupNlp_resultado
+        _estadoPromos.value = estado_carga_promociones.succes(backupNlp_promosAcumuladas)
+        val textoRestaurado = backupNlp_valorBuscado
         hayBackupNlp = false
+        return textoRestaurado
     }
     private val _totalPromosTienda = MutableStateFlow(0)
     private var jobPromociones: Job? = null
-    fun obtener_promociones_2da(localidad: String, tipo_filtrado: String, tienda_seleccionada: String?) {
+    fun obtener_promociones_2da(localidad: String, tipo_filtrado: String, tienda_seleccionada: String?,  textoBuscadoActual: String = "" ) {
         jobPromociones?.cancel()   // 👈 AGREGA ESTA LÍNEA: cancela la petición anterior si sigue en curso
         if (tienda_seleccionada != null && modoBusquedaIA) {
             backupNlp_modoBusquedaIA = modoBusquedaIA
@@ -506,6 +516,10 @@ class viewmodel_promos_cercanas : ViewModel() {
             backupNlp_promosAcumuladas = _promosAcumuladas.value
             backupNlp_paginaActual_ = paginaActual_
             backupNlp_hayMasPaginas = _hayMasPaginas.value
+            backupNlp_terminos = _terminos_nlp.value                     // 👈 AGREGAR
+            backupNlp_terminosSeleccionados = _terminos_nlp_seleccionados.value  // 👈 AGREGAR
+            backupNlp_resultado = resultado                              // 👈 AGREGAR
+            backupNlp_valorBuscado = textoBuscadoActual                  // 👈 AGREGAR
             hayBackupNlp = true
         }
         ultimoDocumento = null

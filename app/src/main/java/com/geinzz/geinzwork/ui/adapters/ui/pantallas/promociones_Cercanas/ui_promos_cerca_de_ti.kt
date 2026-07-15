@@ -279,6 +279,7 @@ fun ui_promos_cerca_de_ti(
 
 // ===== Otros: búsqueda, navegación, scope =====
     var valor_a_buscar by remember { mutableStateOf("") }
+    var valor_a_buscar_respaldo by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
 
 
@@ -974,8 +975,14 @@ fun ui_promos_cerca_de_ti(
                                                                     viewModel.limpiarRangoPrecio()
                                                                     viewModel.limpiarMetodosPago()
                                                                     viewModel.limpiar_comodidad()
-                                                                    Log.d("BUG_TIENDA", "🟢 Llamando obtener_promociones_2da(null) desde rama CANCELAR")
-                                                                    viewModel.obtener_promociones_2da(localidad, "", null)
+                                                                    val textoRestaurado = viewModel.restaurar_busqueda_nlp_si_existe()
+                                                                    if (textoRestaurado.isNotEmpty()) {
+                                                                        valor_a_buscar = textoRestaurado
+                                                                        valor_a_buscar_respaldo = ""
+                                                                    } else {
+                                                                        Log.d("BUG_TIENDA", "🟢 Llamando obtener_promociones_2da(null) desde rama CANCELAR")
+                                                                        viewModel.obtener_promociones_2da(localidad, "", null)
+                                                                    }
                                                                 }
                                                             } else {
                                                                 Log.d("BUG_TIENDA", "✅ Rama DESELECCIÓN REAL (esperandoConfirmacionTienda=false) — reseteando todo")
@@ -1203,15 +1210,14 @@ fun ui_promos_cerca_de_ti(
                                             viewModel.limpiarRangoPrecio()
                                             viewModel.limpiarMetodosPago()
                                             viewModel.limpiar_comodidad()
-                                            viewModel.limpiarTerminosNlp()
-                                            viewModel.resetearModoBusquedaIA()
-                                            viewModel.resetear_respuesta_de_gemini()
                                             promosFiltradas = emptyList()
+                                            valor_a_buscar_respaldo = valor_a_buscar
                                             valor_a_buscar = ""
                                             viewModel.obtener_promociones_2da(
                                                 localidad,
                                                 "",
-                                                idTiendaDeLaPromo
+                                                idTiendaDeLaPromo,
+                                                valor_a_buscar_respaldo
                                             )
                                         }
                                     } else null
@@ -1349,7 +1355,8 @@ fun ui_promos_cerca_de_ti(
                                         viewModel.limpiarRangoPrecio()
                                         viewModel.limpiarMetodosPago()
                                         viewModel.limpiar_comodidad()
-                                        viewModel.restaurar_busqueda_nlp_si_existe()
+                                        valor_a_buscar = viewModel.restaurar_busqueda_nlp_si_existe()
+                                        valor_a_buscar_respaldo = ""
                                     }
                                 }
                             )
@@ -1734,7 +1741,7 @@ fun carta_promocion_geinz(
                                     img_clikeble(
                                         i.informacion_publcacion.id_promocion,
                                         i.img.lista_img,
-                                        select,
+                                        1       ,
                                         i.informacion_publcacion.id_tienda
                                     )
                                 }
