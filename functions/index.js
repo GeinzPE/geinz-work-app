@@ -2872,7 +2872,7 @@ exports.confirmarPago = onCall(async (req) => {
                 token,
                 title: "✅ ¡Deuda cancelada exitosamente!",
                 body: `Tu deuda de ${deudaPendienteNum} créditos fue saldada automáticamente con tu recarga. Ya estás al día 🎉`,
-                link: "https://geinzworkapp.web.app/share?t=scr&id=rec",
+                link: "https://geinztech.com/share?t=scr&id=rec",
                 logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
                 idTienda: userId,
                 idAnuncio: "",
@@ -4422,7 +4422,7 @@ exports.enviar_notificacion_con_solo_id = onRequest(async (req, res) => {
           token,
           title: `📢 ${nombre_negocio}, te están buscando`,
           body: `El asistente Daniel 🤖 recomendó a ${nombre_negocio} a un usuario interesado. pero debido a que tu plantilla premium no tenía saldo activo, no se mostró el acceso directo a tu WhatsApp 📲 y se compartió tu perfil de Geinz 🏪. Verifica tu saldo 💳 para seguir conectando con clientes potenciales directo desde whatsapp🚀`,
-          link: "https://geinzworkapp.web.app/share?t=scr&id=rec",
+          link: "https://geinztech.com/share?t=scr&id=rec",
           logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
           idTienda: id_tienda,
           idAnuncio: "",
@@ -4558,7 +4558,7 @@ exports.enviar_notificacion_deuda_acumulada = onRequest(async (req, res) => {
 Recarga tu saldo para seguir recibiendo pedidos sin interrupciones 🔥
 ⚠️ Si la deuda supera los 300 créditos, tu cuenta pasará automáticamente al plan gratis y el saldo pendiente se descontará en tu próxima recarga.`,
 
-          link: link || "https://geinzworkapp.web.app/share?t=scr&id=rec",
+          link: link || "https://geinztech.com/share?t=scr&id=rec",
 
           // ✅ LO DEMÁS IGUAL
           logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
@@ -4845,7 +4845,7 @@ exports.share = onRequest(async (req, res) => {
     // ============================
     //            IMAGEN
     // ============================
-    let imagen = "https://geinzworkapp.web.app/default.jpg";
+    let imagen = "https://geinztech.com/default.jpg";
 
     if (data) {
       if (tipo === "ti" && data.img_tienda?.logo_tienda) {
@@ -4870,20 +4870,20 @@ exports.share = onRequest(async (req, res) => {
         } else if (data.img_container?.logo_img) {
           imagen = data.img_container.logo_img;
         } else {
-          imagen = "https://geinzworkapp.web.app/default.jpg";
+          imagen = "https://geinztech.com/default.jpg";
         }
       } else if (tipo === "scr") {
-        imagen = data.img || "https://geinzworkapp.web.app/default.jpg";
+        imagen = data.img || "https://geinztech.com/default.jpg";
       } else if (tipo === "prn") {
         imagen =
           data?.datos_de_notificacion?.img_notificacion ||
-          "https://geinzworkapp.web.app/default.jpg";
+          "https://geinztech.com/default.jpg";
       } else if (tipo === "in") {
         const promos = data.listaImg || [];
         imagen =
           promos.length > 0
             ? promos[0]
-            : "https://geinzworkapp.web.app/default.jpg";
+            : "https://geinztech.com/default.jpg";
       }
     }
 
@@ -4892,7 +4892,7 @@ exports.share = onRequest(async (req, res) => {
     // ============================
     let destino;
 
-    const BASE = "https://geinzworkapp.web.app";
+    const BASE = "https://geinztech.com";
 
     if (tipo === "ti" || tipo === "p") {
       destino = `${BASE}/redirect?t=${tipo}&id=${id}&l=${localidadRaw}&c=${categoria}`;
@@ -4974,24 +4974,24 @@ exports.perfilSSR = onRequest(async (req, res) => {
   // Usuario normal → sirve perfil.html
   if (!esCrawlerSEO && !esPreviewSocial) {
     try {
-      const response = await fetch("https://geinzworkapp.web.app/perfil.html");
+      const response = await fetch("https://geinztech.com/perfil.html");
       let html = await response.text();
       html = html
-        .replace(/src="\.\/js\//g, 'src="https://geinzworkapp.web.app/js/')
+        .replace(/src="\.\/js\//g, 'src="https://geinztech.com/js/')
         .replace(
           /href="\.\/style\//g,
-          'href="https://geinzworkapp.web.app/style/',
+          'href="https://geinztech.com/style/',
         )
-        .replace(/href="\.\/img\//g, 'href="https://geinzworkapp.web.app/img/')
-        .replace(/src="\.\/img\//g, 'src="https://geinzworkapp.web.app/img/')
-        .replace(/"\.\//g, '"https://geinzworkapp.web.app/');
+        .replace(/href="\.\/img\//g, 'href="https://geinztech.com/img/')
+        .replace(/src="\.\/img\//g, 'src="https://geinztech.com/img/')
+        .replace(/"\.\//g, '"https://geinztech.com/');
       res.set("Content-Type", "text/html");
       return res.status(200).send(html);
     } catch (e) {
       logger.error("Error sirviendo perfil.html:", e);
       return res.redirect(
         302,
-        `https://geinzworkapp.web.app/perfil/${encodeURIComponent(alias)}`,
+        `https://geinztech.com/perfil/${encodeURIComponent(alias)}`,
       );
     }
   }
@@ -5020,7 +5020,7 @@ exports.perfilSSR = onRequest(async (req, res) => {
     const descripcion = t.descripcion || "";
     const descSeo = t.descripcion_seo || descripcion || "Encuéntralo en Geinz";
     let logo =
-      t.img_tienda?.logo_tienda || "https://geinzworkapp.web.app/default.jpg";
+      t.img_tienda?.logo_tienda || "https://geinztech.com/default.jpg";
 
     const direccion = t.ubicacion?.dirección || "";
     const referencia = t.ubicacion?.referencia || "";
@@ -5032,7 +5032,7 @@ exports.perfilSSR = onRequest(async (req, res) => {
     const facebook = t.metodo_contacto?.facebook?.url || "";
     const instagram = t.metodo_contacto?.instagram?.url || "";
     const tiktok = t.metodo_contacto?.tiktok?.url || "";
-    const url = `https://geinzworkapp.web.app/perfil/${alias}`;
+    const url = `https://geinztech.com/perfil/${alias}`;
 
     if (promoId) {
       const promos = t.img_tienda?.lista_img?.promociones;
@@ -5150,7 +5150,7 @@ exports.turismoSSR = onRequest(async (req, res) => {
       logger.error("Error sirviendo turismo.html:", e);
       return res.redirect(
         302,
-        `https://geinzworkapp.web.app/turismo/${encodeURIComponent(alias)}`,
+        `https://geinztech.com/turismo/${encodeURIComponent(alias)}`,
       );
     }
   }
@@ -5187,9 +5187,9 @@ exports.turismoSSR = onRequest(async (req, res) => {
         : descripcion;
 
     const imagen =
-      t.img?.principal || "https://geinzworkapp.web.app/default.jpg";
+      t.img?.principal || "https://geinztech.com/default.jpg";
 
-    const url = `https://geinzworkapp.web.app/turismo/${alias}`;
+    const url = `https://geinztech.com/turismo/${alias}`;
 
     const safe = (s) => (s || "").replace(/"/g, '\\"').replace(/\n/g, " ");
 
@@ -5264,10 +5264,10 @@ async function getTurismoHtml() {
     return _turismoHtmlCache;
   }
 
-  const response = await fetch("https://geinzworkapp.web.app/turismo.html");
+  const response = await fetch("https://geinztech.com/turismo.html");
   let html = await response.text();
 
-  const BASE = "https://geinzworkapp.web.app/";
+  const BASE = "https://geinztech.com/";
 
   html = html
     .replace(/(src|href)="\.\/(css|js|img|style)\//g, `$1="${BASE}$2/`)
@@ -5296,35 +5296,35 @@ exports.sitemap = onRequest(async (req, res) => {
 
     const staticUrls = `
   <url>
-    <loc>https://geinzworkapp.web.app/</loc>
+    <loc>https://geinztech.com/</loc>
     <lastmod>2026-06-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://geinzworkapp.web.app/scree/nostros</loc>
+    <loc>https://geinztech.com/scree/nostros</loc>
     <lastmod>2026-06-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://geinzworkapp.web.app/logindata/login</loc>
+    <loc>https://geinztech.com/logindata/login</loc>
     <lastmod>2026-06-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://geinzworkapp.web.app/redirect/pantalla_turismo?loc=barranca</loc>
+    <loc>https://geinztech.com/redirect/pantalla_turismo?loc=barranca</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://geinzworkapp.web.app/redirect/emergencia?loc=barranca</loc>
+    <loc>https://geinztech.com/redirect/emergencia?loc=barranca</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://geinzworkapp.web.app/scree/promos?loc=barranca</loc>
+    <loc>https://geinztech.com/scree/promos?loc=barranca</loc>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>`;
@@ -5333,7 +5333,7 @@ exports.sitemap = onRequest(async (req, res) => {
       .map(
         (doc) => `
   <url>
-    <loc>https://geinzworkapp.web.app/perfil/${doc.id}</loc>
+    <loc>https://geinztech.com/perfil/${doc.id}</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`,
@@ -5344,7 +5344,7 @@ exports.sitemap = onRequest(async (req, res) => {
       .map(
         (doc) => `
   <url>
-    <loc>https://geinzworkapp.web.app/turismo/${doc.id}</loc>
+    <loc>https://geinztech.com/turismo/${doc.id}</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>`,
@@ -5727,7 +5727,7 @@ exports.alertaSaldoBajo = onDocumentWritten(
               token,
               title: `⚠️ ¡Tu saldo está bajo!`,
               body: `Tu tienda tiene menos de 50 creaditos. Mantén tu alcance y visibilidad activo recargando cuando puedas 💼✨`,
-              link: "https://geinzworkapp.web.app/share?t=scr&id=rec",
+              link: "https://geinztech.com/share?t=scr&id=rec",
               logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
               idTienda,
               idAnuncio: "",
@@ -5843,7 +5843,7 @@ exports.resetearEstadoNotificacionesYPanel = onSchedule(
               token,
               title: "♻️ ¡Tus notificaciones fueron renovadas!",
               body: "✨ Ya puedes enviar nuevas notificaciones y mantener a tus clientes al día 🔔🚀",
-              link: "https://geinzworkapp.web.app/share?t=scr&id=ads",
+              link: "https://geinztech.com/share?t=scr&id=ads",
               logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
               idTienda: "",
               idAnuncio: "",
@@ -5857,7 +5857,7 @@ exports.resetearEstadoNotificacionesYPanel = onSchedule(
               token,
               title: "⏰ Tu panel de Geinz ya vencio  😣",
               body: "⚡ Renueva tu panel para seguir teniendo control de tu negocio en tiempo real desde Geinz📈💼",
-              link: "https://geinzworkapp.web.app/share?t=scr&id=pnl",
+              link: "https://geinztech.com/share?t=scr&id=pnl",
               logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
               idTienda: "",
               idAnuncio: "",
@@ -5877,7 +5877,7 @@ async function enviarNotificacionFCM_tienda({
   token,
   title,
   body,
-  link = "https://geinzworkapp.web.app/share?t=scr&id=ads",
+  link = "https://geinztech.com/share?t=scr&id=ads",
   logo = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
   image = "",
   idTienda,

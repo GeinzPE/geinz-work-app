@@ -1208,7 +1208,7 @@ FORMATO OBLIGATORIO:
     );
 
     const link_construido = alias_tienda
-      ? `https://geinzworkapp.web.app/perfil/${alias_tienda}`
+      ? `https://geinztech.com/perfil/${alias_tienda}`
       : "";
 
     const mensaje_safe = usa_plantilla
@@ -1802,7 +1802,7 @@ function agregarImagenesTurismo(responseRaw, apiResponse) {
 
   const alias_turismo = match?.alias || "";
   link_construido = alias_turismo
-    ? `https://geinzworkapp.web.app/turismo/${alias_turismo}`
+    ? `https://geinztech.com/turismo/${alias_turismo}`
     : "";
 
   const ctas = [
@@ -3271,7 +3271,7 @@ function construirRespuestaUnica({ id, mensaje, promosArray, siker }) {
   const promoEncontrada = promosArray.find((p) => String(p?.id) === String(id));
   const imagen = promoEncontrada?.img || "";
   const mensaje_safe = mensaje
-    ? `${mensaje} Encuéntralo aquí: https://geinzworkapp.web.app/api/share?t=prms&l=ba&pi=${id}`
+    ? `${mensaje} Encuéntralo aquí: https://geinztech.com/api/share?t=prms&l=ba&pi=${id}`
     : "Sin mensaje";
 
   return {
@@ -3356,7 +3356,7 @@ function construirResultadoFinalPromo({ respuestaIA, promosArray, hitsMap }) {
       .filter(Boolean);
     const imagen = pick(promosEncontradas)?.img || "";  // 👈 cambio: random en vez de [0]
     const mensaje_safe = response.mensaje
-      ? `${response.mensaje} Encuéntralo aquí: https://geinzworkapp.web.app/api/share?t=pmspls&l=ba&p=${idsValidos.join(",")}`
+      ? `${response.mensaje} Encuéntralo aquí: https://geinztech.com/api/share?t=pmspls&l=ba&p=${idsValidos.join(",")}`
       : "Sin mensaje";
 
     return {
@@ -3890,7 +3890,7 @@ FORMATO OBLIGATORIO:
   const alias_tienda = hit.alias || "";
 
   const link_construido = alias_tienda
-    ? `https://geinzworkapp.web.app/perfil/${alias_tienda}`
+    ? `https://geinztech.com/perfil/${alias_tienda}`
     : "";
 
   const mensaje_safe = link_construido
