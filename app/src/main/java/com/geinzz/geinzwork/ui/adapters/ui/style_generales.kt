@@ -745,7 +745,7 @@ fun ZoomableGalleryFullScreen(
                             clikeable = {
 
                                 val link =
-                                    "https://geinzworkapp.web.app/perfil/$alias_tienda?p=$indice_cruzado"
+                                    "https://geinztech.com/perfil/$alias_tienda?p=$indice_cruzado"
 
                                 abrir_whattsapp(
                                     id_user,
@@ -892,7 +892,7 @@ fun ZoomableGalleryFullScreen_para_promociones(
                             clikeable = {
 
                                 val link =
-                                    "https://geinzworkapp.web.app/perfil/$alias_tienda?p=$indice_cruzado"
+                                    "https://geinztech.com/perfil/$alias_tienda?p=$indice_cruzado"
 
                                 abrir_whattsapp(
                                     id_user,
@@ -1311,7 +1311,7 @@ fun compartir_hosting_promo(
             withContext(Dispatchers.Main) {
 
                 val link =
-                    "https://geinzworkapp.web.app/perfil/$alias?p=$indice_cruazado"
+                    "https://geinztech.com/perfil/$alias?p=$indice_cruazado"
 
                 val texto =
                     "Mira lo que encontré en $nombre_tienda 👀🔥\n$link"

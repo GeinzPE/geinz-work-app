@@ -434,7 +434,7 @@ fun estilo_visual_card(
                         context,
                         "+1 (555) 167-1924",
                         "Hola quiero mas informacion sobre " +
-                                "https://geinzworkapp.web.app/api/share?t=in&id=${i.id}&l=${i.localidad}"
+                                "https://geinztech.com/api/share?t=in&id=${i.id}&l=${i.localidad}"
                     )
                 }
             )

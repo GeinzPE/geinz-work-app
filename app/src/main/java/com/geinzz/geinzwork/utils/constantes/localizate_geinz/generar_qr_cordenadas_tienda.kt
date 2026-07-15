@@ -55,14 +55,14 @@ object generar_qr_cordenadas_tienda {
     fun codificarCoordenadas_url(lat: Double, lng: Double,id_tienda:String): String {
         Log.d("lat_dog","${lat} ${lng}")
         val coordenadasCodificadas = Base64.encodeToString("$lat,$lng".toByteArray(), Base64.NO_WRAP)
-        return "https://geinzworkapp.web.app/api/share?" +
+        return "https://geinztech.com/api/share?" +
                 "t=ru&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
                 "&cor=${URLEncoder.encode(coordenadasCodificadas, "UTF-8")}"
     }
 
     fun retornar_id_Tienda_lugar(id: String,lat: Double, lng: Double): String{
         val coordenadasCodificadas = Base64.encodeToString("$lat,$lng".toByteArray(), Base64.NO_WRAP)
-        return "https://geinzworkapp.web.app/api/share?" +
+        return "https://geinztech.com/api/share?" +
                 "t=rewc&id=${URLEncoder.encode(id, "UTF-8")}" +
                 "&cor=${URLEncoder.encode(coordenadasCodificadas, "UTF-8")}"
 //        return "Review_C|$id|Tienda|$coordenadasCodificadas"

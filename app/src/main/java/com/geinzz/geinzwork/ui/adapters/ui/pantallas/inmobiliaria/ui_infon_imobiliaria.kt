@@ -991,7 +991,7 @@ fun ui_info_imobiliara(
                                 context,
                                 "+1 (555) 167-1924",
                                 "Hola quiero mas informacion sobre " +
-                                        "https://geinzworkapp.web.app/api/share?t=in&id=${datos_Estados_succes.id}" +
+                                        "https://geinztech.com/api/share?t=in&id=${datos_Estados_succes.id}" +
                                         "&l=${datos_Estados_succes.distrito}" +
                                         "&p=${filtro_seleccionado}"
                             )

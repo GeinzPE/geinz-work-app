@@ -11,7 +11,7 @@ object constantes_compartir {
         context: Context
     ) {
         try {
-            val link = "https://geinzworkapp.web.app/api/share?t=scr&id=$pantalla"
+            val link = "https://geinztech.com/api/share?t=scr&id=$pantalla"
             val texto = "$txt $link"
 
             val intent = Intent(Intent.ACTION_SEND).apply {

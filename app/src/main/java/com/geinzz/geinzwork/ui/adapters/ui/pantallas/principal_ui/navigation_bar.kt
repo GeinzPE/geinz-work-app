@@ -614,7 +614,7 @@ fun handleScanResult(
     }
     Log.d("conteinod_escamedo", contenidoEscaneado)
     try {
-        if (contenidoEscaneado.startsWith("https://geinzworkapp.web.app/api/share")) {
+        if (contenidoEscaneado.startsWith("https://geinztech.com/api/share")) {
 
             val uri = Uri.parse(contenidoEscaneado)
 

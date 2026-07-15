@@ -285,7 +285,7 @@ fun pantala_recarga(
                                  precio_soles,
                                  onResult = { id_pago,bool ->
 //                                     planCargando = null
-                                     val url_pago="https://geinzworkapp.web.app/dasboard/pagos?orderId=${id_pago}&ins=i"
+                                     val url_pago="https://geinztech.com/dasboard/pagos?orderId=${id_pago}&ins=i"
                                      openCustomTab(context,url_pago)
                                  }
                              )

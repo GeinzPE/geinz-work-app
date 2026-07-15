@@ -445,15 +445,32 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="geinzworkapp.web.app"
+                    android:host="geinztech.com"
                     android:pathPrefix="/api" />
 
                 <data
                     android:scheme="https"
-                    android:host="geinzworkapp.web.app"
+                    android:host="geinztech.com"
                     android:pathPrefix="/scree" />
 
 
+                <data
+                    android:scheme="https"
+                    android:host="geinztech.com"
+                    android:pathPrefix="/perfil" />
+                <data
+                    android:scheme="https"
+                    android:host="geinztech.com"
+                    android:pathPrefix="/turismo" />
+
+                <data
+                    android:scheme="https"
+                    android:host="geinzworkapp.web.app"
+                    android:pathPrefix="/api" />
+                <data
+                    android:scheme="https"
+                    android:host="geinzworkapp.web.app"
+                    android:pathPrefix="/scree" />
                 <data
                     android:scheme="https"
                     android:host="geinzworkapp.web.app"

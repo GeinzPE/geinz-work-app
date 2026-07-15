@@ -271,7 +271,7 @@ fun nativationWrapper(
 //                mapaTokens.forEach { (dispositivo, token) ->
 //                    Log.d("TOKENS", "📨 Enviando a $dispositivo → $token")
 //                    val link =
-//                        "https://geinzworkapp.web.app/api/share?" +
+//                        "https://geinztech.com/api/share?" +
 //                                "t=ti" +
 //                                "&id=1KEciyNnTwkrELdFU7F4" +
 //                                "&l=barranca" +

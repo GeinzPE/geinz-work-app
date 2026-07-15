@@ -963,7 +963,7 @@ fun compartir_hosting_promo(
             else -> localidad_tienda
         }
         val link =
-            "https://geinzworkapp.web.app/api/share?" +
+            "https://geinztech.com/api/share?" +
                     "t=prms" +
                     "&l=$localidad_pasada" +
                     "&pi=$idpromo"

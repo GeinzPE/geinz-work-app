@@ -169,7 +169,7 @@ fun dialog_promociones_negocios(
                     link = when (promo.tipo_promo_o_notificaccion) {
                         "notifiacion_promo_solo_seguidores" -> {
                             promo.msje_predetermindao_whatsapp +
-                                    "\n\nhttps://geinzworkapp.web.app/api/share?" +
+                                    "\n\nhttps://geinztech.com/api/share?" +
                                     "t=prn" +
                                     "&id=${URLEncoder.encode(id_tienda, "UTF-8")}" +
                                     "&l=${URLEncoder.encode(localidad_pasada, "UTF-8")}" +
@@ -180,7 +180,7 @@ fun dialog_promociones_negocios(
                         "notifiacion_promo" -> {
                             buildString {
                                 append(promo.msje_predetermindao_whatsapp)
-                                append("\n\nhttps://geinzworkapp.web.app/api/share?")
+                                append("\n\nhttps://geinztech.com/api/share?")
                                 append("t=prn")
                                 append("&id=${URLEncoder.encode(id_tienda, "UTF-8")}")
                                 append("&l=${URLEncoder.encode(localidad_pasada, "UTF-8")}")
@@ -191,7 +191,7 @@ fun dialog_promociones_negocios(
 
                         "promocion_perfil" -> {
                             val alias = obtenerAliasTienda(id_tienda, localidad_pasada)
-                            "¡Hola! Vi su promoción en Geinz y me interesa. ¿Podría darme más información, por favor?\n\nhttps://geinzworkapp.web.app/perfil/$alias?p=$index"
+                            "¡Hola! Vi su promoción en Geinz y me interesa. ¿Podría darme más información, por favor?\n\nhttps://geinztech.com/perfil/$alias?p=$index"
                         }
 
                         else -> ""

@@ -327,7 +327,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
                                         numero = numero,
                                         mensajePredefinido =
                                             "${promo.texto_msje_whatsapp.whatsapp.msje_predermindo}\n\n" +
-                                                    "https://geinzworkapp.web.app/api/share?" +
+                                                    "https://geinztech.com/api/share?" +
                                                     "t=prms" +
                                                     "&l=$localidad" +
                                                     "&pi=$id"

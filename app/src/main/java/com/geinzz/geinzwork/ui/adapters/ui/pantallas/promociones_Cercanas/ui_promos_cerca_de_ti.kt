@@ -1165,7 +1165,7 @@ fun ui_promos_cerca_de_ti(
                                                 uid_respald_user, "promocion", "", "", context,
                                                 item.dataclass_promociones_cerca_de_ti.informacion_publcacion.numero,
                                                 "${item.dataclass_promociones_cerca_de_ti.texto_msje_whatsapp.whatsapp.msje_predermindo}" +
-                                                        "https://geinzworkapp.web.app/api/share?t=prms&l=$localidad&pi=$id"
+                                                        "https://geinztech.com/api/share?t=prms&l=$localidad&pi=$id"
                                             )
                                             viewModel.agregar_estadisticas_publicacion(
                                                 "whatsapp",
@@ -1857,7 +1857,7 @@ fun compartir_hosting_promo(
             else -> localidad_tienda
         }
         val link =
-            "https://geinzworkapp.web.app/api/share?" +
+            "https://geinztech.com/api/share?" +
                     "t=prms" +
                     "&l=$localidad_pasada" +
                     "&pi=$idpromo"

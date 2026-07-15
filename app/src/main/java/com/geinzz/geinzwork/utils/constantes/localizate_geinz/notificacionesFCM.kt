@@ -39,17 +39,17 @@ object notificacionesFCM {
 
         val link = when (tipo_notificacion_params) {
             "informativas" ->
-                "https://geinzworkapp.web.app/api/share?t=to&id=$id_tienda&l=$localidad&c=${
+                "https://geinztech.com/api/share?t=to&id=$id_tienda&l=$localidad&c=${
                     URLEncoder.encode(categora_tienda, "UTF-8")
                 }&pi=$id_promo"
 
             "promociones y ofertas" ->
-                "https://geinzworkapp.web.app/api/share?t=prn&id=$id_tienda&l=$localidad&c=${
+                "https://geinztech.com/api/share?t=prn&id=$id_tienda&l=$localidad&c=${
                     URLEncoder.encode(categora_tienda, "UTF-8")
                 }&pi=$id_promo"
 
             "screen"-> {
-                   "https://geinzworkapp.web.app/api/share?t=scr&id=$categora_tienda"
+                   "https://geinztech.com/api/share?t=scr&id=$categora_tienda"
             }
 
             else -> {

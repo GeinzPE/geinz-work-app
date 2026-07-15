@@ -5235,7 +5235,7 @@ fun compartirLugarFirebaseHosttiendas(
 
             withContext(Dispatchers.Main) {
 
-                val link = "https://geinzworkapp.web.app/perfil/$alias"
+                val link = "https://geinztech.com/perfil/$alias"
 
                 val texto =
                     "Hola 👋, aquí estaré publicando promociones y novedades: 🔥\n$link"

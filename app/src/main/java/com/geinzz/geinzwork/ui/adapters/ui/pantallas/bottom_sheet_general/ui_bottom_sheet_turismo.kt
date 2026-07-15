@@ -1035,7 +1035,7 @@ fun compartirLugarFirebaseHost(context: Context, datos: lugares_turisticos) {
 
     val imageUrl = datos.lista_img[0]
     val linkLugar =
-        "https://geinzworkapp.web.app/lugar?localidad=${"barranca"}&idLugar=${datos.id_lugar_turistico}"
+        "https://geinztech.com/lugar?localidad=${"barranca"}&idLugar=${datos.id_lugar_turistico}"
 
 
     CoroutineScope(Dispatchers.IO).launch {
@@ -1090,9 +1090,9 @@ fun compartir_link_tienda(
     context: Context,
     datos: lugares_turisticos
 ) {
-    val link="https://geinzworkapp.web.app/turismo/${datos.alias_turimo}"
+    val link="https://geinztech.com/turismo/${datos.alias_turimo}"
     // Construimos el link de la Cloud Function
-//    val link = "https://geinzworkapp.web.app/api/share?" +
+//    val link = "https://geinztech.com/api/share?" +
 //            "t=tu" +
 //            "&id=${URLEncoder.encode(datos.id_lugar_turistico, "UTF-8")}" +
 //            "&l=${URLEncoder.encode("barranca", "UTF-8")}" +
