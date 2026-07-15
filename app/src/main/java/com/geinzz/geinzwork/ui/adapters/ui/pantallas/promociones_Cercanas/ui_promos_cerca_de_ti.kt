@@ -1349,6 +1349,7 @@ fun ui_promos_cerca_de_ti(
                                         viewModel.limpiarRangoPrecio()
                                         viewModel.limpiarMetodosPago()
                                         viewModel.limpiar_comodidad()
+                                        viewModel.restaurar_busqueda_nlp_si_existe()
                                     }
                                 }
                             )
@@ -1706,17 +1707,38 @@ fun carta_promocion_geinz(
                         fontSize = 12.sp,
                         color = backgroundColor
                     )
-                    if (onVerTodas != null && promos_ids) {
-                        Text(text = "·", fontSize = 11.sp, color = Color.Gray)
+                    if (onVerTodas != null) {
                         Text(
-                            text = "Ver todas las promos",
+                            text = "·",
+                            fontSize = 11.sp,
+                            color = Color.Gray
+                        )
+
+                        Text(
+                            text = if (promos_ids) {
+                                "Ver todas las promos"
+                            } else {
+                                "Ver promociones seleccionadas"
+                            },
                             fontSize = 11.sp,
                             color = Color.Gray,
                             fontWeight = FontWeight.Medium,
                             modifier = Modifier.clickable(
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() }
-                            ) { onVerTodas() }
+                            ) {
+                                if (promos_ids) {
+
+                                    onVerTodas()
+                                } else {
+                                    img_clikeble(
+                                        i.informacion_publcacion.id_promocion,
+                                        i.img.lista_img,
+                                        select,
+                                        i.informacion_publcacion.id_tienda
+                                    )
+                                }
+                            }
                         )
                     }
                 }

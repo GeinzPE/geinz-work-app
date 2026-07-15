@@ -448,7 +448,15 @@ class viewmodel_promos_cercanas : ViewModel() {
         _estado_Carga_tienda_select
 
     var modoBusquedaIA by mutableStateOf(false)
-
+    // 🔧 Backup del estado de búsqueda NLP, para restaurarlo si el usuario cancela
+// la selección de una tienda (evita perder los resultados del NLP).
+    private var backupNlp_modoBusquedaIA: Boolean = false
+    private var backupNlp_listaIdsConScore: List<IdScore> = emptyList()
+    private var backupNlp_listaCompleta: List<obj_completo> = emptyList()
+    private var backupNlp_promosAcumuladas: List<obj_completo> = emptyList()
+    private var backupNlp_paginaActual_: Int = 0
+    private var backupNlp_hayMasPaginas: Boolean = true
+    private var hayBackupNlp: Boolean = false
 
     private val _filtro_tienda_sin_resultados = MutableStateFlow(false)
     val filtro_tienda_sin_resultados: StateFlow<Boolean> = _filtro_tienda_sin_resultados
@@ -475,11 +483,31 @@ class viewmodel_promos_cercanas : ViewModel() {
         _terminos_nlp_seleccionados.value = emptyList()
     }
 
+
+    fun restaurar_busqueda_nlp_si_existe() {
+        if (!hayBackupNlp) return
+        modoBusquedaIA = backupNlp_modoBusquedaIA
+        listaIdsConScore = backupNlp_listaIdsConScore
+        listaCompleta.value = backupNlp_listaCompleta
+        listaFiltrada.value = backupNlp_listaCompleta
+        _promosAcumuladas.value = backupNlp_promosAcumuladas
+        paginaActual_ = backupNlp_paginaActual_
+        _hayMasPaginas.value = backupNlp_hayMasPaginas
+        hayBackupNlp = false
+    }
     private val _totalPromosTienda = MutableStateFlow(0)
     private var jobPromociones: Job? = null
     fun obtener_promociones_2da(localidad: String, tipo_filtrado: String, tienda_seleccionada: String?) {
         jobPromociones?.cancel()   // 👈 AGREGA ESTA LÍNEA: cancela la petición anterior si sigue en curso
-
+        if (tienda_seleccionada != null && modoBusquedaIA) {
+            backupNlp_modoBusquedaIA = modoBusquedaIA
+            backupNlp_listaIdsConScore = listaIdsConScore
+            backupNlp_listaCompleta = listaCompleta.value
+            backupNlp_promosAcumuladas = _promosAcumuladas.value
+            backupNlp_paginaActual_ = paginaActual_
+            backupNlp_hayMasPaginas = _hayMasPaginas.value
+            hayBackupNlp = true
+        }
         ultimoDocumento = null
         _hayMasPaginas.value = true
         _promosAcumuladas.value = emptyList()
