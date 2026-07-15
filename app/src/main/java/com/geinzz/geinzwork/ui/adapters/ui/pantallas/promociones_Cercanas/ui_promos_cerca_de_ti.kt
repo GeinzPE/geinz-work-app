@@ -1529,7 +1529,9 @@ fun ui_promos_cerca_de_ti(
                             onDismiss = {
                                 mostrar_zoom_img = false
                                 tienda_seleccionada_clik_baner = null
-                            },
+                            }, falta_registro_para_whatsapp = {
+                                mostrar_bottom_shet_registrate=true
+                            }
                         )
                     }
                     return

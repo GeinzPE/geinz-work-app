@@ -233,7 +233,7 @@ fun bottom_sheet_ayudanos_a_creccer(
                 Column() {
                     val lsita_img = listOf(
                         "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2F1.webp?alt=media&token=f6d1d503-8938-499c-8ded-455dc3272964",
-                        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2F2.webp?alt=media&token=5dc2e4ec-5c54-437a-a9da-f0b8132a537d",
+//                        "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2F2.webp?alt=media&token=5dc2e4ec-5c54-437a-a9da-f0b8132a537d",
                         "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2F3.webp?alt=media&token=518e8264-9f77-4636-a597-082b87185a25",
                         "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/imagenesSubidasPc%2F4.webp?alt=media&token=f8b42b6c-ef97-4593-a9f2-edfff06a6ccd"
                     )
@@ -285,7 +285,7 @@ fun bottom_sheet_ayudanos_a_creccer(
 //                                modifier = Modifier.fillMaxWidth()
 //                            ) {
 //
-//                                item {
+//                                item {R.drawable.
 //                                    // 🔹 Ficha Premium
 //                                    Box(modifier = Modifier.width(300.dp)) {
 //                                        FichaOpcion(

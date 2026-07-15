@@ -226,17 +226,12 @@ fun pantalla_principal(
     val actulizacionE_stado_play by viewModel_cordenadas.estado_version_PS.collectAsState()
     val urls by vm_fotos_salud.urlsCarga.collectAsState()
     val urls_turistico by vm_fotos_salud.urlsCarga_turistico.collectAsState()
-    val urlAleatoria = remember(urls.hashCode()) {
-        urls.randomOrNull() ?: ""
-    }
-
+    val urlAleatoria by vm_fotos_salud.urlPrincipalFija.collectAsState()
+    val url_turistico_aleatoria by vm_fotos_salud.urlTuristicaFija.collectAsState()
     val estados_carga_widget by vm_fotos_salud.estado_carga_widget_tienda.collectAsState()
     var datos_tienda by remember(estados_carga_widget.dia_hoy) { mutableStateOf(widget_tienda()) }
 
 
-    val url_turistico_aleatoria = remember(urls_turistico.hashCode()) {
-        urls_turistico.randomOrNull() ?: ""
-    }
     var mostrar_widget_tienda by remember { mutableStateOf(false) }
 
 
@@ -537,10 +532,10 @@ fun pantalla_principal(
         ) {
             item {
                 nombre_texto_img_perfil(
-                    abrir_guardar_datos,
-                    actulizacionE_stado_play,
-                    datos_principales_user.nombre,
-                    datos_principales_user.img_perfil
+                    abrir_guardar_datos = abrir_guardar_datos,
+                    actulizacionE_stado_play = actulizacionE_stado_play,
+                    nombre_user = datos_principales_user.nombre,
+                    img_url = datos_principales_user.img_perfil
                 )
             }
 

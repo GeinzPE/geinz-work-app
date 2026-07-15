@@ -470,7 +470,7 @@ fun nativationWrapper(
                         //                                                        "Mira ese nuevo negocio en geinz notificacion de prueva ",
                         //                                                        "Encuentralo a unos pasos cerca de ti "
                         //                                                    )
-                                                    navController.navigate(ui_agregar_lugares)
+//                                                    navController.navigate(ui_agregar_lugares)
                          //   navController.navigate(agregar_pripiedads)
 
                         //                            navController.navigate(map_box)

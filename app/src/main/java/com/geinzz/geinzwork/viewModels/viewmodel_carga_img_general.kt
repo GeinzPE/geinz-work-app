@@ -48,6 +48,11 @@ class viewmodel_carga_img_general(
     val idTienda: StateFlow<String> = _idTienda.asStateFlow()
     val repo = repo_carga_img_general()
 
+    private val _urlPrincipalFija = MutableStateFlow<String?>(null)
+    val urlPrincipalFija: StateFlow<String?> = _urlPrincipalFija.asStateFlow()
+    private val _urlTuristicaFija = MutableStateFlow<String?>(null)
+    val urlTuristicaFija: StateFlow<String?> = _urlTuristicaFija.asStateFlow()
+
     init {
         cargarUrls()
         cargar_url_lugares_turitsticos()
@@ -84,7 +89,7 @@ class viewmodel_carga_img_general(
 
                     Log.d("IMG_DEBUG", "✅ Usando URLs locales")
                     _urlsCarga.value = locales
-
+                    fijarUrlPrincipalSiFalta(locales)
                 } else {
 
                     Log.d("IMG_DEBUG", "☁️ No hay locales, consultando Firebase...")
@@ -117,6 +122,7 @@ class viewmodel_carga_img_general(
 
                 if (locales.isNotEmpty()) {
                     _urlsCarga_turistico.value = locales
+                    fijarUrlTuristicaSiFalta(locales)
                 } else {
                     val desdeFirebase = repo.obtenerUrlsCarga_lugares_turisticos()
 
@@ -132,6 +138,17 @@ class viewmodel_carga_img_general(
     }
 
     private val urlsEnProceso = mutableSetOf<String>()
+    private fun fijarUrlPrincipalSiFalta(urls: List<String>) {
+        if (_urlPrincipalFija.value == null && urls.isNotEmpty()) {
+            _urlPrincipalFija.value = urls.random()
+        }
+    }
+
+    private fun fijarUrlTuristicaSiFalta(urls: List<String>) {
+        if (_urlTuristicaFija.value == null && urls.isNotEmpty()) {
+            _urlTuristicaFija.value = urls.random()
+        }
+    }
 
     fun eliminarUrlInvalida(url: String) {
         if (urlsEnProceso.contains(url)) return
@@ -145,6 +162,10 @@ class viewmodel_carga_img_general(
                 guardarUrlsCarga(context, actuales)
                 _urlsCarga.value = actuales
                 Log.d("IMG_CLEAN", "🧹 URL eliminada: $url")
+                // recién ahí elegimos una nueva. Si no, no tocamos nada.
+                if (_urlPrincipalFija.value == url) {
+                    _urlPrincipalFija.value = actuales.randomOrNull()
+                }
             }
 
             urlsEnProceso.remove(url)

@@ -54,6 +54,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
     promoSeleccionada: dataclass_promociones_cerca_de_ti,
     indeximg_seleccionado: Int,
     onDismiss: () -> Unit,
+    falta_registro_para_whatsapp:()-> Unit
 ) {
     Log.d("lodisias_restantes_publica", "${promoSeleccionada}")
 
@@ -78,7 +79,10 @@ fun ZoomableGalleryFullScreenVerticalPager(
     var dias_restantes by remember() { mutableStateOf("") }
 
     // Inicializar feed (promo seleccionada primero)
-    LaunchedEffect(listaPromos, promociones_de_una_tienda) { // 🔹 agregar promociones_de_una_tienda como key
+    LaunchedEffect(
+        listaPromos,
+        promociones_de_una_tienda
+    ) { // 🔹 agregar promociones_de_una_tienda como key
         if (listaPromos.isNotEmpty()) {
             val resto = listaPromos
                 .filter {
@@ -281,21 +285,26 @@ fun ZoomableGalleryFullScreenVerticalPager(
                                     return@ZoomableGalleryFullScreen_promociones
                                 }
 
+//                                if (id_user.isNotEmpty()) {
 
-                                compartir_hosting_promo(
-                                    viewmodelPromosCercanas = viewModel,
-                                    msje = promo.texto_msje_whatsapp.compartir.msje_predermindo,
-                                    id_user = id_user,
-                                    context = context,
-                                    localidad_tienda = localidad,
-                                    idpromo = idPromo,
-                                )
+                                    compartir_hosting_promo(
+                                        viewmodelPromosCercanas = viewModel,
+                                        msje = promo.texto_msje_whatsapp.compartir.msje_predermindo,
+                                        id_user = id_user,
+                                        context = context,
+                                        localidad_tienda = localidad,
+                                        idpromo = idPromo,
+                                    )
 
-                                viewModel.agregar_estadisticas_publicacion(
-                                    "compartidos",
-                                    idPromo,
-                                    localidad, id_user,
-                                )
+                                    viewModel.agregar_estadisticas_publicacion(
+                                        "compartidos",
+                                        idPromo,
+                                        localidad, id_user,
+                                    )
+//                                } else {
+//                                    Toast.makeText(context, "regsitrarte", Toast.LENGTH_SHORT)
+//                                        .show()
+//                                }
 
                             },
                             click_contacto_directo = { id, numero, localidad, id_tienda, categoira ->
@@ -308,30 +317,35 @@ fun ZoomableGalleryFullScreenVerticalPager(
                                     ).show()
                                     return@ZoomableGalleryFullScreen_promociones
                                 }
+                                if (id_user.isNotEmpty()) {
+                                    abrir_whattsapp(
+                                        id_user = id_user,
+                                        tipo = "promocion",
+                                        id_tienda = "",
+                                        localidad_tienda = "",
+                                        context = context,
+                                        numero = numero,
+                                        mensajePredefinido =
+                                            "${promo.texto_msje_whatsapp.whatsapp.msje_predermindo}\n\n" +
+                                                    "https://geinzworkapp.web.app/api/share?" +
+                                                    "t=prms" +
+                                                    "&l=$localidad" +
+                                                    "&pi=$id"
+                                    )
+                                    viewModel.agregar_estadisticas_publicacion(
+                                        "whatsapp",
+                                        id,
+                                        localidad, id_user,
+                                    )
 
-                                abrir_whattsapp(
-                                    id_user,
-                                    "promocion",
-                                    "",
-                                    "",
-                                    context,
-                                    numero,
-                                    "${promo.texto_msje_whatsapp.whatsapp.msje_predermindo}" +
-                                            "https://geinzworkapp.web.app/api/share?" +
-                                            "t=prms" +
-                                            "&l=$localidad" +
-                                            "&pi=$id"
-                                )
-                                viewModel.agregar_estadisticas_publicacion(
-                                    "whatsapp",
-                                    id,
-                                    localidad, id_user,
-                                )
+                                } else {
+                                    Toast.makeText(context, "Inicia sesión ver mas detalles de esta promo o oferta", Toast.LENGTH_SHORT).show()
+                                    falta_registro_para_whatsapp()
 
+                                }
 
                             },
                             abrir_prefil = { idTienda ->
-
                                 idTiendaSelect = idTienda
                                 showBottomSheet = true
 
