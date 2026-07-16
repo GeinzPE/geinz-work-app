@@ -753,11 +753,11 @@ fun pantalla_principal(
             item {
                 spacer_vertical(10.dp)
                 rutas_turismo(
-                    urlAleatoria ?: "",
-                    "Contactar",
-                    "Salud y seguridad Pública", {
+                    img_baner = urlAleatoria ?: "",
+                    texto_button = "Contactar",
+                    texto_baner = "Salud y seguridad Pública", clik_button = {
                         listener_seguridad(localidad_defaul)
-                    }, { img_eliminar ->
+                    }, eliminarerr = { img_eliminar ->
                         vm_fotos_salud.eliminarUrlInvalida(img_eliminar)
                     })
                 spacer_vertical(20.dp)
@@ -911,8 +911,8 @@ fun apartado_explora_cat(
 
     Column {
         titulo_referenciales_geinz_work(
-            "Explora ${localidad_defaul.capitalizeFirst()}",
-            "Ver todos"
+            texto = "Explora ${localidad_defaul.capitalizeFirst()}",
+            texto_subrallado = "Ver todos"
         ) { categorias1(nombre_user, localidad_defaul) }
         spacer_vertical(15.dp)
         Crossfade(targetState = stateCat, label = "crossfadeCategorias") { state ->

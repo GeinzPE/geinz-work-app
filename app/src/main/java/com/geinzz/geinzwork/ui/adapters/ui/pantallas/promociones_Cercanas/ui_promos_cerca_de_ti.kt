@@ -142,6 +142,7 @@ import androidx.compose.ui.geometry.Offset
 import kotlin.math.roundToInt
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.ShimmerImagenConMarca
 
 
 @Composable
@@ -541,7 +542,7 @@ fun ui_promos_cerca_de_ti(
 
             viewmodel_promos_cercanas.estado_carga_promociones.loading -> {
                 if (esPrimeraCarga) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    ShimmerImagenConMarca()
                 } else {
                     LinearProgressIndicator(
                         modifier = Modifier
@@ -1130,9 +1131,6 @@ fun ui_promos_cerca_de_ti(
                                                 item.dataclass_promociones_cerca_de_ti
                                             mostrar_zoom_img = true
                                             index_galeria_img = select
-
-
-
                                             viewModel.agregar_estadisticas_publicacion(
                                                 "click",
                                                 id_promo,

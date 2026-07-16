@@ -12,7 +12,9 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -181,6 +183,36 @@ fun nativationWrapper(
                 is UiAction.ReviewPrivada -> TODO()
                 is UiAction.ReviewPublica -> TODO()
                 is UiAction.Ruta -> TODO()
+                is UiAction.abrir_scre_redirect -> {
+                    when (action.tipo) {
+                        "turismo" -> {
+                            navController.navigate(lugares_turisticos(action.localidad))
+                        }
+
+                        "emergencia" -> {
+                            navController.navigate(ui_salud_seguridad(action.localidad))
+                        }
+
+                        "promos" -> {
+                            navController.navigate(promociones_y_ofertas(action.localidad, ""))
+
+                        }
+
+                        "categorias" -> {
+                            navController.navigate(
+                                mostrar_tiendas(
+                                    "",
+                                    action.localidad
+                                )
+                            )
+                        }
+
+                        else -> {
+                            Log.d("UiAction", "Tipo de redirección no soportado")
+                        }
+                    }
+                }
+
                 else -> {}
             }
         }
@@ -411,16 +443,32 @@ fun nativationWrapper(
                 startDestination = "pantalla_principal",
                 modifier = Modifier.padding(innerPadding),
                 enterTransition = {
-                    fadeIn(animationSpec = tween(900))
+                    fadeIn(animationSpec = tween(300)) +
+                            slideInHorizontally(
+                                initialOffsetX = { fullWidth -> fullWidth / 4 },
+                                animationSpec = tween(300, easing = FastOutSlowInEasing)
+                            )
                 },
                 exitTransition = {
-                    fadeOut(animationSpec = tween(900))
+                    fadeOut(animationSpec = tween(300)) +
+                            slideOutHorizontally(
+                                targetOffsetX = { fullWidth -> -fullWidth / 4 },
+                                animationSpec = tween(300, easing = FastOutSlowInEasing)
+                            )
                 },
                 popEnterTransition = {
-                    fadeIn(animationSpec = tween(900))
+                    fadeIn(animationSpec = tween(300)) +
+                            slideInHorizontally(
+                                initialOffsetX = { fullWidth -> -fullWidth / 4 },
+                                animationSpec = tween(300, easing = FastOutSlowInEasing)
+                            )
                 },
                 popExitTransition = {
-                    fadeOut(animationSpec = tween(900))
+                    fadeOut(animationSpec = tween(300)) +
+                            slideOutHorizontally(
+                                targetOffsetX = { fullWidth -> fullWidth / 4 },
+                                animationSpec = tween(300, easing = FastOutSlowInEasing)
+                            )
                 }
             ) {
                 // Pantalla principal
@@ -465,15 +513,15 @@ fun nativationWrapper(
                             navController.navigate(ui_servicios_tramites(localidad))
                         },
                         abrir_guardar_datos = {
-                        //                                                    enviar_notificacion_lista_dispo(
-                        //                                                        id_user,
-                        //                                                        "Mira ese nuevo negocio en geinz notificacion de prueva ",
-                        //                                                        "Encuentralo a unos pasos cerca de ti "
-                        //                                                    )
+                            //                                                    enviar_notificacion_lista_dispo(
+                            //                                                        id_user,
+                            //                                                        "Mira ese nuevo negocio en geinz notificacion de prueva ",
+                            //                                                        "Encuentralo a unos pasos cerca de ti "
+                            //                                                    )
 //                                                    navController.navigate(ui_agregar_lugares)
-                         //   navController.navigate(agregar_pripiedads)
+                            //   navController.navigate(agregar_pripiedads)
 
-                        //                            navController.navigate(map_box)
+                            //                            navController.navigate(map_box)
                             //                            pasar_teindas_nuevas()
 
                         },
@@ -495,11 +543,11 @@ fun nativationWrapper(
                                 launchSingleTop = true
                             }
                         }, geinz_inmobiliaria = { localidad, id ->
-                        //                            navController.navigate(geinz_inmobiliaria(localidad_selec = localidad))
+                            //                            navController.navigate(geinz_inmobiliaria(localidad_selec = localidad))
                             navController.navigate(promociones_y_ofertas(localidad, id))
 
                         }, navegacion_para_promos = { localidad, id_prmo ->
-                            navController.navigate(promociones_y_ofertas(localidad,id_prmo))
+                            navController.navigate(promociones_y_ofertas(localidad, id_prmo))
                         }
                     )
                 }
@@ -736,7 +784,12 @@ fun nativationWrapper(
                 }
 
                 composable<login_scios> {
-                    login_socios(isConnected, "", navController,datos_user?.localida?:"indefinida")
+                    login_socios(
+                        isConnected,
+                        "",
+                        navController,
+                        datos_user?.localida ?: "indefinida"
+                    )
                 }
 
                 composable<crear_cuenta_geinz> { navback ->
@@ -906,14 +959,29 @@ fun nativationWrapper(
                 }
 
                 composable("promocionar_ads") {
-                    login_socios(isConnected, "envio", navController,datos_user?.localida?:"indefinida")
+                    login_socios(
+                        isConnected,
+                        "envio",
+                        navController,
+                        datos_user?.localida ?: "indefinida"
+                    )
                 }
                 composable("promocionar_rec") {
-                    login_socios(isConnected, "recargas", navController,datos_user?.localida?:"indefinida")
+                    login_socios(
+                        isConnected,
+                        "recargas",
+                        navController,
+                        datos_user?.localida ?: "indefinida"
+                    )
                 }
 
                 composable("promocionar_rec") {
-                    login_socios(isConnected, "envio", navController,datos_user?.localida?:"indefinida")
+                    login_socios(
+                        isConnected,
+                        "envio",
+                        navController,
+                        datos_user?.localida ?: "indefinida"
+                    )
                 }
                 composable("promociones_nuevas") {
                     ui_promos_cerca_de_ti(
@@ -929,12 +997,14 @@ fun nativationWrapper(
                             navController.navigate(crear_cuenta_geinz("crear"))
                         },
                         onBack = {
-                            navController.navigate("pantalla_principal") {
-                                popUpTo("pantalla_principal") {
-                                    inclusive = true
-                                }
-                                launchSingleTop = true
-                            }
+                            navController.popBackStack()
+
+//                            navController.navigate("pantalla_principal") {
+//                                popUpTo("pantalla_principal") {
+//                                    inclusive = true
+//                                }
+//                                launchSingleTop = true
+//                            }
                         }
                     )
                 }

@@ -175,6 +175,14 @@ fun ui_salud_seguirdad(
     val state_seguridad =
         viewmode_segurirdad_Salud.state_lista_filtradad.collectAsState(carga_seguidad.loading).value
     val mostrar_carga_salud_seguridad by viewmode_segurirdad_Salud.mostrar_carga_salud_seguridad.collectAsState()
+    var mostrarCargaInicial by remember { mutableStateOf(true) }
+
+// Este efecto apaga el overlay SOLO cuando el ViewModel ya terminó de verdad
+    LaunchedEffect(mostrar_carga_salud_seguridad) {
+        if (!mostrar_carga_salud_seguridad) {
+            mostrarCargaInicial = false
+        }
+    }
     val datos_cloud_TTs by viewmode_segurirdad_Salud.datosCloudTts.collectAsState()
     var isLoading by remember { mutableStateOf(false) }
     var error_empity by remember { mutableStateOf(false) }
@@ -488,12 +496,16 @@ fun ui_salud_seguirdad(
             }
         }
 
-        if (mostrar_carga_salud_seguridad) {
+        AnimatedVisibility(
+            visible = mostrarCargaInicial || mostrar_carga_salud_seguridad,
+            enter = fadeIn(animationSpec = tween(durationMillis = 350)),
+            exit = fadeOut(animationSpec = tween(durationMillis = 250)),
+            modifier = Modifier.zIndex(5f)
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f))
-                    .zIndex(5f),
+                    .background(Color.Black.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
             ) {
                 pantalla_carga_login(false)
@@ -1476,38 +1488,3 @@ fun BtnCirculares(
     }
 }
 
-@Composable
-fun rememberInternetState(): State<Boolean> {
-
-    val context = LocalContext.current
-    val connectivityManager =
-        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-    val internetState = remember { mutableStateOf(false) }
-
-    DisposableEffect(Unit) {
-
-        val callback = object : ConnectivityManager.NetworkCallback() {
-
-            override fun onAvailable(network: Network) {
-                internetState.value = true
-            }
-
-            override fun onLost(network: Network) {
-                internetState.value = false
-            }
-        }
-
-        val request = NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .build()
-
-        connectivityManager.registerNetworkCallback(request, callback)
-
-        onDispose {
-            connectivityManager.unregisterNetworkCallback(callback)
-        }
-    }
-
-    return internetState
-}

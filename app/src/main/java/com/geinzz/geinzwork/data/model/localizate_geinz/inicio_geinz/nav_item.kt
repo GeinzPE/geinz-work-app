@@ -59,5 +59,10 @@ sealed class UiAction {
         val lat: Double,
         val lng: Double
     ) : UiAction()
+
+    data class abrir_scre_redirect(
+        val tipo:String,
+        val localidad:String
+    ): UiAction()
 }
 

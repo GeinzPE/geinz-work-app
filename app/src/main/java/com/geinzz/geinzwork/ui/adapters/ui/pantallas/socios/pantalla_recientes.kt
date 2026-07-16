@@ -593,8 +593,8 @@ fun ShimmerImagenConMarca(texto: String = "GEINZ") {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = texto,
-                color = Color.White.copy(alpha = 0.8f), // un poco más visible
-                fontSize = 50.sp,                        // más grande
+                color = Color.White.copy(alpha = 0.8f),
+                fontSize = 50.sp,
                 fontWeight = FontWeight.Bold
             )
         }

@@ -46,6 +46,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -86,6 +87,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
@@ -974,6 +976,7 @@ fun FloatingBubble(
                                             label = ""
                                         )
 
+
                                         BoxWithConstraints(
                                             modifier = Modifier
                                                 .weight(weightBox1)
@@ -1341,7 +1344,6 @@ fun FloatingBubble(
                         }
 
                         item {
-                            // ✅ Solo mostrar si hay categoría seleccionada y cerca de ti está desactivado
                             if (categoria_filtrad.isNotEmpty() && !cerca_de_ti_enable) {
                                 Box(
                                     modifier = Modifier
@@ -1352,7 +1354,6 @@ fun FloatingBubble(
                                         .padding(15.dp)
                                 ) {
                                     Column {
-
                                         texto_generico_one_line(
                                             "Busca por aproximaciones",
                                             MaterialTheme.typography.headlineSmall,
@@ -1374,51 +1375,118 @@ fun FloatingBubble(
                                             "Barranca - Salida y entrada zona norte"
                                         )
 
-                                        LazyRow(
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
+                                        val listState = rememberLazyListState()
+
+                                        val puedeScrollearInicio by remember {
+                                            derivedStateOf { listState.canScrollBackward }
+                                        }
+                                        val puedeScrollearFinal by remember {
+                                            derivedStateOf { listState.canScrollForward }
+                                        }
+
+                                        val alphaInicio by animateFloatAsState(
+                                            targetValue = if (puedeScrollearInicio) 1f else 0f,
+                                            animationSpec = tween(300),
+                                            label = ""
+                                        )
+                                        val alphaFinal by animateFloatAsState(
+                                            targetValue = if (puedeScrollearFinal) 1f else 0f,
+                                            animationSpec = tween(300),
+                                            label = ""
+                                        )
+
+                                        val start_end_buscar_aproxiamciones by animateColorAsState(
+                                            targetValue = if (!color_localidad) shadow_botonm_filtrado_v1[1] else shadow_botonm_filtrado_v2[1],
+                                            animationSpec = tween(500),
+                                            label = ""
+                                        )
+
+                                        // OJO: altura fija explícita, igual a la de los chips (45.dp)
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(45.dp)
                                         ) {
-                                            items(zonas) { zona ->
-                                                val estaSeleccionada = zona_filtrada == zona
+                                            LazyRow(
+                                                state = listState,
+                                                modifier = Modifier.matchParentSize(),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                            ) {
+                                                items(zonas) { zona ->
+                                                    val estaSeleccionada = zona_filtrada == zona
 
-                                                Row(
-                                                    modifier = Modifier
-                                                        .clip(CircleShape)
-                                                        .background(if (estaSeleccionada) Color.Black else MaterialTheme.colorScheme.primary)
-                                                        .height(45.dp)
-                                                        .padding(horizontal = 15.dp, vertical = 10.dp)
-                                                        .clickable(
-                                                            indication = null,
-                                                            interactionSource = remember { MutableInteractionSource() }
-                                                        ) {
-                                                            if (estaSeleccionada) { // 👈 si ya está seleccionada muestra snackbar
-                                                                scope.launch {
-                                                                    snackbarHostState.showSnackbar(
-                                                                        message = "${zona.capitalizeFirst()} ya se encuentra seleccionada",
-                                                                        duration = SnackbarDuration.Short
-                                                                    )
+                                                    Row(
+                                                        modifier = Modifier
+                                                            .clip(CircleShape)
+                                                            .background(if (estaSeleccionada) Color.Black else MaterialTheme.colorScheme.primary)
+                                                            .height(45.dp)
+                                                            .padding(horizontal = 15.dp, vertical = 10.dp)
+                                                            .clickable(
+                                                                indication = null,
+                                                                interactionSource = remember { MutableInteractionSource() }
+                                                            ) {
+                                                                if (estaSeleccionada) {
+                                                                    scope.launch {
+                                                                        snackbarHostState.showSnackbar(
+                                                                            message = "${zona.capitalizeFirst()} ya se encuentra seleccionada",
+                                                                            duration = SnackbarDuration.Short
+                                                                        )
+                                                                    }
+                                                                } else {
+                                                                    zona_seleccionada(zona)
                                                                 }
-                                                            } else {
-                                                                zona_seleccionada(zona)
-                                                            }
-                                                        },
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    texto_generico_one_line(
-                                                        zona.capitalizeFirst(),
-                                                        color = Color.White,
-                                                        style = MaterialTheme.typography.bodyMedium
-                                                    )
-
+                                                            },
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        texto_generico_one_line(
+                                                            zona.capitalizeFirst(),
+                                                            color = Color.White,
+                                                            style = MaterialTheme.typography.bodyMedium
+                                                        )
+                                                    }
                                                 }
                                             }
+
+                                            // Degradado lateral izquierdo (inicio)
+                                            Box(
+                                                modifier = Modifier
+                                                    .align(Alignment.CenterStart)
+                                                    .matchParentSize()
+                                                    .then(Modifier.width(40.dp))
+                                                    .alpha(alphaInicio)
+                                                    .background(
+                                                        Brush.horizontalGradient(
+                                                            colors = listOf(
+                                                                start_end_buscar_aproxiamciones,
+                                                                start_end_buscar_aproxiamciones.copy(alpha = 0f)
+                                                            )
+                                                        )
+                                                    )
+                                            )
+
+                                            // Degradado lateral derecho (final)
+                                            Box(
+                                                modifier = Modifier
+                                                    .align(Alignment.CenterEnd)
+                                                    .matchParentSize()
+                                                    .then(Modifier.width(40.dp))
+                                                    .alpha(alphaFinal)
+                                                    .background(
+                                                        Brush.horizontalGradient(
+                                                            colors = listOf(
+                                                                start_end_buscar_aproxiamciones.copy(alpha = 0f),
+                                                                start_end_buscar_aproxiamciones
+                                                            )
+                                                        )
+                                                    )
+                                            )
                                         }
                                     }
                                 }
                                 spacer_vertical(10.dp)
                             }
                         }
-
                         item {
 
                             LaunchedEffect(radioGuardado) {

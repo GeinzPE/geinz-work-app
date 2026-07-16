@@ -114,10 +114,15 @@ fun pantalla_lugares_turisticos(
         navigation_regresar()
     }
 
-    LaunchedEffect(mostra_pantalla_carga) {
-        Log.d("mostra_pantalla_carga", "${mostra_pantalla_carga.toString()}")
-    }
+    // Junto a tus otros "remember", cerca del inicio del composable
+    var mostrarCargaInicial by remember { mutableStateOf(true) }
 
+// Apaga el overlay solo cuando el ViewModel confirma que ya terminó
+    LaunchedEffect(mostra_pantalla_carga) {
+        if (!mostra_pantalla_carga) {
+            mostrarCargaInicial = false
+        }
+    }
     LaunchedEffect(Unit) {
         viewmodel_lugares_turisticos.resetearEstado()
         viewmodel_lugares_turisticos.lugares_turisticos(localidad_selecionada, context)
@@ -397,7 +402,7 @@ fun pantalla_lugares_turisticos(
             }
         }
         AnimatedVisibility(
-            visible = mostra_pantalla_carga,
+            visible = mostrarCargaInicial || mostra_pantalla_carga,
             enter = fadeIn(animationSpec = tween(300)),
             exit = fadeOut(animationSpec = tween(300))
         ) {

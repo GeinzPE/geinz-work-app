@@ -76,7 +76,6 @@ fun ZoomableGalleryFullScreenVerticalPager(
     var feedVisible by remember {
         mutableStateOf<List<dataclass_promociones_cerca_de_ti>>(emptyList())
     }
-    var dias_restantes by remember() { mutableStateOf("") }
 
     // Inicializar feed (promo seleccionada primero)
     LaunchedEffect(
@@ -113,21 +112,6 @@ fun ZoomableGalleryFullScreenVerticalPager(
         )
     }
 
-    // ---------------- BOTTOM SHEET ----------------
-//    LaunchedEffect(showBottomSheet) {
-//        if (showBottomSheet) {
-//            viewModelFiltros.obtener_campos_tiendas_por_id(
-//                localidad_general,
-//                idTiendaSelect
-//            )
-//        }
-//    }
-
-//    LaunchedEffect(datosTienda) {
-//        if (!datosTienda.isNullOrEmpty()) {
-//            tiendaSeleccionada = datosTienda!!.first()
-//        }
-//    }
 
     // ---------------- SCROLL INFINITO ----------------
     var solicitandoBloque by remember { mutableStateOf(false) }
@@ -197,9 +181,7 @@ fun ZoomableGalleryFullScreenVerticalPager(
     var mostrarLoader by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        dias_restantes = constantes_datos_expirados_fechas_publicaciones.tiempoRestante(
-            promoSeleccionada.fecha_fin
-        )
+
         delay(3000) // ⏱️ 3 segundos
         mostrarLoader = false
     }

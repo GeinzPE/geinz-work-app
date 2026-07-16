@@ -276,7 +276,7 @@ fun componentes_crear_cuenta(
         if (tipo_cuenta.equals("crear")) {
             item {
                 texto_generico_one_line(
-                    "Crea tu cuenta en Geinz Work",
+                    "Crea tu cuenta en Geinz",
                     MaterialTheme.typography.headlineSmall
                 )
                 spacer_vertical(10.dp)

@@ -151,7 +151,57 @@ class MainActivity : AppCompatActivity() {
         val index = uri.getQueryParameter("i")?.toIntOrNull() ?: 0
 
         val id_promocion = uri.getQueryParameter("pi") ?: ""
-        val pathSegments = uri.pathSegments
+
+        val rawSegments = uri.pathSegments
+        val pathSegments = if (rawSegments.isNotEmpty() &&
+            (rawSegments[0] == "redirect" || rawSegments[0] == "scree")
+        ) {
+            rawSegments.drop(1)
+        } else {
+            rawSegments
+        }
+
+        val localidadParam = uri.getQueryParameter("loc") ?: ""
+
+        if (pathSegments.isNotEmpty()) {
+            val pantalla = pathSegments.getOrNull(0)?.substringBeforeLast(".") ?: ""
+
+            when (pantalla) {
+                "pantalla_turismo" -> {
+                    uiActionVM.emitir(
+                        UiAction.abrir_scre_redirect("turismo", "barranca")
+                    )
+                    Toast.makeText(this, "Turismo -> $localidadParam", Toast.LENGTH_LONG).show()
+                }
+
+                "emergencia" -> {
+                    uiActionVM.emitir(
+                        UiAction.abrir_scre_redirect("emergencia", "barranca")
+                    )
+                    Toast.makeText(this, "Emergencia -> $localidadParam", Toast.LENGTH_LONG).show()
+                }
+
+                "promos" -> {
+                    uiActionVM.emitir(
+                        UiAction.abrir_scre_redirect("promos", "barranca")
+                    )
+                    Toast.makeText(this, "Promos -> $localidadParam", Toast.LENGTH_LONG).show()
+                }
+
+                "categorias" -> {
+                    uiActionVM.emitir(
+                        UiAction.abrir_scre_redirect("categorias", "barranca")
+                    )
+                    Toast.makeText(this, "Categorias -> $localidadParam", Toast.LENGTH_LONG).show()
+                }
+
+                else -> {
+                    Toast.makeText(this, "Fuente no reconocida", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+
         if (pathSegments.size >= 2 && pathSegments[0] == "perfil") {
             val alias = pathSegments[1]
             val promoIndex = uri.getQueryParameter("p")?.toIntOrNull()

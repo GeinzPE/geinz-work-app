@@ -829,10 +829,27 @@ fun TextoSubrayado(
 
 @Composable
 fun rutas_turismo(
-    img_baner: String, texto_button: String, texto_baner: String, clik_button: () -> Unit,eliminarerr:(String)-> Unit
+    img_baner: String,
+    texto_button: String,
+    texto_baner: String,
+    clik_button: () -> Unit,
+    eliminarerr: (String) -> Unit
 ) {
     spacer_vertical(10.dp)
-    Box() {
+
+    // 👇 se crea UNA sola vez, no en cada recomposición
+    val gradienteOverlay = remember {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color.Transparent,
+                Color(0x33000000),
+                Color(0x66000000),
+                Color(0xDD000000)
+            )
+        )
+    }
+
+    Box {
         ImagenSuave(
             url = img_baner,
             modifier = Modifier
@@ -843,7 +860,7 @@ fun rutas_turismo(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() }
                 ) { clik_button() },
-            eliminarerr = {img->
+            eliminarerr = { img ->
                 eliminarerr(img)
             }
         )
@@ -853,17 +870,9 @@ fun rutas_turismo(
                 .fillMaxWidth()
                 .height(400.dp * 0.6f)
                 .align(Alignment.BottomStart)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color(0x33000000),
-                            Color(0x66000000),
-                            Color(0xDD000000)
-                        )
-                    )
-                )
+                .background(gradienteOverlay)
         )
+
         texto_encimado(
             modifier = Modifier
                 .align(Alignment.BottomStart)
@@ -873,7 +882,6 @@ fun rutas_turismo(
         ) { clik_button() }
     }
 }
-
 
 @Composable
 fun ImagenSuave(
