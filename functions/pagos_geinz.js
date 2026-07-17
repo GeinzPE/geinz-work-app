@@ -1,13 +1,17 @@
-const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
+const {
+  onCall,
+  onRequest,
+  HttpsError,
+} = require("firebase-functions/v2/https");
 const axios = require("axios");
 const admin = require("firebase-admin");
- 
+
 if (!admin.apps.length) {
   admin.initializeApp();
 }
- 
+
 const db = admin.firestore();
- 
+
 const CULQI_KEY = process.env.CULQI_KEY;
 const PHONE_ID = process.env.ID_NUMBER_WHATSAPP;
 const WHATSAPP_TOKEN = process.env.ID_API_WHATSAPP;
@@ -78,31 +82,72 @@ exports.crearOrdenCulqi = onCall(async (req) => {
   return { culqi_order_id };
 });
 
-exports.culqiWebhook = onRequest(async (req, res) => {
+exports.culqiWebhook = onRequest({ cors: true }, async (req, res) => {
   try {
-    const event = req.body;
-    console.log("Webhook Culqi:", JSON.stringify(event));
+    const evento = req.body || {};
+    console.log(
+      "📩 Webhook Culqi (Geinz) recibido:",
+      JSON.stringify(evento, null, 2),
+    );
 
-    if (event.type !== "order.status.changed") return res.sendStatus(200);
-    if (event.data?.object?.state !== "paid") return res.sendStatus(200);
+    if (evento.type !== "order.status.changed") {
+      console.log("ℹ️ Evento ignorado, type:", evento.type);
+      return res.sendStatus(200);
+    }
 
-    const order = event.data.object;
-    const orderNumber = order.order_number; // "ORD-{8chars}-{8nums}"
+    // Culqi documenta "data" como string, aunque a veces llega ya como objeto.
+    let dataEvento = evento.data;
+    if (typeof dataEvento === "string") {
+      try {
+        dataEvento = JSON.parse(dataEvento);
+      } catch (e) {
+        console.error("⚠️ No se pudo parsear evento.data:", e.message);
+        return res.sendStatus(200);
+      }
+    }
 
-    console.log("Order number recibido:", orderNumber);
+    // Soporta tanto data.id directo como data.object.id anidado
+    const ordenObj = dataEvento?.object || dataEvento;
+    const ordenId = ordenObj?.id;
+
+    if (!ordenId) {
+      console.error(
+        "⚠️ No se encontró id de orden en el evento:",
+        JSON.stringify(dataEvento),
+      );
+      return res.sendStatus(200);
+    }
+
+    console.log("🆔 Orden ID detectada:", ordenId);
+
+    // 🔒 No confiar en el body del webhook: reconsultar el estado real a Culqi
+    const ordenReal = await axios.get(
+      `https://api.culqi.com/v2/orders/${ordenId}`,
+      { headers: { Authorization: `Bearer ${CULQI_KEY}` } }, // 👈 misma key de Geinz
+    );
+
+    console.log("📦 Estado real de la orden en Culqi:", ordenReal.data.state);
+
+    if (ordenReal.data.state !== "paid") {
+      return res.sendStatus(200);
+    }
 
     const pagosRef = db
       .collection("Tiendas")
       .doc("barranca")
       .collection("pagos_tiendas");
 
+    // 🔑 Igual que SCAG: buscar por culqi_order_id, no por order_number
     const query = await pagosRef
-      .where("order_number_culqi", "==", orderNumber)
+      .where("culqi_order_id", "==", ordenId)
       .limit(1)
       .get();
 
     if (query.empty) {
-      console.log("❌ No se encontró orden:", orderNumber);
+      console.log(
+        "❌ No se encontró pago pendiente para culqi_order_id:",
+        ordenId,
+      );
       return res.sendStatus(200);
     }
 
@@ -115,7 +160,9 @@ exports.culqiWebhook = onRequest(async (req, res) => {
       return res.sendStatus(200);
     }
 
-    await sumarSaldo(userId, datos.monedas_a_recargar || datos.monedas);
+    const monedas = datos.monedas_a_recargar || datos.monedas;
+
+    const numero = await sumarSaldo(userId, monedas);
 
     await agregar_historial_de_pagos_tienda({
       id_transaccion: pagoDoc.id,
@@ -125,24 +172,33 @@ exports.culqiWebhook = onRequest(async (req, res) => {
       id_tienda: userId,
       localidad_tienda: datos.localdiad,
       tipo_paquete: datos.plan_select,
-      monto_aumentado: datos.monedas_a_recargar || datos.monedas,
-      precio_soles: (order.amount / 100).toString(),
+      monto_aumentado: monedas,
+      precio_soles: (ordenReal.data.amount / 100).toString(),
       estado: "Aceptado",
       monto_anterior: datos.saldo_tienda || 0,
     });
 
+    if (typeof numero === "string" && numero.length >= 9) {
+      await enviarPlantillaWhatsApp({
+        numero,
+        nombreTienda: datos.nombre_user,
+        monedas,
+        idTransaccion: pagoDoc.id,
+      });
+    }
+
     await enviarWhatsApp(
-      "937659216",
+      937659216,
       `Billetera exitoso`,
-      `🏪 ${datos.nombre_user} realizo una recarga de ${datos.monedas} `,
-      String(order.amount / 100),
-      String(datos.monedas_a_recargar || datos.monedas),
+      `🏪 ${datos.nombre_user} realizo una recarga de ${monedas}`,
+      String(ordenReal.data.amount / 100),
+      String(monedas),
     );
 
     return res.sendStatus(200);
   } catch (err) {
-    console.error("Webhook error:", err);
-    return res.sendStatus(500);
+    console.error("Webhook error (Geinz):", err.response?.data || err.message);
+    return res.sendStatus(200); // 👈 evitar reintentos agresivos de Culqi
   }
 });
 
@@ -685,7 +741,7 @@ async function emitirComprobanteGeinz({
         {
           unidad_de_medida: "ZZ",
           codigo: "MON001",
-          descripcion: `Compra de ${monedas} monedas Geinz`,
+          descripcion: `Compra de ${monedas} créditos Geinz`,
           cantidad: 1,
           valor_unitario: valorUnitario.toFixed(2),
           precio_unitario: montoNum.toFixed(2),

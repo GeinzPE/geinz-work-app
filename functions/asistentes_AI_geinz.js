@@ -302,6 +302,7 @@ REGLAS ESTRICTAS:
 MENSAJE DEL USUARIO: "${mensaje}"`;
 }
 
+
 async function buscarPorNombreTienda({ localidad, nombre, search }) {
   console.log("🔍 [buscar_tienda] Parámetros recibidos:", {
     localidad,

@@ -1193,6 +1193,18 @@ exports.geinz_procesar_buffer = onRequest(
               numero_usuario,
               resultadoTienda.mensaje_safe,
             );
+            if (resultadoTienda.era_plantilla_pero_misio === true) {
+              enviarNotificacionSinSaldo({
+                id_tienda: resultadoTienda.id,
+                localidad: "barranca",
+                nombre_negocio: resultadoTienda.nombre_negocio,
+              }).catch((e) =>
+                console.error(
+                  "❌ [NEGOCIO] Falló notificar tienda sin saldo:",
+                  e.message,
+                ),
+              );
+            }
           }
 
           await promesaContexto;
@@ -1982,4 +1994,136 @@ async function intentarResponderConAudio({ recipientPhoneNumber, texto }) {
     );
     return false;
   }
+}
+
+async function enviarNotificacionSinSaldo({
+  id_tienda,
+  localidad,
+  nombre_negocio,
+}) {
+  if (!id_tienda || !localidad) {
+    throw new Error("Faltan parámetros: id_tienda y localidad son requeridos.");
+  }
+
+  const localidadLower = localidad.toLowerCase().trim();
+
+  const tiendaSnap = await db
+    .collection("Tiendas")
+    .doc(localidadLower)
+    .collection(localidadLower)
+    .doc(id_tienda)
+    .get();
+
+  if (!tiendaSnap.exists) {
+    throw new Error("Tienda no encontrada.");
+  }
+
+  const propietario_ids = tiendaSnap.data().propietario_id || [];
+  if (propietario_ids.length === 0) {
+    throw new Error("La tienda no tiene propietarios registrados.");
+  }
+
+  const tokensSnaps = await Promise.all(
+    propietario_ids.map((uid) =>
+      db
+        .collection("Trabajadores_Usuarios_Drivers")
+        .doc("users")
+        .collection("tokens")
+        .doc(uid)
+        .get()
+        .catch(() => null),
+    ),
+  );
+
+  const todosLosTokens = tokensSnaps.flatMap((snap) => {
+    if (!snap?.exists) return [];
+    return Object.values(snap.data()?.tokens || {}).filter(Boolean);
+  });
+
+  if (todosLosTokens.length === 0) {
+    throw new Error("No se encontraron tokens para los propietarios.");
+  }
+
+  await Promise.all(
+    todosLosTokens.map((token) =>
+      enviarNotificacionFCM_tienda({
+        token,
+        title: `📢 ${nombre_negocio}, te están buscando`,
+        body: `El asistente Daniel 🤖 recomendó a ${nombre_negocio} a un usuario interesado. pero debido a que tu plantilla premium no tenía saldo activo, no se mostró el acceso directo a tu WhatsApp 📲 y se compartió tu perfil de Geinz 🏪. Verifica tu saldo 💳 para seguir conectando con clientes potenciales directo desde whatsapp🚀`,
+        link: "https://geinztech.com/share?t=scr&id=rec",
+        logo: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+        idTienda: id_tienda,
+        idAnuncio: "",
+        tipo_notificacion: "logo",
+        prioridad: "high",
+      }),
+    ),
+  );
+
+  return { ok: true, total_tokens: todosLosTokens.length };
+}
+
+async function enviarNotificacionFCM_tienda({
+  token,
+  title,
+  body,
+  link = "https://geinztech.com/share?t=scr&id=ads",
+  logo = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+  image = "",
+  idTienda,
+  idAnuncio = "", // ✅ agregar
+  tipo_notificacion,
+  prioridad = "high",
+}) {
+  try {
+    const mensaje = {
+      token: token,
+      data: {
+        title: String(title),
+        body: String(body),
+        link: String(link),
+        logo: String(logo),
+        image: String(image),
+        idTienda: String(idTienda),
+        idAnuncio: String(idAnuncio),
+        tipo_notificacion: String(tipo_notificacion),
+      },
+      android: { priority: prioridad },
+    };
+    const respuesta = await admin.messaging().send(mensaje);
+    console.log("Notificación enviada al token:", token);
+    return respuesta;
+  } catch (error) {
+    console.error("ERROR enviarNotificacionFCM:", error);
+    if (error.code === "messaging/registration-token-not-registered") {
+      console.log("Token inválido, debería eliminarlo de Firestore:", token);
+    }
+  }
+}
+
+async function enviarMensajeTextoWhatsApp(recipientPhoneNumber, mensajeTexto) {
+  const url = `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
+
+  const body = {
+    messaging_product: "whatsapp",
+    to: recipientPhoneNumber,
+    type: "text",
+    text: { body: mensajeTexto, preview_url: false },
+  };
+
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    const errText = await resp.text();
+    throw new Error(`Error enviando WhatsApp: ${resp.status} ${errText}`);
+  }
+
+  return resp.json();
 }
