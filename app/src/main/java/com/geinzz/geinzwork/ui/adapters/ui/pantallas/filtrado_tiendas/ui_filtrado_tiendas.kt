@@ -983,9 +983,11 @@ fun item_tiendas(
 ) {
 
     // ✅ 1. favorito: solo lee el valor de ESTE id, no todo el mapa
+    val favoritosMap by viewModelFiltros.favoritos.collectAsState()
+
     val favoritoEstado by remember(item_tiendas.id_tienda) {
         derivedStateOf {
-            viewModelFiltros.favoritos.value[item_tiendas.id_tienda] ?: false
+            favoritosMap[item_tiendas.id_tienda] ?: false
         }
     }
 

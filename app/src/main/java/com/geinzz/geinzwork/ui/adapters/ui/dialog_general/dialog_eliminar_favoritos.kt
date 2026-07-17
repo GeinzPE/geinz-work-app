@@ -1,8 +1,6 @@
 package com.geinzz.geinzwork.ui.adapters.ui.dialog_general
 
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,14 +15,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.geinzz.geinzwork.R
-import com.geinzz.geinzwork.data.model.localizate_geinz.dataclass_map
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_aceptar_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.btn_cerra_etc_dialog_general
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_multilinea
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.viewModels.viewModel_filtado_tiendas
-import com.google.firebase.firestore.model.mutation.ArrayTransformOperation
 
 @Composable
 fun dialog_eliminar_favoritos(

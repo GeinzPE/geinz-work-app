@@ -1,6 +1,5 @@
 package com.geinzz.geinzwork
 
-import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
@@ -8,16 +7,13 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -28,10 +24,8 @@ import com.geinzz.geinzwork.herramientas_geinz.constantes.get_alias_tienda.resol
 import com.geinzz.geinzwork.model.SessionRepository
 import com.geinzz.geinzwork.model.repo_eres_socio
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.nativationWrapper
-import com.geinzz.geinzwork.ui.adapters.ui.pantallas.principal_ui.handleScanResult
 import com.geinzz.geinzwork.ui.adapters.ui.ui.theme.GeinzWorkTheme
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_carga_ucrop_img
-import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.constantes_lista_localidades.FuenteControladaApp
 import com.geinzz.geinzwork.utils.constantes.localizate_geinz.generar_qr_cordenadas_tienda
 import com.geinzz.geinzwork.viewModels.DeepLinkViewModel
@@ -161,7 +155,6 @@ class MainActivity : AppCompatActivity() {
             rawSegments
         }
 
-        val localidadParam = uri.getQueryParameter("loc") ?: ""
 
         if (pathSegments.isNotEmpty()) {
             val pantalla = pathSegments.getOrNull(0)?.substringBeforeLast(".") ?: ""
@@ -171,32 +164,28 @@ class MainActivity : AppCompatActivity() {
                     uiActionVM.emitir(
                         UiAction.abrir_scre_redirect("turismo", "barranca")
                     )
-                    Toast.makeText(this, "Turismo -> $localidadParam", Toast.LENGTH_LONG).show()
                 }
 
                 "emergencia" -> {
                     uiActionVM.emitir(
                         UiAction.abrir_scre_redirect("emergencia", "barranca")
                     )
-                    Toast.makeText(this, "Emergencia -> $localidadParam", Toast.LENGTH_LONG).show()
                 }
 
                 "promos" -> {
                     uiActionVM.emitir(
                         UiAction.abrir_scre_redirect("promos", "barranca")
                     )
-                    Toast.makeText(this, "Promos -> $localidadParam", Toast.LENGTH_LONG).show()
                 }
 
                 "categorias" -> {
                     uiActionVM.emitir(
                         UiAction.abrir_scre_redirect("categorias", "barranca")
                     )
-                    Toast.makeText(this, "Categorias -> $localidadParam", Toast.LENGTH_LONG).show()
                 }
 
                 else -> {
-                    Toast.makeText(this, "Fuente no reconocida", Toast.LENGTH_SHORT).show()
+                    Log.d("error_fuente","Fuente no reconocida")
                 }
             }
         }
