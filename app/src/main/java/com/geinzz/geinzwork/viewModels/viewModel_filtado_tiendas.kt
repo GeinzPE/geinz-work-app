@@ -591,13 +591,17 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
 
 
     fun eliminar_tienda_favorita(id_user: String, id_tienda: String, localidad_tienda: String) {
+        // ✅ Actualización optimista: se ve al instante en la UI
+        favoritos.update { it.toMutableMap().apply { put(id_tienda, false) } }
+
         viewModelScope.launch {
             try {
                 repo_filtrado.eliminar_tienda_favorito(id_user, id_tienda)
                 repo_filtrado.eliminar_uer_tienda_fv(id_user, id_tienda, localidad_tienda)
-                favoritos.update { it.toMutableMap().apply { put(id_tienda, false) } }
             } catch (e: Exception) {
                 Log.d("error", "error al eliminar faboritos")
+                // ❌ si falla la red, revertimos el estado optimista
+                favoritos.update { it.toMutableMap().apply { put(id_tienda, true) } }
             }
         }
     }
@@ -659,15 +663,18 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
         id_user: String,
         id_tienda: String
     ) {
+        // ✅ Actualización optimista: se ve al instante en la UI
+        favoritos.update { it.toMutableMap().apply { put(id_tienda, true) } }
+
         viewModelScope.launch {
             try {
                 val datos = repo_filtrado.obtener_datos_tienda_id(localidad_tienda, id_tienda)
                 repo_filtrado.guardar_tienda_favorito(id_user, datos)
-                favoritos.update { it.toMutableMap().apply { put(id_tienda, true) } }
-                repo_erese_socio.agregar_contador("guardados", id_tienda, localidad_tienda,id_user)
-
+                repo_erese_socio.agregar_contador("guardados", id_tienda, localidad_tienda, id_user)
             } catch (e: Exception) {
                 Log.d("error", "error al guardar faboritos")
+                // ❌ si falla la red, revertimos el estado optimista
+                favoritos.update { it.toMutableMap().apply { put(id_tienda, false) } }
             }
         }
     }

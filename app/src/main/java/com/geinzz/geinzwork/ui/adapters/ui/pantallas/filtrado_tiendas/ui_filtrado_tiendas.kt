@@ -172,8 +172,7 @@ fun Pantalla_filtrado_tiendas(
 
     val categoria_filtrado = viewModelFiltros._subcategoria_lis.collectAsState(emptyList())
 
-    var mostrandoCargaGlobal by remember { mutableStateOf(false) }
-
+    var mostrandoCargaGlobal by remember { mutableStateOf(true) }
     var showBottomSheet by remember { mutableStateOf(false) }
 
 
@@ -364,7 +363,18 @@ var generador_qr by remember { mutableStateOf("") }
             categoria = categoria
         )
     }
-
+    LaunchedEffect(state_filtrado_tiendas) {
+        when (state_filtrado_tiendas) {
+            is carga_tiendas.loading -> {
+                mostrandoCargaGlobal = true
+            }
+            is carga_tiendas.succes,
+            is carga_tiendas.error,
+            is carga_tiendas.empty -> {
+                mostrandoCargaGlobal = false
+            }
+        }
+    }
     LaunchedEffect(id_tienda) {
         Log.d("LaunchedEffect_ID", "ID recibido: $id_tienda")
 
@@ -428,7 +438,6 @@ var generador_qr by remember { mutableStateOf("") }
             when (state_filtrado_tiendas) {
                 is carga_tiendas.loading -> {
                     Log.d("entramos", "loading")
-                    mostrandoCargaGlobal = true
                     error_empity = false
                     isLoading = true
                 }
@@ -438,11 +447,6 @@ var generador_qr by remember { mutableStateOf("") }
                     val texto = (state_filtrado_tiendas as carga_tiendas.error).texto
                     error_empity = true
                     texto_error_empity = texto
-                    scope.launch {
-                        delay(4000)
-                        mostrandoCargaGlobal = false
-
-                    }
                     isLoading = false
                 }
 
@@ -450,16 +454,8 @@ var generador_qr by remember { mutableStateOf("") }
                     Log.d("entramos", "sucecs")
                     val lista = (state_filtrado_tiendas as carga_tiendas.succes).items
 
-                    if (lista.isNotEmpty()) {
-                        scope.launch {
-                            delay(4000)
-                            mostrandoCargaGlobal = false
-                        }
-
-                        isLoading = false
-                        error_empity = false
-                    }
-
+                    isLoading = lista.isEmpty()
+                    error_empity = false
 
                     val listaOrdenada = lista.sortedWith(
                         compareByDescending<tiendas_por_categoria> { it.pagado }
@@ -467,7 +463,6 @@ var generador_qr by remember { mutableStateOf("") }
                     )
 
                     items(listaOrdenada, key = { tienda -> tienda.id_tienda }) { tienda ->
-
                         val horarioDeEstaTienda = horarios[tienda.id_tienda] ?: HorarioDia_box()
                         Box(
                             modifier = Modifier.animateItem(
@@ -476,59 +471,54 @@ var generador_qr by remember { mutableStateOf("") }
                                     easing = FastOutSlowInEasing
                                 )
                             )
-                        ){
-                        item_tiendas(
-                            context,
-                            generador_qr=generador_qr,
-                            horario_box1 = horarioDeEstaTienda,
-                            horario_box = tienda.horario_tienda_box,
-                            verificar_interner = verificar_intener,
-                            localidad_user = localida,
-                            id_user = uid_respald_user,
-                            viewModelFiltros = viewModelFiltros,
-                            item_tiendas = tienda,
-                            abierto_cerrado = tienda.estaAbierto,
-                            listener_botom_sheet = { id_tienda, listener, estado_color, pagado ->
-                                if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
-                                    estadoColor = estado_color
-                                    id_tienda_selecionada = id_tienda
-                                    if (pagado) {
-                                        bottom_shet_tienda = true
-                                        showBottomSheet = listener
+                        ) {
+                            item_tiendas(
+                                context,
+                                generador_qr = generador_qr,
+                                horario_box1 = horarioDeEstaTienda,
+                                horario_box = tienda.horario_tienda_box,
+                                verificar_interner = verificar_intener,
+                                localidad_user = localida,
+                                id_user = uid_respald_user,
+                                viewModelFiltros = viewModelFiltros,
+                                item_tiendas = tienda,
+                                abierto_cerrado = tienda.estaAbierto,
+                                listener_botom_sheet = { id_tienda, listener, estado_color, pagado ->
+                                    if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
+                                        estadoColor = estado_color
+                                        id_tienda_selecionada = id_tienda
+                                        if (pagado) {
+                                            bottom_shet_tienda = true
+                                            showBottomSheet = listener
+                                        } else {
+                                            dialog_tienda_no_pagada = true
+                                        }
                                     } else {
-                                        dialog_tienda_no_pagada = true
+                                        bottom_sheet_iniciar_seccion = true
+                                        texto_falta_registra =
+                                            "Regístrate para ver los detalles completos y las funciones exclusivas"
                                     }
-                                } else {
+                                },
+                                dialog_sin_registrao = {
                                     bottom_sheet_iniciar_seccion = true
-                                    texto_falta_registra =
-                                        "Regístrate para ver los detalles completos y las funciones exclusivas"
-
+                                    texto_falta_registra = "Regístrate para agregar a tus favoritos"
+                                },
+                                mostrar_diaog_crear_ruta = { mostra, id_tienda, lat, ln, nomre_tienda ->
+                                    showDialog_qr = mostra
+                                    datos_mostar_datos = crear_qr_rutas(id_tienda, lat, ln, nomre_tienda)
                                 }
-                            }, dialog_sin_registrao = {
-                                bottom_sheet_iniciar_seccion = true
-                                texto_falta_registra = "Regístrate para agregar a tus favoritos"
-                            },mostrar_diaog_crear_ruta={mostra,id_tienda,lat,ln,nomre_tienda->
-                                showDialog_qr=mostra
-                                datos_mostar_datos= crear_qr_rutas(id_tienda,lat,ln,nomre_tienda)
-                            }
-                        )
+                            )
                         }
                     }
                 }
 
                 is carga_tiendas.empty -> {
                     Log.d("entramos", "vacio")
-                    val texto =
-                        (state_filtrado_tiendas as carga_tiendas.empty).texto
-                    scope.launch {
-                        mostrandoCargaGlobal = false
-                    }
-
+                    val texto = (state_filtrado_tiendas as carga_tiendas.empty).texto
                     isLoading = false
                     error_empity = true
                     texto_error_empity = texto
                 }
-
             }
         }
 //        if (btn_mostrar_mapa) {
@@ -1052,7 +1042,6 @@ fun item_tiendas(
     )
 
     var estado_fv_btn by remember { mutableStateOf(false) }
-    var nuevo_Estadp_btn_fv by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
@@ -1164,14 +1153,13 @@ fun item_tiendas(
                                 select = favoritoEstado,
                                 modifier = Modifier.padding(bottom = 10.dp),
                                 listener = { nuevoEstado ->
-                                    nuevo_Estadp_btn_fv = nuevoEstado
                                     if (id_user.isNotEmpty()) {
                                         if (nuevoEstado) {
-                                            viewModelFiltros.guardar_tienda_favorita_por_id(localidad_user, id_user, item_tiendas.id_tienda)
-                                            // ✅ ya no necesitas setear favoritoEstado aquí
-                                            // el derivedStateOf lo actualiza solo
+                                            viewModelFiltros.guardar_tienda_favorita_por_id(
+                                                localidad_user, id_user, item_tiendas.id_tienda
+                                            )
                                         } else {
-                                            estado_fv_btn = true
+                                            estado_fv_btn = true // abre el dialog de confirmación para eliminar
                                         }
                                     } else {
                                         dialog_sin_registrao()
@@ -1211,7 +1199,7 @@ fun item_tiendas(
             id_tienda = item_tiendas.id_tienda,
             nombre_tienda = item_tiendas.nombre_tienda,
             ondimis = { estado_fv_btn = false },
-            aceptado = { nuevo_Estadp_btn_fv = favoritoEstado }
+            aceptado = { estado_fv_btn = false } // el diálogo ya elimina, aquí solo cerramos
         )
     }
 
