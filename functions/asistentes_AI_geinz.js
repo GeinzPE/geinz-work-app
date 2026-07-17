@@ -860,7 +860,14 @@ async function procesarBusquedaTienda({
   nombre_usuario,
 }) {
   const tiempoInicioTotal = Date.now();
-
+  console.log(
+    "🏪 [procesarBusquedaTienda] INICIO | mensaje:",
+    mensaje,
+    "| contexto_previo:",
+    JSON.stringify(contexto_previo),
+    "| excluir_id:",
+    excluir_id,
+  );
   let tokensOpenAI = {
     prompt_tokens: 0,
     completion_tokens: 0,
@@ -2752,6 +2759,12 @@ function normalizarFiltrosPromocion(parsed) {
 }
 
 async function extraerFiltrosPromocion(mensajeUsuario, contextoUsuario) {
+    console.log(
+    "🧾 [extraerFiltrosPromocion] Contexto recibido:",
+    JSON.stringify(contextoUsuario),
+    "| Mensaje:",
+    mensajeUsuario,
+  );
   const systemMessage = construirSystemPromptExtractorPromos(contextoUsuario);
   const completion = await openai.chat.completions.create({
     model: "gpt-5-mini",
@@ -3404,6 +3417,12 @@ async function procesarPromociones({
   contexto_previo,
   nombre_usuario,
 }) {
+  console.log(
+    "🎁 [procesarPromociones] INICIO | mensaje:",
+    mensaje,
+    "| contexto_previo:",
+    JSON.stringify(contexto_previo),
+  );
   const { filtros, tokens: tokensExtractor } = await extraerFiltrosPromocion(
     mensaje,
     contexto_previo,
@@ -4192,3 +4211,4 @@ async function llamarGeminiGeinz(mensaje, nombreUsuario) {
   return { resultado, tokens };
 }
 exports.llamarGeminiGeinz = llamarGeminiGeinz;
+

@@ -266,21 +266,7 @@ function construirMensajeNoSoportado(tipo_mensaje) {
   // fallback — cualquier otro caso no contemplado
   return "Gracias por tu mensaje 🙌. Aún no puedo procesar ese tipo de contenido, pero si me explicas qué necesitas, con gusto te ayudo 😊";
 }
-function tokensVacios() {
-  return {
-    prompt_tokens: 0,
-    completion_tokens: 0,
-    thoughts_tokens: 0,
-    total_tokens: 0,
-  };
-}
 
-function sumarTokens(total, extra) {
-  total.prompt_tokens += extra?.prompt_tokens || 0;
-  total.completion_tokens += extra?.completion_tokens || 0;
-  total.thoughts_tokens += extra?.thoughts_tokens || 0;
-  total.total_tokens += extra?.total_tokens || 0;
-}
 
 // ============================================================
 // PASO 1 — VALIDAR / RATE LIMIT USUARIO
@@ -1517,8 +1503,11 @@ exports.geinz_procesar_buffer = onRequest(
             const mensajePreguntar =
               construirMensajePreguntarPromo(nombre_user);
             const contextoActualizadoPromo = {
-              ...contextoUsuario,
+              ...limpiarCamposPromoDelContexto(contextoUsuario),
               tipo: "PROMOCIONES",
+              categoria: null,
+              id: null,
+              nombre: null, // 👈 limpiar explícitamente lo heredado
               extra:
                 "ESPERANDO_NOMBRE_PROMO: se le pidió al usuario un nombre de negocio o categoría para buscar promociones",
             };
@@ -1552,9 +1541,13 @@ exports.geinz_procesar_buffer = onRequest(
               nombre_user,
               resultadoPromo.tipo_referencia,
             );
+            // Caso 2 — sin_resultados
             const contextoActualizadoPromo = {
-              ...contextoUsuario,
+              ...limpiarCamposPromoDelContexto(contextoUsuario),
               tipo: "PROMOCIONES",
+              categoria: null,
+              id: null,
+              nombre: null,
               extra:
                 "pedi al usuario otro nombre o categoria para darle las promociones",
             };
@@ -1855,8 +1848,9 @@ async function enviarPlantillaWhatsapp_promociones({
           index: "0",
           parameters: [
             {
+
               type: "text",
-              text: `?t=pmspls&l=ba&p=${ids[0] || ""},${ids[1] || ""}`,
+              text: `api/share?t=pmspls&l=ba&p=${ids[0] || ""},${ids[1] || ""}`,
             },
           ],
         },
