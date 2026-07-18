@@ -267,7 +267,6 @@ function construirMensajeNoSoportado(tipo_mensaje) {
   return "Gracias por tu mensaje 🙌. Aún no puedo procesar ese tipo de contenido, pero si me explicas qué necesitas, con gusto te ayudo 😊";
 }
 
-
 // ============================================================
 // PASO 1 — VALIDAR / RATE LIMIT USUARIO
 // ============================================================
@@ -1076,7 +1075,14 @@ exports.geinz_procesar_buffer = onRequest(
         const usuarioData = usuarioSnap.exists ? usuarioSnap.data() : {};
         const nombre_user = usuarioData.nombre_user || "Usuario";
         const contextoUsuario = usuarioData.contexto || CONTEXTO_DEFAULT;
-
+        if (contextoUsuario?.continuidad === true) {
+          console.warn(
+            "⚠️ [geinz_procesar_buffer] Contexto llegó con continuidad:true | tipo_actual:",
+            contextoUsuario?.tipo,
+            "| mensaje:",
+            mensajeFinal,
+          );
+        }
         const { categoria, tokens: tokensClasificador } =
           await clasificarIntencion(mensajeFinal, contextoUsuario);
 
@@ -1143,6 +1149,7 @@ exports.geinz_procesar_buffer = onRequest(
             ...limpiarCamposPromoDelContexto(contextoUsuario),
             tipo: "NEGOCIO",
             categoria: resultadoTienda.cat_detectada || null,
+            subcategoria: resultadoTienda.subcategoria || null, // 👈 NUEVO
             id: resultadoTienda.id || null,
             nombre: resultadoTienda.nombre_negocio || null,
             extra: resultadoTienda.data || "null",
@@ -1401,6 +1408,7 @@ exports.geinz_procesar_buffer = onRequest(
               resultadoContinuidad.cat_detectada ||
               contextoConContinuidad.categoria ||
               null,
+            subcategoria: contextoConContinuidad.subcategoria || null, // 👈 NUEVO, preserva la que ya tenía
             id: resultadoContinuidad.id || contextoConContinuidad.id || null,
             nombre:
               resultadoContinuidad.nombre_negocio ||
@@ -1508,6 +1516,7 @@ exports.geinz_procesar_buffer = onRequest(
               categoria: null,
               id: null,
               nombre: null, // 👈 limpiar explícitamente lo heredado
+               subcategoria: null, 
               extra:
                 "ESPERANDO_NOMBRE_PROMO: se le pidió al usuario un nombre de negocio o categoría para buscar promociones",
             };
@@ -1548,6 +1557,7 @@ exports.geinz_procesar_buffer = onRequest(
               categoria: null,
               id: null,
               nombre: null,
+              subcategoria: null, 
               extra:
                 "pedi al usuario otro nombre o categoria para darle las promociones",
             };
@@ -1686,15 +1696,16 @@ exports.geinz_procesar_buffer = onRequest(
   },
 );
 
-const CAMPOS_EXCLUSIVOS_PROMOCIONES = ["ids_promos", "mas_de_uno"];
+const CAMPOS_TRANSITORIOS = ["ids_promos", "mas_de_uno", "continuidad"];
 
 function limpiarCamposPromoDelContexto(contexto) {
   const limpio = { ...(contexto || {}) };
-  for (const campo of CAMPOS_EXCLUSIVOS_PROMOCIONES) {
+  for (const campo of CAMPOS_TRANSITORIOS) {
     delete limpio[campo];
   }
   return limpio;
 }
+
 function prepararContextoContinuidad(contextoUsuario) {
   let obj;
   try {
@@ -1848,7 +1859,6 @@ async function enviarPlantillaWhatsapp_promociones({
           index: "0",
           parameters: [
             {
-
               type: "text",
               text: `api/share?t=pmspls&l=ba&p=${ids[0] || ""},${ids[1] || ""}`,
             },

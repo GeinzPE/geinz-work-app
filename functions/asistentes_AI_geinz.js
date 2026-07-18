@@ -30,7 +30,7 @@ const WHATSAPP_PHONE_NUMBER_ID = process.env.ID_NUMBER_WHATSAPP;
 const WHATSAPP_API_VERSION = "v20.0";
 let categoriasCache = null;
 let categoriasCacheTimestamp = 0;
-
+const REGLA_NO_SALUDAR = `- NUNCA saludes de ninguna forma (prohibido: "hola", "buenas", "buenos días", "buenas tardes", "buenas noches", "qué tal", "qué más"), habla como si la conversación ya estuviera en curso, directo al grano`;
 function obtenerHoraPeru() {
   const horaStr = new Date().toLocaleString("en-US", {
     timeZone: "America/Lima",
@@ -301,7 +301,6 @@ REGLAS ESTRICTAS:
 
 MENSAJE DEL USUARIO: "${mensaje}"`;
 }
-
 
 async function buscarPorNombreTienda({ localidad, nombre, search }) {
   console.log("🔍 [buscar_tienda] Parámetros recibidos:", {
@@ -1019,7 +1018,7 @@ async function procesarBusquedaTienda({
     // ==========================================================================
     let resultadosBusqueda = [];
 
-      if (nombre) {
+    if (nombre) {
       trace.tipo_busqueda = "nombre";
       resultadosBusqueda = await buscarPorNombreTienda({
         localidad,
@@ -1048,17 +1047,17 @@ async function procesarBusquedaTienda({
     // 3) 2da IA (GEMINI) -> elige 1 negocio y redacta el mensaje
     let response;
     const MENSAJES_SIN_RESULTADO = [
-  "Uy 😕 no encontré nada con esa búsqueda. Puedes intentar con otra.",
-  "Mmm, por ahora no me sale ningún resultado con eso 👀.",
-  "Nada por aquí 😅 Intenta hacer otra búsqueda.",
-  "No encontré resultados esta vez 🤔.",
-  "Parece que no hay nada que coincida con esa búsqueda 😕.",
-  "No me apareció ningún resultado 🔍.",
-  "Esta vez no encontré nada 😅. Si quieres, prueba con otra búsqueda.",
-  "No hubo suerte con esa búsqueda 😕.",
-  "Por ahora no tengo resultados para eso 👀.",
-  "No encontré nada con esa búsqueda 🚫. Puedes intentar con otra."
-];
+      "Uy 😕 no encontré nada con esa búsqueda. Puedes intentar con otra.",
+      "Mmm, por ahora no me sale ningún resultado con eso 👀.",
+      "Nada por aquí 😅 Intenta hacer otra búsqueda.",
+      "No encontré resultados esta vez 🤔.",
+      "Parece que no hay nada que coincida con esa búsqueda 😕.",
+      "No me apareció ningún resultado 🔍.",
+      "Esta vez no encontré nada 😅. Si quieres, prueba con otra búsqueda.",
+      "No hubo suerte con esa búsqueda 😕.",
+      "Por ahora no tengo resultados para eso 👀.",
+      "No encontré nada con esa búsqueda 🚫. Puedes intentar con otra.",
+    ];
     if (!resultadosBusqueda.length) {
       trace.tipo_busqueda =
         trace.tipo_busqueda === "sin_criterio"
@@ -1070,9 +1069,19 @@ async function procesarBusquedaTienda({
         intencion: "SIN_DATOS",
       };
     } else {
-      const contextoStr = JSON.stringify(
-        contexto_previo?.contexto_usuario ?? contexto_previo ?? {},
-      );
+      // ==========================================================================
+      // 👇 FIX: el contexto previo SOLO es relevante si el clasificador
+      // detectó heredar_contexto=true (ej: "otro", "otra opción", "dame otro
+      // similar"). En cualquier otra búsqueda (nombre nuevo o categoria nueva)
+      // el contexto previo es ruido que puede confundir a Gemini y hacer que
+      // devuelva el negocio viejo en vez de uno de los resultados nuevos.
+      // ==========================================================================
+      const contextoEsRelevante = heredar_contexto === true;
+      const contextoStr = contextoEsRelevante
+        ? JSON.stringify(
+            contexto_previo?.contexto_usuario ?? contexto_previo ?? {},
+          )
+        : "null (no aplica, esta es una búsqueda nueva, ignora cualquier negocio anterior)";
 
       // 👇 SOLO estos campos van a Gemini — nada de img, wha, pla,
       // msje_pla_wa, similarity, loc, cat, tipo, etc.
@@ -1086,19 +1095,21 @@ async function procesarBusquedaTienda({
       const promptRespuesta = `Responde en JSON válido.
 DATOS:
 ${JSON.stringify(datosParaPrompt)}
-CONTEXTO PREVIO (negocio ya consultado antes):
+CONTEXTO PREVIO (negocio ya consultado antes, SOLO úsalo si el CONTEXTO PREVIO no es null):
 ${contextoStr}
 REGLAS:
-- Si el usuario pregunta algo sobre el negocio del CONTEXTO PREVIO → responde sobre ese negocio usando los DATOS disponibles
+- El id que devuelvas DEBE existir siempre dentro de DATOS, nunca inventes ni regreses un id que no esté ahí, incluso si el CONTEXTO PREVIO menciona otro negocio
+- Si el CONTEXTO PREVIO no es null Y el usuario pregunta algo sobre ese mismo negocio → responde sobre ese negocio usando los DATOS disponibles
 - Nunca SALUDES con buenos o hola, habla como si fuera conversación continua, como si ya se conocieran, LENGUAJE LOCAL SIEMPRE MUY AMIGABLE nada robótico ni corporativo, habla como un pata de Barranca peruano, canchero, ALGO INFORMATIVO SIN VENDER TANTO
 - Elegir SOLO 1 negocio según lo que pide el usuario
 - mensaje: 1 línea, máximo 2 frases
-- incluir SOLO si existen: estado (🟢 Abierto / 🔴 Cerrado DE open_closed DE DATOS), descripción siempre informativa, métodos de pago (máx 2), comodidades (máx 2) solo si existen, si no existen → NO mencionarlos
+- incluir SOLO si existen: estado siempre(🟢 Abierto / 🔴 Cerrado DE open_closed DE DATOS), descripción siempre informativa, métodos de pago (máx 2), comodidades (máx 2) solo si existen, si no existen → NO mencionarlos
 - El usuario se llama: ${nombre_usuario || ""} úsalo siempre
 - si falta info → mencionar app Geinz
 - sin comillas dentro del mensaje
 - USA EL MOMENTO DEL DIA SIEMPRE QUE ES: ${momento_dia}
 - Priorizar negocios con open_closed: "abierto" al elegir
+- NUNCA digas frases como "mensaje predeterminado", "mensaje genérico", "esto es automático" ni nada que describa la naturaleza de tu propia respuesta
 - Si el usuario menciona un nombre exacto de negocio → elegir ese sin importar si está abierto o cerrado
 FORMATO OBLIGATORIO:
 {"id":"{id}","mensaje":"...","intencion":"NEGOCIO"}`;
@@ -1166,6 +1177,31 @@ FORMATO OBLIGATORIO:
             intencion: "ERROR_FORMATO_IA",
           };
         }
+      }
+
+      // ==========================================================================
+      // 👇 FIX: log de validación — si Gemini devuelve un id que NO está en
+      // datosParaPrompt, es una señal clara de que se contaminó con el
+      // contexto previo (o alucinó). Esto NO corrige el id (eso ya lo hace
+      // el match más abajo, que simplemente no encuentra nada y queda
+      // vacío), pero te deja rastro exacto en los logs de cuándo pasa.
+      // ==========================================================================
+      const idDevuelto = response?.id;
+      if (
+        idDevuelto &&
+        idDevuelto !== "sin_id" &&
+        !datosParaPrompt.some((d) => d.id === idDevuelto)
+      ) {
+        console.warn(
+          "⚠️ [procesarBusquedaTienda] Gemini devolvió un id fuera de DATOS (posible contaminación de contexto) | id_devuelto:",
+          idDevuelto,
+          "| ids_validos:",
+          datosParaPrompt.map((d) => d.id),
+          "| contexto_previo_id:",
+          contexto_previo?.contexto_usuario?.id ?? contexto_previo?.id,
+          "| heredo_contexto:",
+          heredar_contexto,
+        );
       }
     }
 
@@ -1274,6 +1310,7 @@ FORMATO OBLIGATORIO:
       imagen: esTiendaSinPlantilla ? "" : imagenFinal,
       mensaje_safe,
       data,
+      subcategoria: subcategoria || null,
       siker: imagen_stiker,
       msje_pla_wa,
       plantilla: usa_plantilla,
@@ -1423,8 +1460,9 @@ async function llamarGemini(
     contents,
     generationConfig: {
       ...(jsonMode ? { responseMimeType: "application/json" } : {}),
+      ...(schema ? { responseSchema: schema } : {}),
       maxOutputTokens,
-      thinkingConfig: { thinkingBudget: 0 }, // apaga el thinking, no lo necesitamos aquí
+      thinkingConfig: { thinkingBudget: 0 },
     },
   };
 
@@ -1703,6 +1741,7 @@ REGLAS:
 - sin comillas dobles dentro del mensaje
 - usuario: ${usuario}
 - USA EL MOMENTO DEL DIA SIEMPRE: ${momento_dia}
+- NUNCA digas frases como "mensaje predeterminado", "mensaje genérico", "esto es automático" ni nada que describa la naturaleza de tu propia respuesta
 - no inventar
  
 FORMATO OBLIGATORIO, EXACTAMENTE ASI:
@@ -1727,6 +1766,15 @@ async function agenteFinalTurismo(
     jsonMode: true,
     systemMessage,
     maxOutputTokens: 250,
+    schema: {
+      // 👈 NUEVO
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        mensaje: { type: "string" },
+      },
+      required: ["id", "mensaje"],
+    },
   });
 
   return { texto, tokens };
@@ -1774,8 +1822,16 @@ function agregarImagenesTurismo(responseRaw, apiResponse) {
     }
   }
   if (!response || !Object.keys(response).length) {
+    console.error(
+      "⚠️ [agregarImagenesTurismo] No se pudo parsear respuesta de Gemini, usando mensaje genérico en vez de mandar el JSON crudo | raw:",
+      (responseRaw || "").slice(0, 300),
+    );
     response = {
-      mensaje: responseRaw || "Sin respuesta",
+      mensaje: pick([
+        "Uy, se me cruzaron los cables un toque 😅 ¿me repites qué buscabas?",
+        "Perdona causa, me trabé ahí 🙈 ¿puedes preguntarme de nuevo?",
+        "Se me fue la onda un segundo 😂 vuelve a decirme qué necesitas",
+      ]),
       id: null,
       intencion: "ERROR_FORMATO_IA",
       estado: "FALLBACK",
@@ -2040,6 +2096,8 @@ REGLAS DE RESPUESTA:
 - Tono: Calmado y directo para ${nombreUsuario}.
 - Longitud: Máximo 2 líneas.
 - Formato: JSON ESTRICTO.
+- NUNCA digas frases como "mensaje predeterminado", "mensaje genérico", "esto es automático" ni nada que describa la naturaleza de tu propia respuesta
+
 
 { 
   "id": "ID_DEL_CONTACTO_ELEGIDO siempre de la lista de entidades sin inventar ni acrotar nada", 
@@ -2759,7 +2817,7 @@ function normalizarFiltrosPromocion(parsed) {
 }
 
 async function extraerFiltrosPromocion(mensajeUsuario, contextoUsuario) {
-    console.log(
+  console.log(
     "🧾 [extraerFiltrosPromocion] Contexto recibido:",
     JSON.stringify(contextoUsuario),
     "| Mensaje:",
@@ -3147,8 +3205,7 @@ ${compactar(resultados)}
 ALT:
 ${compactar(alt)}
  
-REGLAS: usa solo estos datos, no inventes. Misma tienda=compara y elige mejor calce. p_ok=false avisa y ofrece alt con pago real. Todo vacío=recomienda directo. Prioriza mayor sc. Tono peruano natural sin saludar. No menciones "score". Usa el momento del día natural. MENSAJE MÁX 200 CARACTERES, sin listar sabores/variantes si son 2+ promos, solo tienda+frase gancho corta c/u. Máx 2 emojis. Sin promos ni alt: dilo directo. Nunca saludes con buenos o hola (hola/qué tal/qué buena).
- 
+REGLAS: usa solo estos datos, no inventes. Misma tienda=compara y elige mejor calce. NUNCA digas frases como "mensaje predeterminado", "mensaje genérico", "esto es automático" ni nada que describa la naturaleza de tu propia respuesta. p_ok=false avisa y ofrece alt con pago real...
 DECISIÓN: 2+ relevantes→varios=true+ids | 1→varios=false+id | 0→varios=false,id="none"`;
 }
 
@@ -3335,7 +3392,7 @@ function construirResultadoFinalPromo({ respuestaIA, promosArray, hitsMap }) {
     return !!hit && Number(hit.timestamp_fin) > ahora;
   };
 
- if (response.varios === true) {
+  if (response.varios === true) {
     const idsUnicos = [
       ...new Set((Array.isArray(response.ids) ? response.ids : []).map(String)),
     ];
@@ -3368,7 +3425,7 @@ function construirResultadoFinalPromo({ respuestaIA, promosArray, hitsMap }) {
     const promosEncontradas = idsValidos
       .map((id) => promosArray.find((p) => String(p?.id) === id))
       .filter(Boolean);
-    const imagen = pick(promosEncontradas)?.img || "";  // 👈 cambio: random en vez de [0]
+    const imagen = pick(promosEncontradas)?.img || ""; // 👈 cambio: random en vez de [0]
     const mensaje_safe = response.mensaje
       ? `${response.mensaje} Encuéntralo aquí: https://geinztech.com/api/share?t=pmspls&l=ba&p=${idsValidos.join(",")}`
       : "Sin mensaje";
@@ -3833,6 +3890,7 @@ REGLAS:
 - incluir SOLO si existen: estado (🟢 Abierto / 🔴 Cerrado según open_closed), descripción siempre informativa
 - sin comillas dentro del mensaje
 - USA EL MOMENTO DEL DIA SIEMPRE QUE ES: ${momento_dia}
+- NUNCA digas frases como "mensaje predeterminado", "mensaje genérico", "esto es automático" ni nada que describa la naturaleza de tu propia respuesta
 - NO menciones links, perfiles, ni la app Geinz, eso lo agrega el sistema aparte
 FORMATO OBLIGATORIO:
 {"id":"${hit.objectID}","mensaje":"...","intencion":"NEGOCIO"}`;
@@ -4211,4 +4269,3 @@ async function llamarGeminiGeinz(mensaje, nombreUsuario) {
   return { resultado, tokens };
 }
 exports.llamarGeminiGeinz = llamarGeminiGeinz;
-
