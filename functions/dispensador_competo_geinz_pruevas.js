@@ -652,6 +652,10 @@ PASOS (seguir en orden):
 0. Si CONTEXTO.extra contiene "ESPERANDO_NOMBRE_PROMO" Y el mensaje NO detectas señales de 
 cambio de intención o cambia de tema  ( o dice "no", "olvida", "mejor otra cosa", "ya no" ,etc
 claramente obia "CONTINUIDAD_INFO"
+0b. Si CONTEXTO.extra contiene "ESPERANDO_ELECCION:" (viene con una lista tipo "negocio,turismo,promociones") Y el mensaje es una respuesta corta/vaga que NO da un dato nuevo específico (ej: "dame", "sí", "ya", "cualquiera", "el primero", "va", "obvio", "ese"):
+   - Si el mensaje menciona una palabra que calza con UNA de las opciones de la lista (ej: dice "promo" y la lista tiene "promociones") → responde esa categoría (NEGOCIO / TURISMO / PROMOCIONES).
+   - Si no menciona nada específico → responde la PRIMERA opción de la lista, en el mismo orden en que aparece.
+   Para en cualquiera de los dos casos.
 1. VERIFICA EL EXTRA PARA QUE TENGAS MAYOR CONTEXTO Y CLASIFIQUES SEGUN LA CONVERSACION
 2. Si el mensaje tiene "otro/otra/otros" → responde NEGOCIO o TURISMO según el contexto.
 3. Si el mensaje menciona un nombre, negocio o lugar → ignora el contexto y clasifica solo.
@@ -666,7 +670,7 @@ CATEGORÍAS:
 - NEGOCIO: busca tienda, producto, servicio, o quiere comer/tomar/consumir algo nombre de tienda o negocio.
 - TURISMO: busca lugares turisticos playas plazas no incluye cuidades. No incluye querer comer o consumir.
 - GEINZ: saludo, soporte, registrar su negocio, mensaje sin sentido claro.
-PRIORIDAD: EMERGENCIA > PELIGRO > paso 0 (ESPERANDO) > CONTINUIDAD_INFO > PROMOCIONES > NEGOCIO > TURISMO > GEINZ
+PRIORIDAD: EMERGENCIA > PELIGRO > paso 0 (ESPERANDO_NOMBRE_PROMO) > paso 0b (ESPERANDO_ELECCION) > CONTINUIDAD_INFO > PROMOCIONES > NEGOCIO > TURISMO > GEINZ
 Responde solo: EMERGENCIA | PELIGRO | CONTINUIDAD_INFO | PROMOCIONES | NEGOCIO | TURISMO | GEINZ`;
 }
 
@@ -1226,9 +1230,12 @@ exports.geinz_procesar_buffer = onRequest(
           const { resultado: respuestaGeinz, tokens: tokensGeinz } =
             await llamarGeminiGeinz(mensajeFinal, nombre_user);
 
-          const contextoActualizadoGeinz = {
+         const contextoActualizadoGeinz = {   
             ...limpiarCamposPromoDelContexto(contextoUsuario),
             tipo: "GEINZ",
+            categoria: null,
+            id: null,
+            nombre: null,
             extra: respuestaGeinz.extra || "null",
           };
           const promesaContexto = actualizarContextoUsuario(
@@ -1385,7 +1392,73 @@ exports.geinz_procesar_buffer = onRequest(
           });
         }
 
-        if (categoria === "CONTINUIDAD_INFO") {
+   if (categoria === "CONTINUIDAD_INFO") {
+          // 👇 Guard: CONTINUIDAD_INFO solo tiene sentido si el contexto
+          // previo es realmente de un negocio (tipo NEGOCIO) y tiene id o
+          // nombre. Si el clasificador se equivocó (ej: el contexto venía
+          // de GEINZ/TURISMO/PROMOCIONES) esto evita arrastrar un negocio
+          // viejo o inexistente — se redirige como búsqueda nueva de negocio.
+          if (
+            contextoUsuario?.tipo !== "NEGOCIO" ||
+            (!contextoUsuario?.id && !contextoUsuario?.nombre)
+          ) {
+            console.warn(
+              "⚠️ CONTINUIDAD_INFO sin contexto de negocio válido, redirigiendo a NEGOCIO | contexto:",
+              JSON.stringify(contextoUsuario),
+            );
+
+            const resultadoTiendaFallback = await procesarBusquedaTienda({
+              mensaje: mensajeFinal,
+              contexto_previo: contextoUsuario,
+              localidad: "barranca",
+              excluir_id: null,
+              nombre_usuario: nombre_user,
+            });
+
+            const contextoFallback = {
+              ...limpiarCamposPromoDelContexto(contextoUsuario),
+              tipo: "NEGOCIO",
+              categoria: resultadoTiendaFallback.cat_detectada || null,
+              subcategoria: resultadoTiendaFallback.subcategoria || null,
+              id: resultadoTiendaFallback.id || null,
+              nombre: resultadoTiendaFallback.nombre_negocio || null,
+              extra: resultadoTiendaFallback.data || "null",
+            };
+            const promesaContextoFallback = actualizarContextoUsuario(
+              numero_usuario,
+              contextoFallback,
+            );
+
+            if (resultadoTiendaFallback.mensaje_safe) {
+              await enviarMensajeWhatsapp(
+                numero_usuario,
+                resultadoTiendaFallback.mensaje_safe,
+              );
+            }
+
+            await promesaContextoFallback;
+
+            const tiempo_ms_fallback = Date.now() - inicio;
+            return res.status(200).json({
+              ok: true,
+              categoria: "NEGOCIO",
+              subcaso: "fallback_desde_continuidad_invalida",
+              mensaje_usuario: mensajeFinal,
+              nombre_usuario: nombre_user,
+              numero_usuario,
+              contexto_usuario: contextoFallback,
+              resultado_negocio: resultadoTiendaFallback,
+              tokens_usados: {
+                clasificador: { modelo: "gpt-5.4-mini", ...tokensClasificador },
+                negocio: resultadoTiendaFallback.tokens_usados,
+                total_tokens_combinado:
+                  tokensClasificador.total_tokens +
+                  (resultadoTiendaFallback.tokens_usados?.total_tokens_combinado || 0),
+              },
+              tiempo_ms: tiempo_ms_fallback,
+            });
+          }
+
           const contextoConContinuidad =
             prepararContextoContinuidad(contextoUsuario);
 
@@ -1408,7 +1481,7 @@ exports.geinz_procesar_buffer = onRequest(
               resultadoContinuidad.cat_detectada ||
               contextoConContinuidad.categoria ||
               null,
-            subcategoria: contextoConContinuidad.subcategoria || null, // 👈 NUEVO, preserva la que ya tenía
+            subcategoria: contextoConContinuidad.subcategoria || null, // 👈 preserva la que ya tenía
             id: resultadoContinuidad.id || contextoConContinuidad.id || null,
             nombre:
               resultadoContinuidad.nombre_negocio ||

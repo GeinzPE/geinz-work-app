@@ -2765,7 +2765,8 @@ Extrae datos del mensaje del usuario. Responde SOLO con JSON válido, sin texto 
   "productos": string[],
   "precio_max": int | null,
   "metodos_pago": string[],
-  "comodidades": string[]
+  "comodidades": string[],
+  "traer_promos": boolean
 }
  
 # REGLAS
@@ -2774,7 +2775,8 @@ Extrae datos del mensaje del usuario. Responde SOLO con JSON válido, sin texto 
 - Si tipo es "bot" y hay productos → buscar promociones relevantes.
 - Sin campo vacío: usa null o [] según corresponda.
 - metodos_pago: solo de ["yape","plin","efectivo","agora","visa","mastercard"]
-- comodidades: solo de ["aire_acondicionado","camaras_de_seguridad","enchufe","estacionamiento","ingreso_mascotas","mesa_para_ninos","sala_de_espera","sala_juegos","servicios_higienicos","wifi","zona_expandida"]`;
+- comodidades: solo de ["aire_acondicionado","camaras_de_seguridad","enchufe","estacionamiento","ingreso_mascotas","mesa_para_ninos","sala_de_espera","sala_juegos","servicios_higienicos","wifi","zona_expandida"]
+- traer_promos: true SOLO si pide promos/ofertas/descuentos de forma general (cualquier sinónimo), sin dar tienda, producto, precio, pago ni comodidad. Si da algo específico → false.`;
 }
 
 function normalizarTextoPromo(valor) {
@@ -2798,12 +2800,19 @@ function normalizarFiltrosPromocion(parsed) {
     ? parsed.comodidades
     : [];
 
+  const traer_promos_raw = parsed.traer_promos;
+  const traer_promos =
+    traer_promos_raw === true ||
+    String(traer_promos_raw).trim().toLowerCase() === "true";
+
   const todoVacio =
     !tienda &&
     productos.length === 0 &&
     precio_max === null &&
     metodos_pago.length === 0 &&
     comodidades.length === 0;
+
+  const traerPromosFinal = traer_promos && todoVacio;
 
   return {
     tipo: tipo_,
@@ -2812,7 +2821,8 @@ function normalizarFiltrosPromocion(parsed) {
     precio_max,
     metodos_pago,
     comodidades,
-    preguntar_mejor: todoVacio,
+    traer_promos: traerPromosFinal,
+    preguntar_mejor: todoVacio && !traerPromosFinal,
   };
 }
 
@@ -3100,6 +3110,66 @@ async function buscarPromosEnAlgolia(filtros) {
     total: hayExactos ? exactos.length : alternativos.length,
     hitsMap,
   };
+}
+async function buscarPromosRandomVigentes({ cantidad = 3 } = {}) {
+  const horaPeru = obtenerHoraPeru();
+  let horarioActual = "noche";
+  if (horaPeru >= 6 && horaPeru < 12) horarioActual = "manana";
+  else if (horaPeru >= 12 && horaPeru < 18) horarioActual = "tarde";
+
+  const timestampFiltro = Date.now();
+  const finalFilters = [
+    `(horario_publicacion:${horarioActual} OR horario_publicacion:todo_dia)`,
+    `timestamp_fin > ${timestampFiltro}`,
+  ].join(" AND ");
+
+  console.log("🎲 [buscarPromosRandomVigentes] Filtros:", finalFilters);
+
+  let response;
+  try {
+    response = await Promise.race([
+      index_Algolia_promos.search("", {
+        filters: finalFilters,
+        hitsPerPage: 100,
+      }),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Algolia timeout")), 6000),
+      ),
+    ]);
+  } catch (algoliaError) {
+    console.error(
+      "❌ [buscarPromosRandomVigentes] Error Algolia:",
+      algoliaError.message,
+    );
+    return { momento_dia: horarioActual, resultados: [], hitsMap: new Map() };
+  }
+
+  const hitsMap = new Map(response.hits.map((h) => [h.objectID, h]));
+
+  const seleccionados = [...response.hits]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, cantidad);
+
+  const resultados = seleccionados.map((h) => ({
+    id: h.objectID,
+    score: 100,
+    matchCount: 0,
+    tienePagoExacto: false,
+    pagos_disponibles: (h.pagos || []).map((p) => p.toLowerCase()),
+    tienePrecioExacto: false,
+    precio: h.precio ?? null,
+    tieneComodidadExacta: false,
+    descripcion: (h.descripcion || "").slice(0, 120),
+    name_tienda: h.nombre_tienda || "",
+    id_tienda: h.id_tienda || "",
+    img: h.imagen_promo || "",
+  }));
+
+  console.log(
+    `🎲 [buscarPromosRandomVigentes] ${response.hits.length} vigentes → ${resultados.length} elegidas`,
+  );
+
+  return { momento_dia: horarioActual, resultados, hitsMap };
 }
 
 function comprimirResultadoPromo(r) {
@@ -3485,8 +3555,63 @@ async function procesarPromociones({
     contexto_previo,
   );
 
-  // Sin ningún dato útil (o el usuario solo quiere chatear) → pedir tienda/categoría
-  if (filtros.tipo === "geinz" || filtros.preguntar_mejor) {
+  if (filtros.tipo === "geinz") {
+    return {
+      preguntar_mejor: true,
+      tokens_usados: { extractor: tokensExtractor },
+    };
+  }
+
+  // 👇 NUEVO: pidió promos/ofertas de forma general → trae 3 random vigentes
+  if (filtros.traer_promos === true) {
+    const promosRandomRaw = await buscarPromosRandomVigentes({ cantidad: 3 });
+
+    if (promosRandomRaw.resultados.length === 0) {
+      return {
+        preguntar_mejor: false,
+        sin_resultados: true,
+        referencia: "promociones",
+        tipo_referencia: "categoria",
+        tokens_usados: { extractor: tokensExtractor },
+      };
+    }
+
+    const promosLimpiasRandom = limpiarResultadoPromos({
+      momento_dia: promosRandomRaw.momento_dia,
+      pago_exacto_encontrado: null,
+      precio_exacto_encontrado: null,
+      comodidad_exacta_encontrada: null,
+      resultados: promosRandomRaw.resultados,
+      resultados_alternativos: [],
+      total: promosRandomRaw.resultados.length,
+    });
+
+    const respuestaIA = await elegirMejorPromoConGemini({
+      momento: promosLimpiasRandom.momento,
+      nombreUsuario: nombre_usuario,
+      mensajeUsuario: mensaje,
+      resultados: promosLimpiasRandom.resultados,
+      alt: [],
+    });
+
+    const resultadoFinal = construirResultadoFinalPromo({
+      respuestaIA,
+      promosArray: promosRandomRaw.resultados,
+      hitsMap: promosRandomRaw.hitsMap,
+    });
+
+    return {
+      ...resultadoFinal,
+      preguntar_mejor: false,
+      sin_resultados: false,
+      tokens_usados: {
+        extractor: tokensExtractor,
+        elegir_promo: respuestaIA?._debug?.tokens || null,
+      },
+    };
+  }
+
+  if (filtros.preguntar_mejor) {
     return {
       preguntar_mejor: true,
       tokens_usados: { extractor: tokensExtractor },
@@ -3501,7 +3626,6 @@ async function procesarPromociones({
     const tieneProductos =
       Array.isArray(filtros.productos) && filtros.productos.length > 0;
 
-    // Caso A: dio tienda puntual → avisar específico por tienda
     if (tieneTienda) {
       return {
         preguntar_mejor: false,
@@ -3512,7 +3636,6 @@ async function procesarPromociones({
       };
     }
 
-    // Caso B: no dio tienda pero SÍ dio categoría/producto → avisar específico por categoría
     if (tieneProductos) {
       return {
         preguntar_mejor: false,
@@ -3523,8 +3646,6 @@ async function procesarPromociones({
       };
     }
 
-    // Caso C: no dio ni tienda ni categoría (solo precio/pago/comodidad sueltos, o nada útil)
-    // → ahí sí, pedir más info porque de verdad no hay con qué buscar
     return {
       preguntar_mejor: true,
       tokens_usados: { extractor: tokensExtractor },
@@ -3538,7 +3659,6 @@ async function procesarPromociones({
     alt: promosLimpias.alt,
   });
 
-  // Incluye exactos + alternativos: Gemini puede elegir ids de cualquiera.
   const promosArray = [
     ...promosRaw.resultados,
     ...promosRaw.resultados_alternativos,
@@ -3562,7 +3682,6 @@ async function procesarPromociones({
 }
 
 exports.procesarPromociones = procesarPromociones;
-
 // ============================================================================
 // ============================================================================
 //   6. MÓDULO PROMOCIONES
@@ -4193,15 +4312,17 @@ REGLAS:
 - NUNCA inventes datos, promos, horarios ni negocios,NI NUMEROS DE ENTIDADES PUBLICAS NI PRIVADAS
 - Consulta vaga → pide más detalle con curiosidad
 - Registro de negocio → deriva al +51 958 120 920 sin explicar el proceso NI PEDIR PAGOS
-
 - Insultos o críticas a negocios → redirige con calma, nunca des la razón ni repitas el insulto
 - Fuiste creado solo por Geinz
+- extra: si ofreciste elegir entre negocio/turismo/promociones, pon "ESPERANDO_ELEC:x,y,z" en ese orden; si no, resume en 5 palabras qué quería y qué dijiste
 
 MENSAJE DEL USUARIO: "${mensaje}"
 
 RESPONDE SIEMPRE EN ESTE JSON, sin texto fuera de él:
-{"mensaje":"...","id":"null","tipo":"|NEGOCIO|TURISMO|GEINZ","extra":"QUE QUERIA EL USUARIO Y QUE LE DIJSITE EN 5 PALABRAS"}`;
+{"mensaje":"...","id":"null","tipo":"|NEGOCIO|TURISMO|GEINZ","extra":"..."}`;
 }
+
+
 async function llamarGeminiGeinz(mensaje, nombreUsuario) {
   const prompt = construirPromptGeinz(mensaje, nombreUsuario);
 
@@ -4209,6 +4330,16 @@ async function llamarGeminiGeinz(mensaje, nombreUsuario) {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
       responseMimeType: "application/json",
+      responseSchema: {
+        type: "object",
+        properties: {
+          mensaje: { type: "string" },
+          id: { type: "string" },
+          tipo: { type: "string" },
+          extra: { type: "string" },
+        },
+        required: ["mensaje", "id", "tipo", "extra"],
+      },
       thinkingConfig: { thinkingBudget: 0 },
       maxOutputTokens: 220,
       temperature: 0.7,
