@@ -3688,11 +3688,6 @@ exports.procesarPromociones = procesarPromociones;
 // ============================================================================
 // ============================================================================
 
-function normalizarPagos(pagos) {
-  if (Array.isArray(pagos)) return [...pagos].sort().join(",");
-  return pagos || "";
-}
-
 function prepararResultados(lista, maxItems = 8, maxDescLen = 120) {
   if (!Array.isArray(lista)) return [];
 
