@@ -17,6 +17,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrad
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.nuevos_lugares_agregados
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener_tiendas_lat_log_id
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.promocion_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
@@ -1045,6 +1046,71 @@ class repo_filtrado_tiendas {
         )
     }
 
+
+    suspend fun obtener_promociones_activas_tienda(
+        idTienda: String,
+        localidad: String
+    ): List<promocion_tienda> {
+        val lista = mutableListOf<promocion_tienda>()
+        try {
+            val snapshot = db.collection("Tiendas")
+                .document(localidad)
+                .collection(localidad)
+                .document(idTienda)
+                .collection("promociones_geinz")
+                .whereEqualTo("estado", "activo")
+                .get()
+                .await()
+
+            val ahora = com.google.firebase.Timestamp.now()
+
+            snapshot.documents.forEach { doc ->
+                val data = doc.data ?: return@forEach
+
+                val datosHoraFecha = data["datos_hora_fecha"] as? Map<String, Any> ?: emptyMap()
+                val activo = datosHoraFecha["activo"] as? Boolean ?: false
+                val tsInicio = datosHoraFecha["timestamp_inicio"] as? com.google.firebase.Timestamp
+                val tsFin = datosHoraFecha["timestamp_fin"] as? com.google.firebase.Timestamp
+
+                val dentroDeRango = activo && tsInicio != null && tsFin != null &&
+                        ahora.seconds in tsInicio.seconds..tsFin.seconds
+
+                if (!dentroDeRango) return@forEach
+
+                val informacion = data["informacion"] as? Map<String, Any> ?: emptyMap()
+                val imgContainer = data["img_container"] as? Map<String, Any> ?: emptyMap()
+                val mensajePredeterminado = data["mensaje_predeterminado"] as? Map<String, Any> ?: emptyMap()
+                val whatsappMap = mensajePredeterminado["whatsapp"] as? Map<String, Any> ?: emptyMap()
+                val compartirMap = mensajePredeterminado["compartir"] as? Map<String, Any> ?: emptyMap()
+
+                val listaImgValor = imgContainer["lista_img"]
+                val listaImg: String = when (listaImgValor) {
+                    is String -> listaImgValor
+                    is List<*> -> listaImgValor.firstOrNull() as? String ?: ""
+                    else -> ""
+                }
+
+                lista.add(
+                    promocion_tienda(
+                        id_promocion = informacion["id_promocion"] as? String ?: doc.id,
+                        id_tienda = informacion["id_tienda"] as? String ?: idTienda,
+                        titulo = informacion["titulo"] as? String ?: "",
+                        categoria = informacion["categoria"] as? String ?: "",
+                        numero = informacion["numero"] as? String ?: "",
+                        logo_img = imgContainer["logo_img"] as? String ?: "",
+                        lista_img = listaImg,
+                        msje_whatsapp = whatsappMap["msje_predermindo"] as? String ?: "",
+                        msje_compartir = compartirMap["msje_predermindo"] as? String ?: "",
+                        contactar_activo = whatsappMap["activo_o_no"] as? Boolean ?: true,
+                        compartir_activo = compartirMap["activo_o_no"] as? Boolean ?: true
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("PROMOCIONES_TIENDA", "Error al obtener promociones: ${e.message}")
+        }
+        return lista
+    }
 
     fun obtenerNombreBase(nombre: String): String {
         return nombre

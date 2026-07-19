@@ -24,6 +24,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.filtrad
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.horario_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.nuevos_lugares_agregados
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.obtener_tiendas_lat_log_id
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.promocion_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.tiendas_por_categoria
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_tienda_free
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
@@ -701,6 +702,31 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
                 _datos_nuevos_lugares.value = emptyList()
             }
         }
+    }
+    private val _promociones_tienda = MutableStateFlow<carga_promociones>(carga_promociones.loading)
+    val promociones_tienda: StateFlow<carga_promociones> = _promociones_tienda.asStateFlow()
+
+    fun obtener_promociones_tienda(id_tienda: String, localidad: String) {
+        viewModelScope.launch {
+            _promociones_tienda.value = carga_promociones.loading
+            try {
+                val data = repo_filtrado.obtener_promociones_activas_tienda(id_tienda, localidad)
+                _promociones_tienda.value = if (data.isNotEmpty()) {
+                    carga_promociones.succes(data)
+                } else {
+                    carga_promociones.empty
+                }
+            } catch (e: Exception) {
+                _promociones_tienda.value = carga_promociones.error(e.message ?: "Error al cargar promociones")
+            }
+        }
+    }
+
+    sealed class carga_promociones {
+        object loading : carga_promociones()
+        object empty : carga_promociones()
+        data class succes(val items: List<promocion_tienda>) : carga_promociones()
+        data class error(val texto: String) : carga_promociones()
     }
 
     sealed class carga_tiendas_sin_pago {

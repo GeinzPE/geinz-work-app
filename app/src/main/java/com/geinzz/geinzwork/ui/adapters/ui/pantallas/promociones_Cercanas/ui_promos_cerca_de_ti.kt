@@ -147,6 +147,8 @@ import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.ShimmerImagenConMarc
 
 @Composable
 fun ui_promos_cerca_de_ti(
+    id_tienda_pasada:String,
+    data:String,
     flag_identificador: String,
     activar_promo_params: String,
     localidad: String,
@@ -156,10 +158,12 @@ fun ui_promos_cerca_de_ti(
     crear_cuenta: () -> Unit,
     onBack: () -> Unit
 ) {
-    Log.d("ids_entraantes", "$ids")
+    Log.d("ids_entraantes", "$id_tienda_pasada ,$data")
 
     var ids_obtenidos_promociones by remember { mutableStateOf(ids) }
-
+    var modoTiendaEspecificaActivo by remember { mutableStateOf(id_tienda_pasada.isNotEmpty()) }
+    var data_actual by remember { mutableStateOf(data) }
+    val modoSeleccionEspecifica = !ids_obtenidos_promociones.isNullOrEmpty() || modoTiendaEspecificaActivo
     // ===== Contexto, Auth y ViewModels =====
     val context = LocalContext.current
     val firebaseAuth = FirebaseAuth.getInstance()
@@ -378,14 +382,20 @@ fun ui_promos_cerca_de_ti(
         }
     }
 
+    // DESPUÉS
     LaunchedEffect(localidad) {
-        if (!ids_obtenidos_promociones.isNullOrEmpty()) {
-            viewModel.obtener_promos_por_ids_directos(ids_obtenidos_promociones!!, localidad)
-        } else {
-            viewModel.obtener_promociones_2da("barranca", "", null)
+        when {
+            !ids_obtenidos_promociones.isNullOrEmpty() -> {
+                viewModel.obtener_promos_por_ids_directos(ids_obtenidos_promociones!!, localidad)
+            }
+            data_actual == "promociones_tienda" -> {
+                viewModel.obtener_promociones_2da(localidad, "", id_tienda_pasada)
+            }
+            else -> {
+                viewModel.obtener_promociones_2da("barranca", "", null)
+            }
         }
     }
-
     LaunchedEffect(respuesta_gemini_NLP) {
         when (respuesta_gemini_NLP) {
             is viewmodel_promos_cercanas.estado_Carga_respuesta_gemini.loading -> {
@@ -482,11 +492,13 @@ fun ui_promos_cerca_de_ti(
                 estado_caundo_busca_tienda = true
                 if (!loadingTiendaShown) {
                     loadingTiendaShown = true
-                    launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Buscando en la tienda...",
-                            duration = SnackbarDuration.Indefinite
-                        )
+                    if (data_actual != "promociones_tienda") {   // 👈 SOLO esto: no mostrar el snackbar en ese caso
+                        launch {
+                            snackbarHostState.showSnackbar(
+                                message = "Buscando en la tienda...",
+                                duration = SnackbarDuration.Indefinite
+                            )
+                        }
                     }
                 }
             }
@@ -494,18 +506,23 @@ fun ui_promos_cerca_de_ti(
             is viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.succes -> {
                 estado_caundo_busca_tienda = false
                 loadingTiendaShown = false
-                val data =
-                    estadoTienda as viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.succes
-                pagos_tienda_confirmada = data.pagos
-                comodidades_tienda_confirmada = data.comodidades
-                promosFiltradas = data.items
+                val data_tienda = estadoTienda as viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.succes
+                pagos_tienda_confirmada = data_tienda.pagos
+                comodidades_tienda_confirmada = data_tienda.comodidades
+                promosFiltradas = data_tienda.items
                 snackbarHostState.currentSnackbarData?.dismiss()
-                snackbar_total_promos = data.total
-                snackbar_nombre_tienda_snap = nombre_tienda_seleccionada
-                snackbar_logo_tienda =
-                    tiendasConMasDeUnaPromo.find { it.id == tiendaSeleccionada }?.logo_img ?: ""
-                esperandoConfirmacionTienda = true
-                mostrar_snackbar_tienda = true
+
+                if (data_actual == "promociones_tienda") {
+                    // 👇 SOLO para este caso: no mostramos snackbar, dejamos pasar la actualización de promos
+                    esperandoConfirmacionTienda = false
+                } else {
+                    // 👇 comportamiento original intacto
+                    snackbar_total_promos = data_tienda.total
+                    snackbar_nombre_tienda_snap = nombre_tienda_seleccionada
+                    snackbar_logo_tienda = tiendasConMasDeUnaPromo.find { it.id == tiendaSeleccionada }?.logo_img ?: ""
+                    esperandoConfirmacionTienda = true
+                    mostrar_snackbar_tienda = true
+                }
             }
 
             is viewmodel_promos_cercanas.estado_carga_tienda_Seleccionada.error -> {
@@ -521,18 +538,21 @@ fun ui_promos_cerca_de_ti(
         }
     }
     // ── UI ───────────────────────────────────────────────────
-    val titulo =
-        if (ids_obtenidos_promociones.isNullOrEmpty())
-            "Promociones y ofertas cerca de ti"
-        else
-            "Promociones seleccionadas para ti"
+// DESPUÉS
+    val titulo = when {
+        data_actual == "promociones_tienda" -> "Promociones de esta tienda"
+        ids_obtenidos_promociones.isNullOrEmpty() -> "Promociones y ofertas cerca de ti"
+        else -> "Promociones seleccionadas para ti"
+    }
 
-    val descripcion =
-        if (ids_obtenidos_promociones.isNullOrEmpty())
+    val descripcion = when {
+        data_actual == "promociones_tienda" ->
+            "Estas son todas las promociones activas que esta tienda tiene disponibles para ti."
+        ids_obtenidos_promociones.isNullOrEmpty() ->
             "Descubre descuentos, promociones especiales y ofertas exclusivas de negocios cercanos."
-        else
+        else ->
             "Estas son las promociones que Daniel seleccionó según tu búsqueda. Si deseas explorar todas las promociones disponibles, presiona «Ver todas las promociones»."
-
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -595,7 +615,7 @@ fun ui_promos_cerca_de_ti(
                         }
 
                         // ── Campo de búsqueda ──
-                        if (ids_obtenidos_promociones.isNullOrEmpty() &&
+                        if (!modoSeleccionEspecifica &&
                             !hayFiltros && !filtroTiendaAplicado && tiendaSeleccionada == null
                         ) {
                             item {
@@ -907,7 +927,7 @@ fun ui_promos_cerca_de_ti(
                         }
 
                         // ── Header tiendas + filtros ──
-                        if (ids_obtenidos_promociones.isNullOrEmpty()) {   // 👈 nuevo: envuelve TODO, incluido el AnimatedVisibility
+                        if (!modoSeleccionEspecifica) {  // 👈 nuevo: envuelve TODO, incluido el AnimatedVisibility
                             item {
                                 AnimatedVisibility(
                                     visible = !estaOcupado,
@@ -1362,7 +1382,7 @@ fun ui_promos_cerca_de_ti(
                     }
 
                     // ── Botón flotante arrastrable: "ver todas las promos" ──
-                    if (!ids_obtenidos_promociones.isNullOrEmpty()) {
+                    if (modoSeleccionEspecifica) {
                         Box(
                             modifier = Modifier
                                 .offset {
@@ -1433,9 +1453,10 @@ fun ui_promos_cerca_de_ti(
                                     ids_obtenidos_promociones = null
                                     tiendaSeleccionada = null
                                     filtroTiendaAplicado = false
+                                    modoTiendaEspecificaActivo = false
                                     filtrosDesdeBottomSheetGeneral = false
                                     valor_a_buscar = ""
-
+                                    data_actual = ""
                                     viewModel.limpiarCategoria()
                                     viewModel.limpiarSubcategorias()
                                     viewModel.limpiarRangoPrecio()

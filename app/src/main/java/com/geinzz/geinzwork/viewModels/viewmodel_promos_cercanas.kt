@@ -61,8 +61,10 @@ class viewmodel_promos_cercanas : ViewModel() {
     val promosCargadas: StateFlow<List<dataclass_promociones_cerca_de_ti>> = _promosCargadas
 
 
-    private val _tiendas_con_mas_de_una_promo=MutableStateFlow<List<tiendas_con_mas_de_una_promo>> (emptyList())
-    val tiendas_con_mas_de_una_promo: StateFlow<List<tiendas_con_mas_de_una_promo>> = _tiendas_con_mas_de_una_promo
+    private val _tiendas_con_mas_de_una_promo =
+        MutableStateFlow<List<tiendas_con_mas_de_una_promo>>(emptyList())
+    val tiendas_con_mas_de_una_promo: StateFlow<List<tiendas_con_mas_de_una_promo>> =
+        _tiendas_con_mas_de_una_promo
 
 
     private val _respuesta_gemini = MutableStateFlow<estado_Carga_respuesta_gemini?>(null)
@@ -102,7 +104,7 @@ class viewmodel_promos_cercanas : ViewModel() {
         _respuesta_gemini.value = estado_Carga_respuesta_gemini.idle
     }
 
-    fun resetear_Estado_respuesta_IA(){
+    fun resetear_Estado_respuesta_IA() {
 
     }
 
@@ -199,9 +201,11 @@ class viewmodel_promos_cercanas : ViewModel() {
                 rango
             }
     }
+
     fun limpiarCategoria() {
         _categoria_seleccionada.value = ""
     }
+
     fun limpiarRangoPrecio() {
         _rangoPrecioSeleccionado.value = null
     }
@@ -222,6 +226,7 @@ class viewmodel_promos_cercanas : ViewModel() {
                 actuales + item
             }
     }
+
     private val _categoria_seleccionada = MutableStateFlow("")
     val categoria_seleccionada: StateFlow<String> = _categoria_seleccionada
 
@@ -230,6 +235,7 @@ class viewmodel_promos_cercanas : ViewModel() {
         _categoria_seleccionada.value = nueva
         if (nueva.isEmpty()) limpiarSubcategorias()
     }
+
     private var ultimaTiendaCargada: String = ""
 
     fun cargarSiguienteBloque(
@@ -249,7 +255,8 @@ class viewmodel_promos_cercanas : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val todasLasPromos = repo.obtener_promos(categoria_filtrado, localidad, tiendaSeleccionada1)
+                val todasLasPromos =
+                    repo.obtener_promos(categoria_filtrado, localidad, tiendaSeleccionada1)
 
                 val todasFiltradas = todasLasPromos
                     .map { it.dataclass_promociones_cerca_de_ti }
@@ -287,6 +294,7 @@ class viewmodel_promos_cercanas : ViewModel() {
     fun iniciar_grabacion() {
         _estadoMicrofono.value = EstadoMicrofono.Grabando
     }
+
     fun enviar_audio_a_whisper(file: File, onTextoListo: (String) -> Unit) {
         viewModelScope.launch {
             try {
@@ -312,7 +320,10 @@ class viewmodel_promos_cercanas : ViewModel() {
 
     fun filtrar_terminos_nlp_seleccionados() {
         val seleccionados = _terminos_nlp_seleccionados.value
-        Log.d("BUG_NLP_FILTRO", "🎯 filtrar_terminos_nlp_seleccionados() — seleccionados=$seleccionados")
+        Log.d(
+            "BUG_NLP_FILTRO",
+            "🎯 filtrar_terminos_nlp_seleccionados() — seleccionados=$seleccionados"
+        )
 
         if (seleccionados.isEmpty()) {
             Log.d("BUG_NLP_FILTRO", "⚠️ seleccionados vacío — abortando")
@@ -325,7 +336,10 @@ class viewmodel_promos_cercanas : ViewModel() {
 
         base.forEachIndexed { index, obj ->
             val data = obj.dataclass_promociones_cerca_de_ti
-            Log.d("BUG_NLP_FILTRO", "   [$index] titulo='${data.informacion_publcacion.titulo}' | terminos_clave=${data.terminos_clave} | categoria='${data.informacion_publcacion.categoria}'")
+            Log.d(
+                "BUG_NLP_FILTRO",
+                "   [$index] titulo='${data.informacion_publcacion.titulo}' | terminos_clave=${data.terminos_clave} | categoria='${data.informacion_publcacion.categoria}'"
+            )
         }
 
         val filtradas = base.filter { obj ->
@@ -338,12 +352,19 @@ class viewmodel_promos_cercanas : ViewModel() {
                 append(data.informacion_publcacion.categoria)
             }.lowercase()
 
-            val matchea = seleccionados.any { termino -> textoCompleto.contains(termino.lowercase()) }
-            Log.d("BUG_NLP_FILTRO", "   🔍 comparando textoCompleto='$textoCompleto' contra seleccionados=$seleccionados -> matchea=$matchea")
+            val matchea =
+                seleccionados.any { termino -> textoCompleto.contains(termino.lowercase()) }
+            Log.d(
+                "BUG_NLP_FILTRO",
+                "   🔍 comparando textoCompleto='$textoCompleto' contra seleccionados=$seleccionados -> matchea=$matchea"
+            )
             matchea
         }
 
-        Log.d("BUG_NLP_FILTRO", "✅ Resultado filtro: ${filtradas.size} promos matchearon de ${base.size} totales")
+        Log.d(
+            "BUG_NLP_FILTRO",
+            "✅ Resultado filtro: ${filtradas.size} promos matchearon de ${base.size} totales"
+        )
 
         listaFiltrada.value = filtradas
         _promosAcumuladas.value = filtradas
@@ -353,6 +374,7 @@ class viewmodel_promos_cercanas : ViewModel() {
         else
             estado_carga_promociones.succes(filtradas)
     }
+
     fun resetPromos() {
         _promosCargadas.value = emptyList()
         paginaActual = 0
@@ -372,14 +394,12 @@ class viewmodel_promos_cercanas : ViewModel() {
         MutableStateFlow<List<String>>(emptyList())
 
 
-
     private val _estadoPromos =
         MutableStateFlow<estado_carga_promociones>(
             estado_carga_promociones.loading
         )
     val estadoPromos: StateFlow<estado_carga_promociones> =
         _estadoPromos.asStateFlow()
-
 
 
     fun agregar_estadisticas_publicacion(
@@ -414,12 +434,9 @@ class viewmodel_promos_cercanas : ViewModel() {
     }
 
 
-
     fun retornar_lista_nuevamente() {
         _estadoPromos.value = estado_carga_promociones.succes(listaCompleta.value)
     }
-
-
 
 
     private val PAGINA_SIZE = 5
@@ -448,6 +465,7 @@ class viewmodel_promos_cercanas : ViewModel() {
         _estado_Carga_tienda_select
 
     var modoBusquedaIA by mutableStateOf(false)
+
     // 🔧 Backup del estado de búsqueda NLP, para restaurarlo si el usuario cancela
 // la selección de una tienda (evita perder los resultados del NLP).
     private var backupNlp_modoBusquedaIA: Boolean = false
@@ -505,9 +523,15 @@ class viewmodel_promos_cercanas : ViewModel() {
         hayBackupNlp = false
         return textoRestaurado
     }
+
     private val _totalPromosTienda = MutableStateFlow(0)
     private var jobPromociones: Job? = null
-    fun obtener_promociones_2da(localidad: String, tipo_filtrado: String, tienda_seleccionada: String?,  textoBuscadoActual: String = "" ) {
+    fun obtener_promociones_2da(
+        localidad: String,
+        tipo_filtrado: String,
+        tienda_seleccionada: String?,
+        textoBuscadoActual: String = ""
+    ) {
         jobPromociones?.cancel()   // 👈 AGREGA ESTA LÍNEA: cancela la petición anterior si sigue en curso
         if (tienda_seleccionada != null && modoBusquedaIA) {
             backupNlp_modoBusquedaIA = modoBusquedaIA
@@ -530,22 +554,23 @@ class viewmodel_promos_cercanas : ViewModel() {
         listaIdsConScore = emptyList() // 👈 limpiar ids anteriores
         paginaActual_ = 0 // 👈 resetear página
 
-        jobPromociones = viewModelScope.launch{
+        jobPromociones = viewModelScope.launch {
 
-        if (tienda_seleccionada != null) {
+            if (tienda_seleccionada != null) {
                 // ── MODO TIENDA: trae TODO sin paginación ──────────────────
                 _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.loading
+//                _estadoPromos.value = estado_carga_promociones.loading   // 👈 AGREGAR
 
                 try {
                     val (todasLasPromos, pagos, comodidades) = repo.obtener_todas_promos_de_tienda(
                         tienda_seleccionada, localidad
                     )
 
-
                     if (todasLasPromos.isEmpty()) {
                         _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.empty(
                             "No hay promos para esta tienda"
                         )
+                        _estadoPromos.value = estado_carga_promociones.empty("No hay promos para esta tienda")  // 👈 AGREGAR
                         return@launch
                     }
 
@@ -558,13 +583,15 @@ class viewmodel_promos_cercanas : ViewModel() {
                     _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.succes(
                         items = todasLasPromos,
                         total = todasLasPromos.size,
-                        pagos = pagos,          // 🔥
-                        comodidades = comodidades // 🔥
+                        pagos = pagos,
+                        comodidades = comodidades
                     )
+                    _estadoPromos.value = estado_carga_promociones.succes(todasLasPromos)   // 👈 AGREGAR — esto es lo que saca a la UI del loading
+
                 } catch (e: Exception) {
                     _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.idle
+                    _estadoPromos.value = estado_carga_promociones.error("Error al cargar promociones")  // 👈 AGREGAR
                 }
-
             } else {
                 // ── MODO GENERAL: paginación normal ────────────────────────
                 _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.idle
@@ -582,7 +609,8 @@ class viewmodel_promos_cercanas : ViewModel() {
                     )
 
                     if (nueva.isEmpty()) {
-                        _estadoPromos.value = estado_carga_promociones.empty("No hay promociones cerca de ti")
+                        _estadoPromos.value =
+                            estado_carga_promociones.empty("No hay promociones cerca de ti")
                         _hayMasPaginas.value = false
                         _esPrimeraCarga.value = false
                         return@launch
@@ -613,12 +641,14 @@ class viewmodel_promos_cercanas : ViewModel() {
                     _esPrimeraCarga.value = false
 
                 } catch (e: Exception) {
-                    _estadoPromos.value = estado_carga_promociones.error("Error al cargar promociones")
+                    _estadoPromos.value =
+                        estado_carga_promociones.error("Error al cargar promociones")
                     _esPrimeraCarga.value = false
                 }
             }
         }
     }
+
     fun cargarSiguientePagina(localidad: String, tipo_filtrado: String, id_tienda_select: String?) {
         if (_cargandoPagina.value || !_hayMasPaginas.value) return
 
@@ -726,7 +756,10 @@ class viewmodel_promos_cercanas : ViewModel() {
     fun cargarSiguientePaginaPorIds() {
 
         if (_cargandoPagina.value || !_hayMasPaginas.value) {
-            Log.d("IDS_DEBUG", "⛔ No carga: cargando=${_cargandoPagina.value}, hayMas=${_hayMasPaginas.value}")
+            Log.d(
+                "IDS_DEBUG",
+                "⛔ No carga: cargando=${_cargandoPagina.value}, hayMas=${_hayMasPaginas.value}"
+            )
             return
         }
 
@@ -759,7 +792,8 @@ class viewmodel_promos_cercanas : ViewModel() {
                 )
 
                 Log.d("IDS_DEBUG", "📦 Promos recibidas: ${nuevas.size}")
-                Log.d("IDS_DEBUG", "📦 IDs recibidos: ${
+                Log.d(
+                    "IDS_DEBUG", "📦 IDs recibidos: ${
                     nuevas.map { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
                 }")
 
@@ -770,7 +804,8 @@ class viewmodel_promos_cercanas : ViewModel() {
 
                 val ordenadas = sub.mapNotNull { mapa[it.id] }
 
-                Log.d("IDS_DEBUG", "✅ Ordenadas: ${
+                Log.d(
+                    "IDS_DEBUG", "✅ Ordenadas: ${
                     ordenadas.map { it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_promocion }
                 }")
 
@@ -983,8 +1018,6 @@ class viewmodel_promos_cercanas : ViewModel() {
 //    }
 
 
-
-
     fun mostrarTodasLasPromociones() {
         val base = listaCompleta.value
 
@@ -1019,6 +1052,7 @@ class viewmodel_promos_cercanas : ViewModel() {
         listaIdsConScore = emptyList()
         paginaActual_ = 0
     }
+
     fun busqueda_manual_filtrado(data: datos_para_filtrado_manual) {
         viewModelScope.launch {
             try {
@@ -1088,7 +1122,10 @@ class viewmodel_promos_cercanas : ViewModel() {
                     resultado_encontrado_algolia = withContext(Dispatchers.IO) {
                         repo.send_get_resul_algoalia(resultadoLocal)
                     }
-                    Log.d("NLP", "🔍 resultados Algolia: ${resultado_encontrado_algolia?.resultados?.size} items")
+                    Log.d(
+                        "NLP",
+                        "🔍 resultados Algolia: ${resultado_encontrado_algolia?.resultados?.size} items"
+                    )
                     resultado_encontrado_algolia?.resultados?.forEach {
                         Log.d("NLP", "   id=${it.id} score=${it.score}")
                     }
@@ -1141,6 +1178,7 @@ class viewmodel_promos_cercanas : ViewModel() {
             }
         }
     }
+
     fun obtener_promos_por_ids_directos(ids: List<String>, localidad: String) {
         ultimoDocumento = null
         _hayMasPaginas.value = false
@@ -1161,7 +1199,8 @@ class viewmodel_promos_cercanas : ViewModel() {
                 )
 
                 if (promos.isEmpty()) {
-                    _estadoPromos.value = estado_carga_promociones.empty("No hay promociones disponibles")
+                    _estadoPromos.value =
+                        estado_carga_promociones.empty("No hay promociones disponibles")
                     _esPrimeraCarga.value = false
                     return@launch
                 }
@@ -1197,6 +1236,7 @@ class viewmodel_promos_cercanas : ViewModel() {
         _estado_Carga_tienda_select.value = estado_carga_tienda_Seleccionada.idle
         _totalPromosTienda.value = 0
     }
+
     fun normalizar(texto: String): String {
         return texto
             .lowercase()
@@ -1257,7 +1297,9 @@ class viewmodel_promos_cercanas : ViewModel() {
 
     sealed class estado_Carga_respuesta_gemini {
         object loading : estado_Carga_respuesta_gemini()
-        data class succes (val cantidad:Int,val items: List<obj_completo>): estado_Carga_respuesta_gemini()
+        data class succes(val cantidad: Int, val items: List<obj_completo>) :
+            estado_Carga_respuesta_gemini()
+
         data class error(val texto_error: String) : estado_Carga_respuesta_gemini()
         data class empty(val text_vacio: String) : estado_Carga_respuesta_gemini()
         object idle : estado_Carga_respuesta_gemini()
@@ -1272,6 +1314,7 @@ class viewmodel_promos_cercanas : ViewModel() {
             val pagos: List<String> = emptyList(),        // 🔥
             val comodidades: List<String> = emptyList()   // 🔥
         ) : estado_carga_tienda_Seleccionada()
+
         data class error(val texto_error: String) : estado_carga_tienda_Seleccionada()
         data class empty(val text_vacio: String) : estado_carga_tienda_Seleccionada()
         object idle : estado_carga_tienda_Seleccionada()
@@ -1284,6 +1327,7 @@ class viewmodel_promos_cercanas : ViewModel() {
             val items: List<obj_completo>,
             val requestId: Long = System.nanoTime()   // 👈 AGREGAR: fuerza que cada emisión sea única
         ) : estado_carga_promociones()
+
         data class error(val txt: String) : estado_carga_promociones()
     }
 

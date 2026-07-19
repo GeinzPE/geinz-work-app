@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_pagos_tienda
+import kotlinx.serialization.Serializable
 
 @Immutable
 data class dataclass_novedades_geinz(
@@ -51,12 +52,18 @@ data class nuevas_teindas_dias(
 )
 
 data class compartir_promocion(
-    val nombre_tienda: String="",
-    val id_tienda: String ="",
-    val localidad: String="",
-    val categoria: String="",
-    val numero_tienda:String="",
+    val nombre_tienda: String = "",
+    val id_tienda: String = "",
+    val localidad: String = "",
+    val categoria: String = "",
+    val numero_tienda: String = "",
 )
 
+@Serializable
+data class promociones_de_tienda(
+    val id_tienda: String,
+    val parametros: String,
+    val localidad: String
+)
 
 

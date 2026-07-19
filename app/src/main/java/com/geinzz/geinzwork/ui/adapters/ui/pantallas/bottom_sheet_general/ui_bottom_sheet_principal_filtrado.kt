@@ -20,11 +20,17 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.horizontalScroll
@@ -58,13 +64,16 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Payment
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -83,6 +92,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -97,6 +107,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -118,11 +129,13 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.geinzz.geinzwork.R
 import com.geinzz.geinzwork.data.model.dataclass_novedades.compartir_promocion
+import com.geinzz.geinzwork.data.model.dataclass_novedades.promociones_de_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioAtencion_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.HorarioBloque
 import com.geinzz.geinzwork.data.model.localizate_geinz.ServicioComodidadUI
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.HorarioDia_box
 import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.item_metodos_pago
+import com.geinzz.geinzwork.data.model.localizate_geinz.filtrado_tiendas.promocion_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.favoritos_guardados
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.lugares_turisticos
 import com.geinzz.geinzwork.data.model.localizate_geinz.metodo_contacto_tienda
@@ -131,6 +144,7 @@ import com.geinzz.geinzwork.data.model.localizate_geinz.modelo_tienda
 import com.geinzz.geinzwork.data.model.obtener_img_tiendas
 import com.geinzz.geinzwork.data_store.data_store_localidad
 import com.geinzz.geinzwork.herramientas_geinz.constantes.get_alias_tienda.obtenerAliasTienda
+import com.geinzz.geinzwork.model.LocalNavController
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.abrir_whattsapp
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openFacebook
 import com.geinzz.geinzwork.model.open_apps.fb_tk_ig.open_fb_tk_ig.openInstagram
@@ -186,17 +200,39 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
 import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.Unit
 
+// ─────────────────────────────────────────────────────────────────────────
+// TOKENS DE DISEÑO LOCALES (solo estética, no tocan lógica ni nombres)
+// ─────────────────────────────────────────────────────────────────────────
+private val SeccionCornerRadius = 22.dp
+private val SeccionPaddingH = 16.dp
+private val SeccionSpacing = 14.dp
+
+@Composable
+private fun ContenedorSeccion(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(SeccionCornerRadius),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 1.dp,
+        shadowElevation = 3.dp
+    ) {
+        content()
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun bottom_sheet_tiendas_filtradas(
-    id_tienda:String,localidad_tienda: String,
+    id_tienda: String,
+    localidad_tienda: String,
     verificar_intener: Boolean,
     viewModelFiltros: viewModel_filtado_tiendas,
     visible: Boolean,
@@ -206,6 +242,7 @@ fun bottom_sheet_tiendas_filtradas(
     val context = LocalContext.current
     val firebaseAuth = FirebaseAuth.getInstance()
     val repo_socio = repo_eres_socio()
+    val navController = LocalNavController.current
     var expandir_descripcion by rememberSaveable { mutableStateOf(false) }
     var expander_caracterisiticas by rememberSaveable { mutableStateOf(false) }
     var expander_contacto by rememberSaveable { mutableStateOf(false) }
@@ -242,65 +279,31 @@ fun bottom_sheet_tiendas_filtradas(
     LaunchedEffect(datos_tienda) {
         Log.d("BOTTOM_SHEET_STATE", "estado actual: $datos_tienda")
     }
+    var listo by remember { mutableStateOf(false) }
 
 // 2. justo después de la línea tiendas_filtradas
-    val tiendas_filtradas = (datos_tienda as? viewModel_filtado_tiendas.obtner_Datos_tiendas_espesifica.succes)?.data ?: modelo_tienda()
-
+    val tiendas_filtradas =
+        (datos_tienda as? viewModel_filtado_tiendas.obtner_Datos_tiendas_espesifica.succes)?.data
+            ?: modelo_tienda()
+    val datosCorrespondenAlIdSolicitado = tiendas_filtradas.id_tienda == id_tienda
+    val mostrarContenido = listo && datosCorrespondenAlIdSolicitado
     val direccion = tiendas_filtradas.ubicacion["dirección"]?.toString() ?: ""
     val referencia = tiendas_filtradas.ubicacion["referencia"]?.toString() ?: ""
     val longitud = (tiendas_filtradas.ubicacion["longitud"] as? Number)?.toDouble() ?: 0.0
     val latitud = (tiendas_filtradas.ubicacion["latitud"] as? Number)?.toDouble() ?: 0.0
-    val zona = (tiendas_filtradas.ubicacion["zona"] as? String) ?:""
+    val zona = (tiendas_filtradas.ubicacion["zona"] as? String) ?: ""
     val cargando = datos_tienda is viewModel_filtado_tiendas.obtner_Datos_tiendas_espesifica.loading
 
-    var listo by remember { mutableStateOf(false) }
-
-
-//    LaunchedEffect(id_tienda,localidad_tienda) {
-//
-//        viewModelFiltros.obtener_datos_tienda_por_id(id_tienda,localidad_tienda)
-//
-//        val nuevoId = tiendas_filtradas.id_tienda
-//
-//        viewModelFiltros.cast_horario_atencion_horario_tienda_box(tiendas_filtradas.horario_tienda_box)
-//        viewModelFiltros.verificar_existe_favorito(id_user, nuevoId)
-//
-//    }
 
     var ultimoIdProcesado by rememberSaveable { mutableStateOf("") }
 
-//// Este efecto NO debe hacer nada con el ID
-//    LaunchedEffect(visible, tiendas_filtradas) {
-//        if (visible) {
-//            cargando = true
-//            val start = System.currentTimeMillis()
-//
-//            while (cargando) {
-//                val datosListos =
-//                    tiendas_filtradas.id_tienda.isNotBlank() ||
-//                            tiendas_filtradas.ubicacion.isNotEmpty()
-//
-//                val paso = System.currentTimeMillis() - start
-//
-//                if (paso >= 1500 && (datosListos || paso >= 2500)) {
-//                    cargando = false
-//                    break
-//                }
-//                delay(80)
-//            }
-//        } else {
-//            cargando = false
-//        }
-//    }
-
-// 👇 AHORA SÍ: solo cuando ya cargó + visible
-// ✅ SOLO ESTO: lanza la petición
     LaunchedEffect(id_tienda, localidad_tienda) {
+        listo = false                    // 👈 reset inmediato, antes de pedir datos
+        ultimoIdProcesado = ""           // 👈 fuerza reprocesar aunque el id se repita luego
         viewModelFiltros.obtener_datos_tienda_por_id(id_tienda, localidad_tienda)
     }
 
-// ✅ ESTE ya espera que los datos lleguen
-    LaunchedEffect(visible, cargando, id_user) {
+    LaunchedEffect(visible, cargando, id_user, id_tienda) {
         if (!visible || cargando) {
             listo = false
             return@LaunchedEffect
@@ -308,7 +311,7 @@ fun bottom_sheet_tiendas_filtradas(
 
         val nuevoId = tiendas_filtradas.id_tienda
         if (nuevoId.isBlank()) return@LaunchedEffect
-
+        if (nuevoId != id_tienda) return@LaunchedEffect
         // Espera que el horario y favorito carguen
         viewModelFiltros.cast_horario_atencion_horario_tienda_box(tiendas_filtradas.horario_tienda_box)
         viewModelFiltros.verificar_existe_favorito(id_user, nuevoId)
@@ -319,7 +322,12 @@ fun bottom_sheet_tiendas_filtradas(
                 localidad = tiendas_filtradas.localidad ?: "barranca"
             )
             if (id_user.isNotBlank()) {
-                repo_socio.agregar_contador("clic", nuevoId, tiendas_filtradas.localidad ?: "barranca", id_user)
+                repo_socio.agregar_contador(
+                    "clic",
+                    nuevoId,
+                    tiendas_filtradas.localidad ?: "barranca",
+                    id_user
+                )
             }
         }
 
@@ -332,7 +340,12 @@ fun bottom_sheet_tiendas_filtradas(
 
         delay(5600)
         if (ultimoIdProcesado == nuevoId && id_user.isNotBlank()) {
-            repo_socio.agregar_contador("vistas", nuevoId, tiendas_filtradas.localidad ?: "barranca", id_user)
+            repo_socio.agregar_contador(
+                "vistas",
+                nuevoId,
+                tiendas_filtradas.localidad ?: "barranca",
+                id_user
+            )
         }
     }
     var distanciaUsuarioTienda by remember { mutableStateOf<Float?>(null) }
@@ -397,9 +410,24 @@ fun bottom_sheet_tiendas_filtradas(
         }
     }
 
-//    val generar_qr_tienda_id = remember(tiendas_filtradas.id_tienda, latitud, longitud) {
-//    }
+    LaunchedEffect(tiendas_filtradas.id_tienda, tiendas_filtradas.localidad) {
+        if (tiendas_filtradas.id_tienda.isNotBlank()) {
+            viewModelFiltros.obtener_promociones_tienda(
+                tiendas_filtradas.id_tienda,
+                tiendas_filtradas.localidad ?: "barranca"
+            )
+        }
+    }
 
+
+    LaunchedEffect(tiendas_filtradas.id_tienda, tiendas_filtradas.localidad) {
+        if (tiendas_filtradas.id_tienda.isNotBlank()) {
+            viewModelFiltros.obtener_promociones_tienda(
+                tiendas_filtradas.id_tienda,
+                tiendas_filtradas.localidad ?: "barranca"
+            )
+        }
+    }
 
     if (!visible) return
 
@@ -410,261 +438,255 @@ fun bottom_sheet_tiendas_filtradas(
         containerColor = MaterialTheme.colorScheme.background
     ) {
         FuenteControladaApp {
-            if (!listo) {
+            if (!mostrarContenido) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
+                        .fillMaxWidth().padding(vertical = 50.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                        spacer_vertical(10.dp)
+                        Text(
+                            "Cargando tienda…",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             } else {
-                AnimatedVisibility(visible = true) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(0.85f)
-
-                    ) {
-                        item {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    // ── DRAG HANDLE ────────────────────────────────
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp, bottom = 6.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Box(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(
-                                        top = 10.dp,
-                                        bottom = 12.dp,
-                                        start = 10.dp,
-                                        end = 10.dp
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .width(40.dp)
-                                        .height(4.dp)
-                                        .clip(RoundedCornerShape(50))
-                                        .background(Color.LightGray)
+                                    .width(44.dp)
+                                    .height(5.dp)
+                                    .clip(RoundedCornerShape(50))
+                                    .background(Color.LightGray.copy(alpha = 0.7f))
+                            )
+                        }
+                    }
+
+                    // ── HEADER: galería + nombre + acciones ────────
+                    item {
+                        cabezero_tiendas(
+                            id_user,
+                            tiendas_filtradas.metodo_contacto_tienda.whatsapp.numero,
+                            distanciaUsuarioTienda = distanciaUsuarioTienda,
+                            nombreTienda = tiendas_filtradas.nombre_tienda,
+                            logo_tienda_img = tiendas_filtradas.img_perfil,
+                            iconos_cosas_clikeables = iconos_cosas_clikeables,
+                            localidad = tiendas_filtradas.localidad ?: "barranca",
+                            id_tienda = tiendas_filtradas.id_tienda,
+                            verificar_intener = verificar_intener,
+                            triggerAnimacion = triggerAnimacion,
+                            guardar_icon = guardar_icon,
+                            viewModel_filtado_tiendas = viewModelFiltros,
+                            modifier = Modifier.padding(horizontal = SeccionPaddingH),
+                            estadoColor = color_Estado_flow,
+                            direccion = direccion,
+                            referencia = referencia,
+                            categoritienda = tiendas_filtradas.categoria_tienda,
+                            nombre_tienda = tiendas_filtradas.nombre_tienda,
+                            latitud = latitud,
+                            longitud = longitud,
+                            img_tienda_perfil = tiendas_filtradas.img_perfil,
+                            lista_img = tiendas_filtradas.lista_img_tienda,
+                            lista_tags = tiendas_filtradas.subcategoria,
+                            guaradar_select = { i ->
+                                icono_select_fv = i
+                                val datos_guardar = favoritos_guardados(
+                                    img_tienda = tiendas_filtradas.img_perfil,
+                                    id_tienda_lugar = tiendas_filtradas.id_tienda,
+                                    nombre_lugar_tienda = tiendas_filtradas.nombre_tienda,
+                                    categoria = tiendas_filtradas.categoria_tienda,
+                                    timesLap = "",
+                                    lat = latitud,
+                                    lng = longitud,
+                                    localida_tienda = tiendas_filtradas.localidad ?: "",
+                                    horario_tienda_box = tiendas_filtradas.horario_tienda_box
+                                )
+                                if (id_user.isEmpty()) {
+                                    Toast.makeText(
+                                        context,
+                                        "Regístrate para guardar favoritos ❤️",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@cabezero_tiendas
+                                }
+
+                                if (i) {
+                                    viewModelFiltros.guardar_tienda_favorita(
+                                        id_user,
+                                        datos_guardar
+                                    )
+                                    triggerAnimacion = true
+                                    guardar_icon = i
+
+                                } else {
+                                    mostar_eliminar_guardado_dialog = true
+                                }
+
+                            },
+                            resetear_estado_loo = { triggerAnimacion = false }
+                        )
+                        spacer_vertical(22.dp)
+                    }
+
+                    // ── SECCIÓN NO EXPANDIBLE: datos rápidos ───────
+                    // (dirección corta + zona) siempre visibles, sin acordeón
+                    if (direccion.isNotBlank() || zona.isNotBlank()) {
+                        item {
+                            FranjaDatosRapidos(
+                                modifier = Modifier.padding(horizontal = SeccionPaddingH),
+                                direccion = direccion,
+                                zona = zona,
+                                estadoColor = color_Estado_flow
+                            )
+                            spacer_vertical(SeccionSpacing)
+                        }
+                    }
+
+                    // ── PROMOCIONES ACTIVAS ────────────────────────
+                    item {
+                        val estado_promociones by viewModelFiltros.promociones_tienda.collectAsState()
+                        SeccionPromocionesTienda(
+                            estadoPromociones = estado_promociones,
+                            onVerTodasClick = { id, data ->
+                                navController.navigate(
+                                    promociones_de_tienda(
+                                        id_tienda = id,
+                                        parametros = data,
+                                        localidad = tiendas_filtradas.localidad ?: "barranca"
+                                    )
                                 )
                             }
-                        }
-                        item {
-                            cabezero_tiendas(
-                                id_user,
-                                tiendas_filtradas.metodo_contacto_tienda.whatsapp.numero,
-                                distanciaUsuarioTienda = distanciaUsuarioTienda,
-                                nombreTienda = tiendas_filtradas.nombre_tienda,
-                                logo_tienda_img = tiendas_filtradas.img_perfil,
-                                iconos_cosas_clikeables = iconos_cosas_clikeables,
-                                localidad = tiendas_filtradas.localidad ?: "barranca",
-                                id_tienda = tiendas_filtradas.id_tienda,
-                                verificar_intener = verificar_intener,
-                                triggerAnimacion = triggerAnimacion,
-                                guardar_icon = guardar_icon,
-                                viewModel_filtado_tiendas = viewModelFiltros,
-                                modifier = Modifier.padding(horizontal = 10.dp),
-                                estadoColor = color_Estado_flow,
-                                direccion = direccion,
-                                referencia = referencia,
-                                categoritienda = tiendas_filtradas.categoria_tienda,
-                                nombre_tienda = tiendas_filtradas.nombre_tienda,
-                                latitud = latitud,
-                                longitud = longitud,
-                                img_tienda_perfil = tiendas_filtradas.img_perfil,
-                                lista_img = tiendas_filtradas.lista_img_tienda,
-                                lista_tags = tiendas_filtradas.subcategoria,
-                                guaradar_select = { i ->
-                                    icono_select_fv = i
-                                    val datos_guardar = favoritos_guardados(
-                                        img_tienda = tiendas_filtradas.img_perfil,
-                                        id_tienda_lugar = tiendas_filtradas.id_tienda,
-                                        nombre_lugar_tienda = tiendas_filtradas.nombre_tienda,
-                                        categoria = tiendas_filtradas.categoria_tienda,
-                                        timesLap = "",
-                                        lat = latitud,
-                                        lng = longitud,
-                                        localida_tienda = tiendas_filtradas.localidad ?: "",
-                                        horario_tienda_box = tiendas_filtradas.horario_tienda_box
-                                    )
-                                    if (id_user.isEmpty()) {
-                                        Toast.makeText(
-                                            context,
-                                            "Regístrate para guardar favoritos ❤️",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        return@cabezero_tiendas
-                                    }
+                        )
+                    }
 
-                                    if (i) {
-                                        viewModelFiltros.guardar_tienda_favorita(
-                                            id_user,
-                                            datos_guardar
-                                        )
-                                        triggerAnimacion = true
-                                        guardar_icon = i
+                    item {
+                        text_expandible_wrapp(
+                            modifier = Modifier.padding(
+                                horizontal = SeccionPaddingH,
+                                vertical = 2.dp
+                            ),
+                            "Acerca del lugar",
+                            MaterialTheme.typography.titleLarge,
+                        )
+                        spacer_vertical(10.dp)
+                    }
+                    item {
+                        if (tiendas_filtradas.comodidades.isNotEmpty()) {
+                            expandible_comidades_aforo(
+                                tiendas_filtradas.nombre_tienda,
+                                tiendas_filtradas.comodidades,
+                                tiendas_filtradas.aforo,
+                                modifier = Modifier.padding(horizontal = SeccionPaddingH),
+                                expandido = expander_comidades_aforo,
+                            ) { expander_comidades_aforo = !expander_comidades_aforo }
+                            spacer_vertical(SeccionSpacing)
+                        }
+                    }
+                    item {
+                        Expandible_descripcion_tienda(
+                            modifier = Modifier.padding(horizontal = SeccionPaddingH),
+                            tiendas_filtradas.descripcion,
+                            expander_caracterisiticas
+                        ) { expander_caracterisiticas = !expander_caracterisiticas }
+                        spacer_vertical(SeccionSpacing)
+                    }
+                    item {
+                        if (direccion.isNotBlank() || referencia.isNotBlank()) {
+                            val fisica_virtual =
+                                if (tiendas_filtradas.modelo_negocio) "Fisica" else "Virtual"
 
-                                    } else {
-                                        mostar_eliminar_guardado_dialog = true
-                                    }
-
-                                },
-                                resetear_estado_loo = { triggerAnimacion = false }
-                            )
-                            spacer_vertical(20.dp)
-                        }
-                        item {
-                            text_expandible_wrapp(
-                                modifier = Modifier.padding(horizontal = 10.dp),
-                                "Acerca del lugar",
-                                MaterialTheme.typography.titleLarge,
-                            )
-                            spacer_vertical(10.dp)
-                        }
-                        item {
-                            if (tiendas_filtradas.comodidades.isNotEmpty()) {
-                                expandible_comidades_aforo(
-                                    tiendas_filtradas.nombre_tienda,
-                                    tiendas_filtradas.comodidades,
-                                    tiendas_filtradas.aforo,
-                                    modifier = Modifier.padding(horizontal = 10.dp),
-                                    expandido = expander_comidades_aforo,
-                                ) { expander_comidades_aforo = !expander_comidades_aforo }
-                                spacer_vertical(10.dp)
-                            }
-                        }
-                        item {
-                            Expandible_descripcion_tienda(
-                                modifier = Modifier.padding(horizontal = 10.dp),
-                                tiendas_filtradas.descripcion,
-                                expander_caracterisiticas
-                            ) { expander_caracterisiticas = !expander_caracterisiticas }
-                            spacer_vertical(10.dp)
-                        }
-                        item {
-                            if (direccion.isNotBlank() || referencia.isNotBlank()) {
-                                val fisica_virtual =
-                                    if (tiendas_filtradas.modelo_negocio) "Fisica" else "Virtual"
-
-                                Column(modifier = Modifier.animateContentSize()) {
-                                    Expandible_direccion_ref(
-                                        zona,
-                                        context,
-                                        modifier = Modifier.padding(horizontal = 10.dp),
-                                        direccion,
-                                        referencia,
-                                        fisica_virtual,
-                                        expandir_descripcion
-                                    ) {
-                                        expandir_descripcion = !expandir_descripcion
-                                    }
+                            Column(modifier = Modifier.animateContentSize()) {
+                                Expandible_direccion_ref(
+                                    zona,
+                                    context,
+                                    modifier = Modifier.padding(horizontal = SeccionPaddingH),
+                                    direccion,
+                                    referencia,
+                                    fisica_virtual,
+                                    expandir_descripcion
+                                ) {
+                                    expandir_descripcion = !expandir_descripcion
                                 }
                             }
-                            spacer_vertical(10.dp)
                         }
-                        item {
-                            Expandible_horario_atencion(
-                                modifier = Modifier.padding(horizontal = 10.dp),
-                                horario_atencion = horarios,
-                                estadoColor = color_Estado_flow,
-                                localidad_tienda = tiendas_filtradas.localidad,
-                                id_tienda = tiendas_filtradas.id_tienda,
-                                expandido = expander_horario,
-                                viewModelFiltros = viewModelFiltros
-                            ) { expander_horario = !expander_horario }
-                            spacer_vertical(10.dp)
-                        }
-                        item {
-                            Expandible_Metodo_contacto(
-                                id_user,
-                                id_tienda = tiendas_filtradas.id_tienda,
-                                localidad_tienda = tiendas_filtradas.localidad ?: "barranca",
-                                iconos_cosas_clikeables = iconos_cosas_clikeables,
-                                context = context,
-                                modifier = Modifier.padding(horizontal = 10.dp),
-                                expandido = expander_contacto,
-                                metodos_contactos = tiendas_filtradas.metodo_contacto_tienda
-                            ) { expander_contacto = !expander_contacto }
-                            spacer_vertical(10.dp)
-                        }
-                        item {
-                            val tieneMetodos = with(tiendas_filtradas.metodos_pago_tienda) {
-                                yape.enable || plin.enable || agora.enable || efectivo.enable || visa_mastercard.enable
-                            }
-
-                            if (tieneMetodos) {
-                                item_metodos_de_pago(
-                                    id_user,
-                                    modifier = Modifier.padding(horizontal = 10.dp),
-                                    metodos_pago = tiendas_filtradas,
-                                    expandido = expander_metodos_pagos,
-                                    onClickExpand = {
-                                        expander_metodos_pagos = !expander_metodos_pagos
-                                    }
-                                )
-                                spacer_vertical(10.dp)
-                            }
-                        }
-                        item {
-                            Expandible_qr_tienda(
-                                qrBitmap,
-                                generar_qr_tienda_id = qr_generado_tienda,
-                                modifier = Modifier.padding(horizontal = 10.dp),
-                                expandido = expander_qr_tienda
-                            ) { expander_qr_tienda = !expander_qr_tienda }
-
-                            spacer_vertical(10.dp)
-                        }
-                        item {
-//                            Box(
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .padding(horizontal = 10.dp)
-//                                    .clip(CircleShape)
-//                                    .background(Color.White)
-//                                    .height(40.dp)
-//                                    .clickable {
-//                                        mostar_dialog_verificar_perfil = true
-//                                    }, contentAlignment = Alignment.Center
-//                            ) {
-//                                Row(
-//                                    horizontalArrangement = Arrangement.spacedBy(5.dp),
-//                                    verticalAlignment = Alignment.CenterVertically
-//                                ) {
-//                                    Image(
-//                                        painter = painterResource(R.drawable.icono_varificado_geinz),
-//                                        contentDescription = "",
-//                                        modifier = Modifier.size(20.dp)
-//                                    )
-//                                    texto_generico_one_line(
-//                                        "Verificar y Administrar Perfil",
-//                                        MaterialTheme.typography.bodyMedium, color = Color.Black
-//                                    )
-//                                }
-//                            }
-                        }
-
-//                        item {
-//                            spacer_vertical(20.dp)
-//                            Box(
-//                                modifier = Modifier.fillMaxWidth(),
-//                                contentAlignment = Alignment.Center
-//                            ) {
-//                                texto_generico_one_line(
-//                                    "Última actualización: ${
-//                                        convertir_timesTAmp_fecha(
-//                                            tiendas_filtradas.timestamp
-//                                        )
-//                                    }", style = MaterialTheme.typography.bodyMedium
-//                                )
-//
-//                            }
-//                        }
-                        item {
-                            spacer_vertical(20.dp)
-
-                        }
-
+                        spacer_vertical(SeccionSpacing)
                     }
+                    item {
+                        Expandible_horario_atencion(
+                            modifier = Modifier.padding(horizontal = SeccionPaddingH),
+                            horario_atencion = horarios,
+                            estadoColor = color_Estado_flow,
+                            localidad_tienda = tiendas_filtradas.localidad,
+                            id_tienda = tiendas_filtradas.id_tienda,
+                            expandido = expander_horario,
+                            viewModelFiltros = viewModelFiltros
+                        ) { expander_horario = !expander_horario }
+                        spacer_vertical(SeccionSpacing)
+                    }
+                    item {
+                        Expandible_Metodo_contacto(
+                            id_user,
+                            id_tienda = tiendas_filtradas.id_tienda,
+                            localidad_tienda = tiendas_filtradas.localidad ?: "barranca",
+                            iconos_cosas_clikeables = iconos_cosas_clikeables,
+                            context = context,
+                            modifier = Modifier.padding(horizontal = SeccionPaddingH),
+                            expandido = expander_contacto,
+                            metodos_contactos = tiendas_filtradas.metodo_contacto_tienda
+                        ) { expander_contacto = !expander_contacto }
+                        spacer_vertical(SeccionSpacing)
+                    }
+                    item {
+                        val tieneMetodos = with(tiendas_filtradas.metodos_pago_tienda) {
+                            yape.enable || plin.enable || agora.enable || efectivo.enable || visa_mastercard.enable
+                        }
+
+                        if (tieneMetodos) {
+                            item_metodos_de_pago(
+                                id_user,
+                                modifier = Modifier.padding(horizontal = SeccionPaddingH),
+                                metodos_pago = tiendas_filtradas,
+                                expandido = expander_metodos_pagos,
+                                onClickExpand = {
+                                    expander_metodos_pagos = !expander_metodos_pagos
+                                }
+                            )
+                            spacer_vertical(SeccionSpacing)
+                        }
+                    }
+                    item {
+                        Expandible_qr_tienda(
+                            qrBitmap,
+                            generar_qr_tienda_id = qr_generado_tienda,
+                            modifier = Modifier.padding(horizontal = SeccionPaddingH),
+                            expandido = expander_qr_tienda
+                        ) { expander_qr_tienda = !expander_qr_tienda }
+
+                        spacer_vertical(SeccionSpacing)
+                    }
+                    item {
+                        // (sin cambios de lógica: espacio reservado tal como el original)
+                    }
+
+                    item {
+                        spacer_vertical(24.dp)
+                    }
+
                 }
             }
             if (mostar_eliminar_guardado_dialog) {
@@ -695,6 +717,69 @@ fun bottom_sheet_tiendas_filtradas(
 
 }
 
+/**
+ * Franja de datos rápidos — NO expandible, siempre visible.
+ * Solo lectura de datos ya calculados (direccion, zona, estadoColor).
+ * No introduce estado nuevo ni altera la lógica del resto del sheet.
+ */
+@Composable
+private fun FranjaDatosRapidos(
+    modifier: Modifier = Modifier,
+    direccion: String,
+    zona: String,
+    estadoColor: Color
+) {
+    ContenedorSeccion(modifier = modifier) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(estadoColor.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.LocationOn,
+                    contentDescription = null,
+                    tint = estadoColor,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            spacer_horizonta(12.dp)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = if (direccion.isNotBlank()) direccion.capitalizeFirst() else "Ubicación no especificada",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (zona.isNotBlank()) {
+                    spacer_vertical(2.dp)
+                    Text(
+                        text = "Zona: $zona",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .size(10.dp)
+                    .clip(CircleShape)
+                    .background(estadoColor)
+            )
+        }
+    }
+}
 
 
 @Composable
@@ -784,8 +869,8 @@ fun cabezero_tiendas(
         Row(
             modifier = Modifier
                 .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(7.dp)
+                .padding(horizontal = SeccionPaddingH),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
 
 
@@ -793,11 +878,16 @@ fun cabezero_tiendas(
             Card(
                 modifier = Modifier
                     .width(280.dp)
-                    .clip(RoundedCornerShape(16.dp)),
+                    .clip(RoundedCornerShape(24.dp))
+                    .shadow(
+                        elevation = 6.dp,
+                        shape = RoundedCornerShape(24.dp),
+                        ambientColor = Color.Black.copy(alpha = 0.12f)
+                    ),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.background
                 ),
-                elevation = CardDefaults.cardElevation(4.dp)
+                elevation = CardDefaults.cardElevation(0.dp)
             ) {
                 perfil_img_zooom(
                     id_user,
@@ -862,7 +952,7 @@ fun cabezero_tiendas(
 
 
 
-        spacer_vertical(10.dp)
+        spacer_vertical(16.dp)
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -905,7 +995,6 @@ fun cabezero_tiendas(
 }
 
 
-
 @Composable
 fun perfil_img_zooom(
     id_user: String,
@@ -944,6 +1033,7 @@ fun perfil_img_zooom(
                     .data(img_tienda_perfil)
                     .memoryCachePolicy(CachePolicy.ENABLED)
                     .diskCachePolicy(CachePolicy.ENABLED)
+
                     .placeholder(R.drawable.cargando_img_categorias)
                     .error(R.drawable.cargando_img_categorias).build(),
                 contentDescription = "Imagen de la tienda",
@@ -951,11 +1041,25 @@ fun perfil_img_zooom(
                 modifier = Modifier
                     .fillMaxWidth()
                     .matchParentSize()
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(24.dp))
                     .clickable { mostrarDialogozoom() },
                 onState = { state ->
                 }
             )
+
+            // Scrim inferior sutil para legibilidad de la chip de distancia
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.35f)),
+                            startY = 260f
+                        )
+                    )
+            )
+
             AnimatedVisibility(
                 showAnimation,
                 enter = fadeIn(),
@@ -966,7 +1070,7 @@ fun perfil_img_zooom(
                 Box(
                     modifier = Modifier
                         .matchParentSize()
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(24.dp))
                         .background(Color.Black.copy(alpha = 0.70f))
                 )
             }
@@ -987,17 +1091,30 @@ fun perfil_img_zooom(
             AnimatedVisibility(
                 gps_enable,
                 modifier = Modifier
-                    .padding(5.dp)
-                    .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.60f))
+                    .padding(10.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(Color.Black.copy(alpha = 0.55f))
                     .align(Alignment.BottomStart)
             ) {
                 distanciaUsuarioTienda?.let { distancia ->
-                    Text(
-                        text = "Aproximadamente a ${formatDistancia(distancia)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White, modifier = Modifier.padding(7.dp)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.LocationOn,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "A ${formatDistancia(distancia)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White
+                        )
+                    }
                 }
 
             }
@@ -1019,10 +1136,11 @@ fun perfil_img_zooom(
         ) {
             Box(
                 modifier = Modifier
-                    .padding(8.dp)
-                    .size(40.dp)
+                    .padding(10.dp)
+                    .size(38.dp)
                     .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.5f))
+                    .background(Color.Black.copy(alpha = 0.45f))
+                    .border(1.dp, Color.White.copy(alpha = 0.25f), CircleShape)
                     .clickable {
                         compartirLugarFirebaseHosttiendas(
                             id_user,
@@ -1039,7 +1157,7 @@ fun perfil_img_zooom(
                 Image(
                     painter = painterResource(R.drawable.compartir_icon_unico_blanco),
                     contentDescription = "compartir",
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(17.dp)
                 )
             }
         }
@@ -1075,32 +1193,46 @@ fun perfil_cabezero(
     }
 
     val tick by viewModelFiltros.tick.collectAsState()
-//    val gps_enable = isGPSEnabled(context)
     Column {
         Text(
             text = nombre_tienda.uppercase(),
             style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        spacer_vertical(5.dp)
+        spacer_vertical(6.dp)
 
+        // Chip de estado (misma lógica de color, solo empaquetado visual)
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(50))
+                .background(estadoColor.copy(alpha = 0.14f))
+                .padding(horizontal = 10.dp, vertical = 4.dp)
+        ) {
+            retornar_color_estado_tienda_Box(
+                id_tienda = id_tienda,
+                horario_total = horarios[id_tienda] ?: HorarioDia_box(),
+                tick = tick,
+                pagado = true,
+                color = { color, txt ->
+                    viewModelFiltros.setear_color(color)
+                })
+        }
+        spacer_vertical(8.dp)
 
-        retornar_color_estado_tienda_Box(
-            id_tienda = id_tienda,
-            horario_total = horarios[id_tienda] ?: HorarioDia_box(),
-            tick = tick,
-            pagado = true,
-            color = { color, txt ->
-                viewModelFiltros.setear_color(color)
-            })
-        spacer_vertical(5.dp)
-//        TextoCopiable(id_tienda)
-        text_expandible_wrapp(
-            texto = "${categoritienda.capitalizeFirst()}",
-            style = MaterialTheme.typography.bodyMedium
-        )
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f))
+                .padding(horizontal = 8.dp, vertical = 3.dp)
+        ) {
+            text_expandible_wrapp(
+                texto = categoritienda.capitalizeFirst(),
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
         spacer_vertical(10.dp)
         tags_subcateogiras(
             lista_tags,
@@ -1134,7 +1266,6 @@ fun TextoCopiable(id_tienda: String) {
         }
     )
 }
-
 
 
 @Composable
@@ -1173,13 +1304,16 @@ fun abrir_google_maps(
                     mostrarDialogo(dialogo)
                 }
             },
-            modifier = Modifier.size(40.dp),
+            modifier = Modifier
+                .size(44.dp)
+                .shadow(4.dp, CircleShape),
             containerColor = MaterialTheme.colorScheme.primary,
+            elevation = androidx.compose.material3.FloatingActionButtonDefaults.elevation(0.dp)
         ) {
             Image(
                 painter = painterResource(R.drawable.localidad_icon_general),
                 contentDescription = "Localidad",
-                modifier = Modifier.size(35.dp)
+                modifier = Modifier.size(34.dp)
             )
         }
 
@@ -1203,39 +1337,20 @@ fun abrir_google_maps(
                         ).show()
                     }
                 },
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier
+                    .size(44.dp)
+                    .shadow(4.dp, CircleShape),
                 containerColor = color_guardar_fondo,
+                elevation = androidx.compose.material3.FloatingActionButtonDefaults.elevation(0.dp)
             ) {
                 Image(
                     painter = painterResource(icono_entrega),
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(21.dp),
                     contentDescription = "Favorito",
                 )
             }
         }
         spacer_horizonta(10.dp)
-//        AnimatedVisibility(verificar_intener, enter = fadeIn(), exit = fadeOut()) {
-//            FloatingActionButton(
-//                onClick = {
-//                    compartirLugarFirebaseHosttiendas(
-//                        categoria,
-//                        context,
-//                        localidad,
-//                        id_tienda,
-//                        img_tienda_perfil,
-//                        nombre_tienda
-//                    )
-//                },
-//                modifier = Modifier.size(40.dp),
-//                containerColor = MaterialTheme.colorScheme.primary,
-//            ) {
-//                Image(
-//                    painter = painterResource(R.drawable.compartir_icon_vector),
-//                    modifier = Modifier.size(22.dp),
-//                    contentDescription = "Favorito",
-//                )
-//            }
-//        }
 
     }
 }
@@ -1248,23 +1363,26 @@ fun Expandible_descripcion_tienda(
     expandido: Boolean,
     onClickExpand: () -> Unit
 ) {
-    Cartas_expandibles(modifier = modifier) {
-        Column() {
-            expandibles_wrapp(
-                "Descripcion",
-                iconRes = R.drawable.descripcion_tienda_vector,
-                null,
-                expandido,
-                onClickExpand
-            )
-            AnimatedVisibility(visible = expandido) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .animateContentSize()
-                        .padding(10.dp)
-                ) {
-                    texto_expandido_wrapp_sin_max_line(descipcion_tienda)
+    ContenedorSeccion(modifier = modifier) {
+        Cartas_expandibles(modifier = Modifier.fillMaxWidth()) {
+            Column {
+                expandibles_wrapp(
+                    "Descripcion",
+                    iconRes = R.drawable.descripcion_tienda_vector,
+                    null,
+                    expandido,
+                    onClickExpand
+                )
+                AnimatedVisibility(visible = expandido) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateContentSize()
+                            .padding(horizontal = 14.dp, vertical = 6.dp)
+                    ) {
+                        texto_expandido_wrapp_sin_max_line(descipcion_tienda)
+                        spacer_vertical(4.dp)
+                    }
                 }
             }
         }
@@ -1274,7 +1392,7 @@ fun Expandible_descripcion_tienda(
 
 @Composable
 fun Expandible_direccion_ref(
-    zona:String,
+    zona: String,
     context: Context,
     modifier: Modifier = Modifier,
     direccion: String,
@@ -1283,84 +1401,94 @@ fun Expandible_direccion_ref(
     expandido: Boolean,
     onClickExpand: () -> Unit
 ) {
-    Cartas_expandibles(modifier = modifier) {
-        Column {
-            expandibles_wrapp(
-                "Dirección y referencia",
-                iconRes = R.drawable.location_drawable,
-                null,
-                expandido,
-                onClickExpand
-            )
-            AnimatedVisibility(
-                visible = expandido
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            horizontal = 12.dp,
-                            vertical = 8.dp
-                        )
+    ContenedorSeccion(modifier = modifier) {
+        Cartas_expandibles(modifier = Modifier.fillMaxWidth()) {
+            Column {
+                expandibles_wrapp(
+                    "Dirección y referencia",
+                    iconRes = R.drawable.location_drawable,
+                    null,
+                    expandido,
+                    onClickExpand
+                )
+                AnimatedVisibility(
+                    visible = expandido
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                horizontal = 14.dp,
+                                vertical = 10.dp
+                            )
                     ) {
-                        TextoExpandibleEnLinea(
-                            texto = "Dirección: ${direccion.capitalizeFirst()}",
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            TextoExpandibleEnLinea(
+                                texto = "Dirección: ${direccion.capitalizeFirst()}",
+                            )
+                        }
+                        spacer_vertical(10.dp)
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(
+                                alpha = 0.4f
+                            )
                         )
+                        spacer_vertical(10.dp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            TextoExpandibleEnLinea(
+                                texto = "Referencia : ${referencia.capitalizeFirst()}",
+                            )
+
+                        }
+                        spacer_vertical(14.dp)
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f))
+                                .padding(horizontal = 10.dp, vertical = 5.dp)
+                        ) {
+                            text_expandible_wrapp(texto = "Tipo de tienda : $fisica_virtual")
+                        }
+
+                        spacer_vertical(12.dp)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                .padding(12.dp)
+                        ) {
+                            Text(
+                                text = buildAnnotatedString {
+                                    append("Zona aproximada según el cuadrante comercial de Geinz. ")
+
+                                    withStyle(
+                                        SpanStyle(
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    ) {
+                                        append(zona)
+                                    }
+                                },
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 15.sp
+                            )
+                        }
+
+                        spacer_vertical(6.dp)
                     }
-                    spacer_vertical(10.dp)
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        TextoExpandibleEnLinea(
-                            texto = "Referencia : ${referencia.capitalizeFirst()}",
-                        )
-
-                    }
-//                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center){
-//                    text_expandible_wrapp(texto = "Referencia : ${referencia.capitalizeFirst()}", modifier = Modifier.weight(1f))
-//                        spacer_horizonta(10.dp)
-//                        Image(
-//                            painter = painterResource(
-//                                R.drawable.baseline_content_copy_24
-//                            ), contentDescription = "", modifier = Modifier.size(22.dp).padding(end = 5.dp).clickable(indication = null, interactionSource = remember { MutableInteractionSource() }){
-//                                constantestextos_general.copiarTexto_portapapeles_compouse(referencia, context)
-//                            }
-//                        )
-//
-//                    }
-                    spacer_vertical(15.dp)
-                    text_expandible_wrapp(texto = "Tipo de tienda : $fisica_virtual")
-
-                    spacer_vertical(10.dp)
-                    Text(
-                        text = buildAnnotatedString {
-                            append("Zona aproximada según el cuadrante comercial de Geinz. ")
-
-                            withStyle(
-                                SpanStyle(
-                                    fontWeight = FontWeight.Bold
-                                )
-                            ) {
-                                append(zona)
-                            }
-                        },
-                        color = Color.White,
-                        fontSize = 16.sp
-                    )
-
-
-                    spacer_vertical(10.dp)
                 }
             }
         }
     }
 }
-
 
 
 @Composable
@@ -1375,117 +1503,118 @@ fun Expandible_Metodo_contacto(
     metodos_contactos: metodo_contacto_tienda,
     onClickExpand: () -> Unit
 ) {
-//    val context = LocalContext.current
     var call_dialog_permise by remember { mutableStateOf(false) }
     var numero_llamada by remember { mutableStateOf("") }
-    Cartas_expandibles(modifier = modifier) {
-        Column {
-            expandibles_wrapp(
-                "Metodos de contacto",
-                iconRes = R.drawable.baseline_call_24,
-                null,
-                expandido,
-                onClickExpand
-            )
-            AnimatedVisibility(visible = expandido) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            horizontal = 12.dp,
-                            vertical = 8.dp
-                        )
-                ) {
-                    if (metodos_contactos.whatsapp.estado) {
-                        item_metodo_contacto(
-                            tipo = "whatsapp",
-                            clikeable_estado = iconos_cosas_clikeables,
-                            icono_red = R.drawable.whatsapp_icon,
-                            texto = metodos_contactos.whatsapp.numero
-                        ) {
-                            abrir_whattsapp(
-                                iduser,
-                                "tienda", id_tienda,
-                                localidad_tienda, context, metodos_contactos.whatsapp.numero
+    ContenedorSeccion(modifier = modifier) {
+        Cartas_expandibles(modifier = Modifier.fillMaxWidth()) {
+            Column {
+                expandibles_wrapp(
+                    "Metodos de contacto",
+                    iconRes = R.drawable.baseline_call_24,
+                    null,
+                    expandido,
+                    onClickExpand
+                )
+                AnimatedVisibility(visible = expandido) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                horizontal = 14.dp,
+                                vertical = 6.dp
                             )
+                    ) {
+                        if (metodos_contactos.whatsapp.estado) {
+                            item_metodo_contacto(
+                                tipo = "whatsapp",
+                                clikeable_estado = iconos_cosas_clikeables,
+                                icono_red = R.drawable.whatsapp_icon,
+                                texto = metodos_contactos.whatsapp.numero
+                            ) {
+                                abrir_whattsapp(
+                                    iduser,
+                                    "tienda", id_tienda,
+                                    localidad_tienda, context, metodos_contactos.whatsapp.numero
+                                )
+                            }
                         }
-                    }
-                    if (metodos_contactos.llamada.estado) {
-                        item_metodo_contacto(
-                            "llamada",
-                            clikeable_estado = iconos_cosas_clikeables,
-                            icono_red = R.drawable.llamada_icon,
-                            texto = metodos_contactos.llamada.numero
-                        ) {
-                            llamar(
-                                iduser,
-                                "tienda", id_tienda,
-                                localidad_tienda, context, metodos_contactos.llamada.numero, {
-                                    call_dialog_permise = true
-                                    numero_llamada = metodos_contactos.llamada.numero
-                                })
+                        if (metodos_contactos.llamada.estado) {
+                            item_metodo_contacto(
+                                "llamada",
+                                clikeable_estado = iconos_cosas_clikeables,
+                                icono_red = R.drawable.llamada_icon,
+                                texto = metodos_contactos.llamada.numero
+                            ) {
+                                llamar(
+                                    iduser,
+                                    "tienda", id_tienda,
+                                    localidad_tienda, context, metodos_contactos.llamada.numero, {
+                                        call_dialog_permise = true
+                                        numero_llamada = metodos_contactos.llamada.numero
+                                    })
+                            }
                         }
-                    }
-                    if (metodos_contactos.tiktok.estado) {
-                        item_metodo_contacto(
-                            "tk",
-                            clikeable_estado = iconos_cosas_clikeables,
-                            icono_red = R.drawable.tik_tok_icon,
-                            texto = metodos_contactos.tiktok.nombre
-                        ) {
-                            openTiktok(
-                                "Tienda",
-                                context, metodos_contactos.tiktok.url, id_tienda,
-                                localidad_tienda, iduser
-                            )
+                        if (metodos_contactos.tiktok.estado) {
+                            item_metodo_contacto(
+                                "tk",
+                                clikeable_estado = iconos_cosas_clikeables,
+                                icono_red = R.drawable.tik_tok_icon,
+                                texto = metodos_contactos.tiktok.nombre
+                            ) {
+                                openTiktok(
+                                    "Tienda",
+                                    context, metodos_contactos.tiktok.url, id_tienda,
+                                    localidad_tienda, iduser
+                                )
+                            }
                         }
-                    }
-                    if (metodos_contactos.sitio_web.estado) {
-                        item_metodo_contacto(
-                            "web",
-                            clikeable_estado = iconos_cosas_clikeables,
-                            icono_red = R.drawable.web_icon,
-                            texto = metodos_contactos.sitio_web.nombre
-                        ) {
-                            openWebLink(
-                                context, metodos_contactos.sitio_web.url, id_tienda,
-                                localidad_tienda, iduser
-                            )
+                        if (metodos_contactos.sitio_web.estado) {
+                            item_metodo_contacto(
+                                "web",
+                                clikeable_estado = iconos_cosas_clikeables,
+                                icono_red = R.drawable.web_icon,
+                                texto = metodos_contactos.sitio_web.nombre
+                            ) {
+                                openWebLink(
+                                    context, metodos_contactos.sitio_web.url, id_tienda,
+                                    localidad_tienda, iduser
+                                )
+                            }
                         }
-                    }
-                    if (metodos_contactos.instagram.estado) {
-                        item_metodo_contacto(
-                            "ig",
-                            clikeable_estado = iconos_cosas_clikeables,
-                            icono_red = R.drawable.instagram_icon,
-                            texto = metodos_contactos.instagram.nombre
-                        ) {
-                            openInstagram(
-                                "Tienda",
-                                context,
-                                metodos_contactos.instagram.url,
-                                id_tienda,
-                                localidad_tienda, iduser
-                            )
+                        if (metodos_contactos.instagram.estado) {
+                            item_metodo_contacto(
+                                "ig",
+                                clikeable_estado = iconos_cosas_clikeables,
+                                icono_red = R.drawable.instagram_icon,
+                                texto = metodos_contactos.instagram.nombre
+                            ) {
+                                openInstagram(
+                                    "Tienda",
+                                    context,
+                                    metodos_contactos.instagram.url,
+                                    id_tienda,
+                                    localidad_tienda, iduser
+                                )
+                            }
                         }
-                    }
-                    if (metodos_contactos.facebook.estado) {
-                        item_metodo_contacto(
-                            "fb",
-                            clikeable_estado = iconos_cosas_clikeables,
-                            icono_red = R.drawable.facebook_icon,
-                            texto = metodos_contactos.facebook.nombre
-                        ) {
-                            openFacebook(
-                                "Tienda",
-                                context, metodos_contactos.facebook.url, id_tienda,
-                                localidad_tienda, iduser
-                            )
+                        if (metodos_contactos.facebook.estado) {
+                            item_metodo_contacto(
+                                "fb",
+                                clikeable_estado = iconos_cosas_clikeables,
+                                icono_red = R.drawable.facebook_icon,
+                                texto = metodos_contactos.facebook.nombre
+                            ) {
+                                openFacebook(
+                                    "Tienda",
+                                    context, metodos_contactos.facebook.url, id_tienda,
+                                    localidad_tienda, iduser
+                                )
+                            }
                         }
                     }
                 }
-            }
 
+            }
         }
     }
     if (call_dialog_permise) {
@@ -1508,57 +1637,55 @@ fun Expandible_qr_tienda(
 ) {
     val context = LocalContext.current
 
-//    // 🔥 ESTADO FUERA DEL AnimatedVisibility
-//    var qrBitmap by rememberSaveable { mutableStateOf<Bitmap?>(null) }
-//
-//    // 🔥 Se genera UNA sola vez cuando el ID es válido
-//    LaunchedEffect(generar_qr_tienda_id) {
-//        if (generar_qr_tienda_id.isBlank()) return@LaunchedEffect
-//        if (qrBitmap != null) return@LaunchedEffect
-//
-//        qrBitmap = withContext(Dispatchers.Default) {
-//            generarQrBitmapAltaCalidad(context, generar_qr_tienda_id)
-//        }
-//    }
-
-    Cartas_expandibles(modifier = modifier) {
+    ContenedorSeccion(modifier = modifier) {
         Column {
-            expandibles_wrapp(
-                texto_params = "Cuéntanos tu experiencia",
-                iconRes = null,
-                iconVector = Icons.Filled.Star,
-                expandido = expandido,
-                onClickExpand = onClickExpand
-            )
-        }
-
-        // 👇 AnimatedVisibility SOLO controla UI
-        AnimatedVisibility(visible = expandido) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
-                qrBitmap?.let {
-                    Image(
-                        bitmap = it.asImageBitmap(),
-                        contentDescription = "QR",
-                        modifier = Modifier
-                            .size(220.dp)
-                            .clip(RoundedCornerShape(28.dp)),
-                        contentScale = ContentScale.Fit
+            Cartas_expandibles(modifier = Modifier.fillMaxWidth()) {
+                Column {
+                    expandibles_wrapp(
+                        texto_params = "Cuéntanos tu experiencia",
+                        iconRes = null,
+                        iconVector = Icons.Filled.Star,
+                        expandido = expandido,
+                        onClickExpand = onClickExpand
                     )
                 }
+            }
 
-                Spacer(modifier = Modifier.height(8.dp))
+            // 👇 AnimatedVisibility SOLO controla UI
+            AnimatedVisibility(visible = expandido) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
 
-                texto_generico_multilinea(
-                    "¡Tu opinión cuenta! Escanea este código con Geinz y deja tu reseña sobre tu experiencia. Geinz verificará tu ubicación para confirmar que estuviste aquí y mantener reseñas auténticas.",
-                    MaterialTheme.typography.bodyMedium,
-                    Color = androidx.compose.ui.graphics.Color.White
-                )
+                    qrBitmap?.let {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(28.dp))
+                                .background(Color.White)
+                                .padding(14.dp)
+                        ) {
+                            Image(
+                                bitmap = it.asImageBitmap(),
+                                contentDescription = "QR",
+                                modifier = Modifier
+                                    .size(200.dp)
+                                    .clip(RoundedCornerShape(18.dp)),
+                                contentScale = ContentScale.Fit
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    texto_generico_multilinea(
+                        "¡Tu opinión cuenta! Escanea este código con Geinz y deja tu reseña sobre tu experiencia. Geinz verificará tu ubicación para confirmar que estuviste aquí y mantener reseñas auténticas.",
+                        MaterialTheme.typography.bodyMedium,
+                        Color = androidx.compose.ui.graphics.Color.White
+                    )
+                }
             }
         }
     }
@@ -1574,105 +1701,109 @@ fun item_metodos_de_pago(
     var mostrar_dialog_pagos by remember { mutableStateOf(false) }
     var metodoPagoSeleccionado by remember { mutableStateOf(item_metodos_pago()) }
 
-    Cartas_expandibles(modifier = modifier) {
+    ContenedorSeccion(modifier = modifier) {
         Column {
-            expandibles_wrapp(
-                "Metodos de pago",
-                iconRes = null,
-                Icons.Default.Payment,
-                expandido,
-                onClickExpand
-            )
-        }
-        AnimatedVisibility(visible = expandido) {
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp, bottom = 20.dp),
-                contentPadding = PaddingValues(horizontal = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                if (metodos_pago.metodos_pago_tienda.yape.enable) {
-                    item {
-                        car_metodos_de_pago(
-                            img = R.drawable.yape_logo,
-                            nombre = "Yape"
-                        ) {
-                            if (metodos_pago.metodos_pago_tienda.yape.nombre.isNotEmpty() || metodos_pago.metodos_pago_tienda.yape.numero.isNotEmpty()) {
-
-                                mostrar_dialog_pagos = true
-                                metodoPagoSeleccionado = item_metodos_pago(
-                                    metodos_pago.metodos_pago_tienda.yape.qr,
-                                    metodos_pago.metodos_pago_tienda.yape.numero,
-                                    R.drawable.yape_logo,
-                                    "Yape",
-                                    metodos_pago.metodos_pago_tienda.yape.nombre,
-
-                                    )
-                            }
-                        }
-                    }
+            Cartas_expandibles(modifier = Modifier.fillMaxWidth()) {
+                Column {
+                    expandibles_wrapp(
+                        "Metodos de pago",
+                        iconRes = null,
+                        Icons.Default.Payment,
+                        expandido,
+                        onClickExpand
+                    )
                 }
-
-                if (metodos_pago.metodos_pago_tienda.plin.enable) {
-                    item {
-                        car_metodos_de_pago(
-                            img = R.drawable.logo_plin,
-                            nombre = "Plin"
-                        ) {
-                            if (metodos_pago.metodos_pago_tienda.plin.nombre.isNotEmpty() || metodos_pago.metodos_pago_tienda.plin.numero.isNotEmpty()) {
-                                mostrar_dialog_pagos = true
-                                metodoPagoSeleccionado = item_metodos_pago(
-                                    metodos_pago.metodos_pago_tienda.plin.qr,
-                                    metodos_pago.metodos_pago_tienda.plin.numero,
-                                    R.drawable.logo_plin,
-                                    "Plin",
-                                    metodos_pago.metodos_pago_tienda.plin.nombre,
-
-                                    )
-                            }
-                        }
-                    }
-                }
-
-                if (metodos_pago.metodos_pago_tienda.agora.enable) {
-                    item {
-                        car_metodos_de_pago(
-                            img = R.drawable.logo_agora,
-                            nombre = "Agora"
-                        ) { }
-                    }
-                }
-
-                if (metodos_pago.metodos_pago_tienda.efectivo.enable) {
-                    item {
-                        car_metodos_de_pago(
-                            img = 0,
-                            nombre = "Efectivo"
-                        ) { }
-                    }
-                }
-
-                if (metodos_pago.metodos_pago_tienda.visa_mastercard.enable) {
-                    item {
-                        car_metodos_de_pago(
-                            img = R.drawable.visa_logo,
-                            nombre = "Visa"
-                        ) { }
-                    }
-
-                    item {
-                        car_metodos_de_pago(
-                            img = R.drawable.master_car_logo,
-                            nombre = "Mastercard"
-                        ) { }
-                    }
-                }
-
-
             }
-        }
+            AnimatedVisibility(visible = expandido) {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp, bottom = 16.dp),
+                    contentPadding = PaddingValues(horizontal = 14.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    if (metodos_pago.metodos_pago_tienda.yape.enable) {
+                        item {
+                            car_metodos_de_pago(
+                                img = R.drawable.yape_logo,
+                                nombre = "Yape"
+                            ) {
+                                if (metodos_pago.metodos_pago_tienda.yape.nombre.isNotEmpty() || metodos_pago.metodos_pago_tienda.yape.numero.isNotEmpty()) {
 
+                                    mostrar_dialog_pagos = true
+                                    metodoPagoSeleccionado = item_metodos_pago(
+                                        metodos_pago.metodos_pago_tienda.yape.qr,
+                                        metodos_pago.metodos_pago_tienda.yape.numero,
+                                        R.drawable.yape_logo,
+                                        "Yape",
+                                        metodos_pago.metodos_pago_tienda.yape.nombre,
+
+                                        )
+                                }
+                            }
+                        }
+                    }
+
+                    if (metodos_pago.metodos_pago_tienda.plin.enable) {
+                        item {
+                            car_metodos_de_pago(
+                                img = R.drawable.logo_plin,
+                                nombre = "Plin"
+                            ) {
+                                if (metodos_pago.metodos_pago_tienda.plin.nombre.isNotEmpty() || metodos_pago.metodos_pago_tienda.plin.numero.isNotEmpty()) {
+                                    mostrar_dialog_pagos = true
+                                    metodoPagoSeleccionado = item_metodos_pago(
+                                        metodos_pago.metodos_pago_tienda.plin.qr,
+                                        metodos_pago.metodos_pago_tienda.plin.numero,
+                                        R.drawable.logo_plin,
+                                        "Plin",
+                                        metodos_pago.metodos_pago_tienda.plin.nombre,
+
+                                        )
+                                }
+                            }
+                        }
+                    }
+
+                    if (metodos_pago.metodos_pago_tienda.agora.enable) {
+                        item {
+                            car_metodos_de_pago(
+                                img = R.drawable.logo_agora,
+                                nombre = "Agora"
+                            ) { }
+                        }
+                    }
+
+                    if (metodos_pago.metodos_pago_tienda.efectivo.enable) {
+                        item {
+                            car_metodos_de_pago(
+                                img = 0,
+                                nombre = "Efectivo"
+                            ) { }
+                        }
+                    }
+
+                    if (metodos_pago.metodos_pago_tienda.visa_mastercard.enable) {
+                        item {
+                            car_metodos_de_pago(
+                                img = R.drawable.visa_logo,
+                                nombre = "Visa"
+                            ) { }
+                        }
+
+                        item {
+                            car_metodos_de_pago(
+                                img = R.drawable.master_car_logo,
+                                nombre = "Mastercard"
+                            ) { }
+                        }
+                    }
+
+
+                }
+            }
+
+        }
     }
     if (mostrar_dialog_pagos) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -1689,9 +1820,14 @@ fun car_metodos_de_pago(img: Int, nombre: String, listener: () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
-
-            .padding(10.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .border(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                RoundedCornerShape(16.dp)
+            )
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(12.dp)
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }) {
@@ -1699,7 +1835,7 @@ fun car_metodos_de_pago(img: Int, nombre: String, listener: () -> Unit) {
             }
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(5.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
             horizontalAlignment = Alignment.CenterHorizontally
 
         ) {
@@ -1748,28 +1884,43 @@ fun item_metodo_contacto(
     click_icon: () -> Unit
 ) {
     var context = LocalContext.current
-    spacer_vertical(5.dp)
-    Row(modifier = Modifier.fillMaxWidth()) {
+    spacer_vertical(4.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Row(
             modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(icono_red),
+            Box(
                 modifier = Modifier
+                    .size(36.dp)
                     .clip(CircleShape)
-                    .size(30.dp)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }) {
-                        if (clikeable_estado) {
-                            click_icon()
-                        } else {
-                            Toast.makeText(context, "Solo es prueva", Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                contentDescription = ""
-            )
+                    .background(MaterialTheme.colorScheme.surface),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(icono_red),
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .size(24.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }) {
+                            if (clikeable_estado) {
+                                click_icon()
+                            } else {
+                                Toast.makeText(context, "Solo es prueva", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                    contentDescription = ""
+                )
+            }
             spacer_horizonta(10.dp)
             Text(
                 text = if (tipo.equals("whatsapp") || tipo.equals("llamada")) {
@@ -1783,20 +1934,26 @@ fun item_metodo_contacto(
                 overflow = TextOverflow.Ellipsis
             )
         }
-        spacer_horizonta(20.dp)
-        Image(
-            painter = painterResource(R.drawable.baseline_content_copy_24),
+        spacer_horizonta(14.dp)
+        Box(
             modifier = Modifier
-                .size(25.dp)
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surface)
                 .clickable {
                     constantestextos_general.copiarTexto_portapapeles_compouse(texto, context)
                 },
-            contentDescription = "",
-            colorFilter = ColorFilter.tint(Color.White)
-
-        )
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(R.drawable.baseline_content_copy_24),
+                modifier = Modifier.size(18.dp),
+                contentDescription = "",
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+            )
+        }
     }
-    spacer_vertical(10.dp)
+    spacer_vertical(8.dp)
 
 }
 
@@ -1809,7 +1966,7 @@ fun texto_expandido_wrapp_sin_max_line(
     Text(
         text = texto,
         color = MaterialTheme.colorScheme.onBackground,
-        style = style,
+        style = style.copy(lineHeight = style.fontSize * 1.4f),
         overflow = TextOverflow.Ellipsis
 
     )
@@ -1828,40 +1985,34 @@ fun Expandible_horario_atencion(
     onClickExpand: () -> Unit
 ) {
     Log.d("horario_atencion", "$horario_atencion")
-//    val horarioTienda by viewModelFiltros.horarioTienda.observeAsState(null)
-//    val horarioRecordado = remember(horarioTienda) { horarioTienda }
-
 
     var cargado by remember { mutableStateOf(false) }
 
-//    LaunchedEffect(expandido) {
-//        if (expandido && !cargado) {
-//            viewModelFiltros.obtenerHorarioPorTienda(localidad_tienda!!, id_tienda)
-//            cargado = true
-//        }
-//    }
-    Cartas_expandibles(modifier = modifier) {
-        Column() {
-            expandibles_wrapp(
-                "Horario de atención",
-                iconRes = R.drawable.horario_tienda_vector,
-                null,
-                expandido,
-                onClickExpand
-            )
-            AnimatedVisibility(visible = expandido) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .animateContentSize()
-                ) {
-                    texto_generico_multilinea(
-                        "El horario mostrado corresponde al horario continuo .Si se maneja turnos divididos —por ejemplo, mañana y tarde—, estos se reflejarán correctamente en el horario actualizado en tiempo real.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        Modifier.padding(horizontal = 10.dp)
-                    )
-                    spacer_vertical(5.dp)
-                    MostrarHorarioTienda(horario_atencion, estadoColor)
+    ContenedorSeccion(modifier = modifier) {
+        Cartas_expandibles(modifier = Modifier.fillMaxWidth()) {
+            Column() {
+                expandibles_wrapp(
+                    "Horario de atención",
+                    iconRes = R.drawable.horario_tienda_vector,
+                    null,
+                    expandido,
+                    onClickExpand
+                )
+                AnimatedVisibility(visible = expandido) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateContentSize()
+                            .padding(bottom = 8.dp)
+                    ) {
+                        texto_generico_multilinea(
+                            "El horario mostrado corresponde al horario continuo .Si se maneja turnos divididos —por ejemplo, mañana y tarde—, estos se reflejarán correctamente en el horario actualizado en tiempo real.",
+                            style = MaterialTheme.typography.bodySmall,
+                            Modifier.padding(horizontal = 14.dp)
+                        )
+                        spacer_vertical(8.dp)
+                        MostrarHorarioTienda(horario_atencion, estadoColor)
+                    }
                 }
             }
         }
@@ -1877,47 +2028,49 @@ fun expandible_comidades_aforo(
     expandido: Boolean,
     onClickExpand: () -> Unit
 ) {
-    Cartas_expandibles(modifier = modifier) {
-        Column {
-            expandibles_wrapp(
-                "Comodidades y aforo",
-                iconRes = null,
-                Icons.Filled.Wifi,
-                expandido,
-                onClickExpand
-            )
+    ContenedorSeccion(modifier = modifier) {
+        Cartas_expandibles(modifier = Modifier.fillMaxWidth()) {
+            Column {
+                expandibles_wrapp(
+                    "Comodidades y aforo",
+                    iconRes = null,
+                    Icons.Filled.Wifi,
+                    expandido,
+                    onClickExpand
+                )
 
-            AnimatedVisibility(visible = expandido) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .animateContentSize()
-                ) {
-
-                    texto_generico_multilinea(
-                        "Comodidades que $nombre_luga para ti",
-                        style = MaterialTheme.typography.bodyMedium,
-                        Modifier.padding(horizontal = 10.dp)
-                    )
-
-                    spacer_vertical(15.dp)
-
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                AnimatedVisibility(visible = expandido) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateContentSize()
                     ) {
-                        items(
-                            listaComodidades.filter { it.activo }
-                        ) { comodidad ->
-                            campos_atributos(
-                                tipo = comodidad.nombre,
-                                icono = comodidad.icono
-                            )
-                        }
-                    }
-                    spacer_vertical(15.dp)
 
-                    AforoCard(aforo.toInt())
+                        texto_generico_multilinea(
+                            "Comodidades que $nombre_luga para ti",
+                            style = MaterialTheme.typography.bodySmall,
+                            Modifier.padding(horizontal = 14.dp)
+                        )
+
+                        spacer_vertical(12.dp)
+
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 14.dp),
+                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            items(
+                                listaComodidades.filter { it.activo }
+                            ) { comodidad ->
+                                campos_atributos(
+                                    tipo = comodidad.nombre,
+                                    icono = comodidad.icono
+                                )
+                            }
+                        }
+                        spacer_vertical(14.dp)
+
+                        AforoCard(aforo.toInt())
+                    }
                 }
             }
         }
@@ -1929,43 +2082,48 @@ fun AforoCard(
     capacidadMax: Int,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier = Modifier.padding(10.dp)) {
+    Box(modifier = Modifier.padding(14.dp)) {
         Column(
             modifier = modifier
                 .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
                 .background(
-                    Color(0xFF1976D2),
-                    RoundedCornerShape(8.dp)
-                ) // azul con bordes redondeados
-                .padding(16.dp),
+                    Brush.horizontalGradient(
+                        colors = listOf(Color(0xFF1976D2), Color(0xFF1565C0))
+                    )
+                )
+                .padding(18.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Título
             Text(
                 text = "AFORO",
-                style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
+                style = MaterialTheme.typography.titleMedium.copy(
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
             )
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Subtítulo
             Text(
                 text = "CAPACIDAD MÁXIMA",
-                style = MaterialTheme.typography.bodyMedium.copy(color = Color.White)
+                style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Valor
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
+                    .clip(RoundedCornerShape(50))
                     .background(Color.White)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = 18.dp, vertical = 8.dp)
             ) {
                 Text(
                     text = "$capacidadMax personas",
-                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black)
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = Color(0xFF1565C0),
+                        fontWeight = FontWeight.SemiBold
+                    )
                 )
             }
         }
@@ -1978,9 +2136,13 @@ fun campos_atributos(
     tipo: String,
     icono: Int,
 ) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(9.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .width(74.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+            .padding(vertical = 10.dp, horizontal = 6.dp)
     ) {
         Image(
             painter = painterResource(id = icono),
@@ -1989,7 +2151,7 @@ fun campos_atributos(
                 .size(30.dp)
                 .clip(CircleShape)
         )
-
+        spacer_vertical(6.dp)
         texto_generico_one_line(
             tipo.capitalizeFirst(),
             style = MaterialTheme.typography.bodySmall
@@ -2018,7 +2180,7 @@ fun MostrarHorarioTienda(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp)
+            .padding(horizontal = 14.dp, vertical = 4.dp)
     ) {
         listaHorarios.forEach { (dia, horario) ->
             val esDiaActual = dia == diaActual
@@ -2026,13 +2188,18 @@ fun MostrarHorarioTienda(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(
+                        if (esDiaActual) estadoColor.copy(alpha = 0.10f) else Color.Transparent
+                    )
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = "${dia.replaceFirstChar { it.uppercase() }} : ",
+                    text = "${dia.replaceFirstChar { it.uppercase() }}",
                     style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = if (esDiaActual) FontWeight.SemiBold else FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier
+                    modifier = Modifier.width(90.dp)
                 )
 
                 val textoHorario = when {
@@ -2052,7 +2219,6 @@ fun MostrarHorarioTienda(
                         ) "Abierto las 24h" else texto
                     }
                 }
-                spacer_horizonta(7.dp)
 
                 Text(
                     text = textoHorario,
@@ -2062,17 +2228,16 @@ fun MostrarHorarioTienda(
                 )
 
                 if (esDiaActual) {
-
                     Box(
                         modifier = Modifier
-                            .padding(end = 10.dp)
-                            .size(12.dp)
+                            .padding(end = 4.dp)
+                            .size(10.dp)
                             .clip(CircleShape)
                             .background(estadoColor)
                     )
                 }
             }
-
+            spacer_vertical(2.dp)
         }
     }
 }
@@ -2199,7 +2364,6 @@ fun tienda_cercana() {
 }
 
 
-
 fun compartirLugarFirebaseHosttiendas(
     iduser: String,
     categoria: String,
@@ -2251,3 +2415,294 @@ fun compartirLugarFirebaseHosttiendas(
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// PROMOCIONES ACTIVAS — sección NO expandible, carrusel elegante
+// ─────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun SeccionPromocionesTienda(
+    estadoPromociones: viewModel_filtado_tiendas.carga_promociones,
+    onVerTodasClick: (id: String, data: String) -> Unit
+) {
+    val context = LocalContext.current
+
+    when (estadoPromociones) {
+
+        is viewModel_filtado_tiendas.carga_promociones.loading -> {
+            Column {
+                text_expandible_wrapp(
+                    modifier = Modifier.padding(
+                        horizontal = SeccionPaddingH,
+                        vertical = 2.dp
+                    ),
+                    "Promociones activas 🔥",
+                    MaterialTheme.typography.titleLarge
+                )
+
+                spacer_vertical(10.dp)
+
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = SeccionPaddingH),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(3) {
+                        card_promocion_loading()
+                    }
+                }
+
+                spacer_vertical(SeccionSpacing)
+            }
+        }
+
+        is viewModel_filtado_tiendas.carga_promociones.succes -> {
+
+            val promos = estadoPromociones.items
+
+            if (promos.isNotEmpty()) {
+
+                val idTienda = promos.first().id_tienda
+
+                Column {
+
+                    text_expandible_wrapp(
+                        modifier = Modifier.padding(
+                            horizontal = SeccionPaddingH,
+                            vertical = 2.dp
+                        ),
+                        "Promociones activas 🔥",
+                        MaterialTheme.typography.titleLarge
+                    )
+
+                    spacer_vertical(10.dp)
+
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = SeccionPaddingH),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+
+                        items(promos.take(4)) { promo ->
+                            card_promocion_tienda(
+                                promo = promo,
+                                context = context
+                            )
+                        }
+
+                        if (promos.size > 4) {
+                            item {
+                                card_ver_todas_promos(
+                                    onClick = {
+                                        onVerTodasClick(
+                                            idTienda,
+                                            "promociones_tienda"
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    spacer_vertical(SeccionSpacing)
+                }
+            }
+        }
+
+        is viewModel_filtado_tiendas.carga_promociones.empty -> Unit
+
+        is viewModel_filtado_tiendas.carga_promociones.error -> Unit
+    }
+}
+
+@Composable
+private fun card_promocion_tienda(promo: promocion_tienda, context: Context) {
+    Box(
+        modifier = Modifier
+            .width(168.dp)
+            .height(220.dp)
+            .clip(RoundedCornerShape(20.dp))
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(context)
+                .data(promo.lista_img)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .placeholder(R.drawable.cargando_img_categorias)
+                .error(R.drawable.cargando_img_categorias)
+                .build(),
+            contentDescription = promo.titulo,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .matchParentSize()
+                .clip(RoundedCornerShape(20.dp))
+        )
+
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clip(RoundedCornerShape(20.dp))
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.82f)),
+                        startY = 70f
+                    )
+                )
+        )
+
+        Text(
+            text = promo.titulo,
+            color = Color.White,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 12.dp, end = 12.dp, bottom = 54.dp)
+        )
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (promo.contactar_activo && promo.numero.isNotBlank()) {
+                Image(
+                    painter = painterResource(R.drawable.whatsapp_icon),
+                    contentDescription = "WhatsApp",
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .clickable { abrir_whatsapp_promocion(context, promo) },
+                )
+
+            }
+
+            if (promo.compartir_activo) {
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.92f))
+                        .border(1.dp, Color.White.copy(alpha = 0.5f), CircleShape)
+                        .clickable { compartir_promocion_tienda(context, promo) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.compartir_icon_unico_blanco),
+                        contentDescription = "Compartir",
+                        modifier = Modifier.size(15.dp),
+                        colorFilter = ColorFilter.tint(Color.Black)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun card_promocion_loading() {
+    val transition = rememberInfiniteTransition(label = "shimmer_promo")
+    val alpha by transition.animateFloat(
+        initialValue = 0.30f,
+        targetValue = 0.75f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(900, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "shimmerAlpha"
+    )
+
+    Box(
+        modifier = Modifier
+            .width(168.dp)
+            .height(220.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        Color.Gray.copy(alpha = alpha * 0.4f),
+                        Color.Gray.copy(alpha = alpha),
+                        Color.Gray.copy(alpha = alpha * 0.4f)
+                    )
+                )
+            )
+    )
+}
+
+@Composable
+private fun card_ver_todas_promos(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .width(168.dp)
+            .height(220.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
+            .border(
+                1.dp,
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
+                RoundedCornerShape(20.dp)
+            )
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("+", color = Color.White, style = MaterialTheme.typography.headlineSmall)
+            }
+            spacer_vertical(10.dp)
+            Text(
+                "Ver todas\nlas promos",
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+private fun localidad_a_codigo(localidad: String): String = when (localidad.lowercase()) {
+    "barranca" -> "ba"
+    else -> localidad.take(2).lowercase()
+}
+
+private fun abrir_whatsapp_promocion(context: Context, promo: promocion_tienda) {
+    try {
+        val link =
+            "https://geinztech.com/api/share?t=prms&l=${localidad_a_codigo("barranca")}&pi=${promo.id_promocion}"
+        val mensaje = "${promo.msje_whatsapp} $link"
+        val numero = promo.numero.filter { it.isDigit() }
+        val url = "https://api.whatsapp.com/send?phone=51$numero&text=${
+            URLEncoder.encode(
+                mensaje,
+                "UTF-8"
+            )
+        }"
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    } catch (e: Exception) {
+        Toast.makeText(context, "No se pudo abrir WhatsApp", Toast.LENGTH_SHORT).show()
+    }
+}
+
+private fun compartir_promocion_tienda(context: Context, promo: promocion_tienda) {
+    try {
+        val link =
+            "https://geinztech.com/api/share?t=prms&l=${localidad_a_codigo("barranca")}&pi=${promo.id_promocion}"
+        val texto = "${promo.msje_compartir} $link"
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, texto)
+        }
+        context.startActivity(
+            Intent.createChooser(intent, "Compartir con").apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+        )
+    } catch (e: Exception) {
+        Toast.makeText(context, "Error al compartir la promoción", Toast.LENGTH_SHORT).show()
+    }
+}

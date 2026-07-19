@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
@@ -53,9 +54,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.toRoute
 import com.geinzz.geinzwork.Network_internet.ConnectivityViewModel
 import com.geinzz.geinzwork.data.model.FavoritosFactory
+import com.geinzz.geinzwork.data.model.dataclass_novedades.promociones_de_tienda
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.UiAction
 import com.geinzz.geinzwork.data.model.localizate_geinz.inicio_geinz.datos_principales_user
 import com.geinzz.geinzwork.data_store.data_store_localidad
+import com.geinzz.geinzwork.model.LocalNavController
 import com.geinzz.geinzwork.ui.adapters.ui.COMP_principal_filtrado.texto_generico_one_line
 import com.geinzz.geinzwork.ui.adapters.ui.loadings.pantalla_carga_login
 import com.geinzz.geinzwork.ui.adapters.ui.lugares_turisticos.pantalla_lugares_turisticos
@@ -407,317 +410,319 @@ fun nativationWrapper(
     val isConnected by connectivityViewModel.isConnected.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            bottomBar = {
-                AnimatedVisibility(
-                    visible = showBottomBar,
-                    enter = slideInVertically(
-                        initialOffsetY = { it },
-                        animationSpec = tween(
-                            durationMillis = 400,
-                            easing = FastOutSlowInEasing
+        CompositionLocalProvider(LocalNavController provides navController) {
+            Scaffold(
+                bottomBar = {
+                    AnimatedVisibility(
+                        visible = showBottomBar,
+                        enter = slideInVertically(
+                            initialOffsetY = { it },
+                            animationSpec = tween(
+                                durationMillis = 400,
+                                easing = FastOutSlowInEasing
+                            )
+                        ),
+                        exit = slideOutVertically(
+                            targetOffsetY = { it },
+                            animationSpec = tween(
+                                durationMillis = 400,
+                                easing = FastOutSlowInEasing
+                            )
                         )
-                    ),
-                    exit = slideOutVertically(
-                        targetOffsetY = { it },
-                        animationSpec = tween(
-                            durationMillis = 400,
-                            easing = FastOutSlowInEasing
-                        )
-                    )
-                ) {
-                    bottom_navigation(
-                        uiActionVM,
-                        isConnected,
-                        datos_principales_user = datos_principales_user,
-                        navController = navController,
-                        crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
-                        iniciar_seccion = { navController.navigate("login_principal") })
+                    ) {
+                        bottom_navigation(
+                            uiActionVM,
+                            isConnected,
+                            datos_principales_user = datos_principales_user,
+                            navController = navController,
+                            crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
+                            iniciar_seccion = { navController.navigate("login_principal") })
 
-                }
-            },
-        ) { innerPadding ->
-            HandleBackPress(navController)
-            NavHost(
-                navController = navController,
-                startDestination = "pantalla_principal",
-                modifier = Modifier.padding(innerPadding),
-                enterTransition = {
-                    fadeIn(animationSpec = tween(300)) +
-                            slideInHorizontally(
-                                initialOffsetX = { fullWidth -> fullWidth / 4 },
-                                animationSpec = tween(300, easing = FastOutSlowInEasing)
-                            )
+                    }
                 },
-                exitTransition = {
-                    fadeOut(animationSpec = tween(300)) +
-                            slideOutHorizontally(
-                                targetOffsetX = { fullWidth -> -fullWidth / 4 },
-                                animationSpec = tween(300, easing = FastOutSlowInEasing)
-                            )
-                },
-                popEnterTransition = {
-                    fadeIn(animationSpec = tween(300)) +
-                            slideInHorizontally(
-                                initialOffsetX = { fullWidth -> -fullWidth / 4 },
-                                animationSpec = tween(300, easing = FastOutSlowInEasing)
-                            )
-                },
-                popExitTransition = {
-                    fadeOut(animationSpec = tween(300)) +
-                            slideOutHorizontally(
-                                targetOffsetX = { fullWidth -> fullWidth / 4 },
-                                animationSpec = tween(300, easing = FastOutSlowInEasing)
-                            )
-                }
-            ) {
-                // Pantalla principal
-                composable("pantalla_principal") {
-                    pantalla_principal(
-                        deepLinkVM = deepLinkVM,
-                        isConnected = isConnected,
-                        datos_principales_user = datos_principales_user,
-                        categorias = { localidad, nombre ->
-                            navController.navigate(
-                                mostrar_tiendas(
-                                    nombre,
-                                    localidad
+            ) { innerPadding ->
+                HandleBackPress(navController)
+                NavHost(
+                    navController = navController,
+                    startDestination = "pantalla_principal",
+                    modifier = Modifier.padding(innerPadding),
+                    enterTransition = {
+                        fadeIn(animationSpec = tween(300)) +
+                                slideInHorizontally(
+                                    initialOffsetX = { fullWidth -> fullWidth / 4 },
+                                    animationSpec = tween(300, easing = FastOutSlowInEasing)
                                 )
-                            )
-                        },
-                        clikear_cartas = { categoria, localidad, nombre_user ->
-                            Log.d("categoriass", "$categoria $nombre_user $localidad")
-                            if (categoria.equals("turismo")) {
+                    },
+                    exitTransition = {
+                        fadeOut(animationSpec = tween(300)) +
+                                slideOutHorizontally(
+                                    targetOffsetX = { fullWidth -> -fullWidth / 4 },
+                                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                                )
+                    },
+                    popEnterTransition = {
+                        fadeIn(animationSpec = tween(300)) +
+                                slideInHorizontally(
+                                    initialOffsetX = { fullWidth -> -fullWidth / 4 },
+                                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                                )
+                    },
+                    popExitTransition = {
+                        fadeOut(animationSpec = tween(300)) +
+                                slideOutHorizontally(
+                                    targetOffsetX = { fullWidth -> fullWidth / 4 },
+                                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                                )
+                    }
+                ) {
+                    // Pantalla principal
+                    composable("pantalla_principal") {
+                        pantalla_principal(
+                            deepLinkVM = deepLinkVM,
+                            isConnected = isConnected,
+                            datos_principales_user = datos_principales_user,
+                            categorias = { localidad, nombre ->
+                                navController.navigate(
+                                    mostrar_tiendas(
+                                        nombre,
+                                        localidad
+                                    )
+                                )
+                            },
+                            clikear_cartas = { categoria, localidad, nombre_user ->
+                                Log.d("categoriass", "$categoria $nombre_user $localidad")
+                                if (categoria.equals("turismo")) {
+                                    navController.navigate(lugares_turisticos(localidad))
+                                } else {
+                                    navController.navigate(
+                                        screen_filtrado(
+                                            categoria,
+                                            localidad,
+                                            nombre_user,
+                                        )
+                                    )
+                                }
+
+                            },
+                            ver_lugares = { localidad ->
                                 navController.navigate(lugares_turisticos(localidad))
-                            } else {
+                            },
+                            listner_busqueda = {
+                                navController.navigate("buscar")
+                            },
+                            listener_seguridad = { localida ->
+                                navController.navigate(ui_salud_seguridad(localida))
+                            },
+                            listner_sevicios_tramites = { localidad, id ->
+                                navController.navigate(ui_servicios_tramites(localidad))
+                            },
+                            abrir_guardar_datos = {
+                                //                                                    enviar_notificacion_lista_dispo(
+                                //                                                        id_user,
+                                //                                                        "Mira ese nuevo negocio en geinz notificacion de prueva ",
+                                //                                                        "Encuentralo a unos pasos cerca de ti "
+                                //                                                    )
+//                                                    navController.navigate(ui_agregar_lugares)
+                                //   navController.navigate(agregar_pripiedads)
+
+                                //                            navController.navigate(map_box)
+                                //                            pasar_teindas_nuevas()
+
+                            },
+                            mostrar_panel_geinz = { navController.navigate(login_scios) },
+                            mostar_nuevos_lugares_geinz = { localidad ->
+                                navController.navigate(nuevos_negocios_geinz(localidad))
+                            },
+                            iniciar_seccion = { navController.navigate("login_principal") },
+                            crear_cuenta = {
+                                navController.navigate(crear_cuenta_geinz("crear"))
+                            },
+                            abir_butom_Var = { isvisble_buttomvar = true },
+                            cerrar_buttom_var = { isvisble_buttomvar = false },
+                            onback_preset = {
+                                navController.popBackStack()
+//                                navController.navigate("pantalla_principal") {
+//                                    popUpTo("pantalla_principal") {
+//                                        inclusive = true
+//                                    }
+//                                    launchSingleTop = true
+//                                }
+                            }, geinz_inmobiliaria = { localidad, id ->
+                                //                            navController.navigate(geinz_inmobiliaria(localidad_selec = localidad))
+                                navController.navigate(promociones_y_ofertas(localidad, id))
+
+                            }, navegacion_para_promos = { localidad, id_prmo ->
+                                navController.navigate(promociones_y_ofertas(localidad, id_prmo))
+                            }
+                        )
+                    }
+                    // Login
+                    composable("login_principal") {
+                        if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
+                            cuenta_user(
+                                isConnected = isConnected,
+                                viewModel_login_user = viewModel_login_user,
+                                correo_registrado = correo_registrado,
+                                navController = navController,
+                                terminar_configurar = { correo_google ->
+                                    navController.navigate(crear_cuenta_geinz(correo_google))
+                                }, click_login_ver_socio = {
+                                    navController.navigate(login_scios)
+                                })
+                        } else {
+                            IniciarSeccion(
+                                viewModel_login_user, navController,
+                                { tipo_cuenta ->
+                                    navController.navigate(crear_cuenta_geinz(tipo_cuenta))
+                                },
+                            )
+                        }
+                    }
+
+                    composable("buscar") {
+                        ui_pantalla_busqueda(
+                            isConnected,
+                            viewmodelMapa,
+                            viewModelLugares,
+                            localida_defauld = datos_principales_user,
+                            focusRequester = focusRequester,
+                            ocultar = {
+                                isvisble_buttomvar = false
+                            }, estado_mostar = isvisble_buttomvar, iniciar_seccion_normal = {
+                                navController.navigate("login_principal")
+                            }, crear_cuenta_geinz = {
+                                navController.navigate(crear_cuenta_geinz("crear"))
+                            }, abrir_mapa = { tipo ->
+                                navController.navigate(
+                                    map_perzonalizado(
+                                        tipo,
+                                        "barranca",
+                                        null,
+                                        null,
+                                        null
+                                    )
+                                )
+                            }, crear_cuenta = {
+                                navController.navigate(crear_cuenta_geinz("crear"))
+                            }, iniciar_seccion = {
+                                navController.navigate("login_principal")
+                            })
+
+
+                    }
+
+                    composable("favoritos") {
+                        iu_favoritos(
+                            isConnected,
+                            viewModelFiltros = viewModel_filtrado_tiendas,
+                            viewmodelFavoritos = viewmodelFavoritos,
+                            datos_principales_user = datos_principales_user,
+                            empty_select_chip = { nombre, categoria, localidad ->
+                                Log.d("adsd13413rdwF", "$nombre $categoria $localidad")
                                 navController.navigate(
                                     screen_filtrado(
                                         categoria,
                                         localidad,
-                                        nombre_user,
+                                        nombre,
                                     )
                                 )
-                            }
-
-                        },
-                        ver_lugares = { localidad ->
-                            navController.navigate(lugares_turisticos(localidad))
-                        },
-                        listner_busqueda = {
-                            navController.navigate("buscar")
-                        },
-                        listener_seguridad = { localida ->
-                            navController.navigate(ui_salud_seguridad(localida))
-                        },
-                        listner_sevicios_tramites = { localidad, id ->
-                            navController.navigate(ui_servicios_tramites(localidad))
-                        },
-                        abrir_guardar_datos = {
-                            //                                                    enviar_notificacion_lista_dispo(
-                            //                                                        id_user,
-                            //                                                        "Mira ese nuevo negocio en geinz notificacion de prueva ",
-                            //                                                        "Encuentralo a unos pasos cerca de ti "
-                            //                                                    )
-//                                                    navController.navigate(ui_agregar_lugares)
-                            //   navController.navigate(agregar_pripiedads)
-
-                            //                            navController.navigate(map_box)
-                            //                            pasar_teindas_nuevas()
-
-                        },
-                        mostrar_panel_geinz = { navController.navigate(login_scios) },
-                        mostar_nuevos_lugares_geinz = { localidad ->
-                            navController.navigate(nuevos_negocios_geinz(localidad))
-                        },
-                        iniciar_seccion = { navController.navigate("login_principal") },
-                        crear_cuenta = {
-                            navController.navigate(crear_cuenta_geinz("crear"))
-                        },
-                        abir_butom_Var = { isvisble_buttomvar = true },
-                        cerrar_buttom_var = { isvisble_buttomvar = false },
-                        onback_preset = {
-                            navController.navigate("pantalla_principal") {
-                                popUpTo("pantalla_principal") {
-                                    inclusive = true
-                                }
-                                launchSingleTop = true
-                            }
-                        }, geinz_inmobiliaria = { localidad, id ->
-                            //                            navController.navigate(geinz_inmobiliaria(localidad_selec = localidad))
-                            navController.navigate(promociones_y_ofertas(localidad, id))
-
-                        }, navegacion_para_promos = { localidad, id_prmo ->
-                            navController.navigate(promociones_y_ofertas(localidad, id_prmo))
-                        }
-                    )
-                }
-                // Login
-                composable("login_principal") {
-                    if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
-                        cuenta_user(
-                            isConnected = isConnected,
-                            viewModel_login_user = viewModel_login_user,
-                            correo_registrado = correo_registrado,
-                            navController = navController,
-                            terminar_configurar = { correo_google ->
-                                navController.navigate(crear_cuenta_geinz(correo_google))
-                            }, click_login_ver_socio = {
-                                navController.navigate(login_scios)
+                            },
+                            mostar_butom_var = {
+                                isvisble_buttomvar = true
+                            },
+                            ocultar_buttom_var = {
+                                isvisble_buttomvar = false
                             })
-                    } else {
-                        IniciarSeccion(
-                            viewModel_login_user, navController,
-                            { tipo_cuenta ->
-                                navController.navigate(crear_cuenta_geinz(tipo_cuenta))
+                    }
+
+
+                    // Explorar tiendas
+                    composable<mostrar_tiendas> { navback ->
+                        val datos_user = navback.toRoute<mostrar_tiendas>()
+                        PantallaExplorarTiendas(
+                            localidadUser = datos_user.localidad,
+                            nombreUser = datos_user.nombre_user,
+                            viewModel = viewModel_localizate_geinz,
+                            clik_img = { categoria, localidada, nombre_user ->
+                                if (categoria.equals("turismo")) {
+                                    navController.navigate(lugares_turisticos(localidada))
+                                    return@PantallaExplorarTiendas
+                                } else {
+                                    navController.navigate(
+                                        screen_filtrado(
+                                            categoria,
+                                            localidada,
+                                            nombre_user
+                                        )
+                                    )
+                                }
+
+
+                            }
+                        )
+                    }
+                    composable<nuevos_negocios_geinz> { navback ->
+                        val datos = navback.toRoute<nuevos_negocios_geinz>()
+                        nuevos_negocios(
+                            verificar_inter = isConnected,
+                            localida_select = datos.localidad,
+                            crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
+                            iniciar_normal = { navController.navigate("login_principal") })
+                    }
+                    composable<lugares_turisticos> { navback ->
+                        val datos_lugares_turisticos = navback.toRoute<lugares_turisticos>()
+                        pantalla_lugares_turisticos(
+                            "",
+                            isConnected,
+                            viewmodelMapa = viewmodelMapa,
+                            localidad_selecionada = datos_lugares_turisticos.localidad,
+                            viewmodel_lugares_turisticos = viewModelLugares,
+                            abrir_mapa = { tipo, nombre_lugar, lat, lng ->
+                                navController.navigate(
+                                    map_perzonalizado(
+                                        tipo,
+                                        "barranca",
+                                        nombre_lugar,
+                                        lat,
+                                        lng
+                                    )
+                                )
+                            }, crear_cuenta = {
+                                navController.navigate(crear_cuenta_geinz("crear"))
+                            }, navigation_regresar = {
+                                navController.popBackStack()
+                            }, iniciar_seccion = {
+                                navController.navigate("login_principal")
+                            })
+                    }
+                    composable<promociones_y_ofertas> { navback ->
+                        val datos = navback.toRoute<promociones_y_ofertas>()
+                        ui_promos_cerca_de_ti(
+                            "","",
+                            "clik_directo",
+                            activar_promo_params = datos.id_promo,
+                            localidad = datos.localidad,
+                            ids = datos.ids,  // ← null si no vienen, la pantalla decide qué hacer
+                            verificar_intener = isConnected,
+                            iniciar_seccion = {
+                                bottom_sheet_iniciar_seccion = true
+                            },
+                            crear_cuenta = {
+                                navController.navigate(crear_cuenta_geinz("crear"))
+                            },
+                            onBack = {
+                                navController.popBackStack()
+//                                navController.navigate("pantalla_principal") {
+//                                    popUpTo("pantalla_principal") {
+//                                        inclusive = true
+//                                    }
+//                                    launchSingleTop = true
+//                                }
                             },
                         )
                     }
-                }
-
-                composable("buscar") {
-                    ui_pantalla_busqueda(
-                        isConnected,
-                        viewmodelMapa,
-                        viewModelLugares,
-                        localida_defauld = datos_principales_user,
-                        focusRequester = focusRequester,
-                        ocultar = {
-                            isvisble_buttomvar = false
-                        }, estado_mostar = isvisble_buttomvar, iniciar_seccion_normal = {
-                            navController.navigate("login_principal")
-                        }, crear_cuenta_geinz = {
-                            navController.navigate(crear_cuenta_geinz("crear"))
-                        }, abrir_mapa = { tipo ->
-                            navController.navigate(
-                                map_perzonalizado(
-                                    tipo,
-                                    "barranca",
-                                    null,
-                                    null,
-                                    null
-                                )
-                            )
-                        }, crear_cuenta = {
-                            navController.navigate(crear_cuenta_geinz("crear"))
-                        }, iniciar_seccion = {
-                            navController.navigate("login_principal")
-                        })
-
-
-                }
-
-                composable("favoritos") {
-                    iu_favoritos(
-                        isConnected,
-                        viewModelFiltros = viewModel_filtrado_tiendas,
-                        viewmodelFavoritos = viewmodelFavoritos,
-                        datos_principales_user = datos_principales_user,
-                        empty_select_chip = { nombre, categoria, localidad ->
-                            Log.d("adsd13413rdwF", "$nombre $categoria $localidad")
-                            navController.navigate(
-                                screen_filtrado(
-                                    categoria,
-                                    localidad,
-                                    nombre,
-                                )
-                            )
-                        },
-                        mostar_butom_var = {
-                            isvisble_buttomvar = true
-                        },
-                        ocultar_buttom_var = {
-                            isvisble_buttomvar = false
-                        })
-                }
-
-
-                // Explorar tiendas
-                composable<mostrar_tiendas> { navback ->
-                    val datos_user = navback.toRoute<mostrar_tiendas>()
-                    PantallaExplorarTiendas(
-                        localidadUser = datos_user.localidad,
-                        nombreUser = datos_user.nombre_user,
-                        viewModel = viewModel_localizate_geinz,
-                        clik_img = { categoria, localidada, nombre_user ->
-                            if (categoria.equals("turismo")) {
-                                navController.navigate(lugares_turisticos(localidada))
-                                return@PantallaExplorarTiendas
-                            } else {
-                                navController.navigate(
-                                    screen_filtrado(
-                                        categoria,
-                                        localidada,
-                                        nombre_user
-                                    )
-                                )
-                            }
-
-
-                        }
-                    )
-                }
-                composable<nuevos_negocios_geinz> { navback ->
-                    val datos = navback.toRoute<nuevos_negocios_geinz>()
-                    nuevos_negocios(
-                        verificar_inter = isConnected,
-                        localida_select = datos.localidad,
-                        crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
-                        iniciar_normal = { navController.navigate("login_principal") })
-                }
-                composable<lugares_turisticos> { navback ->
-                    val datos_lugares_turisticos = navback.toRoute<lugares_turisticos>()
-                    pantalla_lugares_turisticos(
-                        "",
-                        isConnected,
-                        viewmodelMapa = viewmodelMapa,
-                        localidad_selecionada = datos_lugares_turisticos.localidad,
-                        viewmodel_lugares_turisticos = viewModelLugares,
-                        abrir_mapa = { tipo, nombre_lugar, lat, lng ->
-                            navController.navigate(
-                                map_perzonalizado(
-                                    tipo,
-                                    "barranca",
-                                    nombre_lugar,
-                                    lat,
-                                    lng
-                                )
-                            )
-                        }, crear_cuenta = {
-                            navController.navigate(crear_cuenta_geinz("crear"))
-                        }, navigation_regresar = {
-                            navController.popBackStack()
-                        }, iniciar_seccion = {
-                            navController.navigate("login_principal")
-                        })
-                }
-
-                composable<promociones_y_ofertas> { navback ->
-                    val datos = navback.toRoute<promociones_y_ofertas>()
-                    ui_promos_cerca_de_ti(
-                        "clik_directo",
-                        activar_promo_params = datos.id_promo,
-                        localidad = datos.localidad,
-                        ids = datos.ids,  // ← null si no vienen, la pantalla decide qué hacer
-                        verificar_intener = isConnected,
-                        iniciar_seccion = {
-                            bottom_sheet_iniciar_seccion = true
-                        },
-                        crear_cuenta = {
-                            navController.navigate(crear_cuenta_geinz("crear"))
-                        },
-                        onBack = {
-                            navController.navigate("pantalla_principal") {
-                                popUpTo("pantalla_principal") {
-                                    inclusive = true
-                                }
-                                launchSingleTop = true
-                            }
-                        },
-                    )
-                }
-
-                composable<map_perzonalizado> { navback ->
-                    val direcciones = navback.toRoute<map_perzonalizado>()
+                    composable<map_perzonalizado> { navback ->
+                        val direcciones = navback.toRoute<map_perzonalizado>()
 //                    pantalla_mapa_perzonalizado(
 //                        id_respado_user,
 //                        verificar_intener = isConnected,
@@ -728,109 +733,102 @@ fun nativationWrapper(
 //                        tipo = direcciones.tipo,
 //                        localidad = direcciones.localidad
 //                    )
-                    SimpleMapDark(
-                        direcciones.nombre, direcciones.latitud, direcciones.lng,
-                        viewmodelMapa,
-                        direcciones.localidad,
-                        id_respado_user,
-                        direcciones.tipo,
-                        isConnected,
-                        viewModelLugares,
-                        viewModel_filtrado_tiendas,
-                        viewmode_segurirdad_Salud
-                    )
+                        SimpleMapDark(
+                            direcciones.nombre, direcciones.latitud, direcciones.lng,
+                            viewmodelMapa,
+                            direcciones.localidad,
+                            id_respado_user,
+                            direcciones.tipo,
+                            isConnected,
+                            viewModelLugares,
+                            viewModel_filtrado_tiendas,
+                            viewmode_segurirdad_Salud
+                        )
 
-                }
-
-                composable<screen_filtrado> { navBackStackEntry ->
-                    val categoria_localidad = navBackStackEntry.toRoute<screen_filtrado>()
-                    Pantalla_filtrado_tiendas(
-                        id_tienda = "",
-                        verificar_intener = isConnected,
-                        viewmodelFavoritos = viewmodelFavoritos,
-                        viewModelFiltros = viewModel_filtrado_tiendas,
-                        categoria = categoria_localidad.categoria,
-                        localida = categoria_localidad.localidad,
-                        nombre_user = categoria_localidad.nombre_user,
-                        navigation_regresar = {
-                            viewModel_filtrado_tiendas.limpiarFiltros()
-                            navController.popBackStack()
-                        },
-                        abrir_mapa = { tipo, localidad ->
-                            if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
+                    }
+                    composable<screen_filtrado> { navBackStackEntry ->
+                        val categoria_localidad = navBackStackEntry.toRoute<screen_filtrado>()
+                        Pantalla_filtrado_tiendas(
+                            id_tienda = "",
+                            verificar_intener = isConnected,
+                            viewmodelFavoritos = viewmodelFavoritos,
+                            viewModelFiltros = viewModel_filtrado_tiendas,
+                            categoria = categoria_localidad.categoria,
+                            localida = categoria_localidad.localidad,
+                            nombre_user = categoria_localidad.nombre_user,
+                            navigation_regresar = {
+                                viewModel_filtrado_tiendas.limpiarFiltros()
+                                navController.popBackStack()
+                            },
+                            abrir_mapa = { tipo, localidad ->
+                                if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
+                                    navController.navigate(
+                                        map_perzonalizado(
+                                            tipo,
+                                            localidad,
+                                            null,
+                                            null,
+                                            null
+                                        )
+                                    )
+                                } else {
+                                    bottom_sheet_iniciar_seccion = true
+                                }
+                            },
+                            iniciar_normal = {
+                                navController.navigate("login_principal")
+                            },
+                            con_google = {
+                                navController.navigate("login_principal")
+                            },
+                            crear_cuenta = {
+                                navController.navigate(crear_cuenta_geinz("crear"))
+                            }, navController = navController
+                        )
+                    }
+                    composable<login_scios> {
+                        login_socios(
+                            isConnected,
+                            "",
+                            navController,
+                            datos_user?.localida ?: "indefinida"
+                        )
+                    }
+                    composable<crear_cuenta_geinz> { navback ->
+                        val tipo_crear_cuenta = navback.toRoute<crear_cuenta_geinz>()
+                        login_principal(
+                            viewModel_login_user,
+                            tipo_crear_cuenta.tipo_completado,
+                            navController
+                        )
+                    }
+                    composable<ui_salud_seguridad> { navback ->
+                        val salud_Seguridad = navback.toRoute<ui_salud_seguridad>()
+                        ui_salud_seguirdad(
+                            isConnected,
+                            datos_user?.nombre ?: "", id_respado_user,
+                            viewmode_segurirdad_Salud,
+                            localida = salud_Seguridad.localidad,
+                            abrir_mapa = { latitud, longitud ->
                                 navController.navigate(
                                     map_perzonalizado(
-                                        tipo,
-                                        localidad,
+                                        "seguridad",
+                                        "",
                                         null,
                                         null,
                                         null
                                     )
                                 )
-                            } else {
-                                bottom_sheet_iniciar_seccion = true
-                            }
-                        },
-                        iniciar_normal = {
-                            navController.navigate("login_principal")
-                        },
-                        con_google = {
-                            navController.navigate("login_principal")
-                        },
-                        crear_cuenta = {
-                            navController.navigate(crear_cuenta_geinz("crear"))
-                        }, navController = navController
-                    )
-                }
 
-                composable<login_scios> {
-                    login_socios(
-                        isConnected,
-                        "",
-                        navController,
-                        datos_user?.localida ?: "indefinida"
-                    )
-                }
-
-                composable<crear_cuenta_geinz> { navback ->
-                    val tipo_crear_cuenta = navback.toRoute<crear_cuenta_geinz>()
-                    login_principal(
-                        viewModel_login_user,
-                        tipo_crear_cuenta.tipo_completado,
-                        navController
-                    )
-                }
-
-                composable<ui_salud_seguridad> { navback ->
-                    val salud_Seguridad = navback.toRoute<ui_salud_seguridad>()
-                    ui_salud_seguirdad(
-                        isConnected,
-                        datos_user?.nombre ?: "", id_respado_user,
-                        viewmode_segurirdad_Salud,
-                        localida = salud_Seguridad.localidad,
-                        abrir_mapa = { latitud, longitud ->
-                            navController.navigate(
-                                map_perzonalizado(
-                                    "seguridad",
-                                    "",
-                                    null,
-                                    null,
-                                    null
-                                )
-                            )
-
-                        })
-                }
-
-                composable<ui_agregar_lugares> {
-                    datos_teindas()
-                }
-
-
-                composable<agregar_pripiedads> {
-                    agregar_propiedades()
-                }
-                composable<map_box> {
+                            })
+                    }
+                    composable<ui_agregar_lugares> {
+                        datos_teindas()
+                    }
+                    composable<agregar_pripiedads> {
+                        agregar_propiedades()
+                    }
+                    composable<map_box> {
 //                    SimpleMapDark(
 //                        "barranca",
 //                        id_respado_user,
@@ -840,164 +838,186 @@ fun nativationWrapper(
 //                        viewModel_filtrado_tiendas,
 //                        viewmode_segurirdad_Salud
 //                    )
-                }
-                composable<ui_servicios_tramites> { navback ->
-                    val servicio = navback.toRoute<ui_servicios_tramites>()
-                    ui_servicio_tramite(isConnected, servicio.localidad, id_respado_user)
-                }
+                    }
+                    composable<ui_servicios_tramites> { navback ->
+                        val servicio = navback.toRoute<ui_servicios_tramites>()
+                        ui_servicio_tramite(isConnected, servicio.localidad, id_respado_user)
+                    }
+                    composable(
+                        route = "mostrar_tiendas/{localidad}/{idLugar}/{categoria}",
+                    ) { backStackEntry ->
+                        val localidad = Uri.decode(
+                            backStackEntry.arguments?.getString("localidad") ?: ""
+                        )
 
-                composable(
-                    route = "mostrar_tiendas/{localidad}/{idLugar}/{categoria}",
-                ) { backStackEntry ->
-
-                    val localidad = Uri.decode(
-                        backStackEntry.arguments?.getString("localidad") ?: ""
-                    )
-
-                    val idLugar = backStackEntry.arguments?.getString("idLugar") ?: ""
+                        val idLugar = backStackEntry.arguments?.getString("idLugar") ?: ""
 
 
-                    val categoria = URLDecoder.decode(
-                        backStackEntry.arguments?.getString("categoria") ?: "",
-                        "UTF-8"
-                    )
-                    Pantalla_filtrado_tiendas(
-                        id_tienda = idLugar,
-                        verificar_intener = isConnected,
-                        viewmodelFavoritos = viewmodelFavoritos,
-                        viewModelFiltros = viewModel_filtrado_tiendas,
-                        categoria = categoria,           // 👈 YA NORMAL
-                        localida = localidad,             // 👈 YA NORMAL
-                        nombre_user = "",
-                        navigation_regresar = {
-                            viewModel_filtrado_tiendas.limpiarFiltros()
-                            navController.popBackStack()
-                        },
-                        abrir_mapa = { tipo, loc ->
-                            if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
+                        val categoria = URLDecoder.decode(
+                            backStackEntry.arguments?.getString("categoria") ?: "",
+                            "UTF-8"
+                        )
+                        Pantalla_filtrado_tiendas(
+                            id_tienda = idLugar,
+                            verificar_intener = isConnected,
+                            viewmodelFavoritos = viewmodelFavoritos,
+                            viewModelFiltros = viewModel_filtrado_tiendas,
+                            categoria = categoria,           // 👈 YA NORMAL
+                            localida = localidad,             // 👈 YA NORMAL
+                            nombre_user = "",
+                            navigation_regresar = {
+                                viewModel_filtrado_tiendas.limpiarFiltros()
+                                navController.popBackStack()
+                            },
+                            abrir_mapa = { tipo, loc ->
+                                if (firebaseAuth.currentUser != null || id_respado_user.isNotEmpty()) {
+                                    navController.navigate(
+                                        map_perzonalizado(
+                                            tipo,
+                                            loc,
+                                            null,
+                                            null,
+                                            null
+                                        )
+                                    )
+                                } else {
+                                    bottom_sheet_iniciar_seccion = true
+                                }
+                            },
+                            iniciar_normal = {
+                                navController.navigate("login_principal")
+                            },
+                            con_google = {
+                                navController.navigate("login_principal")
+                            },
+                            crear_cuenta = {
+                                navController.navigate(crear_cuenta_geinz("crear"))
+                            },
+                            navController = navController
+                        )
+                    }
+
+                    composable<promociones_de_tienda> { navback ->
+                        val datos = navback.toRoute<promociones_de_tienda>()
+
+                        ui_promos_cerca_de_ti(
+                            id_tienda_pasada = datos.id_tienda, data = datos.parametros,
+                            flag_identificador = "clik_directo",
+                            activar_promo_params = "",
+                            localidad = datos.localidad,
+                            ids = null,  // ← null si no vienen, la pantalla decide qué hacer
+                            verificar_intener = isConnected,
+                            iniciar_seccion = {
+                                bottom_sheet_iniciar_seccion = true
+                            },
+                            crear_cuenta = {
+                                navController.navigate(crear_cuenta_geinz("crear"))
+                            },
+                            onBack = {
+                                navController.popBackStack()
+                            //                                navController.navigate("pantalla_principal") {
+                            //                                    popUpTo("pantalla_principal") {
+                            //                                        inclusive = true
+                            //                                    }
+                            //                                    launchSingleTop = true
+                            //                                }
+                            },
+                        )
+                    }
+
+                    composable("lugares_turisticos") {
+                        pantalla_lugares_turisticos(
+                            "",
+                            isConnected,
+                            viewmodelMapa,
+                            "barranca",
+                            viewModelLugares,
+                            abrir_mapa = { tipo, nombre, lat, lng ->
                                 navController.navigate(
                                     map_perzonalizado(
                                         tipo,
-                                        loc,
+                                        "barranca",
+                                        nombre,
+                                        lat,
+                                        lng
+                                    )
+                                )
+                            },
+                            crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
+                            navigation_regresar = { navController.popBackStack() },
+                            iniciar_seccion = { navController.navigate("login_principal") }
+                        )
+                    }
+                    composable("salud_y_seguridad") {
+                        ui_salud_seguirdad(
+                            isConnected,
+                            datos_user?.nombre ?: "",
+                            id_respado_user,
+                            viewmode_segurirdad_Salud,
+                            localida = "barranca",
+                            abrir_mapa = { latitud, longitud ->
+                                navController.navigate(
+                                    map_perzonalizado(
+                                        "seguridad",
+                                        "",
                                         null,
                                         null,
                                         null
                                     )
                                 )
-                            } else {
+
+                            })
+                    }
+                    composable("nuevos_negocios") {
+                        nuevos_negocios(
+                            verificar_inter = isConnected,
+                            localida_select = "barranca",
+                            crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
+                            iniciar_normal = { navController.navigate("login_principal") })
+                    }
+                    composable("servicios_y_tramites") {
+                        ui_servicio_tramite(isConnected, "barranca", id_respado_user)
+                    }
+                    composable("promocionar_ads") {
+                        login_socios(
+                            isConnected,
+                            "envio",
+                            navController,
+                            datos_user?.localida ?: "indefinida"
+                        )
+                    }
+                    composable("promocionar_rec") {
+                        login_socios(
+                            isConnected,
+                            "recargas",
+                            navController,
+                            datos_user?.localida ?: "indefinida"
+                        )
+                    }
+                    composable("promocionar_rec") {
+                        login_socios(
+                            isConnected,
+                            "envio",
+                            navController,
+                            datos_user?.localida ?: "indefinida"
+                        )
+                    }
+                    composable("promociones_nuevas") {
+                        ui_promos_cerca_de_ti(
+                            "","",
+                            "promociones_nuevas",
+                            activar_promo_params = id_promo_params,
+                            localidad = "barranca",
+                            ids = null,  // ← sin ids en esta ruta
+                            verificar_intener = isConnected,
+                            iniciar_seccion = {
                                 bottom_sheet_iniciar_seccion = true
-                            }
-                        },
-                        iniciar_normal = {
-                            navController.navigate("login_principal")
-                        },
-                        con_google = {
-                            navController.navigate("login_principal")
-                        },
-                        crear_cuenta = {
-                            navController.navigate(crear_cuenta_geinz("crear"))
-                        },
-                        navController = navController
-                    )
-                }
-
-                composable("lugares_turisticos") {
-                    pantalla_lugares_turisticos(
-                        "",
-                        isConnected,
-                        viewmodelMapa,
-                        "barranca",
-                        viewModelLugares,
-                        abrir_mapa = { tipo, nombre, lat, lng ->
-                            navController.navigate(
-                                map_perzonalizado(
-                                    tipo,
-                                    "barranca",
-                                    nombre,
-                                    lat,
-                                    lng
-                                )
-                            )
-                        },
-                        crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
-                        navigation_regresar = { navController.popBackStack() },
-                        iniciar_seccion = { navController.navigate("login_principal") }
-                    )
-                }
-
-                composable("salud_y_seguridad") {
-                    ui_salud_seguirdad(
-                        isConnected,
-                        datos_user?.nombre ?: "",
-                        id_respado_user,
-                        viewmode_segurirdad_Salud,
-                        localida = "barranca",
-                        abrir_mapa = { latitud, longitud ->
-                            navController.navigate(
-                                map_perzonalizado(
-                                    "seguridad",
-                                    "",
-                                    null,
-                                    null,
-                                    null
-                                )
-                            )
-
-                        })
-                }
-
-
-                composable("nuevos_negocios") {
-                    nuevos_negocios(
-                        verificar_inter = isConnected,
-                        localida_select = "barranca",
-                        crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
-                        iniciar_normal = { navController.navigate("login_principal") })
-                }
-                composable("servicios_y_tramites") {
-                    ui_servicio_tramite(isConnected, "barranca", id_respado_user)
-                }
-
-                composable("promocionar_ads") {
-                    login_socios(
-                        isConnected,
-                        "envio",
-                        navController,
-                        datos_user?.localida ?: "indefinida"
-                    )
-                }
-                composable("promocionar_rec") {
-                    login_socios(
-                        isConnected,
-                        "recargas",
-                        navController,
-                        datos_user?.localida ?: "indefinida"
-                    )
-                }
-
-                composable("promocionar_rec") {
-                    login_socios(
-                        isConnected,
-                        "envio",
-                        navController,
-                        datos_user?.localida ?: "indefinida"
-                    )
-                }
-                composable("promociones_nuevas") {
-                    ui_promos_cerca_de_ti(
-                        "promociones_nuevas",
-                        activar_promo_params = id_promo_params,
-                        localidad = "barranca",
-                        ids = null,  // ← sin ids en esta ruta
-                        verificar_intener = isConnected,
-                        iniciar_seccion = {
-                            bottom_sheet_iniciar_seccion = true
-                        },
-                        crear_cuenta = {
-                            navController.navigate(crear_cuenta_geinz("crear"))
-                        },
-                        onBack = {
-                            navController.popBackStack()
+                            },
+                            crear_cuenta = {
+                                navController.navigate(crear_cuenta_geinz("crear"))
+                            },
+                            onBack = {
+                                navController.popBackStack()
 
 //                            navController.navigate("pantalla_principal") {
 //                                popUpTo("pantalla_principal") {
@@ -1005,112 +1025,106 @@ fun nativationWrapper(
 //                                }
 //                                launchSingleTop = true
 //                            }
-                        }
-                    )
-                }
-                composable<geinz_inmobiliaria> { navback ->
+                            }
+                        )
+                    }
+                    composable<geinz_inmobiliaria> { navback ->
 
-                    val servicio = navback.toRoute<geinz_inmobiliaria>()
+                        val servicio = navback.toRoute<geinz_inmobiliaria>()
 
-                    pantalla_geinz_inmobiliaria(
-                        viewmodel_mapa_inmobilia,
-                        viewmodel = viewmodel_inmobiliaria,
-                        nombre_user = datos_user?.nombre ?: "",
-                        coneccion = isConnected,
-                        localidad_user = servicio.localidad_selec,
-                        ver_detalles_completos = { id, localidad, nombre ->
-                            navController.navigate(
-                                datos_completros_inmobiliaria(
-                                    id,
-                                    localidad,
-                                    nombre
+                        pantalla_geinz_inmobiliaria(
+                            viewmodel_mapa_inmobilia,
+                            viewmodel = viewmodel_inmobiliaria,
+                            nombre_user = datos_user?.nombre ?: "",
+                            coneccion = isConnected,
+                            localidad_user = servicio.localidad_selec,
+                            ver_detalles_completos = { id, localidad, nombre ->
+                                navController.navigate(
+                                    datos_completros_inmobiliaria(
+                                        id,
+                                        localidad,
+                                        nombre
+                                    )
                                 )
-                            )
 
 
-                        },
-                        ver_lugares_mapa = {
-                            navController.navigate(abrir_mapa_inmobiliara)
-                        }
-                    )
-                }
-
-
-                composable<datos_completros_inmobiliaria> { navback ->
-                    val datos = navback.toRoute<datos_completros_inmobiliaria>()
-                    ui_info_imobiliara(
-                        viewmodel_mapa_inmobilia,
-                        viewmodelMapa = viewmodelMapa,
-                        viewmodel_lugares_turisticos = viewModelLugares,
-                        verificar_inter = isConnected,
-                        viewModel = viewmodel_inmobiliaria,
-                        id = datos.id,
-                        localidad = datos.localidad,
-                        nombre_user = datos.nombre_user,
-                        iniciar_seccion = { navController.navigate(crear_cuenta_geinz("crear")) },
-                        crear_cuenta = { navController.navigate("login_principal") },
-                        abrir_mapa = { tipo, img, lat, lng ->
-                            navController.navigate(
-                                map_perzonalizado(
-                                    tipo = tipo,
-                                    localidad = "barranca",
-                                    nombre = img,
-                                    latitud = lat,
-                                    lng = lng
+                            },
+                            ver_lugares_mapa = {
+                                navController.navigate(abrir_mapa_inmobiliara)
+                            }
+                        )
+                    }
+                    composable<datos_completros_inmobiliaria> { navback ->
+                        val datos = navback.toRoute<datos_completros_inmobiliaria>()
+                        ui_info_imobiliara(
+                            viewmodel_mapa_inmobilia,
+                            viewmodelMapa = viewmodelMapa,
+                            viewmodel_lugares_turisticos = viewModelLugares,
+                            verificar_inter = isConnected,
+                            viewModel = viewmodel_inmobiliaria,
+                            id = datos.id,
+                            localidad = datos.localidad,
+                            nombre_user = datos.nombre_user,
+                            iniciar_seccion = { navController.navigate(crear_cuenta_geinz("crear")) },
+                            crear_cuenta = { navController.navigate("login_principal") },
+                            abrir_mapa = { tipo, img, lat, lng ->
+                                navController.navigate(
+                                    map_perzonalizado(
+                                        tipo = tipo,
+                                        localidad = "barranca",
+                                        nombre = img,
+                                        latitud = lat,
+                                        lng = lng
+                                    )
                                 )
-                            )
 
-                        },
-                        {
-                            navController.navigate(abrir_mapa_inmobiliara)
-                        }
-                    )
-                }
+                            },
+                            {
+                                navController.navigate(abrir_mapa_inmobiliara)
+                            }
+                        )
+                    }
+                    composable<abrir_mapa_inmobiliara> {
+                        mapa_inmobilia(
+                            id_respado_user,
+                            viewModelLugares,
+                            viewmodelMapa,
+                            viewModel_filtrado_tiendas,
+                            isConnected,
+                            viewmodel_mapa_inmobilia,
+                            iniciar_seccion = {},
+                            crear_cuenta = {}
+                        )
+                    }
+                    composable(
+                        route = "lugares_turisticos/{localidad}/{idLugar}",
+                    ) { backStackEntry ->
+                        val localidad = backStackEntry.arguments?.getString("localidad") ?: ""
+                        val idLugar = backStackEntry.arguments?.getString("idLugar") ?: ""
 
-                composable<abrir_mapa_inmobiliara> {
-                    mapa_inmobilia(
-                        id_respado_user,
-                        viewModelLugares,
-                        viewmodelMapa,
-                        viewModel_filtrado_tiendas,
-                        isConnected,
-                        viewmodel_mapa_inmobilia,
-                        iniciar_seccion = {},
-                        crear_cuenta = {}
-                    )
-                }
-
-
-                composable(
-                    route = "lugares_turisticos/{localidad}/{idLugar}",
-                ) { backStackEntry ->
-                    val localidad = backStackEntry.arguments?.getString("localidad") ?: ""
-                    val idLugar = backStackEntry.arguments?.getString("idLugar") ?: ""
-
-                    pantalla_lugares_turisticos(
-                        idLugar,
-                        isConnected,
-                        viewmodelMapa = viewmodelMapa,
-                        localidad_selecionada = localidad,
-                        viewmodel_lugares_turisticos = viewModelLugares,
-                        abrir_mapa = { tipo, nombre, lat, lng ->
-                            navController.navigate(
-                                map_perzonalizado(
-                                    tipo,
-                                    "barranca",
-                                    nombre,
-                                    lat,
-                                    lng
+                        pantalla_lugares_turisticos(
+                            idLugar,
+                            isConnected,
+                            viewmodelMapa = viewmodelMapa,
+                            localidad_selecionada = localidad,
+                            viewmodel_lugares_turisticos = viewModelLugares,
+                            abrir_mapa = { tipo, nombre, lat, lng ->
+                                navController.navigate(
+                                    map_perzonalizado(
+                                        tipo,
+                                        "barranca",
+                                        nombre,
+                                        lat,
+                                        lng
+                                    )
                                 )
-                            )
-                        },
-                        crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
-                        navigation_regresar = { navController.popBackStack() },
-                        iniciar_seccion = { navController.navigate("login_principal") }
-                    )
+                            },
+                            crear_cuenta = { navController.navigate(crear_cuenta_geinz("crear")) },
+                            navigation_regresar = { navController.popBackStack() },
+                            iniciar_seccion = { navController.navigate("login_principal") }
+                        )
+                    }
                 }
-
-
             }
         }
         AnimatedVisibility(

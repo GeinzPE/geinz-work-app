@@ -35,6 +35,22 @@ data class tiendas_filtradas(
 
 )
 
+data class promocion_tienda(
+    val id_promocion: String = "",
+    val id_tienda: String = "",
+    val nombre_tienda: String = "",
+    val titulo: String = "",
+    val descripcion: String = "",
+    val categoria: String = "",
+    val numero: String = "",
+    val logo_img: String = "",
+    val lista_img: String = "",
+    val msje_whatsapp: String = "",
+    val msje_compartir: String = "",
+    val contactar_activo: Boolean = true,
+    val compartir_activo: Boolean = true
+)
+
 data class item_metodos_pago(
     val codigo_qr: String = "",
     val numero_String: String = "",
