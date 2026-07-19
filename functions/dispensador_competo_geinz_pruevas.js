@@ -1230,7 +1230,7 @@ exports.geinz_procesar_buffer = onRequest(
           const { resultado: respuestaGeinz, tokens: tokensGeinz } =
             await llamarGeminiGeinz(mensajeFinal, nombre_user);
 
-         const contextoActualizadoGeinz = {   
+          const contextoActualizadoGeinz = {
             ...limpiarCamposPromoDelContexto(contextoUsuario),
             tipo: "GEINZ",
             categoria: null,
@@ -1392,14 +1392,15 @@ exports.geinz_procesar_buffer = onRequest(
           });
         }
 
-   if (categoria === "CONTINUIDAD_INFO") {
+        if (categoria === "CONTINUIDAD_INFO") {
           // 👇 Guard: CONTINUIDAD_INFO solo tiene sentido si el contexto
           // previo es realmente de un negocio (tipo NEGOCIO) y tiene id o
           // nombre. Si el clasificador se equivocó (ej: el contexto venía
           // de GEINZ/TURISMO/PROMOCIONES) esto evita arrastrar un negocio
           // viejo o inexistente — se redirige como búsqueda nueva de negocio.
+          const tiposValidosParaContinuidad = ["NEGOCIO", "PROMOCIONES"];
           if (
-            contextoUsuario?.tipo !== "NEGOCIO" ||
+            !tiposValidosParaContinuidad.includes(contextoUsuario?.tipo) ||
             (!contextoUsuario?.id && !contextoUsuario?.nombre)
           ) {
             console.warn(
@@ -1453,7 +1454,8 @@ exports.geinz_procesar_buffer = onRequest(
                 negocio: resultadoTiendaFallback.tokens_usados,
                 total_tokens_combinado:
                   tokensClasificador.total_tokens +
-                  (resultadoTiendaFallback.tokens_usados?.total_tokens_combinado || 0),
+                  (resultadoTiendaFallback.tokens_usados
+                    ?.total_tokens_combinado || 0),
               },
               tiempo_ms: tiempo_ms_fallback,
             });
@@ -1589,7 +1591,7 @@ exports.geinz_procesar_buffer = onRequest(
               categoria: null,
               id: null,
               nombre: null, // 👈 limpiar explícitamente lo heredado
-               subcategoria: null, 
+              subcategoria: null,
               extra:
                 "ESPERANDO_NOMBRE_PROMO: se le pidió al usuario un nombre de negocio o categoría para buscar promociones",
             };
@@ -1630,7 +1632,7 @@ exports.geinz_procesar_buffer = onRequest(
               categoria: null,
               id: null,
               nombre: null,
-              subcategoria: null, 
+              subcategoria: null,
               extra:
                 "pedi al usuario otro nombre o categoria para darle las promociones",
             };
