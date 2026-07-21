@@ -146,7 +146,8 @@ import kotlin.text.isNotEmpty
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun Pantalla_filtrado_tiendas(
-    id_tienda:String,
+    flag: String,
+    id_tienda: String,
     verificar_intener: Boolean,
     viewmodelFavoritos: viewModel_favoritos,
     viewModelFiltros: viewModel_filtado_tiendas,
@@ -163,6 +164,7 @@ fun Pantalla_filtrado_tiendas(
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val context = LocalContext.current
+    var id_tienda_actual by remember { mutableStateOf(id_tienda) }
 //    val datosTienda by viewModelFiltros._datos_tienda.observeAsState(emptyList())
     val estadoTiendaFree by viewModelFiltros._datos_tienda_sin_pago.observeAsState(
         viewModel_filtado_tiendas.carga_tiendas_sin_pago.loading_tiendas_free
@@ -171,7 +173,10 @@ fun Pantalla_filtrado_tiendas(
         viewModelFiltros._Tiendas_filtradas_por_categoria.collectAsState(carga_tiendas.loading).value
 
     val categoria_filtrado = viewModelFiltros._subcategoria_lis.collectAsState(emptyList())
-
+    remember(categoria, localida) {
+        viewModelFiltros.resetear_estado_categoria()
+        true
+    }
     var mostrandoCargaGlobal by remember { mutableStateOf(true) }
     var showBottomSheet by remember { mutableStateOf(false) }
 
@@ -179,7 +184,7 @@ fun Pantalla_filtrado_tiendas(
     var estadoColor by remember { mutableStateOf(Color.Gray) }
     var existe by remember { mutableStateOf(false) }
     var id_tienda_selecionada by remember {
-        mutableStateOf(if (id_tienda.isNotEmpty()) id_tienda else "")
+        mutableStateOf(if (id_tienda_actual.isNotEmpty()) id_tienda_actual else "")
     }
     var categoria_seleccionda by rememberSaveable { mutableStateOf("") }
     var dataclass_tienda_seleccionada by remember { mutableStateOf(modelo_tienda()) }
@@ -200,7 +205,7 @@ fun Pantalla_filtrado_tiendas(
     var lista_base_seguridad by remember { mutableStateOf(emptyList<tiendas_por_categoria>()) }
     var datos_mostar_datos by remember { mutableStateOf(crear_qr_rutas()) }
     var showDialog_qr by remember { mutableStateOf(false) }
-var generador_qr by remember { mutableStateOf("") }
+    var generador_qr by remember { mutableStateOf("") }
     val lista_datos_tiendas by viewModelFiltros._datos__tiendas.observeAsState(emptyList())
     var mostrandoCarga_free by remember { mutableStateOf(false) }
     var yaInicializado by remember { mutableStateOf(false) }
@@ -214,17 +219,17 @@ var generador_qr by remember { mutableStateOf("") }
             subCategoriaSeleccionada != "Todos" && hayTiendas
         }
     }
-    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = "")
-    var id_respado_user by remember { mutableStateOf("") }
+    val uid_respald_user by data_store_localidad.get_uid_user(context).collectAsState(initial = null)
+    var id_respado_user by remember { mutableStateOf("") }       // sigue siendo String, como antes
+    var usuarioResuelto by remember { mutableStateOf(false) }
 //
     var texto_falta_registra by remember { mutableStateOf("") }
-
+    var verificandoSesionWhatsapp by remember { mutableStateOf(false) }
     LaunchedEffect(uid_respald_user) {
-        if (uid_respald_user.isNotEmpty()) {
-            id_respado_user = uid_respald_user
-            Log.d("UID_DataStore", "✅ Recuperado UID válido desde DataStore: $id_respado_user")
-        } else {
-            id_respado_user = ""
+        if (uid_respald_user != null) {
+            id_respado_user = uid_respald_user ?: ""
+            usuarioResuelto = true
+            Log.d("UID_DataStore", "✅ Recuperado UID desde DataStore: $id_respado_user")
         }
     }
 
@@ -251,22 +256,21 @@ var generador_qr by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         mostrandoCargaGlobal = true
-
-        // Si NO hay filtros activos → cargamos toda la lista desde cero
         if (subCategoriaSeleccionada == "Todos" && texto_filtrado.isEmpty()) {
             viewModelFiltros.obtener_tiendas_filtradas(localida, categoria)
         } else {
-            // Si hay filtros → aplicamos filtrado
             viewModelFiltros.aplicarFiltrosAlRegresar()
         }
-
-        // Siempre actualizamos las subcategorías
         viewModelFiltros.get_subcategorias_sola(categoria)
     }
 
     BackHandler {
+        id_tienda_actual = ""
+        id_tienda_selecionada = ""
+        verificandoSesionWhatsapp = false
         navigation_regresar()
     }
+
     LaunchedEffect(texto_filtrado) {
         if (texto_filtrado.isNotEmpty()) {
             Log.d("texto_filtrado", texto_filtrado)
@@ -368,6 +372,7 @@ var generador_qr by remember { mutableStateOf("") }
             is carga_tiendas.loading -> {
                 mostrandoCargaGlobal = true
             }
+
             is carga_tiendas.succes,
             is carga_tiendas.error,
             is carga_tiendas.empty -> {
@@ -375,28 +380,47 @@ var generador_qr by remember { mutableStateOf("") }
             }
         }
     }
-    LaunchedEffect(id_tienda) {
-        Log.d("LaunchedEffect_ID", "ID recibido: $id_tienda")
+    LaunchedEffect(id_tienda_actual, usuarioResuelto) {
+        Log.d("LaunchedEffect_ID", "ID recibido: $id_tienda_actual ,$flag (resuelto=$usuarioResuelto)")
 
-        if (id_tienda.isNotEmpty()) {
-            Log.d("LaunchedEffect_ID", "ID no vacío, mostrando bottom sheet")
-            try {
-                delay(5000L)
-                showBottomSheet=true
-                bottom_shet_tienda=true
-            } catch (e: Exception) {
-                Log.e("LaunchedEffect_ID", "Error obteniendo datos del lugar turístico", e)
+        if (flag == "desde_whatsapp" && id_tienda_actual.isNotEmpty()) {
+
+            // Apenas hay flag + ID, prendemos el overlay de verificación
+            verificandoSesionWhatsapp = true
+
+            if (!usuarioResuelto) {
+                // Todavía no sabemos si hay usuario o no.
+                // El overlay se queda visible; este efecto se re-ejecuta
+                // automáticamente cuando usuarioResuelto pase a true.
+                return@LaunchedEffect
             }
+
+            try {
+                if (id_respado_user.isNotEmpty()) {
+                    Log.d("LaunchedEffect_ID", "ID no vacío, mostrando bottom sheet")
+                    showBottomSheet = true
+                    bottom_shet_tienda = true
+                } else {
+                    Log.d("LaunchedEffect_ID", "Desde WhatsApp sin usuario, mostrando registro")
+                    texto_falta_registra =
+                        "Regístrate para ver los detalles completos y las funciones exclusivas"
+                    bottom_sheet_iniciar_seccion = true
+                }
+            } finally {
+                // Ya se tomó la decisión → apagamos el overlay
+                verificandoSesionWhatsapp = false
+            }
+
         } else {
-            Log.d("LaunchedEffect_ID", "ID vacío, no se hace nada")
+            Log.d("LaunchedEffect_ID", "No viene desde WhatsApp o ID vacío, no se hace nada")
+            verificandoSesionWhatsapp = false
         }
     }
-
     LaunchedEffect(showDialog_qr) {
-        if(showDialog_qr){
+        if (showDialog_qr) {
             generador_qr = generar_qr_cordenadas_tienda.codificarCoordenadas_url(
-            datos_mostar_datos.lat, datos_mostar_datos.lng,datos_mostar_datos.id_teinda
-        )
+                datos_mostar_datos.lat, datos_mostar_datos.lng, datos_mostar_datos.id_teinda
+            )
         }
     }
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -420,11 +444,11 @@ var generador_qr by remember { mutableStateOf("") }
                         sub_categoria_selecionada = subCategoriaSeleccionada,
                         lista_subcategorias = lista_subcategorias,
                         expandir_carta = { expandir ->
-                        //                            visible_texfiel = expandir
+                            //                            visible_texfiel = expandir
                         },
                         selecionado = { categoria_selecionada ->
                             categoria_seleccionda = categoria_selecionada
-                        //                            subCategoriaSeleccionada = categoria_seleccionda
+                            //                            subCategoriaSeleccionada = categoria_seleccionda
                             viewModelFiltros.actualizarsubcategoria_filtrado(categoria_seleccionda)
                         })
                     Text_fiel_filtrado(existe, visibleTextField, texto_filtrado) {
@@ -479,7 +503,7 @@ var generador_qr by remember { mutableStateOf("") }
                                 horario_box = tienda.horario_tienda_box,
                                 verificar_interner = verificar_intener,
                                 localidad_user = localida,
-                                id_user = uid_respald_user,
+                                id_user = id_respado_user?:"",
                                 viewModelFiltros = viewModelFiltros,
                                 item_tiendas = tienda,
                                 abierto_cerrado = tienda.estaAbierto,
@@ -505,7 +529,8 @@ var generador_qr by remember { mutableStateOf("") }
                                 },
                                 mostrar_diaog_crear_ruta = { mostra, id_tienda, lat, ln, nomre_tienda ->
                                     showDialog_qr = mostra
-                                    datos_mostar_datos = crear_qr_rutas(id_tienda, lat, ln, nomre_tienda)
+                                    datos_mostar_datos =
+                                        crear_qr_rutas(id_tienda, lat, ln, nomre_tienda)
                                 }
                             )
                         }
@@ -591,6 +616,31 @@ var generador_qr by remember { mutableStateOf("") }
                 }
             }
         }
+        if (verificandoSesionWhatsapp) {
+            AnimatedVisibility(
+                visible = verificandoSesionWhatsapp,
+                enter = fadeIn(animationSpec = tween(200)),
+                exit = fadeOut(animationSpec = tween(200))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.35f))
+                        .zIndex(2f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = Color.White)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Verificando sesión...",
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
+        }
 
         AnimatedContent(
             targetState = when {
@@ -609,7 +659,7 @@ var generador_qr by remember { mutableStateOf("") }
             ) {
                 centrado_hori_vertical {
                     when (estado) {
-                        "loading" ->{}
+                        "loading" -> {}
                         "empty" -> {
                             Column() {
                                 texto_generico_one_line(
@@ -655,11 +705,11 @@ var generador_qr by remember { mutableStateOf("") }
                 }
             }
         }
-        if(!mostrandoCargaGlobal){
-        shadow_bottom_pantallas_generales(Modifier.align(Alignment.BottomCenter))
+        if (!mostrandoCargaGlobal) {
+            shadow_bottom_pantallas_generales(Modifier.align(Alignment.BottomCenter))
         }
     }
-    if(showDialog_qr){
+    if (showDialog_qr) {
         dialog_qr_tienda(
             qr = generador_qr,
             nombre_tienda = datos_mostar_datos.nombre_tienda,
@@ -672,7 +722,7 @@ var generador_qr by remember { mutableStateOf("") }
 
     if (mostar_bottom_sheet_ayuda_geinz) {
         bottom_sheet_ayudanos_a_creccer(
-            id_respado_user,
+            id_respado_user?:"",
             verificar_intener,
             ultimaLocalidad ?: "barranca",
             { mostar_bottom_sheet_ayuda_geinz = false }, viewModelFiltros
@@ -692,7 +742,7 @@ var generador_qr by remember { mutableStateOf("") }
 
     AnimatedVisibility(visible = bottom_shet_tienda) {
         bottom_sheet_tiendas_filtradas(
-            id_tienda_selecionada,localida,
+            id_tienda_selecionada, localida,
             verificar_intener,
             viewModelFiltros,
 //            dataclass_tienda_seleccionada,
@@ -964,11 +1014,10 @@ fun Text_fiel_filtrado(
 }
 
 
-
 @Composable
 fun item_tiendas(
     context: Context,
-    generador_qr:String,
+    generador_qr: String,
     horario_box1: HorarioDia_box,
     horario_box: HorarioAtencion_box,
     verificar_interner: Boolean,
@@ -979,7 +1028,7 @@ fun item_tiendas(
     abierto_cerrado: Boolean,
     listener_botom_sheet: (id_tienda: String, showBottomSheet: Boolean, estado_color: Color, Boolean) -> Unit,
     dialog_sin_registrao: () -> Unit,
-    mostrar_diaog_crear_ruta:(Boolean, String, Double, Double,String)->Unit
+    mostrar_diaog_crear_ruta: (Boolean, String, Double, Double, String) -> Unit
 ) {
 
     // ✅ 1. favorito: solo lee el valor de ESTE id, no todo el mapa
@@ -1055,14 +1104,21 @@ fun item_tiendas(
 //                        mostrar_diaog_crear_ruta(true, item_tiendas.id_tienda, item_tiendas.latitud, item_tiendas.longitud, item_tiendas.nombre_tienda)
 //                    },
                     onTap = {
-                        listener_botom_sheet(item_tiendas.id_tienda, true, estadoColor, item_tiendas.pagado)
+                        listener_botom_sheet(
+                            item_tiendas.id_tienda,
+                            true,
+                            estadoColor,
+                            item_tiendas.pagado
+                        )
                     }
                 )
             },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().animateContentSize()
+            modifier = Modifier
+                .fillMaxWidth()
+                .animateContentSize()
         ) {
             Row(
                 modifier = Modifier.padding(7.dp),
@@ -1088,22 +1144,28 @@ fun item_tiendas(
                     spacer_vertical(5.dp)
                     AnimatedVisibility(!detalles_tienda && item_tiendas.metodos_pago_tienda != modelo_pagos_tienda()) {
                         Box(
-                            modifier = Modifier.width(80.dp).height(25.dp),
+                            modifier = Modifier
+                                .width(80.dp)
+                                .height(25.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             campos_de_pago(listState, item_tiendas.metodos_pago_tienda)
                             Box(
                                 modifier = Modifier
-                                    .fillMaxHeight().width(20.dp)
+                                    .fillMaxHeight()
+                                    .width(20.dp)
                                     .align(Alignment.CenterStart)
-                                    .zIndex(1f).alpha(alphaLeft)
+                                    .zIndex(1f)
+                                    .alpha(alphaLeft)
                                     .background(Brush.horizontalGradient(colors = strat_subcategoria_shadow))
                             )
                             Box(
                                 modifier = Modifier
-                                    .fillMaxHeight().width(20.dp)
+                                    .fillMaxHeight()
+                                    .width(20.dp)
                                     .align(Alignment.CenterEnd)
-                                    .zIndex(1f).alpha(alphaRight)
+                                    .zIndex(1f)
+                                    .alpha(alphaRight)
                                     .background(Brush.horizontalGradient(colors = end_subcategoria_shadow))
                             )
                         }
@@ -1161,7 +1223,8 @@ fun item_tiendas(
                                                 localidad_user, id_user, item_tiendas.id_tienda
                                             )
                                         } else {
-                                            estado_fv_btn = true // abre el dialog de confirmación para eliminar
+                                            estado_fv_btn =
+                                                true // abre el dialog de confirmación para eliminar
                                         }
                                     } else {
                                         dialog_sin_registrao()
@@ -1178,7 +1241,9 @@ fun item_tiendas(
 
             AnimatedVisibility(visible = detalles_tienda) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 10.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 10.dp)
                 ) {
                     Text(
                         text = "Descripcion : ${item_tiendas.descripcion}",

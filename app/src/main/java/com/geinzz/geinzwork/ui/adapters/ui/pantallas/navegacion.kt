@@ -209,6 +209,10 @@ fun nativationWrapper(
                                 )
                             )
                         }
+                        "serviciosHogar"->{
+                            navController.navigate(ui_servicios_tramites( action.localidad,action.campo_extra))
+
+                        }
 
                         else -> {
                             Log.d("UiAction", "Tipo de redirección no soportado")
@@ -514,7 +518,7 @@ fun nativationWrapper(
                                 navController.navigate(ui_salud_seguridad(localida))
                             },
                             listner_sevicios_tramites = { localidad, id ->
-                                navController.navigate(ui_servicios_tramites(localidad))
+                                navController.navigate(ui_servicios_tramites(localidad,""))
                             },
                             abrir_guardar_datos = {
                                 //                                                    enviar_notificacion_lista_dispo(
@@ -522,8 +526,8 @@ fun nativationWrapper(
                                 //                                                        "Mira ese nuevo negocio en geinz notificacion de prueva ",
                                 //                                                        "Encuentralo a unos pasos cerca de ti "
                                 //                                                    )
-//                                                    navController.navigate(ui_agregar_lugares)
-                                //   navController.navigate(agregar_pripiedads)
+//                                                   navController.navigate(ui_agregar_lugares)
+  //navController.navigate(agregar_pripiedads)
 
                                 //                            navController.navigate(map_box)
                                 //                            pasar_teindas_nuevas()
@@ -749,6 +753,7 @@ fun nativationWrapper(
                     composable<screen_filtrado> { navBackStackEntry ->
                         val categoria_localidad = navBackStackEntry.toRoute<screen_filtrado>()
                         Pantalla_filtrado_tiendas(
+                            "",
                             id_tienda = "",
                             verificar_intener = isConnected,
                             viewmodelFavoritos = viewmodelFavoritos,
@@ -841,7 +846,12 @@ fun nativationWrapper(
                     }
                     composable<ui_servicios_tramites> { navback ->
                         val servicio = navback.toRoute<ui_servicios_tramites>()
-                        ui_servicio_tramite(isConnected, servicio.localidad, id_respado_user)
+                        ui_servicio_tramite(
+                            alias = servicio.alias,
+                            verificar_intener = isConnected,
+                            localida = servicio.localidad,
+                            iduser = id_respado_user
+                        )
                     }
                     composable(
                         route = "mostrar_tiendas/{localidad}/{idLugar}/{categoria}",
@@ -858,6 +868,7 @@ fun nativationWrapper(
                             "UTF-8"
                         )
                         Pantalla_filtrado_tiendas(
+                            "desde_whatsapp",
                             id_tienda = idLugar,
                             verificar_intener = isConnected,
                             viewmodelFavoritos = viewmodelFavoritos,
@@ -976,7 +987,7 @@ fun nativationWrapper(
                             iniciar_normal = { navController.navigate("login_principal") })
                     }
                     composable("servicios_y_tramites") {
-                        ui_servicio_tramite(isConnected, "barranca", id_respado_user)
+                        ui_servicio_tramite("",isConnected, "barranca", id_respado_user)
                     }
                     composable("promocionar_ads") {
                         login_socios(

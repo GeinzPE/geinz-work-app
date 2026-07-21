@@ -746,7 +746,7 @@ fun ui_pantalla_busqueda(
                                         subcategoria = null,
                                         search = searchText.text,
                                         zona = zona_filtrada
-                                        )
+                                    )
                                 } else {
                                     Log.d("entramos123123", "2menor")
                                     viewModel.buscarItems(
@@ -853,13 +853,13 @@ fun ui_pantalla_busqueda(
 //                            easing = FastOutSlowInEasing
 //                        )
 //                    )
-                    modifier = Modifier .animateItem(
-                            placementSpec = tween(
-                                durationMillis = 450,
-                                easing = FastOutSlowInEasing
-                            )
+                    modifier = Modifier.animateItem(
+                        placementSpec = tween(
+                            durationMillis = 650,
+                            easing = FastOutSlowInEasing
                         )
-                ){
+                    )
+                ) {
 
                     ramdoBox(
                         viewModelFiltros,
@@ -1026,7 +1026,8 @@ fun ui_pantalla_busqueda(
 
         if (aler_dialog_contacto) {
             val (llamada, whatsapp, long) = datos_numeros_salud_seguridad
-            dialog_salud_seguridad_algolia(uid_respald_user,
+            dialog_salud_seguridad_algolia(
+                uid_respald_user,
                 long,
                 dialog_seguridad_salud_algolia(
                     whatsapp,
@@ -1044,7 +1045,8 @@ fun ui_pantalla_busqueda(
                 crear_ruta = { crear_ruta ->
                     dialog_Crear_ruta = false
                     if (crear_ruta && verificarUbiActiva(context)) {
-                        constantes_lista_localidades.abrir_google_maps(uid_respald_user,
+                        constantes_lista_localidades.abrir_google_maps(
+                            uid_respald_user,
                             "tienda", id_tienda_crear_ruta, localidad_tienda_crear_ruta,
                             context, latitud, longitud,
                         ) { dialogo ->
@@ -1102,7 +1104,8 @@ fun ui_pantalla_busqueda(
                     viewModel.guardar_datos_cambi_pantalla(datos_cambio_pantalla)
                 },
                 iniciar_seccion = { iniciar_seccion() },
-                crear_cuenta = { crear_cuenta() },id_lugar_turistico_select)
+                crear_cuenta = { crear_cuenta() }, id_lugar_turistico_select
+            )
         }
 
         if (mostrar_dialog_cambiar_radio) {
@@ -1150,7 +1153,8 @@ fun ui_pantalla_busqueda(
         }
 
         if (mostar_bottom_sheet_ayuda_geinz) {
-            bottom_sheet_ayudanos_a_creccer(uid_respald_user,
+            bottom_sheet_ayudanos_a_creccer(
+                uid_respald_user,
                 verificar_intener, ultimaLocalidad ?: "barranca",
                 { mostar_bottom_sheet_ayuda_geinz = false }, viewModelFiltros
             )
@@ -1175,8 +1179,8 @@ fun ui_pantalla_busqueda(
             zona_filtrada = zona_filtrada,           // ← agregar
             zona_seleccionada = { zona ->            // ← agregar
                 zona_filtrada = zona
-            },{
-                color_zona_select=!color_zona_select
+            }, {
+                color_zona_select = !color_zona_select
                 color_localidad = false
                 color_categoria = false
                 color_subcategoria = false
@@ -1191,7 +1195,7 @@ fun ui_pantalla_busqueda(
             color_localidad = color_localidad,
             color_subcategoria = color_subcategoria,
             color_salud_seguridad = color_salud_seguirdad,
-            color_zona=color_zona_select,
+            color_zona = color_zona_select,
             seguidad_salud = salud_seguirdad,
             viewModel = viewModel,
             viewModelFiltros = viewModelFiltros,
@@ -1293,15 +1297,15 @@ fun ui_pantalla_busqueda(
                 color_subcategoria = false
             }, filtrado_cerca_de_ti = { radio, hasing_user ->
                 Log.d("logemo13131232s", "${radio} $hasing_user")
-            //                viewModel.filtrar_por_radio(
-            //                    latUsuario, lonUsuario,
-            //                    radio,
-            //                    context,
-            //                    categoria_filtrad,
-            //                    subcategira_filtrado,
-            //                    cerca_de_ti_enable.value,
-            //                    hasing_user
-            //                )
+                //                viewModel.filtrar_por_radio(
+                //                    latUsuario, lonUsuario,
+                //                    radio,
+                //                    context,
+                //                    categoria_filtrad,
+                //                    subcategira_filtrado,
+                //                    cerca_de_ti_enable.value,
+                //                    hasing_user
+                //                )
                 radio_cambiado = radio
                 hasing_user_user_filtrado = hasing_user
             }, fun_cerca_de_ti_enable = { it ->

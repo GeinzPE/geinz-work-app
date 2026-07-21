@@ -145,6 +145,7 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     val horariosTiendas_real_completo =
         _horariosTiendas_real_compelto.asSharedFlow()
 
+
     init {
 
         // Guarda las tiendas pagadas
@@ -706,6 +707,14 @@ class viewModel_filtado_tiendas(private val savedStateHandle: SavedStateHandle) 
     private val _promociones_tienda = MutableStateFlow<carga_promociones>(carga_promociones.loading)
     val promociones_tienda: StateFlow<carga_promociones> = _promociones_tienda.asStateFlow()
 
+    fun resetear_estado_categoria() {
+        state_Tiendas_filtradas_por_categoria.value = carga_tiendas.loading
+        subcategoria_lis.value = emptyList()
+        _categoria_filtrado.value = "Todos"
+        _txt_nombre_filtrado.value = ""
+        _lista_base_seguridad.value = emptyList()
+        toda_las_tiendas.clear()
+    }
     fun obtener_promociones_tienda(id_tienda: String, localidad: String) {
         viewModelScope.launch {
             _promociones_tienda.value = carga_promociones.loading

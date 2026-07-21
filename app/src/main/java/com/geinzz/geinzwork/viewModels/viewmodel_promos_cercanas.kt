@@ -81,7 +81,32 @@ class viewmodel_promos_cercanas : ViewModel() {
 
     private val _obtener_categorias = MutableStateFlow<List<filtrado_feed_promociones>>(emptyList())
     val obtener_categorias: StateFlow<List<filtrado_feed_promociones>> = _obtener_categorias
+    private val _filtro_eliminado_automaticamente = MutableStateFlow<String?>(null)
 
+    val filtro_eliminado_automaticamente: StateFlow<String?> = _filtro_eliminado_automaticamente
+
+    fun resetear_filtro_eliminado_automaticamente() {
+        _filtro_eliminado_automaticamente.value = null
+    }
+    fun aplicar_filtro_general_y_autolimpiar(
+        categoriaPadre: String,
+        tagsSeleccionados: List<String>,
+        resultadoVacio: Boolean,
+        localidad: String = "barranca"
+    ) {
+        if (!resultadoVacio || tagsSeleccionados.isEmpty()) return
+        viewModelScope.launch {
+            tagsSeleccionados.forEach { tag ->
+                if (!repo.tag_existe_en_promos_activas(tag, localidad)) {
+                    repo.eliminar_tag_obsoleto_cache_filtrado(categoriaPadre, tag, localidad)
+                    toggle_subcategoria(tag)
+                    _obtener_categorias.value = _obtener_categorias.value.map {
+                        if (it.categoria == categoriaPadre) it.copy(subcategoria = it.subcategoria - tag) else it
+                    }
+                }
+            }
+        }
+    }
     init {
         Log.d("VM_INIT", "🔥 ViewModel creado - cargando categorias")
         obtener_filtrado_Categorias()
@@ -695,41 +720,64 @@ class viewmodel_promos_cercanas : ViewModel() {
     }
 
     fun filtrar_promos_de_tienda(id_tienda: String) {
-        val base = listaCompleta.value
-            .filter {
-                it.dataclass_promociones_cerca_de_ti
-                    .informacion_publcacion.id_tienda == id_tienda
-            }
+        val base = listaCompleta.value.filter {
+            it.dataclass_promociones_cerca_de_ti.informacion_publcacion.id_tienda == id_tienda
+        }
 
-        val subcats = _subcategoria_seleccionada.value
-        val rango = _rangoPrecioSeleccionado.value
-
-        val filtrada = base.filter { obj ->
+        fun aplicar(
+            subcats: List<String>, rango: String?,
+            pagos: Set<String>, comodidades: Set<String>
+        ): List<obj_completo> = base.filter { obj ->
             val data = obj.dataclass_promociones_cerca_de_ti
 
-            val cumpleCategoria = if (subcats.isEmpty()) true
-            else subcats.any { cat ->
+            val cumpleCategoria = subcats.isEmpty() || subcats.any { cat ->
                 data.terminos_clave.any { it.equals(cat, ignoreCase = true) } ||
                         data.informacion_publcacion.categoria.equals(cat, ignoreCase = true)
             }
+            val cumpleRango = rango.isNullOrEmpty() || data.rango == rango
+            val cumplePago = pagos.isEmpty() || pagos.any { data.pagos.contains(it) }
+            val cumpleComodidad = comodidades.isEmpty() || comodidades.any { data.comodidades.contains(it) }
 
-            val cumpleRango = if (rango.isNullOrEmpty()) true
-            else data.rango == rango
-
-            cumpleCategoria && cumpleRango
+            cumpleCategoria && cumpleRango && cumplePago && cumpleComodidad
         }
 
-        // 🔥 Si no hay resultados → NO cambiar el estado, solo notificar con callback
-        if (filtrada.isEmpty()) {
-            _filtro_tienda_sin_resultados.value = true  // ← signal para Toast en UI
-            return  // ← NO tocar estadoPromos
+        var subcats = _subcategoria_seleccionada.value
+        var rango = _rangoPrecioSeleccionado.value
+        var pagos = _metodosPagoSeleccionados.value
+        var comodidades = _comodidadesSeleccionadas.value
+
+        var resultado = aplicar(subcats, rango, pagos, comodidades)
+
+        if (resultado.isEmpty() && comodidades.isNotEmpty()) {
+            _comodidadesSeleccionadas.value = emptySet(); comodidades = emptySet()
+            resultado = aplicar(subcats, rango, pagos, comodidades)
+            if (resultado.isNotEmpty()) _filtro_eliminado_automaticamente.value = "comodidad seleccionada"
+        }
+        if (resultado.isEmpty() && pagos.isNotEmpty()) {
+            _metodosPagoSeleccionados.value = emptySet(); pagos = emptySet()
+            resultado = aplicar(subcats, rango, pagos, comodidades)
+            if (resultado.isNotEmpty()) _filtro_eliminado_automaticamente.value = "método de pago"
+        }
+        if (resultado.isEmpty() && !rango.isNullOrEmpty()) {
+            _rangoPrecioSeleccionado.value = null; rango = null
+            resultado = aplicar(subcats, rango, pagos, comodidades)
+            if (resultado.isNotEmpty()) _filtro_eliminado_automaticamente.value = "rango de precio"
+        }
+        if (resultado.isEmpty() && subcats.isNotEmpty()) {
+            _subcategoria_seleccionada.value = emptyList(); subcats = emptyList()
+            resultado = aplicar(subcats, rango, pagos, comodidades)
+            if (resultado.isNotEmpty()) _filtro_eliminado_automaticamente.value = "categoría seleccionada"
+        }
+
+        if (resultado.isEmpty()) {
+            _filtro_tienda_sin_resultados.value = true
+            return
         }
 
         _filtro_tienda_sin_resultados.value = false
-        listaFiltrada.value = filtrada
-        _estadoPromos.value = estado_carga_promociones.succes(filtrada)
+        listaFiltrada.value = resultado
+        _estadoPromos.value = estado_carga_promociones.succes(resultado)
     }
-
     suspend fun obtenerPrimeraPaginaDesdeIds(
         lista: List<IdScore>
     ): List<obj_completo> {
@@ -1068,8 +1116,29 @@ class viewmodel_promos_cercanas : ViewModel() {
                     ?.map { IdScore(it.id, it.score) }
 
                 if (resultadosOrdenados.isNullOrEmpty()) {
-                    _respuesta_gemini.value =
-                        estado_Carga_respuesta_gemini.empty("No encontré resultados")
+                    // 🔥 Revisamos CADA subcategoría seleccionada de forma individual
+                    // (junto con rango/pagos/comodidades activos) para saber cuál de ellas
+                    // específicamente ya no tiene ninguna promo activa que la respalde.
+                    if (data.categoria.isNotEmpty() && data.subcategorias.isNotEmpty()) {
+                        data.subcategorias.forEach { tag ->
+                            val existe = repo.tag_existe_en_promos_activas(
+                                tag = tag,
+                                localidad = data.localidad,
+                                rango = data.rango_precio,
+                                pagos = data.pagos,
+                                comodidades = data.comodidades
+                            )
+                            if (!existe) {
+                                repo.eliminar_tag_obsoleto_cache_filtrado(data.categoria, tag, data.localidad)
+                                toggle_subcategoria(tag) // lo destoca de la selección actual
+                                _obtener_categorias.value = _obtener_categorias.value.map {
+                                    if (it.categoria == data.categoria) it.copy(subcategoria = it.subcategoria - tag) else it
+                                }
+                            }
+                        }
+                    }
+
+                    _respuesta_gemini.value = estado_Carga_respuesta_gemini.empty("No encontré resultados")
                     modoBusquedaIA = false
                     limpiarTerminosNlp()
                     return@launch

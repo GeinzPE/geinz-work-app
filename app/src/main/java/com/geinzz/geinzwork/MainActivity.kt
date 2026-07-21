@@ -162,25 +162,34 @@ class MainActivity : AppCompatActivity() {
             when (pantalla) {
                 "pantalla_turismo" -> {
                     uiActionVM.emitir(
-                        UiAction.abrir_scre_redirect("turismo", "barranca")
+                        UiAction.abrir_scre_redirect("turismo", "barranca","")
                     )
                 }
 
                 "emergencia" -> {
                     uiActionVM.emitir(
-                        UiAction.abrir_scre_redirect("emergencia", "barranca")
+                        UiAction.abrir_scre_redirect("emergencia", "barranca","")
                     )
                 }
 
                 "promos" -> {
                     uiActionVM.emitir(
-                        UiAction.abrir_scre_redirect("promos", "barranca")
+                        UiAction.abrir_scre_redirect("promos", "barranca","")
                     )
                 }
 
                 "categorias" -> {
                     uiActionVM.emitir(
-                        UiAction.abrir_scre_redirect("categorias", "barranca")
+                        UiAction.abrir_scre_redirect("categorias", "barranca","")
+                    )
+                }
+                "serviciosHogar" -> {
+                    val alias = pathSegments.getOrNull(1) ?: ""
+
+                    Log.d("DeepLinkDebug", "ALIAS SERVICIOS HOGAR DETECTADO -> $alias")
+
+                    uiActionVM.emitir(
+                        UiAction.abrir_scre_redirect("serviciosHogar", "barranca",alias)
                     )
                 }
 

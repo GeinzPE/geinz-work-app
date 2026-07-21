@@ -152,6 +152,49 @@ class repo_agregar_datos(context: Context) {
             }
     }
 
+
+    fun migrarServiciosBarrancaAGenerales() {
+        val db2 = FirebaseFirestore.getInstance()
+
+        db2.collection("Tiendas/servicios_basicos/barranca")
+            .get()
+            .addOnSuccessListener { documentos ->
+                for (doc in documentos) {
+                    val contacto = doc.get("contacto") as? Map<*, *>
+                    val direccion = doc.get("direccion") as? Map<*, *>
+                    val telefonoList = contacto?.get("telefono") as? List<*>
+                    val whatsappList = contacto?.get("whatsapp") as? List<*>
+
+                    val nuevoDato = hashMapOf(
+                        "descripcion" to (doc.getString("descripcion") ?: ""),
+                        "fb" to (contacto?.get("facebook") as? String ?: ""),
+                        "id" to doc.id,
+                        "ig" to (contacto?.get("ig") as? String ?: ""),
+                        "img_logo" to (doc.getString("img_logo") ?: ""),
+                        "lat" to (direccion?.get("lat") as? Double ?: 0.0),
+                        "lng" to (direccion?.get("log") as? Double ?: 0.0),
+                        "nombre" to (doc.getString("lugar_nombre") ?: ""),
+                        "sitio_web" to (contacto?.get("sitio_web") as? String ?: ""),
+                        "telefono" to (telefonoList?.firstOrNull() as? String ?: ""),
+                        "whatsappp" to (whatsappList?.firstOrNull() as? String ?: "")
+                    )
+
+                    db2.collection("servicios_basicos_generales")
+                        .document(doc.id)
+                        .set(nuevoDato)
+                        .addOnSuccessListener {
+                            Log.d("Migracion", "Documento ${doc.id} migrado correctamente")
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("Migracion", "Error migrando ${doc.id}", e)
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("Migracion", "Error obteniendo documentos de barranca", e)
+            }
+    }
+
     fun agregar_datos_alglia(data_class_tienda_geinz: Item, aliasKey: String) {  // ✅ nuevo param
         val db = FirebaseFirestore.getInstance()
             .collection("lugares")

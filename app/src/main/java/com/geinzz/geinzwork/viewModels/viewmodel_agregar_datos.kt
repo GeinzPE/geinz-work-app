@@ -137,6 +137,17 @@ class viewmodel_agregar_datos : ViewModel() {
             }
         }
     }
+    fun migrarServiciosBarrancaAGenerales(context: Context){
+        viewModelScope.launch {
+            try {
+                val repo_instance = repo_agregar_datos(context)
+                repo_instance.migrarServiciosBarrancaAGenerales()
+
+            }catch (e: Exception){
+                Log.d("xddebug", "$e")
+            }
+        }
+    }
 
     fun obtener_cat_sub_tienda(
         id_tienda: String,

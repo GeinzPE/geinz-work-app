@@ -62,7 +62,14 @@ sealed class UiAction {
 
     data class abrir_scre_redirect(
         val tipo:String,
-        val localidad:String
+        val localidad:String,
+        val campo_extra: String
+    ): UiAction()
+
+    data class abrir_redirect_servicios_esenciales(
+        val tipo:String,
+        val alias:String,
+        val localidad:String,
     ): UiAction()
 }
 

@@ -66,6 +66,59 @@ class repo_promos_cercanas {
     }
 
 
+    suspend fun tag_existe_en_promos_activas(
+        tag: String,
+        localidad: String,
+        rango: String? = null,
+        pagos: List<String> = emptyList(),
+        comodidades: List<String> = emptyList()
+    ): Boolean {
+        return try {
+            val snapshot = db.collection("Tiendas")
+                .document(localidad)
+                .collection("promos_ofertas")
+                .whereEqualTo("estado", "activo")
+                .whereArrayContains("terminos_clave", tag)
+                .get()
+                .await()
+
+            if (snapshot.isEmpty) return false
+
+            // 🔥 de las promos que sí tienen el tag, verificamos si ALGUNA
+            // también cumple rango/pagos/comodidades (si el usuario los seleccionó)
+            snapshot.documents.any { doc ->
+                val cumpleRango = rango.isNullOrEmpty() || doc.getString("rango_establecido") == rango
+
+                val docPagos = doc.get("pagos") as? List<*> ?: emptyList<Any>()
+                val cumplePago = pagos.isEmpty() || pagos.any { docPagos.contains(it) }
+
+                val docComodidades = doc.get("comodidades") as? List<*> ?: emptyList<Any>()
+                val cumpleComodidad = comodidades.isEmpty() || comodidades.any { docComodidades.contains(it) }
+
+                cumpleRango && cumplePago && cumpleComodidad
+            }
+        } catch (e: Exception) {
+            Log.e("CACHE_FILTRADO", "❌ Error verificando tag: ${e.message}")
+            true // fail-safe: ante error, no borrar
+        }
+    }
+    suspend fun eliminar_tag_obsoleto_cache_filtrado(
+        categoria: String,
+        tag: String,
+        localidad: String = "barranca"
+    ) {
+        try {
+            db.collection("Tiendas")
+                .document(localidad)
+                .collection("cache_filtrado")
+                .document("filtrado")
+                .update(categoria, FieldValue.arrayRemove(tag))
+                .await()
+            Log.d("CACHE_FILTRADO", "🗑️ Tag '$tag' eliminado de '$categoria'")
+        } catch (e: Exception) {
+            Log.e("CACHE_FILTRADO", "❌ Error eliminando tag: ${e.message}")
+        }
+    }
 
     suspend fun obtener_promos(
         tipo_seleccionado: String,

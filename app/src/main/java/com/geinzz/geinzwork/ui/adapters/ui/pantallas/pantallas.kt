@@ -53,7 +53,7 @@ object ui_agregar_lugares
 object agregar_pripiedads{}
 
 @Serializable
-data class ui_servicios_tramites(val localidad: String)
+data class ui_servicios_tramites(val localidad: String, val alias:String)
 
 @Serializable
 data class nuevos_negocios_geinz(val localidad: String)

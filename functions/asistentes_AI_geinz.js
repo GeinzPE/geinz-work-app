@@ -4305,6 +4305,215 @@ exports.geinz_info_negocio = onRequest(async (req, res) => {
 
 exports.resolverInfoNegocio = resolverInfoNegocio;
 
+
+
+async function obtenerTurismoPorIdONombre({ id, nombre, localidad }) {
+  const ATTRS = [
+    "objectID",
+    "nombre",
+    "descripcion",
+    "lugar",
+    "categoria",
+    "img",
+    "tag",
+    "alias",
+  ];
+
+  let hit = null;
+
+  if (id) {
+    try {
+      hit = await index.getObject(id, { attributesToRetrieve: ATTRS });
+    } catch (e) {
+      console.error(
+        "❌ [info_turismo] No se encontró objeto por id:",
+        id,
+        e.message,
+      );
+      hit = null;
+    }
+  }
+
+  if (!hit && nombre) {
+    const query = nombre.toLowerCase().trim();
+    const filters = [`categoria:"turismo"`];
+    if (localidad) filters.push(`lugar:"${localidad}"`);
+
+    const { hits } = await index.search(query, {
+      filters: filters.join(" AND "),
+      hitsPerPage: 1,
+      typoTolerance: true,
+      ignorePlurals: true,
+      removeStopWords: true,
+      attributesToRetrieve: ATTRS,
+    });
+
+    hit = hits?.[0] || null;
+  }
+
+  return hit;
+}
+
+async function resolverInfoTurismo({
+  id,
+  nombre,
+  mensaje,
+  localidad,
+  nombre_usuario,
+}) {
+  const tiempoInicioTotal = Date.now();
+  let tokensGemini = {
+    promptTokenCount: 0,
+    candidatesTokenCount: 0,
+    totalTokenCount: 0,
+  };
+
+  const momento_dia = obtenerMomentoDia();
+
+  const hit = await obtenerTurismoPorIdONombre({ id, nombre, localidad });
+
+  if (!hit) {
+    return {
+      id: "sin_id",
+      mensaje: "No encontré ese lugar, prueba con otro nombre",
+      mensaje_safe: "No encontré ese lugar, prueba con otro nombre",
+      intencion: "SIN_DATOS",
+      tokens_usados: { gemini: tokensGemini },
+      tiempo_total_ms: Date.now() - tiempoInicioTotal,
+    };
+  }
+
+  const datoParaPrompt = {
+    id: hit.objectID,
+    lugar: hit.nombre || "",
+    desc: (hit.descripcion || "").substring(0, 150),
+    tag: Array.isArray(hit.tag) ? hit.tag.join(",") : "",
+  };
+
+  const promptRespuesta = `Responde en JSON válido.
+DATOS DEL LUGAR TURÍSTICO:
+${JSON.stringify(datoParaPrompt)}
+El usuario se llama: ${nombre_usuario || ""} úsalo siempre
+MENSAJE/PREGUNTA DEL USUARIO: "${mensaje || ""}"
+REGLAS:
+- Responde AL GRANO exactamente lo que el usuario pregunta sobre ESTE lugar (id:${hit.objectID}, nombre:${hit.nombre}), basándote SOLO en los DATOS
+- Si el usuario pide un dato que NO está en los DATOS (ej: horario exacto, precio de entrada) → dilo con naturalidad, sin inventar
+- Nunca SALUDES con buenos o hola, habla como conversación continua, como si ya se conocieran, LENGUAJE LOCAL SIEMPRE MUY AMIGABLE nada robótico ni corporativo, habla como un pata de Barranca peruano, canchero
+- mensaje: máximo 2 líneas (máximo 2 frases)
+- sin comillas dentro del mensaje
+- USA EL MOMENTO DEL DIA SIEMPRE QUE ES: ${momento_dia}
+- NUNCA digas frases como "mensaje predeterminado", "mensaje genérico", "esto es automático" ni nada que describa la naturaleza de tu propia respuesta
+- NO menciones links, perfiles, ni la app Geinz, eso lo agrega el sistema aparte
+FORMATO OBLIGATORIO:
+{"id":"${hit.objectID}","mensaje":"...","intencion":"TURISMO"}`;
+
+  const bodyGemini = {
+    contents: [{ parts: [{ text: promptRespuesta }] }],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          mensaje: { type: "string" },
+          intencion: { type: "string" },
+        },
+        required: ["id", "mensaje", "intencion"],
+      },
+      thinkingConfig: { thinkingBudget: 0 },
+      maxOutputTokens: 220,
+      temperature: 0.7,
+    },
+  };
+
+  let response;
+  const geminiRes = await fetch(`${GEMINI_URL}?key=${GEMINIKEY}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(bodyGemini),
+  });
+
+  if (!geminiRes.ok) {
+    const errText = await geminiRes.text();
+    console.error(
+      "❌ [resolverInfoTurismo] Error Gemini API:",
+      geminiRes.status,
+      errText,
+    );
+    response = {
+      id: hit.objectID,
+      mensaje:
+        "Tuve un problema consultando la info, intenta de nuevo en un momento",
+      intencion: "ERROR_GEMINI",
+    };
+  } else {
+    const geminiData = await geminiRes.json();
+    if (geminiData?.usageMetadata) {
+      tokensGemini = {
+        promptTokenCount: geminiData.usageMetadata.promptTokenCount || 0,
+        candidatesTokenCount:
+          geminiData.usageMetadata.candidatesTokenCount || 0,
+        totalTokenCount: geminiData.usageMetadata.totalTokenCount || 0,
+      };
+    }
+    const rawText =
+      geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    response = parsearRespuestaIA(rawText);
+    if (!response || !Object.keys(response).length) {
+      response = {
+        id: hit.objectID,
+        mensaje: rawText || "Sin respuesta",
+        intencion: "ERROR_FORMATO_IA",
+      };
+    }
+  }
+
+  const idFinal = response?.id || hit.objectID;
+  const mensajeFinal = String(response?.mensaje || "").trim();
+  const imagenFinal = hit.img || "";
+  const nombreLugar = hit.nombre || "";
+  const tags = Array.isArray(hit.tag) ? hit.tag.join(",") : "turismo";
+  const alias = hit.alias || "";
+
+  const link_construido = alias
+    ? `https://geinztech.com/turismo/${alias}`
+    : "";
+
+  const mensaje_safe = link_construido
+    ? `${mensajeFinal} 📲 Mira más detalles en Geinz: ${link_construido}`
+    : mensajeFinal;
+
+  const imagen_stiker = pick(stiker_turismo);
+
+  const data = ["TURISMO", nombreLugar, tags, "null", idFinal].join("|");
+
+  const tiempoTotalMs = Date.now() - tiempoInicioTotal;
+
+  return {
+    ...response,
+    id: idFinal,
+    imagen: imagenFinal,
+    mensaje_safe,
+    data,
+    siker: imagen_stiker,
+    nombre_lugar: nombreLugar,
+    alias_turismo: alias,
+    tokens_usados: {
+      gemini: {
+        prompt_tokens: tokensGemini.promptTokenCount,
+        completion_tokens: tokensGemini.candidatesTokenCount,
+        total_tokens: tokensGemini.totalTokenCount,
+      },
+    },
+    tiempo_total_ms: tiempoTotalMs,
+    tiempo_total_seg: Number((tiempoTotalMs / 1000).toFixed(2)),
+  };
+}
+
+exports.resolverInfoTurismo = resolverInfoTurismo;
+
+
+
 // ============================================================
 // DISPERSADOR IA — Clasificador de intención (antes nodo n8n "dispersador IA2")
 //    Motor: OpenAI gpt-5.4-mini, reasoning_effort: low

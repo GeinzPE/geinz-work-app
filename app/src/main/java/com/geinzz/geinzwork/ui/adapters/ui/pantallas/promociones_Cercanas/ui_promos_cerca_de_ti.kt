@@ -142,6 +142,7 @@ import androidx.compose.ui.geometry.Offset
 import kotlin.math.roundToInt
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.ui.text.style.TextAlign
 import com.geinzz.geinzwork.ui.adapters.ui.pantallas.socios.ShimmerImagenConMarca
 
 
@@ -331,6 +332,16 @@ fun ui_promos_cerca_de_ti(
                 )
             }
             viewModel.resetear_filtro_sin_resultados()
+        }
+    }
+    val filtroEliminado by viewModel.filtro_eliminado_automaticamente.collectAsState()
+    LaunchedEffect(filtroEliminado) {
+        filtroEliminado?.let { nombre ->
+            snackbarHostState.showSnackbar(
+                message = "No había resultados, quitamos el filtro: $nombre",
+                duration = SnackbarDuration.Short
+            )
+            viewModel.resetear_filtro_eliminado_automaticamente()
         }
     }
 
@@ -573,11 +584,40 @@ fun ui_promos_cerca_de_ti(
             }
 
             is viewmodel_promos_cercanas.estado_carga_promociones.empty -> {
-                Text(
-                    text = (estado as viewmodel_promos_cercanas.estado_carga_promociones.empty).txt,
-                    modifier = Modifier.align(Alignment.Center),
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                val estadoEmpty = estado as viewmodel_promos_cercanas.estado_carga_promociones.empty
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(R.drawable.sin_contenido_geinz)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Sin promociones",
+                            modifier = Modifier
+                                .size(200.dp),
+                            contentScale = ContentScale.Fit
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Text(
+                            text = estadoEmpty.txt,
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
+                        )
+                    }
+                }
             }
 
             is viewmodel_promos_cercanas.estado_carga_promociones.error -> {

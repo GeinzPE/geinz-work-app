@@ -102,7 +102,7 @@ import com.geinzz.geinzwork.viewModels.viewmode_servicios_tramite.carga_servicio
 import com.google.firebase.database.core.Context
 
 @Composable
-fun ui_servicio_tramite(verificar_intener: Boolean, localida: String, iduser: String) {
+fun ui_servicio_tramite(alias:String,verificar_intener: Boolean, localida: String, iduser: String) {
     val viewmodel_filtrado: viewModel_filtado_tiendas = viewModel()
     val viewmode_servicios_tramite: viewmode_servicios_tramite = viewModel()
     val lugares by viewmode_servicios_tramite.lugares.observeAsState(emptyList())
@@ -123,7 +123,7 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String, iduser: St
     var expandedIndex by remember { mutableStateOf(-1) }
     var lista_mostrar by remember { mutableStateOf<List<dataclass_lugares_db>>(emptyList()) }
     var mostrandoCarga_free by remember { mutableStateOf(false) }
-    var lista_base_seguridad by rememberSaveable { mutableStateOf(emptyList<obtener_servicios_lugares>()) }
+    var lista_base_seguridad by remember { mutableStateOf(emptyList<obtener_servicios_lugares>()) }
     val state_servicios =
         viewmode_servicios_tramite._state_servicios.collectAsState(carga_servicios.loading).value
     val estadoTiendaFree by viewmodel_filtrado._datos_tienda_sin_pago.observeAsState(
@@ -152,6 +152,9 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String, iduser: St
 
     var mostar_bottom_sheet_ayuda_geinz by remember { mutableStateOf(false) }
     var yaInicializado by remember { mutableStateOf(false) }
+
+    // 🔗 Control para no re-abrir el diálogo del alias más de una vez
+    var aliasYaProcesado by remember { mutableStateOf(false) }
 
 //    LaunchedEffect(datosTienda) {
 //        if (!datosTienda.isNullOrEmpty()) {
@@ -201,6 +204,43 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String, iduser: St
         viewmode_servicios_tramite.obtener_lugares(context, localida)
 
     }
+
+    // 🔗 Validación de alias: cuando ya tenemos "lugares" cargados,
+    // buscamos el que coincida con el alias recibido y abrimos su diálogo.
+    LaunchedEffect(lugares, alias) {
+        if (!aliasYaProcesado && alias.isNotBlank() && lugares.isNotEmpty()) {
+            aliasYaProcesado = true
+
+            val itemEncontrado = lugares.find { lugar ->
+                lugar.alias?.equals(alias, ignoreCase = true) == true
+            }
+
+            if (itemEncontrado != null) {
+                Log.d("DeepLinkDebug", "ALIAS ENCONTRADO -> ${itemEncontrado.id}")
+
+                val categoriasProhibidas = listOf("gas", "agua de mesa")
+
+                if (!itemEncontrado.categoria.any { it in categoriasProhibidas }) {
+                    id_tienda_select = itemEncontrado.id
+                    localidad_tienda = localida.lowercase()
+                    dialog_servicos_tramite = true
+                } else {
+                    id_tienda_select = itemEncontrado.id
+                    localidad_tienda = itemEncontrado.lugar_nombre.lowercase()
+                    pagado_tienda = itemEncontrado.pagado
+                    if (itemEncontrado.pagado) {
+                        motrar_dialog_tienda_Select = true
+                    } else {
+                        mostrar_dialog_tienda_no_pagada = true
+                    }
+                }
+            } else {
+                Log.d("DeepLinkDebug", "ALIAS NO ENCONTRADO -> $alias")
+                Toast.makeText(context, "No encontramos ese servicio", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     LaunchedEffect(valor_filtrado) {
         if (yaInicializado) {
             if (valor_filtrado.isNotEmpty()) {
@@ -443,12 +483,12 @@ fun ui_servicio_tramite(verificar_intener: Boolean, localida: String, iduser: St
         }
         if (motrar_dialog_tienda_Select) {
             bottom_sheet_tiendas_filtradas(
-                id_tienda_select,
-                localida ?: "barranca",
-                verificar_intener,
-                viewmodel_filtrado,
+                id_tienda = id_tienda_select,
+                localidad_tienda = localida ?: "barranca",
+                verificar_intener = verificar_intener,
+                viewModelFiltros = viewmodel_filtrado,
 //                dataclass_tienda_seleccionada,
-                motrar_dialog_tienda_Select
+                visible = motrar_dialog_tienda_Select
             ) {
                 motrar_dialog_tienda_Select = false
             }

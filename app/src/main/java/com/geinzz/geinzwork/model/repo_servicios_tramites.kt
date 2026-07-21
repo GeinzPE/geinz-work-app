@@ -43,8 +43,9 @@ class repo_servicios_tramites {
                 localidad_params=localidad,
                 img = data["img_logo"] as? String ?: "",
                 lugar_nombre=data["lugar_nombre"] as? String ?: "",
-                pagado = data["pagado"] as? Boolean ?: false
-            )
+                pagado = data["pagado"] as? Boolean ?: false,
+                alias = data["alias"] as? String ?: "",
+                )
         }
     }
 

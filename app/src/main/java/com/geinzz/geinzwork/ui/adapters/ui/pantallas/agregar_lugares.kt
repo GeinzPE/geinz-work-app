@@ -47,7 +47,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 
 
-
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -308,10 +307,12 @@ object GeofencingManager {
 
             esPuntoEnPoligono(latitud, longitud, zonaNorte) ->
                 "Barranca - Salida y entrada zona norte"
+
             else -> ""
         }
     }
 }
+
 // ─── Retrofit para geocodificación inversa Mapbox ──────────────────────────
 private interface MapboxGeocodingApi {
     @GET("geocoding/v5/mapbox.places/{longitude},{latitude}.json")
@@ -349,7 +350,8 @@ fun datos_teindas() {
     var modoActual by rememberSaveable { mutableStateOf(0) } // 0 = Tienda, 1 = Turismo
 
     val lista_metood_pago = listOf("Yape", "Plin", "Efectivo", "Agora", "visa/Mastercard", "SIP")
-    val lista_medood_contacto = listOf("whatsapp", "telefono", "tiktok", "facebook", "instagram", "sitio web")
+    val lista_medood_contacto =
+        listOf("whatsapp", "telefono", "tiktok", "facebook", "instagram", "sitio web")
     val lista_modelo_negocio = listOf("Fisico", "virtual")
     val lista_pagado = listOf("Premiun", "Free")
 
@@ -417,7 +419,8 @@ fun datos_teindas() {
     var lista_categorias by rememberSaveable { mutableStateOf(listOf<String>()) }
     var lista_subcategorias_full by rememberSaveable { mutableStateOf(listOf<List<String>>()) }
 
-    val lista_notificaion_select = listOf("turistico", "nuevos_negocios", "numeros_salud_seguridad", "tramites")
+    val lista_notificaion_select =
+        listOf("turistico", "nuevos_negocios", "numeros_salud_seguridad", "tramites")
     var tipo_notificacion_select by remember { mutableStateOf("") }
     var cambiar_cat_sub by remember { mutableStateOf(false) }
     var tocandoMapa by remember { mutableStateOf(false) }
@@ -464,6 +467,7 @@ fun datos_teindas() {
     LaunchedEffect(Unit) {
 //        viewmodel_agregar_datos.asignarAliasATodas(context)
 //        viewmodel_agregar_datos.clonar_alias_tiendas_a_lugares(context)
+//        viewmodel_agregar_datos.migrarServiciosBarrancaAGenerales(context)
         viewmodel_agregar_datos.agregar_alias_turismo(context)
         val (d1, d2) = repo_agregar_datos.obtener_categorias()
         lista_categorias = d1
@@ -575,8 +579,14 @@ fun datos_teindas() {
             containerColor = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.primary
         ) {
-            Tab(selected = modoActual == 0, onClick = { modoActual = 0 }, text = { Text("🏪 Tienda") })
-            Tab(selected = modoActual == 1, onClick = { modoActual = 1 }, text = { Text("🗺️ Turismo") })
+            Tab(
+                selected = modoActual == 0,
+                onClick = { modoActual = 0 },
+                text = { Text("🏪 Tienda") })
+            Tab(
+                selected = modoActual == 1,
+                onClick = { modoActual = 1 },
+                text = { Text("🗺️ Turismo") })
         }
 
         // ════════════════════════════════════════════════════════════════
@@ -629,10 +639,15 @@ fun datos_teindas() {
                         ) {
                             OutlinedButton(
                                 onClick = {
-                                    val permiso = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-                                        Manifest.permission.READ_MEDIA_IMAGES
-                                    else Manifest.permission.READ_EXTERNAL_STORAGE
-                                    if (ContextCompat.checkSelfPermission(context, permiso) == PackageManager.PERMISSION_GRANTED)
+                                    val permiso =
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                                            Manifest.permission.READ_MEDIA_IMAGES
+                                        else Manifest.permission.READ_EXTERNAL_STORAGE
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            permiso
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                    )
                                         launcherGaleria.launch("image/*")
                                     else permisoGaleria.launch(permiso)
                                 },
@@ -642,7 +657,11 @@ fun datos_teindas() {
 
                             Button(
                                 onClick = {
-                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.CAMERA
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                    ) {
                                         val uri = crearUriCamaraMediaStore(context)
                                         cameraUri = uri
                                         launcherCamara.launch(uri)
@@ -789,7 +808,11 @@ fun datos_teindas() {
                             ) {
                                 Button(
                                     onClick = {
-                                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                        if (ContextCompat.checkSelfPermission(
+                                                context,
+                                                Manifest.permission.ACCESS_FINE_LOCATION
+                                            ) == PackageManager.PERMISSION_GRANTED
+                                        ) {
                                             obtenerUbicacionConfiable(fusedLocationClient) { latLng, accuracy ->
                                                 lat_ = latLng.latitude
                                                 lng_ = latLng.longitude
@@ -798,7 +821,11 @@ fun datos_teindas() {
                                                 Log.d("GPS", "Precisión: ${accuracy}m")
                                             }
                                         } else {
-                                            Toast.makeText(context, "Activa el permiso de ubicación", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                "Activa el permiso de ubicación",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                     },
                                     modifier = Modifier.weight(1f),
@@ -896,11 +923,18 @@ fun datos_teindas() {
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("Geohash:", style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    valor_geohashin = constantes_lista_localidades.geohashing(lat_, lng_)
-                                    Text(valor_geohashin, style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                    Text(
+                                        "Geohash:", style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    valor_geohashin =
+                                        constantes_lista_localidades.geohashing(lat_, lng_)
+                                    Text(
+                                        valor_geohashin,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
                                 }
                             }
                         }
@@ -970,8 +1004,13 @@ fun datos_teindas() {
                         if (tk2) valor_txt_contacto("tiktok", user_tk) { user_tk = it }
                         if (fb2) valor_txt_contacto("facebook", user_fb) { user_fb = it }
                         if (ig2) valor_txt_contacto("instagram", user_ig) { user_ig = it }
-                        if (ws2) valor_txt_contacto("whatsapp", numero_whatsap) { numero_whatsap = it }
-                        if (tlf2) valor_txt_contacto("telefono", numero_telefono) { numero_telefono = it }
+                        if (ws2) valor_txt_contacto("whatsapp", numero_whatsap) {
+                            numero_whatsap = it
+                        }
+                        if (tlf2) valor_txt_contacto(
+                            "telefono",
+                            numero_telefono
+                        ) { numero_telefono = it }
                         if (stw2) valor_txt_contacto("sitio web", sitio_web) { sitio_web = it }
                     }
                 }
@@ -994,7 +1033,8 @@ fun datos_teindas() {
 
                                     scope.launch(Dispatchers.IO) {
                                         // ✅ Base64 solo al momento de guardar, en background
-                                        val base64Logo = foto_perfil_uri?.let { uriToBase64(context, it) } ?: ""
+                                        val base64Logo =
+                                            foto_perfil_uri?.let { uriToBase64(context, it) } ?: ""
 
                                         withContext(Dispatchers.Main) {
                                             val datos_enviar = data_class_tienda_geinz(
@@ -1015,19 +1055,66 @@ fun datos_teindas() {
                                                     dirección = direccion,
                                                 ),
                                                 metodo_pago = modelo_pagos_tienda(
-                                                    visa_mastercard = modelo_metodo_individual(numero = "", qr = "", nombre = "", enable = visa2),
-                                                    agora = modelo_metodo_individual(numero = "", qr = "", nombre = "", enable = Agora2),
-                                                    efectivo = modelo_metodo_individual(numero = "", qr = "", nombre = "", enable = Efectivo2),
-                                                    plin = modelo_metodo_individual(numero = numero_plin, qr = "", nombre = titular_plin, enable = plin_select),
-                                                    yape = modelo_metodo_individual(numero = numero_yape, qr = "", nombre = titular_yape, enable = yape_select),
+                                                    visa_mastercard = modelo_metodo_individual(
+                                                        numero = "",
+                                                        qr = "",
+                                                        nombre = "",
+                                                        enable = visa2
+                                                    ),
+                                                    agora = modelo_metodo_individual(
+                                                        numero = "",
+                                                        qr = "",
+                                                        nombre = "",
+                                                        enable = Agora2
+                                                    ),
+                                                    efectivo = modelo_metodo_individual(
+                                                        numero = "",
+                                                        qr = "",
+                                                        nombre = "",
+                                                        enable = Efectivo2
+                                                    ),
+                                                    plin = modelo_metodo_individual(
+                                                        numero = numero_plin,
+                                                        qr = "",
+                                                        nombre = titular_plin,
+                                                        enable = plin_select
+                                                    ),
+                                                    yape = modelo_metodo_individual(
+                                                        numero = numero_yape,
+                                                        qr = "",
+                                                        nombre = titular_yape,
+                                                        enable = yape_select
+                                                    ),
                                                 ),
                                                 metodo_contacto = metodo_contacto_tienda(
-                                                    whatsapp = contacto_numero(estado = ws2, numero = numero_whatsap),
-                                                    llamada = contacto_numero(estado = tlf2, numero = numero_telefono),
-                                                    facebook = contacto_red(estado = fb2, nombre = user_fb, url = ""),
-                                                    instagram = contacto_red(estado = ig2, nombre = user_ig, url = ""),
-                                                    tiktok = contacto_red(estado = tk2, nombre = user_tk, url = ""),
-                                                    sitio_web = contacto_red(estado = stw2, nombre = sitio_web, url = ""),
+                                                    whatsapp = contacto_numero(
+                                                        estado = ws2,
+                                                        numero = numero_whatsap
+                                                    ),
+                                                    llamada = contacto_numero(
+                                                        estado = tlf2,
+                                                        numero = numero_telefono
+                                                    ),
+                                                    facebook = contacto_red(
+                                                        estado = fb2,
+                                                        nombre = user_fb,
+                                                        url = ""
+                                                    ),
+                                                    instagram = contacto_red(
+                                                        estado = ig2,
+                                                        nombre = user_ig,
+                                                        url = ""
+                                                    ),
+                                                    tiktok = contacto_red(
+                                                        estado = tk2,
+                                                        nombre = user_tk,
+                                                        url = ""
+                                                    ),
+                                                    sitio_web = contacto_red(
+                                                        estado = stw2,
+                                                        nombre = sitio_web,
+                                                        url = ""
+                                                    ),
                                                 ),
                                                 fechas = ingreso_date(
                                                     hora_ingreso = constantes_horas.horaActual(),
@@ -1067,7 +1154,11 @@ fun datos_teindas() {
                                                 )
                                             } else {
                                                 guardando_tienda = false
-                                                Toast.makeText(context, "✅ Tienda guardada correctamente", Toast.LENGTH_LONG).show()
+                                                Toast.makeText(
+                                                    context,
+                                                    "✅ Tienda guardada correctamente",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
                                             }
 
                                             val gson = GsonBuilder().setPrettyPrinting().create()
@@ -1084,7 +1175,11 @@ fun datos_teindas() {
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Color.White)
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        strokeWidth = 2.dp,
+                                        color = Color.White
+                                    )
                                     texto_generico_one_line("Guardando...")
                                 }
                             } else {
@@ -1100,7 +1195,12 @@ fun datos_teindas() {
                 }
 
                 item {
-                    ExpandDropDown(lista_notificaion_select, false, "Tipo de notificación", "Tipo de notificación") { tipo ->
+                    ExpandDropDown(
+                        lista_notificaion_select,
+                        false,
+                        "Tipo de notificación",
+                        "Tipo de notificación"
+                    ) { tipo ->
                         tipo_notificacion_select = tipo
                     }
                 }
@@ -1209,10 +1309,15 @@ fun datos_teindas() {
                             OutlinedButton(
                                 onClick = {
                                     foto_turismo_target = "principal"
-                                    val permiso = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-                                        Manifest.permission.READ_MEDIA_IMAGES
-                                    else Manifest.permission.READ_EXTERNAL_STORAGE
-                                    if (ContextCompat.checkSelfPermission(context, permiso) == PackageManager.PERMISSION_GRANTED)
+                                    val permiso =
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                                            Manifest.permission.READ_MEDIA_IMAGES
+                                        else Manifest.permission.READ_EXTERNAL_STORAGE
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            permiso
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                    )
                                         launcherGaleria_turismo.launch("image/*")
                                     else permisoGaleria_turismo.launch(permiso)
                                 },
@@ -1223,7 +1328,11 @@ fun datos_teindas() {
                             Button(
                                 onClick = {
                                     foto_turismo_target = "principal"
-                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.CAMERA
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                    ) {
                                         val uri = crearUriCamaraMediaStore(context)
                                         cameraUri_turismo = uri
                                         launcherCamara_turismo.launch(uri)
@@ -1263,7 +1372,10 @@ fun datos_teindas() {
                                             modifier = Modifier
                                                 .align(Alignment.TopEnd)
                                                 .size(24.dp)
-                                                .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                                .background(
+                                                    Color.Black.copy(alpha = 0.5f),
+                                                    CircleShape
+                                                )
                                         ) {
                                             Icon(
                                                 Icons.Default.Close,
@@ -1284,10 +1396,15 @@ fun datos_teindas() {
                             OutlinedButton(
                                 onClick = {
                                     foto_turismo_target = "lista"
-                                    val permiso = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-                                        Manifest.permission.READ_MEDIA_IMAGES
-                                    else Manifest.permission.READ_EXTERNAL_STORAGE
-                                    if (ContextCompat.checkSelfPermission(context, permiso) == PackageManager.PERMISSION_GRANTED)
+                                    val permiso =
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                                            Manifest.permission.READ_MEDIA_IMAGES
+                                        else Manifest.permission.READ_EXTERNAL_STORAGE
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            permiso
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                    )
                                         launcherGaleria_turismo.launch("image/*")
                                     else permisoGaleria_turismo.launch(permiso)
                                 },
@@ -1298,7 +1415,11 @@ fun datos_teindas() {
                             Button(
                                 onClick = {
                                     foto_turismo_target = "lista"
-                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.CAMERA
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                    ) {
                                         val uri = crearUriCamaraMediaStore(context)
                                         cameraUri_turismo = uri
                                         launcherCamara_turismo.launch(uri)
@@ -1387,7 +1508,11 @@ fun datos_teindas() {
                             ) {
                                 Button(
                                     onClick = {
-                                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                        if (ContextCompat.checkSelfPermission(
+                                                context,
+                                                Manifest.permission.ACCESS_FINE_LOCATION
+                                            ) == PackageManager.PERMISSION_GRANTED
+                                        ) {
                                             obtenerUbicacionConfiable(fusedLocationClient) { latLng, _ ->
                                                 lat_ = latLng.latitude; lng_ = latLng.longitude
                                                 latitud = latLng.latitude.toString()
@@ -1481,11 +1606,18 @@ fun datos_teindas() {
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("Geohash:", style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    valor_geohashin = constantes_lista_localidades.geohashing(lat_, lng_)
-                                    Text(valor_geohashin, style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                    Text(
+                                        "Geohash:", style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    valor_geohashin =
+                                        constantes_lista_localidades.geohashing(lat_, lng_)
+                                    Text(
+                                        valor_geohashin,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
                                 }
                             }
                         }
@@ -1558,7 +1690,11 @@ fun datos_teindas() {
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Color.White)
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    strokeWidth = 2.dp,
+                                    color = Color.White
+                                )
                                 texto_generico_one_line("Guardando...")
                             }
                         } else {
@@ -1787,7 +1923,11 @@ fun valor_txt_contacto(
         onValueChange = { valor_retorno(it) },
         label = { texto_generico_one_line(txt) },
         placeholder = {
-            texto_generico_one_line(txt, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+            texto_generico_one_line(
+                txt,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
         },
         shape = RoundedCornerShape(20.dp),
         modifier = Modifier.fillMaxWidth(),
@@ -1815,7 +1955,8 @@ fun ChipsCategoriasCheck(
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }) {
-                        seleccionados = if (isSelected) seleccionados - item else seleccionados + item
+                        seleccionados =
+                            if (isSelected) seleccionados - item else seleccionados + item
                         lista_select(seleccionados)
                     }
             ) {
@@ -1826,7 +1967,8 @@ fun ChipsCategoriasCheck(
                     Checkbox(
                         checked = isSelected,
                         onCheckedChange = {
-                            seleccionados = if (isSelected) seleccionados - item else seleccionados + item
+                            seleccionados =
+                                if (isSelected) seleccionados - item else seleccionados + item
                             lista_select(seleccionados)
                         },
                         colors = CheckboxDefaults.colors(
@@ -1867,7 +2009,8 @@ fun chips_categorias(
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }) {
-                        seleccionados = if (isSelected) seleccionados - item else seleccionados + item
+                        seleccionados =
+                            if (isSelected) seleccionados - item else seleccionados + item
                         lista_select(seleccionados)
                     },
                 contentAlignment = Alignment.Center
@@ -1906,7 +2049,8 @@ fun chips_categoriasconvalor_inicial(
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }) {
-                        seleccionados = if (isSelected) seleccionados - item else seleccionados + item
+                        seleccionados =
+                            if (isSelected) seleccionados - item else seleccionados + item
                         lista_select(seleccionados)
                     },
                 contentAlignment = Alignment.Center
@@ -2005,8 +2149,6 @@ data class HorasDia(
 )
 
 
-
-
 // ─── Composable principal del mapa con permisos, ubicación y toque ────────
 
 @OptIn(MapboxExperimental::class)
@@ -2042,12 +2184,18 @@ fun MapboxMapViewWithLocation(
 
     if (!hasLocationPermission) {
         Box(
-            modifier = modifier.fillMaxWidth().height(280.dp).background(MaterialTheme.colorScheme.surfaceVariant),
+            modifier = modifier
+                .fillMaxWidth()
+                .height(280.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
             Button(onClick = {
                 permissionLauncher.launch(
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
                 )
             }) {
                 Text("Activar ubicación")
@@ -2094,7 +2242,11 @@ fun MapboxMapViewWithLocation(
                         }
 
                         // 2️⃣ Centrar en ubicación actual si está disponible
-                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        if (ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.ACCESS_FINE_LOCATION
+                            ) == PackageManager.PERMISSION_GRANTED
+                        ) {
                             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                                 location?.let {
                                     val punto = Point.fromLngLat(it.longitude, it.latitude)
@@ -2161,7 +2313,11 @@ fun MapboxMapViewWithLocation(
                     )
                 } else {
                     // Si aún no tenemos ubicación, intentamos obtenerla ahora
-                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    if (ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
                         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                             location?.let {
                                 val newPoint = Point.fromLngLat(it.longitude, it.latitude)
@@ -2174,11 +2330,16 @@ fun MapboxMapViewWithLocation(
                                 )
                                 onLocationUpdate(it.latitude, it.longitude)
                             } ?: run {
-                                Toast.makeText(context, "No se pudo obtener tu ubicación", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "No se pudo obtener tu ubicación",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         }
                     } else {
-                        Toast.makeText(context, "Permiso de ubicación denegado", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Permiso de ubicación denegado", Toast.LENGTH_SHORT)
+                            .show()
                     }
                 }
             },
@@ -2208,7 +2369,11 @@ fun MapboxMapViewWithLocation(
         }
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000).build()
         if (hasLocationPermission) {
-            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
         }
         onDispose {
             fusedLocationClient.removeLocationUpdates(locationCallback)
@@ -2240,6 +2405,7 @@ fun crearBitmapPin(context: Context, color: Color = Color.Red): Bitmap {
 
     return bitmap
 }
+
 fun uriToBase64(context: Context, uri: Uri): String {
     val inputStream = context.contentResolver.openInputStream(uri) ?: return ""
     val bitmap = BitmapFactory.decodeStream(inputStream)

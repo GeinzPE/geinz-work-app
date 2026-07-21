@@ -52,6 +52,7 @@ data class obtener_servicios_lugares(
     var categoria: List<String> = emptyList(),
     val lugar_nombre: String,
     val pagado: Boolean,
+    val alias:String
 )
 
 @Parcelize

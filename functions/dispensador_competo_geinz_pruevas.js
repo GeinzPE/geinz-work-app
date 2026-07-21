@@ -37,6 +37,7 @@ const {
   llamarGeminiGeinz,
   procesarBusquedaTurismo,
   resolverInfoNegocio,
+  resolverInfoTurismo,
   procesarPromociones,
   procesarBusquedaServiciosBasicos,
 } = require("./asistentes_AI_geinz.js");
@@ -1573,16 +1574,20 @@ exports.geinz_procesar_buffer = onRequest(
         }
 
         if (categoria === "CONTINUIDAD_INFO") {
-          // 👇 Guard: CONTINUIDAD_INFO solo tiene sentido si el contexto
-          // previo es realmente de un negocio (tipo NEGOCIO) y tiene id o
-          // nombre. Si el clasificador se equivocó (ej: el contexto venía
-          // de GEINZ/TURISMO/PROMOCIONES) esto evita arrastrar un negocio
-          // viejo o inexistente — se redirige como búsqueda nueva de negocio.
-          const tiposValidosParaContinuidad = ["NEGOCIO", "PROMOCIONES"];
-          if (
-            !tiposValidosParaContinuidad.includes(contextoUsuario?.tipo) ||
-            (!contextoUsuario?.id && !contextoUsuario?.nombre)
-          ) {
+          // 👇 FIX: se agregó "TURISMO" a la lista de tipos válidos. Antes solo
+          // incluía NEGOCIO y PROMOCIONES, así que cualquier continuidad sobre un
+          // lugar turístico (ej: "dame otra playa", "cuéntame más de ese lugar")
+          // caía siempre al fallback de búsqueda de NEGOCIOS y no encontraba nada.
+          const tiposValidosParaContinuidad = [
+            "NEGOCIO",
+            "PROMOCIONES",
+            "TURISMO",
+          ];
+          const tieneContextoValido =
+            tiposValidosParaContinuidad.includes(contextoUsuario?.tipo) &&
+            (contextoUsuario?.id || contextoUsuario?.nombre);
+
+          if (!tieneContextoValido) {
             console.warn(
               "⚠️ CONTINUIDAD_INFO sin contexto de negocio válido, redirigiendo a NEGOCIO | contexto:",
               JSON.stringify(contextoUsuario),
@@ -1641,6 +1646,100 @@ exports.geinz_procesar_buffer = onRequest(
             });
           }
 
+          // 👇 NUEVO: bifurcación según el tipo de contexto. TURISMO usa su propio
+          // resolver (índice de lugares turísticos), NEGOCIO/PROMOCIONES siguen
+          // usando resolverInfoNegocio como antes.
+          if (contextoUsuario.tipo === "TURISMO") {
+            const contextoConContinuidadTurismo =
+              prepararContextoContinuidad(contextoUsuario);
+
+            if (
+              !contextoConContinuidadTurismo.id &&
+              !contextoConContinuidadTurismo.nombre
+            ) {
+              console.warn(
+                "⚠️ CONTINUIDAD_INFO (turismo) sin id/nombre en contexto",
+              );
+            }
+
+            const resultadoContinuidadTurismo = await resolverInfoTurismo({
+              id: contextoConContinuidadTurismo.id,
+              nombre: contextoConContinuidadTurismo.nombre,
+              mensaje: mensajeFinal,
+              localidad: "barranca",
+              nombre_usuario: nombre_user,
+            });
+
+            const contextoActualizadoTurismo = {
+              ...limpiarCamposPromoDelContexto(contextoConContinuidadTurismo),
+              tipo: "TURISMO",
+              categoria: contextoConContinuidadTurismo.categoria || null,
+              id:
+                resultadoContinuidadTurismo.id ||
+                contextoConContinuidadTurismo.id ||
+                null,
+              nombre:
+                resultadoContinuidadTurismo.nombre_lugar ||
+                contextoConContinuidadTurismo.nombre ||
+                null,
+              extra: resultadoContinuidadTurismo.data || "null",
+            };
+            const promesaContextoTurismo = actualizarContextoUsuario(
+              numero_usuario,
+              contextoActualizadoTurismo,
+            );
+
+            if (resultadoContinuidadTurismo.imagen) {
+              try {
+                await enviarImagenWhatsapp(
+                  numero_usuario,
+                  resultadoContinuidadTurismo.imagen,
+                  resultadoContinuidadTurismo.mensaje_safe,
+                );
+              } catch (e) {
+                console.error(
+                  "❌ [CONTINUIDAD_INFO turismo] Falló imagen, texto de respaldo:",
+                  e.message,
+                );
+                if (resultadoContinuidadTurismo.mensaje_safe) {
+                  await enviarMensajeWhatsapp(
+                    numero_usuario,
+                    resultadoContinuidadTurismo.mensaje_safe,
+                  );
+                }
+              }
+            } else if (resultadoContinuidadTurismo.mensaje_safe) {
+              await enviarMensajeWhatsapp(
+                numero_usuario,
+                resultadoContinuidadTurismo.mensaje_safe,
+              );
+            }
+
+            await promesaContextoTurismo;
+
+            const tiempo_ms_turismo = Date.now() - inicio;
+            return res.status(200).json({
+              ok: true,
+              categoria: "CONTINUIDAD_INFO",
+              subcaso: "turismo",
+              mensaje_usuario: mensajeFinal,
+              nombre_usuario: nombre_user,
+              numero_usuario,
+              contexto_usuario: contextoActualizadoTurismo,
+              resultado_continuidad: resultadoContinuidadTurismo,
+              tokens_usados: {
+                clasificador: { modelo: "gpt-5.4-mini", ...tokensClasificador },
+                continuidad: resultadoContinuidadTurismo.tokens_usados,
+                total_tokens_combinado:
+                  tokensClasificador.total_tokens +
+                  (resultadoContinuidadTurismo.tokens_usados?.gemini
+                    ?.total_tokens || 0),
+              },
+              tiempo_ms: tiempo_ms_turismo,
+            });
+          }
+
+          // ---- Rama original: NEGOCIO / PROMOCIONES (sin cambios) ----
           const contextoConContinuidad =
             prepararContextoContinuidad(contextoUsuario);
 
@@ -1663,7 +1762,7 @@ exports.geinz_procesar_buffer = onRequest(
               resultadoContinuidad.cat_detectada ||
               contextoConContinuidad.categoria ||
               null,
-            subcategoria: contextoConContinuidad.subcategoria || null, // 👈 preserva la que ya tenía
+            subcategoria: contextoConContinuidad.subcategoria || null,
             id: resultadoContinuidad.id || contextoConContinuidad.id || null,
             nombre:
               resultadoContinuidad.nombre_negocio ||

@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -205,6 +206,15 @@ fun PantallaExplorarTiendas(
                     itemsIndexed(
                         listaParaMostrar,
                         key = { _, item -> item.categoria ?: "" }) { index, item ->
+                        Box(
+                            modifier = Modifier.animateItem(
+                                placementSpec = tween(
+                                    durationMillis = 350,
+                                    easing = FastOutSlowInEasing
+                                )
+                            )
+                        ){
+
                         cartas_categorias(
                             nombre_user = nombreUser,
                             item = item,
@@ -214,6 +224,7 @@ fun PantallaExplorarTiendas(
                                 clik_img(categoria, localidad, nombre)
                             },
                         )
+                        }
                     }
                     item(span = StaggeredGridItemSpan.FullLine) {
                         spacer_vertical(20.dp)
@@ -300,6 +311,7 @@ fun FiltradosChipsLocalidades(
         modifier = Modifier.padding(top = 5.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+
         items(lista_localidades) { localidad ->
             val nombreLocalidad = localidad.nombre_localidad.toString()
             val isSelected =
@@ -354,7 +366,10 @@ fun FiltradosChipsLocalidades(
                     )
                 }
             }
+
         }
+
+
     }
 }
 
