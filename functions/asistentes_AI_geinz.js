@@ -30,6 +30,8 @@ const WHATSAPP_PHONE_NUMBER_ID = process.env.ID_NUMBER_WHATSAPP;
 const WHATSAPP_API_VERSION = "v20.0";
 let categoriasCache = null;
 let categoriasCacheTimestamp = 0;
+let serviciosBasicosCache = null;
+let serviciosBasicosCacheTimestamp = 0;
 const REGLA_NO_SALUDAR = `- NUNCA saludes de ninguna forma (prohibido: "hola", "buenas", "buenos días", "buenas tardes", "buenas noches", "qué tal", "qué más"), habla como si la conversación ya estuviera en curso, directo al grano`;
 function obtenerHoraPeru() {
   const horaStr = new Date().toLocaleString("en-US", {
@@ -1075,6 +1077,43 @@ async function procesarBusquedaTienda({
       resultadosBusqueda = resultado.data;
     } else {
       trace.tipo_busqueda = "sin_criterio";
+    }
+    // ==========================================================================
+    if (
+      !resultadosBusqueda.length &&
+      (trace.tipo_busqueda === "nombre" || trace.tipo_busqueda === "categoria")
+    ) {
+      try {
+        const terminoBusqueda = nombre || mensaje;
+        const hitsServicios = await buscarServiciosBasicosAmplio({ localidad });
+        if (hitsServicios.length) {
+          const listaLigeraServicios =
+            construirListaLigeraServicios(hitsServicios);
+          const idServicioMatch = matchLocalServicioBasico(
+            terminoBusqueda,
+            listaLigeraServicios,
+          );
+          if (idServicioMatch) {
+            console.log(
+              "↪️ [procesarBusquedaTienda] Match local con servicio básico, redirigiendo | id:",
+              idServicioMatch,
+            );
+            trace.tipo_busqueda = "redirigido_servicios_basicos";
+            return {
+              id: "sin_id",
+              redirigir_a_servicios: true,
+              data: "null",
+              subcategoria: null,
+              debug_trace: trace,
+            };
+          }
+        }
+      } catch (e) {
+        console.error(
+          "❌ [procesarBusquedaTienda] Error en fallback a servicios básicos:",
+          e.message,
+        );
+      }
     }
 
     // 3) 2da IA (GEMINI) -> elige 1 negocio y redacta el mensaje
@@ -4555,6 +4594,17 @@ const CAMPOS_MAP_SERVICIOS = {
 // ahora trae todo el índice.
 // ============================================================================
 async function buscarServiciosBasicosAmplio({ localidad } = {}) {
+  const ahora = Date.now();
+  if (
+    serviciosBasicosCache &&
+    ahora - serviciosBasicosCacheTimestamp < CACHE_TTL_MS
+  ) {
+    console.log("♻️ Usando servicios básicos desde cache");
+    return serviciosBasicosCache;
+  }
+
+  console.log("🔄 Refrescando servicios básicos desde Algolia");
+
   const filters = [];
   // if (localidad) filters.push(`lugar:"${localidad.toLowerCase().trim()}"`);
 
@@ -4565,9 +4615,11 @@ async function buscarServiciosBasicosAmplio({ localidad } = {}) {
   });
 
   console.log(
-    `✅ [buscar_servicios_basicos_amplio] ${hits.length} servicios traídos`,
+    `✅ [buscar_servicios_basicos_amplio] ${hits.length} servicios traídos (fresh)`,
   );
 
+  serviciosBasicosCache = hits;
+  serviciosBasicosCacheTimestamp = ahora;
   return hits;
 }
 
@@ -4705,9 +4757,11 @@ ${JSON.stringify(datoParaPrompt)}
 El usuario se llama: ${nombre_usuario || ""} úsalo siempre
 MENSAJE DEL USUARIO: "${mensaje || ""}"
 REGLAS:
-- Habla SOLO de la entidad de DATOS (id:${datoParaPrompt.id}, nombre:${datoParaPrompt.nombre})
+- Usa SOLO lo que hay en DATOS (id:${datoParaPrompt.id}, nombre:${datoParaPrompt.nombre}), no inventes nada extra
 - NUNCA inventes teléfonos ni ningún dato de contacto, eso lo agrega el sistema aparte
-- Nunca saludes, habla como conversación continua, lenguaje local de Barranca, amigable, sin sonar corporativo
+- Nunca SALUDES con buenos o hola, habla como si la conversación ya estuviera en curso, directo al grano
+- LENGUAJE LOCAL SIEMPRE, habla como un pata de Barranca peruano, canchero, nada robótico ni corporativo
+- DIRECTO SIN FLORO: nada de rodeos, nada de vender el servicio, solo suelta el dato tal cual lo pidió
 - mensaje: máximo 2 frases
 - USA EL MOMENTO DEL DIA: ${momento_dia}
 - pidio_otro_dato: true SOLO si el usuario pidió específicamente Facebook, Instagram, sitio web o página, y NO pidió teléfono. false en cualquier otro caso (incluye cuando pidió teléfono, o cuando no especificó nada)
@@ -4743,7 +4797,15 @@ async function procesarBusquedaServiciosBasicos({
   }
 
   const hitsAmplios = await buscarServiciosBasicosAmplio({ localidad });
-
+console.log(
+  "🔍 [DEBUG servicios_basicos] Muestra de hits:",
+  JSON.stringify(hitsAmplios.slice(0, 3).map((h) => ({
+    id: h.objectID || h.id,
+    nombre: h.nombre,
+    img_logo: h.img_logo,
+    keys: Object.keys(h),
+  }))),
+);
   if (!hitsAmplios.length) {
     return {
       id: "sin_id",
@@ -4891,18 +4953,14 @@ async function procesarBusquedaServiciosBasicos({
     ? `https://geinztech.com/redirect/serviciosHogar/${alias}`
     : "";
 
-  let mensaje_safe;
-  if (pidioOtroDato) {
-    mensaje_safe = linkPerfil
-      ? `${mensajeFinal} ${pick(CTAS_SERVICIOS_BASICOS)}: ${linkPerfil}`
-      : mensajeFinal;
-  } else {
-    mensaje_safe = telefono
-      ? `${mensajeFinal} 📞 ${telefono}`
-      : linkPerfil
-        ? `${mensajeFinal} ${pick(CTAS_SERVICIOS_BASICOS)}: ${linkPerfil}`
-        : mensajeFinal;
+  const partesMensaje = [mensajeFinal];
+  if (!pidioOtroDato && telefono) {
+    partesMensaje.push(`📞 ${telefono}`);
   }
+  if (linkPerfil) {
+    partesMensaje.push(`${pick(CTAS_SERVICIOS_BASICOS)}: ${linkPerfil}`);
+  }
+  const mensaje_safe = partesMensaje.filter(Boolean).join(" ");
 
   const imagenFinal = match.img_logo || "";
 

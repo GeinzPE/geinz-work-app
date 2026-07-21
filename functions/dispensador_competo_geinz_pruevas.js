@@ -708,14 +708,14 @@ claramente obia "CONTINUIDAD_INFO"
 2. Si el mensaje tiene "otro/otra/otros" → responde NEGOCIO o TURISMO según el contexto.
 3. Si el mensaje menciona un nombre, negocio o lugar → ignora el contexto y clasifica solo.
 4. Si detetas intencion que busca ofertas promociones o sinonimos similares → responde PROMOCIONES.
-4b. Si menciona una empresa o entidad de servicio público/básico (luz, agua, internet, telefonía, banco, essalud, sunat, migraciones, municipalidad, etc — ej: movistar, bitel, entel, claro, seda, hidrandina, sunat, essalud, reniec) o pregunta por pago, reclamo, sede o contacto de ese tipo de entidad → responde SERVICIOS_BASICOS. No es NEGOCIO aunque sea una "empresa".
 5. CONTINUIDAD_INFO solo si: hay contexto previo, no hay nombre nuevo, y el mensaje pregunta algo concreto del mismo negocio y el mismo "tipo" sino obiar esto.
-6. Si dudas entre CONTINUIDAD_INFO y otra → elige NEGOCIO o TURISMO.
+6. Si el mensaje NO tiene relación clara con ningún negocio, lugar, promoción o servicio específico (ej: chistes, comentarios random, referencias que no piden nada concreto) → responde GEINZ, NO fuerces NEGOCIO ni TURISMO.
+7. Solo si dudas entre CONTINUIDAD_INFO y NEGOCIO/TURISMO teniendo información parcial real (ej: menciona algo de comer pero no queda claro si es negocio o turismo) → elige NEGOCIO o TURISMO según lo que más se acerque.
 CATEGORÍAS:
 - EMERGENCIA: peligro de vida real ahora mismo, o pide número de SAMU/policía/serenazgo.
 - PELIGRO: amenaza, extorsión o delito real. No expresiones de enojo del usuario no emergencia real.
 - CONTINUIDAD_INFO: pregunta concreta sobre el mismo negocio del contexto y el mismo "tipo" .
-- SERVICIOS_BASICOS: busca información de empresas de servicios públicos/básicos (telefonía, internet, luz, agua, banco, sunat, essalud, reniec, municipalidad) — pagos, sedes, contacto, reclamos. No es un negocio de consumo.
+- SERVICIOS_BASICOS: busca información de empresas de servicios públicos/básicos (telefonía, internet, luz, agua, banco, sunat, reniec, municipalidad) . No es un negocio de consumo.
 - PROMOCIONES: busca descuentos, ofertas, precios bajos o dice que no tiene dinero.
 - NEGOCIO: busca tienda, producto, servicio, o quiere comer/tomar/consumir algo nombre de tienda o negocio.
 - TURISMO: busca lugares turisticos playas plazas no incluye cuidades. No incluye querer comer o consumir.
@@ -814,6 +814,16 @@ function construirMensajeEspera(categoria, nombreUsuario) {
       `✨ Espérame ${n} que estoy mirando bien, no te mando cualquier cosa...`,
       `🔍 A ver ${n}, déjame buscar algo que realmente te sirva...`,
       `⚡ Un seg ${n} que estoy viendo qué lugares valen la visita...`,
+    ]);
+  }
+  if (categoria === "SERVICIOS_BASICOS") {
+    return pick([
+      `📋 Ya voy ${n}, dame un segundo que te paso esa info...`,
+      `🔎 Un momento ${n}, estoy sacando esos datos para ti...`,
+      `📞 Espérame ${n}, ya te consigo esa información...`,
+      `✨ Dame un seg ${n}, ya te traigo lo que necesitas...`,
+      `📲 Aguanta ${n}, estoy buscando ese dato...`,
+      `⚡ Ya voy ${n}, en un momento te paso todo eso...`,
     ]);
   }
   return null;
@@ -1162,7 +1172,6 @@ exports.geinz_procesar_buffer = onRequest(
             (e) => console.error("❌ Falló mensaje de espera:", e.message),
           );
         }
-
         if (categoria === "EMERGENCIA") {
           const contextoActualizadoEmergencia = {
             ...limpiarCamposPromoDelContexto(contextoUsuario),
@@ -1203,7 +1212,7 @@ exports.geinz_procesar_buffer = onRequest(
           });
         }
 
-    if (categoria === "NEGOCIO") {
+        if (categoria === "NEGOCIO") {
           const resultadoTienda = await procesarBusquedaTienda({
             mensaje: mensajeFinal,
             contexto_previo: contextoUsuario,
@@ -1212,6 +1221,72 @@ exports.geinz_procesar_buffer = onRequest(
             nombre_usuario: nombre_user,
           });
 
+          if (resultadoTienda.redirigir_a_servicios === true) {
+            const resultadoServicio = await procesarBusquedaServiciosBasicos({
+              mensaje: mensajeFinal,
+              contexto_previo: contextoUsuario,
+              localidad: "barranca",
+              nombre_usuario: nombre_user,
+            });
+
+            const contextoActualizadoServicio = {
+              ...limpiarCamposPromoDelContexto(contextoUsuario),
+              tipo: "SERVICIOS_BASICOS",
+              categoria: null,
+              id: resultadoServicio.id || null,
+              nombre: resultadoServicio.nombre_servicio || null,
+              extra: resultadoServicio.data || "null",
+            };
+            const promesaContextoServicio = actualizarContextoUsuario(
+              numero_usuario,
+              contextoActualizadoServicio,
+            );
+
+            if (resultadoServicio.imagen) {
+              try {
+                await enviarImagenWhatsapp(
+                  numero_usuario,
+                  resultadoServicio.imagen,
+                  resultadoServicio.mensaje_safe,
+                );
+              } catch (e) {
+                console.error(
+                  "❌ [NEGOCIO→SERVICIOS_BASICOS] Falló imagen, texto de respaldo:",
+                  e.message,
+                );
+                if (resultadoServicio.mensaje_safe) {
+                  await enviarMensajeWhatsapp(
+                    numero_usuario,
+                    resultadoServicio.mensaje_safe,
+                  );
+                }
+              }
+            } else if (resultadoServicio.mensaje_safe) {
+              await enviarMensajeWhatsapp(
+                numero_usuario,
+                resultadoServicio.mensaje_safe,
+              );
+            }
+
+            await promesaContextoServicio;
+
+            const tiempo_ms_redirigido = Date.now() - inicio;
+            return res.status(200).json({
+              ok: true,
+              categoria: "SERVICIOS_BASICOS",
+              subcaso: "redirigido_desde_negocio",
+              mensaje_usuario: mensajeFinal,
+              nombre_usuario: nombre_user,
+              numero_usuario,
+              contexto_usuario: contextoActualizadoServicio,
+              resultado_servicio: resultadoServicio,
+              tokens_usados: {
+                clasificador: { modelo: "gpt-5.4-mini", ...tokensClasificador },
+                servicios_basicos: resultadoServicio.tokens_usados,
+              },
+              tiempo_ms: tiempo_ms_redirigido,
+            });
+          }
           // 👇 NUEVO: caso "no supe qué categoría es" → pedir aclaración
           if (resultadoTienda.pedir_aclaracion === true) {
             const contextoActualizadoAclaracion = {
