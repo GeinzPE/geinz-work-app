@@ -38,11 +38,23 @@ const {
   procesarBusquedaTurismo,
   resolverInfoNegocio,
   procesarPromociones,
+  procesarBusquedaServiciosBasicos,
 } = require("./asistentes_AI_geinz.js");
+const { guardarMensajeHistorial } = require("./historial_whatsapp.js");
 
 const { descontarCreditosTienda } = require("./test_db2.js");
 
 const { programarTareaDebounce } = require("./tasks.js");
+
+const NUMERO_AVISO_INTERNO = "51937659216"; // mismo formato que usas en baneo_usr
+
+async function enviarAvisoInterno(mensajeTexto) {
+  try {
+    await enviarMensajeWhatsapp(NUMERO_AVISO_INTERNO, mensajeTexto);
+  } catch (e) {
+    console.error("❌ [enviarAvisoInterno] Falló el envío:", e.message);
+  }
+}
 
 // ============================================================
 // ¿Hay actividad reciente del usuario? (buffer pendiente, bot
@@ -279,7 +291,7 @@ async function validarUsuario({ numero_usuario, id_user }) {
     .collection("usuario_bot_geinz")
     .doc(numero_usuario);
 
-  return db.runTransaction(async (tx) => {
+  const resultado = await db.runTransaction(async (tx) => {
     const doc = await tx.get(ref);
 
     if (!doc.exists) {
@@ -377,6 +389,15 @@ async function validarUsuario({ numero_usuario, id_user }) {
       rate_limit_bloqueado_hasta: null,
     };
   });
+
+  // 👇 NUEVO: si el usuario no existía antes de esta transacción, avisamos
+  //    al número interno. Fire-and-forget (sin await) para no retrasar
+  //    la respuesta al usuario; el helper ya tiene su propio try/catch.
+  if (resultado.exists === false) {
+    enviarAvisoInterno("Usuario nuevo escribió a Daniel");
+  }
+
+  return resultado;
 }
 
 // ============================================================
@@ -431,6 +452,12 @@ async function enviarMensajeWhatsapp(recipientPhoneNumber, textBody) {
     throw new Error(
       `Error enviando mensaje WhatsApp: ${resp.status} ${await resp.text()}`,
     );
+  guardarMensajeHistorial({
+    numero_usuario: recipientPhoneNumber,
+    remitente: "bot",
+    tipo: "texto",
+    contenido: textBody,
+  }).catch(() => {});
   return resp.json();
 }
 
@@ -512,7 +539,13 @@ async function enviarPlantillaWhatsapp_para_tiendas({
   }
 
   const resultadoEnvio = await resp.json();
-
+  guardarMensajeHistorial({
+    numero_usuario: recipientPhoneNumber,
+    remitente: "bot",
+    tipo: "plantilla",
+    contenido: mensaje_safe || "",
+    extra: { plantilla: "entidades_data", id_tienda: id, alias_tienda },
+  }).catch(() => {});
   try {
     const resultadoDescuento = await descontarCreditosTienda({
       id,
@@ -555,6 +588,13 @@ async function enviarImagenWhatsapp(recipientPhoneNumber, imagenUrl, caption) {
     throw new Error(
       `Error enviando imagen WhatsApp: ${resp.status} ${await resp.text()}`,
     );
+  guardarMensajeHistorial({
+    numero_usuario: recipientPhoneNumber,
+    remitente: "bot",
+    tipo: "imagen",
+    contenido: caption || "",
+    extra: { imagen: imagenUrl },
+  }).catch(() => {});
   return resp.json();
 }
 
@@ -579,6 +619,14 @@ async function enviarStickerWhatsapp(recipientPhoneNumber, stickerUrl) {
     throw new Error(
       `Error enviando sticker WhatsApp: ${resp.status} ${await resp.text()}`,
     );
+  guardarMensajeHistorial({
+    numero_usuario: recipientPhoneNumber,
+    remitente: "bot",
+    tipo: "sticker",
+    contenido: "",
+    extra: { sticker: stickerUrl },
+  }).catch(() => {});
+
   return resp.json();
 }
 
@@ -659,25 +707,28 @@ claramente obia "CONTINUIDAD_INFO"
 1. VERIFICA EL EXTRA PARA QUE TENGAS MAYOR CONTEXTO Y CLASIFIQUES SEGUN LA CONVERSACION
 2. Si el mensaje tiene "otro/otra/otros" → responde NEGOCIO o TURISMO según el contexto.
 3. Si el mensaje menciona un nombre, negocio o lugar → ignora el contexto y clasifica solo.
-4.si detetas intencion que busca ofertas promociones o sinonimos similares → responde PROMOCIONES.
+4. Si detetas intencion que busca ofertas promociones o sinonimos similares → responde PROMOCIONES.
+4b. Si menciona una empresa o entidad de servicio público/básico (luz, agua, internet, telefonía, banco, essalud, sunat, migraciones, municipalidad, etc — ej: movistar, bitel, entel, claro, seda, hidrandina, sunat, essalud, reniec) o pregunta por pago, reclamo, sede o contacto de ese tipo de entidad → responde SERVICIOS_BASICOS. No es NEGOCIO aunque sea una "empresa".
 5. CONTINUIDAD_INFO solo si: hay contexto previo, no hay nombre nuevo, y el mensaje pregunta algo concreto del mismo negocio y el mismo "tipo" sino obiar esto.
 6. Si dudas entre CONTINUIDAD_INFO y otra → elige NEGOCIO o TURISMO.
 CATEGORÍAS:
 - EMERGENCIA: peligro de vida real ahora mismo, o pide número de SAMU/policía/serenazgo.
 - PELIGRO: amenaza, extorsión o delito real. No expresiones de enojo del usuario no emergencia real.
 - CONTINUIDAD_INFO: pregunta concreta sobre el mismo negocio del contexto y el mismo "tipo" .
+- SERVICIOS_BASICOS: busca información de empresas de servicios públicos/básicos (telefonía, internet, luz, agua, banco, sunat, essalud, reniec, municipalidad) — pagos, sedes, contacto, reclamos. No es un negocio de consumo.
 - PROMOCIONES: busca descuentos, ofertas, precios bajos o dice que no tiene dinero.
 - NEGOCIO: busca tienda, producto, servicio, o quiere comer/tomar/consumir algo nombre de tienda o negocio.
 - TURISMO: busca lugares turisticos playas plazas no incluye cuidades. No incluye querer comer o consumir.
 - GEINZ: saludo, soporte, registrar su negocio, mensaje sin sentido claro.
-PRIORIDAD: EMERGENCIA > PELIGRO > paso 0 (ESPERANDO_NOMBRE_PROMO) > paso 0b (ESPERANDO_ELECCION) > CONTINUIDAD_INFO > PROMOCIONES > NEGOCIO > TURISMO > GEINZ
-Responde solo: EMERGENCIA | PELIGRO | CONTINUIDAD_INFO | PROMOCIONES | NEGOCIO | TURISMO | GEINZ`;
+PRIORIDAD: EMERGENCIA > PELIGRO > paso 0 (ESPERANDO_NOMBRE_PROMO) > paso 0b (ESPERANDO_ELECCION) > CONTINUIDAD_INFO > SERVICIOS_BASICOS > PROMOCIONES > NEGOCIO > TURISMO > GEINZ
+Responde solo: EMERGENCIA | PELIGRO | CONTINUIDAD_INFO | SERVICIOS_BASICOS | PROMOCIONES | NEGOCIO | TURISMO | GEINZ`;
 }
 
 const CATEGORIAS_VALIDAS = [
   "EMERGENCIA",
   "PELIGRO",
   "CONTINUIDAD_INFO",
+  "SERVICIOS_BASICOS",
   "PROMOCIONES",
   "NEGOCIO",
   "TURISMO",
@@ -865,6 +916,13 @@ exports.geinz_webhook_principal = onRequest(async (req, res) => {
       }
 
       const mensajeEnlatado = construirMensajeNoSoportado(tipoNoSoportado);
+      guardarMensajeHistorial({
+        numero_usuario,
+        remitente: "usuario",
+        tipo: tipoNoSoportado,
+        contenido: "",
+        mensaje_id: mensajeWa.id,
+      }).catch(() => {});
       await enviarMensajeWhatsapp(numero_usuario, mensajeEnlatado);
 
       console.log(
@@ -927,7 +985,14 @@ exports.geinz_webhook_principal = onRequest(async (req, res) => {
         info: `Tipo de mensaje no soportado: ${mensajeWa.type}`,
       });
     }
-
+    guardarMensajeHistorial({
+      numero_usuario,
+      nombre_usuario: nombre_user,
+      remitente: "usuario",
+      tipo: mensajeWa.type === "audio" ? "audio" : "texto",
+      contenido: mensajeFinal,
+      mensaje_id: mensajeWa.id,
+    }).catch(() => {});
     if (!mensajeFinal.trim()) {
       return res
         .status(200)
@@ -964,9 +1029,7 @@ exports.geinz_webhook_principal = onRequest(async (req, res) => {
 // ============================================================
 // LEER Y VALIDAR BUFFER
 // ============================================================
-// ============================================================
-// LEER Y VALIDAR BUFFER
-// ============================================================
+
 async function leerYValidarBuffer({ numero_usuario, mensajeId }) {
   const ref = db.collection("buffer_mensajes_geinz").doc(numero_usuario);
   const snap = await ref.get();
@@ -1140,7 +1203,7 @@ exports.geinz_procesar_buffer = onRequest(
           });
         }
 
-        if (categoria === "NEGOCIO") {
+    if (categoria === "NEGOCIO") {
           const resultadoTienda = await procesarBusquedaTienda({
             mensaje: mensajeFinal,
             contexto_previo: contextoUsuario,
@@ -1148,6 +1211,48 @@ exports.geinz_procesar_buffer = onRequest(
             excluir_id: contextoUsuario?.id || null,
             nombre_usuario: nombre_user,
           });
+
+          // 👇 NUEVO: caso "no supe qué categoría es" → pedir aclaración
+          if (resultadoTienda.pedir_aclaracion === true) {
+            const contextoActualizadoAclaracion = {
+              ...limpiarCamposPromoDelContexto(contextoUsuario),
+              tipo: "GEINZ",
+              categoria: null,
+              id: null,
+              nombre: null,
+              subcategoria: null,
+              extra: "ESPERANDO_ELECCION:negocio,turismo,promociones",
+            };
+            const promesaContextoAclaracion = actualizarContextoUsuario(
+              numero_usuario,
+              contextoActualizadoAclaracion,
+            );
+
+            if (resultadoTienda.mensaje_safe) {
+              await enviarMensajeWhatsapp(
+                numero_usuario,
+                resultadoTienda.mensaje_safe,
+              );
+            }
+
+            await promesaContextoAclaracion;
+
+            const tiempo_ms_aclaracion = Date.now() - inicio;
+            return res.status(200).json({
+              ok: true,
+              categoria: "NEGOCIO",
+              subcaso: "pedir_aclaracion",
+              mensaje_usuario: mensajeFinal,
+              nombre_usuario: nombre_user,
+              numero_usuario,
+              contexto_usuario: contextoActualizadoAclaracion,
+              tokens_usados: {
+                clasificador: { modelo: "gpt-5.4-mini", ...tokensClasificador },
+                negocio: resultadoTienda.tokens_usados,
+              },
+              tiempo_ms: tiempo_ms_aclaracion,
+            });
+          }
 
           const contextoActualizadoNegocio = {
             ...limpiarCamposPromoDelContexto(contextoUsuario),
@@ -1734,6 +1839,93 @@ exports.geinz_procesar_buffer = onRequest(
           });
         }
 
+        if (categoria === "SERVICIOS_BASICOS") {
+          const resultadoServicio = await procesarBusquedaServiciosBasicos({
+            mensaje: mensajeFinal,
+            contexto_previo: contextoUsuario,
+            localidad: "barranca",
+            nombre_usuario: nombre_user,
+          });
+
+          const contextoActualizadoServicio = {
+            ...limpiarCamposPromoDelContexto(contextoUsuario),
+            tipo: "SERVICIOS_BASICOS",
+            categoria: null,
+            id: resultadoServicio.id || null,
+            nombre: resultadoServicio.nombre_servicio || null,
+            extra: resultadoServicio.data || "null",
+          };
+          const promesaContexto = actualizarContextoUsuario(
+            numero_usuario,
+            contextoActualizadoServicio,
+          );
+
+          // 👇 mismo patrón que TURISMO: imagen con caption (mensaje_safe), y si
+          // falla el envío de imagen, cae a texto plano como respaldo. Nunca
+          // plantilla, tal como pediste.
+          if (resultadoServicio.imagen) {
+            try {
+              await enviarImagenWhatsapp(
+                numero_usuario,
+                resultadoServicio.imagen,
+                resultadoServicio.mensaje_safe,
+              );
+            } catch (e) {
+              console.error(
+                "❌ [SERVICIOS_BASICOS] Falló imagen, texto de respaldo:",
+                e.message,
+              );
+              if (resultadoServicio.mensaje_safe) {
+                try {
+                  await enviarMensajeWhatsapp(
+                    numero_usuario,
+                    resultadoServicio.mensaje_safe,
+                  );
+                } catch (e2) {
+                  console.error(
+                    "❌ [SERVICIOS_BASICOS] Falló también texto de respaldo:",
+                    e2.message,
+                  );
+                }
+              }
+            }
+          } else if (resultadoServicio.mensaje_safe) {
+            try {
+              await enviarMensajeWhatsapp(
+                numero_usuario,
+                resultadoServicio.mensaje_safe,
+              );
+            } catch (e) {
+              console.error(
+                "❌ [SERVICIOS_BASICOS] Falló texto de resultado:",
+                e.message,
+              );
+            }
+          }
+
+          await promesaContexto;
+
+          const tiempo_ms = Date.now() - inicio;
+          return res.status(200).json({
+            ok: true,
+            categoria: "SERVICIOS_BASICOS",
+            mensaje_usuario: mensajeFinal,
+            nombre_usuario: nombre_user,
+            numero_usuario,
+            contexto_usuario: contextoActualizadoServicio,
+            resultado_servicio: resultadoServicio,
+            tokens_usados: {
+              clasificador: { modelo: "gpt-5.4-mini", ...tokensClasificador },
+              servicios_basicos: resultadoServicio.tokens_usados,
+              total_tokens_combinado:
+                tokensClasificador.total_tokens +
+                (resultadoServicio.tokens_usados?.openai?.total_tokens || 0) +
+                (resultadoServicio.tokens_usados?.gemini?.total_tokens || 0),
+            },
+            tiempo_ms,
+          });
+        }
+
         // Categorías restantes (ej. PROMOCIONES) sin rama específica todavía
         const contextoActualizado = {
           ...limpiarCamposPromoDelContexto(contextoUsuario),
@@ -1850,6 +2042,14 @@ async function enviarPlantillaBaneoWhatsapp({
     );
   }
 
+  guardarMensajeHistorial({
+    numero_usuario: recipientPhoneNumber,
+    remitente: "bot",
+    tipo: "plantilla",
+    contenido: mensajeFinal || "",
+    extra: { plantilla: "baneo_usr" },
+  }).catch(() => {});
+
   return resp.json();
 }
 
@@ -1957,6 +2157,13 @@ async function enviarPlantillaWhatsapp_promociones({
       `Error enviando plantilla de promociones: ${resp.status} ${await resp.text()}`,
     );
   }
+  guardarMensajeHistorial({
+    numero_usuario: recipientPhoneNumber,
+    remitente: "bot",
+    tipo: "plantilla",
+    contenido: mensaje || "",
+    extra: { plantilla: "detalles_establecimiento_standard", ids },
+  }).catch(() => {});
 
   return resp.json();
 }
@@ -2065,6 +2272,12 @@ async function intentarResponderConAudio({ recipientPhoneNumber, texto }) {
       "🔊 [TTS] Audio enviado correctamente | 👤:",
       recipientPhoneNumber,
     );
+    guardarMensajeHistorial({
+      numero_usuario: recipientPhoneNumber,
+      remitente: "bot",
+      tipo: "audio",
+      contenido: texto,
+    }).catch(() => {});
     return true;
   } catch (e) {
     console.error(
@@ -2206,3 +2419,13 @@ async function enviarMensajeTextoWhatsApp(recipientPhoneNumber, mensajeTexto) {
 
   return resp.json();
 }
+
+exports.geinz_aviso_qr_escaneado = onRequest(async (req, res) => {
+  try {
+    await enviarAvisoInterno("Usuario nuevo escaneó el QR");
+    return res.status(200).json({ ok: true });
+  } catch (error) {
+    console.error("❌ Error geinz_aviso_qr_escaneado:", error.message);
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});

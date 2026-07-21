@@ -161,11 +161,11 @@ exports.procesar_audio_whatsapp = procesar_audio_whatsapp;
 
 const {
   geinz_webhook_principal,
-  geinz_procesar_buffer,
+  geinz_procesar_buffer,geinz_aviso_qr_escaneado
 } = require("./dispensador_competo_geinz_pruevas.js");
 exports.geinz_webhook_principal = geinz_webhook_principal;
 exports.geinz_procesar_buffer = geinz_procesar_buffer;
-
+exports.geinz_aviso_qr_escaneado=geinz_aviso_qr_escaneado
 const {
   crearOrdenCulqi,culqiWebhook,confirmarPago
 } =require("./pagos_geinz.js")

@@ -24,7 +24,7 @@ const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 const CACHE_TTL_MS = 1000 * 60 * 30;
-
+const { guardarMensajeHistorial } = require("./historial_whatsapp.js");
 const WHATSAPP_TOKEN = process.env.ID_API_WHATSAPP;
 const WHATSAPP_PHONE_NUMBER_ID = process.env.ID_NUMBER_WHATSAPP;
 const WHATSAPP_API_VERSION = "v20.0";
@@ -75,6 +75,23 @@ const ATTRS_TIENDA = [
   "alias",
 ];
 
+const MENSAJES_PEDIR_ACLARACION_GEINZ = [
+  (n) =>
+    `Claro ${n} 😊 cuéntame un poco más, ¿buscas algún negocio, un lugar turístico o promociones?`,
+  (n) =>
+    `${n}, para ayudarte mejor dime qué necesitas: ¿negocio, turismo o promociones? 🙌`,
+  (n) =>
+    `A ver ${n} 🤔 ¿qué es lo que buscas? ¿algún negocio, lugar turístico o alguna promoción?`,
+  (n) =>
+    `Dime ${n} 👀 ¿te interesa algún negocio, un sitio turístico o promos?`,
+];
+const MENSAJES_INVITACION_TIENDA = [
+  "Oye, si tienes tu propio espacio por ahí o conoces uno que debería estar en Geinz, escríbenos al 958 120 920 y lo sumamos 🚀",
+  "Aprovecha: si manejas algo piola por acá o sabes de un sitio que debería aparecer aquí, mándanos un mensajito al 958 120 920 😎",
+  "Psst, si tienes un espacio tuyo o conoces uno bacán, escribe al 958 120 920 y lo metemos a la app 📲",
+  "Si conoces un lugar que la gente debería encontrar por aquí, cuéntanos al 958 120 920 y lo agregamos ✨",
+  "¿Tienes o conoces un sitio que merece estar en Geinz? Escríbenos al 958 120 920 y lo sumamos al toque 🔥",
+];
 const HITS_PER_PAGE_CATEGORIA_AMPLIA = 60;
 
 function obtenerMomentoDia() {
@@ -933,7 +950,23 @@ async function procesarBusquedaTienda({
     let { nombre, categoria, search } = clasificacion;
     const { heredar_contexto } = clasificacion;
     trace.heredo_contexto = !!heredar_contexto;
+    const categoriaLimpia = (categoria || "").toLowerCase().trim();
 
+    if (!nombre && (categoriaLimpia === "geinz" || categoriaLimpia === "")) {
+      trace.tipo_busqueda = "pedir_aclaracion";
+      const mensajeAclaracion = pick(MENSAJES_PEDIR_ACLARACION_GEINZ)(
+        nombre_usuario || "amigo",
+      );
+      return {
+        id: "sin_id",
+        mensaje: mensajeAclaracion,
+        mensaje_safe: mensajeAclaracion,
+        pedir_aclaracion: true,
+        data: "null",
+        subcategoria: null,
+        debug_trace: trace,
+      };
+    }
     // 👇 mismo valor que antes se calculaba inline en la llamada a
     // buscarPorCategoria; lo adelantamos aquí porque ya está disponible
     // (excluir_id y clasificacion.excluir_id ya se conocen en este punto)
@@ -1255,7 +1288,7 @@ FORMATO OBLIGATORIO:
       ? `https://geinztech.com/perfil/${alias_tienda}`
       : "";
 
-    const mensaje_safe = usa_plantilla
+    let mensaje_safe = usa_plantilla
       ? mensajeFinal
       : mensajeFinal
         ? link_construido
@@ -1265,6 +1298,12 @@ FORMATO OBLIGATORIO:
           ? `${pick(CTAS)}: ${link_construido}`
           : "";
 
+    // 👇 Solo cuando SÍ se hizo una búsqueda real y no hubo resultados
+    // (no aplica si fue "sin_criterio", que es un caso distinto)
+    if (trace.tipo_busqueda === "sin_resultado") {
+      mensaje_safe =
+        `${mensaje_safe} ${pick(MENSAJES_INVITACION_TIENDA)}`.trim();
+    }
     const imagen_stiker = pick(STIKER_TIENDA);
     const esTiendaSinPlantilla = !usa_plantilla;
     const token_wsap = usa_plantilla ? generarToken() : "";
@@ -1447,7 +1486,12 @@ function sumarTokens(total, extra) {
 
 async function llamarGemini(
   prompt,
-  { jsonMode = true, systemMessage = null, maxOutputTokens = 300 } = {},
+  {
+    jsonMode = true,
+    systemMessage = null,
+    maxOutputTokens = 300,
+    schema = null,
+  } = {},
 ) {
   const contents = [];
   if (systemMessage) {
@@ -1788,6 +1832,20 @@ const stiker_turismo = [
   "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/STIKER%2FDise%C3%B1o%20sin%20t%C3%ADtulo%20(21)-Photoroom-convertido-de-png.webp?alt=media&token=54454bc2-d962-4312-98c5-53681e7b29b3",
 ];
 
+const MENSAJES_SIN_RESULTADO_TURISMO = [
+  "Uy, no encontré ningún sitio así por acá 😕. Prueba con otra búsqueda.",
+  "Mmm, no me sale nada con eso por ahora 👀.",
+  "No hay nada que calce con esa búsqueda por aquí 😅.",
+  "Por ahora no tengo un lugar así registrado 🤔.",
+  "No encontré resultados esta vez 🔍.",
+];
+
+const MENSAJES_INVITACION_TURISMO = [
+  "Oye, si conoces un lugar bacán para pasear que no está en la app, cuéntanos al 958 120 920 y lo sumamos 🗺️",
+  "Si sabes de un sitio piola para visitar por acá, escríbenos al 958 120 920 y lo agregamos al mapa 😎",
+  "¿Conoces un lugar que la gente debería visitar? Mándanos un mensaje al 958 120 920 y lo metemos a Geinz ✨",
+  "Cuéntanos de algún lugar chévere que conozcas al 958 120 920 y lo sumamos por acá 🔥",
+];
 function parseIA(raw) {
   if (!raw || typeof raw !== "string") return {};
   try {
@@ -1988,6 +2046,43 @@ async function procesarBusquedaTurismo({
     resultado: { total: lugares.total, ids: lugares.data.map((d) => d.id) },
   });
 
+  if (!lugares.total) {
+    const mensajeBase = pick(MENSAJES_SIN_RESULTADO_TURISMO);
+    const mensaje_safe =
+      `${mensajeBase} ${pick(MENSAJES_INVITACION_TURISMO)}`.trim();
+
+    const tiempo_ms = Date.now() - inicio;
+    const tokens_usados = {
+      gemini: tokensGemini,
+      openai: tokensOpenAI,
+      total: tokensGemini.total_tokens + tokensOpenAI.total_tokens,
+      pasos,
+    };
+
+    console.log(
+      "🧭 [procesarBusquedaTurismo] Sin resultados turístico | mensaje_safe:",
+      mensaje_safe,
+    );
+
+    return {
+      id: "sin_id",
+      mensaje: mensajeBase,
+      imagen: "",
+      mensaje_safe,
+      data: ["TURISMO", "", "", "null", "sin_id"].join("|"),
+      siker: pick(stiker_turismo),
+      msje_pla_wa: "",
+      plantilla: false,
+      wha: "",
+      cat_detectada: "",
+      era_plantilla_pero_misio: false,
+      nombre_negocio: "",
+      token_wsap: "",
+      alias_tienda: "",
+      tokens_usados,
+      tiempo_ms,
+    };
+  }
   // 3) Agente final — Gemini
   const t3 = Date.now();
   const usuarioNombre = usuario || "amigo";
@@ -2513,6 +2608,14 @@ async function enviarPlantillaEmergencia(recipientPhoneNumber, resultado) {
   }
 
   console.log("✅ [enviarPlantillaEmergencia] Plantilla enviada OK");
+  guardarMensajeHistorial({
+    numero_usuario: recipientPhoneNumber,
+    remitente: "bot",
+    tipo: "plantilla",
+    contenido: resultado.mensaje_texto || "",
+    extra: { plantilla: "emergencia_user" },
+  }).catch(() => {});
+
   return resp.json();
 }
 
@@ -2550,6 +2653,12 @@ async function enviarMensajeTextoEmergencia(recipientPhoneNumber, resultado) {
   }
 
   console.log("✅ [enviarMensajeTextoEmergencia] Mensaje enviado OK");
+  guardarMensajeHistorial({
+    numero_usuario: recipientPhoneNumber,
+    remitente: "bot",
+    tipo: "texto",
+    contenido: resultado.mensaje_safe || "",
+  }).catch(() => {});
   return resp.json();
 }
 
@@ -4317,7 +4426,6 @@ RESPONDE SIEMPRE EN ESTE JSON, sin texto fuera de él:
 {"mensaje":"...","id":"null","tipo":"|NEGOCIO|TURISMO|GEINZ","extra":"..."}`;
 }
 
-
 async function llamarGeminiGeinz(mensaje, nombreUsuario) {
   const prompt = construirPromptGeinz(mensaje, nombreUsuario);
 
@@ -4395,3 +4503,450 @@ async function llamarGeminiGeinz(mensaje, nombreUsuario) {
   return { resultado, tokens };
 }
 exports.llamarGeminiGeinz = llamarGeminiGeinz;
+
+// ============================================================================
+// ============================================================================
+//   7. MÓDULO SERVICIOS BÁSICOS (Movistar, Bitel, Entel, Sunat, Essalud, etc)
+// ============================================================================
+// ============================================================================
+
+// ── VARIABLES GLOBALES ──────────────────────────────────────────────────────
+const index_servicios_basicos = client.initIndex("servicios_basicos_generales");
+
+const ATTRS_SERVICIOS_BASICOS = [
+  "objectID",
+  "id",
+  "nombre",
+  "descripcion",
+  "telefono",
+  "img_logo",
+  "alias",
+];
+
+const CTAS_SERVICIOS_BASICOS = [
+  "Toda esa info la tienes completa aquí en geinz",
+  "Ahí te dejo todo lo que necesitas",
+  "Mira, ahí está todo detallado",
+  "Encuentra eso y más por acá",
+  "Échale un vistazo aquí, está todo",
+];
+
+const MENSAJES_SIN_RESULTADO_SERVICIOS = [
+  "Uy, no tengo registrado ese servicio por aquí 😕",
+  "No encontré nada con eso por ahora 👀.",
+  "No me sale ese servicio en la lista 😅.",
+  "Por ahora no tengo ese dato registrado 🤔.",
+];
+
+const UMBRAL_MATCH_LOCAL_SERVICIOS = 0.72;
+
+const CAMPOS_MAP_SERVICIOS = {
+  t: { label: "📞", campo: "telefono" },
+  w: { label: "💬 WhatsApp:", campo: "whatsapp" },
+  s: { label: "🌐", campo: "sitio_web" },
+  fb: { label: "📘 Facebook:", campo: "fb" },
+  ig: { label: "📸 Instagram:", campo: "ig" },
+};
+
+// ============================================================================
+// 1) Traer todos los servicios básicos (son pocos, no hace falta paginar)
+// ⚠️ Si tu índice tiene un atributo "lugar" para filtrar por localidad,
+// descomenta el filtro. Con la data actual no vi ese campo, así que por
+// ahora trae todo el índice.
+// ============================================================================
+async function buscarServiciosBasicosAmplio({ localidad } = {}) {
+  const filters = [];
+  // if (localidad) filters.push(`lugar:"${localidad.toLowerCase().trim()}"`);
+
+  const { hits } = await index_servicios_basicos.search("", {
+    filters: filters.length ? filters.join(" AND ") : undefined,
+    hitsPerPage: 200,
+    attributesToRetrieve: ATTRS_SERVICIOS_BASICOS,
+  });
+
+  console.log(
+    `✅ [buscar_servicios_basicos_amplio] ${hits.length} servicios traídos`,
+  );
+
+  return hits;
+}
+
+function construirListaLigeraServicios(hits) {
+  return hits.map((h) => ({
+    id: h.objectID || h.id,
+    n: h.nombre || "",
+    d: (h.descripcion || "").substring(0, 40),
+  }));
+}
+
+// ============================================================================
+// 2) MATCH LOCAL (gratis, sin IA) — resuelve la mayoría de casos por nombre
+// ============================================================================
+function matchLocalServicioBasico(mensaje, listaLigera) {
+  const query = (mensaje || "").toLowerCase().trim();
+  if (!query) return null;
+
+  let mejor = null;
+  let mejorScore = 0;
+
+  for (const item of listaLigera) {
+    const nombre = (item.n || "").toLowerCase().trim();
+    if (!nombre) continue;
+
+    let score = similarity.stringSimilarity(query, nombre);
+    if (query.includes(nombre)) score = Math.max(score, 0.9);
+
+    if (score > mejorScore) {
+      mejorScore = score;
+      mejor = item;
+    }
+  }
+
+  if (mejor && mejorScore >= UMBRAL_MATCH_LOCAL_SERVICIOS) {
+    console.log(
+      `✅ [matchLocalServicioBasico] Match local sin IA: "${mejor.n}" (score: ${mejorScore.toFixed(2)})`,
+    );
+    return mejor.id;
+  }
+
+  return null;
+}
+
+// ============================================================================
+// 3) PROMPT 1 — CLASIFICADOR IA (GPT-5.4-nano) — solo si no hubo match local
+// ============================================================================
+function construirPromptClasificadorServicios(
+  mensaje,
+  contextoPrevio,
+  listaLigera,
+) {
+  const contextoRaw = contextoPrevio?.contexto_usuario ?? contextoPrevio;
+  const contextoStr =
+    contextoRaw === undefined || contextoRaw === null
+      ? "null"
+      : typeof contextoRaw === "string"
+        ? contextoRaw
+        : JSON.stringify(contextoRaw);
+
+  return `Elige el servicio básico más parecido a lo que pide el usuario.
+CONTEXTO PREVIO: ${contextoStr}
+LISTA (id,nombre,desc):
+${JSON.stringify(listaLigera)}
+MENSAJE: "${mensaje}"
+REGLAS:
+- Responde SOLO JSON: {"id":"..."}
+- El id DEBE existir EXACTO en la LISTA, nunca inventes
+- Si el mensaje es continuación/pregunta sobre el mismo servicio del CONTEXTO PREVIO → responde ese mismo id
+- Si ninguno de la LISTA coincide claramente con lo que pide → {"id":"NINGUNO"}
+- Ignora tildes, mayúsculas y errores de tipeo al comparar`;
+}
+
+async function clasificarServicioBasicoIA(
+  mensaje,
+  contexto_previo,
+  listaLigera,
+) {
+  const prompt = construirPromptClasificadorServicios(
+    mensaje,
+    contexto_previo,
+    listaLigera,
+  );
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-5.4-nano",
+    messages: [{ role: "user", content: prompt }],
+    response_format: { type: "json_object" },
+    reasoning_effort: "none",
+    max_completion_tokens: 60,
+  });
+
+  const tokens = {
+    prompt_tokens: completion.usage?.prompt_tokens || 0,
+    completion_tokens: completion.usage?.completion_tokens || 0,
+    total_tokens: completion.usage?.total_tokens || 0,
+  };
+
+  let idElegido = null;
+  try {
+    const parsed = JSON.parse(completion.choices[0]?.message?.content || "{}");
+    const raw = (parsed.id || "").toString().trim();
+    idElegido = raw && raw.toUpperCase() !== "NINGUNO" ? raw : null;
+  } catch (e) {
+    console.error(
+      "❌ [clasificarServicioBasicoIA] Error parseando:",
+      e.message,
+    );
+  }
+
+  return { idElegido, tokens };
+}
+
+// ============================================================================
+// 4) PROMPT 2 — GEMINI REDACTA (solo con id+nombre+desc, sin contacto)
+// Gemini decide qué campos de contacto ("campos") pidió el usuario, y el
+// código arma el bloque real de contacto a partir de "match", nunca de lo
+// que Gemini redactó.
+// ============================================================================
+function construirPromptRespuestaServicio({
+  match,
+  mensaje,
+  nombre_usuario,
+  momento_dia,
+}) {
+  const datoParaPrompt = {
+    id: match.objectID || match.id,
+    nombre: match.nombre || "",
+    desc: (match.descripcion || "").substring(0, 150),
+  };
+
+  return `Responde en JSON válido.
+DATOS:
+${JSON.stringify(datoParaPrompt)}
+El usuario se llama: ${nombre_usuario || ""} úsalo siempre
+MENSAJE DEL USUARIO: "${mensaje || ""}"
+REGLAS:
+- Habla SOLO de la entidad de DATOS (id:${datoParaPrompt.id}, nombre:${datoParaPrompt.nombre})
+- NUNCA inventes teléfonos ni ningún dato de contacto, eso lo agrega el sistema aparte
+- Nunca saludes, habla como conversación continua, lenguaje local de Barranca, amigable, sin sonar corporativo
+- mensaje: máximo 2 frases
+- USA EL MOMENTO DEL DIA: ${momento_dia}
+- pidio_otro_dato: true SOLO si el usuario pidió específicamente Facebook, Instagram, sitio web o página, y NO pidió teléfono. false en cualquier otro caso (incluye cuando pidió teléfono, o cuando no especificó nada)
+- NUNCA digas frases como "mensaje predeterminado", "esto es automático", ni nada que describa la naturaleza de tu propia respuesta
+FORMATO OBLIGATORIO:
+{"id":"${datoParaPrompt.id}","mensaje":"...","intencion":"SERVICIOS_BASICOS","pidio_otro_dato":false}`;
+}
+// ============================================================================
+// 5) FUNCIÓN PRINCIPAL
+// ============================================================================
+async function procesarBusquedaServiciosBasicos({
+  mensaje,
+  contexto_previo,
+  localidad,
+  nombre_usuario,
+}) {
+  const tiempoInicioTotal = Date.now();
+  const momento_dia = obtenerMomentoDia();
+
+  let tokensOpenAI = {
+    prompt_tokens: 0,
+    completion_tokens: 0,
+    total_tokens: 0,
+  };
+  let tokensGemini = {
+    promptTokenCount: 0,
+    candidatesTokenCount: 0,
+    totalTokenCount: 0,
+  };
+
+  if (!mensaje || typeof mensaje !== "string" || !mensaje.trim()) {
+    throw new Error("El campo 'mensaje' es requerido");
+  }
+
+  const hitsAmplios = await buscarServiciosBasicosAmplio({ localidad });
+
+  if (!hitsAmplios.length) {
+    return {
+      id: "sin_id",
+      mensaje: "Por ahora no tengo servicios básicos registrados por aquí 😕",
+      mensaje_safe:
+        "Por ahora no tengo servicios básicos registrados por aquí 😕",
+      intencion: "SIN_DATOS",
+      tokens_usados: { openai: tokensOpenAI, gemini: tokensGemini },
+      tiempo_total_ms: Date.now() - tiempoInicioTotal,
+    };
+  }
+
+  const listaLigera = construirListaLigeraServicios(hitsAmplios);
+
+  const hayContextoRelevante = !!(
+    contexto_previo?.contexto_usuario || contexto_previo
+  );
+
+  let idElegido = null;
+  if (!hayContextoRelevante) {
+    idElegido = matchLocalServicioBasico(mensaje, listaLigera);
+  }
+
+  if (!idElegido) {
+    const { idElegido: idIA, tokens: tokensClasificador } =
+      await clasificarServicioBasicoIA(mensaje, contexto_previo, listaLigera);
+    idElegido = idIA;
+    tokensOpenAI.prompt_tokens += tokensClasificador.prompt_tokens;
+    tokensOpenAI.completion_tokens += tokensClasificador.completion_tokens;
+    tokensOpenAI.total_tokens += tokensClasificador.total_tokens;
+  }
+
+  if (!idElegido) {
+    return {
+      id: "sin_id",
+      mensaje: pick(MENSAJES_SIN_RESULTADO_SERVICIOS),
+      mensaje_safe: pick(MENSAJES_SIN_RESULTADO_SERVICIOS),
+      intencion: "SIN_DATOS",
+      tokens_usados: { openai: tokensOpenAI, gemini: tokensGemini },
+      tiempo_total_ms: Date.now() - tiempoInicioTotal,
+    };
+  }
+
+  const match = hitsAmplios.find(
+    (h) => String(h.objectID || h.id) === String(idElegido),
+  );
+
+  if (!match) {
+    console.warn(
+      "⚠️ [procesarBusquedaServiciosBasicos] id elegido no está en la lista:",
+      idElegido,
+    );
+    return {
+      id: "sin_id",
+      mensaje: pick(MENSAJES_SIN_RESULTADO_SERVICIOS),
+      mensaje_safe: pick(MENSAJES_SIN_RESULTADO_SERVICIOS),
+      intencion: "SIN_DATOS",
+      tokens_usados: { openai: tokensOpenAI, gemini: tokensGemini },
+      tiempo_total_ms: Date.now() - tiempoInicioTotal,
+    };
+  }
+
+  const promptRespuesta = construirPromptRespuestaServicio({
+    match,
+    mensaje,
+    nombre_usuario,
+    momento_dia,
+  });
+
+  const bodyGemini = {
+    contents: [{ parts: [{ text: promptRespuesta }] }],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          mensaje: { type: "string" },
+          intencion: { type: "string" },
+          pidio_otro_dato: { type: "boolean" },
+        },
+        required: ["id", "mensaje", "intencion", "pidio_otro_dato"],
+      },
+      thinkingConfig: { thinkingBudget: 0 },
+      maxOutputTokens: 180,
+      temperature: 0.7,
+    },
+  };
+
+  let response;
+  const geminiRes = await fetch(`${GEMINI_URL}?key=${GEMINIKEY}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(bodyGemini),
+  });
+
+  if (!geminiRes.ok) {
+    const errText = await geminiRes.text();
+    console.error(
+      "❌ [procesarBusquedaServiciosBasicos] Error Gemini:",
+      geminiRes.status,
+      errText,
+    );
+    response = {
+      id: match.objectID || match.id,
+      mensaje:
+        "Tuve un problema consultando la info, intenta de nuevo en un momento",
+      intencion: "ERROR_GEMINI",
+      pidio_otro_dato: false,
+    };
+  } else {
+    const geminiData = await geminiRes.json();
+    if (geminiData?.usageMetadata) {
+      tokensGemini = {
+        promptTokenCount: geminiData.usageMetadata.promptTokenCount || 0,
+        candidatesTokenCount:
+          geminiData.usageMetadata.candidatesTokenCount || 0,
+        totalTokenCount: geminiData.usageMetadata.totalTokenCount || 0,
+      };
+    }
+    const rawText =
+      geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    response = parsearRespuestaIA(rawText);
+    if (!response || !Object.keys(response).length) {
+      response = {
+        id: match.objectID || match.id,
+        mensaje: rawText || "Sin respuesta",
+        intencion: "ERROR_FORMATO_IA",
+        pidio_otro_dato: false,
+      };
+    }
+  }
+
+  const idFinal = response?.id || match.objectID || match.id;
+  const mensajeFinal = String(response?.mensaje || "").trim();
+  const nombreServicio = match.nombre || "";
+  const telefono = match.telefono || "";
+  const alias = match.alias || "";
+
+  // 👇 SOLO exponemos teléfono directo. Cualquier otro dato pedido
+  // (fb, ig, sitio_web) redirige al perfil dentro de la app usando el alias.
+  const pidioOtroDato = response?.pidio_otro_dato === true;
+
+  const linkPerfil = alias
+    ? `https://geinztech.com/redirect/serviciosHogar/${alias}`
+    : "";
+
+  let mensaje_safe;
+  if (pidioOtroDato) {
+    mensaje_safe = linkPerfil
+      ? `${mensajeFinal} ${pick(CTAS_SERVICIOS_BASICOS)}: ${linkPerfil}`
+      : mensajeFinal;
+  } else {
+    mensaje_safe = telefono
+      ? `${mensajeFinal} 📞 ${telefono}`
+      : linkPerfil
+        ? `${mensajeFinal} ${pick(CTAS_SERVICIOS_BASICOS)}: ${linkPerfil}`
+        : mensajeFinal;
+  }
+
+  const imagenFinal = match.img_logo || "";
+
+  const data = [
+    "SERVICIOS_BASICOS",
+    nombreServicio,
+    "servicios_basicos",
+    "null",
+    idFinal,
+  ].join("|");
+
+  const tiempoTotalMs = Date.now() - tiempoInicioTotal;
+
+  console.log(
+    "🧭 [procesarBusquedaServiciosBasicos] TRACE:",
+    JSON.stringify({
+      mensaje,
+      id_elegido: idFinal,
+      alias,
+      pidio_otro_dato: pidioOtroDato,
+      total_disponibles: hitsAmplios.length,
+      tiempo_total_ms: tiempoTotalMs,
+    }),
+  );
+  return {
+    ...response,
+    id: idFinal,
+    imagen: imagenFinal,
+    mensaje_safe,
+    data,
+    telefono,
+    alias,
+    nombre_servicio: nombreServicio,
+    tokens_usados: {
+      openai: tokensOpenAI,
+      gemini: {
+        prompt_tokens: tokensGemini.promptTokenCount,
+        completion_tokens: tokensGemini.candidatesTokenCount,
+        total_tokens: tokensGemini.totalTokenCount,
+      },
+    },
+    tiempo_total_ms: tiempoTotalMs,
+    tiempo_total_seg: Number((tiempoTotalMs / 1000).toFixed(2)),
+  };
+}
+// 👇 Esta es la que llamas desde el dispersador cuando categoria === "SERVICIOS_BASICOS"
+exports.procesarBusquedaServiciosBasicos = procesarBusquedaServiciosBasicos;

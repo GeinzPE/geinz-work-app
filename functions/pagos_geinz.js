@@ -25,6 +25,43 @@ const WHATSAPP_TOKEN = process.env.ID_API_WHATSAPP;
 // EXPORTS (funciones invocables)
 // ============================================================
 
+async function enviarNotificacionFCM_tienda({
+  token,
+  title,
+  body,
+  link = "https://geinztech.com/share?t=scr&id=ads",
+  logo = "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+  image = "",
+  idTienda,
+  idAnuncio = "", // ✅ agregar
+  tipo_notificacion,
+  prioridad = "high",
+}) {
+  try {
+    const mensaje = {
+      token: token,
+      data: {
+        title: String(title),
+        body: String(body),
+        link: String(link),
+        logo: String(logo),
+        image: String(image),
+        idTienda: String(idTienda),
+        idAnuncio: String(idAnuncio),
+        tipo_notificacion: String(tipo_notificacion),
+      },
+      android: { priority: prioridad },
+    };
+    const respuesta = await admin.messaging().send(mensaje);
+    console.log("Notificación enviada al token:", token);
+    return respuesta;
+  } catch (error) {
+    console.error("ERROR enviarNotificacionFCM:", error);
+    if (error.code === "messaging/registration-token-not-registered") {
+      console.log("Token inválido, debería eliminarlo de Firestore:", token);
+    }
+  }
+}
 exports.crearOrdenCulqi = onCall(async (req) => {
   const { monto, userId, nombre, email, orderId } = req.data;
 
