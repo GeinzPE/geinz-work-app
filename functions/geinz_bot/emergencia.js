@@ -556,11 +556,17 @@ async function enviarMensajeTextoEmergencia(recipientPhoneNumber, resultado) {
 async function enviarMensajeTextoTelegram(chat_id, texto) {
   const url = `${TELEGRAM_API_URL}/sendMessage`;
 
+  // chat_id puede venir como "tg_8786837495" (formato interno de Geinz
+  // usado para historial/DB). Telegram exige el chat_id numérico puro.
+  const chatIdReal = String(chat_id).startsWith("tg_")
+    ? String(chat_id).replace(/^tg_/, "")
+    : chat_id;
+
   const resp = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      chat_id,
+      chat_id: chatIdReal,
       text: texto,
       parse_mode: "HTML",
     }),
@@ -589,13 +595,18 @@ async function enviarMensajeTextoTelegram(chat_id, texto) {
 async function enviarUbicacionTelegram(chat_id, lat, lng, caption) {
   const urlLoc = `${TELEGRAM_API_URL}/sendLocation`;
 
+  // Mismo fix: limpiar el prefijo "tg_" antes de llamar a la API de Telegram.
+  const chatIdReal = String(chat_id).startsWith("tg_")
+    ? String(chat_id).replace(/^tg_/, "")
+    : chat_id;
+
   console.log("📤 [enviarUbicacionTelegram] lat:", lat, "| lng:", lng);
 
   const respLoc = await fetch(urlLoc, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      chat_id,
+      chat_id: chatIdReal,
       latitude: lat,
       longitude: lng,
     }),
@@ -627,7 +638,6 @@ async function enviarUbicacionTelegram(chat_id, lat, lng, caption) {
 
   return { ok: true };
 }
-
 // ============================================================
 // SWITCH CENTRAL — decide WhatsApp vs Telegram, y dentro de cada
 // canal decide con-ubicación vs sin-ubicación (mismo criterio de

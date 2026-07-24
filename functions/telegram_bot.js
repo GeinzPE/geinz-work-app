@@ -50,6 +50,15 @@ const CONTEXTO_DEFAULT = {
 };
 
 // ============================================================
+// TTS — se llama por HTTP a la Cloud Function ya desplegada
+// (textoAVozn8n_elevenlabs_2), igual que hace WhatsApp.
+// ============================================================
+const TTS_ELEVENLABS_URL =
+  "https://us-central1-geinzworkapp.cloudfunctions.net/textoAVozn8n_elevenlabs_2";
+const TTS_VOICE_ID_DEFAULT = "KFBj2OnpjcE1zKB9CGb8";
+const PROBABILIDAD_AUDIO = 0.8;
+
+// ============================================================
 // ADAPTADORES DE ENVÍO — equivalentes a enviarMensajeWhatsapp, etc.
 // ============================================================
 async function enviarMensajeTelegram(chatId, texto) {
@@ -67,7 +76,7 @@ async function enviarMensajeTelegram(chatId, texto) {
     remitente: "bot",
     tipo: "texto",
     contenido: texto,
-  }).catch(() => {});
+  }).catch(() => { });
 
   return json;
 }
@@ -92,7 +101,7 @@ async function enviarImagenTelegram(chatId, imagenUrl, caption) {
     tipo: "imagen",
     contenido: caption || "",
     extra: { imagen: imagenUrl },
-  }).catch(() => {});
+  }).catch(() => { });
 
   return json;
 }
@@ -285,7 +294,7 @@ exports.geinz_webhook_telegram = onRequest(
         tipo: mensaje.voice ? "audio" : "texto",
         contenido: mensajeFinal,
         mensaje_id: mensaje.message_id,
-      }).catch(() => {});
+      }).catch(() => { });
 
       // ---- Usuario + contexto ----
       const usuarioInfo = await obtenerOCrearUsuarioTelegram(chatId, nombreTg);
@@ -352,9 +361,26 @@ exports.geinz_webhook_telegram = onRequest(
           tipo: "GEINZ",
           extra: respuestaGeinz.extra || "null",
         });
+
         if (respuestaGeinz.mensaje) {
-          await enviarMensajeTelegram(chatId, respuestaGeinz.mensaje);
+          const debeIntentarAudio =
+            !!mensaje.voice &&
+            !contieneNumeroOLink(respuestaGeinz.mensaje) &&
+            Math.random() < PROBABILIDAD_AUDIO;
+
+          let audioEnviado = false;
+          if (debeIntentarAudio) {
+            audioEnviado = await intentarResponderConAudioTelegram({
+              chatId,
+              texto: respuestaGeinz.mensaje,
+            });
+          }
+
+          if (!audioEnviado) {
+            await enviarMensajeTelegram(chatId, respuestaGeinz.mensaje);
+          }
         }
+
         return res
           .status(200)
           .json({
@@ -362,8 +388,7 @@ exports.geinz_webhook_telegram = onRequest(
             categoria: "GEINZ",
             tiempo_ms: Date.now() - inicio,
           });
-      }
-
+      };
       if (categoria === "TURISMO") {
         const resultadoTurismo = await procesarBusquedaTurismo({
           mensaje: mensajeFinal,
@@ -778,3 +803,91 @@ exports.geinz_webhook_telegram = onRequest(
     }
   },
 );
+
+async function enviarNotaDeVozTelegram(chatId, bufferAudio) {
+  const form = new FormData();
+  form.append("chat_id", chatId);
+  form.append("voice", new Blob([bufferAudio], { type: "audio/ogg" }), "audio.ogg");
+
+  const resp = await fetch(`${TG_API}/sendVoice`, {
+    method: "POST",
+    body: form,
+  });
+  const json = await resp.json();
+  if (!resp.ok) throw new Error(`Telegram sendVoice error: ${JSON.stringify(json)}`);
+  return json;
+}
+
+
+
+
+function contieneNumeroOLink(texto) {
+  if (!texto) return false;
+  if (/https?:\/\/[^\s]+/i.test(texto)) return true;
+  if (/\bwww\.[^\s]+/i.test(texto)) return true;
+  if (/(\+?51[\s-]?)?9\d{2}[\s.-]?\d{3}[\s.-]?\d{3}\b/.test(texto)) return true;
+  if (/\d[\d\s.-]{6,}\d/.test(texto)) return true;
+  return false;
+}
+
+async function generarAudioTTS(texto, voiceId = TTS_VOICE_ID_DEFAULT) {
+  const resp = await fetch(TTS_ELEVENLABS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: texto, voiceId }),
+  });
+
+  if (!resp.ok) {
+    throw new Error(`Error generando TTS: ${resp.status} ${await resp.text()}`);
+  }
+
+  const data = await resp.json();
+  if (!data.audioContent) throw new Error("TTS no devolvió audioContent");
+
+  return Buffer.from(data.audioContent, "base64");
+}
+
+async function enviarNotaDeVozTelegram(chatId, bufferAudio) {
+  const form = new FormData();
+  form.append("chat_id", chatId);
+  form.append(
+    "voice",
+    new Blob([bufferAudio], { type: "audio/ogg" }),
+    "audio.ogg",
+  );
+
+  const resp = await fetch(`${TG_API}/sendVoice`, {
+    method: "POST",
+    body: form,
+  });
+  const json = await resp.json();
+  if (!resp.ok)
+    throw new Error(`Telegram sendVoice error: ${JSON.stringify(json)}`);
+
+  guardarMensajeHistorial({
+    numero_usuario: `tg_${chatId}`,
+    remitente: "bot",
+    tipo: "audio",
+    contenido: "",
+  }).catch(() => { });
+
+  return json;
+}
+
+async function intentarResponderConAudioTelegram({ chatId, texto }) {
+  try {
+    const audioBuffer = await generarAudioTTS(texto);
+    await enviarNotaDeVozTelegram(chatId, audioBuffer);
+    console.log(
+      "🔊 [TTS Telegram] Audio enviado correctamente | chatId:",
+      chatId,
+    );
+    return true;
+  } catch (e) {
+    console.error(
+      "❌ [TTS Telegram] Falló el envío de audio (se mantiene solo texto):",
+      e.message,
+    );
+    return false;
+  }
+}
