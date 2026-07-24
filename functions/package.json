@@ -17,6 +17,7 @@
     "@google-cloud/speech": "^7.2.1",
     "@google-cloud/tasks": "^6.2.3",
     "@google-cloud/text-to-speech": "^6.4.0",
+    "@sparticuz/chromium": "^147.0.0",
     "algoliasearch": "^4.27.0",
     "axios": "^1.15.0",
     "busboy": "^1.6.0",
@@ -26,6 +27,7 @@
     "geofire-common": "^6.0.0",
     "openai": "^6.35.0",
     "pdfkit": "^0.18.0",
+    "puppeteer-core": "^25.3.0",
     "string-similarity-js": "^2.1.4",
     "uuid": "^14.0.0"
   },

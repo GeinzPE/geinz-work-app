@@ -140,21 +140,34 @@ exports.crearOrdenCulqiPlan = crearOrdenCulqiPlan;
 exports.webhookCulqiOrder_scagAI = webhookCulqiOrder_scagAI;
 exports.confirmarPagoPlan = confirmarPagoPlan;
 
-const {
-  geinz_buscar_unificado,
-  clasificador_geinz_turismo,
-  obtener_lugares_emergencia_Actualizado,
-  elegir_mejor_promo,
-  geinz_info_negocio,
-  dispersador_geinz,
-} = require("./asistentes_AI_geinz");
-exports.geinz_buscar_unificado = geinz_buscar_unificado;
-exports.clasificador_geinz_turismo = clasificador_geinz_turismo;
-exports.obtener_lugares_emergencia_Actualizado =
-  obtener_lugares_emergencia_Actualizado;
-exports.elegir_mejor_promo = elegir_mejor_promo;
-exports.geinz_info_negocio = geinz_info_negocio;
-exports.dispersador_geinz = dispersador_geinz;
+
+const{
+  geinz_webhook_telegram
+}=require("./telegram_bot.js")
+exports.geinz_webhook_telegram=geinz_webhook_telegram
+
+// 👇 COMENTADO TEMPORALMENTE: el archivo "./asistentes_AI_geinz" no existe
+// en el proyecto (o cambió de ubicación/nombre), lo que rompe el deploy con
+// "Cannot find module './asistentes_AI_geinz'". Se comenta hasta confirmar
+// si este archivo se debe recrear, mover, o si estas funciones ya están
+// migradas/duplicadas en otros módulos (ej: elegir_mejor_promo ya se exporta
+// desde promociones.js).
+//
+// const {
+//   geinz_buscar_unificado,
+//   clasificador_geinz_turismo,
+//   obtener_lugares_emergencia_Actualizado,
+//   elegir_mejor_promo,
+//   geinz_info_negocio,
+//   dispersador_geinz,
+// } = require("./asistentes_AI_geinz");
+// exports.geinz_buscar_unificado = geinz_buscar_unificado;
+// exports.clasificador_geinz_turismo = clasificador_geinz_turismo;
+// exports.obtener_lugares_emergencia_Actualizado =
+//   obtener_lugares_emergencia_Actualizado;
+// exports.elegir_mejor_promo = elegir_mejor_promo;
+// exports.geinz_info_negocio = geinz_info_negocio;
+// exports.dispersador_geinz = dispersador_geinz;
 
 const { procesar_audio_whatsapp } = require("./wisper.js");
 exports.procesar_audio_whatsapp = procesar_audio_whatsapp;
@@ -175,6 +188,17 @@ exports.culqiWebhook=culqiWebhook
 exports.confirmarPago=confirmarPago
 
 
+const {
+  registrarNegocioGeinz,
+  notificarNuevoRegistroNegocio,
+} = require("./registro_negocios.js");
+exports.registrarNegocioGeinz = registrarNegocioGeinz;
+exports.notificarNuevoRegistroNegocio = notificarNuevoRegistroNegocio;
+
+
+
+const { qrApi } = require("./qrGenerator");
+exports.qrApi = qrApi;
 // ==================== uso_wisper ====================
 
 exports.transcribirAudio = onRequest(async (req, res) => {

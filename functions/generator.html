@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geinz · Generador QR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root{
+          --bg-deep:#0a0a0d;
+          --bg-card:#141319;
+          --line: rgba(255,255,255,0.08);
+          --text-cream:#f6f3ee;
+          --muted:#9a95a6;
+          --g1:#4f5bd5;
+          --g2:#962fbf;
+          --g3:#d62976;
+          --g4:#fa7e1e;
+          --g5:#feda75;
+        }
+
+        *{box-sizing:border-box;}
+
+        body{
+          margin:0;
+          min-height:100vh;
+          background:var(--bg-deep);
+          color:var(--text-cream);
+          font-family:'Inter', sans-serif;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding:32px 16px;
+          position:relative;
+          overflow-x:hidden;
+        }
+
+        .bg-layer{
+          position:fixed;
+          inset:0;
+          z-index:-1;
+          opacity:0;
+          transition:opacity .9s ease;
+          pointer-events:none;
+        }
+        .bg-layer.bg-a{opacity:1;}
+
+        .app-shell{
+          width:100%;
+          max-width:420px;
+          margin:0 auto;
+        }
+        .app-left{ width:100%; }
+        .app-right{ width:100%; margin-top:0; }
+
+        /* ============ TARJETA EXPORTABLE ============ */
+        .card{
+          background:var(--bg-card);
+          border:1px solid var(--line);
+          border-radius:28px;
+          padding:36px 28px 28px;
+          text-align:center;
+          position:relative;
+          overflow:hidden;
+          transition:background .2s ease, border-color .2s ease;
+        }
+        .card::before{
+          content:"";
+          position:absolute;
+          inset:0;
+          background:
+            radial-gradient(circle at 20% -10%, rgba(214,41,118,0.25), transparent 40%),
+            radial-gradient(circle at 110% 110%, rgba(79,91,213,0.22), transparent 40%);
+          pointer-events:none;
+        }
+
+        .brand{
+          font-family:'Outfit', sans-serif;
+          font-weight:700;
+          font-size:14px;
+          letter-spacing:0.12em;
+          text-transform:uppercase;
+          margin-bottom:22px;
+          position:relative;
+          z-index:1;
+          background:linear-gradient(90deg,var(--g2),var(--g3),var(--g4));
+          -webkit-background-clip:text;
+          background-clip:text;
+          color:transparent;
+          word-break:break-word;
+        }
+
+        .frame{
+          width:236px;
+          height:236px;
+          margin:0 auto 22px;
+          position:relative;
+          z-index:1;
+        }
+        .frame .corner{
+          position:absolute;
+          width:34px;
+          height:34px;
+          border:3px solid transparent;
+          border-image:linear-gradient(135deg,var(--g2),var(--g4)) 1;
+        }
+        .corner.tl{top:0;left:0;border-right:none;border-bottom:none;border-radius:14px 0 0 0;}
+        .corner.tr{top:0;right:0;border-left:none;border-bottom:none;border-radius:0 14px 0 0;}
+        .corner.bl{bottom:0;left:0;border-right:none;border-top:none;border-radius:0 0 0 14px;}
+        .corner.br{bottom:0;right:0;border-left:none;border-top:none;border-radius:0 0 14px 0;}
+
+        .qr-box{
+          position:absolute;
+          inset:18px;
+          background:#fdfdfd;
+          border-radius:18px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          box-shadow:0 18px 40px -14px rgba(214,41,118,0.45);
+        }
+        #qrcode{
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          width:190px;
+          height:190px;
+        }
+        #qrcode img, #qrcode canvas{
+          border-radius:10px;
+          display:block;
+          width:100%;
+          height:100%;
+          max-width:100%;
+          max-height:100%;
+          object-fit:contain;
+        }
+        #qrcode.empty{
+          width:150px;height:150px;
+          display:flex;align-items:center;justify-content:center;
+          color:#c9c5d1;
+          font-family:'Inter',sans-serif;
+          font-size:12px;
+          text-align:center;
+          padding:10px;
+        }
+
+        .caption{
+          font-family:'Outfit', sans-serif;
+          font-weight:600;
+          font-size:15px;
+          color:var(--text-cream);
+          position:relative;
+          z-index:1;
+          margin-bottom:4px;
+          word-break:break-word;
+        }
+        .caption-sub{
+          font-size:12px;
+          color:var(--muted);
+          position:relative;
+          z-index:1;
+        }
+
+        /* ---- Variante: Minimal ---- */
+        .card.style-minimal{
+          background:#fdfdfd;
+          border-color:#e5e2ec;
+        }
+        .card.style-minimal::before{ display:none; }
+        .card.style-minimal .corner{ display:none; }
+        .card.style-minimal .brand{
+          background:none; -webkit-text-fill-color:#141319; color:#141319;
+        }
+        .card.style-minimal .qr-box{
+          box-shadow:0 10px 26px -14px rgba(20,19,25,0.25);
+          inset:14px;
+        }
+        .card.style-minimal .caption{ color:#141319; }
+        .card.style-minimal .caption-sub{ color:#847e8f; }
+
+        /* ---- Variante: Badge ---- */
+        .card.style-badge::before{ display:none; }
+        .card.style-badge .corner{ display:none; }
+        .card.style-badge{ padding-top:0; }
+        .card.style-badge .brand{
+          background:linear-gradient(100deg,var(--g1),var(--g2) 40%,var(--g3) 70%,var(--g4));
+          -webkit-background-clip:initial; background-clip:initial;
+          -webkit-text-fill-color:#fff; color:#fff;
+          margin:0 -28px 26px;
+          padding:14px 20px;
+          border-radius:0;
+          font-size:13px;
+        }
+
+        /* ---- Variante: Ticket ---- */
+        .card.style-ticket{
+          padding-bottom:26px;
+        }
+        .card.style-ticket::before{ display:none; }
+        .card.style-ticket .corner{ display:none; }
+        .card.style-ticket .brand{
+          background:none; -webkit-text-fill-color:var(--text-cream); color:var(--text-cream);
+        }
+        .card.style-ticket .frame{ margin-bottom:24px; }
+        .card.style-ticket .divider{
+          display:block;
+          position:relative;
+          height:1px;
+          margin:0 -28px 20px;
+          background-image:repeating-linear-gradient(90deg, rgba(255,255,255,0.25) 0 8px, transparent 8px 16px);
+        }
+        .card.style-ticket .divider::before,
+        .card.style-ticket .divider::after{
+          content:"";
+          position:absolute;
+          top:50%; transform:translateY(-50%);
+          width:20px;height:20px;
+          background:var(--bg-deep);
+          border-radius:50%;
+        }
+        .card.style-ticket .divider::before{ left:-10px; }
+        .card.style-ticket .divider::after{ right:-10px; }
+        .card:not(.style-ticket) .divider{ display:none; }
+
+        /* ---- Variante: Sticker (circular) ---- */
+        .card.style-sticker{
+          width:300px;
+          height:300px;
+          margin:0 auto;
+          border-radius:50%;
+          border:3px dashed;
+          border-image:linear-gradient(135deg,var(--g1),var(--g3),var(--g4)) 1;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          padding:26px;
+        }
+        .card.style-sticker::before{ display:none; }
+        .card.style-sticker .corner{ display:none; }
+        .card.style-sticker .frame{ width:168px; height:168px; margin-bottom:14px; }
+        .card.style-sticker .brand{ margin-bottom:12px; font-size:12px; }
+        .card.style-sticker .caption{ font-size:13px; }
+        .card.style-sticker .caption-sub{ font-size:11px; display:none; }
+
+        /* ---- Variante: Phone ---- */
+        .card.style-phone{
+          background:linear-gradient(165deg,#1e1e25,#08080a);
+          border:6px solid #050505;
+          border-radius:46px;
+          padding:34px 22px 26px;
+        }
+        .card.style-phone::before{
+          content:"";
+          position:absolute; top:12px; left:50%; transform:translateX(-50%);
+          width:76px; height:18px;
+          background:#050505;
+          border-radius:0 0 14px 14px;
+          z-index:2;
+        }
+        .card.style-phone .corner{ display:none; }
+        .card.style-phone .brand{ background:none; -webkit-text-fill-color:var(--text-cream); color:var(--text-cream); }
+        .card.style-phone .qr-box{ box-shadow:0 18px 40px -14px rgba(0,0,0,0.6); }
+        .card.style-phone::after{
+          content:"";
+          position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+          width:84px; height:4px; border-radius:4px;
+          background:rgba(255,255,255,0.28);
+        }
+
+        /* ---- Variante: Polaroid ---- */
+        .card.style-polaroid{
+          background:#fdfdfd;
+          border:1px solid #eee;
+          border-radius:4px;
+          padding:22px 22px 64px;
+          box-shadow:0 24px 50px -22px rgba(0,0,0,0.5);
+          transform:rotate(-1.2deg);
+        }
+        .card.style-polaroid::before{ display:none; }
+        .card.style-polaroid .corner{ display:none; }
+        .card.style-polaroid .brand{
+          background:none; -webkit-text-fill-color:#141319; color:#141319;
+          text-transform:none; letter-spacing:0; font-size:16px;
+        }
+        .card.style-polaroid .qr-box{ box-shadow:0 10px 26px -14px rgba(20,19,25,0.25); }
+        .card.style-polaroid .caption{ color:#141319; }
+        .card.style-polaroid .caption-sub{ color:#847e8f; }
+
+        /* ---- Variante: Clip ---- */
+        .card.style-clip{
+          background:#fdfdfd;
+          border:1px solid #eee;
+          padding-top:44px;
+        }
+        .card.style-clip::before{ display:none; }
+        .card.style-clip::after{
+          content:"";
+          position:absolute; top:-15px; left:50%; transform:translateX(-50%);
+          width:64px; height:28px;
+          background:linear-gradient(135deg,var(--g2),var(--g4));
+          border-radius:8px;
+          box-shadow:0 6px 14px rgba(0,0,0,0.25);
+          z-index:2;
+        }
+        .card.style-clip .corner{ display:none; }
+        .card.style-clip .brand{ background:none; -webkit-text-fill-color:#141319; color:#141319; }
+        .card.style-clip .qr-box{ box-shadow:0 10px 26px -14px rgba(20,19,25,0.25); }
+        .card.style-clip .caption{ color:#141319; }
+        .card.style-clip .caption-sub{ color:#847e8f; }
+    </style>
+</head>
+<body>
+
+<div class="bg-layer bg-a" id="bgA"></div>
+<div class="bg-layer bg-b" id="bgB"></div>
+
+<div class="app-shell">
+    <div class="app-right">
+        <div class="card style-neon" id="exportCard">
+            <div class="brand" id="brandText">SCAN ME</div>
+            <div class="frame">
+                <div class="corner tl"></div>
+                <div class="corner tr"></div>
+                <div class="corner bl"></div>
+                <div class="corner br"></div>
+                <div class="qr-box">
+                    <div id="qrcode" class="empty">Ingresa una URL<br>y dale a Generar</div>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div class="caption" id="caption">tu-link.com</div>
+            <div class="caption-sub" id="subText">Apunta la cámara para abrir</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const qrDiv       = document.getElementById('qrcode');
+    const caption     = document.getElementById('caption');
+    const exportCard  = document.getElementById('exportCard');
+    const bgA         = document.getElementById('bgA');
+    const bgB         = document.getElementById('bgB');
+    const brandText   = document.getElementById('brandText');
+    const subText     = document.getElementById('subText');
+
+    let qrObj = null;
+    let currentUrl = "";
+    let activeBgLayer = 'a';
+    let logoDataUrl = null;
+    let customCaptionText = "";
+
+    const PALETTES = [
+      { name: "IG Clásico", colors: ["#4f5bd5", "#962fbf", "#d62976", "#fa7e1e", "#feda75"] },
+      { name: "Atardecer",  colors: ["#ff0844", "#ff512f", "#f09819", "#ff8a00", "#ffd452"] },
+      { name: "Océano",     colors: ["#002fa7", "#0074ff", "#00c2ff", "#5ee7ff", "#c6faff"] },
+      { name: "Neón",       colors: ["#7b2ff7", "#f107a3", "#ff2079", "#ff6ec7", "#ffd1ff"] },
+      { name: "Oro",        colors: ["#7a5c00", "#b8860b", "#d4af37", "#f1d675", "#fff3c4"] },
+      { name: "Selva",      colors: ["#013220", "#0b6e4f", "#08a045", "#6fd08c", "#c3f584"] }
+    ];
+
+    let currentPalette = PALETTES[0];
+
+    function hexToRgba(hex, a){
+      const c = hex.replace('#','');
+      const full = c.length === 3 ? c.split('').map(ch => ch + ch).join('') : c;
+      const bigint = parseInt(full, 16);
+      const r = (bigint >> 16) & 255, g = (bigint >> 8) & 255, b = bigint & 255;
+      return `rgba(${r},${g},${b},${a})`;
+    }
+
+    function lerpColor(hexA, hexB, t){
+      const a = hexA.replace('#',''), b = hexB.replace('#','');
+      const ar = parseInt(a.substring(0,2),16), ag = parseInt(a.substring(2,4),16), ab = parseInt(a.substring(4,6),16);
+      const br = parseInt(b.substring(0,2),16), bg = parseInt(b.substring(2,4),16), bb = parseInt(b.substring(4,6),16);
+      const r = Math.round(ar + (br-ar)*t);
+      const g = Math.round(ag + (bg-ag)*t);
+      const bl = Math.round(ab + (bb-ab)*t);
+      return '#' + [r,g,bl].map(v => v.toString(16).padStart(2,'0')).join('');
+    }
+
+    // Aclara (percent > 0) u oscurece (percent < 0) un color hex. percent en [-1, 1].
+    function shadeColor(hex, percent){
+      const f = hex.replace('#','');
+      const R = parseInt(f.substring(0,2),16), G = parseInt(f.substring(2,4),16), B = parseInt(f.substring(4,6),16);
+      const t = percent < 0 ? 0 : 255;
+      const p = Math.min(1, Math.abs(percent));
+      const nr = Math.round((t - R) * p) + R;
+      const ng = Math.round((t - G) * p) + G;
+      const nb = Math.round((t - B) * p) + B;
+      return '#' + [nr, ng, nb].map(v => v.toString(16).padStart(2,'0')).join('');
+    }
+
+    function buildBgGradient(colors){
+      return `radial-gradient(circle at 15% 10%, ${hexToRgba(colors[1], 0.30)}, transparent 45%),
+              radial-gradient(circle at 85% 85%, ${hexToRgba(colors[3], 0.24)}, transparent 45%),
+              radial-gradient(circle at 85% 10%, ${hexToRgba(colors[0], 0.20)}, transparent 40%),
+              var(--bg-deep)`;
+    }
+
+    function applyPalette(palette){
+      currentPalette = palette;
+      const c = palette.colors;
+      const root = document.documentElement.style;
+      root.setProperty('--g1', c[0]);
+      root.setProperty('--g2', c[1]);
+      root.setProperty('--g3', c[2]);
+      root.setProperty('--g4', c[3]);
+      root.setProperty('--g5', c[4]);
+      bgA.style.background = buildBgGradient(c);
+      if(currentUrl) renderQR(currentUrl);
+    }
+
+    function applyCustomColorsFromHexes(p1, p2, p3){
+      const custom = {
+        name: "Personalizado",
+        colors: [ p1, lerpColor(p1, p2, 0.5), p2, lerpColor(p2, p3, 0.5), p3 ]
+      };
+      applyPalette(custom);
+    }
+
+    // Genera una paleta de 3 tonos (oscuro -> dominante -> claro) a partir de un solo color.
+    function paletteFromDominant(hex){
+      const dark  = shadeColor(hex, -0.35);
+      const light = shadeColor(hex, 0.35);
+      applyCustomColorsFromHexes(dark, hex, light);
+    }
+
+    function crearQR(url, dotType){
+      const c = currentPalette.colors;
+      const opts = {
+        width: 440,
+        height: 440,
+        type: "canvas",
+        data: url,
+        margin: 10,
+        qrOptions: { errorCorrectionLevel: "H" },
+        dotsOptions: {
+          type: dotType || "rounded",
+          gradient: {
+            type: "linear",
+            rotation: Math.PI / 4,
+            colorStops: [
+              { offset: 0,   color: c[1] },
+              { offset: 0.5, color: c[2] },
+              { offset: 1,   color: c[3] }
+            ]
+          }
+        },
+        cornersSquareOptions: {
+          type: "extra-rounded",
+          gradient: {
+            type: "linear",
+            rotation: Math.PI / 4,
+            colorStops: [
+              { offset: 0, color: c[0] },
+              { offset: 1, color: c[2] }
+            ]
+          }
+        },
+        cornersDotOptions: {
+          type: "dot",
+          color: c[3]
+        },
+        backgroundOptions: {
+          color: "#fdfdfd"
+        }
+      };
+
+      if(logoDataUrl){
+        opts.image = logoDataUrl;
+        opts.imageOptions = {
+          crossOrigin: "anonymous",
+          margin: 14,
+          imageSize: 0.2,
+          hideBackgroundDots: true
+        };
+      }
+
+      return new QRCodeStyling(opts);
+    }
+
+    function normalizeUrl(raw){
+      let v = (raw || "").trim();
+      if(!v) return "";
+      if(!/^https?:\/\//i.test(v)) v = "https://" + v;
+      return v;
+    }
+
+    function shortLabel(raw){
+      try{
+        const u = new URL(raw);
+        let label = u.hostname.replace(/^www\./,'') + (u.pathname !== '/' ? u.pathname : '');
+        if(label.length > 34) label = label.slice(0,31) + '…';
+        return label;
+      }catch(e){
+        return raw.length > 34 ? raw.slice(0,31) + '…' : raw;
+      }
+    }
+
+    function updateCaptionDisplay(){
+      caption.textContent = customCaptionText || (currentUrl ? shortLabel(currentUrl) : 'tu-link.com');
+    }
+
+    window.__currentDotShape = "rounded";
+
+    function renderQR(url){
+      currentUrl = url;
+      qrDiv.innerHTML = "";
+      qrDiv.classList.remove('empty');
+      qrObj = crearQR(url, window.__currentDotShape);
+      qrObj.append(qrDiv);
+      updateCaptionDisplay();
+    }
+
+    // ===================== LOGO: TRIM + COLOR DOMINANTE + CÍRCULO =====================
+
+    // Recorta el espacio en blanco/transparente sobrante alrededor del logo real,
+    // usando un bounding-box de los píxeles "no vacíos". Esto es lo que evita el
+    // halo blanco gigante cuando el archivo original ya trae mucho padding.
+    function trimWhitespace(img){
+      const src = document.createElement('canvas');
+      src.width = img.naturalWidth || img.width;
+      src.height = img.naturalHeight || img.height;
+      const sctx = src.getContext('2d');
+      sctx.drawImage(img, 0, 0, src.width, src.height);
+
+      const { data } = sctx.getImageData(0, 0, src.width, src.height);
+      let minX = src.width, minY = src.height, maxX = -1, maxY = -1;
+
+      const isBackground = (r, g, b, a) => a < 10 || (r > 246 && g > 246 && b > 246);
+
+      for(let y = 0; y < src.height; y++){
+        for(let x = 0; x < src.width; x++){
+          const i = (y * src.width + x) * 4;
+          if(!isBackground(data[i], data[i+1], data[i+2], data[i+3])){
+            if(x < minX) minX = x;
+            if(x > maxX) maxX = x;
+            if(y < minY) minY = y;
+            if(y > maxY) maxY = y;
+          }
+        }
+      }
+
+      // No se detectó contenido "real" (ej. imagen enteramente blanca): usar original.
+      if(maxX < minX || maxY < minY) return src;
+
+      // Un pequeño padding relativo para que el logo no quede pegado al borde del recorte.
+      const w = maxX - minX + 1;
+      const h = maxY - minY + 1;
+      const pad = Math.round(Math.max(w, h) * 0.10);
+
+      const cropX = Math.max(0, minX - pad);
+      const cropY = Math.max(0, minY - pad);
+      const cropW = Math.min(src.width, maxX + pad) - cropX + 1;
+      const cropH = Math.min(src.height, maxY + pad) - cropY + 1;
+
+      const out = document.createElement('canvas');
+      out.width = cropW;
+      out.height = cropH;
+      out.getContext('2d').drawImage(src, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+      return out;
+    }
+
+    // Extrae un color dominante "razonable": ignora blancos, negros casi puros y
+    // píxeles transparentes (que normalmente son fondo, no marca), y agrupa colores
+    // similares (cuantización) para votar por el más frecuente.
+    function getDominantColor(canvas){
+      const ctx = canvas.getContext('2d');
+      const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const counts = {};
+      const totalPixels = canvas.width * canvas.height;
+      // Muestreamos para no recorrer millones de píxeles en logos grandes.
+      const targetSamples = 6000;
+      const stepPixels = Math.max(1, Math.floor(totalPixels / targetSamples));
+      const step = stepPixels * 4;
+
+      for(let i = 0; i < data.length; i += step){
+        const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+        if(a < 128) continue;
+        const brightness = (r + g + b) / 3;
+        if(brightness > 240 || brightness < 18) continue;
+        const key = [Math.round(r/16)*16, Math.round(g/16)*16, Math.round(b/16)*16].join(',');
+        counts[key] = (counts[key] || 0) + 1;
+      }
+
+      let bestKey = null, bestCount = 0;
+      for(const k in counts){
+        if(counts[k] > bestCount){ bestCount = counts[k]; bestKey = k; }
+      }
+      if(!bestKey) return null;
+      const [r, g, b] = bestKey.split(',').map(Number);
+      return '#' + [r, g, b].map(v => v.toString(16).padStart(2,'0')).join('');
+    }
+
+    // Convierte el logo en un círculo: recorta el whitespace sobrante, calcula el
+    // color dominante, y dibuja un aro de ese color alrededor de un centro blanco
+    // (mismo efecto visual que el aro de "Yape", pero calculado automáticamente).
+    function processLogoToCircle(dataUrl){
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          try{
+            const trimmed = trimWhitespace(img);
+            const dominant = getDominantColor(trimmed);
+
+            const size = 400;
+            const side = Math.min(trimmed.width, trimmed.height);
+            const sx = (trimmed.width - side) / 2;
+            const sy = (trimmed.height - side) / 2;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            const ringColor = dominant || '#ffffff';
+            const ringWidth = size * 0.055;
+
+            // Aro exterior de color (dominante del logo).
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.fillStyle = ringColor;
+            ctx.fill();
+
+            // Círculo interior blanco de respaldo (contraste garantizado para el logo).
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size/2 - ringWidth, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+
+            // Logo recortado (ya sin whitespace sobrante) encajado dentro del círculo blanco.
+            const innerPad = ringWidth * 0.9;
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size/2 - ringWidth - innerPad*0.15, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.clip();
+            const innerSize = size - (ringWidth + innerPad) * 2;
+            const offset = (size - innerSize) / 2;
+            ctx.drawImage(trimmed, sx, sy, side, side, offset, offset, innerSize, innerSize);
+            ctx.restore();
+
+            resolve({ dataUrl: canvas.toDataURL('image/png'), dominant });
+          } catch(e){
+            reject(e);
+          }
+        };
+        img.onerror = () => reject(new Error('No se pudo cargar la imagen del logo'));
+        img.src = dataUrl;
+      });
+    }
+
+    // ===================== API HOOK =====================
+    // Esto es lo que llama server.js vía page.evaluate()
+    window.__qrReady = false;
+
+    window.__applyApiConfig = async function(config){
+      window.__qrReady = false;
+
+      if(config.style){
+        exportCard.className = 'card ' + config.style;
+      }
+
+      if(config.dotShape){
+        window.__currentDotShape = config.dotShape;
+      }
+
+      if(typeof config.topText === 'string'){
+        brandText.textContent = config.topText.trim() || 'SCAN ME';
+      }
+      if(typeof config.subText === 'string'){
+        subText.textContent = config.subText.trim() || 'Apunta la cámara para abrir';
+      }
+      if(typeof config.captionText === 'string'){
+        customCaptionText = config.captionText.trim();
+      }
+
+      let dominantFromLogo = null;
+
+      if(config.logo){
+        try {
+          const processed = await processLogoToCircle(config.logo);
+          logoDataUrl = processed.dataUrl;
+          dominantFromLogo = processed.dominant;
+        } catch(e){
+          logoDataUrl = null;
+        }
+      } else {
+        logoDataUrl = null;
+      }
+
+      // Prioridad de color: colores explícitos > color dominante del logo > paleta por defecto.
+      const autoColor = config.autoColor !== false; // true por defecto
+      if(config.colors && config.colors.length >= 3){
+        applyCustomColorsFromHexes(config.colors[0], config.colors[1], config.colors[2]);
+      } else if(autoColor && dominantFromLogo){
+        paletteFromDominant(dominantFromLogo);
+      }
+
+      const finalUrl = normalizeUrl(config.url || '');
+      if(finalUrl){
+        renderQR(finalUrl);
+      }
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setTimeout(() => { window.__qrReady = true; }, 120);
+        });
+      });
+    };
+</script>
+
+</body>
+</html>

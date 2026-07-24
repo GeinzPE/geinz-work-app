@@ -31,16 +31,35 @@ const CONTEXTO_DEFAULT = {
   id: null,
   nombre: null,
 };
-const {
-  procesarEmergencia,
+
+const{
+  procesarBusquedaServiciosBasicos
+}=require("./geinz_bot/servicios_basicos.js")
+
+const{
   procesarBusquedaTienda,
-  llamarGeminiGeinz,
-  procesarBusquedaTurismo,
-  resolverInfoNegocio,
-  resolverInfoTurismo,
-  procesarPromociones,
-  procesarBusquedaServiciosBasicos,
-} = require("./asistentes_AI_geinz.js");
+  resolverInfoNegocio
+}=require("./geinz_bot/negocio.js")
+
+const{
+  procesarPromociones
+}=require("./geinz_bot/promociones.js")
+
+
+const{
+  procesarEmergencia
+}=require("./geinz_bot/emergencia.js")
+
+
+const{
+  llamarGeminiGeinz
+}=require("./geinz_bot/geinz.js")
+
+
+const{
+  resolverInfoTurismo,procesarBusquedaTurismo
+}=require("./geinz_bot/turismo.js")
+
 const { guardarMensajeHistorial } = require("./historial_whatsapp.js");
 
 const { descontarCreditosTienda } = require("./test_db2.js");
@@ -435,31 +454,91 @@ function construirMensajeEscucha(nombreUsuario) {
 }
 
 async function enviarMensajeWhatsapp(recipientPhoneNumber, textBody) {
+  console.log("========================================");
+  console.log("💬 INICIO - Envío de mensaje de texto");
+  console.log("========================================");
+
+  console.log("📞 Destinatario:", recipientPhoneNumber);
+  console.log("📝 Mensaje:");
+  console.log(textBody);
+
   const url = `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-      "Content-Type": "application/json",
+
+  console.log("🌐 URL:", url);
+
+  const payload = {
+    messaging_product: "whatsapp",
+    to: recipientPhoneNumber,
+    type: "text",
+    text: {
+      body: textBody,
     },
-    body: JSON.stringify({
-      messaging_product: "whatsapp",
-      to: recipientPhoneNumber,
-      type: "text",
-      text: { body: textBody },
-    }),
-  });
-  if (!resp.ok)
-    throw new Error(
-      `Error enviando mensaje WhatsApp: ${resp.status} ${await resp.text()}`,
-    );
-  guardarMensajeHistorial({
-    numero_usuario: recipientPhoneNumber,
-    remitente: "bot",
-    tipo: "texto",
-    contenido: textBody,
-  }).catch(() => {});
-  return resp.json();
+  };
+
+  console.log("📦 Payload:");
+  console.log(JSON.stringify(payload, null, 2));
+
+  try {
+    console.log("🚀 Enviando mensaje a WhatsApp...");
+
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    console.log("📡 Status:", resp.status);
+    console.log("📡 Status Text:", resp.statusText);
+
+    const responseText = await resp.text();
+
+    console.log("📨 Respuesta de Meta:");
+    console.log(responseText);
+
+    if (!resp.ok) {
+      console.error("❌ Error enviando mensaje.");
+      throw new Error(
+        `Error enviando mensaje WhatsApp: ${resp.status}\n${responseText}`
+      );
+    }
+
+    let json = {};
+    try {
+      json = JSON.parse(responseText);
+      console.log("✅ Respuesta JSON:");
+      console.log(json);
+    } catch (e) {
+      console.warn("⚠️ La respuesta no es un JSON válido.");
+    }
+
+    console.log("💾 Guardando mensaje en historial...");
+
+    guardarMensajeHistorial({
+      numero_usuario: recipientPhoneNumber,
+      remitente: "bot",
+      tipo: "texto",
+      contenido: textBody,
+    })
+      .then(() => {
+        console.log("✅ Historial guardado correctamente.");
+      })
+      .catch((err) => {
+        console.warn("⚠️ No se pudo guardar el historial.");
+        console.warn(err);
+      });
+
+    console.log("🎉 Mensaje enviado correctamente.");
+    console.log("========================================");
+
+    return json;
+  } catch (error) {
+    console.error("🔥 Excepción durante el envío del mensaje:");
+    console.error(error);
+    throw error;
+  }
 }
 
 async function enviarPlantillaWhatsapp_para_tiendas({
@@ -470,7 +549,23 @@ async function enviarPlantillaWhatsapp_para_tiendas({
   id,
   token_wsap,
 }) {
+  console.log("========================================");
+  console.log("📲 Iniciando envío de plantilla WhatsApp");
+  console.log("========================================");
+
+  console.log("📌 Parámetros recibidos:");
+  console.log({
+    recipientPhoneNumber,
+    imagen,
+    mensaje_safe,
+    alias_tienda,
+    id,
+    token_wsap,
+  });
+
   const url = `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
+
+  console.log("🌐 URL:", url);
 
   const body = {
     messaging_product: "whatsapp",
@@ -485,7 +580,9 @@ async function enviarPlantillaWhatsapp_para_tiendas({
           parameters: [
             {
               type: "image",
-              image: { link: imagen },
+              image: {
+                link: imagen,
+              },
             },
           ],
         },
@@ -524,47 +621,54 @@ async function enviarPlantillaWhatsapp_para_tiendas({
     },
   };
 
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  console.log("📦 Body que se enviará:");
+  console.log(JSON.stringify(body, null, 2));
 
-  if (!resp.ok) {
-    throw new Error(
-      `Error enviando plantilla WhatsApp: ${resp.status} ${await resp.text()}`,
-    );
-  }
+  console.log("🚀 Enviando petición a Meta...");
 
-  const resultadoEnvio = await resp.json();
-  guardarMensajeHistorial({
-    numero_usuario: recipientPhoneNumber,
-    remitente: "bot",
-    tipo: "plantilla",
-    contenido: mensaje_safe || "",
-    extra: { plantilla: "entidades_data", id_tienda: id, alias_tienda },
-  }).catch(() => {});
   try {
-    const resultadoDescuento = await descontarCreditosTienda({
-      id,
-      token_id: token_wsap,
-      tipo: "plantilla",
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
     });
-    console.log(
-      "💳 [enviarPlantillaWhatsapp_para_tiendas] Créditos descontados:",
-      resultadoDescuento,
-    );
-  } catch (e) {
-    console.error(
-      "❌ [enviarPlantillaWhatsapp_para_tiendas] Falló el descuento de créditos:",
-      e.message,
-    );
-  }
 
-  return resultadoEnvio;
+    console.log("📡 Status:", resp.status);
+    console.log("📡 Status Text:", resp.statusText);
+
+    const responseText = await resp.text();
+
+    console.log("📨 Respuesta completa:");
+    console.log(responseText);
+
+    if (!resp.ok) {
+      console.error("❌ Error al enviar la plantilla.");
+      throw new Error(
+        `Error enviando plantilla WhatsApp: ${resp.status}\n${responseText}`
+      );
+    }
+
+    let json = null;
+    try {
+      json = JSON.parse(responseText);
+      console.log("✅ Respuesta JSON:");
+      console.log(json);
+    } catch (e) {
+      console.log("ℹ️ La respuesta no es JSON.");
+    }
+
+    console.log("✅ Plantilla enviada correctamente.");
+    console.log("========================================");
+
+    return json;
+  } catch (error) {
+    console.error("🔥 Excepción al enviar plantilla:");
+    console.error(error);
+    throw error;
+  }
 }
 
 async function enviarImagenWhatsapp(recipientPhoneNumber, imagenUrl, caption) {
@@ -708,6 +812,7 @@ claramente obia "CONTINUIDAD_INFO"
 1. VERIFICA EL EXTRA PARA QUE TENGAS MAYOR CONTEXTO Y CLASIFIQUES SEGUN LA CONVERSACION
 2. Si el mensaje tiene "otro/otra/otros" → responde NEGOCIO o TURISMO según el contexto.
 3. Si el mensaje menciona un nombre, negocio o lugar → ignora el contexto y clasifica solo.
+3b. Si el mensaje menciona SOLO un nombre nuevo (sin decir qué quiere hacer con él) Y CONTEXTO.tipo es "PROMOCIONES" → mantén la misma intención, responde "PROMOCIONES".
 4. Si detetas intencion que busca ofertas promociones o sinonimos similares → responde PROMOCIONES.
 5. CONTINUIDAD_INFO solo si: hay contexto previo, no hay nombre nuevo, y el mensaje pregunta algo concreto del mismo negocio y el mismo "tipo" sino obiar esto.
 6. Si el mensaje NO tiene relación clara con ningún negocio, lugar, promoción o servicio específico (ej: chistes, comentarios random, referencias que no piden nada concreto) → responde GEINZ, NO fuerces NEGOCIO ni TURISMO.
@@ -874,7 +979,14 @@ function construirMensajeBaneado(fechaBloqueo, motivoBloqueo) {
 // CLOUD FUNCTION PRINCIPAL
 // ============================================================
 
-exports.geinz_webhook_principal = onRequest(async (req, res) => {
+exports.geinz_webhook_principal = onRequest(
+  {
+    minInstances: 1,       // deja 1 instancia siempre viva
+    // opcional pero recomendable:
+    concurrency: 20,
+    cpu: 1,
+  },
+  async (req, res) => {
   if (req.method === "GET") {
     const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
     const mode = req.query["hub.mode"];
@@ -1062,15 +1174,23 @@ async function leerYValidarBuffer({ numero_usuario, mensajeId }) {
   const mensajes = Array.isArray(data.mensajes) ? data.mensajes : [];
   const ordenados = [...mensajes].sort((a, b) => (a.ts || 0) - (b.ts || 0));
   const textoConcatenado = ordenados.map((m) => m.texto).join(" ");
-  const vinoDeAudio = data.origen_audio === true; // 👈 lo capturamos ANTES de borrarlo
+  const vinoDeAudio = data.origen_audio === true;
 
-  await ref.update({
+  // 👇 NO se espera: no necesitamos que este write termine para
+  //    saber el texto y arrancar el clasificador. Se dispara y se
+  //    sigue de largo (fire-and-forget con su propio catch).
+  ref.update({
     mensajes: admin.firestore.FieldValue.delete(),
     last_message_id: admin.firestore.FieldValue.delete(),
-    origen_audio: admin.firestore.FieldValue.delete(), // 👈 se limpia para el próximo mensaje
+    origen_audio: admin.firestore.FieldValue.delete(),
     procesando: true,
     procesando_desde: Date.now(),
-  });
+  }).catch((e) =>
+    console.error(
+      "❌ [leerYValidarBuffer] Falló marcar procesando:",
+      e.message,
+    ),
+  );
 
   return {
     valido: true,
@@ -1088,6 +1208,7 @@ exports.geinz_procesar_buffer = onRequest(
   {
     region: "us-central1",
     invoker: "geinz-tasks-invoker@geinzworkapp.iam.gserviceaccount.com",
+    minInstances: 1,   // esta es la que llama a OpenAI/WhatsApp, la más lenta en frío
   },
   async (req, res) => {
     const inicio = Date.now();
@@ -1188,6 +1309,7 @@ exports.geinz_procesar_buffer = onRequest(
             mensaje: mensajeFinal,
             nombreUsuario: nombre_user,
             numero_usuario,
+            canal:"whatsapp"
           });
 
           await promesaContexto;
@@ -1853,6 +1975,21 @@ exports.geinz_procesar_buffer = onRequest(
           });
         }
 
+        // ================================================================
+        // 🔧 BLOQUE PROMOCIONES — CORREGIDO
+        // ================================================================
+        // Antes: "usarImagenYSticker" solo chequeaba que hubiera imagen Y
+        // que fuera 1 sola promo. Si había 1 sola promo PERO sin imagen
+        // (imagen_promo vacío en Algolia), la condición daba false y el
+        // código caía por accidente al bloque de "plantilla", que exige
+        // sí o sí un media ID o link -> WhatsApp devolvía error 132018.
+        //
+        // Ahora se separan los 3 casos reales:
+        //   1) Hay imagen y es 1 sola promo      -> imagen + sticker
+        //   2) Hay imagen y son 2+ promos        -> plantilla
+        //   3) NO hay imagen (sea 1 o varias)    -> texto plano directo,
+        //      nunca se intenta la plantilla sin link.
+        // ================================================================
         if (categoria === "PROMOCIONES") {
           const resultadoPromo = await procesarPromociones({
             mensaje: mensajeFinal,
@@ -1938,7 +2075,7 @@ exports.geinz_procesar_buffer = onRequest(
             });
           }
 
-          // Caso 3: hay promo(s) de verdad → imagen+sticker (1 promo) o plantilla (2+)
+          // Caso 3: hay promo(s) de verdad
           const contextoActualizadoPromo = {
             ...contextoUsuario,
             ...resultadoPromo.data,
@@ -1948,11 +2085,12 @@ exports.geinz_procesar_buffer = onRequest(
             contextoActualizadoPromo,
           );
 
-          const usarImagenYSticker =
-            resultadoPromo.imagen &&
+          const tieneImagen = !!resultadoPromo.imagen;
+          const esUnaSola =
             (resultadoPromo.data?.ids_promos?.length || 0) < 2;
 
-          if (usarImagenYSticker) {
+          if (tieneImagen && esUnaSola) {
+            // 1 sola promo, con imagen -> imagen + sticker
             try {
               await enviarImagenWhatsapp(
                 numero_usuario,
@@ -1961,6 +2099,12 @@ exports.geinz_procesar_buffer = onRequest(
               );
             } catch (e) {
               console.error("❌ [PROMOCIONES] Falló imagen:", e.message);
+              if (resultadoPromo.mensaje_safe) {
+                await enviarMensajeWhatsapp(
+                  numero_usuario,
+                  resultadoPromo.mensaje_safe,
+                );
+              }
             }
             if (resultadoPromo.siker) {
               try {
@@ -1972,7 +2116,8 @@ exports.geinz_procesar_buffer = onRequest(
                 console.error("❌ [PROMOCIONES] Falló sticker:", e.message);
               }
             }
-          } else {
+          } else if (tieneImagen && !esUnaSola) {
+            // 2+ promos, con imagen -> plantilla
             try {
               await enviarPlantillaWhatsapp_promociones({
                 recipientPhoneNumber: numero_usuario,
@@ -1989,6 +2134,22 @@ exports.geinz_procesar_buffer = onRequest(
                 await enviarMensajeWhatsapp(
                   numero_usuario,
                   resultadoPromo.mensaje_safe,
+                );
+              }
+            }
+          } else {
+            // Sin imagen (1 o varias promos) -> nunca intentar plantilla,
+            // se manda directo el texto de respaldo.
+            if (resultadoPromo.mensaje_safe) {
+              try {
+                await enviarMensajeWhatsapp(
+                  numero_usuario,
+                  resultadoPromo.mensaje_safe,
+                );
+              } catch (e) {
+                console.error(
+                  "❌ [PROMOCIONES] Falló texto (sin imagen):",
+                  e.message,
                 );
               }
             }
