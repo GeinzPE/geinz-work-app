@@ -24,7 +24,6 @@ const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 const CACHE_TTL_MS = 1000 * 60 * 30;
-const { guardarMensajeHistorial } = require("../historial_whatsapp.js");
 
 
 function pick(arr) {

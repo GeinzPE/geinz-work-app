@@ -32,33 +32,25 @@ const CONTEXTO_DEFAULT = {
   nombre: null,
 };
 
-const{
-  procesarBusquedaServiciosBasicos
-}=require("./geinz_bot/servicios_basicos.js")
+const {
+  procesarBusquedaServiciosBasicos,
+} = require("./geinz_bot/servicios_basicos.js");
 
-const{
+const {
   procesarBusquedaTienda,
-  resolverInfoNegocio
-}=require("./geinz_bot/negocio.js")
+  resolverInfoNegocio,
+} = require("./geinz_bot/negocio.js");
 
-const{
-  procesarPromociones
-}=require("./geinz_bot/promociones.js")
+const { procesarPromociones } = require("./geinz_bot/promociones.js");
 
+const { procesarEmergencia } = require("./geinz_bot/emergencia.js");
 
-const{
-  procesarEmergencia
-}=require("./geinz_bot/emergencia.js")
+const { llamarGeminiGeinz } = require("./geinz_bot/geinz.js");
 
-
-const{
-  llamarGeminiGeinz
-}=require("./geinz_bot/geinz.js")
-
-
-const{
-  resolverInfoTurismo,procesarBusquedaTurismo
-}=require("./geinz_bot/turismo.js")
+const {
+  resolverInfoTurismo,
+  procesarBusquedaTurismo,
+} = require("./geinz_bot/turismo.js");
 
 const { guardarMensajeHistorial } = require("./historial_whatsapp.js");
 
@@ -67,7 +59,7 @@ const { descontarCreditosTienda } = require("./test_db2.js");
 const { programarTareaDebounce } = require("./tasks.js");
 
 const NUMERO_AVISO_INTERNO = "51937659216"; // mismo formato que usas en baneo_usr
-
+const { clasificarIntencion } = require("./geinz_bot/clasificador.js");
 async function enviarAvisoInterno(mensajeTexto) {
   try {
     await enviarMensajeWhatsapp(NUMERO_AVISO_INTERNO, mensajeTexto);
@@ -501,7 +493,7 @@ async function enviarMensajeWhatsapp(recipientPhoneNumber, textBody) {
     if (!resp.ok) {
       console.error("❌ Error enviando mensaje.");
       throw new Error(
-        `Error enviando mensaje WhatsApp: ${resp.status}\n${responseText}`
+        `Error enviando mensaje WhatsApp: ${resp.status}\n${responseText}`,
       );
     }
 
@@ -517,6 +509,7 @@ async function enviarMensajeWhatsapp(recipientPhoneNumber, textBody) {
     console.log("💾 Guardando mensaje en historial...");
 
     guardarMensajeHistorial({
+        canal : "whatsapp", 
       numero_usuario: recipientPhoneNumber,
       remitente: "bot",
       tipo: "texto",
@@ -647,7 +640,7 @@ async function enviarPlantillaWhatsapp_para_tiendas({
     if (!resp.ok) {
       console.error("❌ Error al enviar la plantilla.");
       throw new Error(
-        `Error enviando plantilla WhatsApp: ${resp.status}\n${responseText}`
+        `Error enviando plantilla WhatsApp: ${resp.status}\n${responseText}`,
       );
     }
 
@@ -694,6 +687,7 @@ async function enviarImagenWhatsapp(recipientPhoneNumber, imagenUrl, caption) {
       `Error enviando imagen WhatsApp: ${resp.status} ${await resp.text()}`,
     );
   guardarMensajeHistorial({
+      canal : "whatsapp", 
     numero_usuario: recipientPhoneNumber,
     remitente: "bot",
     tipo: "imagen",
@@ -725,6 +719,7 @@ async function enviarStickerWhatsapp(recipientPhoneNumber, stickerUrl) {
       `Error enviando sticker WhatsApp: ${resp.status} ${await resp.text()}`,
     );
   guardarMensajeHistorial({
+      canal : "whatsapp", 
     numero_usuario: recipientPhoneNumber,
     remitente: "bot",
     tipo: "sticker",
@@ -795,78 +790,6 @@ async function procesarAudioWhatsapp({
   return { mensajefinal: resultado.texto, whisper: resultado };
 }
 
-// ============================================================
-// PASO 3 — DISPERSADOR (clasificador de intención) — OpenAI gpt-5.4-mini
-// ============================================================
-function construirSystemMessageDispersador(contextoUsuario) {
-  return `Eres un clasificador. Responde SOLO con una palabra.
-CONTEXTO: ${JSON.stringify(contextoUsuario || {})}
-PASOS (seguir en orden):
-0. Si CONTEXTO.extra contiene "ESPERANDO_NOMBRE_PROMO" Y el mensaje NO detectas señales de 
-cambio de intención o cambia de tema  ( o dice "no", "olvida", "mejor otra cosa", "ya no" ,etc
-claramente obia "CONTINUIDAD_INFO"
-0b. Si CONTEXTO.extra contiene "ESPERANDO_ELECCION:" (viene con una lista tipo "negocio,turismo,promociones") Y el mensaje es una respuesta corta/vaga que NO da un dato nuevo específico (ej: "dame", "sí", "ya", "cualquiera", "el primero", "va", "obvio", "ese"):
-   - Si el mensaje menciona una palabra que calza con UNA de las opciones de la lista (ej: dice "promo" y la lista tiene "promociones") → responde esa categoría (NEGOCIO / TURISMO / PROMOCIONES).
-   - Si no menciona nada específico → responde la PRIMERA opción de la lista, en el mismo orden en que aparece.
-   Para en cualquiera de los dos casos.
-1. VERIFICA EL EXTRA PARA QUE TENGAS MAYOR CONTEXTO Y CLASIFIQUES SEGUN LA CONVERSACION
-2. Si el mensaje tiene "otro/otra/otros" → responde NEGOCIO o TURISMO según el contexto.
-3. Si el mensaje menciona un nombre, negocio o lugar → ignora el contexto y clasifica solo.
-3b. Si el mensaje menciona SOLO un nombre nuevo (sin decir qué quiere hacer con él) Y CONTEXTO.tipo es "PROMOCIONES" → mantén la misma intención, responde "PROMOCIONES".
-4. Si detetas intencion que busca ofertas promociones o sinonimos similares → responde PROMOCIONES.
-5. CONTINUIDAD_INFO solo si: hay contexto previo, no hay nombre nuevo, y el mensaje pregunta algo concreto del mismo negocio y el mismo "tipo" sino obiar esto.
-6. Si el mensaje NO tiene relación clara con ningún negocio, lugar, promoción o servicio específico (ej: chistes, comentarios random, referencias que no piden nada concreto) → responde GEINZ, NO fuerces NEGOCIO ni TURISMO.
-7. Solo si dudas entre CONTINUIDAD_INFO y NEGOCIO/TURISMO teniendo información parcial real (ej: menciona algo de comer pero no queda claro si es negocio o turismo) → elige NEGOCIO o TURISMO según lo que más se acerque.
-CATEGORÍAS:
-- EMERGENCIA: peligro de vida real ahora mismo, o pide número de SAMU/policía/serenazgo.
-- PELIGRO: amenaza, extorsión o delito real. No expresiones de enojo del usuario no emergencia real.
-- CONTINUIDAD_INFO: pregunta concreta sobre el mismo negocio del contexto y el mismo "tipo" .
-- SERVICIOS_BASICOS: busca información de empresas de servicios públicos/básicos (telefonía, internet, luz, agua, banco, sunat, reniec, municipalidad) . No es un negocio de consumo.
-- PROMOCIONES: busca descuentos, ofertas, precios bajos o dice que no tiene dinero.
-- NEGOCIO: busca tienda, producto, servicio, o quiere comer/tomar/consumir algo nombre de tienda o negocio.
-- TURISMO: busca lugares turisticos playas plazas no incluye cuidades. No incluye querer comer o consumir.
-- GEINZ: saludo, soporte, registrar su negocio, mensaje sin sentido claro.
-PRIORIDAD: EMERGENCIA > PELIGRO > paso 0 (ESPERANDO_NOMBRE_PROMO) > paso 0b (ESPERANDO_ELECCION) > CONTINUIDAD_INFO > SERVICIOS_BASICOS > PROMOCIONES > NEGOCIO > TURISMO > GEINZ
-Responde solo: EMERGENCIA | PELIGRO | CONTINUIDAD_INFO | SERVICIOS_BASICOS | PROMOCIONES | NEGOCIO | TURISMO | GEINZ`;
-}
-
-const CATEGORIAS_VALIDAS = [
-  "EMERGENCIA",
-  "PELIGRO",
-  "CONTINUIDAD_INFO",
-  "SERVICIOS_BASICOS",
-  "PROMOCIONES",
-  "NEGOCIO",
-  "TURISMO",
-  "GEINZ",
-];
-function limpiarCategoria(raw) {
-  const limpio = (raw || "").trim().toUpperCase();
-  return CATEGORIAS_VALIDAS.includes(limpio) ? limpio : "GEINZ";
-}
-
-async function clasificarIntencion(mensajeUsuario, contextoUsuario) {
-  const systemMessage = construirSystemMessageDispersador(contextoUsuario);
-  const completion = await openai.chat.completions.create({
-    model: "gpt-5.4-mini",
-    messages: [
-      { role: "system", content: systemMessage },
-      { role: "user", content: mensajeUsuario },
-    ],
-    reasoning_effort: "low",
-  });
-
-  const raw = (completion.choices[0]?.message?.content || "").trim();
-  const tokens = {
-    prompt_tokens: completion.usage?.prompt_tokens || 0,
-    completion_tokens: completion.usage?.completion_tokens || 0,
-    thoughts_tokens:
-      completion.usage?.completion_tokens_details?.reasoning_tokens || 0,
-    total_tokens: completion.usage?.total_tokens || 0,
-  };
-
-  return { categoria: limpiarCategoria(raw), tokens };
-}
 
 // ---- Mensajes de "espera" según categoría ----
 function construirMensajeEspera(categoria, nombreUsuario) {
@@ -981,174 +904,183 @@ function construirMensajeBaneado(fechaBloqueo, motivoBloqueo) {
 
 exports.geinz_webhook_principal = onRequest(
   {
-    minInstances: 1,       // deja 1 instancia siempre viva
+    minInstances: 1, // deja 1 instancia siempre viva
     // opcional pero recomendable:
     concurrency: 20,
     cpu: 1,
   },
   async (req, res) => {
-  if (req.method === "GET") {
-    const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
-    const mode = req.query["hub.mode"];
-    const token = req.query["hub.verify_token"];
-    const challenge = req.query["hub.challenge"];
+    if (req.method === "GET") {
+      const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
+      const mode = req.query["hub.mode"];
+      const token = req.query["hub.verify_token"];
+      const challenge = req.query["hub.challenge"];
 
-    if (mode === "subscribe" && token === VERIFY_TOKEN) {
-      return res.status(200).send(challenge);
+      if (mode === "subscribe" && token === VERIFY_TOKEN) {
+        return res.status(200).send(challenge);
+      }
+      return res.sendStatus(403);
     }
-    return res.sendStatus(403);
-  }
-  const inicio = Date.now();
+    const inicio = Date.now();
 
-  try {
-    const entry = req.body?.entry?.[0];
-    const value = entry?.changes?.[0]?.value;
-    const mensajeWa = value?.messages?.[0];
-    const contacto = value?.contacts?.[0];
+    try {
+      const entry = req.body?.entry?.[0];
+      const value = entry?.changes?.[0]?.value;
+      const mensajeWa = value?.messages?.[0];
+      const contacto = value?.contacts?.[0];
 
-    if (!mensajeWa || !contacto) {
-      return res
-        .status(200)
-        .json({ ok: true, info: "Evento sin mensaje procesable" });
-    }
-
-    const numero_usuario = contacto.wa_id;
-    const id_user = value.metadata?.phone_number_id || "";
-    if (mensajeWa.type === "audio" || mensajeWa.type === "text") {
-      await marcarActividadReciente(numero_usuario);
-    }
-
-    const tipoNoSoportado = detectarTipoMensajeNoSoportado(mensajeWa);
-    if (tipoNoSoportado) {
-      // 👇 Caso especial: si es sticker y hay un task vivo (el usuario ya
-      // mandó texto y se está procesando), lo ignoramos por completo.
-      if (tipoNoSoportado === "sticker" || tipoNoSoportado === "pool") {
-        const activo = await hayActividadReciente(numero_usuario);
-
-        if (activo) {
-          console.log(
-            "🙈 [geinz_webhook_principal] Sticker ignorado, hay task viva | 👤:",
-            numero_usuario,
-          );
-          return res.status(200).json({
-            ok: true,
-            info: "Sticker ignorado porque hay un mensaje en proceso",
-            numero_usuario,
-          });
-        }
+      if (!mensajeWa || !contacto) {
+        return res
+          .status(200)
+          .json({ ok: true, info: "Evento sin mensaje procesable" });
       }
 
-      const mensajeEnlatado = construirMensajeNoSoportado(tipoNoSoportado);
-      guardarMensajeHistorial({
+      const numero_usuario = contacto.wa_id;
+      const id_user = value.metadata?.phone_number_id || "";
+      if (mensajeWa.type === "audio" || mensajeWa.type === "text") {
+        await marcarActividadReciente(numero_usuario);
+      }
+
+      const tipoNoSoportado = detectarTipoMensajeNoSoportado(mensajeWa);
+      if (tipoNoSoportado) {
+        // 👇 Caso especial: si es sticker y hay un task vivo (el usuario ya
+        // mandó texto y se está procesando), lo ignoramos por completo.
+        if (tipoNoSoportado === "sticker" || tipoNoSoportado === "pool") {
+          const activo = await hayActividadReciente(numero_usuario);
+
+          if (activo) {
+            console.log(
+              "🙈 [geinz_webhook_principal] Sticker ignorado, hay task viva | 👤:",
+              numero_usuario,
+            );
+            return res.status(200).json({
+              ok: true,
+              info: "Sticker ignorado porque hay un mensaje en proceso",
+              numero_usuario,
+            });
+          }
+        }
+
+        const mensajeEnlatado = construirMensajeNoSoportado(tipoNoSoportado);
+        guardarMensajeHistorial({
+            canal : "whatsapp", 
+          numero_usuario,
+          remitente: "usuario",
+          tipo: tipoNoSoportado,
+          contenido: "",
+          mensaje_id: mensajeWa.id,
+        }).catch(() => {});
+        await enviarMensajeWhatsapp(numero_usuario, mensajeEnlatado);
+
+        console.log(
+          "📦 [geinz_webhook_principal] Tipo no soportado:",
+          tipoNoSoportado,
+          "| 👤 NUMERO:",
+          numero_usuario,
+        );
+
+        return res.status(200).json({
+          ok: true,
+          tipo_mensaje: tipoNoSoportado,
+          mensaje_enviado: mensajeEnlatado,
+          numero_usuario,
+        });
+      }
+
+      const usuarioInfo = await validarUsuario({
         numero_usuario,
+        id_user,
+      });
+      const nombre_user = usuarioInfo.nombre_user || "Usuario";
+
+      if (usuarioInfo.is_spam) {
+        await enviarMensajeWhatsapp(numero_usuario, usuarioInfo.mensaje_spam);
+        return res
+          .status(200)
+          .json({
+            ok: true,
+            bloqueado: true,
+            motivo: usuarioInfo.mensaje_spam,
+          });
+      }
+
+      // 2) Si está baneado
+      if (usuarioInfo.fecha_bloqueo && usuarioInfo.motivo_bloqueo) {
+        const mensajeBan = construirMensajeBaneado(
+          usuarioInfo.fecha_bloqueo,
+          usuarioInfo.motivo_bloqueo,
+        );
+        await enviarMensajeWhatsapp(numero_usuario, mensajeBan);
+        return res
+          .status(200)
+          .json({ ok: true, baneado: true, mensaje: mensajeBan });
+      }
+
+      // 3) Resolver el mensaje según tipo (texto o audio)
+      let mensajeFinal = "";
+      let whisperInfo = null;
+
+      if (mensajeWa.type === "audio") {
+        const resultadoAudio = await procesarAudioWhatsapp({
+          mediaId: mensajeWa.audio.id,
+          recipientPhoneNumber: numero_usuario,
+          nombreUsuario: nombre_user,
+        });
+        mensajeFinal = resultadoAudio.mensajefinal;
+        whisperInfo = resultadoAudio.whisper;
+      } else if (mensajeWa.type === "text") {
+        mensajeFinal = mensajeWa.text?.body || "";
+      } else {
+        return res.status(200).json({
+          ok: true,
+          info: `Tipo de mensaje no soportado: ${mensajeWa.type}`,
+        });
+      }
+      guardarMensajeHistorial({
+          canal : "whatsapp", 
+        numero_usuario,
+        nombre_usuario: nombre_user,
         remitente: "usuario",
-        tipo: tipoNoSoportado,
-        contenido: "",
+        tipo: mensajeWa.type === "audio" ? "audio" : "texto",
+        contenido: mensajeFinal,
         mensaje_id: mensajeWa.id,
       }).catch(() => {});
-      await enviarMensajeWhatsapp(numero_usuario, mensajeEnlatado);
+      if (!mensajeFinal.trim()) {
+        return res
+          .status(200)
+          .json({ ok: true, info: "Mensaje vacío tras resolución" });
+      }
+
+      // 4) Guardar en buffer y programar la task de debounce
+      const mensajeId = mensajeWa.id;
+
+      await Promise.all([
+        agregarMensajeABuffer({
+          numero_usuario,
+          mensajeId,
+          texto: mensajeFinal,
+          porAudio: mensajeWa.type === "audio",
+        }),
+        programarTareaDebounce({ numero_usuario, mensajeId }),
+      ]);
 
       console.log(
-        "📦 [geinz_webhook_principal] Tipo no soportado:",
-        tipoNoSoportado,
-        "| 👤 NUMERO:",
+        "🕒 [geinz_webhook_principal] Mensaje bufferizado, task programada | 👤:",
         numero_usuario,
-      );
-
-      return res.status(200).json({
-        ok: true,
-        tipo_mensaje: tipoNoSoportado,
-        mensaje_enviado: mensajeEnlatado,
-        numero_usuario,
-      });
-    }
-
-    const usuarioInfo = await validarUsuario({
-      numero_usuario,
-      id_user,
-    });
-    const nombre_user = usuarioInfo.nombre_user || "Usuario";
-
-    if (usuarioInfo.is_spam) {
-      await enviarMensajeWhatsapp(numero_usuario, usuarioInfo.mensaje_spam);
-      return res
-        .status(200)
-        .json({ ok: true, bloqueado: true, motivo: usuarioInfo.mensaje_spam });
-    }
-
-    // 2) Si está baneado
-    if (usuarioInfo.fecha_bloqueo && usuarioInfo.motivo_bloqueo) {
-      const mensajeBan = construirMensajeBaneado(
-        usuarioInfo.fecha_bloqueo,
-        usuarioInfo.motivo_bloqueo,
-      );
-      await enviarMensajeWhatsapp(numero_usuario, mensajeBan);
-      return res
-        .status(200)
-        .json({ ok: true, baneado: true, mensaje: mensajeBan });
-    }
-
-    // 3) Resolver el mensaje según tipo (texto o audio)
-    let mensajeFinal = "";
-    let whisperInfo = null;
-
-    if (mensajeWa.type === "audio") {
-      const resultadoAudio = await procesarAudioWhatsapp({
-        mediaId: mensajeWa.audio.id,
-        recipientPhoneNumber: numero_usuario,
-        nombreUsuario: nombre_user,
-      });
-      mensajeFinal = resultadoAudio.mensajefinal;
-      whisperInfo = resultadoAudio.whisper;
-    } else if (mensajeWa.type === "text") {
-      mensajeFinal = mensajeWa.text?.body || "";
-    } else {
-      return res.status(200).json({
-        ok: true,
-        info: `Tipo de mensaje no soportado: ${mensajeWa.type}`,
-      });
-    }
-    guardarMensajeHistorial({
-      numero_usuario,
-      nombre_usuario: nombre_user,
-      remitente: "usuario",
-      tipo: mensajeWa.type === "audio" ? "audio" : "texto",
-      contenido: mensajeFinal,
-      mensaje_id: mensajeWa.id,
-    }).catch(() => {});
-    if (!mensajeFinal.trim()) {
-      return res
-        .status(200)
-        .json({ ok: true, info: "Mensaje vacío tras resolución" });
-    }
-
-    // 4) Guardar en buffer y programar la task de debounce
-    const mensajeId = mensajeWa.id;
-
-    await Promise.all([
-      agregarMensajeABuffer({
-        numero_usuario,
+        "| 📨 mensajeId:",
         mensajeId,
-        texto: mensajeFinal,
-        porAudio: mensajeWa.type === "audio",
-      }),
-      programarTareaDebounce({ numero_usuario, mensajeId }),
-    ]);
+      );
 
-    console.log(
-      "🕒 [geinz_webhook_principal] Mensaje bufferizado, task programada | 👤:",
-      numero_usuario,
-      "| 📨 mensajeId:",
-      mensajeId,
-    );
-
-    return res.status(200).json({ ok: true, buffered: true, mensajeId });
-  } catch (error) {
-    console.error("❌ Error geinz_webhook_principal:", error.message);
-    const tiempo_ms = Date.now() - inicio;
-    return res.status(500).json({ ok: false, error: error.message, tiempo_ms });
-  }
-});
+      return res.status(200).json({ ok: true, buffered: true, mensajeId });
+    } catch (error) {
+      console.error("❌ Error geinz_webhook_principal:", error.message);
+      const tiempo_ms = Date.now() - inicio;
+      return res
+        .status(500)
+        .json({ ok: false, error: error.message, tiempo_ms });
+    }
+  },
+);
 // ============================================================
 // LEER Y VALIDAR BUFFER
 // ============================================================
@@ -1179,18 +1111,20 @@ async function leerYValidarBuffer({ numero_usuario, mensajeId }) {
   // 👇 NO se espera: no necesitamos que este write termine para
   //    saber el texto y arrancar el clasificador. Se dispara y se
   //    sigue de largo (fire-and-forget con su propio catch).
-  ref.update({
-    mensajes: admin.firestore.FieldValue.delete(),
-    last_message_id: admin.firestore.FieldValue.delete(),
-    origen_audio: admin.firestore.FieldValue.delete(),
-    procesando: true,
-    procesando_desde: Date.now(),
-  }).catch((e) =>
-    console.error(
-      "❌ [leerYValidarBuffer] Falló marcar procesando:",
-      e.message,
-    ),
-  );
+  ref
+    .update({
+      mensajes: admin.firestore.FieldValue.delete(),
+      last_message_id: admin.firestore.FieldValue.delete(),
+      origen_audio: admin.firestore.FieldValue.delete(),
+      procesando: true,
+      procesando_desde: Date.now(),
+    })
+    .catch((e) =>
+      console.error(
+        "❌ [leerYValidarBuffer] Falló marcar procesando:",
+        e.message,
+      ),
+    );
 
   return {
     valido: true,
@@ -1208,7 +1142,7 @@ exports.geinz_procesar_buffer = onRequest(
   {
     region: "us-central1",
     invoker: "geinz-tasks-invoker@geinzworkapp.iam.gserviceaccount.com",
-    minInstances: 1,   // esta es la que llama a OpenAI/WhatsApp, la más lenta en frío
+    minInstances: 1, // esta es la que llama a OpenAI/WhatsApp, la más lenta en frío
   },
   async (req, res) => {
     const inicio = Date.now();
@@ -1309,7 +1243,7 @@ exports.geinz_procesar_buffer = onRequest(
             mensaje: mensajeFinal,
             nombreUsuario: nombre_user,
             numero_usuario,
-            canal:"whatsapp"
+            canal: "whatsapp",
           });
 
           await promesaContexto;
@@ -2086,8 +2020,7 @@ exports.geinz_procesar_buffer = onRequest(
           );
 
           const tieneImagen = !!resultadoPromo.imagen;
-          const esUnaSola =
-            (resultadoPromo.data?.ids_promos?.length || 0) < 2;
+          const esUnaSola = (resultadoPromo.data?.ids_promos?.length || 0) < 2;
 
           if (tieneImagen && esUnaSola) {
             // 1 sola promo, con imagen -> imagen + sticker
@@ -2378,6 +2311,7 @@ async function enviarPlantillaBaneoWhatsapp({
   }
 
   guardarMensajeHistorial({
+      canal : "whatsapp", 
     numero_usuario: recipientPhoneNumber,
     remitente: "bot",
     tipo: "plantilla",
@@ -2493,6 +2427,7 @@ async function enviarPlantillaWhatsapp_promociones({
     );
   }
   guardarMensajeHistorial({
+      canal : "whatsapp", 
     numero_usuario: recipientPhoneNumber,
     remitente: "bot",
     tipo: "plantilla",
@@ -2608,6 +2543,7 @@ async function intentarResponderConAudio({ recipientPhoneNumber, texto }) {
       recipientPhoneNumber,
     );
     guardarMensajeHistorial({
+        canal : "whatsapp", 
       numero_usuario: recipientPhoneNumber,
       remitente: "bot",
       tipo: "audio",

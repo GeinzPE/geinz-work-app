@@ -1,7 +1,10 @@
 const admin = require("firebase-admin");
 const db = admin.firestore();
 
-const COLECCION_HISTORIAL = "historial_whatsapp";
+const COLECCIONES_POR_CANAL = {
+  whatsapp: "historial_whatsapp",
+  telegram: "historial_telegram",
+};
 
 /**
  * Guarda un mensaje (del usuario o del bot) en el historial de conversación.
@@ -9,18 +12,20 @@ const COLECCION_HISTORIAL = "historial_whatsapp";
  * para que jamás rompa el flujo real del bot.
  *
  * @param {Object} params
- * @param {string} params.numero_usuario   - wa_id del usuario (obligatorio)
+ * @param {"whatsapp"|"telegram"} params.canal - canal de origen (obligatorio)
+ * @param {string} params.numero_usuario   - wa_id o chat_id del usuario (obligatorio)
  * @param {string} [params.nombre_usuario] - nombre del usuario si se conoce
  * @param {"usuario"|"bot"} params.remitente
  * @param {string} params.tipo             - "texto"|"audio"|"imagen"|"sticker"|
  *                                            "documento"|"video"|"ubicacion"|
  *                                            "contacto"|"url"|"plantilla"
  * @param {string} [params.contenido]      - texto del mensaje / caption / descripción
- * @param {string} [params.mensaje_id]     - id del mensaje de WhatsApp (si aplica)
+ * @param {string} [params.mensaje_id]     - id del mensaje (si aplica)
  * @param {string} [params.categoria]      - categoría clasificada por la IA (si aplica)
  * @param {Object|string} [params.extra]   - cualquier dato extra útil para depurar
  */
 async function guardarMensajeHistorial({
+  canal,
   numero_usuario,
   nombre_usuario,
   remitente,
@@ -30,6 +35,11 @@ async function guardarMensajeHistorial({
   categoria = null,
   extra = null,
 }) {
+  const coleccion = COLECCIONES_POR_CANAL[canal];
+  if (!coleccion) {
+    console.error("❌ [guardarMensajeHistorial] canal inválido o faltante:", canal);
+    return;
+  }
   if (!numero_usuario) {
     console.error("❌ [guardarMensajeHistorial] Falta numero_usuario");
     return;
@@ -43,7 +53,7 @@ async function guardarMensajeHistorial({
   }
 
   try {
-    const refUsuario = db.collection(COLECCION_HISTORIAL).doc(numero_usuario);
+    const refUsuario = db.collection(coleccion).doc(numero_usuario);
     const refMensaje = refUsuario.collection("mensajes").doc();
 
     const contenidoRecortado = (contenido || "").toString().slice(0, 4000);
@@ -80,6 +90,7 @@ async function guardarMensajeHistorial({
     console.error(
       "❌ [guardarMensajeHistorial] Error guardando historial:",
       e.message,
+      "| canal:", canal,
       "| 👤:",
       numero_usuario,
       "| tipo:",
@@ -92,9 +103,14 @@ async function guardarMensajeHistorial({
  * Trae los últimos N mensajes de un usuario, ordenados cronológicamente
  * (más antiguo primero), listo para pintar en una app de conversación.
  */
-async function obtenerHistorialUsuario(numero_usuario, limite = 100) {
+async function obtenerHistorialUsuario(canal, numero_usuario, limite = 100) {
+  const coleccion = COLECCIONES_POR_CANAL[canal];
+  if (!coleccion) {
+    console.error("❌ [obtenerHistorialUsuario] canal inválido:", canal);
+    return [];
+  }
   const snap = await db
-    .collection(COLECCION_HISTORIAL)
+    .collection(coleccion)
     .doc(numero_usuario)
     .collection("mensajes")
     .orderBy("timestamp", "desc")

@@ -6,7 +6,6 @@ const { FieldValue } = require("firebase-admin/firestore");
 const similarity = require("string-similarity-js");
 
 const { obtener_creditos_tienda_fn } = require("../test_db2");
-const { guardarMensajeHistorial } = require("../historial_whatsapp.js");
 
 const openai = new OpenAI({
   apiKey: process.env.API_KEYO_OPEN_IA,

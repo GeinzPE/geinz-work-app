@@ -492,6 +492,7 @@ async function enviarPlantillaEmergencia(recipientPhoneNumber, resultado) {
 
   console.log("✅ [enviarPlantillaEmergencia] Plantilla enviada OK");
   guardarMensajeHistorial({
+    canal: "whatsapp",
     numero_usuario: recipientPhoneNumber,
     remitente: "bot",
     tipo: "plantilla",
@@ -537,6 +538,7 @@ async function enviarMensajeTextoEmergencia(recipientPhoneNumber, resultado) {
 
   console.log("✅ [enviarMensajeTextoEmergencia] Mensaje enviado OK");
   guardarMensajeHistorial({
+    canal: "whatsapp",
     numero_usuario: recipientPhoneNumber,
     remitente: "bot",
     tipo: "texto",
@@ -553,23 +555,30 @@ async function enviarMensajeTextoEmergencia(recipientPhoneNumber, resultado) {
 // sendLocation, por eso el texto de apoyo va como mensaje aparte).
 // ============================================================
 
-async function enviarMensajeTextoTelegram(chat_id, texto) {
+// ============================================================
+// 👇 MODIFICADO — ahora acepta un teclado inline opcional (botones)
+// ============================================================
+async function enviarMensajeTextoTelegram(chat_id, texto, replyMarkup = null) {
   const url = `${TELEGRAM_API_URL}/sendMessage`;
 
-  // chat_id puede venir como "tg_8786837495" (formato interno de Geinz
-  // usado para historial/DB). Telegram exige el chat_id numérico puro.
   const chatIdReal = String(chat_id).startsWith("tg_")
     ? String(chat_id).replace(/^tg_/, "")
     : chat_id;
 
+  const body = {
+    chat_id: chatIdReal,
+    text: texto,
+    parse_mode: "HTML",
+  };
+
+  if (replyMarkup) {
+    body.reply_markup = replyMarkup;
+  }
+
   const resp = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatIdReal,
-      text: texto,
-      parse_mode: "HTML",
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!resp.ok) {
@@ -582,6 +591,7 @@ async function enviarMensajeTextoTelegram(chat_id, texto) {
 
   console.log("✅ [enviarMensajeTextoTelegram] Mensaje enviado OK");
   guardarMensajeHistorial({
+    canal: "telegram",
     numero_usuario: String(chat_id),
     remitente: "bot",
     tipo: "texto",
@@ -647,11 +657,6 @@ async function enviarUbicacionTelegram(chat_id, lat, lng, caption) {
 function construirMensajeEmergenciaTelegram(resultado) {
   let mensaje = resultado.mensaje_texto || resultado.mensaje_safe || "";
 
-  if (resultado.tiene_link && resultado.lat && resultado.lng) {
-    const mapsUrl = `https://www.google.com/maps?q=${resultado.lat},${resultado.lng}`;
-    mensaje += `\n\n📍 Ubicación: ${mapsUrl}`;
-  }
-
   if (resultado.telefonos?.length) {
     mensaje += `\n📞 Llama al: ${resultado.telefonos.join(" / ")}`;
   }
@@ -663,16 +668,28 @@ function construirMensajeEmergenciaTelegram(resultado) {
   return mensaje;
 }
 
+// ============================================================
+// 👇 MODIFICADO — si hay ubicación, arma el botón "Crear ruta"
+// apuntando a Google Maps y lo manda junto al texto
+// ============================================================
 async function enviarRespuestaEmergencia(
   recipientId,
   resultado,
   canal = "whatsapp",
 ) {
   if (canal === "telegram") {
-    // 👇 SIEMPRE texto con link de Maps, nunca sendLocation ni plantilla
-    console.log("🔀 [enviarRespuestaEmergencia] Telegram + texto con Maps");
+    console.log("🔀 [enviarRespuestaEmergencia] Telegram + texto con botón");
     const texto = construirMensajeEmergenciaTelegram(resultado);
-    return enviarMensajeTextoTelegram(recipientId, texto);
+
+    let replyMarkup = null;
+    if (resultado.tiene_link && resultado.lat && resultado.lng) {
+      const mapsUrl = `https://www.google.com/maps?q=${resultado.lat},${resultado.lng}`;
+      replyMarkup = {
+        inline_keyboard: [[{ text: "🗺️ Crear ruta", url: mapsUrl }]],
+      };
+    }
+
+    return enviarMensajeTextoTelegram(recipientId, texto, replyMarkup);
   }
 
   // ---- Rama WhatsApp (sin cambios) ----

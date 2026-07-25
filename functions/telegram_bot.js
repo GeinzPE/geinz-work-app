@@ -33,6 +33,9 @@ const {
 const { guardarMensajeHistorial } = require("./historial_whatsapp.js"); // sirve igual, es genérico por numero_usuario
 const OpenAI = require("openai");
 const openai = new OpenAI({ apiKey: process.env.API_KEYO_OPEN_IA });
+const BASE_URL_PERFIL_TIENDA = "https://geinztech.com/"; // + alias_tienda
+const BASE_URL_CONTACTO_TIENDA = "https://geinztech.com/"; // + ?id_tienda=...&contacto=...
+const BASE_URL_PROMOCIONES = "https://geinztech.com/"; // + api/share?t=pmspls...
 
 // ============================================================
 // CONFIG TELEGRAM
@@ -72,11 +75,12 @@ async function enviarMensajeTelegram(chatId, texto) {
     throw new Error(`Telegram sendMessage error: ${JSON.stringify(json)}`);
 
   guardarMensajeHistorial({
+         canal : "telegram", 
     numero_usuario: `tg_${chatId}`,
     remitente: "bot",
     tipo: "texto",
     contenido: texto,
-  }).catch(() => { });
+  }).catch(() => {});
 
   return json;
 }
@@ -96,12 +100,13 @@ async function enviarImagenTelegram(chatId, imagenUrl, caption) {
     throw new Error(`Telegram sendPhoto error: ${JSON.stringify(json)}`);
 
   guardarMensajeHistorial({
+         canal : "telegram", 
     numero_usuario: `tg_${chatId}`,
     remitente: "bot",
     tipo: "imagen",
     contenido: caption || "",
     extra: { imagen: imagenUrl },
-  }).catch(() => { });
+  }).catch(() => {});
 
   return json;
 }
@@ -214,13 +219,6 @@ async function actualizarContextoUsuarioTelegram(
   });
 }
 
-// ============================================================
-// CLASIFICADOR — reutiliza el mismo prompt/lógica que WhatsApp.
-// Cópialo o impórtalo si lo separas a un módulo común
-// (recomendado: mueve construirSystemMessageDispersador +
-// clasificarIntencion a un archivo compartido, ej. clasificador.js,
-// e impórtalo aquí y en index.js).
-// ============================================================
 const { clasificarIntencion } = require("./geinz_bot/clasificador.js");
 
 // ============================================================
@@ -275,12 +273,10 @@ exports.geinz_webhook_telegram = onRequest(
         );
         return res.status(200).json({ ok: true, info: "imagen" });
       } else {
-        return res
-          .status(200)
-          .json({
-            ok: true,
-            info: `Tipo no soportado: ${Object.keys(mensaje)}`,
-          });
+        return res.status(200).json({
+          ok: true,
+          info: `Tipo no soportado: ${Object.keys(mensaje)}`,
+        });
       }
 
       if (!mensajeFinal.trim()) {
@@ -288,13 +284,14 @@ exports.geinz_webhook_telegram = onRequest(
       }
 
       guardarMensajeHistorial({
+             canal : "telegram", 
         numero_usuario: `tg_${chatId}`,
         nombre_usuario: nombreTg,
         remitente: "usuario",
         tipo: mensaje.voice ? "audio" : "texto",
         contenido: mensajeFinal,
         mensaje_id: mensaje.message_id,
-      }).catch(() => { });
+      }).catch(() => {});
 
       // ---- Usuario + contexto ----
       const usuarioInfo = await obtenerOCrearUsuarioTelegram(chatId, nombreTg);
@@ -333,23 +330,69 @@ exports.geinz_webhook_telegram = onRequest(
           contextoActualizado,
         );
 
-        if (resultadoTienda.imagen) {
-          await enviarImagenTelegram(
-            chatId,
-            resultadoTienda.imagen,
-            resultadoTienda.mensaje_safe,
-          );
+        // 👇 Si en WhatsApp se mandaba plantilla con botones, aquí armamos
+        // los mismos 2 botones para Telegram (perfil + contacto).
+        if (resultadoTienda.plantilla === true) {
+          const botones = [
+            {
+              text: resultadoTienda.alias_tienda || "Ver perfil",
+              url: `${BASE_URL_PERFIL_TIENDA}${resultadoTienda.alias_tienda}`,
+            },
+            {
+              text: "💬 Contactar",
+              url: `${BASE_URL_CONTACTO_TIENDA}?id_tienda=${resultadoTienda.id}&contacto=${resultadoTienda.token_wsap}`,
+            },
+          ];
+
+          try {
+            if (resultadoTienda.imagen) {
+              await enviarImagenConBotones(
+                chatId,
+                resultadoTienda.imagen,
+                resultadoTienda.mensaje_safe,
+                botones,
+              );
+            } else {
+              await enviarMensajeConBotones(
+                chatId,
+                resultadoTienda.mensaje_safe,
+                botones,
+              );
+            }
+          } catch (e) {
+            console.error(
+              "❌ [NEGOCIO Telegram] Falló botones, texto de respaldo:",
+              e.message,
+            );
+            if (resultadoTienda.mensaje_safe) {
+              await enviarMensajeTelegram(chatId, resultadoTienda.mensaje_safe);
+            }
+          }
+        } else if (resultadoTienda.imagen) {
+          try {
+            await enviarImagenTelegram(
+              chatId,
+              resultadoTienda.imagen,
+              resultadoTienda.mensaje_safe,
+            );
+          } catch (e) {
+            console.error(
+              "❌ [NEGOCIO Telegram] Falló imagen, texto de respaldo:",
+              e.message,
+            );
+            if (resultadoTienda.mensaje_safe) {
+              await enviarMensajeTelegram(chatId, resultadoTienda.mensaje_safe);
+            }
+          }
         } else if (resultadoTienda.mensaje_safe) {
           await enviarMensajeTelegram(chatId, resultadoTienda.mensaje_safe);
         }
 
-        return res
-          .status(200)
-          .json({
-            ok: true,
-            categoria: "NEGOCIO",
-            tiempo_ms: Date.now() - inicio,
-          });
+        return res.status(200).json({
+          ok: true,
+          categoria: "NEGOCIO",
+          tiempo_ms: Date.now() - inicio,
+        });
       }
 
       if (categoria === "GEINZ") {
@@ -381,14 +424,12 @@ exports.geinz_webhook_telegram = onRequest(
           }
         }
 
-        return res
-          .status(200)
-          .json({
-            ok: true,
-            categoria: "GEINZ",
-            tiempo_ms: Date.now() - inicio,
-          });
-      };
+        return res.status(200).json({
+          ok: true,
+          categoria: "GEINZ",
+          tiempo_ms: Date.now() - inicio,
+        });
+      }
       if (categoria === "TURISMO") {
         const resultadoTurismo = await procesarBusquedaTurismo({
           mensaje: mensajeFinal,
@@ -431,13 +472,11 @@ exports.geinz_webhook_telegram = onRequest(
           await enviarMensajeTelegram(chatId, resultadoTurismo.mensaje_safe);
         }
 
-        return res
-          .status(200)
-          .json({
-            ok: true,
-            categoria: "TURISMO",
-            tiempo_ms: Date.now() - inicio,
-          });
+        return res.status(200).json({
+          ok: true,
+          categoria: "TURISMO",
+          tiempo_ms: Date.now() - inicio,
+        });
       }
 
       if (categoria === "SERVICIOS_BASICOS") {
@@ -482,13 +521,11 @@ exports.geinz_webhook_telegram = onRequest(
           await enviarMensajeTelegram(chatId, resultadoServicio.mensaje_safe);
         }
 
-        return res
-          .status(200)
-          .json({
-            ok: true,
-            categoria: "SERVICIOS_BASICOS",
-            tiempo_ms: Date.now() - inicio,
-          });
+        return res.status(200).json({
+          ok: true,
+          categoria: "SERVICIOS_BASICOS",
+          tiempo_ms: Date.now() - inicio,
+        });
       }
 
       if (categoria === "PROMOCIONES") {
@@ -516,14 +553,12 @@ exports.geinz_webhook_telegram = onRequest(
             chatId,
             `${nombreTg}, cuéntame qué tienda o categoría te interesa y te busco las promos 🛍️`,
           );
-          return res
-            .status(200)
-            .json({
-              ok: true,
-              categoria: "PROMOCIONES",
-              subcaso: "preguntar_mejor",
-              tiempo_ms: Date.now() - inicio,
-            });
+          return res.status(200).json({
+            ok: true,
+            categoria: "PROMOCIONES",
+            subcaso: "preguntar_mejor",
+            tiempo_ms: Date.now() - inicio,
+          });
         }
 
         // Caso: no encontró promos para lo que pidió
@@ -544,14 +579,12 @@ exports.geinz_webhook_telegram = onRequest(
             chatId,
             `No encontré promociones de ${resultadoPromo.referencia} 😅 ¿tienes otra tienda o categoría en mente?`,
           );
-          return res
-            .status(200)
-            .json({
-              ok: true,
-              categoria: "PROMOCIONES",
-              subcaso: "sin_resultados",
-              tiempo_ms: Date.now() - inicio,
-            });
+          return res.status(200).json({
+            ok: true,
+            categoria: "PROMOCIONES",
+            subcaso: "sin_resultados",
+            tiempo_ms: Date.now() - inicio,
+          });
         }
 
         // Caso: sí hay promo(s)
@@ -564,7 +597,36 @@ exports.geinz_webhook_telegram = onRequest(
           contextoActualizado,
         );
 
-        if (resultadoPromo.imagen) {
+        const tieneImagen = !!resultadoPromo.imagen;
+        const esUnaSola = (resultadoPromo.data?.ids_promos?.length || 0) < 2;
+
+        if (tieneImagen && !esUnaSola) {
+          // 2+ promos con imagen -> imagen + botón (antes era plantilla en WhatsApp)
+          const ids = resultadoPromo.data?.ids_promos || [];
+          const boton = [
+            {
+              text: "🔥 Ver promociones",
+              url: `${BASE_URL_PROMOCIONES}api/share?t=pmspls&l=ba&p=${ids[0] || ""},${ids[1] || ""}`,
+            },
+          ];
+          try {
+            await enviarImagenConBotones(
+              chatId,
+              resultadoPromo.imagen,
+              resultadoPromo.mensaje || resultadoPromo.mensaje_safe,
+              boton,
+            );
+          } catch (e) {
+            console.error(
+              "❌ [PROMOCIONES Telegram] Falló botón, texto de respaldo:",
+              e.message,
+            );
+            if (resultadoPromo.mensaje_safe) {
+              await enviarMensajeTelegram(chatId, resultadoPromo.mensaje_safe);
+            }
+          }
+        } else if (tieneImagen && esUnaSola) {
+          // 1 sola promo, con imagen -> igual que antes, sin botón
           try {
             await enviarImagenTelegram(
               chatId,
@@ -572,24 +634,21 @@ exports.geinz_webhook_telegram = onRequest(
               resultadoPromo.mensaje_safe,
             );
           } catch (e) {
-            console.error(
-              "❌ [PROMOCIONES] Falló imagen, texto de respaldo:",
-              e.message,
-            );
-            if (resultadoPromo.mensaje_safe)
+            console.error("❌ [PROMOCIONES Telegram] Falló imagen:", e.message);
+            if (resultadoPromo.mensaje_safe) {
               await enviarMensajeTelegram(chatId, resultadoPromo.mensaje_safe);
+            }
           }
         } else if (resultadoPromo.mensaje_safe) {
+          // Sin imagen (1 o varias promos) -> texto plano directo, nunca botón sin imagen
           await enviarMensajeTelegram(chatId, resultadoPromo.mensaje_safe);
         }
 
-        return res
-          .status(200)
-          .json({
-            ok: true,
-            categoria: "PROMOCIONES",
-            tiempo_ms: Date.now() - inicio,
-          });
+        return res.status(200).json({
+          ok: true,
+          categoria: "PROMOCIONES",
+          tiempo_ms: Date.now() - inicio,
+        });
       }
 
       if (categoria === "CONTINUIDAD_INFO") {
@@ -682,14 +741,12 @@ exports.geinz_webhook_telegram = onRequest(
             );
           }
 
-          return res
-            .status(200)
-            .json({
-              ok: true,
-              categoria: "CONTINUIDAD_INFO",
-              subcaso: "turismo",
-              tiempo_ms: Date.now() - inicio,
-            });
+          return res.status(200).json({
+            ok: true,
+            categoria: "CONTINUIDAD_INFO",
+            subcaso: "turismo",
+            tiempo_ms: Date.now() - inicio,
+          });
         }
 
         // Continuidad sobre NEGOCIO / PROMOCIONES
@@ -726,13 +783,11 @@ exports.geinz_webhook_telegram = onRequest(
           );
         }
 
-        return res
-          .status(200)
-          .json({
-            ok: true,
-            categoria: "CONTINUIDAD_INFO",
-            tiempo_ms: Date.now() - inicio,
-          });
+        return res.status(200).json({
+          ok: true,
+          categoria: "CONTINUIDAD_INFO",
+          tiempo_ms: Date.now() - inicio,
+        });
       }
 
       if (categoria === "EMERGENCIA") {
@@ -753,13 +808,11 @@ exports.geinz_webhook_telegram = onRequest(
         // 👇 Ya NO llames a construirMensajeEmergenciaConMaps ni enviarMensajeTelegram aquí,
         // procesarEmergencia ya lo hizo internamente.
 
-        return res
-          .status(200)
-          .json({
-            ok: true,
-            categoria: "EMERGENCIA",
-            tiempo_ms: Date.now() - inicio,
-          });
+        return res.status(200).json({
+          ok: true,
+          categoria: "EMERGENCIA",
+          tiempo_ms: Date.now() - inicio,
+        });
       }
 
       if (categoria === "PELIGRO") {
@@ -774,13 +827,11 @@ exports.geinz_webhook_telegram = onRequest(
           `⚠️ ${nombreTg}, tu mensaje ha sido detectado como contenido que incumple las normas de uso de Geinz. Te pedimos mantener una comunicación respetuosa.`,
         );
 
-        return res
-          .status(200)
-          .json({
-            ok: true,
-            categoria: "PELIGRO",
-            tiempo_ms: Date.now() - inicio,
-          });
+        return res.status(200).json({
+          ok: true,
+          categoria: "PELIGRO",
+          tiempo_ms: Date.now() - inicio,
+        });
       }
 
       // Fallback de seguridad — nunca debería llegar aquí si el
@@ -807,19 +858,21 @@ exports.geinz_webhook_telegram = onRequest(
 async function enviarNotaDeVozTelegram(chatId, bufferAudio) {
   const form = new FormData();
   form.append("chat_id", chatId);
-  form.append("voice", new Blob([bufferAudio], { type: "audio/ogg" }), "audio.ogg");
+  form.append(
+    "voice",
+    new Blob([bufferAudio], { type: "audio/ogg" }),
+    "audio.ogg",
+  );
 
   const resp = await fetch(`${TG_API}/sendVoice`, {
     method: "POST",
     body: form,
   });
   const json = await resp.json();
-  if (!resp.ok) throw new Error(`Telegram sendVoice error: ${JSON.stringify(json)}`);
+  if (!resp.ok)
+    throw new Error(`Telegram sendVoice error: ${JSON.stringify(json)}`);
   return json;
 }
-
-
-
 
 function contieneNumeroOLink(texto) {
   if (!texto) return false;
@@ -865,11 +918,12 @@ async function enviarNotaDeVozTelegram(chatId, bufferAudio) {
     throw new Error(`Telegram sendVoice error: ${JSON.stringify(json)}`);
 
   guardarMensajeHistorial({
+         canal : "telegram", 
     numero_usuario: `tg_${chatId}`,
     remitente: "bot",
     tipo: "audio",
     contenido: "",
-  }).catch(() => { });
+  }).catch(() => {});
 
   return json;
 }
@@ -890,4 +944,81 @@ async function intentarResponderConAudioTelegram({ chatId, texto }) {
     );
     return false;
   }
+}
+
+// ============================================================
+// 👇 CONFIGURA AQUÍ tus URLs base reales (las mismas que usan tus
+// plantillas de WhatsApp por detrás). Si no las tienes a la mano,
+// dime el dominio y las completo yo.
+// ============================================================
+
+// ---- Botón(es) inline genérico ----
+async function enviarMensajeConBotones(
+  chatId,
+  texto,
+  botones,
+  caption = false,
+) {
+  // botones: [{ text: "...", url: "..." }, { text: "...", url: "..." }]
+  const inline_keyboard = [botones]; // todos en una sola fila; usa [[b1],[b2]] si los quieres apilados
+
+  const body = {
+    chat_id: chatId,
+    text: texto,
+    reply_markup: { inline_keyboard },
+  };
+
+  const resp = await fetch(`${TG_API}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  const json = await resp.json();
+  if (!resp.ok)
+    throw new Error(
+      `Telegram sendMessage (botones) error: ${JSON.stringify(json)}`,
+    );
+
+  guardarMensajeHistorial({
+      canal : "telegram", 
+    numero_usuario: `tg_${chatId}`,
+    remitente: "bot",
+    tipo: "texto",
+    contenido: texto,
+    extra: { botones },
+  }).catch(() => {});
+
+  return json;
+}
+
+// ---- Imagen + botones (equivalente a la plantilla "entidades_data") ----
+async function enviarImagenConBotones(chatId, imagenUrl, caption, botones) {
+  const resp = await fetch(`${TG_API}/sendPhoto`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      photo: imagenUrl,
+      caption: caption || "",
+      reply_markup: { inline_keyboard: [botones] },
+    }),
+  });
+
+  const json = await resp.json();
+  if (!resp.ok)
+    throw new Error(
+      `Telegram sendPhoto (botones) error: ${JSON.stringify(json)}`,
+    );
+
+  guardarMensajeHistorial({
+         canal : "telegram", 
+    numero_usuario: `tg_${chatId}`,
+    remitente: "bot",
+    tipo: "imagen",
+    contenido: caption || "",
+    extra: { imagen: imagenUrl, botones },
+  }).catch(() => {});
+
+  return json;
 }
