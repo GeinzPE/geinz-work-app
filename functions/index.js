@@ -201,7 +201,7 @@ exports.qrApi = qrApi;
 
 const { geinz_webhook_principal_scag_ai,geinz_webhook_telegram_scag_ai } = require("./bot_scag_ai/principal.js");
 exports.geinz_webhook_principal_scag_ai = geinz_webhook_principal_scag_ai;
-exports.geinz_webhook_telegram_scag_ai = geinz_webhook_principal_scag_ai;
+exports.geinz_webhook_telegram_scag_ai = geinz_webhook_telegram_scag_ai;
 
 // ==================== uso_wisper ====================
 
