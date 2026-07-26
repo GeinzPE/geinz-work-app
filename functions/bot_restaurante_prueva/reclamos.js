@@ -1,8 +1,13 @@
 const { onRequest } = require("firebase-functions/v2/https");
+const { tokenGemini, armarTokens } = require("./token_utils.js");
 
 // const { guardarMensajeHistorial } = require("../historial_whatsapp.js");
 // TODO: activar el guardado en historial cuando esté listo (ver bloque comentado más abajo)
-
+const WHATSAPP_TOKEN = process.env.ID_API_WHATSAPP; // Bearer token (empieza con EAA...)
+const WHATSAPP_PHONE_NUMBER_ID = process.env.ID_NUMBER_WHATSAPP; // el ID numérico
+const WHATSAPP_API_VERSION = "v20.0";
+const NUMERO_ALERTA_RECLAMOS =
+  process.env.NUMERO_ALERTA_RECLAMOS || "51937659216";
 const GEMINIKEY = process.env.PRIVATEKEY_GEMINI;
 const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
@@ -15,13 +20,15 @@ const GEMINI_URL =
    validando lo que siente, y avisarle que un asesor humano va a tomar su
    caso (entre 5 y 10 minutos).
 
-   Siempre devuelve un JSON: { mensaje, extra, humano }
+   👇 TOKENS: antes este archivo no leía `data.usageMetadata` en absoluto.
+   Ahora se lee, se loggea y se devuelve en "tokens" con el mismo formato
+   {detalle, total} que usan las demás ramas.
+
+   Siempre devuelve un JSON: { mensaje, extra, humano, tokens }
      - mensaje: la respuesta calmante para el usuario.
      - extra:   resumen de máximo 6 palabras del turno.
-     - humano:  booleano (true/false), SIEMPRE presente. true cuando el
-                usuario necesita que un asesor humano tome el caso ahora
-                mismo; false cuando todavía es una queja inicial que solo
-                necesita ser escuchada antes de escalar.
+     - humano:  booleano (true/false), SIEMPRE presente.
+     - tokens:  lo gastado en Gemini en esta llamada.
 ========================================================================= */
 
 const RESPONSE_SCHEMA = {
@@ -57,9 +64,14 @@ Responde ÚNICAMENTE con un JSON: { "mensaje": "...", "extra": "...", "humano": 
  * @param {string} params.mensaje - Mensaje actual del usuario.
  * @param {string} [params.nombre_usuario]
  * @param {string} [params.extra_anterior]
- * @returns {Promise<{mensaje: string, extra: string, humano: boolean}>}
+ * @returns {Promise<{mensaje: string, extra: string, humano: boolean, tokens: {detalle: Array, total: number}}>}
  */
-async function responderReclamos({ mensaje, nombre_usuario, extra_anterior }) {
+async function responderReclamos({
+  mensaje,
+  nombre_usuario,
+  extra_anterior,
+  numero_usuario,
+}) {
   try {
     const contexto = [
       nombre_usuario ? `nombre_usuario: ${nombre_usuario}` : null,
@@ -91,26 +103,139 @@ async function responderReclamos({ mensaje, nombre_usuario, extra_anterior }) {
     }
 
     const data = await r.json();
+
+    // 👇 TOKENS: antes no se leía en absoluto en este archivo.
+    const usageMeta = data?.usageMetadata;
+    const tokens = armarTokens([tokenGemini(usageMeta, "gemini-2.5-flash")]);
+    console.log(
+      "[reclamos] Tokens usados en Gemini (gemini-2.5-flash):",
+      "prompt_tokens:",
+      usageMeta?.promptTokenCount ?? null,
+      "| respuesta_tokens:",
+      usageMeta?.candidatesTokenCount ?? null,
+      "| total_tokens:",
+      usageMeta?.totalTokenCount ?? null,
+    );
+
     const texto = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!texto) throw new Error("Gemini no devolvió texto en la respuesta.");
 
     const parsed = JSON.parse(texto);
 
-    if (!parsed.mensaje || !parsed.extra || typeof parsed.humano !== "boolean") {
+    if (
+      !parsed.mensaje ||
+      !parsed.extra ||
+      typeof parsed.humano !== "boolean"
+    ) {
       throw new Error("Respuesta de Gemini incompleta o mal tipada.");
     }
 
-    return { mensaje: parsed.mensaje, extra: parsed.extra, humano: parsed.humano };
+    // 👇 NUEVO — si el reclamo ya necesita un asesor humano, se avisa por
+    // WhatsApp al número de atención. No se espera (await) para no
+    // demorar la respuesta al usuario; la función tiene su propio
+    // try/catch interno así que un fallo ahí no rompe nada más.
+    if (parsed.humano === true) {
+      enviarAlertaWhatsAppReclamo({
+        numero_usuario,
+        nombre_usuario,
+        mensajeUsuario: mensaje,
+      });
+    }
+
+    return {
+      mensaje: parsed.mensaje,
+      extra: parsed.extra,
+      humano: parsed.humano,
+      tokens,
+    };
   } catch (err) {
     console.error("[reclamos] Error generando respuesta:", err);
     // Ante cualquier falla, priorizamos no dejar a un usuario molesto sin
     // respuesta: mensaje calmante genérico + escalar a humano por seguridad.
+
+    // 👇 NUEVO — aquí también se escala a humano, así que también se avisa.
+    enviarAlertaWhatsAppReclamo({
+      numero_usuario,
+      nombre_usuario,
+      mensajeUsuario: mensaje,
+    });
+
     return {
       mensaje:
         "Entiendo tu molestia y lamento el inconveniente. Ya voy a pasar tu caso con un asesor humano, que te va a contactar en unos 5 a 10 minutos.",
       extra: "reclamo, escalado por error técnico",
       humano: true,
+      tokens: armarTokens([]),
     };
+  }
+}
+
+/**
+ * 👇 NUEVO — Manda un WhatsApp simple (texto plano, sin plantilla) al
+ * número de alerta interno, avisando que un usuario de Telegram necesita
+ * atención humana YA. Se dispara solo cuando Gemini devolvió humano:true.
+ *
+ * No lanza excepción hacia arriba si falla — un fallo en la alerta interna
+ * NUNCA debe romper la respuesta que se le da al usuario que reclama.
+ *
+ * @param {Object} params
+ * @param {string} [params.numero_usuario] - ej. "tg_8786837495"
+ * @param {string} [params.nombre_usuario]
+ * @param {string} params.mensajeUsuario - lo que escribió el usuario
+ */
+async function enviarAlertaWhatsAppReclamo({
+  numero_usuario,
+  nombre_usuario,
+  mensajeUsuario,
+}) {
+  console.log(
+    "[reclamos] → enviarAlertaWhatsAppReclamo | numero_usuario:",
+    numero_usuario,
+    "| nombre_usuario:",
+    nombre_usuario,
+  );
+
+  const textoAlerta =
+    `⚠️ Atención: este usuario requiere atención ahora.\n\n` +
+    `🆔 ID Telegram: ${numero_usuario || "desconocido"}\n` +
+    `👤 Nombre: ${nombre_usuario || "Usuario"}\n\n` +
+    `💬 Mensaje:\n${mensajeUsuario}`;
+
+  try {
+    const resp = await fetch(
+      `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to: NUMERO_ALERTA_RECLAMOS,
+          type: "text",
+          text: { body: textoAlerta },
+        }),
+      },
+    );
+
+    const json = await resp.json();
+    if (!resp.ok) {
+      console.error(
+        "[reclamos] ❌ Error mandando alerta WhatsApp:",
+        JSON.stringify(json),
+      );
+    } else {
+      console.log(
+        "[reclamos] ✅ Alerta WhatsApp enviada OK | message_id:",
+        json.messages?.[0]?.id,
+      );
+    }
+  } catch (err) {
+    console.error(
+      "[reclamos] ❌ Excepción mandando alerta WhatsApp:",
+      err.message,
+    );
   }
 }
 
@@ -134,21 +259,12 @@ exports.reclamos = onRequest(async (req, res) => {
       extra_anterior,
     });
 
-    // Guarda la respuesta del bot en el historial (comentado por ahora,
-    // igual que en la rama general)
-    // guardarMensajeHistorial({
-    //   numero_usuario,
-    //   nombre_usuario,
-    //   contenido: respuesta.mensaje,
-    //   extra: respuesta.extra,
-    //   remitente: "bot",
-    //   tipo: "texto",
-    // }).catch((err) => console.error("[reclamos] Error guardando historial:", err));
-
     return res.status(200).json(respuesta);
   } catch (err) {
     console.error("[reclamos] Error en el endpoint:", err);
-    return res.status(500).json({ error: "Error interno de la rama reclamos." });
+    return res
+      .status(500)
+      .json({ error: "Error interno de la rama reclamos." });
   }
 });
 

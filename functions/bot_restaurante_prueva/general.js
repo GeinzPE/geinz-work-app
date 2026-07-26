@@ -1,4 +1,5 @@
 const { onRequest } = require("firebase-functions/v2/https");
+const { tokenGemini, armarTokens } = require("./token_utils.js");
 
 // const { guardarMensajeHistorial } = require("../historial_whatsapp.js");
 // TODO: activar el guardado en historial cuando esté listo (ver bloque comentado más abajo)
@@ -16,6 +17,11 @@ const GEMINI_URL =
                 que la IA tenga contexto de la conversación anterior en el
                 siguiente mensaje (se guarda junto al mensaje, igual que el
                 campo "extra" del historial).
+
+   👇 TOKENS: antes este archivo ni siquiera leía `data.usageMetadata` de la
+   respuesta de Gemini, así que no había forma de saber cuánto se había
+   gastado en esta rama. Ahora se lee, se loggea y se devuelve en "tokens"
+   con el mismo formato {detalle, total} que usan las demás ramas.
 ========================================================================= */
 
 const RESPONSE_SCHEMA = {
@@ -47,7 +53,7 @@ Debes responder ÚNICAMENTE con un JSON con dos campos:
  * @param {string} params.mensaje - Mensaje actual del usuario.
  * @param {string} [params.nombre_usuario] - Nombre del usuario, si se conoce.
  * @param {string} [params.extra_anterior] - Contexto (5 palabras) del turno anterior.
- * @returns {Promise<{mensaje: string, extra: string}>}
+ * @returns {Promise<{mensaje: string, extra: string, tokens: {detalle: Array, total: number}}>}
  */
 async function responderGeneral({ mensaje, nombre_usuario, extra_anterior }) {
   try {
@@ -83,6 +89,17 @@ async function responderGeneral({ mensaje, nombre_usuario, extra_anterior }) {
     }
 
     const data = await respuestaFetch.json();
+
+    // 👇 TOKENS: antes no se leía usageMetadata en este archivo.
+    const usageMeta = data?.usageMetadata;
+    const tokens = armarTokens([tokenGemini(usageMeta, "gemini-2.5-flash")]);
+    console.log(
+      "[general] Tokens usados en Gemini (gemini-2.5-flash):",
+      "prompt_tokens:", usageMeta?.promptTokenCount,
+      "| respuesta_tokens:", usageMeta?.candidatesTokenCount,
+      "| total_tokens:", usageMeta?.totalTokenCount,
+    );
+
     const texto = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!texto) {
@@ -95,13 +112,15 @@ async function responderGeneral({ mensaje, nombre_usuario, extra_anterior }) {
       throw new Error("Respuesta de Gemini incompleta.");
     }
 
-    return { mensaje: parsed.mensaje, extra: parsed.extra };
+    return { mensaje: parsed.mensaje, extra: parsed.extra, tokens };
   } catch (err) {
     console.error("[general] Error generando respuesta:", err);
     return {
       mensaje:
         "Perdona, tuve un problema para responderte. ¿Puedes repetir tu pregunta?",
       extra: "error al responder general",
+      // No se pudo confirmar cuánto se gastó antes de fallar.
+      tokens: armarTokens([]),
     };
   }
 }

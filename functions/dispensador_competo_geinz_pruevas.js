@@ -904,7 +904,7 @@ function construirMensajeBaneado(fechaBloqueo, motivoBloqueo) {
 
 exports.geinz_webhook_principal = onRequest(
   {
-    minInstances: 1, // deja 1 instancia siempre viva
+   // minInstances: 1, // deja 1 instancia siempre viva
     // opcional pero recomendable:
     concurrency: 20,
     cpu: 1,
@@ -1142,7 +1142,7 @@ exports.geinz_procesar_buffer = onRequest(
   {
     region: "us-central1",
     invoker: "geinz-tasks-invoker@geinzworkapp.iam.gserviceaccount.com",
-    minInstances: 1, // esta es la que llama a OpenAI/WhatsApp, la más lenta en frío
+   // minInstances: 1, // esta es la que llama a OpenAI/WhatsApp, la más lenta en frío
   },
   async (req, res) => {
     const inicio = Date.now();

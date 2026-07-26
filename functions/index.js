@@ -62,7 +62,7 @@ const {
   guardar_contacto_user,
   obtener_contacto_user,
   nuevo_registro,
-} = require("./extencion");
+} = require("./bot_scag_ai/extencion.js");
 exports.nuevo_registro = nuevo_registro;
 exports.screenaiQuery_vision_n8n = screenaiQuery_vision_n8n;
 exports.screenaiQuery_extencion = screenaiQuery_extencion;
@@ -116,7 +116,7 @@ const {
   obtener_prompt_vision,
   setContextoTemporal,
   getContextoTemporal,
-} = require("./functions_trabajo");
+} = require("./bot_scag_ai/functions_trabajo.js");
 exports.suggestConfig = suggestConfig;
 exports.screenaiQuery = screenaiQuery;
 exports.getUserData = getUserData;
@@ -135,7 +135,7 @@ const {
   crearOrdenCulqiPlan,
   confirmarPagoPlan,
   webhookCulqiOrder_scagAI,
-} = require("./pagos_scag");
+} = require("./bot_scag_ai/pagos_scag.js");
 exports.crearOrdenCulqiPlan = crearOrdenCulqiPlan;
 exports.webhookCulqiOrder_scagAI = webhookCulqiOrder_scagAI;
 exports.confirmarPagoPlan = confirmarPagoPlan;
@@ -150,10 +150,6 @@ const{
   dispensador_webhook_telegram
 }=require("./bot_restaurante_prueva/webhook_telegram_general")
 exports.dispensador_webhook_telegram=dispensador_webhook_telegram
-
-
-
-
 
 
 const { procesar_audio_whatsapp } = require("./wisper.js");
@@ -197,8 +193,16 @@ exports.syncProductoAlgolia = syncProductoAlgolia;
 exports.syncCategoriaAlgolia = syncCategoriaAlgolia;
 
 
-const { qrApi } = require("./qrGenerator");
+const { qrApi } = require("./qrScanGeinz/qrGenerator.js");
 exports.qrApi = qrApi;
+
+
+
+
+const { geinz_webhook_principal_scag_ai,geinz_webhook_telegram_scag_ai } = require("./bot_scag_ai/principal.js");
+exports.geinz_webhook_principal_scag_ai = geinz_webhook_principal_scag_ai;
+exports.geinz_webhook_telegram_scag_ai = geinz_webhook_principal_scag_ai;
+
 // ==================== uso_wisper ====================
 
 exports.transcribirAudio = onRequest(async (req, res) => {

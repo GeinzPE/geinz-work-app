@@ -1,5 +1,6 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
+const { tokenGemini, armarTokens, combinarTokens } = require("./token_utils.js");
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -13,23 +14,24 @@ const GEMINI_URL =
 
 /* =========================================================================
    RAMA CARTA_VISUAL — el usuario quiere ver la carta / el menú
-   Modelo: gemini-2.5-flash (REST, sin SDK)
 
    Flujo:
      1. Lee TODAS las cartas de:
         /Tiendas/barranca/barranca/TQmS5RKaSDdKmqPGMUXk/carta
-     2. Un clasificador (Gemini, solo texto) elige UNA carta:
-        - si el usuario pidió una específica ("la carta del chifa"), esa.
-        - si no especificó ninguna, una al azar entre las disponibles.
-        Gemini JAMÁS recibe las imágenes en este paso, solo los nombres.
-     3. Un segundo llamado a Gemini redacta el mensaje de acompañamiento
-        (tampoco ve las imágenes) y menciona qué otras cartas hay.
+     2. Un clasificador (Gemini, solo texto) elige UNA carta — esta es la
+        PRIMERA llamada a Gemini de esta rama.
+     3. Un segundo llamado a Gemini redacta el mensaje de acompañamiento —
+        SEGUNDA llamada a Gemini.
      4. Las imágenes de la carta elegida se adjuntan DESPUÉS, por código,
         no por la IA.
 
-   Devuelve: { mensaje, extra, carta, imagenes }
-     - imagenes: las URLs reales que hay que mandar por WhatsApp.
-     - carta:    nombre limpio de la carta elegida (sin guiones bajos).
+   👇 TOKENS: antes NINGUNA de las dos llamadas a Gemini medía ni devolvía
+   tokens (ni en elegirCarta ni en el redactado final). Ahora ambas
+   devuelven su gasto y se combinan con combinarTokens() en un solo
+   "tokens" para la rama completa, para que el dispensador pueda sumarlo
+   junto con el de la clasificación.
+
+   Devuelve: { mensaje, extra, carta, imagenes, tokens }
 ========================================================================= */
 
 const RUTA_CARTA = [
@@ -74,9 +76,11 @@ async function obtenerCartas() {
  * Clasificador: decide cuál carta mandar.
  * Si el usuario no pidió una en particular, Gemini elige una al azar
  * entre las disponibles (así igual queda un solo llamado, sin lógica random en código).
+ *
+ * @returns {Promise<{carta: Object, tokens: {detalle: Array, total: number}}>}
  */
 async function elegirCarta(mensajeUsuario, cartas) {
-  if (cartas.length === 1) return cartas[0];
+  if (cartas.length === 1) return { carta: cartas[0], tokens: armarTokens([]) };
 
   const listado = cartas.map((c) => `- ${c.id}: ${c.nombre}`).join("\n");
 
@@ -113,15 +117,23 @@ Responde solo con el id exacto de una de la lista, nada más.`;
     if (!r.ok) throw new Error(`Gemini (clasificador) respondió ${r.status}`);
 
     const data = await r.json();
+
+    // 👇 TOKENS: antes esta llamada (elegir carta) no se medía en absoluto.
+    const tokens = armarTokens([tokenGemini(data?.usageMetadata, "gemini-2.5-flash")]);
+    console.log(
+      "[carta_visual] Tokens usados en elegirCarta (gemini-2.5-flash):",
+      "total_tokens:", data?.usageMetadata?.totalTokenCount ?? null,
+    );
+
     const texto = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!texto) throw new Error("Gemini (clasificador) no devolvió texto.");
 
     const parsed = JSON.parse(texto);
     const encontrada = cartas.find((c) => c.id === parsed.carta_id);
-    return encontrada || cartas[Math.floor(Math.random() * cartas.length)];
+    return { carta: encontrada || cartas[Math.floor(Math.random() * cartas.length)], tokens };
   } catch (err) {
     console.error("[carta_visual] Error eligiendo carta, uso random:", err);
-    return cartas[Math.floor(Math.random() * cartas.length)];
+    return { carta: cartas[Math.floor(Math.random() * cartas.length)], tokens: armarTokens([]) };
   }
 }
 
@@ -155,7 +167,7 @@ Responde ÚNICAMENTE con un JSON:
  * @param {string} params.mensaje - Mensaje actual del usuario.
  * @param {string} [params.nombre_usuario]
  * @param {string} [params.extra_anterior]
- * @returns {Promise<{mensaje: string, extra: string, carta: string|null, imagenes: string[]}>}
+ * @returns {Promise<{mensaje: string, extra: string, carta: string|null, imagenes: string[], tokens: {detalle: Array, total: number}}>}
  */
 async function responderCartaVisual({ mensaje, nombre_usuario, extra_anterior }) {
   const cartas = await obtenerCartas();
@@ -166,10 +178,11 @@ async function responderCartaVisual({ mensaje, nombre_usuario, extra_anterior })
       extra: "sin cartas disponibles",
       carta: null,
       imagenes: [],
+      tokens: armarTokens([]),
     };
   }
 
-  const elegida = await elegirCarta(mensaje, cartas);
+  const { carta: elegida, tokens: tokensEleccion } = await elegirCarta(mensaje, cartas);
   const otras = cartas.filter((c) => c.id !== elegida.id).map((c) => c.nombre);
 
   const contexto = [
@@ -203,6 +216,16 @@ async function responderCartaVisual({ mensaje, nombre_usuario, extra_anterior })
     }
 
     const data = await r.json();
+
+    // 👇 TOKENS: se suma esta segunda llamada con la de elegirCarta().
+    const tokensRedaccion = armarTokens([tokenGemini(data?.usageMetadata, "gemini-2.5-flash")]);
+    const tokens = combinarTokens(tokensEleccion, tokensRedaccion);
+    console.log(
+      "[carta_visual] Tokens usados en responderCartaVisual | eleccion:", tokensEleccion.total,
+      "| redaccion:", tokensRedaccion.total,
+      "| total rama:", tokens.total,
+    );
+
     const texto = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!texto) throw new Error("Gemini no devolvió texto en la respuesta.");
 
@@ -216,6 +239,7 @@ async function responderCartaVisual({ mensaje, nombre_usuario, extra_anterior })
       extra: parsed.extra,
       carta: elegida.nombre,
       imagenes: elegida.imagenes,
+      tokens,
     };
   } catch (err) {
     console.error("[carta_visual] Error generando respuesta:", err);
@@ -224,6 +248,8 @@ async function responderCartaVisual({ mensaje, nombre_usuario, extra_anterior })
       extra: `envié carta ${elegida.nombre}`.slice(0, 60),
       carta: elegida.nombre,
       imagenes: elegida.imagenes,
+      // Al menos la elección de carta sí se pudo confirmar; la redacción falló.
+      tokens: tokensEleccion,
     };
   }
 }

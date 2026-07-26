@@ -104,7 +104,11 @@ const SYSTEM_PROMPTS_SUPER_DETALLADO = crearDiccionarioPrompts("super");
 
 // Los prompts de visión no dependen de la categoría (son solo instrucciones
 // de formato), así que se calculan una única vez al cargar el módulo.
-const SYSTEM_PROMPT_VISION = salidafinal("general", "vision", "directo").systemPrompt;
+const SYSTEM_PROMPT_VISION = salidafinal(
+  "general",
+  "vision",
+  "directo",
+).systemPrompt;
 const SYSTEM_PROMPT_VISION_DETALLADO = salidafinal(
   "general",
   "vision",
@@ -1016,101 +1020,6 @@ Modelos y categorías válidas:
 const BOT_SCAG_COLLECTION = "bot_scag";
 const TRABAJOS_IA_COLLECTION = "trabajos_ia";
 
-const getUserData = onRequest(
-  { region: "us-central1", timeoutSeconds: 20, memory: "256MiB", cors: true },
-  async (req, res) => {
-    if (req.method === "OPTIONS") {
-      res.status(204).send("");
-      return;
-    }
-    if (req.method !== "GET" && req.method !== "POST") {
-      res.status(405).json({ ok: false, error: "Método no permitido." });
-      return;
-    }
-
-    const body = req.method === "GET" ? req.query : req.body || {};
-    const numero = body.numero?.toString().trim();
-    const nombre = body.nombre?.toString().trim() || "";
-
-    if (!numero) {
-      res.status(400).json({ ok: false, error: "Número requerido." });
-      return;
-    }
-
-    try {
-      const database = initDb2();
-      if (!database) {
-        res.status(500).json({
-          ok: false,
-          error: "No se pudo conectar a la base de datos.",
-        });
-        return;
-      }
-
-      // ── 1. Buscar el registro en bot_scag ──
-      const botRef = database.collection(BOT_SCAG_COLLECTION).doc(numero);
-      const botSnap = await botRef.get();
-
-      // ── 2. Si NO existe el documento, lo creamos (solo numero y nombre, sin alias) ──
-      if (!botSnap.exists) {
-        console.log(`[getUserData] Número nuevo, creando: ${numero}`);
-        await botRef.set({
-          numero,
-          nombre,
-          creadoEn: admin.firestore.Timestamp.now(),
-        });
-
-        res.status(200).json({
-          ok: true,
-          esNuevo: true, // no tiene alias -> es nuevo
-          alias: null,
-          data: null,
-        });
-        return;
-      }
-
-      // ── 3. El documento ya existía, revisamos si tiene alias ──
-      const botData = botSnap.data();
-      const alias = botData?.alias;
-
-      // Sin alias configurado -> lo tratamos como "nuevo" también
-      if (!alias) {
-        res.status(200).json({
-          ok: true,
-          esNuevo: true, // sin alias = todavía no vinculó cuenta = nuevo
-          alias: null,
-          data: null,
-        });
-        return;
-      }
-
-      // ── 4. Con el alias, buscamos en trabajos_ia (mismo flujo de siempre) ──
-      const snap = await database
-        .collection(TRABAJOS_IA_COLLECTION)
-        .doc(alias)
-        .get();
-
-      if (!snap.exists) {
-        res.status(404).json({ ok: false, error: "Usuario no encontrado." });
-        return;
-      }
-
-      const data = snap.data();
-      const clean = {};
-      for (const [key, value] of Object.entries(data)) {
-        clean[key] = value?.toDate ? value.toDate().toISOString() : value;
-      }
-
-      res.status(200).json({ ok: true, esNuevo: false, alias, data: clean });
-    } catch (e) {
-      console.error("[getUserData] error:", e.message);
-      res
-        .status(500)
-        .json({ ok: false, error: "Error al obtener datos: " + e.message });
-    }
-  },
-);
-
 const getUserData_Extencion = onRequest(
   { region: "us-central1", timeoutSeconds: 20, memory: "256MiB", cors: true },
   async (req, res) => {
@@ -1405,6 +1314,11 @@ const obtener_prompt_vision = onRequest(
   },
 );
 
+const {
+  guardarContextoTemporal,
+  leerContextoTemporal,
+} = require("./contextos/contexto_temporal");
+
 const setContextoTemporal = onRequest(
   { region: "us-central1", timeoutSeconds: 20, memory: "256MiB", cors: true },
   async (req, res) => {
@@ -1417,39 +1331,17 @@ const setContextoTemporal = onRequest(
       return;
     }
 
-    const { numero, contexto_temporal } = req.body || {};
-    const numeroLimpio = numero?.toString().trim();
-
-    if (!numeroLimpio) {
-      res.status(400).json({ ok: false, error: "Número requerido." });
-      return;
-    }
-    if (contexto_temporal === undefined) {
-      res
-        .status(400)
-        .json({ ok: false, error: "contexto_temporal requerido." });
-      return;
-    }
-
     try {
-      const database = initDb2();
-      if (!database) {
-        res.status(500).json({
-          ok: false,
-          error: "No se pudo conectar a la base de datos.",
-        });
-        return;
-      }
-
-      const botRef = database.collection(BOT_SCAG_COLLECTION).doc(numeroLimpio);
-
-      await botRef.set({ contexto_temporal }, { merge: true });
-
-      res.status(200).json({ ok: true, numero: numeroLimpio });
+      const { numero, contexto_temporal } = req.body || {};
+      const resultado = await guardarContextoTemporal(
+        numero,
+        contexto_temporal,
+      );
+      res.status(200).json(resultado);
     } catch (e) {
       console.error("[setContextoTemporal] error:", e.message);
       res
-        .status(500)
+        .status(400)
         .json({ ok: false, error: "Error al guardar contexto: " + e.message });
     }
   },
@@ -1468,42 +1360,119 @@ const getContextoTemporal = onRequest(
       return;
     }
 
-    const body = req.method === "GET" ? req.query : req.body || {};
-    const numeroLimpio = body.numero?.toString().trim();
-
-    if (!numeroLimpio) {
-      res.status(400).json({ ok: false, error: "Número requerido." });
-      return;
-    }
-
     try {
-      const database = initDb2();
-      if (!database) {
-        res.status(500).json({
-          ok: false,
-          error: "No se pudo conectar a la base de datos.",
-        });
-        return;
-      }
-
-      const botRef = database.collection(BOT_SCAG_COLLECTION).doc(numeroLimpio);
-      const botSnap = await botRef.get();
-
-      if (!botSnap.exists) {
-        res
-          .status(404)
-          .json({ ok: false, error: "Número no encontrado en bot_scag." });
-        return;
-      }
-
-      const contexto_temporal = botSnap.data()?.contexto_temporal ?? null;
-
-      res.status(200).json({ ok: true, contexto_temporal });
+      const body = req.method === "GET" ? req.query : req.body || {};
+      const resultado = await leerContextoTemporal(body.numero);
+      res.status(200).json(resultado);
     } catch (e) {
       console.error("[getContextoTemporal] error:", e.message);
       res
-        .status(500)
+        .status(400)
         .json({ ok: false, error: "Error al obtener contexto: " + e.message });
+    }
+  },
+);
+
+// ── Lógica pura, reutilizable ──
+// ── Normaliza el número quitando el código de país "51" (Perú) si está presente ──
+// WhatsApp manda "51937659216", pero algunos docs viejos en bot_scag se
+// guardaron sin el prefijo: "937659216".
+function quitarPrefijoPeru(numero) {
+  const n = (numero || "").toString().trim();
+  if (n.startsWith("51") && n.length === 11) {
+    return n.slice(2); // "51937659216" -> "937659216"
+  }
+  return n;
+}
+
+async function obtenerDatosUsuario({ numero, nombre }) {
+  const numeroCrudo = numero?.toString().trim();
+  const nombreLimpio = nombre?.toString().trim() || "";
+
+  if (!numeroCrudo) {
+    throw new Error("Número requerido.");
+  }
+
+  // ── SIEMPRE quitamos el "51" antes de tocar la base de datos ──
+  const numeroLimpio = quitarPrefijoPeru(numeroCrudo);
+
+  const database = initDb2();
+  if (!database) {
+    throw new Error("No se pudo conectar a la base de datos.");
+  }
+
+  // ── 1. Buscar el registro en bot_scag (sin el "51") ──
+  const botRef = database.collection(BOT_SCAG_COLLECTION).doc(numeroLimpio);
+  const botSnap = await botRef.get();
+
+  // ── 2. Si NO existe el documento, lo creamos (sin el "51") ──
+  if (!botSnap.exists) {
+    console.log(`[obtenerDatosUsuario] Número nuevo, creando: ${numeroLimpio}`);
+    await botRef.set({
+      numero: numeroLimpio,
+      nombre: nombreLimpio,
+      creadoEn: admin.firestore.Timestamp.now(),
+    });
+
+    return { ok: true, esNuevo: true, alias: null, data: null };
+  }
+
+  // ── 3. El documento ya existía, revisamos si tiene alias ──
+  const botData = botSnap.data();
+  const alias = botData?.alias;
+
+  console.log(
+    `[obtenerDatosUsuario] Doc encontrado en bot_scag/${numeroLimpio} | alias: ${alias || "(sin alias)"}`,
+  );
+
+  if (!alias) {
+    return { ok: true, esNuevo: true, alias: null, data: null };
+  }
+
+  // ── 4. Con el alias, buscamos en trabajos_ia (mismo flujo de siempre) ──
+  const snap = await database
+    .collection(TRABAJOS_IA_COLLECTION)
+    .doc(alias)
+    .get();
+  if (!snap.exists) {
+    throw new Error("Usuario no encontrado.");
+  }
+
+  const data = snap.data();
+  const clean = {};
+  for (const [key, value] of Object.entries(data)) {
+    clean[key] = value?.toDate ? value.toDate().toISOString() : value;
+  }
+
+  return { ok: true, esNuevo: false, alias, data: clean };
+}
+
+// ── Wrapper HTTP (sigue igual para quien la llame por HTTP, ej. la extensión) ──
+const getUserData = onRequest(
+  { region: "us-central1", timeoutSeconds: 20, memory: "256MiB", cors: true },
+  async (req, res) => {
+    if (req.method === "OPTIONS") return res.status(204).send("");
+    if (req.method !== "GET" && req.method !== "POST") {
+      return res.status(405).json({ ok: false, error: "Método no permitido." });
+    }
+
+    const body = req.method === "GET" ? req.query : req.body || {};
+
+    try {
+      const resultado = await obtenerDatosUsuario({
+        numero: body.numero,
+        nombre: body.nombre,
+      });
+      res.status(200).json(resultado);
+    } catch (e) {
+      console.error("[getUserData] error:", e.message);
+      const status =
+        e.message === "Usuario no encontrado."
+          ? 404
+          : e.message === "Número requerido."
+            ? 400
+            : 500;
+      res.status(status).json({ ok: false, error: e.message });
     }
   },
 );
@@ -1533,4 +1502,6 @@ module.exports = {
   SYSTEM_PROMPTS,
   maxTokens,
   resolverCategoria,
+  obtenerDatosUsuario,
+  initDb2,
 };
